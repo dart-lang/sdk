@@ -17,18 +17,14 @@ import 'codegen_matchers.dart' as codegen_matchers;
 import 'codegen_protocol_constants.dart' as codegen_protocol_constants;
 import 'to_html.dart' as to_html;
 
-/**
- * Generate all targets.
- */
+/// Generate all targets.
 void main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
   await GeneratedContent.generateAll(pkgPath, allTargets);
 }
 
-/**
- * Get a list of all generated targets.
- */
+/// Get a list of all generated targets.
 List<GeneratedContent> get allTargets {
   List<GeneratedContent> targets = <GeneratedContent>[];
   targets.add(codegen_analysis_server.target);

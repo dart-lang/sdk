@@ -23,9 +23,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * Returns the [SourceRange] to find conflicting locals in.
- */
+/// Returns the [SourceRange] to find conflicting locals in.
 SourceRange _getLocalsConflictingRange(AstNode node) {
   // maybe Block
   Block block = node.thisOrAncestorOfType<Block>();
@@ -41,10 +39,8 @@ SourceRange _getLocalsConflictingRange(AstNode node) {
   return SourceRange.EMPTY;
 }
 
-/**
- * Returns the source which should replace given invocation with given
- * arguments.
- */
+/// Returns the source which should replace given invocation with given
+/// arguments.
 String _getMethodSourceForInvocation(
     RefactoringStatus status,
     _SourcePart part,
@@ -145,10 +141,8 @@ String _getMethodSourceForInvocation(
   return SourceEdit.applySequence(part._source, edits);
 }
 
-/**
- * Returns the names which will shadow or will be shadowed by any declaration
- * at [node].
- */
+/// Returns the names which will shadow or will be shadowed by any declaration
+/// at [node].
 Set<String> _getNamesConflictingAt(AstNode node) {
   Set<String> result = <String>{};
   // local variables and functions
@@ -181,9 +175,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   return result;
 }
 
-/**
- * [InlineMethodRefactoring] implementation.
- */
+/// [InlineMethodRefactoring] implementation.
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
@@ -318,9 +310,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     return result;
   }
 
-  /**
-   * Initializes [_methodElement] and related fields.
-   */
+  /// Initializes [_methodElement] and related fields.
   Future<RefactoringStatus> _prepareMethod() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -373,10 +363,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     return RefactoringStatus();
   }
 
-  /**
-   * Analyze [_methodBody] to fill [_methodExpressionPart] and
-   * [_methodStatementsPart].
-   */
+  /// Analyze [_methodBody] to fill [_methodExpressionPart] and
+  /// [_methodStatementsPart].
   RefactoringStatus _prepareMethodParts() {
     RefactoringStatus result = RefactoringStatus();
     if (_methodBody is ExpressionFunctionBody) {
@@ -422,9 +410,7 @@ class _ParameterOccurrence {
   _ParameterOccurrence(this.parentPrecedence, this.range);
 }
 
-/**
- * Processor for single [SearchMatch] reference to [methodElement].
- */
+/// Processor for single [SearchMatch] reference to [methodElement].
 class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
   final SearchMatch reference;
@@ -675,48 +661,30 @@ class _ReturnsValidatorVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-/**
- * Information about the source of a method being inlined.
- */
+/// Information about the source of a method being inlined.
 class _SourcePart {
-  /**
-   * The base for all [SourceRange]s.
-   */
+  /// The base for all [SourceRange]s.
   final int _base;
 
-  /**
-   * The source of the method.
-   */
+  /// The source of the method.
   final String _source;
 
-  /**
-   * The original prefix of the method.
-   */
+  /// The original prefix of the method.
   final String _prefix;
 
-  /**
-   * The occurrences of the method parameters.
-   */
+  /// The occurrences of the method parameters.
   final Map<ParameterElement, List<_ParameterOccurrence>> _parameters = {};
 
-  /**
-   * The occurrences of the method local variables.
-   */
+  /// The occurrences of the method local variables.
   final Map<VariableElement, List<SourceRange>> _variables = {};
 
-  /**
-   * The offsets of explicit `this` expression references.
-   */
+  /// The offsets of explicit `this` expression references.
   final List<int> _explicitThisOffsets = [];
 
-  /**
-   * The offsets of implicit `this` expression references.
-   */
+  /// The offsets of implicit `this` expression references.
   final List<int> _implicitThisOffsets = [];
 
-  /**
-   * The offsets of the implicit class references in static member references.
-   */
+  /// The offsets of the implicit class references in static member references.
   final Map<String, List<int>> _implicitClassNameOffsets = {};
 
   _SourcePart(this._base, this._source, this._prefix);
@@ -762,23 +730,15 @@ class _SourcePart {
   }
 }
 
-/**
- * A visitor that fills [_SourcePart] with fields, parameters and variables.
- */
+/// A visitor that fills [_SourcePart] with fields, parameters and variables.
 class _VariablesVisitor extends GeneralizingAstVisitor<void> {
-  /**
-   * The [ExecutableElement] being inlined.
-   */
+  /// The [ExecutableElement] being inlined.
   final ExecutableElement methodElement;
 
-  /**
-   * The [SourceRange] of the element body.
-   */
+  /// The [SourceRange] of the element body.
   final SourceRange bodyRange;
 
-  /**
-   * The [_SourcePart] to record reference into.
-   */
+  /// The [_SourcePart] to record reference into.
   final _SourcePart result;
 
   int offset;

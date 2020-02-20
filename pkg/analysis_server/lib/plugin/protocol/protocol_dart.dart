@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Utilities for converting Dart entities into analysis server's protocol
- * entities.
- */
+/// Utilities for converting Dart entities into analysis server's protocol
+/// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as pathos;
 
-/**
- * Return a protocol [Element] corresponding to the given [engine.Element].
- */
+/// Return a protocol [Element] corresponding to the given [engine.Element].
 Element convertElement(engine.Element element) {
   String name = getElementDisplayName(element);
   String elementTypeParameters = _getTypeParametersString(element);
@@ -37,14 +33,12 @@ Element convertElement(engine.Element element) {
       returnType: elementReturnType);
 }
 
-/**
- * Return a protocol [ElementKind] corresponding to the given
- * [engine.ElementKind].
- *
- * This does not take into account that an instance of [ClassElement] can be an
- * enum and an instance of [FieldElement] can be an enum constant.
- * Use [convertElementToElementKind] where possible.
- */
+/// Return a protocol [ElementKind] corresponding to the given
+/// [engine.ElementKind].
+///
+/// This does not take into account that an instance of [ClassElement] can be an
+/// enum and an instance of [FieldElement] can be an enum constant.
+/// Use [convertElementToElementKind] where possible.
 ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CLASS) {
     return ElementKind.CLASS;
@@ -103,9 +97,7 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   return ElementKind.UNKNOWN;
 }
 
-/**
- * Return an [ElementKind] corresponding to the given [engine.Element].
- */
+/// Return an [ElementKind] corresponding to the given [engine.Element].
 ElementKind convertElementToElementKind(engine.Element element) {
   if (element is engine.ClassElement) {
     if (element.isEnum) {
@@ -239,7 +231,7 @@ bool _isStatic(engine.Element element) {
   return false;
 }
 
-// Sort @required named parameters before optional ones.
+/// Sort required named parameters before optional ones.
 int _preferRequiredParams(
     engine.ParameterElement e1, engine.ParameterElement e2) {
   int rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;

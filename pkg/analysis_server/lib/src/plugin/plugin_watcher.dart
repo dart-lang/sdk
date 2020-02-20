@@ -13,44 +13,31 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/src/context.dart';
 
-/**
- * An object that watches the results produced by analysis drivers to identify
- * references to previously unseen packages and, if those packages have plugins
- * associated with them, causes the plugin to be associated with the driver's
- * context root (which in turn might cause the plugin to be started).
- */
+/// An object that watches the results produced by analysis drivers to identify
+/// references to previously unseen packages and, if those packages have plugins
+/// associated with them, causes the plugin to be associated with the driver's
+/// context root (which in turn might cause the plugin to be started).
 class PluginWatcher implements DriverWatcher {
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /**
-   * The object managing the execution of plugins.
-   */
+  /// The object managing the execution of plugins.
   final PluginManager manager;
 
-  /**
-   * The object used to locate plugins within packages.
-   */
+  /// The object used to locate plugins within packages.
   final PluginLocator _locator;
 
-  /**
-   * A table mapping analysis drivers to information related to the driver.
-   */
+  /// A table mapping analysis drivers to information related to the driver.
   final Map<AnalysisDriver, _DriverInfo> _driverInfo =
       <AnalysisDriver, _DriverInfo>{};
 
-  /**
-   * Initialize a newly created plugin watcher.
-   */
+  /// Initialize a newly created plugin watcher.
   PluginWatcher(this.resourceProvider, this.manager)
       : _locator = PluginLocator(resourceProvider);
 
-  /**
-   * The context manager has just added the given analysis [driver]. This method
-   * must be called before the driver has been allowed to perform any analysis.
-   */
+  /// The context manager has just added the given analysis [driver]. This
+  /// method must be called before the driver has been allowed to perform any
+  /// analysis.
   @override
   void addedDriver(AnalysisDriver driver, ContextRoot contextRoot) {
     _driverInfo[driver] = _DriverInfo(
@@ -85,9 +72,7 @@ class PluginWatcher implements DriverWatcher {
     }
   }
 
-  /**
-   * The context manager has just removed the given analysis [driver].
-   */
+  /// The context manager has just removed the given analysis [driver].
   @override
   void removedDriver(AnalysisDriver driver) {
     _DriverInfo info = _driverInfo[driver];
@@ -98,10 +83,8 @@ class PluginWatcher implements DriverWatcher {
     _driverInfo.remove(driver);
   }
 
-  /**
-   * Return the path to the root of the SDK being used by the given analysis
-   * [driver].
-   */
+  /// Return the path to the root of the SDK being used by the given analysis
+  /// [driver].
   String _getSdkPath(AnalysisDriver driver) {
     var coreSource = driver.sourceFactory.forUri('dart:core');
 
@@ -126,23 +109,15 @@ class PluginWatcher implements DriverWatcher {
   }
 }
 
-/**
- * Information related to an analysis driver.
- */
+/// Information related to an analysis driver.
 class _DriverInfo {
-  /**
-   * The context root representing the context being analyzed by the driver.
-   */
+  /// The context root representing the context being analyzed by the driver.
   final ContextRoot contextRoot;
 
-  /**
-   * A list of the absolute paths of directories inside of which we have already
-   * searched for a plugin.
-   */
+  /// A list of the absolute paths of directories inside of which we have
+  /// already searched for a plugin.
   final List<String> packageRoots;
 
-  /**
-   * Initialize a newly created information holder.
-   */
+  /// Initialize a newly created information holder.
   _DriverInfo(this.contextRoot, this.packageRoots);
 }

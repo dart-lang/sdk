@@ -66,17 +66,12 @@ class CompressedStackMapsBuilder : public ZoneAllocated {
 class CompressedStackMapsIterator : public ValueObject {
  public:
   // We use the null value to represent CompressedStackMaps with no
-  // entries, so the constructor allows them.
+  // entries, so any CompressedStackMaps arguments to constructors can be null.
   CompressedStackMapsIterator(const CompressedStackMaps& maps,
-                              const CompressedStackMaps& global_table)
-      : maps_(maps),
-        bits_container_(maps_.UsesGlobalTable() ? global_table : maps_) {
-    ASSERT(!maps_.IsGlobalTable());
-    ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
-  }
+                              const CompressedStackMaps& global_table);
+  explicit CompressedStackMapsIterator(const CompressedStackMaps& maps);
 
-  explicit CompressedStackMapsIterator(const CompressedStackMaps& maps)
-      : CompressedStackMapsIterator(maps, CompressedStackMaps::Handle()) {}
+  explicit CompressedStackMapsIterator(const CompressedStackMapsIterator& it);
 
   // Loads the next entry from [maps_], if any. If [maps_] is the null
   // value, this always returns false.
@@ -115,6 +110,9 @@ class CompressedStackMapsIterator : public ValueObject {
     }
     ASSERT(current_spill_slot_bit_count_ >= 0);
   }
+
+  const char* ToCString(Zone* zone) const;
+  const char* ToCString() const;
 
  private:
   static uintptr_t DecodeLEB128(const CompressedStackMaps& data,

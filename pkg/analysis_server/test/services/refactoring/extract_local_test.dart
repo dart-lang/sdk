@@ -1235,11 +1235,9 @@ String foo() => '';
 ''');
   }
 
-  /**
-   * Here we use knowledge how exactly `1 + 2 + 3 + 4` is parsed. We know that
-   * `1 + 2` will be a separate and complete binary expression, so it can be
-   * handled as a single expression.
-   */
+  /// Here we use knowledge how exactly `1 + 2 + 3 + 4` is parsed. We know that
+  /// `1 + 2` will be a separate and complete binary expression, so it can be
+  /// handled as a single expression.
   Future<void> test_singleExpression_partOfBinaryExpression() async {
     await indexTestUnit('''
 main() {
@@ -1386,10 +1384,8 @@ main() {
     expect(editGroups.first.toJson(), json.decode(expectedJsonString));
   }
 
-  /**
-   * Checks that all conditions are OK and the result of applying the
-   * [SourceChange] to [testUnit] is [expectedCode].
-   */
+  /// Checks that all conditions are OK and the result of applying the
+  /// [SourceChange] to [testUnit] is [expectedCode].
   Future _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     SourceChange refactoringChange = await refactoring.createChange();
@@ -1402,20 +1398,16 @@ main() {
     refactoring.name = 'res';
   }
 
-  /**
-   * Creates a new refactoring in [refactoring] at the offset of the given
-   * [search] pattern, and with the length `0`.
-   */
+  /// Creates a new refactoring in [refactoring] at the offset of the given
+  /// [search] pattern, and with the length `0`.
   void _createRefactoringAtString(String search) {
     int offset = findOffset(search);
     int length = 0;
     _createRefactoring(offset, length);
   }
 
-  /**
-   * Creates a new refactoring in [refactoring] for the selection range of the
-   * given [search] pattern.
-   */
+  /// Creates a new refactoring in [refactoring] for the selection range of the
+  /// given [search] pattern.
   void _createRefactoringForString(String search) {
     int offset = findOffset(search);
     int length = search.length;

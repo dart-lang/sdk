@@ -2387,7 +2387,7 @@ main() {new ^ String x = "hello";}''');
 abstract class A {
   A();
   A.generative();
-  factory A.factory() => null;
+  factory A.factory() => A();
 }
 
 main() {
@@ -3285,7 +3285,7 @@ class A { }
 var m;''');
     addTestSource('''
 part of libA;
-class B { factory B.bar(int x) => null; }
+class B { B.bar(int x); }
 main() {new ^}''');
     await computeSuggestions();
 

@@ -709,6 +709,10 @@ class CodeChecker extends RecursiveAstVisitor {
       bool forSpread = false,
       bool forSpreadKey = false,
       bool forSpreadValue = false}) {
+    if (_isNonNullableByDefault) {
+      return;
+    }
+
     from ??= _getExpressionType(expr);
 
     if (_needsImplicitCast(expr, to, from: from) == true) {

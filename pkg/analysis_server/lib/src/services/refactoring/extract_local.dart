@@ -27,9 +27,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
 
-/**
- * [ExtractLocalRefactoring] implementation.
- */
+/// [ExtractLocalRefactoring] implementation.
 class ExtractLocalRefactoringImpl extends RefactoringImpl
     implements ExtractLocalRefactoring {
   final ResolvedUnitResult resolveResult;
@@ -227,10 +225,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return !_checkSelection().hasFatalError;
   }
 
-  /**
-   * Checks if [selectionRange] selects [Expression] which can be extracted, and
-   * location of this [Expression] in AST allows extracting.
-   */
+  /// Checks if [selectionRange] selects [Expression] which can be extracted,
+  /// and location of this [Expression] in AST allows extracting.
   RefactoringStatus _checkSelection() {
     if (selectionOffset <= 0) {
       return RefactoringStatus.fatal(
@@ -352,10 +348,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         'Expression must be selected to activate this refactoring.');
   }
 
-  /**
-   * Return an unique identifier for the given [Element], or `null` if [element]
-   * is `null`.
-   */
+  /// Return an unique identifier for the given [Element], or `null` if
+  /// [element] is `null`.
   int _encodeElement(Element element) {
     if (element == null) {
       return null;
@@ -368,14 +362,12 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return id;
   }
 
-  /**
-   * Returns an [Element]-sensitive encoding of [tokens].
-   * Each [Token] with a [LocalVariableElement] has a suffix of the element id.
-   *
-   * So, we can distinguish different local variables with the same name, if
-   * there are multiple variables with the same name are declared in the
-   * function we are searching occurrences in.
-   */
+  /// Returns an [Element]-sensitive encoding of [tokens].
+  /// Each [Token] with a [LocalVariableElement] has a suffix of the element id.
+  ///
+  /// So, we can distinguish different local variables with the same name, if
+  /// there are multiple variables with the same name are declared in the
+  /// function we are searching occurrences in.
   String _encodeExpressionTokens(Expression expr, List<Token> tokens) {
     // no expression, i.e. a part of a string
     if (expr == null) {
@@ -403,10 +395,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return result + _TOKEN_SEPARATOR;
   }
 
-  /**
-   * Return the [AstNode] to defined the variable before.
-   * It should be accessible by all the given [occurrences].
-   */
+  /// Return the [AstNode] to defined the variable before.
+  /// It should be accessible by all the given [occurrences].
   AstNode _findDeclarationTarget(List<SourceRange> occurrences) {
     List<AstNode> nodes = _findNodes(occurrences);
     AstNode commonParent = getNearestCommonAncestor(nodes);
@@ -429,9 +419,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return target;
   }
 
-  /**
-   * Returns [AstNode]s at the offsets of the given [SourceRange]s.
-   */
+  /// Returns [AstNode]s at the offsets of the given [SourceRange]s.
   List<AstNode> _findNodes(List<SourceRange> ranges) {
     List<AstNode> nodes = <AstNode>[];
     for (SourceRange range in ranges) {
@@ -441,10 +429,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return nodes;
   }
 
-  /**
-   * Returns the [ExpressionFunctionBody] that encloses [node], or `null`
-   * if [node] is not enclosed with an [ExpressionFunctionBody].
-   */
+  /// Returns the [ExpressionFunctionBody] that encloses [node], or `null`
+  /// if [node] is not enclosed with an [ExpressionFunctionBody].
   ExpressionFunctionBody _getEnclosingExpressionBody(AstNode node) {
     while (node != null) {
       if (node is Statement) {
@@ -495,10 +481,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
   }
 
-  /**
-   * Prepares all occurrences of the source which matches given selection,
-   * sorted by offsets.
-   */
+  /// Prepares all occurrences of the source which matches given selection,
+  /// sorted by offsets.
   void _prepareOccurrences() {
     occurrences.clear();
     elementIds.clear();

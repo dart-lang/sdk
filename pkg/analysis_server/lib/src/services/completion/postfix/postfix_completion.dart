@@ -19,9 +19,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * An enumeration of possible postfix completion kinds.
- */
+/// An enumeration of possible postfix completion kinds.
 class DartPostfixCompletion {
   static const NO_TEMPLATE = PostfixCompletionKind('', 'no change', null, null);
 
@@ -223,31 +221,22 @@ class DartPostfixCompletion {
   }
 }
 
-/**
- * A description of a postfix completion.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// A description of a postfix completion.
+///
+/// Clients may not extend, implement or mix-in this class.
 class PostfixCompletion {
-  /**
-   * A description of the assist being proposed.
-   */
+  /// A description of the assist being proposed.
   final PostfixCompletionKind kind;
 
-  /**
-   * The change to be made in order to apply the assist.
-   */
+  /// The change to be made in order to apply the assist.
   final SourceChange change;
 
-  /**
-   * Initialize a newly created completion to have the given [kind] and [change].
-   */
+  /// Initialize a newly created completion to have the given [kind] and
+  /// [change].
   PostfixCompletion(this.kind, this.change);
 }
 
-/**
- * The context for computing a postfix completion.
- */
+/// The context for computing a postfix completion.
 class PostfixCompletionContext {
   final ResolvedUnitResult resolveResult;
   final int selectionOffset;
@@ -256,14 +245,12 @@ class PostfixCompletionContext {
   PostfixCompletionContext(this.resolveResult, this.selectionOffset, this.key);
 }
 
-/**
- * A description of a template for postfix completion. Instances are intended to
- * hold the functions required to determine applicability and expand the
- * template, in addition to its name and simple example. The example is shown
- * (in IntelliJ) in a code-completion menu, so must be quite short.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// A description of a template for postfix completion. Instances are intended
+/// to hold the functions required to determine applicability and expand the
+/// template, in addition to its name and simple example. The example is shown
+/// (in IntelliJ) in a code-completion menu, so must be quite short.
+///
+/// Clients may not extend, implement or mix-in this class.
 class PostfixCompletionKind {
   final String name, example;
   final Function selector;
@@ -280,9 +267,7 @@ class PostfixCompletionKind {
   String toString() => name;
 }
 
-/**
- * The computer for Dart postfix completions.
- */
+/// The computer for Dart postfix completions.
 class PostfixCompletionProcessor {
   static final NO_COMPLETION = PostfixCompletion(
       DartPostfixCompletion.NO_TEMPLATE, SourceChange('', edits: []));

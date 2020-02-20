@@ -453,6 +453,14 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
+    Assembler* assembler) {
+  __ EnterStubFrame();
+  __ CallRuntime(kNullErrorRuntimeEntry, /*argument_count=*/0);
+  // The NullError runtime entry does not return.
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
   GenerateSharedStub(
@@ -3077,18 +3085,6 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   }
 
   __ Bind(&call_runtime);
-
-  // We cannot really ensure here that dynamic/Object/void never occur here
-  // (though it is guaranteed at dart_precompiled_runtime time).  This is
-  // because we do constant evaluation with default stubs and only install
-  // optimized versions before writing out the AOT snapshot.
-  // So dynamic/Object/void will run with default stub in constant evaluation.
-  __ CompareObject(kDstTypeReg, CastHandle<Object>(DynamicType()));
-  __ BranchIf(EQUAL, &done);
-  __ CompareObject(kDstTypeReg, CastHandle<Object>(ObjectType()));
-  __ BranchIf(EQUAL, &done);
-  __ CompareObject(kDstTypeReg, CastHandle<Object>(VoidType()));
-  __ BranchIf(EQUAL, &done);
 
   InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
 

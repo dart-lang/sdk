@@ -7,6 +7,7 @@
 #include "vm/clustered_snapshot.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 
 namespace dart {
 
@@ -122,6 +123,10 @@ DispatchTable* DispatchTable::Deserialize(Deserializer* deserializer,
 
   Code& code = Code::Handle();
 
+  code =
+      deserializer->isolate()->object_store()->dispatch_table_null_error_stub();
+  uword null_entry = code.EntryPoint();
+
   uword value = 0;
   uword recent[kRecentCount] = {0};
   intptr_t recent_index = 0;
@@ -132,7 +137,7 @@ DispatchTable* DispatchTable::Deserialize(Deserializer* deserializer,
     } else {
       int32_t encoded = deserializer->Read<uint32_t>();
       if (encoded == 0) {
-        value = 0;
+        value = null_entry;
       } else if (encoded < 0) {
         intptr_t r = ~encoded;
         ASSERT(r < kRecentCount);

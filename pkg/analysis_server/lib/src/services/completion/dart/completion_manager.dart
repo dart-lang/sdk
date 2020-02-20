@@ -49,15 +49,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
-/**
- * [DartCompletionManager] determines if a completion request is Dart specific
- * and forwards those requests to all [DartCompletionContributor]s.
- */
+/// [DartCompletionManager] determines if a completion request is Dart specific
+/// and forwards those requests to all [DartCompletionContributor]s.
 class DartCompletionManager implements CompletionContributor {
-  /**
-   * The [contributionSorter] is a long-lived object that isn't allowed
-   * to maintain state between calls to [DartContributionSorter#sort(...)].
-   */
+  /// The [contributionSorter] is a long-lived object that isn't allowed
+  /// to maintain state between calls to [DartContributionSorter#sort(...)].
   static DartContributionSorter contributionSorter = CommonUsageSorter();
 
   /// If not `null`, then instead of using [ImportedReferenceContributor],
@@ -244,7 +240,12 @@ class DartCompletionManager implements CompletionContributor {
         kinds.add(protocol.ElementKind.CONSTRUCTOR);
         kinds.add(protocol.ElementKind.ENUM_CONSTANT);
         kinds.add(protocol.ElementKind.EXTENSION);
+        // Static fields.
+        kinds.add(protocol.ElementKind.FIELD);
         kinds.add(protocol.ElementKind.FUNCTION);
+        // Static and top-level properties.
+        kinds.add(protocol.ElementKind.GETTER);
+        kinds.add(protocol.ElementKind.SETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
       }
     }
@@ -341,9 +342,7 @@ class DartCompletionManager implements CompletionContributor {
   }
 }
 
-/**
- * The information about a requested list of completions within a Dart file.
- */
+/// The information about a requested list of completions within a Dart file.
 class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   final ResolvedUnitResult result;
@@ -389,10 +388,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  List<String> get enabledExperiments =>
-      result.session.analysisContext.analysisOptions.enabledExperiments;
-
-  @override
   FeatureSet get featureSet =>
       result.session.analysisContext.analysisOptions.contextFeatures;
 
@@ -429,17 +424,13 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return context.driver.sourceFactory;
   }
 
-  /**
-   * Throw [AbortCompletion] if the completion request has been aborted.
-   */
+  /// Throw [AbortCompletion] if the completion request has been aborted.
   @override
   void checkAborted() {
     _originalRequest.checkAborted();
   }
 
-  /**
-   * Update the completion [target] and [dotTarget] based on the given [unit].
-   */
+  /// Update the completion [target] and [dotTarget] based on the given [unit].
   void _updateTargets(CompilationUnit unit) {
     _opType = null;
     dotTarget = null;
@@ -466,11 +457,9 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     }
   }
 
-  /**
-   * Return a [Future] that completes with a newly created completion request
-   * based on the given [request]. This method will throw [AbortCompletion]
-   * if the completion request has been aborted.
-   */
+  /// Return a [Future] that completes with a newly created completion request
+  /// based on the given [request]. This method will throw [AbortCompletion]
+  /// if the completion request has been aborted.
   static Future<DartCompletionRequest> from(CompletionRequest request) async {
     request.checkAborted();
     CompletionPerformance performance =

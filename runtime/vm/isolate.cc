@@ -2156,7 +2156,7 @@ void Isolate::LowLevelShutdown() {
 
   // Finalize any weak persistent handles with a non-null referent.
   FinalizeWeakPersistentHandlesVisitor visitor;
-  api_state()->weak_persistent_handles().VisitHandles(&visitor);
+  api_state()->VisitWeakHandlesUnlocked(&visitor);
 
 #if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
@@ -2317,7 +2317,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != nullptr) {
-    api_state()->VisitObjectPointers(visitor);
+    api_state()->VisitObjectPointersUnlocked(visitor);
   }
 
   visitor->clear_gc_root_type();
@@ -2389,7 +2389,7 @@ void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
 
 void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != nullptr) {
-    api_state()->VisitWeakHandles(visitor);
+    api_state()->VisitWeakHandlesUnlocked(visitor);
   }
 }
 

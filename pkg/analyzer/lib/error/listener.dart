@@ -10,7 +10,9 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:source_span/source_span.dart';
 
@@ -152,9 +154,9 @@ class ErrorReporter {
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
     _convertElements(arguments);
-    _convertTypeNames(arguments);
-    _errorListener
-        .onError(AnalysisError(_source, offset, length, errorCode, arguments));
+    var messages = _convertTypeNames(arguments);
+    _errorListener.onError(
+        AnalysisError(_source, offset, length, errorCode, arguments, messages));
   }
 
   /**
@@ -225,9 +227,10 @@ class ErrorReporter {
    * case the extended display names of the types will be used in order to
    * clarify the message.
    */
-  void _convertTypeNames(List<Object> arguments) {
+  List<DiagnosticMessage> _convertTypeNames(List<Object> arguments) {
+    var messages = <DiagnosticMessage>[];
     if (arguments == null) {
-      return;
+      return messages;
     }
 
     Map<String, List<_TypeToConvert>> typeGroups = {};
@@ -258,9 +261,8 @@ class ErrorReporter {
           }
         }
         for (_TypeToConvert typeToConvert in typeGroup) {
-          // TODO(brianwilkerson) When analyzer supports info or context
-          //  messages, expose the additional information that way (rather
-          //  than being poorly inserted into the problem message).
+          // TODO(brianwilkerson) When clients do a better job of displaying
+          // context messages, remove the extra text added to the buffer.
           StringBuffer buffer;
           for (Element element in typeToConvert.allElements()) {
             String name = element.name;
@@ -273,6 +275,11 @@ class ErrorReporter {
               }
               buffer.write('$name is defined in ${element.source.fullName}');
             }
+            messages.add(DiagnosticMessageImpl(
+                filePath: element.source.fullName,
+                length: element.nameLength,
+                message: '$name is defined in ${element.source.fullName}',
+                offset: element.nameOffset));
           }
 
           if (buffer != null) {
@@ -284,6 +291,7 @@ class ErrorReporter {
         }
       }
     }
+    return messages;
   }
 }
 

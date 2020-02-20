@@ -14,9 +14,7 @@ import 'driver.dart';
 import 'input_converter.dart';
 import 'operation.dart';
 
-/**
- * Launch and interact with the analysis server.
- */
+/// Launch and interact with the analysis server.
 void main(List<String> rawArgs) {
   Logger logger = Logger('Performance Measurement Client');
   logger.onRecord.listen((LogRecord rec) {
@@ -55,10 +53,8 @@ const HELP_CMDLINE_OPTION = 'help';
 const INPUT_CMDLINE_OPTION = 'input';
 const MAP_OPTION = 'map';
 
-/**
- * The amount of time to give the server to respond to a shutdown request
- * before forcibly terminating it.
- */
+/// The amount of time to give the server to respond to a shutdown request
+/// before forcibly terminating it.
 const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 25);
 
 const TMP_SRC_DIR_OPTION = 'tmpSrcDir';
@@ -101,10 +97,8 @@ ArgParser get argParser {
   return _argParser;
 }
 
-/**
- * Open and return the input stream specifying how this client
- * should interact with the analysis server.
- */
+/// Open and return the input stream specifying how this client
+/// should interact with the analysis server.
 Stream<Operation> openInput(PerfArgs args) {
   var logger = Logger('openInput');
   Stream<List<int>> inputRaw;
@@ -127,9 +121,7 @@ Stream<Operation> openInput(PerfArgs args) {
       .transform(InputConverter(args.tmpSrcDirPath, args.srcPathMap));
 }
 
-/**
- * Parse the command line arguments.
- */
+/// Parse the command line arguments.
 PerfArgs parseArgs(List<String> rawArgs) {
   ArgResults args;
   PerfArgs perfArgs = PerfArgs();
@@ -154,7 +146,7 @@ PerfArgs parseArgs(List<String> rawArgs) {
   for (String pair in args[MAP_OPTION]) {
     if (pair is String) {
       int index = pair.indexOf(',');
-      if (index != -1 && pair.indexOf(',', index + 1) == -1) {
+      if (index != -1 && !pair.contains(',', index + 1)) {
         String oldSrcPrefix = _withTrailingSeparator(pair.substring(0, index));
         String newSrcPrefix = _withTrailingSeparator(pair.substring(index + 1));
         if (Directory(newSrcPrefix).existsSync()) {
@@ -206,9 +198,7 @@ void printHelp() {
   print(argParser.usage);
 }
 
-/**
- * Ensure that the given path has a trailing separator
- */
+/// Ensure that the given path has a trailing separator
 String _withTrailingSeparator(String dirPath) {
   if (dirPath != null && dirPath.length > 4) {
     if (!dirPath.endsWith(path.separator)) {
@@ -218,31 +208,22 @@ String _withTrailingSeparator(String dirPath) {
   return dirPath;
 }
 
-/**
- * The performance measurement arguments specified on the command line.
- */
+/// The performance measurement arguments specified on the command line.
 class PerfArgs {
-  /**
-   * The file path of the instrumentation or log file
-   * used to drive performance measurement,
-   * or 'stdin' if this information should be read from standard input.
-   */
+  /// The file path of the instrumentation or log file
+  /// used to drive performance measurement,
+  /// or 'stdin' if this information should be read from standard input.
   String inputPath;
 
-  /**
-   * A mapping from the original source directory
-   * when the instrumentation or log file was generated
-   * to the target source directory used during performance testing.
-   */
+  /// A mapping from the original source directory
+  /// when the instrumentation or log file was generated
+  /// to the target source directory used during performance testing.
   final PathMap srcPathMap = PathMap();
 
-  /**
-   * The temporary directory containing source used during performance measurement.
-   */
+  /// The temporary directory containing source used during performance
+  /// measurement.
   String tmpSrcDirPath;
 
-  /**
-   * The diagnostic port for Analysis Server or `null` if none.
-   */
+  /// The diagnostic port for Analysis Server or `null` if none.
   int diagnosticPort;
 }

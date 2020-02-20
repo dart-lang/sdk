@@ -1,7 +1,6 @@
 library IndexedDB3Test;
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db';
@@ -90,8 +89,6 @@ Future<Database> readAllReversedViaCursor(Database db) {
 }
 
 main() {
-  useHtmlConfiguration();
-
   // Don't bother with these tests if it's unsupported.
   // Support is tested in indexeddb_1_test
   if (IdbFactory.supported) {

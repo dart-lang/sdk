@@ -91,8 +91,8 @@ class FantasyLandPackage extends Package {
       String name, Playground playground) async {
     return FantasyLandPackage._(
         name,
-        await buildFantasyLand(
-            name, [], path.join(playground.playgroundPath, '${name}__flat')));
+        await buildFantasyLand(name, [],
+            path.join(playground.playgroundPath, '${name}__flat'), true));
   }
 
   @override

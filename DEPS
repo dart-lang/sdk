@@ -86,13 +86,13 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.30.0",
+  "dartdoc_tag" : "v0.30.1",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
-  "http_multi_server_tag" : "2.0.5",
+  "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
   "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.12.0+2",
@@ -106,13 +106,13 @@ vars = {
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
-  "matcher_tag": "0.12.3",
+  "matcher_tag": "0.12.5",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
-  "package_config_tag": "2453cd2e78c2db56ee2669ced17ce70dd00bf576", # should be 1.1.0
+  "package_config_tag": "3401e2897b3cf46e64966e2ba19ed7032501cf41", # should be 1.9.0
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
   "pedantic_tag": "v1.8.0",
@@ -304,7 +304,7 @@ deps = {
     Var("dart_git") + "http_io.git" + "@" + Var("http_io_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
-      "@" + Var("http_multi_server_tag"),
+      "@" + Var("http_multi_server_rev"),
   Var("dart_root") + "/third_party/pkg/http_parser":
       Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_tag"),
   Var("dart_root") + "/third_party/pkg/http_retry":
@@ -479,7 +479,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:39",
+        "version": "binary_version:40",
       }
     ],
     "dep_type": "cipd",

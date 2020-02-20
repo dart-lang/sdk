@@ -64,7 +64,8 @@ class FileSystemStateTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       packages: Packages.empty,
       sourceFactory: sourceFactory,
-      defaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
     );
     fileSystemState = FileSystemState(
       logger,

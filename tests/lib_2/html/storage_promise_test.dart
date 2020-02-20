@@ -7,13 +7,10 @@ library interactive_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'package:async_helper/async_helper.dart';
 
 main() async {
-  useHtmlConfiguration();
-
   bool thenEstimateBefore, thenEstimateAfter, thenEstimateDone = false;
   Map thenEstimate;
   test('Basic Promise Test', () async {

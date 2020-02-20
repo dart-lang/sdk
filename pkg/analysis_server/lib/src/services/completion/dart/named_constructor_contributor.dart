@@ -11,10 +11,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
-/**
- * A contributor for calculating named constructor suggestions
- * such as suggesting `bar` in `new Foo.bar()`.
- */
+/// A contributor for calculating named constructor suggestions
+/// such as suggesting `bar` in `new Foo.bar()`.
 class NamedConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(

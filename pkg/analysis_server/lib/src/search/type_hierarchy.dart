@@ -12,9 +12,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-/**
- * A computer for a type hierarchy of an [Element].
- */
+/// A computer for a type hierarchy of an [Element].
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
 
@@ -48,9 +46,7 @@ class TypeHierarchyComputer {
     }
   }
 
-  /**
-   * Returns the computed type hierarchy, maybe `null`.
-   */
+  /// Returns the computed type hierarchy, maybe `null`.
   Future<List<TypeHierarchyItem>> compute() async {
     if (_pivotClass != null) {
       _createSuperItem(_pivotClass, null);
@@ -60,9 +56,7 @@ class TypeHierarchyComputer {
     return null;
   }
 
-  /**
-   * Returns the computed super type only type hierarchy, maybe `null`.
-   */
+  /// Returns the computed super type only type hierarchy, maybe `null`.
   List<TypeHierarchyItem> computeSuper() {
     if (_pivotClass != null) {
       _createSuperItem(_pivotClass, null);

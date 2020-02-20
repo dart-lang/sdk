@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 
@@ -85,6 +87,17 @@ class ApiSignature {
     _makeRoom(8);
     _data.setFloat64(_offset, d, Endian.little);
     _offset += 8;
+  }
+
+  /**
+   * Collect a [FeatureSet].
+   */
+  void addFeatureSet(FeatureSet featureSet) {
+    var knownFeatures = ExperimentStatus.knownFeatures;
+    addInt(knownFeatures.length);
+    for (var feature in knownFeatures.values) {
+      addBool(featureSet.isEnabled(feature));
+    }
   }
 
   /**

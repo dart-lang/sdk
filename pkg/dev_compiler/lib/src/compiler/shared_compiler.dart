@@ -38,7 +38,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// The identifier used to reference DDC's core "dart:_runtime" library from
   /// generated JS code, typically called "dart" e.g. `dart.dcall`.
-  @protected
   js_ast.Identifier runtimeModule;
 
   /// The identifier used to reference DDC's "extension method" symbols, used to
@@ -162,19 +161,6 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   js_ast.Block exitFunction(
       String name, List<js_ast.Parameter> formals, js_ast.Block code) {
-    if (name == '==' &&
-        formals.isNotEmpty &&
-        currentLibraryUri.scheme != 'dart') {
-      // In Dart `operator ==` methods are not called with a null argument.
-      // This is handled before calling them. For performance reasons, we push
-      // this check inside the method, to simplify our `equals` helper.
-      //
-      // TODO(jmesserly): in most cases this check is not necessary, because
-      // the Dart code already handles it (typically by an `is` check).
-      // Eliminate it when possible.
-      code = js
-          .block('{ if (# == null) return false; #; }', [formals.first, code]);
-    }
     var setOperatorResult = _operatorSetResultStack.removeLast();
     if (setOperatorResult != null) {
       // []= methods need to return the value. We could also address this at

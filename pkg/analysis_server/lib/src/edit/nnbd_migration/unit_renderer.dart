@@ -40,28 +40,23 @@ class UnitRenderer {
     // _computeRegionContent() send html back to the client; convert this to
     // instead sending data back (instead of presentation).
     Map<String, dynamic> response = {
-      'thisUnit': migrationInfo.computeName(unitInfo),
-      'navContent': _computeNavigationContent(),
-      'regions': _computeRegionContent(),
-      'editList': _computeEditList(),
+      'regions': _computeRegionContent(unitInfo),
+      'navigationContent': _computeNavigationContent(),
+      'sourceCode': unitInfo.content,
+      'edits': _computeEditList(),
     };
     return jsonEncode(response);
   }
 
   /// Returns the list of edits, as JSON.
-  Map<String, Object> _computeEditList() {
-    var response = <String, Object>{
-      'editCount': unitInfo.fixRegions.length,
-      'edits': [
-        for (var region in unitInfo.fixRegions)
-          {
-            'line': region.lineNumber,
-            'explanation': region.explanation,
-            'offset': region.offset,
-          },
-      ],
-    };
-    return response;
+  List<Map<String, dynamic>> _computeEditList() {
+    return unitInfo.fixRegions.map((RegionInfo region) {
+      return {
+        'line': region.lineNumber,
+        'explanation': region.explanation,
+        'offset': region.offset,
+      };
+    }).toList();
   }
 
   /// Returns the content of the file with navigation links and anchors added.
@@ -78,14 +73,13 @@ class UnitRenderer {
     // Compute insertions for navigation targets.
     //
     for (NavigationTarget region in unitInfo.targets) {
-      int regionLength = region.length;
-      if (regionLength > 0) {
+      if (region.length > 0) {
         int openOffset = mapper.map(region.offset);
         String openInsertion = openInsertions[openOffset] ?? '';
         openInsertion = '<span id="o${region.offset}">$openInsertion';
         openInsertions[openOffset] = openInsertion;
 
-        int closeOffset = openOffset + regionLength;
+        int closeOffset = openOffset + region.length;
         String closeInsertion = closeInsertions[closeOffset] ?? '';
         closeInsertion = '$closeInsertion</span>';
         closeInsertions[closeOffset] = closeInsertion;
@@ -96,8 +90,7 @@ class UnitRenderer {
     // point at themselves.
     //
     for (NavigationSource region in unitInfo.sources ?? <NavigationSource>[]) {
-      int regionLength = region.length;
-      if (regionLength > 0) {
+      if (region.length > 0) {
         int openOffset = mapper.map(region.offset);
         NavigationTarget target = region.target;
         if (target.filePath != unitInfo.path ||
@@ -110,7 +103,7 @@ class UnitRenderer {
               '<a href="$targetUri" class="nav-link">$openInsertion';
           openInsertions[openOffset] = openInsertion;
 
-          int closeOffset = openOffset + regionLength;
+          int closeOffset = openOffset + region.length;
           String closeInsertion = closeInsertions[closeOffset] ?? '';
           closeInsertion = '$closeInsertion</a>';
           closeInsertions[closeOffset] = closeInsertion;
@@ -123,17 +116,16 @@ class UnitRenderer {
     List<int> offsets = [...openInsertions.keys, ...closeInsertions.keys];
     offsets.sort();
     StringBuffer navContent2 = StringBuffer();
-    int previousOffset2 = 0;
+    int previousOffset = 0;
     for (int offset in offsets) {
       navContent2.write(
-          _htmlEscape.convert(content.substring(previousOffset2, offset)));
+          _htmlEscape.convert(content.substring(previousOffset, offset)));
       navContent2.write(closeInsertions[offset] ?? '');
       navContent2.write(openInsertions[offset] ?? '');
-      previousOffset2 = offset;
+      previousOffset = offset;
     }
-    if (previousOffset2 < content.length) {
-      navContent2
-          .write(_htmlEscape.convert(content.substring(previousOffset2)));
+    if (previousOffset < content.length) {
+      navContent2.write(_htmlEscape.convert(content.substring(previousOffset)));
     }
     return navContent2.toString();
   }
@@ -143,7 +135,7 @@ class UnitRenderer {
   ///
   /// The content of the file (not including added links and anchors) will be
   /// HTML-escaped.
-  String _computeRegionContent() {
+  String _computeRegionContent(UnitInfo unit) {
     String content = unitInfo.content;
     StringBuffer regions = StringBuffer();
     int lineNumber = 1;
@@ -195,7 +187,8 @@ class UnitRenderer {
     }
 
     int previousOffset = 0;
-    regions.write('<table><tbody><tr><td class="line-no">$lineNumber</td><td>');
+    regions.write('<table data-path="${unit.path}"><tbody>');
+    regions.write('<tr><td class="line-no">$lineNumber</td><td>');
     for (var region in unitInfo.regions) {
       int offset = region.offset;
       int length = region.length;

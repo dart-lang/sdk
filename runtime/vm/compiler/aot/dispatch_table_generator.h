@@ -19,10 +19,30 @@ namespace compiler {
 class SelectorRow;
 
 struct TableSelector {
+  TableSelector(int32_t _id,
+                int32_t _call_count,
+                int32_t _offset,
+                bool _called_on_null)
+      : id(_id),
+        call_count(_call_count),
+        offset(_offset),
+        called_on_null(_called_on_null) {}
+
+  bool IsUsed() const { return call_count > 0; }
+
+  // ID assigned to the selector.
   int32_t id;
+  // Number of dispatch table call sites with this selector (conservative:
+  // number may be bigger, but not smaller, than actual number of call sites).
+  int32_t call_count;
+  // Table offset assigned to the selector by the dispatch table generator.
   int32_t offset;
-  bool on_null_interface;
-  bool requires_args_descriptor;
+  // Are there any call sites with this selector where the receiver may be null?
+  bool called_on_null;
+  // Is the selector part of the interface on Null (same as Object)?
+  bool on_null_interface = false;
+  // Do any targets of this selector assume that an args descriptor is passed?
+  bool requires_args_descriptor = false;
 };
 
 class SelectorMap {
@@ -40,10 +60,10 @@ class SelectorMap {
 
   int32_t SelectorId(const Function& interface_target) const;
 
+  void AddSelector(int32_t call_count, bool called_on_null);
   void SetSelectorProperties(int32_t sid,
                              bool on_null_interface,
                              bool requires_args_descriptor);
-  void SetSelectorOffset(int32_t sid, int32_t offset);
 
   int32_t NumIds() const { return selectors_.length(); }
 
@@ -68,6 +88,7 @@ class DispatchTableGenerator {
   DispatchTable* BuildTable();
 
  private:
+  void ReadTableSelectorInfo();
   void NumberSelectors();
   void SetupSelectorRows();
   void ComputeSelectorOffsets();

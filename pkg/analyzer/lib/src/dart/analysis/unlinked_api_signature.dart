@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 
@@ -59,12 +57,6 @@ class _UnitApiSignatureComputer {
     }
 
     addToken(node.rightBracket);
-  }
-
-  void addFeatureSet(FeatureSet featureSet) {
-    for (var feature in ExperimentStatus.knownFeatures.values) {
-      signature.addBool(featureSet.isEnabled(feature));
-    }
   }
 
   void addFunctionBodyModifiers(FunctionBody node) {
@@ -127,7 +119,7 @@ class _UnitApiSignatureComputer {
   }
 
   void compute(CompilationUnit unit) {
-    addFeatureSet(unit.featureSet);
+    signature.addFeatureSet(unit.featureSet);
 
     signature.addInt(unit.directives.length);
     unit.directives.forEach(addNode);

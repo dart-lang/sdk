@@ -2053,9 +2053,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
       _toDataUrl(type, quality);
 
   @JSName('toBlob')
-  void _toBlob(BlobCallback callback, String type, [Object arguments]) native;
+  void _toBlob(BlobCallback callback, [String type, Object arguments]) native;
 
-  Future<Blob> toBlob(String type, [Object arguments]) {
+  Future<Blob> toBlob([String type, Object arguments]) {
     var completer = new Completer<Blob>();
     _toBlob((value) {
       completer.complete(value);
@@ -2687,6 +2687,7 @@ class CanvasRenderingContext2D extends Interceptor
     } else if (JS('bool', '!!#.webkitLineDash', this)) {
       return JS('List<num>', '#.webkitLineDash', this);
     }
+    return [];
   }
 
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -22116,7 +22117,7 @@ class Node extends EventTarget {
    *
    * * [insertBefore]
    */
-  Node insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+  void insertAllBefore(Iterable<Node> newNodes, Node refChild) {
     if (newNodes is _ChildNodeListLazy) {
       _ChildNodeListLazy otherList = newNodes;
       if (identical(otherList._this, this)) {
@@ -39349,6 +39350,7 @@ class _ThrowsNodeValidator implements NodeValidator {
       throw new ArgumentError(
           '${Element._safeTagName(element)}[$attributeName="$value"]');
     }
+    return true;
   }
 }
 

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A stress test for the analysis server.
- */
+/// A stress test for the analysis server.
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -27,122 +25,80 @@ import '../utilities/logger.dart';
 import '../utilities/server.dart';
 import 'operation.dart';
 
-/**
- * Run the simulation based on the given command-line [arguments].
- */
+/// Run the simulation based on the given command-line [arguments].
 Future<void> main(List<String> arguments) async {
   Driver driver = Driver();
   await driver.run(arguments);
 }
 
-/**
- * The driver class that runs the simulation.
- */
+/// The driver class that runs the simulation.
 class Driver {
-  /**
-   * The value of the [OVERLAY_STYLE_OPTION_NAME] indicating that modifications
-   * to a file should be represented by an add overlay, followed by zero or more
-   * change overlays, followed by a remove overlay.
-   */
+  /// The value of the [OVERLAY_STYLE_OPTION_NAME] indicating that modifications
+  /// to a file should be represented by an add overlay, followed by zero or
+  /// more change overlays, followed by a remove overlay.
   static String CHANGE_OVERLAY_STYLE = 'change';
 
-  /**
-   * The name of the command-line flag that will print help text.
-   */
+  /// The name of the command-line flag that will print help text.
   static String HELP_FLAG_NAME = 'help';
 
-  /**
-   * The value of the [OVERLAY_STYLE_OPTION_NAME] indicating that modifications
-   * to a file should be represented by an add overlay, followed by zero or more
-   * additional add overlays, followed by a remove overlay.
-   */
+  /// The value of the [OVERLAY_STYLE_OPTION_NAME] indicating that modifications
+  /// to a file should be represented by an add overlay, followed by zero or
+  /// more additional add overlays, followed by a remove overlay.
   static String MULTIPLE_ADD_OVERLAY_STYLE = 'multipleAdd';
 
-  /**
-   * The name of the command-line option used to specify the style of
-   * interaction to use when making `analysis.updateContent` requests.
-   */
+  /// The name of the command-line option used to specify the style of
+  /// interaction to use when making `analysis.updateContent` requests.
   static String OVERLAY_STYLE_OPTION_NAME = 'overlay-style';
 
-  /**
-   * The name of the pubspec file.
-   */
+  /// The name of the pubspec file.
   static const String PUBSPEC_FILE_NAME = 'pubspec.yaml';
 
-  /**
-   * The name of the branch used to clean-up after making temporary changes.
-   */
+  /// The name of the branch used to clean-up after making temporary changes.
   static const String TEMP_BRANCH_NAME = 'temp';
 
-  /**
-   * The name of the command-line flag that will cause verbose output to be
-   * produced.
-   */
+  /// The name of the command-line flag that will cause verbose output to be
+  /// produced.
   static String VERBOSE_FLAG_NAME = 'verbose';
 
-  /**
-   * The style of interaction to use for analysis.updateContent requests.
-   */
+  /// The style of interaction to use for analysis.updateContent requests.
   OverlayStyle overlayStyle;
 
-  /**
-   * The absolute path of the repository.
-   */
+  /// The absolute path of the repository.
   String repositoryPath;
 
-  /**
-   * The absolute paths to the analysis roots.
-   */
+  /// The absolute paths to the analysis roots.
   List<String> analysisRoots;
 
-  /**
-   * The git repository.
-   */
+  /// The git repository.
   GitRepository repository;
 
-  /**
-   * The connection to the analysis server.
-   */
+  /// The connection to the analysis server.
   Server server;
 
-  /**
-   * A list of the glob patterns used to identify the files being analyzed by
-   * the server.
-   */
+  /// A list of the glob patterns used to identify the files being analyzed by
+  /// the server.
   List<Glob> fileGlobs;
 
-  /**
-   * An object gathering statistics about the simulation.
-   */
+  /// An object gathering statistics about the simulation.
   Statistics statistics;
 
-  /**
-   * A flag indicating whether verbose output should be provided.
-   */
+  /// A flag indicating whether verbose output should be provided.
   bool verbose = false;
 
-  /**
-   * The logger to which verbose logging data will be written.
-   */
+  /// The logger to which verbose logging data will be written.
   Logger logger;
 
-  /**
-   * Initialize a newly created driver.
-   */
+  /// Initialize a newly created driver.
   Driver() {
     statistics = Statistics(this);
   }
 
-  /**
-   * Allow the output from the server to be read and processed.
-   */
+  /// Allow the output from the server to be read and processed.
   Future<void> readServerOutput() async {
     await Future.delayed(Duration(milliseconds: 2));
   }
 
-  /**
-   * Run the simulation based on the given command-line arguments ([args]).
-   */
+  /// Run the simulation based on the given command-line arguments ([args]).
   Future<void> run(List<String> args) async {
     //
     // Process the command-line arguments.
@@ -176,10 +132,8 @@ class Driver {
     return null;
   }
 
-  /**
-   * Create and return a parser that can be used to parse the command-line
-   * arguments.
-   */
+  /// Create and return a parser that can be used to parse the command-line
+  /// arguments.
   ArgParser _createArgParser() {
     ArgParser parser = ArgParser();
     parser.addFlag(HELP_FLAG_NAME,
@@ -204,9 +158,7 @@ class Driver {
     return parser;
   }
 
-  /**
-   * Add source edits to the given [fileEdit] based on the given [blobDiff].
-   */
+  /// Add source edits to the given [fileEdit] based on the given [blobDiff].
   void _createSourceEdits(FileEdit fileEdit, BlobDiff blobDiff) {
     LineInfo info = fileEdit.lineInfo;
     for (DiffHunk hunk in blobDiff.hunks) {
@@ -245,10 +197,8 @@ class Driver {
     }
   }
 
-  /**
-   * Return the absolute paths of all of the pubspec files in all of the
-   * analysis roots.
-   */
+  /// Return the absolute paths of all of the pubspec files in all of the
+  /// analysis roots.
   Iterable<String> _findPubspecsInAnalysisRoots() {
     List<String> pubspecFiles = <String>[];
     for (String directoryPath in analysisRoots) {
@@ -265,10 +215,8 @@ class Driver {
     return pubspecFiles;
   }
 
-  /**
-   * Return a list of offsets into the given [text] that represent good places
-   * to break the text when building edits.
-   */
+  /// Return a list of offsets into the given [text] that represent good places
+  /// to break the text when building edits.
   List<int> _getBreakOffsets(String text) {
     List<int> breakOffsets = <int>[];
     Scanner scanner = Scanner(null, CharSequenceReader(text),
@@ -290,9 +238,7 @@ class Driver {
     return breakOffsets;
   }
 
-  /**
-   * Join the given [lines] into a single string.
-   */
+  /// Join the given [lines] into a single string.
   String _join(List<String> lines) {
     StringBuffer buffer = StringBuffer();
     for (int i = 0; i < lines.length; i++) {
@@ -301,10 +247,8 @@ class Driver {
     return buffer.toString();
   }
 
-  /**
-   * Process the command-line [arguments]. Return `true` if the simulation
-   * should be run.
-   */
+  /// Process the command-line [arguments]. Return `true` if the simulation
+  /// should be run.
   bool _processCommandLine(List<String> args) {
     ArgParser parser = _createArgParser();
     ArgResults results;
@@ -355,9 +299,7 @@ class Driver {
     return true;
   }
 
-  /**
-   * Replay the changes in each commit.
-   */
+  /// Replay the changes in each commit.
   Future<void> _replayChanges() async {
     //
     // Get the revision history of the repo.
@@ -424,10 +366,8 @@ class Driver {
     stdout.writeln();
   }
 
-  /**
-   * Replay the changes between two commits, as represented by the given
-   * [commitDelta].
-   */
+  /// Replay the changes between two commits, as represented by the given
+  /// [commitDelta].
   Future<void> _replayDiff(CommitDelta commitDelta) async {
     List<FileEdit> editList = <FileEdit>[];
     for (DiffRecord record in commitDelta.diffRecords) {
@@ -460,9 +400,7 @@ class Driver {
     }
   }
 
-  /**
-   * Run `pub` on the pubspec with the given [filePath].
-   */
+  /// Run `pub` on the pubspec with the given [filePath].
   void _runPub(String filePath) {
     String directoryPath = path.dirname(filePath);
     if (Directory(directoryPath).existsSync()) {
@@ -472,9 +410,7 @@ class Driver {
     }
   }
 
-  /**
-   * Run the simulation by starting up a server and sending it requests.
-   */
+  /// Run the simulation by starting up a server and sending it requests.
   Future<void> _runSimulation() async {
     server = Server(logger: logger);
     Stopwatch stopwatch = Stopwatch();
@@ -503,9 +439,7 @@ class Driver {
     stopwatch.stop();
   }
 
-  /**
-   * Display usage information, preceded by the [errorMessage] if one is given.
-   */
+  /// Display usage information, preceded by the [errorMessage] if one is given.
   void _showUsage(ArgParser parser, [String errorMessage]) {
     if (errorMessage != null) {
       stderr.writeln(errorMessage);
@@ -531,45 +465,29 @@ OPTIONS:''');
   }
 }
 
-/**
- * A representation of the edits to be applied to a single file.
- */
+/// A representation of the edits to be applied to a single file.
 class FileEdit {
-  /**
-   * The style of interaction to use for analysis.updateContent requests.
-   */
+  /// The style of interaction to use for analysis.updateContent requests.
   OverlayStyle overlayStyle;
 
-  /**
-   * The absolute path of the file to be edited.
-   */
+  /// The absolute path of the file to be edited.
   String filePath;
 
-  /**
-   * The content of the file before any edits have been applied.
-   */
+  /// The content of the file before any edits have been applied.
   String content;
 
-  /**
-   * The line info for the file before any edits have been applied.
-   */
+  /// The line info for the file before any edits have been applied.
   LineInfo lineInfo;
 
-  /**
-   * The lists of source edits, one list for each hunk being edited.
-   */
+  /// The lists of source edits, one list for each hunk being edited.
   List<List<SourceEdit>> editLists = <List<SourceEdit>>[];
 
-  /**
-   * The current content of the file. This field is only used if the overlay
-   * style is [OverlayStyle.multipleAdd].
-   */
+  /// The current content of the file. This field is only used if the overlay
+  /// style is [OverlayStyle.multipleAdd].
   String currentContent;
 
-  /**
-   * Initialize a collection of edits to be associated with the file at the
-   * given [filePath].
-   */
+  /// Initialize a collection of edits to be associated with the file at the
+  /// given [filePath].
   FileEdit(this.overlayStyle, DiffRecord record) {
     filePath = record.srcPath;
     if (record.isAddition) {
@@ -584,17 +502,13 @@ class FileEdit {
     currentContent = content;
   }
 
-  /**
-   * Add a list of source edits that, taken together, transform a single hunk in
-   * the file.
-   */
+  /// Add a list of source edits that, taken together, transform a single hunk
+  /// in the file.
   void addSourceEdits(List<SourceEdit> sourceEdits) {
     editLists.add(sourceEdits);
   }
 
-  /**
-   * Return a list of operations to be sent to the server.
-   */
+  /// Return a list of operations to be sent to the server.
   List<ServerOperation> getOperations() {
     List<ServerOperation> operations = <ServerOperation>[];
     void addUpdateContent(var overlay) {
@@ -626,49 +540,32 @@ class FileEdit {
   }
 }
 
-/**
- * The possible styles of interaction to use for analysis.updateContent requests.
- */
+/// The possible styles of interaction to use for analysis.updateContent
+/// requests.
 enum OverlayStyle { change, multipleAdd }
 
-/**
- * A set of statistics related to the execution of the simulation.
- */
+/// A set of statistics related to the execution of the simulation.
 class Statistics {
-  /**
-   * The driver driving the simulation.
-   */
+  /// The driver driving the simulation.
   final Driver driver;
 
-  /**
-   * The stopwatch being used to time the simulation.
-   */
+  /// The stopwatch being used to time the simulation.
   Stopwatch stopwatch;
 
-  /**
-   * The total number of commits in the repository.
-   */
+  /// The total number of commits in the repository.
   int commitCount;
 
-  /**
-   * The number of commits in the repository that touched one of the files in
-   * one of the analysis roots.
-   */
+  /// The number of commits in the repository that touched one of the files in
+  /// one of the analysis roots.
   int commitsWithChangeInRootCount = 0;
 
-  /**
-   * The total number of edits that were applied.
-   */
+  /// The total number of edits that were applied.
   int editCount = 0;
 
-  /**
-   * Initialize a newly created set of statistics.
-   */
+  /// Initialize a newly created set of statistics.
   Statistics(this.driver);
 
-  /**
-   * Print the statistics to [stdout].
-   */
+  /// Print the statistics to [stdout].
   void print() {
     stdout.write('Replay commits in ');
     stdout.writeln(driver.repositoryPath);
@@ -684,10 +581,8 @@ class Statistics {
     stdout.writeln(editCount);
   }
 
-  /**
-   * Return a textual representation of the given duration, represented in
-   * [milliseconds].
-   */
+  /// Return a textual representation of the given duration, represented in
+  /// [milliseconds].
   String _printTime(int milliseconds) {
     int seconds = milliseconds ~/ 1000;
     milliseconds -= seconds * 1000;

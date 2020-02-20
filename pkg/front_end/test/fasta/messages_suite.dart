@@ -106,6 +106,7 @@ class MessageTestSuite extends ChainContext {
       if (message is String) continue;
 
       List<String> unknownKeys = <String>[];
+      bool exampleAllowMoreCodes = false;
       List<Example> examples = <Example>[];
       String externalTest;
       bool frontendInternal = false;
@@ -206,6 +207,10 @@ class MessageTestSuite extends ChainContext {
                 : new List<String>.from(value);
             break;
 
+          case "exampleAllowMoreCodes":
+            exampleAllowMoreCodes = value;
+            break;
+
           case "bytes":
             YamlList list = node;
             if (list.first is List) {
@@ -285,6 +290,13 @@ class MessageTestSuite extends ChainContext {
         }
       }
 
+      if (exampleAllowMoreCodes) {
+        // Update all examples.
+        for (Example example in examples) {
+          example.allowMoreCodes = exampleAllowMoreCodes;
+        }
+      }
+
       MessageTestDescription createDescription(
           String subName, Example example, String problem,
           {location}) {
@@ -308,8 +320,8 @@ class MessageTestSuite extends ChainContext {
         for (Example example in examples) {
           yield createDescription(
               "part_wrapped_${example.name}",
-              new PartWrapExample(
-                  "part_wrapped_${example.name}", name, example),
+              new PartWrapExample("part_wrapped_${example.name}", name,
+                  exampleAllowMoreCodes, example),
               null);
         }
       }
@@ -419,6 +431,8 @@ abstract class Example {
   final String name;
 
   final String expectedCode;
+
+  bool allowMoreCodes = false;
 
   Example(this.name, this.expectedCode);
 
@@ -532,6 +546,7 @@ class ScriptExample extends Example {
       var scriptFiles = <String, Uint8List>{};
       script.forEach((fileName, value) {
         scriptFiles[fileName] = new Uint8List.fromList(utf8.encode(value));
+        print("$fileName => $value\n\n======\n\n");
       });
       return scriptFiles;
     } else {
@@ -542,7 +557,10 @@ class ScriptExample extends Example {
 
 class PartWrapExample extends Example {
   final Example example;
-  PartWrapExample(String name, String code, this.example) : super(name, code);
+  @override
+  final bool allowMoreCodes;
+  PartWrapExample(String name, String code, this.allowMoreCodes, this.example)
+      : super(name, code);
 
   @override
   Uint8List get bytes => throw "Unsupported: PartWrapExample.bytes";
@@ -618,10 +636,13 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
     Uri output =
         suite.fileSystem.currentDirectory.resolve("$dir/main.dart.dill");
 
-    // Setup .packages if it doesn't exist.
+    // Setup .packages if it (or package_config.json) doesn't exist.
     Uri dotPackagesUri =
         suite.fileSystem.currentDirectory.resolve("$dir/.packages");
-    if (!await suite.fileSystem.entityForUri(dotPackagesUri).exists()) {
+    Uri packageConfigJsonUri = suite.fileSystem.currentDirectory
+        .resolve("$dir/.dart_tool/package_config.json");
+    if (!await suite.fileSystem.entityForUri(dotPackagesUri).exists() &&
+        !await suite.fileSystem.entityForUri(packageConfigJsonUri).exists()) {
       suite.fileSystem.entityForUri(dotPackagesUri).writeAsBytesSync([]);
     }
 
@@ -641,6 +662,15 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
         output);
 
     List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
+    if (example.allowMoreCodes) {
+      List<DiagnosticMessage> messagesFiltered = new List<DiagnosticMessage>();
+      for (DiagnosticMessage message in messages) {
+        if (getMessageCodeObject(message).name == example.expectedCode) {
+          messagesFiltered.add(message);
+        }
+      }
+      messages = messagesFiltered;
+    }
     for (DiagnosticMessage message in messages) {
       if (getMessageCodeObject(message).name != example.expectedCode) {
         unexpectedMessages.add(message);

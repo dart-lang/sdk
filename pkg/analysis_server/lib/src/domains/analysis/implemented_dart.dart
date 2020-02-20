@@ -72,9 +72,7 @@ class ImplementedComputer {
     return subtypeMembers.contains(name);
   }
 
-  /**
-   * Return `true` if the given [element] is a static element.
-   */
+  /// Return `true` if the given [element] is a static element.
   static bool _isStatic(Element element) {
     if (element is ExecutableElement) {
       return element.isStatic;

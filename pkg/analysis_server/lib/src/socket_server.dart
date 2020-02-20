@@ -20,19 +20,15 @@ abstract class AbstractSocketServer {
   DiagnosticServer get diagnosticServer;
 }
 
-/**
- * Instances of the class [SocketServer] implement the common parts of
- * http-based and stdio-based analysis servers.  The primary responsibility of
- * the SocketServer is to manage the lifetime of the AnalysisServer and to
- * encode and decode the JSON messages exchanged with the client.
- */
+/// Instances of the class [SocketServer] implement the common parts of
+/// http-based and stdio-based analysis servers.  The primary responsibility of
+/// the SocketServer is to manage the lifetime of the AnalysisServer and to
+/// encode and decode the JSON messages exchanged with the client.
 class SocketServer implements AbstractSocketServer {
   @override
   final AnalysisServerOptions analysisServerOptions;
 
-  /**
-   * The function used to create a new SDK using the default SDK.
-   */
+  /// The function used to create a new SDK using the default SDK.
   final DartSdkManager sdkManager;
 
   final InstrumentationService instrumentationService;
@@ -41,10 +37,8 @@ class SocketServer implements AbstractSocketServer {
   final DiagnosticServer diagnosticServer;
   final DetachableFileSystemManager detachableFileSystemManager;
 
-  /**
-   * The analysis server that was created when a client established a
-   * connection, or `null` if no such connection has yet been established.
-   */
+  /// The analysis server that was created when a client established a
+  /// connection, or `null` if no such connection has yet been established.
   @override
   AnalysisServer analysisServer;
 
@@ -56,10 +50,8 @@ class SocketServer implements AbstractSocketServer {
       this.diagnosticServer,
       this.detachableFileSystemManager);
 
-  /**
-   * Create an analysis server which will communicate with the client using the
-   * given serverChannel.
-   */
+  /// Create an analysis server which will communicate with the client using the
+  /// given serverChannel.
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
       RequestError error = RequestError(

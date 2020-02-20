@@ -162,6 +162,12 @@ class _DirectInvocation extends _Invocation {
     if (selector.member.function != null) {
       typeChecksNeeded = selector.member.function.typeParameters
           .any((t) => t.isGenericCovariantImpl);
+    } else {
+      Field field = selector.member;
+      if (selector.callKind == CallKind.PropertySet) {
+        // TODO(dartbug.com/40615): Use TFA results to improve this criterion.
+        typeChecksNeeded = field.isGenericCovariantImpl;
+      }
     }
   }
 
@@ -185,17 +191,12 @@ class _DirectInvocation extends _Invocation {
       case CallKind.PropertyGet:
         assertx(args.values.length == firstParamIndex);
         assertx(args.names.isEmpty);
-        fieldValue.isGetterUsed = true;
         return fieldValue.getValue(
             typeFlowAnalysis, field.isStatic ? null : args.values[0]);
 
       case CallKind.PropertySet:
-      case CallKind.SetFieldInConstructor:
         assertx(args.values.length == firstParamIndex + 1);
         assertx(args.names.isEmpty);
-        if (selector.callKind == CallKind.PropertySet) {
-          fieldValue.isSetterUsed = true;
-        }
         final Type setterArg = args.values[firstParamIndex];
         fieldValue.setValue(
             setterArg, typeFlowAnalysis, field.isStatic ? null : args.receiver);
@@ -205,7 +206,6 @@ class _DirectInvocation extends _Invocation {
         // Call via field.
         // TODO(alexmarkov): support function types and use inferred type
         // to get more precise return type.
-        fieldValue.isGetterUsed = true;
         final receiver = fieldValue.getValue(
             typeFlowAnalysis, field.isStatic ? null : args.values[0]);
         if (receiver != const EmptyType()) {
@@ -771,12 +771,6 @@ class _FieldValue extends _DependencyTracker {
 
   /// Flag indicating if field initializer was executed.
   bool isInitialized = false;
-
-  /// Flag indicating if field getter was executed.
-  bool isGetterUsed = false;
-
-  /// Flag indicating if field setter was executed.
-  bool isSetterUsed = false;
 
   _FieldValue(this.field, this.typeGuardSummary, TypesBuilder typesBuilder)
       : staticType = typesBuilder.fromStaticType(field.type, true) {
@@ -1393,26 +1387,6 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     final fieldValue = _fieldValues[field];
     if (fieldValue != null) {
       return fieldValue.isInitialized;
-    }
-    return false;
-  }
-
-  /// Returns true if analysis found that getter corresponding to the given
-  /// [field] could be executed.
-  bool isFieldGetterUsed(Field field) {
-    final fieldValue = _fieldValues[field];
-    if (fieldValue != null) {
-      return fieldValue.isGetterUsed;
-    }
-    return false;
-  }
-
-  /// Returns true if analysis found that setter corresponding to the given
-  /// [field] could be executed.
-  bool isFieldSetterUsed(Field field) {
-    final fieldValue = _fieldValues[field];
-    if (fieldValue != null) {
-      return fieldValue.isSetterUsed;
     }
     return false;
   }

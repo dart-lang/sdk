@@ -8,9 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-/**
- * Return the elements that the given [element] overrides.
- */
+/// Return the elements that the given [element] overrides.
 OverriddenElements findOverriddenElements(Element element) {
   if (element?.enclosingElement is ClassElement) {
     return _OverriddenElementsFinder(element).find();
@@ -18,18 +16,14 @@ OverriddenElements findOverriddenElements(Element element) {
   return OverriddenElements(element, <Element>[], <Element>[]);
 }
 
-/**
- * A computer for class member overrides in a Dart [CompilationUnit].
- */
+/// A computer for class member overrides in a Dart [CompilationUnit].
 class DartUnitOverridesComputer {
   final CompilationUnit _unit;
   final List<proto.Override> _overrides = <proto.Override>[];
 
   DartUnitOverridesComputer(this._unit);
 
-  /**
-   * Returns the computed occurrences, not `null`.
-   */
+  /// Returns the computed occurrences, not `null`.
   List<proto.Override> compute() {
     for (CompilationUnitMember unitMember in _unit.declarations) {
       if (unitMember is ClassOrMixinDeclaration) {
@@ -55,9 +49,7 @@ class DartUnitOverridesComputer {
     return _overrides;
   }
 
-  /**
-   * Add a new [Override] for the declaration with the given name [node].
-   */
+  /// Add a new [Override] for the declaration with the given name [node].
   void _addOverride(SimpleIdentifier node) {
     Element element = node.staticElement;
     OverriddenElements overridesResult =
@@ -78,25 +70,17 @@ class DartUnitOverridesComputer {
   }
 }
 
-/**
- * The container with elements that a class member overrides.
- */
+/// The container with elements that a class member overrides.
 class OverriddenElements {
-  /**
-   * The element that overrides other class members.
-   */
+  /// The element that overrides other class members.
   final Element element;
 
-  /**
-   * The elements that [element] overrides and which is defined in a class that
-   * is a superclass of the class that defines [element].
-   */
+  /// The elements that [element] overrides and which is defined in a class that
+  /// is a superclass of the class that defines [element].
   final List<Element> superElements;
 
-  /**
-   * The elements that [element] overrides and which is defined in a class that
-   * which is implemented by the class that defines [element].
-   */
+  /// The elements that [element] overrides and which is defined in a class that
+  /// which is implemented by the class that defines [element].
   final List<Element> interfaceElements;
 
   OverriddenElements(this.element, this.superElements, this.interfaceElements);
@@ -147,9 +131,7 @@ class _OverriddenElementsFinder {
     }
   }
 
-  /**
-   * Add the [OverriddenElements] for this element.
-   */
+  /// Add the [OverriddenElements] for this element.
   OverriddenElements find() {
     _visited.clear();
     _addSuperOverrides(_class, withThisType: false);

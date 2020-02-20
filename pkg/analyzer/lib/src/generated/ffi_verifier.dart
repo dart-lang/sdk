@@ -126,12 +126,17 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       Element enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement) {
         if (_isPointer(enclosingElement)) {
-          if (element.name == 'asFunction') {
-            _validateAsFunction(node, element);
-          } else if (element.name == 'fromFunction') {
+          if (element.name == 'fromFunction') {
             _validateFromFunction(node, element);
           }
-        } else if (_isDynamicLibrary(enclosingElement) &&
+        }
+      }
+      if (enclosingElement is ExtensionElement) {
+        if (_isNativeFunctionPointerExtension(enclosingElement)) {
+          if (element.name == 'asFunction') {
+            _validateAsFunction(node, element);
+          }
+        } else if (_isDynamicLibraryExtension(enclosingElement) &&
             element.name == 'lookupFunction') {
           _validateLookupFunction(node);
         }
@@ -152,10 +157,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return element is ClassElement && element.library.name == 'dart.ffi';
   }
 
-  /// Return `true` if the given [element] represents the class
-  /// `DynamicLibrary`.
-  bool _isDynamicLibrary(ClassElement element) =>
-      element.name == 'DynamicLibrary' && element.library.name == 'dart.ffi';
+  /// Return `true` if the given [element] represents the extension
+  /// `DynamicLibraryExtension`.
+  bool _isDynamicLibraryExtension(Element element) =>
+      element.name == 'DynamicLibraryExtension' &&
+      element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.NativeFunction<???>` type.
   bool _isNativeFunctionInterfaceType(DartType nativeType) {
@@ -183,6 +189,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] represents the class `Pointer`.
   bool _isPointer(Element element) =>
       element.name == 'Pointer' && element.library.name == 'dart.ffi';
+
+  bool _isNativeFunctionPointerExtension(Element element) =>
+      element.name == 'NativeFunctionPointer' &&
+      element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.Pointer<???>` type.
   bool _isPointerInterfaceType(DartType nativeType) {

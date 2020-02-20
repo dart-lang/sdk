@@ -116,8 +116,9 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
     assertEdge(t1.node, bound.node, hard: false);
+    // TODO(40622): Should this be a checkable edge?
     assertEdge(t1.typeArguments[0].node, bound.typeArguments[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_dynamic_to_dynamic() {
@@ -203,7 +204,8 @@ class AssignmentCheckerTest extends Object
     var t2 = futureOr(int_());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node,
+        hard: false, checkable: false);
   }
 
   void test_future_or_int_to_future_int() {
@@ -302,7 +304,8 @@ class AssignmentCheckerTest extends Object
     var t2 = list(object());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node,
+        hard: false, checkable: false);
   }
 
   void test_generic_to_generic_upcast() {
@@ -318,7 +321,7 @@ class AssignmentCheckerTest extends Object
     // - the supertype of MyListOfList<T> is List<List<T?C>>
     var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
     // Then there should be an edge from substitute(a, c) to b.
-    assertEdge(substitutionNode(a, c), b, hard: false);
+    assertEdge(substitutionNode(a, c), b, hard: false, checkable: false);
   }
 
   void test_generic_to_object() {
@@ -407,8 +410,9 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
     assertEdge(bound.node, t2.node, hard: false);
+    // TODO(40622): Should this be a checkable edge?
     assertEdge(bound.typeArguments[0].node, t2.typeArguments[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_typeParam_to_object() {
@@ -591,7 +595,7 @@ B<bool> f(A<int> a) {
         hard: true);
     assertEdge(decoratedTypeAnnotation('bool>;').node,
         decoratedTypeAnnotation('bool> f').node,
-        hard: false);
+        hard: false, checkable: false);
     assertNoEdge(anyNode, decoratedTypeAnnotation('bool>;').node);
     assertNoEdge(anyNode, decoratedTypeAnnotation('int> a').node);
     // int> a should be connected to the bound of T in A<T>, but nothing else.
@@ -632,9 +636,10 @@ class C<T extends List<int>> {
     assertEdge(parameterType.node, tType.node, hard: true);
     assertEdge(parameterType.node, boundType.node, hard: false);
     // TODO(mfairhurst): Confirm we want this edge.
+    // TODO(40622): Should this be a checkable edge?
     assertEdge(
         parameterType.typeArguments[0].node, boundType.typeArguments[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_assign_dynamic_to_other_type() async {
@@ -669,7 +674,7 @@ FutureOr<List<int>> f(Future<List<int>> x) => x;
     // the return type `FutureOr<List<int?>>`.
     assertEdge(decoratedTypeAnnotation('int>> x').node,
         decoratedTypeAnnotation('int>> f').node,
-        hard: false);
+        hard: false, checkable: false);
     assertNoEdge(decoratedTypeAnnotation('int>> x').node,
         decoratedTypeAnnotation('List<int>> f').node);
     assertNoEdge(decoratedTypeAnnotation('int>> x').node,
@@ -697,7 +702,8 @@ FutureOr<int> f(Future<int> x) => x;
         substitutionNode(
             decoratedTypeAnnotation('int> x').node, inSet(pointsToNever)),
         decoratedTypeAnnotation('int> f').node,
-        hard: false);
+        hard: false,
+        checkable: false);
     assertNoEdge(decoratedTypeAnnotation('int> x').node,
         decoratedTypeAnnotation('FutureOr<int>').node);
   }
@@ -711,7 +717,7 @@ FutureOr<List<int>> f(List<int> x) => x;
     // return type `FutureOr<List<int?>>`.
     assertEdge(decoratedTypeAnnotation('int> x').node,
         decoratedTypeAnnotation('int>> f').node,
-        hard: false);
+        hard: false, checkable: false);
     assertNoEdge(decoratedTypeAnnotation('int> x').node,
         decoratedTypeAnnotation('List<int>> f').node);
     assertNoEdge(decoratedTypeAnnotation('int> x').node,
@@ -1082,9 +1088,10 @@ class C<T extends List<int>> {
     var tType = decoratedTypeAnnotation('T x');
     assertEdge(tType.node, returnType.node, hard: true);
     assertEdge(boundType.node, returnType.node, hard: false);
+    // TODO(40622): Should this be a checkable edge?
     assertEdge(
         boundType.typeArguments[0].node, returnType.typeArguments[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_assign_upcast_generic() async {
@@ -1101,7 +1108,8 @@ void g(List<int> x) {
     assertEdge(
         substitutionNode(listInt.typeArguments[0].node, inSet(pointsToNever)),
         iterableInt.typeArguments[0].node,
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_assignmentExpression_compound_dynamic() async {
@@ -1324,8 +1332,9 @@ List<int> f(List<int> x, List<int> y) => x ??= y;
     var returnElementNullable = decoratedTypeAnnotation('int> f').node;
     assertEdge(yNullable, xNullable, hard: false, guards: [xNullable]);
     assertEdge(yElementNullable, xElementNullable,
-        hard: false, guards: [xNullable]);
-    assertEdge(xElementNullable, returnElementNullable, hard: false);
+        hard: false, checkable: false, guards: [xNullable]);
+    assertEdge(xElementNullable, returnElementNullable,
+        hard: false, checkable: false);
   }
 
   Future<void> test_assignmentExpression_nullAware_simple() async {
@@ -1865,7 +1874,7 @@ D f(MyList<int>/*2*/ x) => D(x);
         hard: true);
     assertEdge(decoratedTypeAnnotation('int>/*2*/').node,
         constructorParameterType.typeArguments[0].node,
-        hard: false);
+        hard: false, checkable: false);
     assertUnion(constructorParameterType.node,
         decoratedTypeAnnotation('MyList<int>/*1*/').node);
     assertUnion(constructorParameterType.typeArguments[0].node,
@@ -2989,7 +2998,7 @@ void f({List<int/*1*/> i = const <int/*2*/>[]}) {}
     assertNoUpstreamNullability(decoratedTypeAnnotation('List<int/*1*/>').node);
     assertEdge(decoratedTypeAnnotation('int/*2*/').node,
         decoratedTypeAnnotation('int/*1*/').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void>
@@ -3267,7 +3276,8 @@ int bar(Derived<String> d, int i, List<String> j) => d.foo(i, j);
         decoratedTypeAnnotation('String> j').node,
         substitutionNode(decoratedTypeAnnotation('String> d').node,
             decoratedTypeAnnotation('V>>').node),
-        hard: false);
+        hard: false,
+        checkable: false);
     assertEdge(
         decoratedTypeAnnotation('List<String> j').node,
         substitutionNode(decoratedTypeAnnotation('List<V>>').node,
@@ -3656,7 +3666,7 @@ C<int> f() => C<int>();
 ''');
     assertEdge(decoratedTypeAnnotation('int>(').node,
         decoratedTypeAnnotation('int> f').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_instanceCreation_generic_bound() async {
@@ -3666,7 +3676,7 @@ C<int> f() => C<int>();
 ''');
     assertEdge(decoratedTypeAnnotation('int>(').node,
         decoratedTypeAnnotation('int> f').node,
-        hard: false);
+        hard: false, checkable: false);
     assertEdge(decoratedTypeAnnotation('int>(').node,
         decoratedTypeAnnotation('Object').node,
         hard: true);
@@ -3679,7 +3689,7 @@ C<Object> f() => C<dynamic>();
 ''');
     assertEdge(decoratedTypeAnnotation('dynamic').node,
         decoratedTypeAnnotation('Object').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_instanceCreation_generic_inferredParameterType() async {
@@ -3690,13 +3700,14 @@ class C<T> {
 C<int> f(List<int> x) => C(x);
 ''');
     var edge = assertEdge(anyNode, decoratedTypeAnnotation('int> f').node,
-        hard: false);
+        hard: false, checkable: false);
     var inferredTypeArgument = edge.sourceNode;
     assertEdge(
         decoratedTypeAnnotation('int> x').node,
         substitutionNode(
             inferredTypeArgument, decoratedTypeAnnotation('T> x').node),
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_instanceCreation_generic_parameter() async {
@@ -3955,7 +3966,8 @@ void main() {
     final variableParam = decoratedTypeAnnotation('int/*1*/');
     final filledParam = decoratedTypeAnnotation('int/*2*/');
 
-    assertEdge(filledParam.node, variableParam.node, hard: false);
+    assertEdge(filledParam.node, variableParam.node,
+        hard: false, checkable: false);
     assertEdge(always, filledParam.node, hard: false);
   }
 
@@ -3967,7 +3979,8 @@ void main() {
 ''');
     final variableParam = decoratedTypeAnnotation('int/*1*/');
 
-    assertEdge(inSet(alwaysPlus), variableParam.node, hard: false);
+    assertEdge(inSet(alwaysPlus), variableParam.node,
+        hard: false, checkable: false);
   }
 
   Future<void> test_listLiteral_noTypeArgument_noNullableElements() async {
@@ -4014,7 +4027,8 @@ List<String> f() {
     var typeArgForLiteral = decoratedTypeAnnotation('String>[').node;
     var typeArgForReturnType = decoratedTypeAnnotation('String> ').node;
     assertNoUpstreamNullability(typeArgForLiteral);
-    assertEdge(typeArgForLiteral, typeArgForReturnType, hard: false);
+    assertEdge(typeArgForLiteral, typeArgForReturnType,
+        hard: false, checkable: false);
   }
 
   Future<void> test_listLiteral_typeArgument_nullableElement() async {
@@ -4443,7 +4457,7 @@ void g(C<int/*3*/>/*4*/ c) {
 
     assertEdge(decoratedTypeAnnotation('int/*3*/').node,
         decoratedTypeAnnotation('int/*1*/').node,
-        hard: false);
+        hard: false, checkable: false);
     assertNullCheck(
         checkExpression('c/*check*/'),
         assertEdge(decoratedTypeAnnotation('C<int/*3*/>/*4*/').node,
@@ -5688,7 +5702,7 @@ C<int> f(C<int> c) {
         checkExpression('c++'), assertEdge(cType.node, never, hard: true));
     assertEdge(cType.node, returnType.node, hard: false);
     assertEdge(cType.typeArguments[0].node, returnType.typeArguments[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_prefixedIdentifier_field_type() async {
@@ -5730,7 +5744,8 @@ List<int> f(C<int> c) => c.x;
         substitutionNode(decoratedTypeAnnotation('int> c').node,
             decoratedTypeAnnotation('T> get').node),
         decoratedTypeAnnotation('int> f').node,
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_prefixedIdentifier_target_check() async {
@@ -5843,7 +5858,8 @@ List<int> test(C<int> c) => -c/*check*/;
         substitutionNode(cType.typeArguments[0].node,
             operatorReturnType.typeArguments[0].node),
         testReturnType.typeArguments[0].node,
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_prefixExpression_minusMinus() async {
@@ -5902,7 +5918,8 @@ C<int> f(C<int> x) => ++x;
         substitutionNode(
             xType.typeArguments[0].node, plusReturnType.typeArguments[0].node),
         fReturnType.typeArguments[0].node,
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_property_generic_onResultOfImplicitSuper() async {
@@ -6119,9 +6136,13 @@ int g() => 1;
 ''');
     assertEdge(
         decoratedTypeAnnotation('int g').node,
-        assertEdge(anyNode, decoratedTypeAnnotation('int>').node, hard: false)
+        // TODO(40621): This should be a checkable edge.
+        assertEdge(anyNode, decoratedTypeAnnotation('int>').node,
+                hard: false, checkable: false)
             .sourceNode,
-        hard: false);
+        hard: false,
+        // TODO(40621): This should be a checkable edge.
+        checkable: false);
   }
 
   Future<void> test_return_from_async_closureExpression_future() async {
@@ -6133,9 +6154,13 @@ int g() => 1;
 ''');
     assertEdge(
         decoratedTypeAnnotation('int g').node,
-        assertEdge(anyNode, decoratedTypeAnnotation('int>').node, hard: false)
+        // TODO(40621): This should be a checkable edge.
+        assertEdge(anyNode, decoratedTypeAnnotation('int>').node,
+                hard: false, checkable: false)
             .sourceNode,
-        hard: false);
+        hard: false,
+        // TODO(40621): This should be a checkable edge.
+        checkable: false);
   }
 
   Future<void> test_return_from_async_expressionBody_future() async {
@@ -6143,9 +6168,10 @@ int g() => 1;
 Future<int> f() async => g();
 int g() => 1;
 ''');
+    // TODO(40621): This should be a checkable edge.
     assertEdge(decoratedTypeAnnotation('int g').node,
         decoratedTypeAnnotation('int>').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_return_from_async_future() async {
@@ -6155,9 +6181,10 @@ Future<int> f() async {
 }
 int g() => 1;
 ''');
+    // TODO(40621): This should be a checkable edge.
     assertEdge(decoratedTypeAnnotation('int g').node,
         decoratedTypeAnnotation('int>').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_return_from_async_future_void() async {
@@ -6187,8 +6214,9 @@ Future<int> f() async {
   return null;
 }
 ''');
+    // TODO(40621): This should be a checkable edge.
     assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int>').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_return_function_type_simple() async {
@@ -6252,9 +6280,10 @@ Map<String, int> f() {
 
     assertNoUpstreamNullability(mapNode);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, keyNode, hard: false).sourceNode);
+        assertEdge(anyNode, keyNode, hard: false, checkable: false).sourceNode);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, valueNode, hard: false).sourceNode);
+        assertEdge(anyNode, valueNode, hard: false, checkable: false)
+            .sourceNode);
   }
 
   Future<void> test_setOrMapLiteral_map_noTypeArgument_nullableKey() async {
@@ -6268,11 +6297,12 @@ Map<String, int> f() {
     var mapNode = decoratedTypeAnnotation('Map').node;
 
     assertNoUpstreamNullability(mapNode);
-    assertEdge(
-        inSet(alwaysPlus), assertEdge(anyNode, keyNode, hard: false).sourceNode,
+    assertEdge(inSet(alwaysPlus),
+        assertEdge(anyNode, keyNode, hard: false, checkable: false).sourceNode,
         hard: false);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, valueNode, hard: false).sourceNode);
+        assertEdge(anyNode, valueNode, hard: false, checkable: false)
+            .sourceNode);
   }
 
   Future<void>
@@ -6287,11 +6317,13 @@ Map<String, int> f() {
     var mapNode = decoratedTypeAnnotation('Map').node;
 
     assertNoUpstreamNullability(mapNode);
-    assertEdge(
-        inSet(alwaysPlus), assertEdge(anyNode, keyNode, hard: false).sourceNode,
-        hard: false);
     assertEdge(inSet(alwaysPlus),
-        assertEdge(anyNode, valueNode, hard: false).sourceNode,
+        assertEdge(anyNode, keyNode, hard: false, checkable: false).sourceNode,
+        hard: false);
+    assertEdge(
+        inSet(alwaysPlus),
+        assertEdge(anyNode, valueNode, hard: false, checkable: false)
+            .sourceNode,
         hard: false);
   }
 
@@ -6307,9 +6339,11 @@ Map<String, int> f() {
 
     assertNoUpstreamNullability(mapNode);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, keyNode, hard: false).sourceNode);
-    assertEdge(inSet(alwaysPlus),
-        assertEdge(anyNode, valueNode, hard: false).sourceNode,
+        assertEdge(anyNode, keyNode, hard: false, checkable: false).sourceNode);
+    assertEdge(
+        inSet(alwaysPlus),
+        assertEdge(anyNode, valueNode, hard: false, checkable: false)
+            .sourceNode,
         hard: false);
   }
 
@@ -6325,12 +6359,13 @@ Map<String, int> f() {
     var keyForLiteral = decoratedTypeAnnotation('String, int>{').node;
     var keyForReturnType = decoratedTypeAnnotation('String, int> ').node;
     assertNoUpstreamNullability(keyForLiteral);
-    assertEdge(keyForLiteral, keyForReturnType, hard: false);
+    assertEdge(keyForLiteral, keyForReturnType, hard: false, checkable: false);
 
     var valueForLiteral = decoratedTypeAnnotation('int>{').node;
     var valueForReturnType = decoratedTypeAnnotation('int> ').node;
     assertNoUpstreamNullability(valueForLiteral);
-    assertEdge(valueForLiteral, valueForReturnType, hard: false);
+    assertEdge(valueForLiteral, valueForReturnType,
+        hard: false, checkable: false);
   }
 
   Future<void> test_setOrMapLiteral_map_typeArguments_nullableKey() async {
@@ -6383,7 +6418,8 @@ Set<String> f() {
 
     assertNoUpstreamNullability(setNode);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, valueNode, hard: false).sourceNode);
+        assertEdge(anyNode, valueNode, hard: false, checkable: false)
+            .sourceNode);
   }
 
   Future<void> test_setOrMapLiteral_set_noTypeArgument_nullableElement() async {
@@ -6396,8 +6432,10 @@ Set<String> f() {
     var setNode = decoratedTypeAnnotation('Set').node;
 
     assertNoUpstreamNullability(setNode);
-    assertEdge(inSet(alwaysPlus),
-        assertEdge(anyNode, valueNode, hard: false).sourceNode,
+    assertEdge(
+        inSet(alwaysPlus),
+        assertEdge(anyNode, valueNode, hard: false, checkable: false)
+            .sourceNode,
         hard: false);
   }
 
@@ -6412,7 +6450,8 @@ Set<String> f() {
     var typeArgForLiteral = decoratedTypeAnnotation('String>{').node;
     var typeArgForReturnType = decoratedTypeAnnotation('String> ').node;
     assertNoUpstreamNullability(typeArgForLiteral);
-    assertEdge(typeArgForLiteral, typeArgForReturnType, hard: false);
+    assertEdge(typeArgForLiteral, typeArgForReturnType,
+        hard: false, checkable: false);
   }
 
   Future<void> test_setOrMapLiteral_set_typeArgument_nullableElement() async {
@@ -6530,7 +6569,8 @@ void f(List<int> ints) {
     assertEdge(
         substitutionNode(decoratedTypeAnnotation('int> ints').node, anyNode),
         decoratedTypeAnnotation('int>[').node,
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_spread_element_list_dynamic() async {
@@ -6555,7 +6595,8 @@ void f(List<int> ints) {
     assertEdge(
         substitutionNode(decoratedTypeAnnotation('int> ints').node, anyNode),
         decoratedTypeAnnotation('int>[').node,
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_spread_element_map() async {
@@ -6569,10 +6610,10 @@ void f(Map<String, int> map) {
         hard: true);
     assertEdge(decoratedTypeAnnotation('String, int> map').node,
         decoratedTypeAnnotation('String, int>{').node,
-        hard: false);
+        hard: false, checkable: false);
     assertEdge(decoratedTypeAnnotation('int> map').node,
         decoratedTypeAnnotation('int>{').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_spread_element_set() async {
@@ -6586,7 +6627,8 @@ void f(Set<int> ints) {
     assertEdge(
         substitutionNode(decoratedTypeAnnotation('int> ints').node, anyNode),
         decoratedTypeAnnotation('int>{').node,
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_spread_element_subtype() async {
@@ -6603,7 +6645,8 @@ void f(C<dynamic, int> ints) {
         substitutionNode(decoratedTypeAnnotation('int> ints').node,
             decoratedTypeAnnotation('R> {}').node),
         decoratedTypeAnnotation('int>[').node,
-        hard: false);
+        hard: false,
+        checkable: false);
   }
 
   Future<void> test_static_method_call_prefixed() async {

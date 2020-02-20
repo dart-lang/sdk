@@ -687,18 +687,14 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 }
 
-/**
- * A class designed to be used as a superclass for test classes that define
- * tests that require plugins to be created on disk.
- */
+/// A class designed to be used as a superclass for test classes that define
+/// tests that require plugins to be created on disk.
 abstract class PluginTestSupport {
   PhysicalResourceProvider resourceProvider;
   TestNotificationManager notificationManager;
 
-  /**
-   * The content to be used for the '.packages' file, or `null` if the content
-   * has not yet been computed.
-   */
+  /// The content to be used for the '.packages' file, or `null` if the content
+  /// has not yet been computed.
   String _packagesFileContent;
 
   void setUp() {
@@ -706,22 +702,21 @@ abstract class PluginTestSupport {
     notificationManager = TestNotificationManager();
   }
 
-  /**
-   * Create a directory structure representing a plugin on disk, run the given
-   * [test] function, and then remove the directory. The directory will have the
-   * following structure:
-   * ```
-   * pluginDirectory
-   *   .packages
-   *   bin
-   *     plugin.dart
-   * ```
-   * The name of the plugin directory will be the [pluginName], if one is
-   * provided (in order to allow more than one plugin to be created by a single
-   * test). The 'plugin.dart' file will contain the given [content], or default
-   * content that implements a minimal plugin if the contents are not given. The
-   * [test] function will be passed the path of the directory that was created.
-   */
+  /// Create a directory structure representing a plugin on disk, run the given
+  /// [test] function, and then remove the directory. The directory will have
+  /// the following structure:
+  /// ```
+  /// pluginDirectory
+  ///   .packages
+  ///   bin
+  ///     plugin.dart
+  /// ```
+  /// The name of the plugin directory will be the [pluginName], if one is
+  /// provided (in order to allow more than one plugin to be created by a single
+  /// test). The 'plugin.dart' file will contain the given [content], or default
+  /// content that implements a minimal plugin if the contents are not given.
+  /// The [test] function will be passed the path of the directory that was
+  /// created.
   Future<void> withPlugin(
       {String content,
       String pluginName,
@@ -754,22 +749,21 @@ abstract class PluginTestSupport {
     }
   }
 
-  /**
-   * Create a directory structure representing a plugin on disk, run the given
-   * [test] function, and then remove the directory. The directory will have the
-   * following structure:
-   * ```
-   * pluginDirectory
-   *   pubspec.yaml
-   *   bin
-   *     plugin.dart
-   * ```
-   * The name of the plugin directory will be the [pluginName], if one is
-   * provided (in order to allow more than one plugin to be created by a single
-   * test). The 'plugin.dart' file will contain the given [content], or default
-   * content that implements a minimal plugin if the contents are not given. The
-   * [test] function will be passed the path of the directory that was created.
-   */
+  /// Create a directory structure representing a plugin on disk, run the given
+  /// [test] function, and then remove the directory. The directory will have
+  /// the following structure:
+  /// ```
+  /// pluginDirectory
+  ///   pubspec.yaml
+  ///   bin
+  ///     plugin.dart
+  /// ```
+  /// The name of the plugin directory will be the [pluginName], if one is
+  /// provided (in order to allow more than one plugin to be created by a single
+  /// test). The 'plugin.dart' file will contain the given [content], or default
+  /// content that implements a minimal plugin if the contents are not given.
+  /// The [test] function will be passed the path of the directory that was
+  /// created.
   Future<void> withPubspecPlugin(
       {String content,
       String pluginName,
@@ -802,10 +796,8 @@ abstract class PluginTestSupport {
     }
   }
 
-  /**
-   * Convert the [sdkPackageMap] into a plugin-specific map by applying the
-   * given relative path [delta] to each line.
-   */
+  /// Convert the [sdkPackageMap] into a plugin-specific map by applying the
+  /// given relative path [delta] to each line.
   String _convertPackageMap(String sdkDirPath, List<String> sdkPackageMap) {
     StringBuffer buffer = StringBuffer();
     for (String line in sdkPackageMap) {
@@ -824,10 +816,8 @@ abstract class PluginTestSupport {
     return buffer.toString();
   }
 
-  /**
-   * The default content of the plugin. This is a minimal plugin that will only
-   * respond correctly to version checks and to shutdown requests.
-   */
+  /// The default content of the plugin. This is a minimal plugin that will only
+  /// respond correctly to version checks and to shutdown requests.
   String _defaultPluginContent() {
     return r'''
 import 'dart:async';
@@ -871,9 +861,7 @@ class MinimalPlugin extends ServerPlugin {
 ''';
   }
 
-  /**
-   * Return the content to be used for the '.packages' file.
-   */
+  /// Return the content to be used for the '.packages' file.
   String _getPackagesFileContent() {
     if (_packagesFileContent == null) {
       io.File sdkPackagesFile = io.File(_sdkPackagesPath());
@@ -884,9 +872,7 @@ class MinimalPlugin extends ServerPlugin {
     return _packagesFileContent;
   }
 
-  /**
-   * Return the content to be used for the 'pubspec.yaml' file.
-   */
+  /// Return the content to be used for the 'pubspec.yaml' file.
   String _getPubspecFileContent() {
     return '''
 name: 'test'
@@ -896,9 +882,7 @@ dependencies:
 ''';
   }
 
-  /**
-   * Return the path to the '.packages' file in the root of the SDK checkout.
-   */
+  /// Return the path to the '.packages' file in the root of the SDK checkout.
   String _sdkPackagesPath() {
     String packagesPath = io.Platform.script.toFilePath();
     while (packagesPath.isNotEmpty &&

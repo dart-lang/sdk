@@ -101,7 +101,7 @@ class FixBuilder {
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
       TypeProvider typeProvider,
-      Dart2TypeSystem typeSystem,
+      TypeSystemImpl typeSystem,
       Variables variables,
       LibraryElement definingLibrary,
       NullabilityMigrationListener listener,
@@ -242,7 +242,7 @@ class FixBuilder {
 
   static TypeSystemImpl _makeNnbdTypeSystem(
       TypeProvider nnbdTypeProvider,
-      Dart2TypeSystem typeSystem,
+      TypeSystemImpl typeSystem,
       MigrationResolutionHooksImpl migrationResolutionHooks) {
     // TODO(paulberry): do we need to test both possible values of
     // strictInference?

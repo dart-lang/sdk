@@ -15,24 +15,18 @@ library from "org-dartlang-test:///lib.dart" as lib {
       dart.core::print("hello");
       return null;
     }
-    get #_ptr_x() → dart.ffi::Pointer<dart.ffi::Double*>*
-      return this.{dart.ffi::Struct::_addressOf}.{dart.ffi::Pointer::cast}<dart.ffi::Double*>();
     get x() → dart.core::double*
-      return dart.ffi::_loadDouble(this.{lib::Coordinate::#_ptr_x}, #C7);
+      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()));
     set x(dart.core::double* #v) → void
-      return dart.ffi::_storeDouble(this.{lib::Coordinate::#_ptr_x}, #C7, #v);
-    get #_ptr_y() → dart.ffi::Pointer<dart.ffi::Double*>*
-      return this.{dart.ffi::Struct::_addressOf}.{dart.ffi::Pointer::_offsetBy}((#C9).{dart.core::List::[]}(dart.ffi::_abi())).{dart.ffi::Pointer::cast}<dart.ffi::Double*>();
+      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()), #v);
     get y() → dart.core::double*
-      return dart.ffi::_loadDouble(this.{lib::Coordinate::#_ptr_y}, #C7);
+      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C10).{dart.core::List::[]}(dart.ffi::_abi()));
     set y(dart.core::double* #v) → void
-      return dart.ffi::_storeDouble(this.{lib::Coordinate::#_ptr_y}, #C7, #v);
-    get #_ptr_next() → dart.ffi::Pointer<dart.ffi::Pointer<lib::Coordinate*>*>*
-      return this.{dart.ffi::Struct::_addressOf}.{dart.ffi::Pointer::_offsetBy}((#C11).{dart.core::List::[]}(dart.ffi::_abi())).{dart.ffi::Pointer::cast}<dart.ffi::Pointer<lib::Coordinate*>*>();
+      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C10).{dart.core::List::[]}(dart.ffi::_abi()), #v);
     get next() → dart.ffi::Pointer<lib::Coordinate*>*
-      return dart.ffi::_loadPointer<dart.ffi::Pointer<lib::Coordinate*>*>(this.{lib::Coordinate::#_ptr_next}, #C7);
+      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi())));
     set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
-      return dart.ffi::_storePointer<dart.ffi::Pointer<lib::Coordinate*>*>(this.{lib::Coordinate::#_ptr_next}, #C7, #v);
+      return dart.ffi::_storeIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()), #v.{=dart.ffi::Pointer::address});
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
@@ -55,8 +49,9 @@ constants  {
   #C5 = 20
   #C6 = <dart.core::int*>[#C4, #C5, #C4]
   #C7 = 0
-  #C8 = 8
-  #C9 = <dart.core::int*>[#C8, #C8, #C8]
-  #C10 = 16
-  #C11 = <dart.core::int*>[#C10, #C10, #C10]
+  #C8 = <dart.core::int*>[#C7, #C7, #C7]
+  #C9 = 8
+  #C10 = <dart.core::int*>[#C9, #C9, #C9]
+  #C11 = 16
+  #C12 = <dart.core::int*>[#C11, #C11, #C11]
 }

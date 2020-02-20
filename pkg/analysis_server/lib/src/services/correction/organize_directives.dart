@@ -10,9 +10,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element;
 
-/**
- * Organizer of directives in the [unit].
- */
+/// Organizer of directives in the [unit].
 class DirectiveOrganizer {
   final String initialCode;
   final CompilationUnit unit;
@@ -32,9 +30,7 @@ class DirectiveOrganizer {
     });
   }
 
-  /**
-   * Return the [SourceEdit]s that organize directives in the [unit].
-   */
+  /// Return the [SourceEdit]s that organize directives in the [unit].
   List<SourceEdit> organize() {
     _organizeDirectives();
     // prepare edits
@@ -59,9 +55,7 @@ class DirectiveOrganizer {
     return false;
   }
 
-  /**
-   * Organize all [Directive]s.
-   */
+  /// Organize all [Directive]s.
   void _organizeDirectives() {
     var lineInfo = unit.lineInfo;
     List<_DirectiveInfo> directives = [];
@@ -164,9 +158,7 @@ class DirectiveOrganizer {
     return null;
   }
 
-  /**
-   * Return the EOL to use for [code].
-   */
+  /// Return the EOL to use for [code].
   static String getEOL(String code) {
     if (code.contains('\r\n')) {
       return '\r\n';
@@ -219,10 +211,8 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
     return 0;
   }
 
-  /**
-   * Split the given [uri] like `package:some.name/and/path.dart` into a list
-   * like `[package:some.name, and/path.dart]`.
-   */
+  /// Split the given [uri] like `package:some.name/and/path.dart` into a list
+  /// like `[package:some.name, and/path.dart]`.
   static List<String> _splitUri(String uri) {
     int index = uri.indexOf('/');
     if (index == -1) {

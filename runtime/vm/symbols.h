@@ -67,6 +67,7 @@ class ObjectPointerVisitor;
   V(CurrentContextVar, ":current_context_var")                                 \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(LateInitializationError, "_LateInitializationError")                       \
+  V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \

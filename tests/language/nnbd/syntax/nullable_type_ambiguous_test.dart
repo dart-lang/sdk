@@ -37,6 +37,8 @@ main() {
   // { a is bool ?? true : 3 } is parsed as a map literal { ((a is bool) ?? true) : 3 }.
   a = true;
   var x5 = {a is bool ?? true : 3};
+  //                     ^^^^
+  // [analyzer] STATIC_WARNING.DEAD_NULL_COALESCE
   Expect.type<Map<dynamic, dynamic>>(x5);
   Map<dynamic, dynamic> y5 = x5;
 }

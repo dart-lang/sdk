@@ -253,6 +253,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--fatal-skip": String,
   Flags.forceLateLowering: false,
   Flags.forceNnbdChecks: false,
+  Flags.forceNoExplicitGetterCalls: false,
   "--help": false,
   // TODO(johnniwinther): Remove legacy option flags. Legacy mode is no longer
   // supported.
@@ -316,6 +317,8 @@ ProcessedOptions analyzeCommandLine(
 
   final TargetFlags flags = new TargetFlags(
       forceLateLoweringForTesting: options[Flags.forceLateLowering],
+      forceNoExplicitGetterCallsForTesting:
+          options[Flags.forceNoExplicitGetterCalls],
       enableNullSafety:
           experimentalFlags.containsKey(ExperimentalFlag.nonNullable) &&
               experimentalFlags[ExperimentalFlag.nonNullable]);

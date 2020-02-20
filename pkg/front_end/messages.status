@@ -360,6 +360,14 @@ ImportAfterPart/part_wrapped_script1: Fail
 ImportAfterPart/script1: Fail
 IncompatibleRedirecteeFunctionType/part_wrapped_script6: Fail
 IncompatibleRedirecteeFunctionType/script6: Fail # Triggers multiple errors.
+IncompatibleRedirecteeFunctionTypeWarning/example: Fail
+IncorrectTypeArgumentInReturnTypeWarning/example: Fail
+IncorrectTypeArgumentInSupertypeInferredWarning/example: Fail
+IncorrectTypeArgumentInSupertypeWarning/example: Fail
+IncorrectTypeArgumentInferredWarning/example: Fail
+IncorrectTypeArgumentQualifiedInferredWarning/example: Fail
+IncorrectTypeArgumentQualifiedWarning/example: Fail
+IncorrectTypeArgumentWarning/example: Fail
 InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
@@ -406,7 +414,6 @@ InvalidVoid/script2: Fail
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
-LanguageVersionInvalidInDotPackages/part_wrapped_script: Fail # Importing file in the (now) part.
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
 LanguageVersionMismatchInPatch/analyzerCode: Fail
@@ -529,8 +536,11 @@ OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/example: Fail
 OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
+OverrideTypeMismatchParameterWarning/example: Fail
 OverrideTypeMismatchReturnType/example: Fail
+OverrideTypeMismatchReturnTypeWarning/example: Fail
 OverrideTypeMismatchSetter/example: Fail
+OverrideTypeMismatchSetterWarning/example: Fail
 OverrideTypeVariablesBoundMismatch/analyzerCode: Fail
 OverrideTypeVariablesBoundMismatch/example: Fail
 OverrideTypeVariablesMismatch/example: Fail
@@ -567,6 +577,7 @@ PreviousUseOfName/example: Fail
 PrivateNamedParameter/example: Fail
 RedirectingConstructorWithBody/part_wrapped_script1: Fail
 RedirectingConstructorWithBody/script1: Fail
+RedirectingFactoryIncompatibleTypeArgumentWarning/example: Fail
 RedirectionInNonFactory/part_wrapped_script1: Fail
 RedirectionInNonFactory/script1: Fail
 RedirectionTargetNotFound/example: Fail
@@ -611,6 +622,10 @@ SupertypeIsFunction/example: Fail
 SupertypeIsIllegal/example: Fail
 SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
+SwitchExpressionNotSubtype/analyzerCode: Fail
+SwitchExpressionNotSubtype/example: Fail
+SwitchExpressionUserDefinedEquals/analyzerCode: Fail
+SwitchExpressionUserDefinedEquals/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail

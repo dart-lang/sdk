@@ -10,10 +10,8 @@ import 'package:logging/logging.dart';
 import 'driver.dart';
 import 'input_converter.dart';
 
-/**
- * A [CompletionRequestOperation] tracks response time along with
- * the first and last completion notifications.
- */
+/// A [CompletionRequestOperation] tracks response time along with
+/// the first and last completion notifications.
 class CompletionRequestOperation extends RequestOperation {
   Driver driver;
   StreamSubscription<CompletionResultsParams> subscription;
@@ -57,16 +55,12 @@ class CompletionRequestOperation extends RequestOperation {
   }
 }
 
-/**
- * An [Operation] represents an action such as sending a request to the server.
- */
+/// An [Operation] represents an action such as sending a request to the server.
 abstract class Operation {
   Future perform(Driver driver);
 }
 
-/**
- * A [RequestOperation] sends a [JSON] request to the server.
- */
+/// A [RequestOperation] sends a [JSON] request to the server.
 class RequestOperation extends Operation {
   final CommonInputConverter converter;
   final Map<String, dynamic> json;
@@ -107,9 +101,7 @@ class RequestOperation extends Operation {
   }
 }
 
-/**
- * A [ResponseOperation] waits for a [JSON] response from the server.
- */
+/// A [ResponseOperation] waits for a [JSON] response from the server.
 class ResponseOperation extends Operation {
   static final Duration responseTimeout = Duration(seconds: 60);
   final CommonInputConverter converter;
@@ -150,9 +142,7 @@ class ResponseOperation extends Operation {
     return expectedResult == actualResult;
   }
 
-  /**
-   * Compare the expected and actual server response result.
-   */
+  /// Compare the expected and actual server response result.
   void _processResult(actualResult) {
     var expectedResult = responseJson['result'];
     if (!_equal(expectedResult, actualResult)) {

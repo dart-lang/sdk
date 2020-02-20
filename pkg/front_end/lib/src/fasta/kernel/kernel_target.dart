@@ -51,6 +51,7 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
+import 'package:package_config/package_config.dart';
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 
@@ -182,12 +183,10 @@ class KernelTarget extends TargetImplementation {
 
   /// Return list of same size as input with possibly translated uris.
   List<Uri> setEntryPoints(List<Uri> entryPoints) {
-    Map<String, Uri> packagesMap;
     List<Uri> result = new List<Uri>();
     for (Uri entryPoint in entryPoints) {
-      packagesMap ??= uriTranslator.packages.asMap();
-      Uri translatedEntryPoint = getEntryPointUri(entryPoint,
-          packagesMap: packagesMap, issueProblem: true);
+      Uri translatedEntryPoint =
+          getEntryPointUri(entryPoint, issueProblem: true);
       result.add(translatedEntryPoint);
       loader.read(translatedEntryPoint, -1,
           accessor: loader.first,
@@ -197,8 +196,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   /// Return list of same size as input with possibly translated uris.
-  Uri getEntryPointUri(Uri entryPoint,
-      {Map<String, Uri> packagesMap, bool issueProblem: false}) {
+  Uri getEntryPointUri(Uri entryPoint, {bool issueProblem: false}) {
     String scheme = entryPoint.scheme;
     switch (scheme) {
       case "package":
@@ -208,9 +206,10 @@ class KernelTarget extends TargetImplementation {
       default:
         // Attempt to reverse-lookup [entryPoint] in package config.
         String asString = "$entryPoint";
-        packagesMap ??= uriTranslator.packages.asMap();
-        for (String packageName in packagesMap.keys) {
-          Uri packageUri = packagesMap[packageName];
+        Package package = uriTranslator.packages.packageOf(entryPoint);
+        if (package != null) {
+          String packageName = package.name;
+          Uri packageUri = package.packageUriRoot;
           if (packageUri?.hasFragment == true) {
             packageUri = packageUri.removeFragment();
           }
@@ -961,7 +960,7 @@ class KernelTarget extends TargetImplementation {
                             library.isNonNullableByDefault),
                     field.fileOffset,
                     field.name.name.length,
-                    library.fileUri);
+                    field.fileUri);
               }
             }
           }

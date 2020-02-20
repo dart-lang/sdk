@@ -14,9 +14,8 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:path/path.dart' as path;
 
-/**
- * A computer for the hover at the specified offset of a Dart [CompilationUnit].
- */
+/// A computer for the hover at the specified offset of a Dart
+/// [CompilationUnit].
 class DartUnitHoverComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final CompilationUnit _unit;
@@ -28,9 +27,7 @@ class DartUnitHoverComputer {
     return _unit.declaredElement.library.isNonNullableByDefault;
   }
 
-  /**
-   * Returns the computed hover, maybe `null`.
-   */
+  /// Returns the computed hover, maybe `null`.
   HoverInformation compute() {
     AstNode node = NodeLocator(_offset).searchWithin(_unit);
     if (node == null) {

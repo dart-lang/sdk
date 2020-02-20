@@ -5,57 +5,41 @@
 import '../log/log.dart';
 import 'page_writer.dart';
 
-/**
- * A page writer that will produce the page containing statistics about an
- * instrumentation log.
- */
+/// A page writer that will produce the page containing statistics about an
+/// instrumentation log.
 class StatsPage extends PageWriter {
-  /**
-   * The instrumentation log to be written.
-   */
+  /// The instrumentation log to be written.
   final InstrumentationLog log;
 
-  /**
-   * A table mapping the kinds of entries in the log to the number of each kind.
-   */
+  /// A table mapping the kinds of entries in the log to the number of each
+  /// kind.
   final Map<String, int> entryCounts = <String, int>{};
 
-  /**
-   * The number of responses that returned an error.
-   */
+  /// The number of responses that returned an error.
   int errorCount = 0;
 
-  /**
-   * The number of responses from each plugin that returned an error.
-   */
+  /// The number of responses from each plugin that returned an error.
   Map<String, int> pluginErrorCount = <String, int>{};
 
-  /**
-   * A table mapping request method names to a list of the latencies associated
-   * with those requests, where the latency is defined to be the time between
-   * when the request was sent by the client and when the server started
-   * processing the request.
-   */
+  /// A table mapping request method names to a list of the latencies associated
+  /// with those requests, where the latency is defined to be the time between
+  /// when the request was sent by the client and when the server started
+  /// processing the request.
   final Map<String, List<int>> latencyData = <String, List<int>>{};
 
-  /**
-   * A table mapping request method names to a list of the latencies associated
-   * with those requests, where the latency is defined to be the time between
-   * when the request was sent by the server and when the plugin sent a response.
-   */
+  /// A table mapping request method names to a list of the latencies associated
+  /// with those requests, where the latency is defined to be the time between
+  /// when the request was sent by the server and when the plugin sent a
+  /// response.
   final Map<String, Map<String, List<int>>> pluginResponseData =
       <String, Map<String, List<int>>>{};
 
-  /**
-   * A list of the number of milliseconds between a completion request and the
-   * first event for that request.
-   */
+  /// A list of the number of milliseconds between a completion request and the
+  /// first event for that request.
   final List<int> completionResponseTimes = <int>[];
 
-  /**
-   * Initialize a newly created page writer to write information about the given
-   * instrumentation [log].
-   */
+  /// Initialize a newly created page writer to write information about the
+  /// given instrumentation [log].
   StatsPage(this.log) {
     _processEntries(log.logEntries);
   }
@@ -67,28 +51,22 @@ class StatsPage extends PageWriter {
         sink, 'leftColumn', _writeLeftColumn, 'rightColumn', _writeRightColumn);
   }
 
-  /**
-   * Write the content of the style sheet (without the 'script' tag) for the
-   * page to the given [sink].
-   */
+  /// Write the content of the style sheet (without the 'script' tag) for the
+  /// page to the given [sink].
   @override
   void writeStyleSheet(StringSink sink) {
     super.writeStyleSheet(sink);
     writeTwoColumnStyles(sink, 'leftColumn', 'rightColumn');
   }
 
-  /**
-   * Return the mean of the values in the given list of [values].
-   */
+  /// Return the mean of the values in the given list of [values].
   int _mean(List<int> values) {
     int sum = values.fold(0, (int sum, int latency) => sum + latency);
     return sum ~/ values.length;
   }
 
-  /**
-   * Return a table mapping the kinds of the given [entries] to the number of
-   * each kind.
-   */
+  /// Return a table mapping the kinds of the given [entries] to the number of
+  /// each kind.
   void _processEntries(List<LogEntry> entries) {
     void increment<K>(Map<K, int> map, K key) {
       map[key] = (map[key] ?? 0) + 1;

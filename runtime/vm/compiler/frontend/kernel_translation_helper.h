@@ -763,6 +763,15 @@ class LibraryHelper {
     kExternal = 1 << 0,
     kSynthetic = 1 << 1,
     kIsNonNullableByDefault = 1 << 2,
+    kNonNullableByDefaultCompiledModeBit1Weak = 1 << 3,
+    kNonNullableByDefaultCompiledModeBit2Strong = 1 << 4,
+  };
+
+  enum NonNullableByDefaultCompiledMode {
+    kDisabled,
+    kWeak,
+    kStrong,
+    kAgnostic
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -781,6 +790,14 @@ class LibraryHelper {
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
   bool IsNonNullableByDefault() const {
     return (flags_ & kIsNonNullableByDefault) != 0;
+  }
+  NonNullableByDefaultCompiledMode GetNonNullableByDefaultCompiledMode() const {
+    bool weak = (flags_ & kNonNullableByDefaultCompiledModeBit1Weak) != 0;
+    bool strong = (flags_ & kNonNullableByDefaultCompiledModeBit2Strong) != 0;
+    if (weak && strong) return kAgnostic;
+    if (strong) return kStrong;
+    if (weak) return kWeak;
+    return kDisabled;
   }
 
   uint8_t flags_ = 0;
@@ -1027,6 +1044,43 @@ class CallSiteAttributesMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(CallSiteAttributesMetadataHelper);
 };
 
+// Information about a table selector computed by the TFA.
+struct TableSelectorInfo {
+  int call_count = 0;
+  bool called_on_null = true;
+};
+
+// Collection of table selector information for all selectors in the program.
+class TableSelectorMetadata : public ZoneAllocated {
+ public:
+  explicit TableSelectorMetadata(intptr_t num_selectors)
+      : selectors(num_selectors) {
+    selectors.FillWith(TableSelectorInfo(), 0, num_selectors);
+  }
+
+  GrowableArray<TableSelectorInfo> selectors;
+
+  DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadata);
+};
+
+// Helper class which provides access to table selector metadata.
+class TableSelectorMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.table-selector.metadata"; }
+
+  explicit TableSelectorMetadataHelper(KernelReaderHelper* helper);
+
+  TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
+
+ private:
+  static const int32_t kCalledOnNullBit = 1 << 0;
+  static const int32_t kCallCountShift = 1;
+
+  void ReadTableSelectorInfo(TableSelectorInfo* info);
+
+  DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadataHelper);
+};
+
 class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
@@ -1162,6 +1216,7 @@ class KernelReaderHelper {
   friend class ProcedureHelper;
   friend class SimpleExpressionConverter;
   friend class ScopeBuilder;
+  friend class TableSelectorMetadataHelper;
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;

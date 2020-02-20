@@ -35,7 +35,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:18:25: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 // class B extends A<String?> {}
 //                         ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -43,7 +43,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:20:28: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 // typedef F = void Function()?;
 //                            ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -51,7 +51,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:22:12: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 // List<String?> l = [];
 //            ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -59,7 +59,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:23:7: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 // String? s = null;
 //       ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -67,7 +67,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:28:21: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 // void method(void f()?, {int a}) {}
 //                     ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -75,7 +75,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:24:10: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 // var t = s!;
 //          ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -83,7 +83,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:32:14: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 //   List<String?> l = null;
 //              ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -91,7 +91,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:33:9: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 //   String? s = null;
 //         ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -99,7 +99,7 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:34:12: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 //   var t = s!;
 //            ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
@@ -133,7 +133,7 @@ class B extends self2::A<core::String?> {
     : super self2::A::•()
     ;
 }
-static field core::List<core::String?>* l = <core::String?>[];
+static field core::List<core::String?>* l = <core::String*>[];
 static field core::String? s = null;
 static field core::String* t = self2::s!;
 static field core::int* field = 42;

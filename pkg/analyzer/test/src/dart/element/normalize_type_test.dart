@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
@@ -415,51 +414,45 @@ class NormalizeTypeTest with ElementsTypesMixin {
 
     // * if S is Never then Never
     _check(
-      typeParameterTypeNone(
-        promoteTypeParameter(T, neverNone),
-      ),
+      promotedTypeParameterTypeNone(T, neverNone),
       neverNone,
     );
 
     // * if S is a top type then X
     _check(
-      typeParameterTypeNone(
-        promoteTypeParameter(T, objectQuestion),
-      ),
+      promotedTypeParameterTypeNone(T, objectQuestion),
       typeParameterTypeNone(T),
     );
     _check(
-      typeParameterTypeNone(
-        promoteTypeParameter(T, futureOrQuestion(objectNone)),
-      ),
+      promotedTypeParameterTypeNone(T, futureOrQuestion(objectNone)),
       typeParameterTypeNone(T),
     );
 
     // * if S is X then X
     _check(
-      typeParameterTypeNone(
-        promoteTypeParameter(T, typeParameterTypeNone(T)),
-      ),
+      promotedTypeParameterTypeNone(T, typeParameterTypeNone(T)),
       typeParameterTypeNone(T),
     );
 
     // * if S is Object and NORM(B) is Object where B is the bound of X then X
     T = typeParameter('T', bound: objectNone);
     _check(
-      typeParameterTypeNone(
-        promoteTypeParameter(T, futureOrNone(objectNone)),
-      ),
+      promotedTypeParameterTypeNone(T, futureOrNone(objectNone)),
       typeParameterTypeNone(T),
     );
 
     // else X & S
     T = typeParameter('T');
     _check(
-      typeParameterTypeNone(
-        promoteTypeParameter(T, futureOrNone(neverNone)),
+      promotedTypeParameterType(
+        element: T,
+        nullabilitySuffix: NullabilitySuffix.none,
+        promotedBound: futureOrNone(neverNone),
       ),
-      typeParameterTypeNone(
-        promoteTypeParameter(T, futureNone(neverNone)),
+      promotedTypeParameterType(
+        element: T,
+        nullabilitySuffix: NullabilitySuffix.none,
+        promotedBound: futureNone(neverNone),
       ),
     );
   }
@@ -517,24 +510,7 @@ T2: ${_typeString(T2 as TypeImpl)}
     var typeParameterCollector = _TypeParameterCollector();
     DartTypeVisitor.visit(type, typeParameterCollector);
     for (var typeParameter in typeParameterCollector.typeParameters) {
-      if (typeParameter is TypeParameterMember) {
-        var base = typeParameter.declaration;
-        var baseBound = base.bound;
-        if (baseBound != null) {
-          var baseBoundStr = baseBound.getDisplayString(withNullability: true);
-          typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
-        }
-
-        var bound = typeParameter.bound;
-        var boundStr = bound.getDisplayString(withNullability: true);
-        typeStr += ', ${typeParameter.name} & ' + boundStr;
-      } else {
-        var bound = typeParameter.bound;
-        if (bound != null) {
-          var boundStr = bound.getDisplayString(withNullability: true);
-          typeStr += ', ${typeParameter.name} extends ' + boundStr;
-        }
-      }
+      typeStr += ', $typeParameter';
     }
     return typeStr;
   }
@@ -547,7 +523,7 @@ T2: ${_typeString(T2 as TypeImpl)}
 }
 
 class _TypeParameterCollector extends DartTypeVisitor<void> {
-  final Set<TypeParameterElement> typeParameters = {};
+  final Set<String> typeParameters = {};
 
   /// We don't need to print bounds for these type parameters, because
   /// they are already included into the function type itself, and cannot
@@ -590,7 +566,31 @@ class _TypeParameterCollector extends DartTypeVisitor<void> {
   @override
   void visitTypeParameterType(TypeParameterType type) {
     if (!functionTypeParameters.contains(type.element)) {
-      typeParameters.add(type.element);
+      var bound = type.element.bound;
+      var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
+
+      if (bound == null && promotedBound == null) {
+        return;
+      }
+
+      var str = '';
+
+      if (bound != null) {
+        var boundStr = bound.getDisplayString(withNullability: true);
+        str += '${type.element.name} extends ' + boundStr;
+      }
+
+      if (promotedBound != null) {
+        var promotedBoundStr = promotedBound.getDisplayString(
+          withNullability: true,
+        );
+        if (str.isNotEmpty) {
+          str += ', ';
+        }
+        str += '${type.element.name} & ' + promotedBoundStr;
+      }
+
+      typeParameters.add(str);
     }
   }
 

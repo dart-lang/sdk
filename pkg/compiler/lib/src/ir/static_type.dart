@@ -192,14 +192,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // subtypes of Object (not just interface types), and function types are
     // considered subtypes of Function.
     if (superclass.typeParameters.isEmpty) {
-      return typeEnvironment.coreTypes.legacyRawType(superclass);
+      return typeEnvironment.coreTypes.rawType(superclass, type.nullability);
     }
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
     if (type == typeEnvironment.nullType) {
       return typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, ir.Nullability.legacy);
+          .bottomInterfaceType(superclass, clientLibrary.nullable);
     }
     if (type is ir.InterfaceType) {
       ir.InterfaceType upcastType = typeEnvironment.getTypeAsInstanceOf(
@@ -207,10 +207,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       if (upcastType != null) return upcastType;
     } else if (type is ir.BottomType) {
       return typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, ir.Nullability.legacy);
+          .bottomInterfaceType(superclass, clientLibrary.nonNullable);
     }
     // TODO(johnniwinther): Should we assert that this doesn't happen?
-    return typeEnvironment.coreTypes.legacyRawType(superclass);
+    return typeEnvironment.coreTypes.rawType(superclass, type.nullability);
   }
 
   /// Computes the result type of the property access [node] on a receiver of
@@ -235,9 +235,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // Treat the properties of Object specially.
     String nameString = node.name.name;
     if (nameString == 'hashCode') {
-      return typeEnvironment.coreTypes.intLegacyRawType;
+      return typeEnvironment.coreTypes.intNonNullableRawType;
     } else if (nameString == 'runtimeType') {
-      return typeEnvironment.coreTypes.typeLegacyRawType;
+      return typeEnvironment.coreTypes.typeNonNullableRawType;
     }
     return const ir.DynamicType();
   }
@@ -454,7 +454,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     /// [type].
     bool isTypeApplicable(ir.DartType type) {
       if (type is ir.DynamicType) return true;
-      if (type == typeEnvironment.coreTypes.functionLegacyRawType) return true;
+      if (type == typeEnvironment.coreTypes.functionLegacyRawType ||
+          type == typeEnvironment.coreTypes.functionNullableRawType ||
+          type == typeEnvironment.coreTypes.functionNonNullableRawType)
+        return true;
       if (type is ir.FunctionType) {
         return isFunctionTypeApplicable(
             type.typeParameters.length,
@@ -658,7 +661,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     }
     if (node.name.name == '==') {
       // We use this special case to simplify generation of '==' checks.
-      return typeEnvironment.coreTypes.boolLegacyRawType;
+      return typeEnvironment.coreTypes.boolNonNullableRawType;
     }
     return const ir.DynamicType();
   }
@@ -804,10 +807,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitConstructorInvocation(ir.ConstructorInvocation node) {
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType resultType = node.arguments.types.isEmpty
-        ? new ExactInterfaceType.from(
-            typeEnvironment.coreTypes.legacyRawType(node.target.enclosingClass))
-        : new ExactInterfaceType(
-            node.target.enclosingClass, node.arguments.types);
+        ? new ExactInterfaceType.from(typeEnvironment.coreTypes
+            .nonNullableRawType(node.target.enclosingClass))
+        : new ExactInterfaceType(node.target.enclosingClass,
+            ir.Nullability.nonNullable, node.arguments.types);
     _expressionTypeCache[node] = resultType;
     handleConstructorInvocation(node, argumentTypes, resultType);
     return resultType;
@@ -1253,7 +1256,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       if (streamType != null) {
         iteratorType = new ir.InterfaceType(
             typeEnvironment.coreTypes.streamIteratorClass,
-            ir.Nullability.legacy,
+            ir.Nullability.nonNullable,
             streamType.typeArguments);
       }
     } else {

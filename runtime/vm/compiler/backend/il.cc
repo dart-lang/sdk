@@ -361,9 +361,6 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     return false;
   }
 
-  Zone* zone = thread()->zone();
-  const Class& type_class = Class::Handle(zone, type.type_class());
-
   // The FutureOr<T> type cannot be handled by checking whether the instance is
   // a subtype of FutureOr and then checking whether the type argument `T`
   // matches.
@@ -372,9 +369,12 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   //
   //    instance is Null || instance is T || instance is Future<T>
   //
-  if (type_class.IsFutureOrClass()) {
+  if (type.IsFutureOrType()) {
     return false;
   }
+
+  Zone* zone = thread()->zone();
+  const Class& type_class = Class::Handle(zone, type.type_class());
 
   // We can use class id range checks only if we don't have to test type
   // arguments.
@@ -387,9 +387,8 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     // arguments are not "dynamic" but instantiated-to-bounds.
     const Type& rare_type =
         Type::Handle(zone, Type::RawCast(type_class.RareType()));
-    // TODO(regis): Revisit the usage of TypeEquality::kSyntactical when
-    // implementing strong mode.
-    if (!rare_type.IsEquivalent(type, TypeEquality::kSyntactical)) {
+    if (!rare_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kNew)) {
+      ASSERT(type.arguments() != TypeArguments::null());
       return false;
     }
   }
@@ -405,15 +404,6 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     return false;
   }
 
-  // NOTE: We do allow non-instantiated types here (in comparison to
-  // [CanUseSubtypeRangeCheckFor], since we handle type parameters in the type
-  // expression in some cases (see below).
-
-  Zone* zone = thread()->zone();
-  const Class& type_class = Class::Handle(zone, type.type_class());
-  const intptr_t num_type_parameters = type_class.NumTypeParameters();
-  const intptr_t num_type_arguments = type_class.NumTypeArguments();
-
   // The FutureOr<T> type cannot be handled by checking whether the instance is
   // a subtype of FutureOr and then checking whether the type argument `T`
   // matches.
@@ -422,9 +412,18 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   //
   //    instance is Null || instance is T || instance is Future<T>
   //
-  if (type_class.IsFutureOrClass()) {
+  if (type.IsFutureOrType()) {
     return false;
   }
+
+  // NOTE: We do allow non-instantiated types here (in comparison to
+  // [CanUseSubtypeRangeCheckFor], since we handle type parameters in the type
+  // expression in some cases (see below).
+
+  Zone* zone = thread()->zone();
+  const Class& type_class = Class::Handle(zone, type.type_class());
+  const intptr_t num_type_parameters = type_class.NumTypeParameters();
+  const intptr_t num_type_arguments = type_class.NumTypeArguments();
 
   // This function should only be called for generic classes.
   ASSERT(type_class.NumTypeParameters() > 0 &&
@@ -4037,15 +4036,13 @@ void IndirectGotoInstr::ComputeOffsetTable() {
       // must end with a goto to the indirect entry. Also, we can't use
       // last_instruction because 'target' is compacted/unreachable.
       Instruction* last = target->next();
-      while (last != NULL && !last->IsGoto()) {
+      while (last != nullptr && !last->IsGoto()) {
         last = last->next();
       }
       ASSERT(last);
-      IndirectEntryInstr* ientry =
-          last->AsGoto()->successor()->AsIndirectEntry();
-      ASSERT(ientry != NULL);
-      ASSERT(ientry->indirect_id() == i);
-      offset = ientry->offset();
+      const JoinEntryInstr* entry = last->AsGoto()->successor()->AsJoinEntry();
+      ASSERT(entry != nullptr);
+      offset = entry->offset();
     }
 
     ASSERT(offset > 0);
@@ -4457,6 +4454,14 @@ void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                   arguments_descriptor);
   compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
                                  RawPcDescriptors::kOther, locs());
+  if (selector()->called_on_null && !selector()->on_null_interface) {
+    Value* receiver = ArgumentValueAt(FirstArgIndex());
+    if (receiver->Type()->is_nullable()) {
+      const String& function_name =
+          String::ZoneHandle(interface_target().name());
+      compiler->AddNullCheck(token_pos(), function_name);
+    }
+  }
   __ Drop(ArgumentCount());
 
   compiler->AddDispatchTableCallTarget(selector());
@@ -4862,11 +4867,7 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
 
 void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                                FlowGraphCompiler* compiler) {
-  const String& function_name = check_null->function_name();
-  const intptr_t name_index =
-      compiler->assembler()->object_pool_builder().FindObject(function_name);
-  compiler->AddNullCheck(compiler->assembler()->CodeSize(),
-                         check_null->token_pos(), name_index);
+  compiler->AddNullCheck(check_null->token_pos(), check_null->function_name());
 }
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {

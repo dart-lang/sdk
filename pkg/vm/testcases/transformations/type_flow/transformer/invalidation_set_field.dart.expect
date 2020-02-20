@@ -53,7 +53,7 @@ static method use2([@vm.inferred-type.metadata=#lib::DeepCaller2] self::DeepCall
 static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
 static method setField2([@vm.inferred-type.metadata=#lib::A] self::A* aa, [@vm.inferred-type.metadata=#lib::T2] dynamic value) → void {
-  [@vm.direct-call.metadata=#lib::A::field2] aa.{self::A::field2} = value;
+  [@vm.direct-call.metadata=#lib::A::field2] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::field2} = value;
 }
 static method main(core::List<core::String*>* args) → dynamic {
   new self::A::•();

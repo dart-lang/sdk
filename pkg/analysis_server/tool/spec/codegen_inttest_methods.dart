@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code generation for the file "integration_test_methods.dart".
- */
+/// Code generation for the file "integration_test_methods.dart".
 import 'package:analysis_tool/tools.dart';
 import 'package:path/path.dart' as path;
 
@@ -21,30 +19,20 @@ final GeneratedFile target =
   return visitor.collectCode(visitor.visitApi);
 });
 
-/**
- * Visitor that generates the code for integration_test_methods.dart
- */
+/// Visitor that generates the code for integration_test_methods.dart
 class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     with CodeGenerator {
-  /**
-   * The name of the package into which code is being generated.
-   */
+  /// The name of the package into which code is being generated.
   final String packageName;
 
-  /**
-   * Visitor used to produce doc comments.
-   */
+  /// Visitor used to produce doc comments.
   final ToHtmlVisitor toHtmlVisitor;
 
-  /**
-   * Code snippets concatenated to initialize all of the class fields.
-   */
+  /// Code snippets concatenated to initialize all of the class fields.
   List<String> fieldInitializationCode = <String>[];
 
-  /**
-   * Code snippets concatenated to produce the contents of the switch statement
-   * for dispatching notifications.
-   */
+  /// Code snippets concatenated to produce the contents of the switch statement
+  /// for dispatching notifications.
   List<String> notificationSwitchContents = <String>[];
 
   CodegenInttestMethodsVisitor(this.packageName, Api api)
@@ -57,16 +45,12 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     codeGeneratorSettings.languageName = 'dart';
   }
 
-  /**
-   * Generate a function argument for the given parameter field.
-   */
+  /// Generate a function argument for the given parameter field.
   String formatArgument(TypeObjectField field) =>
       '${dartType(field.type)} ${field.name}';
 
-  /**
-   * Figure out the appropriate Dart type for data having the given API
-   * protocol [type].
-   */
+  /// Figure out the appropriate Dart type for data having the given API
+  /// protocol [type].
   String jsonType(TypeDecl type) {
     type = resolveTypeReferenceChain(type);
     if (type is TypeEnum) {

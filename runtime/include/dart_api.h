@@ -2070,15 +2070,15 @@ typedef enum {
   Dart_CoreType_String,
 } Dart_CoreType_Id;
 
+// TODO(bkonyi): convert this to use nullable types once NNBD is enabled.
 /**
- * Returns a List of the desired length with the desired element type.
+ * Returns a List of the desired length with the desired legacy element type.
  *
  * \param element_type_id The type of elements of the list.
- *
  * \param length The length of the list.
  *
- * \return The List object if no error occurs. Otherwise returns
- *   an error handle.
+ * \return The List object if no error occurs. Otherwise returns an error
+ * handle.
  */
 DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
                                        intptr_t length);
@@ -2086,7 +2086,8 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
 /**
  * Returns a List of the desired length with the desired element type.
  *
- * \param element_type Handle to a type object. E.g., from Dart_GetType.
+ * \param element_type Handle to a nullable type object. E.g., from
+ * Dart_GetType or Dart_GetNullableType.
  *
  * \param length The length of the list.
  *
@@ -2095,6 +2096,25 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
  */
 DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
                                            intptr_t length);
+
+/**
+ * Returns a List of the desired length with the desired element type, filled
+ * with the provided object.
+ *
+ * \param element_type Handle to a type object. E.g., from Dart_GetType.
+ *
+ * \param fill_object Handle to an object of type 'element_type' that will be
+ * used to populate the list. This parameter can only be Dart_Null() if the
+ * length of the list is 0 or 'element_type' is a nullable type.
+ *
+ * \param length The length of the list.
+ *
+ * \return The List object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewListOfTypeFilled(Dart_Handle element_type,
+                                                 Dart_Handle fill_object,
+                                                 intptr_t length);
 
 /**
  * Gets the length of a List.
@@ -3046,7 +3066,8 @@ DART_EXPORT Dart_Handle Dart_RootLibrary();
 DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library);
 
 /**
- * Lookup or instantiate a type by name and type arguments from a Library.
+ * Lookup or instantiate a legacy type by name and type arguments from a
+ * Library.
  *
  * \param library The library containing the class or interface.
  * \param class_name The class name for the type.
@@ -3062,6 +3083,78 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle class_name,
                                      intptr_t number_of_type_arguments,
                                      Dart_Handle* type_arguments);
+
+/**
+ * Lookup or instantiate a nullable type by name and type arguments from
+ * Library.
+ *
+ * \param library The library containing the class or interface.
+ * \param class_name The class name for the type.
+ * \param number_of_type_arguments Number of type arguments.
+ *   For non parametric types the number of type arguments would be 0.
+ * \param type_arguments Pointer to an array of type arguments.
+ *   For non parameteric types a NULL would be passed in for this argument.
+ *
+ * \return If no error occurs, the type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetNullableType(Dart_Handle library,
+                                             Dart_Handle class_name,
+                                             intptr_t number_of_type_arguments,
+                                             Dart_Handle* type_arguments);
+
+/**
+ * Lookup or instantiate a non-nullable type by name and type arguments from
+ * Library.
+ *
+ * \param library The library containing the class or interface.
+ * \param class_name The class name for the type.
+ * \param number_of_type_arguments Number of type arguments.
+ *   For non parametric types the number of type arguments would be 0.
+ * \param type_arguments Pointer to an array of type arguments.
+ *   For non parameteric types a NULL would be passed in for this argument.
+ *
+ * \return If no error occurs, the type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle
+Dart_GetNonNullableType(Dart_Handle library,
+                        Dart_Handle class_name,
+                        intptr_t number_of_type_arguments,
+                        Dart_Handle* type_arguments);
+
+/**
+ * Creates a nullable version of the provided type.
+ *
+ * \param type The type to be converted to a nullable type.
+ *
+ * \return If no error occurs, a nullable type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_TypeToNullableType(Dart_Handle type);
+
+/**
+ * Creates a non-nullable version of the provided type.
+ *
+ * \param type The type to be converted to a non-nullable type.
+ *
+ * \return If no error occurs, a non-nullable type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_TypeToNonNullableType(Dart_Handle type);
+
+/**
+ * A type's nullability.
+ *
+ * \param type A Dart type.
+ * \param result An out parameter containing the result of the check. True if
+ * the type is of the specified nullability, false otherwise.
+ *
+ * \return Returns an error handle if type is not of type Type.
+ */
+DART_EXPORT Dart_Handle Dart_IsNullableType(Dart_Handle type, bool* result);
+DART_EXPORT Dart_Handle Dart_IsNonNullableType(Dart_Handle type, bool* result);
+DART_EXPORT Dart_Handle Dart_IsLegacyType(Dart_Handle type, bool* result);
 
 /**
  * Lookup a class or interface by name from a Library.
@@ -3479,31 +3572,6 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                    void* callback_data);
-
-/**
- *  Same as Dart_CreateAppAOTSnapshotAsAssembly, except all the pieces are
- *  provided directly as bytes that the embedder can load with mmap. The
- *  instructions pieces must be loaded with read and execute permissions; the
- *  other pieces may be loaded as read-only.
- *
- *  This function has been DEPRECATED. Please use Dart_CreateAppAOTSnapshotAsELF
- *  or Dart_CreateAppAOTSnapshotAsAssembly instead. A portable ELF loader is
- *  available in the target //runtime/bin:elf_loader.
- *
- *  If callback and debug_callback_data are provided, debug_callback_data will
- *  be used with the callback to provide separate debugging information.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
-                                 intptr_t* vm_snapshot_data_size,
-                                 uint8_t** vm_snapshot_instructions_buffer,
-                                 intptr_t* vm_snapshot_instructions_size,
-                                 uint8_t** isolate_snapshot_data_buffer,
-                                 intptr_t* isolate_snapshot_data_size,
-                                 uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size,
-                                 Dart_StreamingWriteCallback callback,
-                                 void* debug_callback_data);
 
 /**
  * Sorts the class-ids in depth first traversal order of the inheritance

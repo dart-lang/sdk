@@ -62,6 +62,11 @@ class Dart2jsTarget extends Target {
   @override
   bool get supportsLateFields => false;
 
+  // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
+  //  calls encoded with an explicit property get or disallows getter calls.
+  @override
+  bool get supportsExplicitGetterCalls => false;
+
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
@@ -134,7 +139,7 @@ class Dart2jsTarget extends Target {
                 new ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
                 arg.value)
               ..fileOffset = arg.fileOffset;
-          })), keyType: coreTypes.stringLegacyRawType)
+          })), keyType: coreTypes.stringNonNullableRawType)
             ..isConst = (arguments.named.length == 0)
             ..fileOffset = arguments.fileOffset,
           new ir.IntLiteral(kind)..fileOffset = offset,

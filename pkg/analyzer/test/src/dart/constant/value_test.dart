@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -710,6 +711,12 @@ class DartObjectImplTest {
     _assertIdentical(_boolValue(null), _intValue(null), _intValue(3));
   }
 
+  void test_identical_intZero_doubleZero() {
+    // Used in Flutter:
+    // const bool kIsWeb = identical(0, 0.0);
+    _assertIdentical(_boolValue(true), _intValue(0), _doubleValue(0.0));
+  }
+
   void test_identical_list_empty() {
     _assertIdentical(
       _boolValue(true),
@@ -718,9 +725,42 @@ class DartObjectImplTest {
     );
   }
 
-  void test_identical_list_false() {
+  void test_identical_list_false_differentTypes() {
+    _assertIdentical(
+      _boolValue(false),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.doubleType, []),
+    );
+  }
+
+  void test_identical_list_false_differentValues() {
     _assertIdentical(_boolValue(false), _listValue(_typeProvider.intType, []),
         _listValue(_typeProvider.intType, [_intValue(3)]));
+  }
+
+  void test_identical_list_true_equalTypes() {
+    _assertIdentical(
+      _boolValue(true),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
+  }
+
+  void test_identical_list_true_equalTypesRuntime() {
+    _assertIdentical(
+      _boolValue(true),
+      _listValue(
+        _typeProvider.objectType,
+        [],
+      ),
+      _listValue(
+        _typeProvider.futureOrElement.instantiate(
+          typeArguments: [_typeProvider.objectType],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        [],
+      ),
+    );
   }
 
   void test_identical_map_empty() {
@@ -731,7 +771,7 @@ class DartObjectImplTest {
     );
   }
 
-  void test_identical_map_false() {
+  void test_identical_map_false_differentEntries() {
     _assertIdentical(
       _boolValue(false),
       _mapValue(_typeProvider.intType, _typeProvider.intType, []),
@@ -739,6 +779,39 @@ class DartObjectImplTest {
         _typeProvider.intType,
         _typeProvider.intType,
         [_intValue(1), _intValue(2)],
+      ),
+    );
+  }
+
+  void test_identical_map_false_differentTypes() {
+    _assertIdentical(
+      _boolValue(false),
+      _mapValue(_typeProvider.boolType, _typeProvider.intType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.intType, []),
+    );
+
+    _assertIdentical(
+      _boolValue(false),
+      _mapValue(_typeProvider.intType, _typeProvider.boolType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.intType, []),
+    );
+  }
+
+  void test_identical_map_true_equalTypesRuntime() {
+    _assertIdentical(
+      _boolValue(true),
+      _mapValue(
+        _typeProvider.intType,
+        _typeProvider.objectType,
+        [],
+      ),
+      _mapValue(
+        _typeProvider.intType,
+        _typeProvider.futureOrElement.instantiate(
+          typeArguments: [_typeProvider.objectType],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        [],
       ),
     );
   }
@@ -2024,12 +2097,12 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _mapValue(DartType keyType, DartType valueType,
-      List<DartObjectImpl> keyElementPairs) {
+      List<DartObjectImpl> keyValuePairs) {
     Map<DartObjectImpl, DartObjectImpl> map =
         <DartObjectImpl, DartObjectImpl>{};
-    int count = keyElementPairs.length;
+    int count = keyValuePairs.length;
     for (int i = 0; i < count;) {
-      map[keyElementPairs[i++]] = keyElementPairs[i++];
+      map[keyValuePairs[i++]] = keyValuePairs[i++];
     }
     return DartObjectImpl(
       _typeSystem,

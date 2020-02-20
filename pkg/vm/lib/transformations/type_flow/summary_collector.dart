@@ -800,7 +800,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
 
       case CallKind.PropertySet:
-      case CallKind.SetFieldInConstructor:
         args.add(new Type.nullableAny());
         break;
 
@@ -1341,6 +1340,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final TypeExpr operand = _visit(operandNode);
     final TypeExpr result = _typeCheck(operand, node.type, node);
     explicitCasts[node] = result;
+    if (operandNode is VariableGet) {
+      final int varIndex = _variablesInfo.varIndex[operandNode.variable];
+      if (_variableCells[varIndex] == null) {
+        _variableValues[varIndex] = result;
+      }
+    }
+    return result;
+  }
+
+  @override
+  TypeExpr visitNullCheck(NullCheck node) {
+    final operandNode = node.operand;
+    final TypeExpr result = _makeNarrow(_visit(operandNode), const AnyType());
     if (operandNode is VariableGet) {
       final int varIndex = _variablesInfo.varIndex[operandNode.variable];
       if (_variableCells[varIndex] == null) {
@@ -2072,11 +2084,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitFieldInitializer(FieldInitializer node) {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([_receiver, value]);
-    _makeCall(
-        node,
-        new DirectSelector(node.field,
-            callKind: CallKind.SetFieldInConstructor),
-        args);
+    _makeCall(node,
+        new DirectSelector(node.field, callKind: CallKind.PropertySet), args);
     return null;
   }
 

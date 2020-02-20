@@ -615,24 +615,26 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     return true;
   }
 
+  void _handleNullability(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.none:
+        return;
+      case Nullability.star:
+        _add('legacy');
+        return;
+      case Nullability.question:
+        _add('nullable');
+        return;
+    }
+  }
+
   void _visit(DartType type, DartType parent) {
     type.accept(this, parent);
   }
 
   @override
-  void visitLegacyType(covariant LegacyType type, _) {
-    _add('legacy');
-    _visit(type.baseType, type);
-  }
-
-  @override
-  void visitNullableType(covariant NullableType type, _) {
-    _add('nullable');
-    _visit(type.baseType, type);
-  }
-
-  @override
   void visitNeverType(covariant NeverType type, _) {
+    _handleNullability(type.nullability);
     _add('Never');
   }
 
@@ -647,12 +649,18 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
   }
 
   @override
+  void visitErasedType(covariant ErasedType type, _) {
+    _add('erased');
+  }
+
+  @override
   void visitAnyType(covariant AnyType type, _) {
     _add('any');
   }
 
   @override
   void visitTypeVariableType(covariant TypeVariableType type, DartType parent) {
+    _handleNullability(type.nullability);
     if (parent != type.element.typeDeclaration) {
       _identifier(type.element.typeDeclaration.name);
     }
@@ -661,6 +669,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
 
   @override
   void visitFunctionTypeVariable(covariant FunctionTypeVariable type, _) {
+    _handleNullability(type.nullability);
     int index = type.index;
     String name = index < 26 ? String.fromCharCode($A + index) : 'v\$${index}';
     _add(name);
@@ -671,6 +680,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     if (_dagCheck(type)) return;
 
     _visit(type.returnType, type);
+    _handleNullability(type.nullability);
     _add('Function');
     var typeVariables = type.typeVariables;
     if (typeVariables.isNotEmpty) {
@@ -734,6 +744,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     // types which 'print' as a single identifier.
     if (arguments.isNotEmpty && _dagCheck(type)) return;
 
+    _handleNullability(type.nullability);
     _identifier(type.element.name);
 
     if (arguments.isEmpty) return;
@@ -782,6 +793,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
 
   @override
   void visitFutureOrType(covariant FutureOrType type, _) {
+    _handleNullability(type.nullability);
     _identifier('FutureOr');
     _visit(type.typeArgument, type);
   }

@@ -16,9 +16,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:meta/meta.dart';
 
-/**
- * Determine the number of arguments.
- */
+/// Determine the number of arguments.
 int _argCount(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
   if (node is ArgumentList) {
@@ -33,9 +31,7 @@ int _argCount(DartCompletionRequest request) {
   return 0;
 }
 
-/**
- * Determine if the completion target is at the end of the list of arguments.
- */
+/// Determine if the completion target is at the end of the list of arguments.
 bool _isAppendingToArgList(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
   if (node is ArgumentList) {
@@ -50,9 +46,7 @@ bool _isAppendingToArgList(DartCompletionRequest request) {
   return false;
 }
 
-/**
- * Determine if the completion target is the label for a named argument.
- */
+/// Determine if the completion target is the label for a named argument.
 bool _isEditingNamedArgLabel(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
   if (node is ArgumentList) {
@@ -67,9 +61,7 @@ bool _isEditingNamedArgLabel(DartCompletionRequest request) {
   return false;
 }
 
-/**
- * Return `true` if the [request] is inside of a [NamedExpression] name.
- */
+/// Return `true` if the [request] is inside of a [NamedExpression] name.
 bool _isInNamedExpression(DartCompletionRequest request) {
   Object entity = request.target.entity;
   if (entity is NamedExpression) {
@@ -79,11 +71,9 @@ bool _isInNamedExpression(DartCompletionRequest request) {
   return false;
 }
 
-/**
- * Determine if the completion target is in the middle or beginning of the list
- * of named parameters and is not preceded by a comma. This method assumes that
- * _isAppendingToArgList has been called and is false.
- */
+/// Determine if the completion target is in the middle or beginning of the list
+/// of named parameters and is not preceded by a comma. This method assumes that
+/// _isAppendingToArgList has been called and is false.
 bool _isInsertingToArgListWithNoSynthetic(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
   if (node is ArgumentList) {
@@ -93,12 +83,10 @@ bool _isInsertingToArgListWithNoSynthetic(DartCompletionRequest request) {
   return false;
 }
 
-/**
- * Determine if the completion target is in the middle or beginning of the list
- * of named parameters and is preceded by a comma. This method assumes that
- * _isAppendingToArgList and _isInsertingToArgListWithNoSynthetic have been
- * called and both return false.
- */
+/// Determine if the completion target is in the middle or beginning of the list
+/// of named parameters and is preceded by a comma. This method assumes that
+/// _isAppendingToArgList and _isInsertingToArgListWithNoSynthetic have been
+/// called and both return false.
 bool _isInsertingToArgListWithSynthetic(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
   if (node is ArgumentList) {
@@ -117,9 +105,7 @@ bool _isInsertingToArgListWithSynthetic(DartCompletionRequest request) {
   return false;
 }
 
-/**
- * Return a collection of currently specified named arguments
- */
+/// Return a collection of currently specified named arguments
 Iterable<String> _namedArgs(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
   List<String> namedArgs = <String>[];
@@ -133,10 +119,8 @@ Iterable<String> _namedArgs(DartCompletionRequest request) {
   return namedArgs;
 }
 
-/**
- * A contributor for calculating `completion.getSuggestions` request results
- * when the cursor position is inside the arguments to a method call.
- */
+/// A contributor for calculating `completion.getSuggestions` request results
+/// when the cursor position is inside the arguments to a method call.
 class ArgListContributor extends DartCompletionContributor {
   DartCompletionRequest request;
   List<CompletionSuggestion> suggestions;
@@ -340,10 +324,8 @@ class ArgListContributor extends DartCompletionContributor {
     return newExpr != null && flutter.isWidgetCreation(newExpr);
   }
 
-  /**
-   * If the given [comment] is not `null`, fill the [suggestion] documentation
-   * fields.
-   */
+  /// If the given [comment] is not `null`, fill the [suggestion] documentation
+  /// fields.
   static void _setDocumentation(
       CompletionSuggestion suggestion, String comment) {
     if (comment != null) {

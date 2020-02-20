@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // Patch file for the dart:async library.
 
 import 'dart:_js_helper'
@@ -122,7 +120,7 @@ class Timer {
 
 class _TimerImpl implements Timer {
   final bool _once;
-  int _handle;
+  int? _handle;
   int _tick = 0;
 
   _TimerImpl(int milliseconds, void callback()) : _once = true {
@@ -197,11 +195,11 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
   _AsyncAwaitCompleter() : isSync = false;
 
-  void complete([FutureOr<T> value]) {
+  void complete([FutureOr<T>? value]) {
     if (!isSync || value is Future<T>) {
-      _future._asyncComplete(value);
+      _future._asyncComplete(value as FutureOr<T>);
     } else {
-      _future._completeWithValue(value);
+      _future._completeWithValue(value as T);
     }
   }
 
@@ -279,7 +277,7 @@ dynamic _asyncRethrow(dynamic object, Completer completer) {
 /// The [bodyFunction] argument is the continuation that should be invoked
 /// when the future completes.
 void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
-  Function thenCallback =
+  FutureOr<dynamic> Function(dynamic) thenCallback =
       (result) => bodyFunction(async_error_codes.SUCCESS, result);
 
   Function errorCallback = (dynamic error, StackTrace stackTrace) {
@@ -298,7 +296,7 @@ void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
     _Future future = new _Future().._setValue(object);
     // We can skip the zone registration, since the bodyFunction is already
     // registered (see [_wrapJsFunctionForAsync]).
-    future._thenAwait(thenCallback, null);
+    future._thenAwait(thenCallback, errorCallback);
   }
 }
 
@@ -376,7 +374,7 @@ void _asyncStarHelper(
   if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
     // This happens on return from the async* function.
     if (controller.isCanceled) {
-      controller.cancelationFuture._completeWithValue(null);
+      controller.cancelationFuture!._completeWithValue(null);
     } else {
       controller.close();
     }
@@ -384,7 +382,7 @@ void _asyncStarHelper(
   } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
     // The error is a js-error.
     if (controller.isCanceled) {
-      controller.cancelationFuture._completeError(
+      controller.cancelationFuture!._completeError(
           unwrapException(object), getTraceFromException(object));
     } else {
       controller.addError(
@@ -450,7 +448,7 @@ Stream _streamOfController(_AsyncStarStreamController controller) {
 /// If yielding while the subscription is paused it will become suspended. And
 /// only resume after the subscription is resumed or canceled.
 class _AsyncStarStreamController<T> {
-  StreamController<T> controller;
+  late StreamController<T> controller;
   Stream get stream => controller.stream;
 
   /// True when the async* function has yielded while being paused.
@@ -460,7 +458,7 @@ class _AsyncStarStreamController<T> {
 
   bool get isPaused => controller.isPaused;
 
-  _Future cancelationFuture = null;
+  _Future? cancelationFuture = null;
 
   /// True after the StreamSubscription has been cancelled.
   /// When this is true, errors thrown from the async* body should go to the
@@ -564,22 +562,23 @@ class _SyncStarIterator<T> implements Iterator<T> {
   dynamic _body;
 
   // The current value, unless iterating a non-sync* nested iterator.
-  T _current = null;
+  T? _current = null;
 
   // This is the nested iterator when iterating a yield* of a non-sync iterator.
   // TODO(32956): In strong-mode, yield* takes an Iterable<T> (possibly checked
   // with an implicit downcast), so change type to Iterator<T>.
-  Iterator _nestedIterator = null;
+  Iterator? _nestedIterator = null;
 
   // Stack of suspended state machines when iterating a yield* of a sync*
   // iterator.
-  List _suspendedBodies = null;
+  List? _suspendedBodies = null;
 
   _SyncStarIterator(this._body);
 
   T get current {
-    if (_nestedIterator == null) return _current;
-    return _nestedIterator.current;
+    var nested = _nestedIterator;
+    var result = nested != null ? nested.current : _current;
+    return result as T;
   }
 
   _runBody() {
@@ -610,7 +609,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
   bool moveNext() {
     while (true) {
       if (_nestedIterator != null) {
-        if (_nestedIterator.moveNext()) {
+        if (_nestedIterator!.moveNext()) {
           return true;
         } else {
           _nestedIterator = null;
@@ -620,13 +619,14 @@ class _SyncStarIterator<T> implements Iterator<T> {
       if (value is _IterationMarker) {
         int state = value.state;
         if (state == _IterationMarker.ITERATION_ENDED) {
-          if (_suspendedBodies == null || _suspendedBodies.isEmpty) {
+          var suspendedBodies = _suspendedBodies;
+          if (suspendedBodies == null || suspendedBodies.isEmpty) {
             _current = null;
             // Rely on [_body] to repeatedly return `ITERATION_ENDED`.
             return false;
           }
           // Resume the innermost suspended iterator.
-          _body = _suspendedBodies.removeLast();
+          _body = suspendedBodies.removeLast();
           continue;
         } else if (state == _IterationMarker.UNCAUGHT_ERROR) {
           // Rely on [_body] to repeatedly return `UNCAUGHT_ERROR`.

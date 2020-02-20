@@ -892,15 +892,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     typeInferrer?.assignedVariables?.finish();
 
     FunctionBuilder builder = member;
-    FunctionNode function = builder.member.function;
-    for (VariableDeclaration parameter in function.positionalParameters) {
-      typeInferrer?.flowAnalysis?.initialize(parameter);
+    if (extensionThis != null) {
+      typeInferrer?.flowAnalysis?.initialize(extensionThis);
     }
-    for (VariableDeclaration parameter in function.namedParameters) {
-      typeInferrer?.flowAnalysis?.initialize(parameter);
-    }
-
     if (formals?.parameters != null) {
+      for (int i = 0; i < formals.parameters.length; i++) {
+        FormalParameterBuilder parameter = formals.parameters[i];
+        typeInferrer?.flowAnalysis?.initialize(parameter.variable);
+      }
       for (int i = 0; i < formals.parameters.length; i++) {
         FormalParameterBuilder parameter = formals.parameters[i];
         Expression initializer = parameter.variable.initializer;
@@ -1031,8 +1030,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     switch (asyncModifier) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
-        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType,
-            SubtypeCheckMode.ignoringNullabilities)) {
+        if (!typeEnvironment.isSubtypeOf(
+            futureBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
           problem = fasta.messageIllegalAsyncReturnType;
         }
         break;
@@ -1041,8 +1040,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
         if (returnType is VoidType) {
           problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType,
-            SubtypeCheckMode.ignoringNullabilities)) {
+        } else if (!typeEnvironment.isSubtypeOf(
+            streamBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
           problem = fasta.messageIllegalAsyncGeneratorReturnType;
         }
         break;
@@ -1052,7 +1051,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (returnType is VoidType) {
           problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
         } else if (!typeEnvironment.isSubtypeOf(iterableBottomType, returnType,
-            SubtypeCheckMode.ignoringNullabilities)) {
+            SubtypeCheckMode.withNullabilities)) {
           problem = fasta.messageIllegalSyncGeneratorReturnType;
         }
         break;
@@ -1368,6 +1367,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
     assert(builder == member);
     Constructor constructor = builder.actualConstructor;
+    List<FormalParameterBuilder> formals = builder.formals;
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder parameter = formals[i];
+        typeInferrer?.flowAnalysis?.initialize(parameter.variable);
+      }
+    }
     if (_initializers != null) {
       for (Initializer initializer in _initializers) {
         typeInferrer?.inferInitializer(this, initializer);
@@ -5133,13 +5139,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ExpressionStatement statement = lastNode;
         lastNode = statement.expression;
       }
-      if (lastNode is! BreakStatement &&
-          lastNode is! ContinueSwitchStatement &&
-          lastNode is! Rethrow &&
-          lastNode is! ReturnStatement &&
-          !forest.isThrow(lastNode)) {
-        block.addStatement(
-            new ExpressionStatement(buildFallThroughError(current.fileOffset)));
+      // The rule that every case block should end with one of the predefined
+      // set of statements is specific to pre-NNBD code and is replaced with
+      // another rule based on flow analysis for NNBD code.  For details, see
+      // the following link:
+      // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#errors-and-warnings
+      if (!libraryBuilder.isNonNullableByDefault) {
+        if (lastNode is! BreakStatement &&
+            lastNode is! ContinueSwitchStatement &&
+            lastNode is! Rethrow &&
+            lastNode is! ReturnStatement &&
+            !forest.isThrow(lastNode)) {
+          block.addStatement(new ExpressionStatement(
+              buildFallThroughError(current.fileOffset)));
+        }
       }
     }
 
@@ -5547,7 +5560,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (formal != null && formal.type != null) {
           DartType formalType = formal.variable.type;
           if (!typeEnvironment.isSubtypeOf(formalType, builder.fieldType,
-              SubtypeCheckMode.ignoringNullabilities)) {
+              SubtypeCheckMode.withNullabilities)) {
             libraryBuilder.addProblem(
                 fasta.templateInitializingFormalTypeMismatch.withArguments(
                     name,

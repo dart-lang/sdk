@@ -1271,7 +1271,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   void viewport(int x, int y, int width, int height) native;
 
   void readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData pixels) {
+      TypedData? pixels) {
     _readPixels(x, y, width, height, format, type, pixels);
   }
 

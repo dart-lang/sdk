@@ -44,11 +44,6 @@ abstract class RecipeEncoder {
   jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
       InterfaceType declaringType, DartType supertypeArgument);
 
-  /// Converts a recipe into a fragment of code that accesses the evaluated
-  /// recipe.
-  // TODO(33422): Remove need for this by pushing stubs through SSA.
-  jsAst.Expression evaluateRecipe(ModularEmitter emitter, jsAst.Literal recipe);
-
   // TODO(sra): Still need a $signature function when the function type is a
   // function of closed type variables. See if the $signature method can always
   // be generated through SSA in those cases.
@@ -89,13 +84,6 @@ class RecipeEncoderImpl implements RecipeEncoder {
             metadata: true)
         .run()
         .recipe;
-  }
-
-  @override
-  jsAst.Expression evaluateRecipe(
-      ModularEmitter emitter, jsAst.Literal recipe) {
-    return js('#(#)',
-        [emitter.staticFunctionAccess(commonElements.findType), recipe]);
   }
 
   @override
@@ -222,32 +210,35 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     _emitCode(Recipe.extensionOp);
   }
 
+  void _emitNullability(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.none:
+        return;
+      case Nullability.question:
+        _emitCode(Recipe.wrapQuestion);
+        return;
+      case Nullability.star:
+        _emitCode(Recipe.wrapStar);
+        return;
+    }
+  }
+
   @override
   void visit(DartType type, _) => type.accept(this, _);
 
   @override
-  void visitLegacyType(LegacyType type, _) {
-    visit(type.baseType, _);
-    _emitCode(Recipe.wrapStar);
-  }
-
-  @override
-  void visitNullableType(NullableType type, _) {
-    visit(type.baseType, _);
-    _emitCode(Recipe.wrapQuestion);
-  }
-
-  @override
   void visitNeverType(NeverType type, _) {
     _emitExtensionOp(Recipe.pushNeverExtension);
+    _emitNullability(type.nullability);
   }
 
   @override
   void visitTypeVariableType(TypeVariableType type, _) {
     TypeEnvironmentStructure environment = _environment;
     if (environment is SingletonTypeEnvironmentStructure) {
-      if (type == environment.variable) {
+      if (type.element == environment.variable.element) {
         _emitInteger(0);
+        _emitNullability(type.nullability);
         return;
       }
     }
@@ -257,11 +248,13 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
           metadata: metadata);
       if (index != null) {
         _emitInteger(index);
+        _emitNullability(type.nullability);
         return;
       }
 
       jsAst.Name name = _emitter.typeVariableAccessNewRti(type.element);
       _emitName(name);
+      _emitNullability(type.nullability);
       typeVariables.add(type);
       return;
     }
@@ -277,6 +270,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     // See [visitFunctionType] for explanation.
     _emitInteger(functionTypeVariables.length - position - 1);
     _emitCode(Recipe.genericFunctionTypeParameterIndex);
+    _emitNullability(type.nullability);
   }
 
   @override
@@ -301,6 +295,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       // Push the name, which is later converted by an implicit toType
       // operation.
       _emitName(name);
+      _emitNullability(type.nullability);
     } else {
       _emitName(name);
       _emitCode(Recipe.startTypeArguments);
@@ -318,6 +313,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
         first = false;
       }
       _emitCode(Recipe.endTypeArguments);
+      _emitNullability(type.nullability);
     }
   }
 
@@ -412,6 +408,8 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       // Exit generic function scope. Remove the type variables pushed at entry.
       functionTypeVariables.length -= type.typeVariables.length;
     }
+
+    _emitNullability(type.nullability);
   }
 
   @override
@@ -423,6 +421,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   void visitFutureOrType(FutureOrType type, _) {
     visit(type.typeArgument, _);
     _emitCode(Recipe.wrapFutureOr);
+    _emitNullability(type.nullability);
   }
 }
 

@@ -84,10 +84,10 @@ $!MEMBERS
       _toDataUrl(type, quality);
 
   @JSName('toBlob')
-  void _toBlob(BlobCallback callback, String type,
-      [Object$NULLABLE arguments]) native;
+  void _toBlob(BlobCallback callback, [String$NULLABLE type,
+      Object$NULLABLE arguments]) native;
 
-  Future<Blob> toBlob(String type, [Object$NULLABLE arguments]) {
+  Future<Blob> toBlob([String$NULLABLE type, Object$NULLABLE arguments]) {
     var completer = new Completer<Blob>();
       _toBlob((value) {
         completer.complete(value);

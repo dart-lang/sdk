@@ -12,18 +12,14 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * Return a new [SourceReference] instance for the given [match].
- */
+/// Return a new [SourceReference] instance for the given [match].
 SourceReference getSourceReference(SearchMatch match) {
   return SourceReference(match);
 }
 
-/**
- * When a [Source] (a file) is used in more than one context, [SearchEngine]
- * will return separate [SearchMatch]s for each context. But in rename
- * refactorings we want to update each [Source] only once.
- */
+/// When a [Source] (a file) is used in more than one context, [SearchEngine]
+/// will return separate [SearchMatch]s for each context. But in rename
+/// refactorings we want to update each [Source] only once.
 List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
   var uniqueReferences = HashMap<SourceReference, SourceReference>();
   for (SearchMatch match in matches) {
@@ -37,9 +33,7 @@ List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
   return uniqueReferences.keys.toList();
 }
 
-/**
- * Abstract implementation of [Refactoring].
- */
+/// Abstract implementation of [Refactoring].
 abstract class RefactoringImpl implements Refactoring {
   @override
   final List<String> potentialEditIds = <String>[];
@@ -58,11 +52,9 @@ abstract class RefactoringImpl implements Refactoring {
   }
 }
 
-/**
- * The [SourceRange] in some [Source].
- *
- * TODO(scheglov) inline this class as SearchMatch
- */
+/// The [SourceRange] in some [Source].
+///
+/// TODO(scheglov) inline this class as SearchMatch
 class SourceReference {
   final SearchMatch _match;
 
@@ -70,9 +62,7 @@ class SourceReference {
 
   Element get element => _match.element;
 
-  /**
-   * The full path of the file containing the match.
-   */
+  /// The full path of the file containing the match.
   String get file => _match.file;
 
   @override
@@ -99,17 +89,13 @@ class SourceReference {
     return false;
   }
 
-  /**
-   * Adds the [SourceEdit] to replace this reference.
-   */
+  /// Adds the [SourceEdit] to replace this reference.
   void addEdit(SourceChange change, String newText, {String id}) {
     SourceEdit edit = createEdit(newText, id: id);
     doSourceChange_addSourceEdit(change, unitSource, edit);
   }
 
-  /**
-   * Returns the [SourceEdit] to replace this reference.
-   */
+  /// Returns the [SourceEdit] to replace this reference.
   SourceEdit createEdit(String newText, {String id}) {
     return newSourceEdit_range(range, newText, id: id);
   }

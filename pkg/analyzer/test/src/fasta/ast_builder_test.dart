@@ -19,7 +19,7 @@ class AstBuilderTest extends FastaParserTestCase {
   void test_constructor_factory_misnamed() {
     CompilationUnit unit = parseCompilationUnit('''
 class A {
-  factory B() => null;
+  factory B() => throw 0;
 }
 ''');
     expect(unit, isNotNull);

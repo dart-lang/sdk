@@ -72,16 +72,6 @@ uint32_t Address::vencoding() const {
   return vencoding;
 }
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
-  ASSERT(Utils::IsAligned(data, 4));
-  ASSERT(Utils::IsAligned(length, 4));
-  const uword end = data + length;
-  while (data < end) {
-    *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
-    data += 4;
-  }
-}
-
 void Assembler::Emit(int32_t value) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   buffer_.Emit<int32_t>(value);
@@ -3164,7 +3154,6 @@ void Assembler::SubImmediate(Register rd,
                              Register rn,
                              int32_t value,
                              Condition cond) {
-  ASSERT(value != kMinInt32);  // Cannot be negated.
   AddImmediate(rd, rn, -value, cond);
 }
 
@@ -3172,8 +3161,27 @@ void Assembler::SubImmediateSetFlags(Register rd,
                                      Register rn,
                                      int32_t value,
                                      Condition cond) {
-  ASSERT(value != kMinInt32);  // Cannot be negated.
-  AddImmediateSetFlags(rd, rn, -value, cond);
+  Operand o;
+  if (Operand::CanHold(value, &o)) {
+    // Handles value == kMinInt32.
+    subs(rd, rn, o, cond);
+  } else if (Operand::CanHold(-value, &o)) {
+    ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
+    adds(rd, rn, o, cond);
+  } else {
+    ASSERT(rn != IP);
+    if (Operand::CanHold(~value, &o)) {
+      mvn(IP, o, cond);
+      subs(rd, rn, Operand(IP), cond);
+    } else if (Operand::CanHold(~(-value), &o)) {
+      ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
+      mvn(IP, o, cond);
+      adds(rd, rn, Operand(IP), cond);
+    } else {
+      LoadDecodableImmediate(IP, value, cond);
+      subs(rd, rn, Operand(IP), cond);
+    }
+  }
 }
 
 void Assembler::AndImmediate(Register rd,

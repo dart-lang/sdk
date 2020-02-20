@@ -13,7 +13,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, loadComponentFromBytes;
-import 'package:package_config/packages.dart' show Packages;
+import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -163,7 +163,7 @@ class ProcessedOptionsTest {
   }
 
   checkPackageExpansion(
-      String packageName, String packageDir, Packages packages) {
+      String packageName, String packageDir, PackageConfig packages) {
     var input = Uri.parse('package:$packageName/a.dart');
     var expected = Uri.parse('org-dartlang-test:///$packageDir/a.dart');
     expect(packages.resolve(input), expected);
@@ -308,7 +308,7 @@ class ProcessedOptionsTest {
         inputs: [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     expect(errors, isEmpty);
-    expect(uriTranslator.packages.asMap(), isEmpty);
+    expect(uriTranslator.packages.packages, isEmpty);
   }
 
   test_getUriTranslator_noPackages() async {
@@ -323,7 +323,7 @@ class ProcessedOptionsTest {
       ..onDiagnostic = errors.add;
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
-    expect(uriTranslator.packages.asMap(), isEmpty);
+    expect(uriTranslator.packages.packages, isEmpty);
     expect(errors.single.message,
         startsWith(_stringPrefixOf(templateCantReadFile)));
   }

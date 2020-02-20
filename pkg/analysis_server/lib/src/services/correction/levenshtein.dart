@@ -4,26 +4,22 @@
 
 import 'dart:math' as math;
 
-/**
- * The value returned by [levenshtein] if the distance is determined
- * to be over the specified threshold.
- */
+/// The value returned by [levenshtein] if the distance is determined
+/// to be over the specified threshold.
 const int LEVENSHTEIN_MAX = 1 << 20;
 
 const int _MAX_VALUE = 1 << 10;
 
-/**
- * Find the Levenshtein distance between two [String]s if it's less than or
- * equal to a given threshold.
- *
- * This is the number of changes needed to change one String into another,
- * where each change is a single character modification (deletion, insertion or
- * substitution).
- *
- * This implementation follows from Algorithms on Strings, Trees and Sequences
- * by Dan Gusfield and Chas Emerick's implementation of the Levenshtein distance
- * algorithm.
- */
+/// Find the Levenshtein distance between two [String]s if it's less than or
+/// equal to a given threshold.
+///
+/// This is the number of changes needed to change one String into another,
+/// where each change is a single character modification (deletion, insertion
+/// or substitution).
+///
+/// This implementation follows from Algorithms on Strings, Trees and Sequences
+/// by Dan Gusfield and Chas Emerick's implementation of the Levenshtein
+/// distance algorithm.
 int levenshtein(String s, String t, int threshold,
     {bool caseSensitive = true}) {
   if (s == null || t == null) {

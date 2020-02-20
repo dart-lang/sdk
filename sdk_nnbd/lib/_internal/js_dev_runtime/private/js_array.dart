@@ -552,7 +552,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   E operator [](int index) {
     // Suppress redundant null checks via JS.
-    if (JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
+    if (index == null ||
+        JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
         JS<int>('!', '#', index) < 0) {
       throw diagnoseIndexError(this, index);
     }
@@ -561,7 +562,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   void operator []=(int index, E value) {
     checkMutable('indexed set');
-    if (JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
+    if (index == null ||
+        JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
         JS<int>('!', '#', index) < 0) {
       throw diagnoseIndexError(this, index);
     }

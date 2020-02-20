@@ -12,11 +12,9 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
-/**
- * Instances of the class [ByteStreamClientChannel] implement a
- * [ClientCommunicationChannel] that uses a stream and a sink (typically,
- * standard input and standard output) to communicate with servers.
- */
+/// Instances of the class [ByteStreamClientChannel] implement a
+/// [ClientCommunicationChannel] that uses a stream and a sink (typically,
+/// standard input and standard output) to communicate with servers.
 class ByteStreamClientChannel implements ClientCommunicationChannel {
   final Stream input;
   final IOSink output;
@@ -60,34 +58,24 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   }
 }
 
-/**
- * Instances of the class [ByteStreamServerChannel] implement a
- * [ServerCommunicationChannel] that uses a stream and a sink (typically,
- * standard input and standard output) to communicate with clients.
- */
+/// Instances of the class [ByteStreamServerChannel] implement a
+/// [ServerCommunicationChannel] that uses a stream and a sink (typically,
+/// standard input and standard output) to communicate with clients.
 class ByteStreamServerChannel implements ServerCommunicationChannel {
   final Stream _input;
 
   final IOSink _output;
 
-  /**
-   * The instrumentation service that is to be used by this analysis server.
-   */
+  /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService _instrumentationService;
 
-  /**
-   * The helper for recording request / response statistics.
-   */
+  /// The helper for recording request / response statistics.
   final RequestStatisticsHelper _requestStatistics;
 
-  /**
-   * Completer that will be signalled when the input stream is closed.
-   */
+  /// Completer that will be signalled when the input stream is closed.
   final Completer _closed = Completer();
 
-  /**
-   * True if [close] has been called.
-   */
+  /// True if [close] has been called.
   bool _closeRequested = false;
 
   ByteStreamServerChannel(
@@ -97,9 +85,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     _requestStatistics?.serverChannel = this;
   }
 
-  /**
-   * Future that will be completed when the input stream is closed.
-   */
+  /// Future that will be completed when the input stream is closed.
   Future get closed {
     return _closed.future;
   }
@@ -156,9 +142,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     });
   }
 
-  /**
-   * Send the string [s] to [_output] followed by a newline.
-   */
+  /// Send the string [s] to [_output] followed by a newline.
   void _outputLine(String s) {
     runZoned(() {
       _output.writeln(s);
@@ -167,10 +151,8 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     });
   }
 
-  /**
-   * Read a request from the given [data] and use the given function to handle
-   * the request.
-   */
+  /// Read a request from the given [data] and use the given function to handle
+  /// the request.
   void _readRequest(Object data, void Function(Request request) onRequest) {
     // Ignore any further requests after the communication channel is closed.
     if (_closed.isCompleted) {

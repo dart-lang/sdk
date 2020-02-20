@@ -14,30 +14,22 @@ import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 
-/**
- * An abstract implementation of a request handler.
- */
+/// An abstract implementation of a request handler.
 abstract class AbstractRequestHandler implements RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
+  /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
-  /**
-   * Initialize a newly created request handler to be associated with the given
-   * analysis [server].
-   */
+  /// Initialize a newly created request handler to be associated with the given
+  /// analysis [server].
   AbstractRequestHandler(this.server);
 
-  /**
-   * Given a mapping from plugins to futures that will complete when the plugin
-   * has responded to a request, wait for a finite amount of time for each of
-   * the plugins to respond. Return a list of the responses from each of the
-   * plugins. If a plugin fails to return a response, notify the plugin manager
-   * associated with the server so that non-responsive plugins can be killed or
-   * restarted. The [timeout] is the maximum amount of time that will be spent
-   * waiting for plugins to respond.
-   */
+  /// Given a mapping from plugins to futures that will complete when the plugin
+  /// has responded to a request, wait for a finite amount of time for each of
+  /// the plugins to respond. Return a list of the responses from each of the
+  /// plugins. If a plugin fails to return a response, notify the plugin manager
+  /// associated with the server so that non-responsive plugins can be killed or
+  /// restarted. The [timeout] is the maximum amount of time that will be spent
+  /// waiting for plugins to respond.
   Future<List<plugin.Response>> waitForResponses(
       Map<PluginInfo, Future<plugin.Response>> futures,
       {plugin.RequestParams requestParameters,

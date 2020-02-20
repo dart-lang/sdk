@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code for displaying the API as HTML.  This is used both for generating a
- * full description of the API as a web page, and for generating doc comments
- * in generated code.
- */
+/// Code for displaying the API as HTML.  This is used both for generating a
+/// full description of the API as a web page, and for generating doc comments
+/// in generated code.
 import 'dart:convert';
 
 import 'package:analysis_tool/html.dart';
@@ -16,9 +14,7 @@ import 'package:html/dom.dart' as dom;
 import 'api.dart';
 import 'from_html.dart';
 
-/**
- * Embedded stylesheet
- */
+/// Embedded stylesheet
 final String stylesheet = '''
 body {
   font-family: 'Roboto', sans-serif;
@@ -143,10 +139,8 @@ String _toTitleCase(String str) {
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
 
-/**
- * Visitor that records the mapping from HTML elements to various kinds of API
- * nodes.
- */
+/// Visitor that records the mapping from HTML elements to various kinds of API
+/// nodes.
 class ApiMappings extends HierarchicalApiVisitor {
   Map<dom.Element, Domain> domains = <dom.Element, Domain>{};
 
@@ -158,9 +152,7 @@ class ApiMappings extends HierarchicalApiVisitor {
   }
 }
 
-/**
- * Helper methods for creating HTML elements.
- */
+/// Helper methods for creating HTML elements.
 mixin HtmlMixin {
   void anchor(String id, void Function() callback) {
     element('a', {'name': id}, callback);
@@ -214,19 +206,13 @@ mixin HtmlMixin {
   void ul(void Function() callback) => element('ul', {}, callback);
 }
 
-/**
- * Visitor that generates HTML documentation of the API.
- */
+/// Visitor that generates HTML documentation of the API.
 class ToHtmlVisitor extends HierarchicalApiVisitor
     with HtmlMixin, HtmlGenerator {
-  /**
-   * Set of types defined in the API.
-   */
+  /// Set of types defined in the API.
   Set<String> definedTypes = <String>{};
 
-  /**
-   * Mappings from HTML elements to API nodes.
-   */
+  /// Mappings from HTML elements to API nodes.
   ApiMappings apiMappings;
 
   ToHtmlVisitor(Api api)
@@ -235,13 +221,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     apiMappings.visitApi();
   }
 
-  /**
-   * Describe the payload of request, response, notification, refactoring
-   * feedback, or refactoring options.
-   *
-   * If [force] is true, then a section is inserted even if the payload is
-   * null.
-   */
+  /// Describe the payload of request, response, notification, refactoring
+  /// feedback, or refactoring options.
+  ///
+  /// If [force] is true, then a section is inserted even if the payload is
+  /// null.
   void describePayload(TypeObject subType, String name, {bool force = false}) {
     if (force || subType != null) {
       h4(() {
@@ -410,15 +394,13 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     }
   }
 
-  /**
-   * Generate a description of [type] using [TypeVisitor].
-   *
-   * If [shortDesc] is non-null, the output is prefixed with this string
-   * and a colon.
-   *
-   * If [typeForBolding] is supplied, then fields in this type are shown in
-   * boldface.
-   */
+  /// Generate a description of [type] using [TypeVisitor].
+  ///
+  /// If [shortDesc] is non-null, the output is prefixed with this string
+  /// and a colon.
+  ///
+  /// If [typeForBolding] is supplied, then fields in this type are shown in
+  /// boldface.
   void showType(String shortDesc, TypeDecl type, [TypeObject typeForBolding]) {
     Set<String> fieldsToBold = <String>{};
     if (typeForBolding != null) {
@@ -437,10 +419,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     });
   }
 
-  /**
-   * Copy the contents of the given HTML element, translating the special
-   * elements that define the API appropriately.
-   */
+  /// Copy the contents of the given HTML element, translating the special
+  /// elements that define the API appropriately.
   void translateHtml(dom.Element html, {bool squashParagraphs = false}) {
     for (dom.Node node in html.nodes) {
       if (node is dom.Element) {
@@ -715,29 +695,23 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   }
 }
 
-/**
- * Visitor that generates a compact representation of a type, such as:
- *
- * {
- *   "id": String
- *   "error": optional Error
- *   "result": {
- *     "version": String
- *   }
- * }
- */
+/// Visitor that generates a compact representation of a type, such as:
+///
+/// {
+///   "id": String
+///   "error": optional Error
+///   "result": {
+///     "version": String
+///   }
+/// }
 class TypeVisitor extends HierarchicalApiVisitor
     with HtmlMixin, HtmlCodeGenerator {
-  /**
-   * Set of fields which should be shown in boldface, or null if no field
-   * should be shown in boldface.
-   */
+  /// Set of fields which should be shown in boldface, or null if no field
+  /// should be shown in boldface.
   final Set<String> fieldsToBold;
 
-  /**
-   * True if a short description should be generated.  In a short description,
-   * objects are shown as simply "object", and enums are shown as "String".
-   */
+  /// True if a short description should be generated.  In a short description,
+  /// objects are shown as simply "object", and enums are shown as "String".
   final bool short;
 
   TypeVisitor(Api api, {this.fieldsToBold, this.short = false}) : super(api);

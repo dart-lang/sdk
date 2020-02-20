@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object* = dynamic> extends core::Object {
+  field (self::A::T*) →* void f;
+  constructor •((self::A::T*) →* void f) → self::A<self::A::T*>*
+    ;
+  method foo(generic-covariant-impl self::A::T* x) → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

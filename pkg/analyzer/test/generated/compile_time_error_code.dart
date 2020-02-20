@@ -921,7 +921,7 @@ class B extends A {
     await assertErrorsInCode(r'''
 class A {
   int x;
-  factory A(this.x) => null;
+  factory A(this.x) => throw 0;
 }
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 31, 6),

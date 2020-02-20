@@ -25,7 +25,7 @@ class BitField {
   static const intptr_t kNextBit = position + size;
 
   // Tells whether the provided value fits into the bit field.
-  static bool is_valid(T value) {
+  static constexpr bool is_valid(T value) {
     return (static_cast<S>(value) & ~((kUwordOne << size) - 1)) == 0;
   }
 
@@ -46,21 +46,21 @@ class BitField {
   static constexpr int bitsize() { return size; }
 
   // Returns an S with the bit field value encoded.
-  static S encode(T value) {
-    ASSERT(is_valid(value));
+  static UNLESS_DEBUG(constexpr) S encode(T value) {
+    DEBUG_ASSERT(is_valid(value));
     return static_cast<S>(value) << position;
   }
 
   // Extracts the bit field from the value.
-  static T decode(S value) {
+  static constexpr T decode(S value) {
     return static_cast<T>((value >> position) & ((kUwordOne << size) - 1));
   }
 
   // Returns an S with the bit field value encoded based on the
   // original value. Only the bits corresponding to this bit field
   // will be changed.
-  static S update(T value, S original) {
-    ASSERT(is_valid(value));
+  static UNLESS_DEBUG(constexpr) S update(T value, S original) {
+    DEBUG_ASSERT(is_valid(value));
     return (static_cast<S>(value) << position) | (~mask_in_place() & original);
   }
 };

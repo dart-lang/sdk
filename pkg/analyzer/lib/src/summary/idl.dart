@@ -325,47 +325,50 @@ abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(11)
   bool get isFinal;
 
-  /// The kind of the declaration.
   @Id(12)
+  bool get isStatic;
+
+  /// The kind of the declaration.
+  @Id(13)
   AvailableDeclarationKind get kind;
 
-  @Id(13)
+  @Id(14)
   int get locationOffset;
 
-  @Id(14)
+  @Id(15)
   int get locationStartColumn;
 
-  @Id(15)
+  @Id(16)
   int get locationStartLine;
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  @Id(16)
+  @Id(17)
   String get name;
 
-  @Id(17)
+  @Id(18)
   List<String> get parameterNames;
 
-  @Id(18)
+  @Id(19)
   String get parameters;
 
-  @Id(19)
+  @Id(20)
   List<String> get parameterTypes;
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  @Id(20)
+  @Id(21)
   List<String> get relevanceTags;
 
-  @Id(21)
+  @Id(22)
   int get requiredParameterCount;
 
-  @Id(22)
+  @Id(23)
   String get returnType;
 
-  @Id(23)
+  @Id(24)
   String get typeParameters;
 }
 
@@ -2198,4 +2201,37 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   /// URIs of `part` directives.
   @Id(4)
   List<String> get parts;
+}
+
+/// Information about a compilation unit, contains the content hash
+/// and unlinked summary.
+@TopLevel('CUUN')
+abstract class CiderUnlinkedUnit extends base.SummaryClass {
+  factory CiderUnlinkedUnit.fromBuffer(List<int> buffer) =>
+      generated.readCiderUnlinkedUnit(buffer);
+
+  /// The hash signature of the contents of the file.
+  @Id(0)
+  List<int> get contentDigest;
+
+  /// Unlinked summary of the compilation unit.
+  @Id(1)
+  UnlinkedUnit2 get unlinkedUnit;
+}
+
+/// Information about linked libraries, a group of libraries that form
+/// a library cycle.
+@TopLevel('CLNB')
+abstract class CiderLinkedLibraryCycle extends base.SummaryClass {
+  factory CiderLinkedLibraryCycle.fromBuffer(List<int> buffer) =>
+      generated.readCiderLinkedLibraryCycle(buffer);
+
+  /// The hash signature for this linked cycle. It depends of API signatures
+  /// of all files in the cycle, and on the signatures of the transitive
+  /// closure of the cycle dependencies.
+  @Id(0)
+  List<int> get signature;
+
+  @Id(1)
+  LinkedNodeBundle get bundle;
 }

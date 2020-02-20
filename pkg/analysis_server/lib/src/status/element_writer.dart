@@ -10,14 +10,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
-/**
- * A visitor that will produce an HTML representation of an element structure.
- */
+/// A visitor that will produce an HTML representation of an element structure.
 class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
-  /**
-   * Initialize a newly created element writer to write the HTML representation
-   * of visited elements on the given [buffer].
-   */
+  /// Initialize a newly created element writer to write the HTML representation
+  /// of visited elements on the given [buffer].
   ElementWriter(StringBuffer buffer) {
     this.buffer = buffer;
   }
@@ -34,9 +30,8 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     }
   }
 
-  /**
-   * Write a representation of the properties of the given [node] to the buffer.
-   */
+  /// Write a representation of the properties of the given [node] to the
+  /// buffer.
   Map<String, Object> _computeProperties(Element element) {
     Map<String, Object> properties = HashMap<String, Object>();
 
@@ -163,9 +158,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     return properties;
   }
 
-  /**
-   * Write a representation of the given [node] to the buffer.
-   */
+  /// Write a representation of the given [node] to the buffer.
   void _writeElement(Element element) {
     indent();
     if (element.isSynthetic) {

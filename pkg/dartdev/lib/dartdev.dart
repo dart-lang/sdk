@@ -8,13 +8,14 @@ import 'package:cli_util/cli_logging.dart';
 
 import 'src/commands/create.dart';
 import 'src/commands/format.dart';
+import 'src/commands/pub.dart';
 import 'src/core.dart';
 
 class DartdevRunner<int> extends CommandRunner {
   static const String dartdevDescription =
       'A command-line utility for Dart development';
 
-  DartdevRunner(List<String> args) : super('dartdev', '$dartdevDescription.') {
+  DartdevRunner(List<String> args) : super('dart', '$dartdevDescription.') {
     final bool verbose = args.contains('-v') || args.contains('--verbose');
 
     argParser.addFlag('verbose',
@@ -22,6 +23,7 @@ class DartdevRunner<int> extends CommandRunner {
 
     addCommand(CreateCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
+    addCommand(PubCommand(verbose: verbose));
   }
 
   @override

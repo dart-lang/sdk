@@ -2274,9 +2274,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
       _toDataUrl(type, quality);
 
   @JSName('toBlob')
-  void _toBlob(BlobCallback callback, String type, [Object? arguments]) native;
+  void _toBlob(BlobCallback callback, [String? type, Object? arguments]) native;
 
-  Future<Blob> toBlob(String type, [Object? arguments]) {
+  Future<Blob> toBlob([String? type, Object? arguments]) {
     var completer = new Completer<Blob>();
     _toBlob((value) {
       completer.complete(value);
@@ -2983,6 +2983,7 @@ class CanvasRenderingContext2D extends Interceptor
     } else if (JS('bool', '!!#.webkitLineDash', this)) {
       return JS('List<num>', '#.webkitLineDash', this);
     }
+    return [];
   }
 
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -13687,7 +13688,10 @@ class Element extends Node
   String get innerHtml => _innerHtml;
 
   @JSName('innerText')
-  String? innerText;
+  String get innerText => JS<String>("String", "#.innerText", this);
+  set innerText(String value) {
+    JS("void", "#.innerText = #", this, value);
+  }
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -17625,7 +17629,7 @@ class HtmlDocument extends Document {
 
   /// UNSTABLE: Chrome-only - create a Range from the given point.
   @Unstable()
-  Range caretRangeFromPoint(int x, int y) {
+  Range caretRangeFromPoint(int? x, int? y) {
     return _caretRangeFromPoint(x, y);
   }
 
@@ -23325,7 +23329,7 @@ class Node extends EventTarget {
    *
    * * [insertBefore]
    */
-  Node insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+  void insertAllBefore(Iterable<Node> newNodes, Node refChild) {
     if (newNodes is _ChildNodeListLazy) {
       _ChildNodeListLazy otherList = newNodes;
       if (identical(otherList._this, this)) {
@@ -41435,6 +41439,7 @@ class _ThrowsNodeValidator implements NodeValidator {
       throw new ArgumentError(
           '${Element._safeTagName(element)}[$attributeName="$value"]');
     }
+    return true;
   }
 }
 

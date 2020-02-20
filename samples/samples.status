@@ -14,6 +14,9 @@ sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This te
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
+[ $compiler == dartkp && $system == windows ]
+ffi/async/async_test: Skip # dartbug.com/40564 dartbug.com/40579
+
 [ $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
 sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
 
@@ -21,8 +24,7 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 *: Skip # Not yet triaged.
 
 [ $arch == simarm || $arch == simarm64 ]
-ffi/resource_management/resource_management_test: SkipByDesign
-ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
+ffi/*: SkipByDesign # FFI skips, see ffi.status
 
 [ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]
 ffi/sqlite/test/sqlite_test: SkipByDesign # FFI not supported or libsqlite3.so not available.

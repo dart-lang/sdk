@@ -2,7 +2,7 @@ library CanvasTest;
 
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 main() {
   CanvasElement canvas;
@@ -19,7 +19,7 @@ main() {
     ImageData image = context.createImageData(canvas.width, canvas.height);
     List<int> data = image.data;
 
-    expect(data, hasLength(40000));
+    expect(data.length, 40000);
     checkPixel(data, 0, [0, 0, 0, 0]);
     checkPixel(data, width * height - 1, [0, 0, 0, 0]);
 

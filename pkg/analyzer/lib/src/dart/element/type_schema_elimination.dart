@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
@@ -13,9 +12,7 @@ import 'package:meta/meta.dart';
 /// Each visitor method returns `null` if there are no `?`s contained in the
 /// type, otherwise it returns the result of substituting `?` with [_bottomType]
 /// or [_topType], as appropriate.
-///
-/// TODO(scheglov) Rewrite using `ReplacementVisitor`, once we have it.
-class TypeSchemaEliminationVisitor extends InternalTypeSubstitutor {
+class TypeSchemaEliminationVisitor extends ReplacementVisitor {
   final DartType _topType;
   final DartType _bottomType;
 
@@ -25,28 +22,15 @@ class TypeSchemaEliminationVisitor extends InternalTypeSubstitutor {
     this._topType,
     this._bottomType,
     this._isLeastClosure,
-  ) : super(null);
+  );
 
   @override
-  List<TypeParameterElement> freshTypeParameters(
-      List<TypeParameterElement> elements) {
-    throw 'Create a fresh environment first';
-  }
-
-  @override
-  void invertVariance() {
-    super.invertVariance();
+  void changeVariance() {
     _isLeastClosure = !_isLeastClosure;
   }
 
   @override
-  DartType lookup(TypeParameterElement parameter, bool upperBound) {
-    return null;
-  }
-
-  @override
   DartType visitUnknownInferredType(UnknownInferredType type) {
-    useCounter++;
     return _isLeastClosure ? _bottomType : _topType;
   }
 

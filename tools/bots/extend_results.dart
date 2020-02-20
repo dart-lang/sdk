@@ -10,6 +10,8 @@ import 'dart:io';
 
 import 'results.dart';
 
+const skipped = 'skipped';
+
 main(List<String> args) async {
   final resultsPath = args[0];
   final priorResultsPath = args[1];
@@ -28,6 +30,11 @@ main(List<String> args) async {
   final firstPriorResult =
       priorResults.isEmpty ? null : priorResults.values.first;
 
+  priorResults.forEach((key, priorResult) {
+    if (priorResult['result'] != skipped) {
+      results.putIfAbsent(key, () => constructNotRunResult(priorResult));
+    }
+  });
   for (final String key in results.keys) {
     final Map<String, dynamic> result = results[key];
     final Map<String, dynamic> priorResult = priorResults[key];
@@ -57,3 +64,18 @@ main(List<String> args) async {
   }
   sink.close();
 }
+
+Map<String, dynamic> constructNotRunResult(Map<String, dynamic> previous) => {
+      for (final key in [
+        'name',
+        'configuration',
+        'suite',
+        'test_name',
+        'expected'
+      ])
+        key: previous[key],
+      'time_ms': 0,
+      'result': skipped,
+      'matches': true,
+      'bot_name': '',
+    };

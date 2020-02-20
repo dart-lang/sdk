@@ -6,12 +6,16 @@ library timer_cancel_test;
 
 import 'dart:async';
 
-import 'package:expect/minitest.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 final ms = const Duration(milliseconds: 1);
 
 main() {
-  return testSimpleTimer().then((_) => cancelTimerWithSame());
+  asyncStart();
+  return testSimpleTimer()
+      .then((_) => cancelTimerWithSame())
+      .then((_) => asyncEnd());
 }
 
 Future testSimpleTimer() {
@@ -30,7 +34,7 @@ Future testSimpleTimer() {
   new Timer.periodic(ms * 1500, (Timer timer) {
     repeatTimer++;
     timer.cancel();
-    expect(repeatTimer, 1);
+    Expect.equals(repeatTimer, 1);
     repeatHandler.complete();
   });
 
@@ -49,5 +53,5 @@ Future cancelTimerWithSame() {
 }
 
 void unreachable() {
-  fail("should not be reached");
+  Expect.fail("should not be reached");
 }

@@ -42,9 +42,7 @@ AstNode _getNodeForRange(CompilationUnit unit, int offset, int length) {
   return node;
 }
 
-/**
- * A Dart specific wrapper around [NavigationCollector].
- */
+/// A Dart specific wrapper around [NavigationCollector].
 class _DartNavigationCollector {
   final NavigationCollector collector;
 
@@ -286,11 +284,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    /**
-     * Return the element for the type inferred for each of the variables in the
-     * given list of [variables], or `null` if not all variable have the same
-     * inferred type.
-     */
+    /// Return the element for the type inferred for each of the variables in
+    /// the given list of [variables], or `null` if not all variable have the
+    /// same inferred type.
     Element getCommonElement(List<VariableDeclaration> variables) {
       Element firstElement = variables[0].declaredElement.type?.element;
       if (firstElement == null) {
@@ -349,10 +345,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * If the source of the given [element] (referenced by the [node]) exists,
-   * then add the navigation region from the [node] to the [element].
-   */
+  /// If the source of the given [element] (referenced by the [node]) exists,
+  /// then add the navigation region from the [node] to the [element].
   void _addUriDirectiveRegion(UriBasedDirective node, Element element) {
     Source source = element?.source;
     if (source != null) {

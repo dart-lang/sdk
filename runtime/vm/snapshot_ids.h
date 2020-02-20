@@ -31,6 +31,7 @@ enum {
 
   kFirstTypeSnapshotId = (kNumPredefinedCids + kClassIdsOffset),
   kLegacyObjectType = kFirstTypeSnapshotId,
+  kNullableObjectType,
   kNullType,
   kDynamicType,
   kVoidType,

@@ -98,7 +98,7 @@ class LegacyTypeAsserterTest {
     T.bound = (typeProvider.intType as TypeImpl)
         .withNullability(NullabilitySuffix.none);
     identifier.staticType = TypeParameterTypeImpl(
-      T,
+      element: T,
       nullabilitySuffix: NullabilitySuffix.star,
     );
     expect(() {

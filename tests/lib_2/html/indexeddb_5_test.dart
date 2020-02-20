@@ -1,14 +1,11 @@
 library IndexedDB1Test;
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
 
 main() {
-  useHtmlConfiguration();
-
   if (!idb.IdbFactory.supported) {
     return;
   }

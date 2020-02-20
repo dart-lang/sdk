@@ -14,6 +14,12 @@
 #    should be the path to an external test. The external test will not be run,
 #    but the existence of the file will be verified.
 #
+# Note that it can be hard or impossible to write an example that only gives the
+# specific error. To allow for this, one can specify
+# "exampleAllowMoreCodes: true" which filters out every message with a
+# different code, and just verifies we got exactly one message of the code in
+# question (in addition too different codes).
+#
 # A message shouldn't indicate which kind of diagnostic it is, for example,
 # warning or error. Tools are expected to prepend "Warning: ", or "Error: ",
 # and should be allowed to change the kind of diagnostic without affecting the
@@ -2053,13 +2059,30 @@ OverrideTypeMismatchParameter:
   tip: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
+OverrideTypeMismatchParameterWarning:
+  template: "The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'."
+  tip: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
+  severity: WARNING
+  analyzerCode: INVALID_METHOD_OVERRIDE
+
 OverrideTypeMismatchReturnType:
   template: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
   tip: "Change to a subtype of '#type2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
+OverrideTypeMismatchReturnTypeWarning:
+  template: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
+  tip: "Change to a subtype of '#type2'."
+  severity: WARNING
+  analyzerCode: INVALID_METHOD_OVERRIDE
+
 OverrideTypeMismatchSetter:
   template: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
+  analyzerCode: INVALID_METHOD_OVERRIDE
+
+OverrideTypeMismatchSetterWarning:
+  template: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
+  severity: WARNING
   analyzerCode: INVALID_METHOD_OVERRIDE
 
 PartOfSelf:
@@ -2592,6 +2615,9 @@ SwitchExpressionNotAssignableCause:
   template: "The switch expression is here."
   severity: CONTEXT
 
+SwitchExpressionNotSubtype:
+  template: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
+
 SwitchHasCaseAfterDefault:
   index: 16
   template: "The default case should be the last case in a switch statement."
@@ -2823,11 +2849,11 @@ CannotReadSdkSpecification:
   template: "Unable to read the 'libraries.json' specification file:\n  #string."
 
 CantInferPackagesFromManyInputs:
-  template: "Can't infer a .packages file when compiling multiple inputs."
+  template: "Can't infer a packages file when compiling multiple inputs."
   tip: "Try specifying the file explicitly with the --packages option."
 
 CantInferPackagesFromPackageUri:
-  template: "Can't infer a .packages file from an input 'package:*' URI."
+  template: "Can't infer a packages file from an input 'package:*' URI."
   tip: "Try specifying the file explicitly with the --packages option."
 
 PackageNotFound:
@@ -3348,6 +3374,11 @@ IncompatibleRedirecteeFunctionType:
       }
       class B<T extends int, S extends String> implements A<T> {}
 
+IncompatibleRedirecteeFunctionTypeWarning:
+  template: "The constructor function type '#type' isn't a subtype of '#type2'."
+  severity: WARNING
+  analyzerCode: REDIRECT_TO_INVALID_TYPE
+
 RedirectingFactoryIncompatibleTypeArgument:
   template: "The type '#type' doesn't extend '#type2'."
   tip: "Try using a different type as argument."
@@ -3358,6 +3389,12 @@ RedirectingFactoryIncompatibleTypeArgument:
          factory A() = B<T, int>;
       }
       class B<T extends int, S extends String> implements A<T> {}
+
+RedirectingFactoryIncompatibleTypeArgumentWarning:
+  template: "The type '#type' doesn't extend '#type2'."
+  tip: "Try using a different type as argument."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 SyntheticToken:
   template: "This couldn't be parsed."
@@ -3371,6 +3408,12 @@ IncorrectTypeArgument:
     class C<T extends num> {}
     main() { new C<String>(); }
 
+IncorrectTypeArgumentWarning:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
 IncorrectTypeArgumentQualified:
   template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
   tip: "Try changing type arguments so that they conform to the bounds."
@@ -3378,6 +3421,12 @@ IncorrectTypeArgumentQualified:
   script: >
     class C<T> { foo<U extends num>() {} }
     main() { new C<String>().foo<String>(); }
+
+IncorrectTypeArgumentQualifiedWarning:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 IncorrectTypeArgumentInSupertype:
   template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
@@ -3387,6 +3436,12 @@ IncorrectTypeArgumentInSupertype:
     class A<T extends num> {}
     class B extends A<String> {}
 
+IncorrectTypeArgumentInSupertypeWarning:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
 IncorrectTypeArgumentInReturnType:
   template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type."
   tip: "Try changing type arguments so that they conform to the bounds."
@@ -3394,6 +3449,12 @@ IncorrectTypeArgumentInReturnType:
   script: >
     class A<T extends num> {}
     A<String> foo() => null;
+
+IncorrectTypeArgumentInReturnTypeWarning:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 IncorrectTypeArgumentInferred:
   template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
@@ -3403,6 +3464,12 @@ IncorrectTypeArgumentInferred:
     void foo<T extends num>(T t) {}
     main() { foo("bar"); }
 
+IncorrectTypeArgumentInferredWarning:
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
 IncorrectTypeArgumentQualifiedInferred:
   template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
   tip: "Try specifying type arguments explicitly so that they conform to the bounds."
@@ -3411,6 +3478,12 @@ IncorrectTypeArgumentQualifiedInferred:
     class C<T> { foo<U extends num>(U u) {} }
     main() { new C<String>().foo(""); }
 
+IncorrectTypeArgumentQualifiedInferredWarning:
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
 IncorrectTypeArgumentInSupertypeInferred:
   template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
   tip: "Try specifying type arguments explicitly so that they conform to the bounds."
@@ -3418,6 +3491,12 @@ IncorrectTypeArgumentInSupertypeInferred:
   script: >
     class A<T extends A<T>> {}
     class B extends A {}
+
+IncorrectTypeArgumentInSupertypeInferredWarning:
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."
@@ -3721,11 +3800,22 @@ LanguageVersionTooHigh:
     // @dart = 100.200
 
 LanguageVersionInvalidInDotPackages:
-  template: "The language version is not specified correctly in the .packages file."
+  template: "The language version is not specified correctly in the packages file."
+  exampleAllowMoreCodes: true
   script:
     main.dart: "import 'package:foo/foo.dart';"
     lib/foo.dart: "// blah blah blah"
-    .packages: "foo:lib/#dart=arglebargle"
+    .dart_tool/package_config.json: >
+      {
+          "configVersion": 2,
+          "packages": [
+              {
+                  "name": "foo",
+                  "rootUri": "../lib/",
+                  "languageVersion": "arglebargle"
+              }
+          ]
+      }
 
 LanguageVersionMismatchInPart:
   template: "The language version override has to be the same in the library and its part(s)."
@@ -3864,7 +3954,7 @@ FieldNonNullableNotInitializedByConstructorWarning:
 
 NonNullableOptOut:
   template: "Null safety features are disabled for this library."
-  tip: "Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`."
+  tip: "Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`."
 
 NonNullableOptOutComment:
   template: "This is the annotation that opts out this library from null safety features."

@@ -385,20 +385,19 @@ class EditPlanner {
   ///
   /// [node] must be one element of a variable length sequence maintained by
   /// [node]'s parent (for example, a statement in a block, an element in a
-  /// list, a declaration in a class, etc.)
+  /// list, a declaration in a class, etc.).  If it is not, an exception is
+  /// thrown.
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
   EditPlan removeNode(AstNode sourceNode, {AtomicEditInfo info}) {
-    var parent = sourceNode.parent;
-    var sequenceNodes = _computeSequenceNodes(parent);
-    if (sequenceNodes == null) {
+    var result = tryRemoveNode(sourceNode, info: info);
+    if (result == null) {
+      var parent = sourceNode.parent;
       throw StateError(
           'Cannot remove node whose parent is of type ${parent.runtimeType}');
     }
-    var index = sequenceNodes.indexOf(sourceNode);
-    assert(index != -1);
-    return _RemoveEditPlan(parent, index, index, info);
+    return result;
   }
 
   /// Creates a new edit plan that removes a sequence of adjacent nodes from
@@ -547,6 +546,25 @@ class EditPlanner {
             ? innerPlan.endsInCascade && !parensNeeded
             : endsInCascade,
         innerChanges);
+  }
+
+  /// Tries to create a new edit plan that removes [node] from the AST.
+  ///
+  /// [node] must be one element of a variable length sequence maintained by
+  /// [node]'s parent (for example, a statement in a block, an element in a
+  /// list, a declaration in a class, etc.).  If it is not, `null` is returned.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  EditPlan tryRemoveNode(AstNode sourceNode, {AtomicEditInfo info}) {
+    var parent = sourceNode.parent;
+    var sequenceNodes = _computeSequenceNodes(parent);
+    if (sequenceNodes == null) {
+      return null;
+    }
+    var index = sequenceNodes.indexOf(sourceNode);
+    assert(index != -1);
+    return _RemoveEditPlan(parent, index, index, info);
   }
 
   /// Walks backward through the source text, starting at [offset] and stopping

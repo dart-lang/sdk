@@ -13,18 +13,14 @@ import 'operation.dart';
 
 final int COLON = ':'.codeUnitAt(0);
 
-/**
- * [InstrumentationInputConverter] converts an instrumentation stream
- * into a series of operations to be sent to the analysis server.
- */
+/// [InstrumentationInputConverter] converts an instrumentation stream
+/// into a series of operations to be sent to the analysis server.
 class InstrumentationInputConverter extends CommonInputConverter {
   final Set<String> codesSeen = <String>{};
 
-  /**
-   * [readBuffer] holds the contents of the file being read from disk
-   * as recorded in the instrumentation log
-   * or `null` if not converting a "Read" entry.
-   */
+  /// [readBuffer] holds the contents of the file being read from disk
+  /// as recorded in the instrumentation log
+  /// or `null` if not converting a "Read" entry.
   StringBuffer readBuffer;
 
   InstrumentationInputConverter(String tmpSrcDirPath, PathMap srcPathMap)
@@ -89,11 +85,9 @@ class InstrumentationInputConverter extends CommonInputConverter {
     }
   }
 
-  /**
-   * Determine if the given line is from an instrumentation file.
-   * For example:
-   * `1433175833005:Ver:1421765742287333878467:org.dartlang.dartplugin:0.0.0:1.6.2:1.11.0-edge.131698`
-   */
+  /// Determine if the given line is from an instrumentation file.
+  /// For example:
+  /// `1433175833005:Ver:1421765742287333878467:org.dartlang.dartplugin:0.0.0:1.6.2:1.11.0-edge.131698`
   static bool isFormat(String line) {
     List<String> fields = _parseFields(line);
     if (fields.length < 2) return false;
@@ -102,9 +96,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
     return timeStamp > 0 && opCode == 'Ver';
   }
 
-  /**
-   * Extract fields from the given [line].
-   */
+  /// Extract fields from the given [line].
   static List<String> _parseFields(String line) {
     List<String> fields = <String>[];
     int index = 0;

@@ -18,9 +18,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * A [Refactoring] for renaming [ImportElement]s.
- */
+/// A [Refactoring] for renaming [ImportElement]s.
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSession session;
 
@@ -111,11 +109,9 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 
-  /**
-   * If the given [reference] is before an interpolated [SimpleIdentifier] in
-   * an [InterpolationExpression] without surrounding curly brackets, return it.
-   * Otherwise return `null`.
-   */
+  /// If the given [reference] is before an interpolated [SimpleIdentifier] in
+  /// an [InterpolationExpression] without surrounding curly brackets, return
+  /// it. Otherwise return `null`.
   SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
     Source source = reference.element.source;
     CompilationUnit unit = session.getParsedUnit(source.fullName).unit;

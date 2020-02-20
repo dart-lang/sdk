@@ -956,6 +956,10 @@ word UserTag::NextFieldOffset() {
   return -kWordSize;
 }
 
+word FutureOr::NextFieldOffset() {
+  return -kWordSize;
+}
+
 word Field::NextFieldOffset() {
   return -kWordSize;
 }

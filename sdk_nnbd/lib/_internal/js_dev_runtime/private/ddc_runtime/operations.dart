@@ -92,12 +92,12 @@ gbind(f, @rest List typeArgs) {
   return fn(result, type.instantiate(typeArgs));
 }
 
-dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field), false);
+dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field));
 
 // Warning: dload, dput, and dsend assume they are never called on methods
 // implemented by the Object base class as those methods can always be
 // statically resolved.
-dload(obj, field, [@undefined mirrors]) {
+dload(obj, field) {
   if (JS('!', 'typeof # == "function" && # == "call"', obj, field)) {
     return obj;
   }
@@ -111,15 +111,10 @@ dload(obj, field, [@undefined mirrors]) {
     if (hasMethod(type, f)) return bind(obj, f, null);
 
     // Always allow for JS interop objects.
-    if (!JS<bool>('!', '#', mirrors) && isJsInterop(obj)) {
-      return JS('', '#[#]', obj, f);
-    }
+    if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
   }
   return noSuchMethod(obj, InvocationImpl(field, JS('', '[]'), isGetter: true));
 }
-
-// Version of dload that matches legacy mirrors behavior for JS types.
-dloadMirror(obj, field) => dload(obj, field, true);
 
 _stripGenericArguments(type) {
   var genericClass = getGenericClass(type);
@@ -127,29 +122,18 @@ _stripGenericArguments(type) {
   return type;
 }
 
-// Version of dput that matches legacy Dart 1 type check rules and mirrors
-// behavior for JS types.
-// TODO(jacobr): remove the type checking rules workaround when mirrors based
-// PageLoader code can generate the correct reified generic types.
-dputMirror(obj, field, value) => dput(obj, field, value, true);
+dputRepl(obj, field, value) => dput(obj, replNameLookup(obj, field), value);
 
-dputRepl(obj, field, value) =>
-    dput(obj, replNameLookup(obj, field), value, false);
-
-dput(obj, field, value, [@undefined mirrors]) {
+dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
   trackCall(obj);
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      if (JS('!', '#', mirrors))
-        setterType = _stripGenericArguments(setterType);
       return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
-    if (!JS<bool>('!', '#', mirrors) && isJsInterop(obj)) {
-      return JS('', '#[#] = #', obj, f, value);
-    }
+    if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
   }
   noSuchMethod(
       obj, InvocationImpl(field, JS('', '[#]', value), isSetter: true));
@@ -193,21 +177,18 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   }
   // Verify that all required named parameters are provided an argument.
   Iterable requiredNames = getOwnPropertyNames(requiredNamed);
-  if (requiredNames.length > 0 && namedActuals == null) {
-    if (!JS<bool>('', 'dart.__strictSubtypeChecks')) {
-      _warn("Dynamic call with missing required named arguments.");
-    } else {
-      return "Dynamic call with missing required named arguments.";
-    }
-  }
-  if (JS<bool>('', 'dart.__strictSubtypeChecks')) {
-    for (var name in requiredNames) {
-      if (!JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name)) {
-        if (!JS<bool>('', 'dart.__strictSubtypeChecks')) {
-          _warn("Dynamic call with missing required named argument '$name'.");
-        } else {
-          return "Dynamic call with missing required named argument '$name'.";
-        }
+  if (requiredNames.isNotEmpty) {
+    var missingRequired = namedActuals == null
+        ? requiredNames
+        : requiredNames.where((name) =>
+            !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name));
+    if (missingRequired.isNotEmpty) {
+      var error = "Dynamic call with missing required named arguments: "
+          "${missingRequired.join(', ')}.";
+      if (!_strictSubtypeChecks) {
+        _warn("$error This will be an error when strict mode is enabled.");
+      } else {
+        return error;
       }
     }
   }
@@ -495,7 +476,7 @@ final constantMaps = JS<Object>('!', 'new Map()');
 // Keeping the paths is probably expensive.  It would probably
 // be more space efficient to just use a direct hash table with
 // an appropriately defined structural equality function.
-Object _lookupNonTerminal(Object map, Object key) {
+Object _lookupNonTerminal(Object map, Object? key) {
   var result = JS('', '#.get(#)', map, key);
   if (result != null) return result;
   JS('', '#.set(#, # = new Map())', map, key, result);

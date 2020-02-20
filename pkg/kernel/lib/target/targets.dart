@@ -14,11 +14,13 @@ final List<String> targetNames = targets.keys.toList();
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool forceLateLoweringForTesting;
+  final bool forceNoExplicitGetterCallsForTesting;
   final bool enableNullSafety;
 
   TargetFlags(
       {this.trackWidgetCreation = false,
       this.forceLateLoweringForTesting = false,
+      this.forceNoExplicitGetterCallsForTesting = false,
       this.enableNullSafety = false});
 }
 
@@ -240,6 +242,13 @@ abstract class Target {
   /// details.
   bool get supportsLateFields;
 
+  /// Whether calls to getters and fields should be encoded as a .call
+  /// invocation on a property get.
+  ///
+  /// If `false`, calls to getters and fields are encoded as method invocations
+  /// with the accessed getter or field as the interface target.
+  bool get supportsExplicitGetterCalls;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
@@ -261,6 +270,9 @@ abstract class Target {
   /// Configure the given [Component] in a target specific way.
   /// Returns the configured component.
   Component configureComponent(Component component) => component;
+
+  // Configure environment defines in a target-specific way.
+  Map<String, String> updateEnvironmentDefines(Map<String, String> map) => map;
 
   String toString() => 'Target($name)';
 
@@ -291,6 +303,10 @@ class NoneTarget extends Target {
 
   @override
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+
+  @override
+  bool get supportsExplicitGetterCalls =>
+      !flags.forceNoExplicitGetterCallsForTesting;
 
   @override
   String get name => 'none';

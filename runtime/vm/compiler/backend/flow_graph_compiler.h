@@ -819,9 +819,8 @@ class FlowGraphCompiler : public ValueObject {
       intptr_t try_index,
       intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
 
-  void AddNullCheck(intptr_t pc_offset,
-                    TokenPosition token_pos,
-                    intptr_t null_check_name_idx);
+  // Add NullCheck information for the current PC.
+  void AddNullCheck(TokenPosition token_pos, const String& name);
 
   void RecordSafepoint(LocationSummary* locs,
                        intptr_t slow_path_argument_count = 0);
@@ -1177,6 +1176,7 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<StaticCallsStruct*> static_calls_target_table_;
   // The table selectors of all dispatch table calls in the current function.
   GrowableArray<const compiler::TableSelector*> dispatch_table_call_targets_;
+  GrowableArray<IndirectGotoInstr*> indirect_gotos_;
   const bool is_optimizing_;
   SpeculativeInliningPolicy* speculative_policy_;
   // Set to true if optimized code has IC calls.

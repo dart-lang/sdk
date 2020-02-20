@@ -46,8 +46,8 @@ bool b = a!.isEven;
 ''');
     var outputJson = renderUnits()[0];
     var output = jsonDecode(outputJson);
-    var editList = output['editList'];
-    expect(editList['editCount'], equals(2));
+    var editList = output['edits'];
+    expect(editList, hasLength(2));
   }
 
   Future<void> test_editList_containsEdits() async {
@@ -59,8 +59,7 @@ int? a = null;
 bool b = a!.isEven;
 ''');
     var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    var editList = output['editList'];
+    var editList = jsonDecode(outputJson);
     expect(editList['edits'], hasLength(2));
     expect(editList['edits'][0]['line'], equals(1));
     expect(editList['edits'][0]['offset'], equals(3));
@@ -72,6 +71,78 @@ bool b = a!.isEven;
         equals('Added a non-null assertion to nullable expression'));
   }
 
+  Future<void> test_handle_large_deleted_region_near_top_of_file() async {
+    await buildInfoForSingleTestFile('''
+class C {
+  int hash(Iterable<int> elements) {
+    if (elements == null) {
+      return null.hashCode;
+    }
+    return 0;
+  }
+}
+
+List<int> x = [null];
+''', migratedContent: '''
+class C {
+  int hash(Iterable<int> elements) {
+    if (elements == null) {
+      return null.hashCode;
+    }
+    return 0;
+  }
+}
+
+List<int?> x = [null];
+''', removeViaComments: false);
+    renderUnits();
+    // No assertions necessary; we are checking to make sure there is no crash.
+  }
+
+  Future<void> test_info_within_deleted_code() async {
+    await buildInfoForSingleTestFile('''
+class C {
+  int hash(Iterable<int> elements) {
+    if (elements == null) {
+      return null.hashCode;
+    }
+    return 0;
+  }
+}
+
+List<int> x = [null];
+''', migratedContent: '''
+class C {
+  int hash(Iterable<int> elements) {
+    if (elements == null) {
+      return null.hashCode;
+    }
+    return 0;
+  }
+}
+
+List<int?> x = [null];
+''', removeViaComments: false);
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    // Strip out URLs and span IDs; they're not being tested here.
+    var navContent = output['navigationContent']
+        .replaceAll(RegExp('href="[^"]*"'), 'href="..."')
+        .replaceAll(RegExp('id="[^"]*"'), 'id="..."');
+    expect(navContent, '''
+class <span id="...">C</span> {
+  <a href="..." class="nav-link">int</a> <span id="...">hash</span>(<a href="..." class="nav-link">Iterable</a>&lt;<a href="..." class="nav-link">int</a>&gt; <span id="...">elements</span>) {
+    if (<a href="..." class="nav-link">elements</a> <a href="..." class="nav-link">==</a> null) {
+      return null.<a href="..." class="nav-link">hashCode</a>;
+    }
+    return 0;
+  }
+}
+
+<a href="..." class="nav-link">List</a>&lt;<a href="..." class="nav-link">int</a>?&gt; <span id="...">x</span> = <span id="...">[null]</span>;
+''');
+  }
+
   Future<void> test_navContentContainsEscapedHtml() async {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String>? a = null;');
@@ -79,8 +150,8 @@ bool b = a!.isEven;
 
     var output = jsonDecode(outputJson);
     // Strip out URLs which will change; not being tested here.
-    var navContent =
-        output['navContent'].replaceAll(RegExp('href=".*?"'), 'href="..."');
+    var navContent = output['navigationContent']
+        .replaceAll(RegExp('href=".*?"'), 'href="..."');
     expect(
         navContent,
         contains(r'<a href="..." class="nav-link">List</a>'

@@ -19,46 +19,30 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/**
- * A runner that can request code completion at the location of each identifier
- * in a Dart file.
- */
+/// A runner that can request code completion at the location of each identifier
+/// in a Dart file.
 class CompletionRunner {
-  /**
-   * The sink to which output is to be written.
-   */
+  /// The sink to which output is to be written.
   final StringSink output;
 
-  /**
-   * A flag indicating whether to produce output about missing suggestions.
-   */
+  /// A flag indicating whether to produce output about missing suggestions.
   final bool printMissing;
 
-  /**
-   * A flag indicating whether to produce output about the quality of the sort
-   * order.
-   */
+  /// A flag indicating whether to produce output about the quality of the sort
+  /// order.
   final bool printQuality;
 
-  /**
-   * A flag indicating whether to produce timing information.
-   */
+  /// A flag indicating whether to produce timing information.
   final bool timing;
 
-  /**
-   * A flag indicating whether to produce verbose output.
-   */
+  /// A flag indicating whether to produce verbose output.
   final bool verbose;
 
-  /**
-   * A flag indicating whether we should delete each identifier before
-   * attempting to complete at that offset.
-   */
+  /// A flag indicating whether we should delete each identifier before
+  /// attempting to complete at that offset.
   bool deleteBeforeCompletion = false;
 
-  /**
-   * Initialize a newly created completion runner.
-   */
+  /// Initialize a newly created completion runner.
   CompletionRunner(
       {StringSink output,
       bool printMissing,
@@ -71,10 +55,8 @@ class CompletionRunner {
         timing = timing ?? false,
         verbose = verbose ?? false;
 
-  /**
-   * Test the completion engine at the locations of each of the identifiers in
-   * each of the files in the given [analysisRoot].
-   */
+  /// Test the completion engine at the locations of each of the identifiers in
+  /// each of the files in the given [analysisRoot].
   Future<void> runAll(String analysisRoot) async {
     OverlayResourceProvider resourceProvider =
         OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
@@ -228,20 +210,16 @@ class CompletionRunner {
         .toList();
   }
 
-  /**
-   * Return a list containing information about the identifiers in the given
-   * compilation [unit].
-   */
+  /// Return a list containing information about the identifiers in the given
+  /// compilation [unit].
   List<SimpleIdentifier> _identifiersIn(CompilationUnit unit) {
     IdentifierCollector visitor = IdentifierCollector();
     unit.accept(visitor);
     return visitor.identifiers;
   }
 
-  /**
-   * If the given list of [suggestions] includes a suggestion for the given
-   * [identifier], return the index of the suggestion. Otherwise, return `-1`.
-   */
+  /// If the given list of [suggestions] includes a suggestion for the given
+  /// [identifier], return the index of the suggestion. Otherwise, return `-1`.
   int _indexOf(List<CompletionSuggestion> suggestions, String identifier) {
     for (int i = 0; i < suggestions.length; i++) {
       if (suggestions[i].completion == identifier) {
@@ -251,18 +229,14 @@ class CompletionRunner {
     return -1;
   }
 
-  /**
-   * Return `true` if the given [identifier] is being used as the name of a
-   * named expression.
-   */
+  /// Return `true` if the given [identifier] is being used as the name of a
+  /// named expression.
   bool _isNamedExpressionName(SimpleIdentifier identifier) {
     AstNode parent = identifier.parent;
     return parent is NamedExpression && parent.name.label == identifier;
   }
 
-  /**
-   * Print information about the given [suggestions].
-   */
+  /// Print information about the given [suggestions].
   void _printSuggestions(List<CompletionSuggestion> suggestions) {
     if (suggestions.isEmpty) {
       output.writeln('  No suggestions');
@@ -280,13 +254,9 @@ class CompletionRunner {
   }
 }
 
-/**
- * A visitor that will collect simple identifiers in the AST being visited.
- */
+/// A visitor that will collect simple identifiers in the AST being visited.
 class IdentifierCollector extends RecursiveAstVisitor<void> {
-  /**
-   * The simple identifiers that were collected.
-   */
+  /// The simple identifiers that were collected.
   final List<SimpleIdentifier> identifiers = <SimpleIdentifier>[];
 
   @override

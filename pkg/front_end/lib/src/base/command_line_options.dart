@@ -9,4 +9,6 @@ class Flags {
 
   static const String forceLateLowering = "--force-late-lowering";
   static const String forceNnbdChecks = "--force-nnbd-checks";
+  static const String forceNoExplicitGetterCalls =
+      "--force-no-explicit-getter-calls";
 }

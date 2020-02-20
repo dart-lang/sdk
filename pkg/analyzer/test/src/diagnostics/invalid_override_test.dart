@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -496,11 +497,47 @@ class B implements I<int>, J<String> {
 class InvalidOverrideWithNnbdTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.non_nullable]
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    )
     ..implicitCasts = false;
 
   @override
   bool get typeToStringWithNullability => true;
+
+  test_method_parameter_functionTyped_optOut_extends_optIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+abstract class A {
+  A catchError(void Function(Object) a);
+}
+''');
+
+    await assertNoErrorsInCode('''
+// @dart=2.6
+import 'a.dart';
+
+class B implements A {
+  A catchError(void Function(dynamic) a) => this;
+}
+''');
+  }
+
+  test_method_parameter_interfaceOptOut_concreteOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  void foo(Object a) {}
+}
+''');
+
+    await assertNoErrorsInCode('''
+// @dart=2.6
+import 'a.dart';
+
+class B extends A {
+  void foo(dynamic a);
+}
+''');
+  }
 
   test_method_viaLegacy_returnType_notSubtype() async {
     newFile('/test/lib/a.dart', content: r'''

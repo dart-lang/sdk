@@ -668,6 +668,7 @@ void Object::Init(Isolate* isolate) {
   *null_type_arguments_ = TypeArguments::null();
   *empty_type_arguments_ = TypeArguments::null();
   *null_abstract_type_ = AbstractType::null();
+  *null_compressed_stack_maps_ = CompressedStackMaps::null();
 
   // Initialize the empty and zero array handles to null_ in order to be able to
   // check if the empty and zero arrays were allocated (RAW_NULL is not
@@ -1067,6 +1068,11 @@ void Object::Init(Isolate* isolate) {
   *smi_zero_ = Smi::New(0);
 
   String& error_str = String::Handle();
+  error_str = String::New(
+      "Internal Dart data pointers have been acquired, please release them "
+      "using Dart_TypedDataReleaseData.",
+      Heap::kOld);
+  *typed_data_acquire_error_ = ApiError::New(error_str, Heap::kOld);
   error_str = String::New("SnapshotWriter Error", Heap::kOld);
   *snapshot_writer_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
@@ -1131,6 +1137,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(null_function_->IsFunction());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
+  ASSERT(!null_compressed_stack_maps_->IsSmi());
+  ASSERT(null_compressed_stack_maps_->IsCompressedStackMaps());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
@@ -1157,6 +1165,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(bool_false_->IsBool());
   ASSERT(smi_illegal_cid_->IsSmi());
   ASSERT(smi_zero_->IsSmi());
+  ASSERT(!typed_data_acquire_error_->IsSmi());
+  ASSERT(typed_data_acquire_error_->IsApiError());
   ASSERT(!snapshot_writer_error_->IsSmi());
   ASSERT(snapshot_writer_error_->IsLanguageError());
   ASSERT(!branch_offset_error_->IsSmi());
@@ -1774,6 +1784,8 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_legacy_object_type(type);
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_object_type(type);
+    type = type.ToNullability(Nullability::kNullable, Heap::kOld);
+    object_store->set_nullable_object_type(type);
 
     cls = Class::New<Bool, RTN::Bool>(isolate);
     object_store->set_bool_class(cls);
@@ -1868,6 +1880,24 @@ RawError* Object::Init(Isolate* isolate,
         RTN::LinkedHashMap::type_arguments_offset());
     cls.set_num_type_arguments(2);
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
+    pending_classes.Add(cls);
+
+    // Pre-register the async library so we can place the vm class
+    // FutureOr there rather than the core library.
+    lib = Library::LookupLibrary(thread, Symbols::DartAsync());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartAsync(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kAsync, lib);
+    ASSERT(!lib.IsNull());
+    ASSERT(lib.raw() == Library::AsyncLibrary());
+    cls = Class::New<FutureOr, RTN::FutureOr>(isolate);
+    cls.set_type_arguments_field_offset(FutureOr::type_arguments_offset(),
+                                        RTN::FutureOr::type_arguments_offset());
+    cls.set_num_type_arguments(1);
+    RegisterClass(cls, Symbols::FutureOr(), lib);
     pending_classes.Add(cls);
 
     // Pre-register the developer library so we can place the vm class
@@ -2413,7 +2443,7 @@ RawError* Object::Init(Isolate* isolate,
 
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate);
     cls = Class::New<UserTag, RTN::UserTag>(isolate);
-
+    cls = Class::New<FutureOr, RTN::FutureOr>(isolate);
     cls =
         Class::New<TransferableTypedData, RTN::TransferableTypedData>(isolate);
   }
@@ -4825,14 +4855,6 @@ bool Class::IsFutureClass() const {
   // this function is called during class finalization, before the object store
   // field would be initialized by InitKnownObjects().
   return (Name() == Symbols::Future().raw()) &&
-         (library() == Library::AsyncLibrary());
-}
-
-bool Class::IsFutureOrClass() const {
-  // Looking up future_or_class in the object store would not work, because
-  // this function is called during class finalization, before the object store
-  // field would be initialized by InitKnownObjects().
-  return (Name() == Symbols::FutureOr().raw()) &&
          (library() == Library::AsyncLibrary());
 }
 
@@ -8101,12 +8123,10 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
     Type& object_type = Type::Handle(zone, Type::ObjectType());
     if (Dart::non_nullable_flag()) {
-      // TODO(regis): Add nullable_object_type() to object store in addition to
-      // existing legacy_object_type() and remove this ToNullability call.
-      object_type = object_type.ToNullability(
-          nnbd_mode() == NNBDMode::kOptedInLib ? Nullability::kNullable
-                                               : Nullability::kLegacy,
-          Heap::kOld);
+      ObjectStore* object_store = Isolate::Current()->object_store();
+      object_type = nnbd_mode() == NNBDMode::kOptedInLib
+                        ? object_store->nullable_object_type()
+                        : object_store->legacy_object_type();
     }
     for (intptr_t i = kClosure; i < num_params; ++i) {
       const intptr_t original_param_index = has_receiver - kClosure + i;
@@ -13480,8 +13500,11 @@ intptr_t CompressedStackMaps::Hashcode() const {
 
 RawCompressedStackMaps* CompressedStackMaps::New(
     const GrowableArray<uint8_t>& payload,
-    RawCompressedStackMaps::Kind kind) {
+    bool is_global_table,
+    bool uses_global_table) {
   ASSERT(Object::compressed_stackmaps_class() != Class::null());
+  // We don't currently allow both flags to be true.
+  ASSERT(!is_global_table || !uses_global_table);
   auto& result = CompressedStackMaps::Handle();
 
   const uintptr_t payload_size = payload.length();
@@ -13499,46 +13522,28 @@ RawCompressedStackMaps* CompressedStackMaps::New(
         CompressedStackMaps::InstanceSize(payload_size), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_payload_size(payload_size, kind);
+    result.StoreNonPointer(
+        &result.raw_ptr()->flags_and_size_,
+        RawCompressedStackMaps::GlobalTableBit::encode(is_global_table) |
+            RawCompressedStackMaps::UsesTableBit::encode(uses_global_table) |
+            RawCompressedStackMaps::SizeField::encode(payload_size));
+    auto cursor = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
+    memcpy(cursor, payload.data(), payload.length());  // NOLINT
   }
-  result.SetPayload(payload);
+
+  ASSERT(!result.IsGlobalTable() || !result.UsesGlobalTable());
 
   return result.raw();
-}
-
-void CompressedStackMaps::SetPayload(
-    const GrowableArray<uint8_t>& payload) const {
-  const uintptr_t array_length = payload.length();
-  ASSERT(array_length <= payload_size());
-
-  NoSafepointScope no_safepoint;
-  uint8_t* payload_start = UnsafeMutableNonPointer(raw_ptr()->data());
-  for (uintptr_t i = 0; i < array_length; i++) {
-    payload_start[i] = payload.At(i);
-  }
 }
 
 const char* CompressedStackMaps::ToCString() const {
   ASSERT(!IsGlobalTable());
   auto const t = Thread::Current();
   auto zone = t->zone();
-  ZoneTextBuffer b(zone, 100);
   const auto& global_table = CompressedStackMaps::Handle(
       zone, t->isolate()->object_store()->canonicalized_stack_map_entries());
   CompressedStackMapsIterator it(*this, global_table);
-  bool first_entry = true;
-  while (it.MoveNext()) {
-    if (first_entry) {
-      first_entry = false;
-    } else {
-      b.AddString("\n");
-    }
-    b.Printf("0x%08x: ", it.pc_offset());
-    for (intptr_t i = 0, n = it.Length(); i < n; i++) {
-      b.AddString(it.IsObject(i) ? "1" : "0");
-    }
-  }
-  return b.buffer();
+  return it.ToCString(zone);
 }
 
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
@@ -13958,9 +13963,9 @@ void ICData::SetReceiversStaticType(const AbstractType& type) const {
 
 #if defined(TARGET_ARCH_X64)
   if (!type.IsNull() && type.HasTypeClass() && (NumArgsTested() == 1) &&
-      type.IsInstantiated()) {
+      type.IsInstantiated() && !type.IsFutureOrType()) {
     const Class& cls = Class::Handle(type.type_class());
-    if (cls.IsGeneric() && !cls.IsFutureOrClass()) {
+    if (cls.IsGeneric()) {
       set_tracking_exactness(true);
     }
   }
@@ -15873,24 +15878,6 @@ void Code::DumpSourcePositions(bool relative_addresses) const {
   reader.DumpSourcePositions(relative_addresses ? 0 : PayloadStart());
 }
 
-bool Code::VerifyBSSRelocations() const {
-  const auto& descriptors = PcDescriptors::Handle(pc_descriptors());
-  PcDescriptors::Iterator iterator(descriptors,
-                                   RawPcDescriptors::kBSSRelocation);
-  while (iterator.MoveNext()) {
-    const uword reloc = PayloadStart() + iterator.PcOffset();
-    const word target = *reinterpret_cast<word*>(reloc);
-    // The relocation is in its original unpatched form -- the addend
-    // representing the target symbol itself.
-    if (target >= 0 &&
-        target <
-            BSS::RelocationIndex(BSS::Relocation::NumRelocations) * kWordSize) {
-      return false;
-    }
-  }
-  return true;
-}
-
 void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -17285,8 +17272,7 @@ RawObject* Instance::GetField(const Field& field) const {
   if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
     switch (field.guarded_cid()) {
       case kDoubleCid:
-        return Double::New(
-            LoadNonPointer(reinterpret_cast<double_t*>(FieldAddr(field))));
+        return Double::New(*reinterpret_cast<double_t*>(FieldAddr(field)));
       case kFloat32x4Cid:
         return Float32x4::New(
             *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
@@ -17295,8 +17281,7 @@ RawObject* Instance::GetField(const Field& field) const {
             *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
       default:
         if (field.is_non_nullable_integer()) {
-          return Integer::New(
-              LoadNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field))));
+          return Integer::New(*reinterpret_cast<int64_t*>(FieldAddr(field)));
         } else {
           UNREACHABLE();
           return nullptr;
@@ -17593,8 +17578,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
                                     NNBDMode mode,
                                     const AbstractType& other) const {
-  if (other.IsType() &&
-      Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
+  if (other.IsType() && other.IsFutureOrType()) {
     if (other.arguments() == TypeArguments::null()) {
       return true;
     }
@@ -18199,16 +18183,15 @@ bool AbstractType::IsNeverType() const {
 // Caution: IsTopType() does not return true for non-nullable Object.
 bool AbstractType::IsTopType() const {
   // FutureOr<T> where T is a top type behaves as a top type.
-  const AbstractType& unwrapped_type = AbstractType::Handle(UnwrapFutureOr());
-  classid_t cid = unwrapped_type.type_class_id();
-  if (cid == kIllegalCid) {  // Includes TypeParameter.
-    return false;
-  }
+  const classid_t cid = type_class_id();
   if (cid == kDynamicCid || cid == kVoidCid) {
     return true;
   }
   if (cid == kInstanceCid) {  // Object type.
     return !IsNonNullable();  // kLegacy or kNullable.
+  }
+  if (cid == kFutureOrCid) {
+    return AbstractType::Handle(UnwrapFutureOr()).IsTopType();
   }
   return false;
 }
@@ -18262,30 +18245,20 @@ bool AbstractType::IsFfiPointerType() const {
 }
 
 RawAbstractType* AbstractType::UnwrapFutureOr() const {
-  if (!IsType()) {
-    return raw();
-  }
-  Thread* thread = Thread::Current();
-  REUSABLE_CLASS_HANDLESCOPE(thread);
-  Class& cls = thread->ClassHandle();
-  cls = type_class();
-  if (!cls.IsFutureOrClass()) {
+  if (!IsType() || !IsFutureOrType()) {
     return raw();
   }
   if (arguments() == TypeArguments::null()) {
     return Type::dynamic_type().raw();
   }
+  Thread* thread = Thread::Current();
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
   TypeArguments& type_args = thread->TypeArgumentsHandle();
   type_args = arguments();
   REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(thread);
   AbstractType& type_arg = thread->AbstractTypeHandle();
   type_arg = type_args.TypeAt(0);
-  while (type_arg.IsType()) {
-    cls = type_arg.type_class();
-    if (!cls.IsFutureOrClass()) {
-      break;
-    }
+  while (type_arg.IsType() && type_arg.IsFutureOrType()) {
     if (type_arg.arguments() == TypeArguments::null()) {
       return Type::dynamic_type().raw();
     }
@@ -18300,17 +18273,21 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
                                Heap::Space space) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
-  if (other.IsTopType() || (FLAG_strong_non_nullable_type_checks &&
-                            IsNeverType() && !IsNullable())) {
+  // Right top type or left bottom type.
+  // Any form of Never in weak mode maps to Null and Null is a bottom type in
+  // weak mode. In strong mode, Never and Never* are bottom types. Therefore,
+  // Never and Never* are bottom types regardless of weak/strong mode.
+  if (other.IsTopType() || (IsNeverType() && !IsNullable())) {
     return true;
   }
   if (IsDynamicType() || IsVoidType()) {
     return false;
   }
-  if (IsNullType() ||
-      (IsNeverType() &&
-       (!FLAG_strong_non_nullable_type_checks || IsNullable()))) {
-    // In weak testing mode, Null type is a subtype of any type.
+  // Left Null type, including left Never type mapped to Null.
+  // Note that we already handled Never and Never* above.
+  // Only Never? remains, which maps to Null regardless of weak/strong mode.
+  if (IsNullType() || IsNeverType()) {
+    // In weak mode, Null is a bottom type.
     if (!FLAG_strong_non_nullable_type_checks) {
       return true;
     }
@@ -18427,8 +18404,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
                                        NNBDMode mode,
                                        const AbstractType& other,
                                        Heap::Space space) const {
-  if (other.IsType() &&
-      Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
+  if (other.IsType() && other.IsFutureOrType()) {
     if (other.arguments() == TypeArguments::null()) {
       return true;
     }
@@ -19562,6 +19538,16 @@ void TypeParameter::set_name(const String& value) const {
 
 void TypeParameter::set_bound(const AbstractType& value) const {
   StorePointer(&raw_ptr()->bound_, value.raw());
+}
+
+RawAbstractType* TypeParameter::GetFromTypeArguments(
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments) const {
+  ASSERT(IsFinalized());
+  const TypeArguments& type_args = IsFunctionTypeParameter()
+                                       ? function_type_arguments
+                                       : instantiator_type_arguments;
+  return type_args.TypeAtNullSafe(index());
 }
 
 RawAbstractType* TypeParameter::InstantiateFrom(
@@ -22229,6 +22215,11 @@ const char* LinkedHashMap::ToCString() const {
   return zone->PrintToString("_LinkedHashMap len:%" Pd, Length());
 }
 
+const char* FutureOr::ToCString() const {
+  // FutureOr is an abstract class.
+  UNREACHABLE();
+}
+
 RawFloat32x4* Float32x4::New(float v0,
                              float v1,
                              float v2,
@@ -23053,15 +23044,6 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
         }
       } else if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
-        // With lazy_async_stacks we're constructing the stack correctly
-        // (see `StackTraceUtils::CollectFramesLazy`) so there are no extra
-        // frames to skip.
-        if (!FLAG_lazy_async_stacks) {
-          // The frame immediately after the asynchronous gap marker is the
-          // identical to the frame above the marker. Skip the frame to enhance
-          // the readability of the trace.
-          i++;
-        }
       } else {
         intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
         if (code_object.IsCode()) {

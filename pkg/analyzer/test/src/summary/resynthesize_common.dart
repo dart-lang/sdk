@@ -292,7 +292,7 @@ class Base {
   Base.requiredArg(x);
   Base.positionalArg([bool x = true]);
   Base.namedArg({int x = 42});
-  factory Base.fact() => null;
+  factory Base.fact() => Base();
   factory Base.fact2() = Base.noArgs;
 }
 ''');
@@ -437,7 +437,7 @@ class C {
   }
 
   test_class_constructor_factory() async {
-    var library = await checkLibrary('class C { factory C() => null; }');
+    var library = await checkLibrary('class C { factory C() => throw 0; }');
     checkElementText(library, r'''
 class C {
   factory C();
@@ -1908,55 +1908,55 @@ class C/*codeOffset=0, codeLength=362*/ {
   test_codeRange_constructor_factory() async {
     var library = await checkLibrary('''
 class C {
-  factory C() => null;
+  factory C() => throw 0;
 
-  factory C.raw() => null;
-
-  /// Comment 1.
-  /// Comment 2.
-  factory C.hasDocComment() => null;
-
-  @Object()
-  factory C.hasAnnotation() => null;
-
-  @Object()
-  /// Comment 1.
-  /// Comment 2.
-  factory C.annotationThenComment() => null;
+  factory C.raw() => throw 0;
 
   /// Comment 1.
   /// Comment 2.
+  factory C.hasDocComment() => throw 0;
+
   @Object()
-  factory C.commentThenAnnotation() => null;
+  factory C.hasAnnotation() => throw 0;
+
+  @Object()
+  /// Comment 1.
+  /// Comment 2.
+  factory C.annotationThenComment() => throw 0;
+
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  factory C.commentThenAnnotation() => throw 0;
 
   /// Comment 1.
   @Object()
   /// Comment 2.
-  factory C.commentAroundAnnotation() => null;
+  factory C.commentAroundAnnotation() => throw 0;
 }
 ''');
     checkElementText(
         library,
         r'''
-class C/*codeOffset=0, codeLength=462*/ {
-  factory C/*codeOffset=12, codeLength=20*/();
-  factory C.raw/*codeOffset=36, codeLength=24*/();
+class C/*codeOffset=0, codeLength=483*/ {
+  factory C/*codeOffset=12, codeLength=23*/();
+  factory C.raw/*codeOffset=39, codeLength=27*/();
   /// Comment 1.
   /// Comment 2.
-  factory C.hasDocComment/*codeOffset=64, codeLength=68*/();
+  factory C.hasDocComment/*codeOffset=70, codeLength=71*/();
   @Object()
-  factory C.hasAnnotation/*codeOffset=136, codeLength=46*/();
-  /// Comment 1.
-  /// Comment 2.
-  @Object()
-  factory C.annotationThenComment/*codeOffset=186, codeLength=88*/();
+  factory C.hasAnnotation/*codeOffset=145, codeLength=49*/();
   /// Comment 1.
   /// Comment 2.
   @Object()
-  factory C.commentThenAnnotation/*codeOffset=278, codeLength=88*/();
+  factory C.annotationThenComment/*codeOffset=198, codeLength=91*/();
+  /// Comment 1.
   /// Comment 2.
   @Object()
-  factory C.commentAroundAnnotation/*codeOffset=387, codeLength=73*/();
+  factory C.commentThenAnnotation/*codeOffset=293, codeLength=91*/();
+  /// Comment 2.
+  @Object()
+  factory C.commentAroundAnnotation/*codeOffset=405, codeLength=76*/();
 }
 ''',
         withCodeRanges: true,

@@ -192,7 +192,7 @@ intptr_t RawObject::HeapSizeFromClass() const {
     case kCompressedStackMapsCid: {
       const RawCompressedStackMaps* maps =
           reinterpret_cast<const RawCompressedStackMaps*>(this);
-      intptr_t length = maps->ptr()->payload_size();
+      intptr_t length = CompressedStackMaps::PayloadSizeOf(maps);
       instance_size = CompressedStackMaps::InstanceSize(length);
       break;
     }
@@ -565,7 +565,8 @@ VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
 VARIABLE_NULL_VISITOR(InstructionsSection, InstructionsSection::Size(raw_obj))
 VARIABLE_NULL_VISITOR(PcDescriptors, raw_obj->ptr()->length_)
 VARIABLE_NULL_VISITOR(CodeSourceMap, raw_obj->ptr()->length_)
-VARIABLE_NULL_VISITOR(CompressedStackMaps, raw_obj->ptr()->payload_size())
+VARIABLE_NULL_VISITOR(CompressedStackMaps,
+                      CompressedStackMaps::PayloadSizeOf(raw_obj))
 VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->ptr()->length_))
 // Abstract types don't have their visitor called.
@@ -575,6 +576,7 @@ UNREACHABLE_VISITOR(Error)
 UNREACHABLE_VISITOR(Number)
 UNREACHABLE_VISITOR(Integer)
 UNREACHABLE_VISITOR(String)
+UNREACHABLE_VISITOR(FutureOr)
 // Smi has no heap representation.
 UNREACHABLE_VISITOR(Smi)
 

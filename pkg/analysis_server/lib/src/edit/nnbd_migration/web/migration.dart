@@ -30,14 +30,18 @@ void main() {
   });
 
   window.addEventListener('popstate', (event) {
-    var path = window.location.pathname;
+    String path = window.location.pathname;
     int offset = getOffset(window.location.href);
-    var lineNumber = getLine(window.location.href);
+    int lineNumber = getLine(window.location.href);
     if (path.length > 1) {
       loadFile(path, offset, lineNumber);
     } else {
       // Blank out the page, for the index screen.
-      writeCodeAndRegions({'regions': '', 'navContent': ''});
+      writeCodeAndRegions(path, {
+        'regions': '',
+        'navigationContent': '',
+        'edits': [],
+      });
       updatePage('&nbsp;', null);
     }
   });
@@ -90,19 +94,20 @@ String relativePath(String path) {
 }
 
 /// Write the contents of the Edit List, from JSON data [editListData].
-void writeEditList(dynamic editListData) {
-  var editList = document.querySelector('.edit-list .panel-content');
-  editList.innerHtml = '';
-  var p = editList.append(document.createElement('p'));
-  int editCount = editListData['editCount'];
+void populateProposedEdits(String path, List<dynamic> edits) {
+  Element editListElement = document.querySelector('.edit-list .panel-content');
+  editListElement.innerHtml = '';
+
+  Element p = editListElement.append(document.createElement('p'));
+  int editCount = edits.length;
   if (editCount == 0) {
-    p.append(Text('$editCount proposed edits'));
+    p.append(Text('No proposed edits'));
   } else {
     p.append(Text('$editCount proposed ${pluralize(editCount, 'edit')}:'));
   }
 
-  Element list = editList.append(document.createElement('ul'));
-  for (var edit in editListData['edits']) {
+  Element list = editListElement.append(document.createElement('ul'));
+  for (Map<String, dynamic> edit in edits) {
     Element item = list.append(document.createElement('li'));
     item.classes.add('edit');
     AnchorElement anchor = item.append(document.createElement('a'));
@@ -116,21 +121,24 @@ void writeEditList(dynamic editListData) {
       navigate(window.location.pathname, offset, line, callback: () {
         pushState(window.location.pathname, offset, line);
       });
-      loadRegionExplanation(anchor);
+      loadAndPopulateEditDetails(path, offset);
     });
     item.append(Text(': ${edit['explanation']}'));
   }
+
+  // Clear out any existing edit details.
+  populateEditDetails();
 }
 
 /// Load data from [data] into the .code and the .regions divs.
-void writeCodeAndRegions(dynamic data) {
-  var regions = document.querySelector('.regions');
-  var code = document.querySelector('.code');
+void writeCodeAndRegions(String path, Map<String, dynamic> data) {
+  Element regionsElement = document.querySelector('.regions');
+  Element codeElement = document.querySelector('.code');
 
-  _PermissiveNodeValidator.setInnerHtml(regions, data['regions']);
-  _PermissiveNodeValidator.setInnerHtml(code, data['navContent']);
+  _PermissiveNodeValidator.setInnerHtml(regionsElement, data['regions']);
+  _PermissiveNodeValidator.setInnerHtml(codeElement, data['navigationContent']);
+  populateProposedEdits(path, data['edits']);
 
-  writeEditList(data['editList']);
   highlightAllCode();
   addClickHandlers('.code');
   addClickHandlers('.regions');
@@ -207,22 +215,33 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
 void loadFile(
   String path,
   int offset,
-  int lineNumber, {
+  int line, {
   VoidCallback callback,
 }) {
+  // Handle the case where we're requesting a directory.
+  if (!path.endsWith('.dart')) {
+    writeCodeAndRegions(path, {
+      'regions': '',
+      'navigationContent': '',
+      'edits': [],
+    });
+    updatePage(path);
+    if (callback != null) {
+      callback();
+    }
+
+    return;
+  }
+
   // Navigating to another file; request it, then do work with the response.
-
-  // TODO(devoncarew): path might be a url; if it is, then use url manipulation
-  // to add additional args.
-
   HttpRequest.request(
     path.contains('?') ? '$path&inline=true' : '$path?inline=true',
     requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
   ).then((HttpRequest xhr) {
     if (xhr.status == 200) {
-      var response = jsonDecode(xhr.responseText);
-      writeCodeAndRegions(response);
-      maybeScrollToAndHighlight(offset, lineNumber);
+      Map<String, dynamic> response = jsonDecode(xhr.responseText);
+      writeCodeAndRegions(path, response);
+      maybeScrollToAndHighlight(offset, line);
       String filePathPart =
           path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
       updatePage(filePathPart, offset);
@@ -239,24 +258,21 @@ void loadFile(
   });
 }
 
-void pushState(String path, int offset, int lineNumber) {
-  // TODO(devoncarew): Path might be a url; if it is, then use url manipulation
-  // to add additional args.
+void pushState(String path, int offset, int line) {
+  Uri uri = Uri.parse('${window.location.origin}$path');
 
-  var newLocation = window.location.origin + path + '?';
-  if (offset != null) {
-    newLocation = newLocation + 'offset=$offset&';
-  }
-  if (lineNumber != null) {
-    newLocation = newLocation + 'line=$lineNumber';
-  }
-  window.history.pushState({}, '', newLocation);
+  Map<String, dynamic> params = {};
+  if (offset != null) params['offset'] = '$offset';
+  if (line != null) params['line'] = '$line';
+
+  uri = uri.replace(queryParameters: params.isEmpty ? null : params);
+  window.history.pushState({}, '', uri.toString());
 }
 
 /// Update the heading and navigation links.
 ///
 /// Call this after updating page content on a navigation.
-void updatePage(String path, int offset) {
+void updatePage(String path, [int offset]) {
   path = relativePath(path);
   // Update page heading.
   Element unitName = document.querySelector('#unit-name');
@@ -297,12 +313,24 @@ void addArrowClickHandler(Element arrow) {
   });
 }
 
-void handleNavLinkClick(MouseEvent event) {
+void handleNavLinkClick(
+  MouseEvent event, {
+  String relativeTo,
+}) {
   Element target = event.currentTarget;
 
-  var path = absolutePath(target.getAttribute('href'));
-  int offset = getOffset(target.getAttribute('href'));
-  int lineNumber = getLine(target.getAttribute('href'));
+  String location = target.getAttribute('href');
+  String path = location;
+  if (path.contains('?')) {
+    path = path.substring(0, path.indexOf('?'));
+  }
+  // Fix-up the path - it might be relative.
+  if (relativeTo != null) {
+    path = _p.normalize(_p.join(_p.dirname(relativeTo), path));
+  }
+
+  int offset = getOffset(location);
+  int lineNumber = getLine(location);
 
   if (offset != null) {
     navigate(path, offset, lineNumber, callback: () {
@@ -318,6 +346,9 @@ void handleNavLinkClick(MouseEvent event) {
 
 void handlePostLinkClick(MouseEvent event) {
   String path = (event.currentTarget as Element).getAttribute('href');
+  // TODO(devoncarew): Validate that this path logic is correct.
+  // This is only called by .post-link elements - the 'edits' / incremental
+  // workflow code path.
   path = absolutePath(path);
 
   // Directing the server to produce an edit; request it, then do work with the
@@ -342,18 +373,27 @@ void handlePostLinkClick(MouseEvent event) {
 void addClickHandlers(String selector) {
   Element parentElement = document.querySelector(selector);
 
+  // Add navigation handlers for navigation links in the source code.
   List<Element> navLinks = parentElement.querySelectorAll('.nav-link');
   navLinks.forEach((link) {
-    link.onClick.listen(handleNavLinkClick);
-  });
-
-  // TODO(devoncarew): Move this code to where the elements are defined.
-  List<Element> regions = parentElement.querySelectorAll('.region');
-  regions.forEach((Element anchor) {
-    anchor.onClick.listen((event) {
-      loadRegionExplanation(anchor);
+    link.onClick.listen((event) {
+      Element tableElement = document.querySelector('table[data-path]');
+      String parentPath = tableElement.dataset['path'];
+      handleNavLinkClick(event, relativeTo: parentPath);
     });
   });
+
+  List<Element> regions = parentElement.querySelectorAll('.region');
+  if (regions.isNotEmpty) {
+    Element table = parentElement.querySelector('table[data-path]');
+    String path = table.dataset['path'];
+    regions.forEach((Element anchor) {
+      anchor.onClick.listen((event) {
+        int offset = int.parse(anchor.dataset['offset']);
+        loadAndPopulateEditDetails(path, offset);
+      });
+    });
+  }
 
   List<Element> postLinks = parentElement.querySelectorAll('.post-link');
   postLinks.forEach((link) {
@@ -424,9 +464,40 @@ void logError(e, st) {
   window.console.error('$st');
 }
 
-void writeRegionExplanation(dynamic response) {
+/// Load the explanation for [region], into the ".panel-content" div.
+void loadAndPopulateEditDetails(String path, int offset) {
+  // Request the region, then do work with the response.
+  HttpRequest.request(
+    '$path?region=region&offset=$offset',
+    requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
+  ).then((HttpRequest xhr) {
+    if (xhr.status == 200) {
+      // TODO(devoncarew): Parse this response into an object model (see
+      // RegionRenderer for the schema).
+      Map<String, dynamic> response = jsonDecode(xhr.responseText);
+      populateEditDetails(response);
+      addClickHandlers('.edit-panel .panel-content');
+    } else {
+      window.alert('Request failed; status of ${xhr.status}');
+    }
+  }).catchError((e, st) {
+    logError('loadRegionExplanation: $e', st);
+
+    window.alert('Could not load $path ($e).');
+  });
+}
+
+void populateEditDetails([Map<String, dynamic> response]) {
   var editPanel = document.querySelector('.edit-panel .panel-content');
   editPanel.innerHtml = '';
+
+  if (response == null) {
+    // Clear out any current edit details.
+    editPanel.append(ParagraphElement()
+      ..text = 'See details about a proposed edit.'
+      ..classes = ['placeholder']);
+    return;
+  }
 
   String filePath = response['path'];
   String parentDirectory = _p.dirname(filePath);
@@ -474,30 +545,6 @@ void writeRegionExplanation(dynamic response) {
       a.classes.add('post-link');
     }
   }
-}
-
-/// Load the explanation for [region], into the ".panel-content" div.
-void loadRegionExplanation(AnchorElement anchor) {
-  String path = window.location.pathname;
-  String offset = anchor.dataset['offset'];
-
-  // Request the region, then do work with the response.
-  HttpRequest.request(
-    '$path?region=region&offset=$offset',
-    requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
-  ).then((HttpRequest xhr) {
-    if (xhr.status == 200) {
-      var response = jsonDecode(xhr.responseText);
-      writeRegionExplanation(response);
-      addClickHandlers('.edit-panel .panel-content');
-    } else {
-      window.alert('Request failed; status of ${xhr.status}');
-    }
-  }).catchError((e, st) {
-    logError('loadRegionExplanation: $e', st);
-
-    window.alert('Could not load $path ($e).');
-  });
 }
 
 class _PermissiveNodeValidator implements NodeValidator {

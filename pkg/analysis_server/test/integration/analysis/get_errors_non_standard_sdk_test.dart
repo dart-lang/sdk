@@ -18,10 +18,8 @@ void main() {
   });
 }
 
-/**
- * Tests that when an SDK path is specified on the command-line (via the `--sdk`
- * argument) that the specified SDK is used.
- */
+/// Tests that when an SDK path is specified on the command-line (via the
+/// `--sdk` argument) that the specified SDK is used.
 @reflectiveTest
 class AnalysisDomainGetErrorsTest
     extends AbstractAnalysisServerIntegrationTest {

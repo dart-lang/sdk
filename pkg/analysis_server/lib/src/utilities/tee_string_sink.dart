@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A [StringSink] that writes into two other [StringSink]s.
- */
+/// A [StringSink] that writes into two other [StringSink]s.
 class TeeStringSink implements StringSink {
   final StringSink sink1;
   final StringSink sink2;

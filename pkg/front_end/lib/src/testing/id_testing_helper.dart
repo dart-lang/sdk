@@ -208,14 +208,16 @@ RunTestFunction<T> runTestFor<T>(
       bool verbose,
       bool succinct,
       bool printCode,
-      Map<String, List<String>> skipMap}) {
+      Map<String, List<String>> skipMap,
+      Uri nullUri}) {
     return runTest(testData, dataComputer, testedConfigs,
         testAfterFailures: testAfterFailures,
         verbose: verbose,
         succinct: succinct,
         printCode: printCode,
         onFailure: onFailure,
-        skipMap: skipMap);
+        skipMap: skipMap,
+        nullUri: nullUri);
   };
 }
 
@@ -231,7 +233,8 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
     bool forUserLibrariesOnly: true,
     Iterable<Id> globalIds: const <Id>[],
     void onFailure(String message),
-    Map<String, List<String>> skipMap}) async {
+    Map<String, List<String>> skipMap,
+    Uri nullUri}) async {
   Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
     if (skipForConfig(testData.name, config.marker, skipMap)) {
@@ -243,7 +246,8 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
         onFailure: onFailure,
         verbose: verbose,
         succinct: succinct,
-        printCode: printCode);
+        printCode: printCode,
+        nullUri: nullUri);
   }
   return results;
 }
@@ -259,7 +263,8 @@ Future<TestResult<T>> runTestForConfig<T>(
     bool printCode,
     bool forUserLibrariesOnly: true,
     Iterable<Id> globalIds: const <Id>[],
-    void onFailure(String message)}) async {
+    void onFailure(String message),
+    Uri nullUri}) async {
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker];
   Iterable<Id> globalIds = memberAnnotations.globalData.keys;
@@ -293,7 +298,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
 
   Map<Id, ActualData<T>> actualMapForUri(Uri uri) {
-    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+    return actualMaps.putIfAbsent(uri ?? nullUri, () => <Id, ActualData<T>>{});
   }
 
   if (errors.isNotEmpty) {
@@ -305,14 +310,14 @@ Future<TestResult<T>> runTestForConfig<T>(
     Map<Uri, Map<int, List<FormattedMessage>>> errorMap = {};
     for (FormattedMessage error in errors) {
       Map<int, List<FormattedMessage>> map =
-          errorMap.putIfAbsent(error.uri, () => {});
+          errorMap.putIfAbsent(error.uri ?? nullUri, () => {});
       List<FormattedMessage> list = map.putIfAbsent(error.charOffset, () => []);
       list.add(error);
     }
 
     errorMap.forEach((Uri uri, Map<int, List<FormattedMessage>> map) {
       map.forEach((int offset, List<DiagnosticMessage> list) {
-        if (offset < 0) {
+        if (offset == null || offset < 0) {
           // Position errors without offset in the begin of the file.
           offset = 0;
         }
@@ -457,7 +462,7 @@ void printMessageInLocation(
     Map<Uri, Source> uriToSource, Uri uri, int offset, String message,
     {bool succinct: false}) {
   if (uri == null) {
-    print(message);
+    print("(null uri)@$offset: $message");
   } else {
     Source source = uriToSource[uri];
     if (source == null) {

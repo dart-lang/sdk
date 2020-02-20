@@ -19,9 +19,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A [Refactoring] for renaming [LocalElement]s.
- */
+/// A [Refactoring] for renaming [LocalElement]s.
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSessionHelper sessionHelper;
 
@@ -94,9 +92,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
-  /**
-   * Fills [elements] with [Element]s to rename.
-   */
+  /// Fills [elements] with [Element]s to rename.
   Future _prepareElements() async {
     Element element = this.element;
     if (element is ParameterElement && element.isNamed) {
@@ -158,9 +154,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
     return visibleRangeMap[element];
   }
 
-  /**
-   * Returns whether [element] and [target] are visible together.
-   */
+  /// Returns whether [element] and [target] are visible together.
   bool _isVisibleWithTarget(Element element) {
     if (element is LocalElement) {
       SourceRange targetRange = _getVisibleRange(target);

@@ -2738,7 +2738,8 @@ mixin _AssignmentChecker {
         _checkAssignment(origin,
             source: rewrittenSource.typeArguments[i],
             destination: destination.typeArguments[i],
-            hard: false);
+            hard: false,
+            checkable: false);
       }
     } else if (sourceType is FunctionType && destinationType is FunctionType) {
       // If the source is a function literal, we want a hard edge, so that if a

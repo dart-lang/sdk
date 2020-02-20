@@ -3,8 +3,7 @@ library callback_list_test;
 import 'dart:html';
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/minitest.dart';
 
 var callbackDone = false;
 bool isCallbackDone() => callbackDone;
@@ -24,7 +23,6 @@ Future waitUntilCallbackDone(bool test()) async {
 }
 
 void main() async {
-  useHtmlConfiguration();
   window.navigator.persistentStorage.requestQuota(1024 * 1024, _quotaHandler);
 
   await waitUntilCallbackDone(isCallbackDone);

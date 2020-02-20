@@ -738,7 +738,7 @@ class InferenceVisitor
               node, messageDefaultListConstructorError, noLength);
         } else {
           inferrer.library.addProblem(messageDefaultListConstructorWarning,
-              node.fileOffset, noLength, inferrer.library.fileUri);
+              node.fileOffset, noLength, inferrer.helper.uri);
         }
       }
     }
@@ -1791,11 +1791,11 @@ class InferenceVisitor
       bool isMap = inferrer.typeSchemaEnvironment.isSubtypeOf(
           spreadType,
           inferrer.coreTypes.mapRawType(inferrer.library.nullable),
-          SubtypeCheckMode.ignoringNullabilities);
+          SubtypeCheckMode.withNullabilities);
       bool isIterable = inferrer.typeSchemaEnvironment.isSubtypeOf(
           spreadType,
           inferrer.coreTypes.iterableRawType(inferrer.library.nullable),
-          SubtypeCheckMode.ignoringNullabilities);
+          SubtypeCheckMode.withNullabilities);
       if (isMap && !isIterable) {
         mapSpreadOffset = entry.fileOffset;
       }
@@ -5140,7 +5140,8 @@ class InferenceVisitor
     inferrer.flowAnalysis.switchStatement_expressionEnd(node);
 
     bool hasDefault = false;
-    for (SwitchCaseImpl switchCase in node.cases) {
+    for (int caseIndex = 0; caseIndex < node.cases.length; ++caseIndex) {
+      SwitchCaseImpl switchCase = node.cases[caseIndex];
       hasDefault = hasDefault || switchCase.isDefault;
       inferrer.flowAnalysis
           .switchStatement_beginCase(switchCase.hasLabel, node);
@@ -5153,28 +5154,58 @@ class InferenceVisitor
         switchCase.expressions[index] = caseExpression..parent = switchCase;
         DartType caseExpressionType = caseExpressionResult.inferredType;
 
-        // Check whether the expression type is assignable to the case
-        // expression type.
-        if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
-          inferrer.helper.addProblem(
-              templateSwitchExpressionNotAssignable.withArguments(
-                  expressionType,
-                  caseExpressionType,
-                  inferrer.isNonNullableByDefault),
-              caseExpression.fileOffset,
-              noLength,
-              context: [
-                messageSwitchExpressionNotAssignableCause.withLocation(
-                    inferrer.uriForInstrumentation,
-                    node.expression.fileOffset,
-                    noLength)
-              ]);
+        if (inferrer.library.isNonNullableByDefault) {
+          if (inferrer.performNnbdChecks) {
+            if (!inferrer.typeSchemaEnvironment.isSubtypeOf(caseExpressionType,
+                expressionType, SubtypeCheckMode.withNullabilities)) {
+              inferrer.helper.addProblem(
+                  templateSwitchExpressionNotSubtype.withArguments(
+                      caseExpressionType,
+                      expressionType,
+                      inferrer.isNonNullableByDefault),
+                  caseExpression.fileOffset,
+                  noLength,
+                  context: [
+                    messageSwitchExpressionNotAssignableCause.withLocation(
+                        inferrer.uriForInstrumentation,
+                        node.expression.fileOffset,
+                        noLength)
+                  ]);
+            }
+          }
+        } else {
+          // Check whether the expression type is assignable to the case
+          // expression type.
+          if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
+            inferrer.helper.addProblem(
+                templateSwitchExpressionNotAssignable.withArguments(
+                    expressionType,
+                    caseExpressionType,
+                    inferrer.isNonNullableByDefault),
+                caseExpression.fileOffset,
+                noLength,
+                context: [
+                  messageSwitchExpressionNotAssignableCause.withLocation(
+                      inferrer.uriForInstrumentation,
+                      node.expression.fileOffset,
+                      noLength)
+                ]);
+          }
         }
       }
       StatementInferenceResult bodyResult =
           inferrer.inferStatement(switchCase.body);
       if (bodyResult.hasChanged) {
         switchCase.body = bodyResult.statement..parent = switchCase;
+      }
+
+      if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+        // The last case block is allowed to complete normally.
+        if (caseIndex < node.cases.length - 1 &&
+            inferrer.flowAnalysis.isReachable) {
+          inferrer.library.addProblem(messageSwitchCaseFallThrough,
+              switchCase.fileOffset, noLength, inferrer.helper.uri);
+        }
       }
     }
     inferrer.flowAnalysis.switchStatement_end(hasDefault);
@@ -5478,11 +5509,15 @@ class InferenceVisitor
     if (isUnassigned) {
       inferrer.dataForTesting?.flowAnalysisResult?.unassignedNodes?.add(node);
       if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-        // Synthetic variables aren't checked.
+        // Synthetic variables, local functions, and variables with
+        // invalid types aren't checked.
+        // TODO(dmitryas): Report errors on definitely unassigned late
+        // local variables with potentially non-nullable types.
         if (variable.name != null &&
             !variable.isLocalFunction &&
             variable.type is! InvalidType &&
-            variable.type.isPotentiallyNonNullable) {
+            variable.type.isPotentiallyNonNullable &&
+            !variable.isLate) {
           if (inferrer.nnbdStrongMode) {
             return new ExpressionInferenceResult(
                 new InvalidType(),
@@ -5497,7 +5532,7 @@ class InferenceVisitor
                     .withArguments(node.variable.name),
                 node.fileOffset,
                 node.variable.name.length,
-                inferrer.library.fileUri);
+                inferrer.helper.uri);
           }
         }
       }
@@ -5734,7 +5769,7 @@ class InferenceVisitor
                 operationName, operandType, inferrer.isNonNullableByDefault),
             offset,
             noLength,
-            inferrer.library.fileUri);
+            inferrer.helper.uri);
       }
     }
   }

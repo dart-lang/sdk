@@ -520,7 +520,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   }
   if (type.IsType()) {
     // Smi is FutureOr<T>, when T is a top type or int or num.
-    if (!Class::Handle(type.type_class()).IsFutureOrClass()) {
+    if (!type.IsFutureOrType()) {
       __ testq(kInstanceReg,
                compiler::Immediate(kSmiTagMask));  // Is instance Smi?
       __ j(ZERO, is_not_instance_lbl);
@@ -948,6 +948,10 @@ void FlowGraphCompiler::CompileGraph() {
   if (!skip_body_compilation()) {
     ASSERT(assembler()->constant_pool_allowed());
     GenerateDeferredCode();
+  }
+
+  for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
+    indirect_gotos_[i]->ComputeOffsetTable();
   }
 }
 

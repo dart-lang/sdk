@@ -686,13 +686,13 @@ class _IsCheck extends TypePromotionFact {
     // the variable and the type we are checking against.
     DartType previousType = previousPromotedType ?? variable.type;
     if (promoter.typeSchemaEnvironment.isSubtypeOf(
-        checkedType, previousType, SubtypeCheckMode.ignoringNullabilities)) {
+        checkedType, previousType, SubtypeCheckMode.withNullabilities)) {
       // The type we are checking against is a subtype of the previous type of
       // the variable, so this is a refinement; we can promote.
       return checkedType;
     } else if (previousType is TypeParameterType &&
         promoter.typeSchemaEnvironment.isSubtypeOf(checkedType,
-            previousType.bound, SubtypeCheckMode.ignoringNullabilities)) {
+            previousType.bound, SubtypeCheckMode.withNullabilities)) {
       // The type we are checking against is a subtype of the bound of the
       // previous type of the variable; we can promote the bound.
       return new TypeParameterType.intersection(

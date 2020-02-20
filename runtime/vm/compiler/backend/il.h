@@ -2961,7 +2961,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 // to IndirectGoto as an input.
 class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  IndirectGotoInstr(TypedData* offsets, Value* offset_from_start)
+  IndirectGotoInstr(const TypedData* offsets, Value* offset_from_start)
       : offsets_(*offsets) {
     SetInputAt(0, offset_from_start);
   }
@@ -2997,7 +2997,7 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
 
  private:
   GrowableArray<TargetEntryInstr*> successors_;
-  TypedData& offsets_;
+  const TypedData& offsets_;
 };
 
 class ComparisonInstr : public Definition {

@@ -116,8 +116,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   KernelToElementMapImpl(
       this.reporter, this._environment, this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(this);
-    _types = new KernelDartTypes(this, options.useLegacySubtyping);
+    _typeConverter = new DartTypeConverter(options, this);
+    _types = new KernelDartTypes(this, options);
     _commonElements =
         new CommonElementsImpl(_types, _elementEnvironment, options);
     _constantValuefier = new ConstantValuefier(this);
@@ -239,8 +239,9 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   @override
   InterfaceType createInterfaceType(
-      ir.Class cls, List<ir.DartType> typeArguments) {
-    return new InterfaceType(getClass(cls), getDartTypes(typeArguments));
+      ir.Class cls, List<ir.DartType> typeArguments, Nullability nullability) {
+    return types.interfaceType(
+        getClass(cls), getDartTypes(typeArguments), nullability);
   }
 
   LibraryEntity getLibrary(ir.Library node) => getLibraryInternal(node);
@@ -261,20 +262,23 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (data is KClassDataImpl && data.thisType == null) {
       ir.Class node = data.node;
       if (node.typeParameters.isEmpty) {
-        data.thisType =
-            data.rawType = new InterfaceType(cls, const <DartType>[]);
+        data.thisType = data.rawType = types.interfaceType(
+            cls, const <DartType>[], types.defaultNullability);
       } else {
-        data.thisType = new InterfaceType(
+        data.thisType = types.interfaceType(
             cls,
             new List<DartType>.generate(node.typeParameters.length,
                 (int index) {
-              return new TypeVariableType(
-                  getTypeVariableInternal(node.typeParameters[index]));
-            }));
-        data.rawType = new InterfaceType(
+              return types.typeVariableType(
+                  getTypeVariableInternal(node.typeParameters[index]),
+                  types.defaultNullability);
+            }),
+            types.defaultNullability);
+        data.rawType = types.interfaceType(
             cls,
             new List<DartType>.filled(
-                node.typeParameters.length, DynamicType()));
+                node.typeParameters.length, types.dynamicType()),
+            types.defaultNullability);
       }
     }
   }
@@ -287,8 +291,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         _ensureThisAndRawType(cls, data);
         data.jsInteropType = data.thisType;
       } else {
-        data.jsInteropType = InterfaceType(
-            cls, List<DartType>.filled(node.typeParameters.length, AnyType()));
+        data.jsInteropType = types.interfaceType(
+            cls,
+            List<DartType>.filled(node.typeParameters.length, types.anyType()),
+            types.defaultNullability);
       }
     }
   }
@@ -485,7 +491,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (node.parent is ir.Constructor) {
       // The return type on generative constructors is `void`, but we need
       // `dynamic` type to match the element model.
-      returnType = DynamicType();
+      returnType = types.dynamicType();
     } else {
       returnType = getDartType(node.returnType);
     }
@@ -519,15 +525,16 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (node.typeParameters.isNotEmpty) {
       List<DartType> typeParameters = <DartType>[];
       for (ir.TypeParameter typeParameter in node.typeParameters) {
-        typeParameters.add(getDartType(
-            new ir.TypeParameterType(typeParameter, ir.Nullability.legacy)));
+        typeParameters.add(getDartType(new ir.TypeParameterType(typeParameter,
+            ir.TypeParameterType.computeNullabilityFromBound(typeParameter))));
       }
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,
-          (int index) => new FunctionTypeVariable(index));
+          (int index) =>
+              types.functionTypeVariable(index, types.defaultNullability));
 
       DartType subst(DartType type) {
-        return type.subst(typeVariables, typeParameters);
+        return types.subst(typeVariables, typeParameters, type);
       }
 
       returnType = subst(returnType);
@@ -542,14 +549,20 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       typeVariables = const <FunctionTypeVariable>[];
     }
 
-    return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        namedParameters, namedParameterTypes, typeVariables);
+    return types.functionType(
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        namedParameters,
+        namedParameterTypes,
+        typeVariables,
+        types.defaultNullability);
   }
 
   @override
   DartType substByContext(DartType type, InterfaceType context) {
-    return type.subst(
-        context.typeArguments, getThisType(context.element).typeArguments);
+    return types.subst(context.typeArguments,
+        getThisType(context.element).typeArguments, type);
   }
 
   /// Returns the type of the `call` method on 'type'.
@@ -1612,7 +1625,7 @@ class KernelElementEnvironment extends ElementEnvironment
   KernelElementEnvironment(this.elementMap);
 
   @override
-  DartType get dynamicType => DynamicType();
+  DartType get dynamicType => elementMap.types.dynamicType();
 
   @override
   LibraryEntity get mainLibrary => elementMap._mainLibrary;
@@ -1675,8 +1688,8 @@ class KernelElementEnvironment extends ElementEnvironment
 
   @override
   InterfaceType createInterfaceType(
-      ClassEntity cls, List<DartType> typeArguments) {
-    return new InterfaceType(cls, typeArguments);
+      ClassEntity cls, List<DartType> typeArguments, Nullability nullability) {
+    return elementMap.types.interfaceType(cls, typeArguments, nullability);
   }
 
   @override

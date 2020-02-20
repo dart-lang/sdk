@@ -186,6 +186,7 @@ general/function_type_recovery: TextSerializationFailure # Was: Pass
 general/functions: TextSerializationFailure # Was: Pass
 general/future_or_test: TextSerializationFailure # Was: Pass
 general/generic_function_type_in_message: TextSerializationFailure
+general/getter_call: TextSerializationFailure
 general/having_part_with_part_and_annotation: TextSerializationFailure
 general/having_part_with_parts_and_annotation: TextSerializationFailure
 general/hello: TextSerializationFailure # Was: Pass
@@ -205,6 +206,8 @@ general/import_conflicting_type_member: TextSerializationFailure
 general/import_conflicting_types: TextSerializationFailure
 general/incomplete_field_formal_parameter: TextSerializationFailure # Was: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
+general/infer_map_literal_with_closure: TextSerializationFailure
+general/interface_conflict: TextSerializationFailure
 general/interface_contravariant_from_class: TextSerializationFailure
 general/interface_covariantImpl_from_class: TextSerializationFailure
 general/interface_covariantInterface_from_class: TextSerializationFailure
@@ -216,7 +219,7 @@ general/invalid_type: TypeCheckError
 general/invocations: TextSerializationFailure # Was: RuntimeError
 general/issue129167943: TextSerializationFailure
 general/issue34515: TextSerializationFailure
-general/issue34899: TypeCheckError
+general/issue34899: TextSerializationFailure
 general/issue35875: TextSerializationFailure
 general/issue37027: TextSerializationFailure
 general/issue37381: TextSerializationFailure
@@ -249,6 +252,7 @@ general/mixin_application_override: TypeCheckError
 general/mixin_conflicts: TextSerializationFailure
 general/mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
 general/mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
+general/mixin_interface_conflict: TextSerializationFailure
 general/mixin_super_repeated: TextSerializationFailure # Was: Pass
 general/mixin_with_static_member: TextSerializationFailure
 general/named_function_scope: TextSerializationFailure # Was: Pass
@@ -324,6 +328,7 @@ general/stringliteral: TextSerializationFailure # Was: Pass
 general/super_call: TextSerializationFailure # Was: Pass
 general/super_nsm: TextSerializationFailure # Was: Pass
 general/tabs: TextSerializationFailure # Was: Pass
+general/this_field_call: TextSerializationFailure
 general/three_typedefs_loop: TextSerializationFailure
 general/top_level_accessors: TextSerializationFailure # Was: Pass
 general/top_level_accessors_part: TextSerializationFailure # Was: Pass
@@ -345,6 +350,7 @@ general/var_as_type_name: TextSerializationFailure # Was: Pass
 general/void_methods: TextSerializationFailure
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general/well_boundness_checks_in_outline: TextSerializationFailure
+general/with_dependencies/abstract_members_from_dill/main: TextSerializationFailure
 general/with_dependencies/extension_from_dill/extension_from_dill: TextSerializationFailure
 general/with_dependencies/variance_from_dill/variance_from_dill: TextSerializationFailure
 general_nnbd_opt_out/DeltaBlue: TextSerializationFailure # Was: Pass
@@ -490,7 +496,7 @@ general_nnbd_opt_out/invalid_type: TypeCheckError
 general_nnbd_opt_out/invocations: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/issue129167943: TextSerializationFailure
 general_nnbd_opt_out/issue34515: TextSerializationFailure
-general_nnbd_opt_out/issue34899: TypeCheckError
+general_nnbd_opt_out/issue34899: TextSerializationFailure
 general_nnbd_opt_out/issue35875: TextSerializationFailure
 general_nnbd_opt_out/issue37027: TextSerializationFailure
 general_nnbd_opt_out/issue37381: TextSerializationFailure
@@ -615,6 +621,8 @@ general_nnbd_opt_out/unused_methods: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/var_as_type_name: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/void_methods: TextSerializationFailure
 general_nnbd_opt_out/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+implicit_getter_calls/getter_call: TextSerializationFailure
+implicit_getter_calls/this_field_call: TextSerializationFailure
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
 inference/assert: TextSerializationFailure # Was: Pass
 inference/assert_initializer: TextSerializationFailure # Was: Pass
@@ -1210,13 +1218,16 @@ late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 late_lowering/later: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
+late_lowering/override_getter_setter: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
+nnbd/bounds_checks: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/constants: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
+nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
@@ -1225,6 +1236,7 @@ nnbd/generic_override: TextSerializationFailure
 nnbd/infer_from_opt_in: TextSerializationFailure
 nnbd/infer_from_opt_out: TextSerializationFailure
 nnbd/infer_if_null: TextSerializationFailure
+nnbd/infer_in_legacy_from_opted_in: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
@@ -1232,6 +1244,7 @@ nnbd/issue39659: TextSerializationFailure
 nnbd/issue39822: TextSerializationFailure
 nnbd/issue40093: TextSerializationFailure
 nnbd/issue40134: TextSerializationFailure
+nnbd/issue40600: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
@@ -1243,6 +1256,7 @@ nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/missing_required_named_parameter: TextSerializationFailure
+nnbd/mixed_mode_hierarchy_generic_methods: TextSerializationFailure
 nnbd/mixin_from_opt_in: TextSerializationFailure
 nnbd/mixin_from_opt_out: TextSerializationFailure
 nnbd/never_opt_out: TypeCheckError
@@ -1253,6 +1267,7 @@ nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure
 nnbd/non_nullable_field_initialization: TextSerializationFailure
+nnbd/not_definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/nsm_from_opt_in: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure
 nnbd/null_aware_chain: TextSerializationFailure
@@ -1268,6 +1283,8 @@ nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/nullable_receiver: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
+nnbd/override_checks: TextSerializationFailure
+nnbd/platform_definite_assignment/main: TextSerializationFailure
 nnbd/platform_optional_parameters/main: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
@@ -1279,6 +1296,8 @@ nnbd/simple_never: TextSerializationFailure
 nnbd/sink_hierarchy: TextSerializationFailure
 nnbd/strictly_non_nullable_warnings: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure
+nnbd/switch_redesign_fall_over: TextSerializationFailure
+nnbd/switch_redesign_types: TextSerializationFailure
 nnbd/tearoff_from_nullable_receiver: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass

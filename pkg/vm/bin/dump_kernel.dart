@@ -14,6 +14,8 @@ import 'package:vm/metadata/inferred_type.dart'
     show InferredTypeMetadataRepository;
 import 'package:vm/metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadataRepository;
+import 'package:vm/metadata/table_selector.dart'
+    show TableSelectorMetadataRepository;
 import 'package:vm/metadata/unreachable.dart'
     show UnreachableNodeMetadataRepository;
 import 'package:vm/metadata/call_site_attributes.dart'
@@ -39,6 +41,7 @@ main(List<String> arguments) async {
   component.addMetadataRepository(new DirectCallMetadataRepository());
   component.addMetadataRepository(new InferredTypeMetadataRepository());
   component.addMetadataRepository(new ProcedureAttributesMetadataRepository());
+  component.addMetadataRepository(new TableSelectorMetadataRepository());
   component.addMetadataRepository(new UnreachableNodeMetadataRepository());
   component.addMetadataRepository(new BytecodeMetadataRepository());
   component.addMetadataRepository(new CallSiteAttributesMetadataRepository());

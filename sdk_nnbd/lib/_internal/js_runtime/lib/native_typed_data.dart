@@ -666,8 +666,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
       JS('NativeByteData', 'new DataView(#, #, #)', arg1, arg2, arg3);
 }
 
-abstract class NativeTypedArray extends NativeTypedData
-    implements JavaScriptIndexingBehavior {
+abstract class NativeTypedArray<E> extends NativeTypedData
+    implements JavaScriptIndexingBehavior<E> {
   int get length => JS('JSUInt32', '#.length', this);
 
   void _setRangeFast(
@@ -693,7 +693,7 @@ abstract class NativeTypedArray extends NativeTypedData
   }
 }
 
-abstract class NativeTypedArrayOfDouble extends NativeTypedArray
+abstract class NativeTypedArrayOfDouble extends NativeTypedArray<double>
     with ListMixin<double>, FixedLengthListMixin<double> {
   double operator [](int index) {
     _checkValidIndex(index, this, this.length);
@@ -715,7 +715,7 @@ abstract class NativeTypedArrayOfDouble extends NativeTypedArray
   }
 }
 
-abstract class NativeTypedArrayOfInt extends NativeTypedArray
+abstract class NativeTypedArrayOfInt extends NativeTypedArray<int>
     with ListMixin<int>, FixedLengthListMixin<int>
     implements List<int> {
   // operator[]() is not here since different versions have different return

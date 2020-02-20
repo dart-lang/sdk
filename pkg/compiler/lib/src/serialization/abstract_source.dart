@@ -140,16 +140,6 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
   }
 
-  List<DartType> _readDartTypes(
-      List<FunctionTypeVariable> functionTypeVariables) {
-    int count = readInt();
-    List<DartType> types = new List<DartType>(count);
-    for (int index = 0; index < count; index++) {
-      types[index] = _readDartType(functionTypeVariables);
-    }
-    return types;
-  }
-
   List<ir.DartType> _readDartTypeNodes(
       List<ir.TypeParameter> functionTypeVariables) {
     int count = readInt();
@@ -172,75 +162,9 @@ abstract class AbstractDataSource extends DataSourceMixin
   @override
   DartType readDartType({bool allowNull: false}) {
     _checkDataKind(DataKind.dartType);
-    DartType type = _readDartType([]);
+    DartType type = DartType.readFromDataSource(this, []);
     assert(type != null || allowNull);
     return type;
-  }
-
-  DartType _readDartType(List<FunctionTypeVariable> functionTypeVariables) {
-    DartTypeKind kind = readEnum(DartTypeKind.values);
-    switch (kind) {
-      case DartTypeKind.none:
-        return null;
-      case DartTypeKind.legacyType:
-        return LegacyType(_readDartType(functionTypeVariables));
-      case DartTypeKind.nullableType:
-        return NullableType(_readDartType(functionTypeVariables));
-      case DartTypeKind.neverType:
-        return NeverType();
-      case DartTypeKind.voidType:
-        return VoidType();
-      case DartTypeKind.typeVariable:
-        return new TypeVariableType(readTypeVariable());
-      case DartTypeKind.functionTypeVariable:
-        int index = readInt();
-        assert(0 <= index && index < functionTypeVariables.length);
-        return functionTypeVariables[index];
-      case DartTypeKind.functionType:
-        int typeVariableCount = readInt();
-        List<FunctionTypeVariable> typeVariables =
-            new List<FunctionTypeVariable>.generate(typeVariableCount,
-                (int index) => new FunctionTypeVariable(index));
-        functionTypeVariables =
-            new List<FunctionTypeVariable>.from(functionTypeVariables)
-              ..addAll(typeVariables);
-        for (int index = 0; index < typeVariableCount; index++) {
-          typeVariables[index].bound = _readDartType(functionTypeVariables);
-        }
-        DartType returnType = _readDartType(functionTypeVariables);
-        List<DartType> parameterTypes = _readDartTypes(functionTypeVariables);
-        List<DartType> optionalParameterTypes =
-            _readDartTypes(functionTypeVariables);
-        List<DartType> namedParameterTypes =
-            _readDartTypes(functionTypeVariables);
-        List<String> namedParameters =
-            new List<String>(namedParameterTypes.length);
-        for (int i = 0; i < namedParameters.length; i++) {
-          namedParameters[i] = readString();
-        }
-        return new FunctionType(
-            returnType,
-            parameterTypes,
-            optionalParameterTypes,
-            namedParameters,
-            namedParameterTypes,
-            typeVariables);
-
-      case DartTypeKind.interfaceType:
-        IndexedClass cls = readClass();
-        List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
-        return new InterfaceType(cls, typeArguments);
-      case DartTypeKind.dynamicType:
-        return DynamicType();
-      case DartTypeKind.erasedType:
-        return ErasedType();
-      case DartTypeKind.anyType:
-        return AnyType();
-      case DartTypeKind.futureOr:
-        DartType typeArgument = _readDartType(functionTypeVariables);
-        return new FutureOrType(typeArgument);
-    }
-    throw new UnsupportedError("Unexpected DartTypeKind $kind");
   }
 
   @override
@@ -266,15 +190,19 @@ abstract class AbstractDataSource extends DataSourceMixin
         return const DoesNotCompleteType();
       case DartTypeNodeKind.typeParameterType:
         ir.TypeParameter typeParameter = readTypeParameterNode();
+        ir.Nullability typeParameterTypeNullability =
+            readEnum(ir.Nullability.values);
         ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
         return new ir.TypeParameterType(
-            typeParameter, ir.Nullability.legacy, promotedBound);
+            typeParameter, typeParameterTypeNullability, promotedBound);
       case DartTypeNodeKind.functionTypeVariable:
         int index = readInt();
         assert(0 <= index && index < functionTypeVariables.length);
+        ir.Nullability typeParameterTypeNullability =
+            readEnum(ir.Nullability.values);
         ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
-        return new ir.TypeParameterType(
-            functionTypeVariables[index], ir.Nullability.legacy, promotedBound);
+        return new ir.TypeParameterType(functionTypeVariables[index],
+            typeParameterTypeNullability, promotedBound);
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();
@@ -292,6 +220,7 @@ abstract class AbstractDataSource extends DataSourceMixin
               _readDartTypeNode(functionTypeVariables);
         }
         ir.DartType returnType = _readDartTypeNode(functionTypeVariables);
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
         int requiredParameterCount = readInt();
         List<ir.DartType> positionalParameters =
             _readDartTypeNodes(functionTypeVariables);
@@ -306,7 +235,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.TypedefType typedefType = _readDartTypeNode(functionTypeVariables);
         end(functionTypeNodeTag);
         return new ir.FunctionType(
-            positionalParameters, returnType, ir.Nullability.legacy,
+            positionalParameters, returnType, nullability,
             namedParameters: namedParameters,
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
@@ -314,25 +243,28 @@ abstract class AbstractDataSource extends DataSourceMixin
 
       case DartTypeNodeKind.interfaceType:
         ir.Class cls = readClassNode();
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ir.InterfaceType(cls, ir.Nullability.legacy, typeArguments);
+        return new ir.InterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.thisInterfaceType:
         ir.Class cls = readClassNode();
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ThisInterfaceType(cls, typeArguments);
+        return new ThisInterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.exactInterfaceType:
         ir.Class cls = readClassNode();
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ExactInterfaceType(cls, typeArguments);
+        return new ExactInterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
+        ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ir.TypedefType(
-            typedef, ir.Nullability.legacy, typeArguments);
+        return new ir.TypedefType(typedef, nullability, typeArguments);
       case DartTypeNodeKind.dynamicType:
         return const ir.DynamicType();
     }

@@ -292,6 +292,10 @@ void Precompiler::DoCompileAll() {
             StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
         I->object_store()->set_build_method_extractor_code(stub_code);
 
+        stub_code = StubCode::BuildIsolateSpecificDispatchTableNullErrorStub(
+            global_object_pool_builder());
+        I->object_store()->set_dispatch_table_null_error_stub(stub_code);
+
         stub_code =
             StubCode::BuildIsolateSpecificNullErrorSharedWithFPURegsStub(
                 global_object_pool_builder());
@@ -1672,8 +1676,8 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
     }
   }
 
-  ASSERT(Object::dynamic_type().type_test_stub_entry_point() !=
-         StubCode::DefaultTypeTest().EntryPoint());
+  ASSERT(Object::dynamic_type().type_test_stub_entry_point() ==
+         StubCode::TopTypeTypeTest().EntryPoint());
 }
 
 void Precompiler::DropTypes() {
@@ -2508,7 +2512,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
-        pipeline->FinalizeCompilation(flow_graph);
       }
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");

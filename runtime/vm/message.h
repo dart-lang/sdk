@@ -98,6 +98,12 @@ class Message {
 
   bool RedirectToDeliveryFailurePort();
 
+  void DropFinalizers() {
+    if (finalizable_data_ != nullptr) {
+      finalizable_data_->DropFinalizers();
+    }
+  }
+
   intptr_t Id() const;
 
   static const char* PriorityAsString(Priority priority);

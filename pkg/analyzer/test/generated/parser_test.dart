@@ -1418,7 +1418,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseClassMember_redirectingFactory_expressionBody() {
-    createParser('factory C() => null;');
+    createParser('factory C() => throw 0;');
     var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
     assertNoErrors();
     expect(constructor, isNotNull);
@@ -1494,7 +1494,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseConstructor_factory_named() {
-    createParser('factory C.foo() => null;');
+    createParser('factory C.foo() => throw 0;');
     var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
     assertNoErrors();
     expect(constructor, isNotNull);

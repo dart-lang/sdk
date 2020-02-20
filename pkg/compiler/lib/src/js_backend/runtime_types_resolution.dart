@@ -570,7 +570,8 @@ class TypeVariableTests {
     void addImplicitCheck(DartType type) {
       if (implicitIsChecks.add(type)) {
         if (type is FutureOrType) {
-          addImplicitCheck(commonElements.futureType(type.typeArgument));
+          addImplicitCheck(
+              commonElements.futureType(Nullability.none, type.typeArgument));
           addImplicitCheck(type.typeArgument);
         }
       }
@@ -582,7 +583,8 @@ class TypeVariableTests {
 
     world.isChecks.forEach((DartType type) {
       if (type is FutureOrType) {
-        addImplicitCheck(commonElements.futureType(type.typeArgument));
+        addImplicitCheck(
+            commonElements.futureType(Nullability.none, type.typeArgument));
         addImplicitCheck(type.typeArgument);
       }
     });

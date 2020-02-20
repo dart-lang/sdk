@@ -16,8 +16,7 @@ enum CallKind {
   Method, // x.foo(..) or foo()
   PropertyGet, // ... x.foo ...
   PropertySet, // x.foo = ...
-  FieldInitializer, // run initializer of a field
-  SetFieldInConstructor, // foo = ... in initializer list in a constructor
+  FieldInitializer,
 }
 
 /// [Selector] encapsulates the way of calling (at the call site).
@@ -56,7 +55,6 @@ abstract class Selector {
         return member.getterType;
       case CallKind.PropertySet:
       case CallKind.FieldInitializer:
-      case CallKind.SetFieldInConstructor:
         return const BottomType();
     }
     return null;
@@ -74,8 +72,7 @@ abstract class Selector {
       case CallKind.PropertySet:
         return (member is Field) || ((member is Procedure) && member.isSetter);
       case CallKind.FieldInitializer:
-      case CallKind.SetFieldInConstructor:
-        return member is Field;
+        return (member is Field);
     }
     return false;
   }
@@ -87,7 +84,6 @@ abstract class Selector {
       case CallKind.PropertyGet:
         return 'get ';
       case CallKind.PropertySet:
-      case CallKind.SetFieldInConstructor:
         return 'set ';
       case CallKind.FieldInitializer:
         return 'init ';

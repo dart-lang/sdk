@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 39;
+  UInt32 formatVersion = 40;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -228,7 +228,8 @@ type Name {
 }
 
 type Library {
-  Byte flags (_unused_, isSynthetic, isNonNullableByDefault);
+  Byte flags (_unused_, isSynthetic, isNonNullableByDefault,
+              nnbdModeBit1, nnbdModeBit2);
   UInt languageVersionMajor;
   UInt languageVersionMinor;
   CanonicalNameReference canonicalName;
@@ -352,7 +353,7 @@ type Extension extends Node {
 enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operator = 4, TearOff = 5, }
 
 type ExtensionMemberDescriptor {
-  StringReference name;
+  Name name;
   ExtensionMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;

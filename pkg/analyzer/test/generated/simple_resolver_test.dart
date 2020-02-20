@@ -853,7 +853,7 @@ class C = Object with A;''', [
   test_isValidMixin_factoryConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {
-  factory A() => null;
+  factory A() => throw 0;
 }
 class C = Object with A;''');
     verifyTestResolved();

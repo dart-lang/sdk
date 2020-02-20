@@ -9,6 +9,7 @@ abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Class&Object&Mixin*
     : super core::Object::•()
     ;
+  abstract member-signature method method(core::int* i) → core::int*;
 }
 class Class extends self::_Class&Object&Mixin {
   synthetic constructor •() → self::Class*

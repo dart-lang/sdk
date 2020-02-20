@@ -301,9 +301,11 @@ Future<void> _createPackagesFile(
   if (module.isPackage) {
     packagesContents.write('${module.name}:${module.packageBase}\n');
   }
+  var unusedNum = 0;
   for (var dependency in transitiveDependencies) {
     if (dependency.isPackage) {
-      packagesContents.write('${dependency.name}:unused\n');
+      unusedNum++;
+      packagesContents.write('${dependency.name}:unused$unusedNum\n');
     }
   }
 

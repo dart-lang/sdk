@@ -14,7 +14,6 @@ import 'dart:io';
 import 'dart:math';
 
 import "package:status_file/expectation.dart";
-import 'package:test_runner/src/feature.dart';
 
 import 'browser.dart';
 import 'command.dart';
@@ -135,26 +134,6 @@ abstract class TestSuite {
   /// fundamental reasons.
   bool _isRelevantTest(
       TestFile testFile, String displayName, Set<Expectation> expectations) {
-    // TODO(38390): Temporary hack. Right now, when analyzer is run with the
-    // NNBD experiment enabled, it implicitly opts the code into NNBD as well.
-    // (In other words, it defaults to "weak" instead of "legacy"). We want to
-    // create a test configuration that enables the NNBD experiment for the
-    // tests in language_2/nnbd/ that *do* require NNBD. That configuration will
-    // fail many of the older language tests if analyzer treats them as being
-    // opted in to NNBD instead of as legacy mode.
-    //
-    // So, for now, until we have figured out how to manage those tests, we
-    // implicitly skip any test that does not require NNBD if run in a
-    // configuration that enables the NNBD experiment.
-    if (testFile.path.toString().contains("language_2") &&
-        configuration.experiments.contains("non-nullable") &&
-        configuration.compiler == Compiler.dart2analyzer &&
-        !(testFile.requirements.contains(Feature.nnbd) ||
-            testFile.requirements.contains(Feature.nnbdWeak) ||
-            testFile.requirements.contains(Feature.nnbdStrong))) {
-      return false;
-    }
-
     // Test if the selector includes this test.
     var pattern = configuration.selectors[suiteName];
     if (!pattern.hasMatch(displayName)) {

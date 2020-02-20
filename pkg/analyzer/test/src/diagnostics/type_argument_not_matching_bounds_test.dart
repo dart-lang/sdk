@@ -433,4 +433,23 @@ import 'a.dart';
 class A1<T extends Null> extends A<T> {}
 ''');
   }
+
+  test_extends_optIn_fromOptOut_otherTypeParameter() async {
+    newFile('/test/lib/a.dart', content: r'''
+void foo<T extends U, U>() {
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart=2.6
+import 'a.dart';
+
+class A {}
+class B extends A {}
+
+main() {
+  foo<B, A>();
+}
+''');
+  }
 }

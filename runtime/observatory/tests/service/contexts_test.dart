@@ -8,15 +8,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-// Make sure these variables are not removed by the tree shaker.
-@pragma("vm:entry-point")
-var cleanBlock;
-@pragma("vm:entry-point")
-var copyingBlock;
-@pragma("vm:entry-point")
-var fullBlock;
-@pragma("vm:entry-point")
-var fullBlockWithChain;
+var cleanBlock, copyingBlock, fullBlock, fullBlockWithChain;
 
 Function genCleanBlock() {
   block(x) => x;

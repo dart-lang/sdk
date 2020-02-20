@@ -92,46 +92,57 @@ class PreviewSite extends Site implements AbstractGetHandler {
   @override
   Future<void> handleGetRequest(HttpRequest request) async {
     Uri uri = request.uri;
-    if (uri.query.contains('replacement')) {
+    if (uri.queryParameters.containsKey('replacement')) {
+      // TODO(devoncarew): We should only perform work on a 'POST' request.
       performEdit(uri);
+
+      respondOk(request);
+      return;
     }
+
     String path = uri.path;
     try {
       if (path == highlightCssPath) {
         // Note: `return await` needed due to
-        // https://github.com/dart-lang/language/issues/791
+        // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, HighlightCssPage(this));
       } else if (path == highlightJsPath) {
         // Note: `return await` needed due to
-        // https://github.com/dart-lang/language/issues/791
+        // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, HighlightJSPage(this));
       } else if (path == navigationTreePath) {
         // Note: `return await` needed due to
-        // https://github.com/dart-lang/language/issues/791
+        // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, NavigationTreePage(this));
-      } else if (path == '/' || path == migrationInfo.includedRoot) {
+      } else if (path == '/' ||
+          path == migrationInfo.includedRoot ||
+          path == '${migrationInfo.includedRoot}/') {
         // Note: `return await` needed due to
-        // https://github.com/dart-lang/language/issues/791
+        // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, IndexFilePage(this));
       }
       UnitInfo unitInfo = unitInfoMap[path];
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
+          // TODO(devoncarew): Ensure that we don't serve content outside of our project.
+
           // Note: `return await` needed due to
-          // https://github.com/dart-lang/language/issues/791
+          // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, DartFilePage(this, unitInfo));
         } else if (uri.queryParameters.containsKey('region')) {
+          // TODO(devoncarew): Ensure that we don't serve content outside of our project.
+
           // Note: `return await` needed due to
-          // https://github.com/dart-lang/language/issues/791
+          // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, RegionPage(this, unitInfo));
         } else {
           // Note: `return await` needed due to
-          // https://github.com/dart-lang/language/issues/791
+          // https://github.com/dart-lang/sdk/issues/39204
           return await respond(request, IndexFilePage(this));
         }
       }
       // Note: `return await` needed due to
-      // https://github.com/dart-lang/language/issues/791
+      // https://github.com/dart-lang/sdk/issues/39204
       return await respond(
           request, createUnknownPage(path), HttpStatus.notFound);
     } catch (exception, stackTrace) {
@@ -176,7 +187,7 @@ class PreviewSite extends Site implements AbstractGetHandler {
     //
     // Refresh the state of the migration.
     //
-//    migrationState.refresh();
+    //migrationState.refresh();
   }
 
   @override

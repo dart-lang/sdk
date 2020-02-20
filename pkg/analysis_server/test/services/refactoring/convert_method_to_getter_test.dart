@@ -189,10 +189,8 @@ void test() {}
         expectedMessage: message);
   }
 
-  /**
-   * Checks that all conditions are OK and the result of applying the [Change]
-   * to [testUnit] is [expectedCode].
-   */
+  /// Checks that all conditions are OK and the result of applying the [Change]
+  /// to [testUnit] is [expectedCode].
   Future _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     SourceChange refactoringChange = await refactoring.createChange();

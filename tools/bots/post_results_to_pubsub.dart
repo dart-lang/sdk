@@ -97,7 +97,6 @@ main(List<String> args) async {
   if (changedResults.isEmpty) changedResults = lines.sublist(0, 1);
 
   final chunks = <List<String>>[];
-  final chunkLength = resultsPerMessage;
   var position = 0;
   final lastFullChunkStart = changedResults.length - resultsPerMessage;
   while (position <= lastFullChunkStart) {
@@ -108,6 +107,11 @@ main(List<String> args) async {
 
   // Send pubsub messages.
   for (final chunk in chunks) {
+    // Space messages out to reduce scaling problems
+    const chunkDelay = Duration(seconds: 2);
+    if (chunk != chunks.first) {
+      await Future.delayed(chunkDelay);
+    }
     final message = '[\n${chunk.join(",\n")}\n]';
     final base64data = base64Encode(utf8.encode(message.toString()));
     final attributes = {

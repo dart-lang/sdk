@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/correct_override.dart';
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 
@@ -71,7 +70,7 @@ class InheritanceManager3 {
     if (interface._inheritedMap == null) {
       interface._inheritedMap = {};
       _findMostSpecificFromNamedCandidates(
-        type.element.library.typeSystem,
+        type.element.library,
         interface._inheritedMap,
         interface._overridden,
       );
@@ -99,7 +98,6 @@ class InheritanceManager3 {
 
     var classLibrary = classElement.library;
     var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
-    var typeSystem = classLibrary.typeSystem;
 
     Map<Name, List<ExecutableElement>> namedCandidates = {};
     List<Map<Name, ExecutableElement>> superImplemented = [];
@@ -143,7 +141,7 @@ class InheritanceManager3 {
         // from its superclass constraints, whether it is abstract or concrete.
         var superClass = <Name, ExecutableElement>{};
         _findMostSpecificFromNamedCandidates(
-          typeSystem,
+          classLibrary,
           superClass,
           superClassCandidates,
         );
@@ -203,7 +201,7 @@ class InheritanceManager3 {
     // signature becomes the signature of the class's interface.
     Map<Name, ExecutableElement> map = Map.of(declared);
     List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
-      typeSystem,
+      classLibrary,
       map,
       namedCandidates,
     );
@@ -384,7 +382,7 @@ class InheritanceManager3 {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
-      TypeSystemImpl typeSystem,
+      LibraryElement library,
       Map<Name, ExecutableElement> map,
       Map<Name, List<ExecutableElement>> namedCandidates) {
     List<Conflict> conflicts;
@@ -418,7 +416,7 @@ class InheritanceManager3 {
       for (var i = candidates.length - 1; i >= 0; i--) {
         validOverride = candidates[i];
         var overrideHelper = CorrectOverrideHelper(
-          typeSystem: typeSystem,
+          library: library,
           thisMember: validOverride,
         );
         for (var j = 0; j < candidates.length; j++) {

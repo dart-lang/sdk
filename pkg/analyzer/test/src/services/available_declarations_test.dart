@@ -1155,6 +1155,308 @@ class D {}
     );
   }
 
+  test_class_FIELD() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class C {
+  static int f1 = 0;
+
+  static final int f2 = 0;
+
+  static const int f3 = 0;
+
+  int f4 = 0;
+
+  final int f5 = 0;
+
+  @deprecated
+  int f6 = 0;
+
+  @deprecated
+  final int f7 = 0;
+
+  /// aaa
+  ///
+  /// bbb bbb
+  int f8 = 0;
+}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    var classDeclaration = _getDeclaration(library.declarations, 'C');
+
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'f1'),
+      'f1',
+      DeclarationKind.FIELD,
+      isStatic: true,
+      relevanceTags: ['dart:core::int'],
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'f2'),
+      'f2',
+      DeclarationKind.FIELD,
+      isFinal: true,
+      isStatic: true,
+      relevanceTags: ['dart:core::int'],
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'f3'),
+      'f3',
+      DeclarationKind.FIELD,
+      isConst: true,
+      isStatic: true,
+      relevanceTags: ['dart:core::int'],
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'f4'),
+      'f4',
+      DeclarationKind.FIELD,
+      relevanceTags: ['dart:core::int'],
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'f5'),
+      'f5',
+      DeclarationKind.FIELD,
+      isFinal: true,
+      relevanceTags: ['dart:core::int'],
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'f6'),
+      'f6',
+      DeclarationKind.FIELD,
+      isDeprecated: true,
+      relevanceTags: ['dart:core::int'],
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'f7'),
+      'f7',
+      DeclarationKind.FIELD,
+      isDeprecated: true,
+      isFinal: true,
+      relevanceTags: ['dart:core::int'],
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'f8'),
+      'f8',
+      DeclarationKind.FIELD,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      relevanceTags: ['dart:core::int'],
+      returnType: 'int',
+    );
+  }
+
+  test_class_GETTER() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class C {
+  static int get g1 => 0;
+
+  int get g2 => 0;
+
+  @deprecated
+  int get g3 => 0;
+
+  /// aaa
+  ///
+  /// bbb bbb
+  int get g4 => 0;
+}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    var classDeclaration = _getDeclaration(library.declarations, 'C');
+
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'g1'),
+      'g1',
+      DeclarationKind.GETTER,
+      isStatic: true,
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'g2'),
+      'g2',
+      DeclarationKind.GETTER,
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'g3'),
+      'g3',
+      DeclarationKind.GETTER,
+      isDeprecated: true,
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'g4'),
+      'g4',
+      DeclarationKind.GETTER,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      returnType: 'int',
+    );
+  }
+
+  test_class_METHOD() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class C {
+  static void m1() {}
+
+  void m2() {}
+
+  void m3(int a) {}
+
+  @deprecated
+  void m4() {}
+
+  /// aaa
+  ///
+  /// bbb bbb
+  void m5() {}
+}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    var classDeclaration = _getDeclaration(library.declarations, 'C');
+
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'm1'),
+      'm1',
+      DeclarationKind.METHOD,
+      isStatic: true,
+      parameters: '()',
+      parameterNames: [],
+      parameterTypes: [],
+      requiredParameterCount: 0,
+      returnType: 'void',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'm2'),
+      'm2',
+      DeclarationKind.METHOD,
+      parameters: '()',
+      parameterNames: [],
+      parameterTypes: [],
+      requiredParameterCount: 0,
+      returnType: 'void',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'm3'),
+      'm3',
+      DeclarationKind.METHOD,
+      defaultArgumentListString: 'a',
+      defaultArgumentListTextRanges: [0, 1],
+      parameters: '(int a)',
+      parameterNames: ['a'],
+      parameterTypes: ['int'],
+      requiredParameterCount: 1,
+      returnType: 'void',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'm4'),
+      'm4',
+      DeclarationKind.METHOD,
+      isDeprecated: true,
+      parameters: '()',
+      parameterNames: [],
+      parameterTypes: [],
+      requiredParameterCount: 0,
+      returnType: 'void',
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 'm5'),
+      'm5',
+      DeclarationKind.METHOD,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      parameters: '()',
+      parameterNames: [],
+      parameterTypes: [],
+      requiredParameterCount: 0,
+      returnType: 'void',
+    );
+  }
+
+  test_class_SETTER() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class C {
+  static set s1(int value) {}
+
+  set s2(int value) {}
+
+  @deprecated
+  set s3(int value) {}
+
+  /// aaa
+  ///
+  /// bbb bbb
+  set s4(int value) {}
+}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    var classDeclaration = _getDeclaration(library.declarations, 'C');
+
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 's1'),
+      's1',
+      DeclarationKind.SETTER,
+      isStatic: true,
+      parameters: '(int value)',
+      parameterNames: ['value'],
+      parameterTypes: ['int'],
+      requiredParameterCount: 1,
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 's2'),
+      's2',
+      DeclarationKind.SETTER,
+      parameters: '(int value)',
+      parameterNames: ['value'],
+      parameterTypes: ['int'],
+      requiredParameterCount: 1,
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 's3'),
+      's3',
+      DeclarationKind.SETTER,
+      isDeprecated: true,
+      parameters: '(int value)',
+      parameterNames: ['value'],
+      parameterTypes: ['int'],
+      requiredParameterCount: 1,
+    );
+    _assertDeclaration(
+      _getDeclaration(classDeclaration.children, 's4'),
+      's4',
+      DeclarationKind.SETTER,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      parameters: '(int value)',
+      parameterNames: ['value'],
+      parameterTypes: ['int'],
+      requiredParameterCount: 1,
+    );
+  }
+
   test_CLASS_TYPE_ALIAS() async {
     newFile('/home/test/lib/test.dart', content: r'''
 mixin M {}
@@ -3042,6 +3344,7 @@ class _Base extends AbstractContextTest {
     bool isConst = false,
     bool isDeprecated = false,
     bool isFinal = false,
+    bool isStatic = false,
     int locationOffset,
     String locationPath,
     int locationStartColumn,
@@ -3067,6 +3370,7 @@ class _Base extends AbstractContextTest {
     expect(declaration.isConst, isConst);
     expect(declaration.isDeprecated, isDeprecated);
     expect(declaration.isFinal, isFinal);
+    expect(declaration.isStatic, isStatic);
     expect(declaration.parameters, parameters);
     expect(declaration.parameterNames, parameterNames);
     expect(declaration.parameterTypes, parameterTypes);

@@ -22,9 +22,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A [Refactoring] for renaming extension member [Element]s.
- */
+/// A [Refactoring] for renaming extension member [Element]s.
 class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSessionHelper sessionHelper;
 
@@ -92,9 +90,8 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-/**
- * Helper to check if the created or renamed [Element] will cause any conflicts.
- */
+/// Helper to check if the created or renamed [Element] will cause any
+/// conflicts.
 class _ExtensionMemberValidator {
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
@@ -193,9 +190,7 @@ class _ExtensionMemberValidator {
     return null;
   }
 
-  /**
-   * Fills [references] with references to the [element].
-   */
+  /// Fills [references] with references to the [element].
   Future<void> _prepareReferences() async {
     if (!isRename) return;
 

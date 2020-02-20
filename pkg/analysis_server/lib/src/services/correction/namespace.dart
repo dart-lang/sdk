@@ -6,9 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
-/**
- * Returns the [Element] exported from the given [LibraryElement].
- */
+/// Returns the [Element] exported from the given [LibraryElement].
 Element getExportedElement(LibraryElement library, String name) {
   if (library == null) {
     return null;
@@ -16,20 +14,16 @@ Element getExportedElement(LibraryElement library, String name) {
   return getExportNamespaceForLibrary(library)[name];
 }
 
-/**
- * Returns the export namespace of the given [LibraryElement].
- */
+/// Returns the export namespace of the given [LibraryElement].
 Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
   Namespace namespace =
       NamespaceBuilder().createExportNamespaceForLibrary(library);
   return namespace.definedNames;
 }
 
-/**
- * Return the [ImportElement] that is referenced by [prefixNode], or `null` if
- * the node does not reference a prefix or if we cannot determine which import
- * is being referenced.
- */
+/// Return the [ImportElement] that is referenced by [prefixNode], or `null` if
+/// the node does not reference a prefix or if we cannot determine which import
+/// is being referenced.
 ImportElement getImportElement(SimpleIdentifier prefixNode) {
   AstNode parent = prefixNode.parent;
   if (parent is ImportDirective) {
@@ -38,14 +32,12 @@ ImportElement getImportElement(SimpleIdentifier prefixNode) {
   return internal_getImportElementInfo(prefixNode);
 }
 
-/**
- * Return the [ImportElement] that declared [prefix] and imports [element].
- *
- * [libraryElement] - the [LibraryElement] where reference is.
- * [prefix] - the import prefix, maybe `null`.
- * [element] - the referenced element.
- * [importElementsMap] - the cache of [Element]s imported by [ImportElement]s.
- */
+/// Return the [ImportElement] that declared [prefix] and imports [element].
+///
+/// [libraryElement] - the [LibraryElement] where reference is.
+/// [prefix] - the import prefix, maybe `null`.
+/// [element] - the referenced element.
+/// [importElementsMap] - the cache of [Element]s imported by [ImportElement]s.
 ImportElement internal_getImportElement(
     LibraryElement libraryElement,
     String prefix,
@@ -116,10 +108,8 @@ ImportElement internal_getImportElement(
   return null;
 }
 
-/**
- * Returns the [ImportElement] that is referenced by [prefixNode] with a
- * [PrefixElement], maybe `null`.
- */
+/// Returns the [ImportElement] that is referenced by [prefixNode] with a
+/// [PrefixElement], maybe `null`.
 ImportElement internal_getImportElementInfo(SimpleIdentifier prefixNode) {
   // prepare environment
   AstNode parent = prefixNode.parent;
@@ -150,10 +140,8 @@ ImportElement internal_getImportElementInfo(SimpleIdentifier prefixNode) {
       libraryElement, prefix, usedElement, importElementsMap);
 }
 
-/**
- * Information about [ImportElement] and place where it is referenced using
- * [PrefixElement].
- */
+/// Information about [ImportElement] and place where it is referenced using
+/// [PrefixElement].
 class ImportElementInfo {
   ImportElement element;
 }

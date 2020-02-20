@@ -190,20 +190,32 @@ abstract class Site {
     }
   }
 
-  Future<void> respond(HttpRequest request, Page page,
-      [int code = HttpStatus.ok]) async {
+  Future<void> respond(
+    HttpRequest request,
+    Page page, [
+    int code = HttpStatus.ok,
+  ]) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     HttpResponse response = request.response;
     response.statusCode = code;
     response.headers.contentType = ContentType.html;
     response.write(await page.generate(request.uri.queryParameters));
-    response.close();
+    await response.close();
   }
 
-  void respondRedirect(HttpRequest request, String pathFragment) {
+  Future<void> respondOk(
+    HttpRequest request, {
+    int code = HttpStatus.ok,
+  }) async {
+    HttpResponse response = request.response;
+    response.statusCode = code;
+    await response.close();
+  }
+
+  Future<void> respondRedirect(HttpRequest request, String pathFragment) async {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.movedTemporarily;
-    response.redirect(request.uri.resolve(pathFragment));
+    await response.redirect(request.uri.resolve(pathFragment));
   }
 }

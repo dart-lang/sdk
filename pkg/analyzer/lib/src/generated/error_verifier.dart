@@ -35,6 +35,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
+import 'package:analyzer/src/task/strong/checker.dart';
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -342,6 +343,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
     }
+    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
+      _checkForDeadNullCoalesce(
+          getReadType(node.leftHandSide), node.rightHandSide);
+    }
     _checkForAssignmentToFinal(lhs);
     super.visitAssignmentExpression(node);
   }
@@ -369,6 +374,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
+    }
+
+    if (type == TokenType.QUESTION_QUESTION) {
+      _checkForDeadNullCoalesce(
+          getReadType(node.leftOperand), node.rightOperand);
     }
 
     _checkForUseOfVoidResult(node.leftOperand);
@@ -426,7 +436,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _isInCatchClause = true;
       _checkForTypeAnnotationDeferredClass(node.exceptionType);
-      _checkForPotentiallyNullableType(node.exceptionType);
+      _checkForNullableTypeInCatchClause(node.exceptionType);
       super.visitCatchClause(node);
     } finally {
       _isInCatchClause = previousIsInCatchClause;
@@ -2310,6 +2320,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
+    if (!_isNonNullableByDefault) return;
+
+    if (_typeSystem.isStrictlyNonNullable(lhsType)) {
+      _errorReporter.reportErrorForNode(
+        StaticWarningCode.DEAD_NULL_COALESCE,
+        rhs,
+      );
+    }
+  }
+
   /**
    * Verify that the given default formal [parameter] is not part of a function
    * typed parameter.
@@ -3581,7 +3602,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       if (mixinMember != null) {
         var isCorrect = CorrectOverrideHelper(
-          typeSystem: _typeSystem,
+          library: _currentLibrary,
           thisMember: superMember,
         ).isCorrectOverrideOf(
           superMember: mixinMember,
@@ -3941,6 +3962,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForNullableTypeInCatchClause(TypeAnnotation type) {
+    if (!_isNonNullableByDefault) {
+      return;
+    }
+
+    if (type == null) {
+      return;
+    }
+
+    if (_typeSystem.isPotentiallyNullable(type.type)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
+        type,
+      );
+    }
+  }
+
   /**
    * Verify that all classes of the given [onClause] are valid.
    *
@@ -4042,18 +4080,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               : CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
           node,
           extraErrorArgs);
-    }
-  }
-
-  /**
-   * Verify that the [type] is not potentially nullable.
-   */
-  void _checkForPotentiallyNullableType(TypeAnnotation type) {
-    if (_options.experimentStatus.non_nullable &&
-        type?.type != null &&
-        _typeSystem.isPotentiallyNullable(type.type)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, type);
     }
   }
 

@@ -26,19 +26,15 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
 
   final Completer<void> _resultsAvailable = Completer();
 
-  /**
-   * Asserts that there is an offset of [search] in [testOccurrences].
-   */
+  /// Asserts that there is an offset of [search] in [testOccurrences].
   void assertHasOffset(String search) {
     int offset = findOffset(search);
     expect(testOccurrences.offsets, contains(offset));
   }
 
-  /**
-   * Validates that there is a region at the offset of [search] in [testFile].
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
+  /// Validates that there is a region at the offset of [search] in [testFile].
+  /// If [length] is not specified explicitly, then length of an identifier
+  /// from [search] is used.
   void assertHasRegion(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -47,14 +43,12 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
     findRegion(offset, length, true);
   }
 
-  /**
-   * Finds an [Occurrences] with the given [offset] and [length].
-   *
-   * If [exists] is `true`, then fails if such [Occurrences] does not exist.
-   * Otherwise remembers this it into [testOccurrences].
-   *
-   * If [exists] is `false`, then fails if such [Occurrences] exists.
-   */
+  /// Finds an [Occurrences] with the given [offset] and [length].
+  ///
+  /// If [exists] is `true`, then fails if such [Occurrences] does not exist.
+  /// Otherwise remembers this it into [testOccurrences].
+  ///
+  /// If [exists] is `false`, then fails if such [Occurrences] exists.
   void findRegion(int offset, int length, [bool exists]) {
     for (Occurrences occurrences in occurrencesList) {
       if (occurrences.length != length) {

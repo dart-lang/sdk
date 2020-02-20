@@ -319,6 +319,10 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
 }
 
 class TypeRecipeDomainImpl implements TypeRecipeDomain {
+  final DartTypes _dartTypes;
+
+  const TypeRecipeDomainImpl(this._dartTypes);
+
   @override
   bool isIdentity(TypeRecipe recipe, TypeEnvironmentStructure structure) {
     if (structure is SingletonTypeEnvironmentStructure &&
@@ -350,7 +354,7 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
       if (environmentRecipe is TypeExpressionRecipe) {
         List<TypeVariableType> variables = [environmentStructure.variable];
         List<DartType> replacements = [environmentRecipe.type];
-        return _Substitution(null, null, variables, replacements)
+        return _Substitution(_dartTypes, null, null, variables, replacements)
             .substituteRecipe(recipe);
       }
       failedAt(CURRENT_ELEMENT_SPANNABLE,
@@ -362,7 +366,7 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
       if (environmentStructure.classType != null) {
         if (environmentRecipe is TypeExpressionRecipe) {
           assert(environmentStructure.bindings.isEmpty);
-          return _Substitution(environmentStructure.classType,
+          return _Substitution(_dartTypes, environmentStructure.classType,
                   environmentRecipe.type, null, null)
               .substituteRecipe(recipe);
         }
@@ -374,6 +378,7 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
       }
       if (environmentRecipe is FullTypeEnvironmentRecipe) {
         return _Substitution(
+                _dartTypes,
                 environmentStructure.classType,
                 environmentRecipe.classType,
                 environmentStructure.bindings,
@@ -411,7 +416,7 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
       List<TypeVariableType> replacedVariables = bindings.sublist(index);
       List<TypeVariableType> remainingVariables = bindings.sublist(0, index);
       TypeRecipe newRecipe =
-          _Substitution(null, null, replacedVariables, replacements)
+          _Substitution(_dartTypes, null, null, replacedVariables, replacements)
               .substituteRecipe(recipe);
       if (newRecipe == null) return null;
       TypeEnvironmentStructure newEnvironmentStructure =
@@ -436,8 +441,11 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
     if (environmentStructure2 is SingletonTypeEnvironmentStructure &&
         recipe1 is TypeExpressionRecipe) {
       TypeRecipe newRecipe = _Substitution(
-              null, null, [environmentStructure2.variable], [recipe1.type])
-          .substituteRecipe(recipe2);
+          _dartTypes,
+          null,
+          null,
+          [environmentStructure2.variable],
+          [recipe1.type]).substituteRecipe(recipe2);
       if (newRecipe == null) return null;
       return TypeRecipeAndEnvironmentStructure(
           newRecipe, environmentStructure1);
@@ -446,7 +454,7 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
     if (environmentStructure2 is FullTypeEnvironmentStructure &&
         recipe1 is TypeExpressionRecipe) {
       assert(environmentStructure2.bindings.isEmpty);
-      TypeRecipe newRecipe = _Substitution(
+      TypeRecipe newRecipe = _Substitution(_dartTypes,
               environmentStructure2.classType, recipe1.type, null, null)
           .substituteRecipe(recipe2);
       if (newRecipe == null) return null;
@@ -456,8 +464,12 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
 
     if (environmentStructure2 is FullTypeEnvironmentStructure &&
         recipe1 is FullTypeEnvironmentRecipe) {
-      TypeRecipe newRecipe = _Substitution(environmentStructure2.classType,
-              recipe1.classType, environmentStructure2.bindings, recipe1.types)
+      TypeRecipe newRecipe = _Substitution(
+              _dartTypes,
+              environmentStructure2.classType,
+              recipe1.classType,
+              environmentStructure2.bindings,
+              recipe1.types)
           .substituteRecipe(recipe2);
       if (newRecipe == null) return null;
       return TypeRecipeAndEnvironmentStructure(
@@ -479,6 +491,8 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
 /// A [_Substitution] contains the bindings and the state required to perform
 /// a single substitution.
 class _Substitution extends DartTypeSubstitutionVisitor<Null> {
+  @override
+  final DartTypes dartTypes;
   final Map<DartType, DartType> _lookupCache = {};
   final Map<DartType, int> _counts = {};
   bool _failed = false;
@@ -488,8 +502,8 @@ class _Substitution extends DartTypeSubstitutionVisitor<Null> {
   final List<TypeVariableType> _variables;
   final List<DartType> _replacements;
 
-  _Substitution(this._classEnvironment, this._classValue, this._variables,
-      this._replacements)
+  _Substitution(this.dartTypes, this._classEnvironment, this._classValue,
+      this._variables, this._replacements)
       : assert(_variables?.length == _replacements?.length);
 
   // Returns `null` if declined.

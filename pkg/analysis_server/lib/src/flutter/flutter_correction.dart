@@ -31,8 +31,6 @@ class FlutterCorrections {
         .searchWithin(resolveResult.unit);
   }
 
-  /**
-   * Returns the EOL to use for this [CompilationUnit].
-   */
+  /// Returns the EOL to use for this [CompilationUnit].
   String get eol => utils.endOfLine;
 }

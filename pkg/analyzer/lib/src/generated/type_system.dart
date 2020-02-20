@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/normalize.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/runtime_type_equality.dart';
@@ -61,2049 +60,6 @@ bool _isTop(DartType t) {
       (t.isObject && t.nullabilitySuffix != NullabilitySuffix.none) ||
       t.isVoid ||
       identical(t, UnknownInferredType.instance);
-}
-
-/**
- * A type system that implements the type semantics for Dart 2.0.
- *
- * TODO(scheglov) Merge it into TypeSystemImpl.
- */
-class Dart2TypeSystem extends TypeSystem {
-  /**
-   * False if implicit casts should always be disallowed.
-   *
-   * This affects the behavior of [isAssignableTo].
-   */
-  final bool implicitCasts;
-
-  /// A flag indicating whether inference failures are allowed, off by default.
-  ///
-  /// This option is experimental and subject to change.
-  final bool strictInference;
-
-  @override
-  final TypeProvider typeProvider;
-
-  /// The cached instance of `Object?`.
-  InterfaceTypeImpl _objectQuestionCached;
-
-  /// The cached instance of `Object*`.
-  InterfaceTypeImpl _objectStarCached;
-
-  /// The cached instance of `Object!`.
-  InterfaceTypeImpl _objectNoneCached;
-
-  /// The cached instance of `Null!`.
-  InterfaceTypeImpl _nullNoneCached;
-
-  Dart2TypeSystem({
-    @required this.implicitCasts,
-    @required bool isNonNullableByDefault,
-    @required this.strictInference,
-    @required this.typeProvider,
-  }) : super(isNonNullableByDefault: isNonNullableByDefault);
-
-  InterfaceTypeImpl get nullNone =>
-      _nullNoneCached ??= (typeProvider.nullType as TypeImpl)
-          .withNullability(NullabilitySuffix.none);
-
-  InterfaceTypeImpl get objectNone =>
-      _objectNoneCached ??= (typeProvider.objectType as TypeImpl)
-          .withNullability(NullabilitySuffix.none);
-
-  InterfaceTypeImpl get objectQuestion =>
-      _objectQuestionCached ??= (typeProvider.objectType as TypeImpl)
-          .withNullability(NullabilitySuffix.question);
-
-  InterfaceTypeImpl get objectStar =>
-      _objectStarCached ??= (typeProvider.objectType as TypeImpl)
-          .withNullability(NullabilitySuffix.star);
-
-  InterfaceType get _interfaceTypeFunctionNone {
-    return typeProvider.functionType.element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  /// Returns true iff the type [t] accepts function types, and requires an
-  /// implicit coercion if interface types with a `call` method are passed in.
-  ///
-  /// This is true for:
-  /// - all function types
-  /// - the special type `Function` that is a supertype of all function types
-  /// - `FutureOr<T>` where T is one of the two cases above.
-  ///
-  /// Note that this returns false if [t] is a top type such as Object.
-  bool acceptsFunctionType(DartType t) {
-    if (t == null) return false;
-    if (t.isDartAsyncFutureOr) {
-      return acceptsFunctionType((t as InterfaceType).typeArguments[0]);
-    }
-    return t is FunctionType || t.isDartCoreFunction;
-  }
-
-  bool anyParameterType(FunctionType ft, bool Function(DartType t) predicate) {
-    return ft.parameters.any((p) => predicate(p.type));
-  }
-
-  /**
-   * Eliminates type variables from the context [type], replacing them with
-   * `Null` or `Object` as appropriate.
-   *
-   * For example in `List<T> list = const []`, the context type for inferring
-   * the list should be changed from `List<T>` to `List<Null>` so the constant
-   * doesn't depend on the type variables `T` (because it can't be canonicalized
-   * at compile time, as `T` is unknown).
-   *
-   * Conceptually this is similar to the "least closure", except instead of
-   * eliminating `?` ([UnknownInferredType]) it eliminates all type variables
-   * ([TypeParameterType]).
-   *
-   * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
-   */
-  DartType eliminateTypeVariables(DartType type) {
-    if (isNonNullableByDefault) {
-      return _TypeVariableEliminator(
-        objectQuestion,
-        NeverTypeImpl.instance,
-      ).substituteType(type);
-    } else {
-      return _TypeVariableEliminator(
-        objectNone,
-        typeProvider.nullType,
-      ).substituteType(type);
-    }
-  }
-
-  /// Given a type t, if t is an interface type with a call method
-  /// defined, return the function type for the call method, otherwise
-  /// return null.
-  FunctionType getCallMethodType(DartType t) {
-    if (t is InterfaceType) {
-      return t.lookUpMethod2('call', t.element.library)?.type;
-    }
-    return null;
-  }
-
-  /// Computes the greatest lower bound of [T1] and [T2].
-  DartType getGreatestLowerBound(DartType T1, DartType T2) {
-    // DOWN(T, T) = T
-    if (identical(T1, T2)) {
-      return T1;
-    }
-
-    // For any type T, DOWN(?, T) == T.
-    if (identical(T1, UnknownInferredType.instance)) {
-      return T2;
-    }
-    if (identical(T2, UnknownInferredType.instance)) {
-      return T1;
-    }
-
-    var T1_isTop = isTop(T1);
-    var T2_isTop = isTop(T2);
-
-    // DOWN(T1, T2) where TOP(T1) and TOP(T2)
-    if (T1_isTop && T2_isTop) {
-      // * T1 if MORETOP(T2, T1)
-      // * T2 otherwise
-      if (isMoreTop(T2, T1)) {
-        return T1;
-      } else {
-        return T2;
-      }
-    }
-
-    // DOWN(T1, T2) = T2 if TOP(T1)
-    if (T1_isTop) {
-      return T2;
-    }
-
-    // DOWN(T1, T2) = T1 if TOP(T2)
-    if (T2_isTop) {
-      return T1;
-    }
-
-    var T1_isBottom = isBottom(T1);
-    var T2_isBottom = isBottom(T2);
-
-    // DOWN(T1, T2) where BOTTOM(T1) and BOTTOM(T2)
-    if (T1_isBottom && T2_isBottom) {
-      // * T1 if MOREBOTTOM(T1, T2)
-      // * T2 otherwise
-      if (isMoreBottom(T1, T2)) {
-        return T1;
-      } else {
-        return T2;
-      }
-    }
-
-    // DOWN(T1, T2) = T1 if BOTTOM(T1)
-    if (T1_isBottom) {
-      return T1;
-    }
-
-    // DOWN(T1, T2) = T2 if BOTTOM(T2)
-    if (T2_isBottom) {
-      return T2;
-    }
-
-    var T1_isNull = isNull(T1);
-    var T2_isNull = isNull(T2);
-
-    // DOWN(T1, T2) where NULL(T1) and NULL(T2)
-    if (T1_isNull && T2_isNull) {
-      // * T1 if MOREBOTTOM(T1, T2)
-      // * T2 otherwise
-      if (isMoreBottom(T1, T2)) {
-        return T1;
-      } else {
-        return T2;
-      }
-    }
-
-    var T1_impl = T1 as TypeImpl;
-    var T2_impl = T2 as TypeImpl;
-
-    var T1_nullability = T1_impl.nullabilitySuffix;
-    var T2_nullability = T2_impl.nullabilitySuffix;
-
-    // DOWN(Null, T2)
-    if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull) {
-      // * Null if Null <: T2
-      // * Never otherwise
-      if (isSubtypeOf2(nullNone, T2)) {
-        return nullNone;
-      } else {
-        return NeverTypeImpl.instance;
-      }
-    }
-
-    // DOWN(T1, Null)
-    if (T2_nullability == NullabilitySuffix.none && T2.isDartCoreNull) {
-      // * Null if Null <: T1
-      // * Never otherwise
-      if (isSubtypeOf2(nullNone, T1)) {
-        return nullNone;
-      } else {
-        return NeverTypeImpl.instance;
-      }
-    }
-
-    var T1_isObject = isObject(T1);
-    var T2_isObject = isObject(T2);
-
-    // DOWN(T1, T2) where OBJECT(T1) and OBJECT(T2)
-    if (T1_isObject && T2_isObject) {
-      // * T1 if MORETOP(T2, T1)
-      // * T2 otherwise
-      if (isMoreTop(T2, T1)) {
-        return T1;
-      } else {
-        return T2;
-      }
-    }
-
-    // DOWN(T1, T2) where OBJECT(T1)
-    if (T1_isObject) {
-      // * T2 if T2 is non-nullable
-      if (isNonNullable(T2)) {
-        return T2;
-      }
-
-      // * NonNull(T2) if NonNull(T2) is non-nullable
-      var T2_nonNull = promoteToNonNull(T2_impl);
-      if (isNonNullable(T2_nonNull)) {
-        return T2_nonNull;
-      }
-
-      // * Never otherwise
-      return NeverTypeImpl.instance;
-    }
-
-    // DOWN(T1, T2) where OBJECT(T2)
-    if (T2_isObject) {
-      // * T1 if T1 is non-nullable
-      if (isNonNullable(T1)) {
-        return T1;
-      }
-
-      // * NonNull(T1) if NonNull(T1) is non-nullable
-      var T1_nonNull = promoteToNonNull(T1_impl);
-      if (isNonNullable(T1_nonNull)) {
-        return T1_nonNull;
-      }
-
-      // * Never otherwise
-      return NeverTypeImpl.instance;
-    }
-
-    // DOWN(T1*, T2*) = S* where S is DOWN(T1, T2)
-    // DOWN(T1*, T2?) = S* where S is DOWN(T1, T2)
-    // DOWN(T1?, T2*) = S* where S is DOWN(T1, T2)
-    // DOWN(T1*, T2) = S where S is DOWN(T1, T2)
-    // DOWN(T1, T2*) = S where S is DOWN(T1, T2)
-    // DOWN(T1?, T2?) = S? where S is DOWN(T1, T2)
-    // DOWN(T1?, T2) = S where S is DOWN(T1, T2)
-    // DOWN(T1, T2?) = S where S is DOWN(T1, T2)
-    if (T1_nullability != NullabilitySuffix.none ||
-        T2_nullability != NullabilitySuffix.none) {
-      var resultNullability = NullabilitySuffix.question;
-      if (T1_nullability == NullabilitySuffix.none ||
-          T2_nullability == NullabilitySuffix.none) {
-        resultNullability = NullabilitySuffix.none;
-      } else if (T1_nullability == NullabilitySuffix.star ||
-          T2_nullability == NullabilitySuffix.star) {
-        resultNullability = NullabilitySuffix.star;
-      }
-      var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
-      var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
-      var S = getGreatestLowerBound(T1_none, T2_none);
-      return (S as TypeImpl).withNullability(resultNullability);
-    }
-
-    assert(T1_nullability == NullabilitySuffix.none);
-    assert(T2_nullability == NullabilitySuffix.none);
-
-    // TODO(scheglov) incomplete
-    if (T1 is FunctionType && T2 is FunctionType) {
-      return _functionGreatestLowerBound(T1, T2);
-    }
-
-    // DOWN(T1, T2) = T1 if T1 <: T2
-    if (isSubtypeOf2(T1, T2)) {
-      return T1;
-    }
-
-    // DOWN(T1, T2) = T2 if T2 <: T1
-    if (isSubtypeOf2(T2, T1)) {
-      return T2;
-    }
-
-    // DOWN(T1, T2) = Never otherwise
-    return NeverTypeImpl.instance;
-  }
-
-  /**
-   * Compute the least upper bound of two types.
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/upper-lower-bounds.md`
-   */
-  @override
-  DartType getLeastUpperBound(DartType T1, DartType T2) {
-    // UP(T, T) = T
-    if (identical(T1, T2)) {
-      return T1;
-    }
-
-    // For any type T, UP(?, T) == T.
-    if (identical(T1, UnknownInferredType.instance)) {
-      return T2;
-    }
-    if (identical(T2, UnknownInferredType.instance)) {
-      return T1;
-    }
-
-    var T1_isTop = isTop(T1);
-    var T2_isTop = isTop(T2);
-
-    // UP(T1, T2) where TOP(T1) and TOP(T2)
-    if (T1_isTop && T2_isTop) {
-      // * T1 if MORETOP(T1, T2)
-      // * T2 otherwise
-      if (isMoreTop(T1, T2)) {
-        return T1;
-      } else {
-        return T2;
-      }
-    }
-
-    // UP(T1, T2) = T1 if TOP(T1)
-    if (T1_isTop) {
-      return T1;
-    }
-
-    // UP(T1, T2) = T2 if TOP(T2)
-    if (T2_isTop) {
-      return T2;
-    }
-
-    var T1_isBottom = isBottom(T1);
-    var T2_isBottom = isBottom(T2);
-
-    // UP(T1, T2) where BOTTOM(T1) and BOTTOM(T2)
-    if (T1_isBottom && T2_isBottom) {
-      // * T2 if MOREBOTTOM(T1, T2)
-      // * T1 otherwise
-      if (isMoreBottom(T1, T2)) {
-        return T2;
-      } else {
-        return T1;
-      }
-    }
-
-    // UP(T1, T2) = T2 if BOTTOM(T1)
-    if (T1_isBottom) {
-      return T2;
-    }
-
-    // UP(T1, T2) = T1 if BOTTOM(T2)
-    if (T2_isBottom) {
-      return T1;
-    }
-
-    var T1_isNull = isNull(T1);
-    var T2_isNull = isNull(T2);
-
-    // UP(T1, T2) where NULL(T1) and NULL(T2)
-    if (T1_isNull && T2_isNull) {
-      // * T2 if MOREBOTTOM(T1, T2)
-      // * T1 otherwise
-      if (isMoreBottom(T1, T2)) {
-        return T2;
-      } else {
-        return T1;
-      }
-    }
-
-    var T1_impl = T1 as TypeImpl;
-    var T2_impl = T2 as TypeImpl;
-
-    var T1_nullability = T1_impl.nullabilitySuffix;
-    var T2_nullability = T2_impl.nullabilitySuffix;
-
-    // UP(T1, T2) where NULL(T1)
-    if (T1_isNull) {
-      // * T2 if T2 is nullable
-      // * T2* if Null <: T2 or T1 <: Object (that is, T1 or T2 is legacy)
-      // * T2? otherwise
-      if (isNullable(T2)) {
-        return T2;
-      } else if (T1_nullability == NullabilitySuffix.star ||
-          T2_nullability == NullabilitySuffix.star) {
-        return T2_impl.withNullability(NullabilitySuffix.star);
-      } else {
-        return makeNullable(T2);
-      }
-    }
-
-    // UP(T1, T2) where NULL(T2)
-    if (T2_isNull) {
-      // * T1 if T1 is nullable
-      // * T1* if Null <: T1 or T2 <: Object (that is, T1 or T2 is legacy)
-      // * T1? otherwise
-      if (isNullable(T1)) {
-        return T1;
-      } else if (T1_nullability == NullabilitySuffix.star ||
-          T2_nullability == NullabilitySuffix.star) {
-        return T1_impl.withNullability(NullabilitySuffix.star);
-      } else {
-        return makeNullable(T1);
-      }
-    }
-
-    var T1_isObject = isObject(T1);
-    var T2_isObject = isObject(T2);
-
-    // UP(T1, T2) where OBJECT(T1) and OBJECT(T2)
-    if (T1_isObject && T2_isObject) {
-      // * T1 if MORETOP(T1, T2)
-      // * T2 otherwise
-      if (isMoreTop(T1, T2)) {
-        return T1;
-      } else {
-        return T2;
-      }
-    }
-
-    // UP(T1, T2) where OBJECT(T1)
-    if (T1_isObject) {
-      // * T1 if T2 is non-nullable
-      // * T1? otherwise
-      if (isNonNullable(T2)) {
-        return T1;
-      } else {
-        return makeNullable(T1);
-      }
-    }
-
-    // UP(T1, T2) where OBJECT(T2)
-    if (T2_isObject) {
-      // * T2 if T1 is non-nullable
-      // * T2? otherwise
-      if (isNonNullable(T1)) {
-        return T2;
-      } else {
-        return makeNullable(T2);
-      }
-    }
-
-    // UP(T1*, T2*) = S* where S is UP(T1, T2)
-    // UP(T1*, T2?) = S? where S is UP(T1, T2)
-    // UP(T1?, T2*) = S? where S is UP(T1, T2)
-    // UP(T1*, T2) = S* where S is UP(T1, T2)
-    // UP(T1, T2*) = S* where S is UP(T1, T2)
-    // UP(T1?, T2?) = S? where S is UP(T1, T2)
-    // UP(T1?, T2) = S? where S is UP(T1, T2)
-    // UP(T1, T2?) = S? where S is UP(T1, T2)
-    if (T1_nullability != NullabilitySuffix.none ||
-        T2_nullability != NullabilitySuffix.none) {
-      var resultNullability = NullabilitySuffix.none;
-      if (T1_nullability == NullabilitySuffix.question ||
-          T2_nullability == NullabilitySuffix.question) {
-        resultNullability = NullabilitySuffix.question;
-      } else if (T1_nullability == NullabilitySuffix.star ||
-          T2_nullability == NullabilitySuffix.star) {
-        resultNullability = NullabilitySuffix.star;
-      }
-      var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
-      var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
-      var S = getLeastUpperBound(T1_none, T2_none);
-      return (S as TypeImpl).withNullability(resultNullability);
-    }
-
-    assert(T1_nullability == NullabilitySuffix.none);
-    assert(T2_nullability == NullabilitySuffix.none);
-
-    // UP(X1 extends B1, T2)
-    // UP(X1 & B1, T2)
-    if (T1 is TypeParameterType) {
-      // T2 if X1 <: T2
-      if (isSubtypeOf2(T1, T2)) {
-        return T2;
-      }
-      // otherwise X1 if T2 <: X1
-      if (isSubtypeOf2(T2, T1)) {
-        return T1;
-      }
-      // otherwise UP(B1[Object/X1], T2)
-      var T1_toObject = _typeParameterResolveToObjectBounds(T1);
-      return getLeastUpperBound(T1_toObject, T2);
-    }
-
-    // UP(T1, X2 extends B2)
-    // UP(T1, X2 & B2)
-    if (T2 is TypeParameterType) {
-      // X2 if T1 <: X2
-      if (isSubtypeOf2(T1, T2)) {
-        // TODO(scheglov) How to get here?
-        return T2;
-      }
-      // otherwise T1 if X2 <: T1
-      if (isSubtypeOf2(T2, T1)) {
-        return T1;
-      }
-      // otherwise UP(T1, B2[Object/X2])
-      var T2_toObject = _typeParameterResolveToObjectBounds(T2);
-      return getLeastUpperBound(T1, T2_toObject);
-    }
-
-    // UP(T Function<...>(...), Function) = Function
-    if (T1 is FunctionType && T2.isDartCoreFunction) {
-      return T2;
-    }
-
-    // UP(Function, T Function<...>(...)) = Function
-    if (T1.isDartCoreFunction && T2 is FunctionType) {
-      return T1;
-    }
-
-    // UP(T Function<...>(...), S Function<...>(...)) = Function
-    // And other, more interesting variants.
-    if (T1 is FunctionType && T2 is FunctionType) {
-      return _functionLeastUpperBound(T1, T2);
-    }
-
-    // UP(T Function<...>(...), T2) = Object
-    // UP(T1, T Function<...>(...)) = Object
-    if (T1 is FunctionType || T2 is FunctionType) {
-      return objectNone;
-    }
-
-    // UP(T1, T2) = T2 if T1 <: T2
-    // UP(T1, T2) = T1 if T2 <: T1
-    // And other, more complex variants of interface types.
-    var helper = InterfaceLeastUpperBoundHelper(this);
-    return helper.compute(T1, T2);
-  }
-
-  /**
-   * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
-   * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
-   *
-   * This is similar to [inferGenericFunctionOrType], but the return type is
-   * also considered as part of the solution.
-   *
-   * If this function is called with a [contextType] that is also
-   * uninstantiated, or a [fnType] that is already instantiated, it will have
-   * no effect and return `null`.
-   */
-  List<DartType> inferFunctionTypeInstantiation(
-      FunctionType contextType, FunctionType fnType,
-      {ErrorReporter errorReporter, AstNode errorNode}) {
-    if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
-      return const <DartType>[];
-    }
-
-    // Create a TypeSystem that will allow certain type parameters to be
-    // inferred. It will optimistically assume these type parameters can be
-    // subtypes (or supertypes) as necessary, and track the constraints that
-    // are implied by this.
-    var inferrer = GenericInferrer(this, fnType.typeFormals);
-    inferrer.constrainGenericFunctionInContext(fnType, contextType);
-
-    // Infer and instantiate the resulting type.
-    return inferrer.infer(
-      fnType.typeFormals,
-      errorReporter: errorReporter,
-      errorNode: errorNode,
-    );
-  }
-
-  /// Infers type arguments for a generic type, function, method, or
-  /// list/map literal, using the downward context type as well as the
-  /// argument types if available.
-  ///
-  /// For example, given a function type with generic type parameters, this
-  /// infers the type parameters from the actual argument types, and returns the
-  /// instantiated function type.
-  ///
-  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
-  /// result type R, and generic type parameters T0, T1, ... Tm, use the
-  /// argument types A0, A1, ... An to solve for the type parameters.
-  ///
-  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
-  /// running the subtype algorithm, and when we reach a type parameter Tj,
-  /// recording the lower or upper bound it must satisfy. At the end, all
-  /// constraints can be combined to determine the type.
-  ///
-  /// All constraints on each type parameter Tj are tracked, as well as where
-  /// they originated, so we can issue an error message tracing back to the
-  /// argument values, type parameter "extends" clause, or the return type
-  /// context.
-  List<DartType> inferGenericFunctionOrType({
-    ClassElement genericClass,
-    @required List<TypeParameterElement> typeParameters,
-    @required List<ParameterElement> parameters,
-    @required DartType declaredReturnType,
-    @required List<DartType> argumentTypes,
-    @required DartType contextReturnType,
-    ErrorReporter errorReporter,
-    AstNode errorNode,
-    bool downwards = false,
-    bool isConst = false,
-  }) {
-    if (typeParameters.isEmpty) {
-      return null;
-    }
-
-    // Create a TypeSystem that will allow certain type parameters to be
-    // inferred. It will optimistically assume these type parameters can be
-    // subtypes (or supertypes) as necessary, and track the constraints that
-    // are implied by this.
-    var inferrer = GenericInferrer(this, typeParameters);
-
-    if (contextReturnType != null) {
-      if (isConst) {
-        contextReturnType = eliminateTypeVariables(contextReturnType);
-      }
-      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
-    }
-
-    for (int i = 0; i < argumentTypes.length; i++) {
-      // Try to pass each argument to each parameter, recording any type
-      // parameter bounds that were implied by this assignment.
-      inferrer.constrainArgument(
-        argumentTypes[i],
-        parameters[i].type,
-        parameters[i].name,
-        genericClass: genericClass,
-      );
-    }
-
-    return inferrer.infer(
-      typeParameters,
-      errorReporter: errorReporter,
-      errorNode: errorNode,
-      downwardsInferPhase: downwards,
-    );
-  }
-
-  /**
-   * Given a [DartType] [type], if [type] is an uninstantiated
-   * parameterized type then instantiate the parameters to their
-   * bounds. See the issue for the algorithm description.
-   *
-   * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-   *
-   * TODO(scheglov) Move this method to elements for classes, typedefs,
-   * and generic functions; compute lazily and cache.
-   */
-  @override
-  DartType instantiateToBounds(DartType type,
-      {List<bool> hasError, Map<TypeParameterElement, DartType> knownTypes}) {
-    List<TypeParameterElement> typeFormals = typeFormalsAsElements(type);
-    List<DartType> arguments = instantiateTypeFormalsToBounds(typeFormals,
-        hasError: hasError, knownTypes: knownTypes);
-    if (arguments == null) {
-      return type;
-    }
-
-    return instantiateType(type, arguments);
-  }
-
-  @override
-  DartType instantiateToBounds2({
-    ClassElement classElement,
-    FunctionTypeAliasElement functionTypeAliasElement,
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    if (classElement != null) {
-      var typeParameters = classElement.typeParameters;
-      var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = classElement.instantiate(
-        typeArguments: typeArguments,
-        nullabilitySuffix: nullabilitySuffix,
-      );
-      type = toLegacyType(type);
-      return type;
-    } else if (functionTypeAliasElement != null) {
-      var typeParameters = functionTypeAliasElement.typeParameters;
-      var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = functionTypeAliasElement.instantiate(
-        typeArguments: typeArguments,
-        nullabilitySuffix: nullabilitySuffix,
-      );
-      type = toLegacyType(type);
-      return type;
-    } else {
-      throw ArgumentError('Missing element');
-    }
-  }
-
-  /**
-   * Given uninstantiated [typeFormals], instantiate them to their bounds.
-   * See the issue for the algorithm description.
-   *
-   * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-   */
-  @override
-  List<DartType> instantiateTypeFormalsToBounds(
-      List<TypeParameterElement> typeFormals,
-      {List<bool> hasError,
-      Map<TypeParameterElement, DartType> knownTypes}) {
-    int count = typeFormals.length;
-    if (count == 0) {
-      return const <DartType>[];
-    }
-
-    Set<TypeParameterElement> all = <TypeParameterElement>{};
-    // all ground
-    Map<TypeParameterElement, DartType> defaults = knownTypes ?? {};
-    // not ground
-    Map<TypeParameterElement, DartType> partials = {};
-
-    for (TypeParameterElement typeParameter in typeFormals) {
-      all.add(typeParameter);
-      if (!defaults.containsKey(typeParameter)) {
-        if (typeParameter.bound == null) {
-          defaults[typeParameter] = DynamicTypeImpl.instance;
-        } else {
-          partials[typeParameter] = typeParameter.bound;
-        }
-      }
-    }
-
-    List<TypeParameterElement> getFreeParameters(DartType rootType) {
-      List<TypeParameterElement> parameters;
-      Set<DartType> visitedTypes = HashSet<DartType>();
-
-      void appendParameters(DartType type) {
-        if (type == null) {
-          return;
-        }
-        if (visitedTypes.contains(type)) {
-          return;
-        }
-        visitedTypes.add(type);
-        if (type is TypeParameterType) {
-          var element = type.element;
-          if (all.contains(element)) {
-            parameters ??= <TypeParameterElement>[];
-            parameters.add(element);
-          }
-        } else {
-          if (type is FunctionType) {
-            appendParameters(type.returnType);
-            type.parameters.map((p) => p.type).forEach(appendParameters);
-          } else if (type is InterfaceType) {
-            type.typeArguments.forEach(appendParameters);
-          }
-        }
-      }
-
-      appendParameters(rootType);
-      return parameters;
-    }
-
-    bool hasProgress = true;
-    while (hasProgress) {
-      hasProgress = false;
-      for (TypeParameterElement parameter in partials.keys) {
-        DartType value = partials[parameter];
-        List<TypeParameterElement> freeParameters = getFreeParameters(value);
-        if (freeParameters == null) {
-          defaults[parameter] = value;
-          partials.remove(parameter);
-          hasProgress = true;
-          break;
-        } else if (freeParameters.every(defaults.containsKey)) {
-          defaults[parameter] =
-              Substitution.fromMap(defaults).substituteType(value);
-          partials.remove(parameter);
-          hasProgress = true;
-          break;
-        }
-      }
-    }
-
-    // If we stopped making progress, and not all types are ground,
-    // then the whole type is malbounded and an error should be reported
-    // if errors are requested, and a partially completed type should
-    // be returned.
-    if (partials.isNotEmpty) {
-      if (hasError != null) {
-        hasError[0] = true;
-      }
-      var domain = defaults.keys.toList();
-      var range = defaults.values.toList();
-      // Build a substitution Phi mapping each uncompleted type variable to
-      // dynamic, and each completed type variable to its default.
-      for (TypeParameterElement parameter in partials.keys) {
-        domain.add(parameter);
-        range.add(DynamicTypeImpl.instance);
-      }
-      // Set the default for an uncompleted type variable (T extends B)
-      // to be Phi(B)
-      for (TypeParameterElement parameter in partials.keys) {
-        defaults[parameter] = Substitution.fromPairs(domain, range)
-            .substituteType(partials[parameter]);
-      }
-    }
-
-    List<DartType> orderedArguments =
-        typeFormals.map((p) => defaults[p]).toList();
-    return orderedArguments;
-  }
-
-  @override
-  bool isAssignableTo(DartType fromType, DartType toType) {
-    if (!NullSafetyUnderstandingFlag.isEnabled) {
-      fromType = NullabilityEliminator.perform(typeProvider, fromType);
-      toType = NullabilityEliminator.perform(typeProvider, toType);
-    }
-    return isAssignableTo2(fromType, toType);
-  }
-
-  bool isAssignableTo2(DartType fromType, DartType toType) {
-    // An actual subtype
-    if (isSubtypeOf2(fromType, toType)) {
-      return true;
-    }
-
-    // A call method tearoff
-    if (fromType is InterfaceType &&
-        !isNullable(fromType) &&
-        acceptsFunctionType(toType)) {
-      var callMethodType = getCallMethodType(fromType);
-      if (callMethodType != null && isAssignableTo2(callMethodType, toType)) {
-        return true;
-      }
-    }
-
-    // First make sure --no-implicit-casts disables all downcasts, including
-    // dynamic casts.
-    if (!implicitCasts) {
-      return false;
-    }
-
-    // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
-    if (isNonNullableByDefault) {
-      return fromType.isDynamic;
-    }
-
-    // Don't allow implicit downcasts between function types
-    // and call method objects, as these will almost always fail.
-    if (fromType is FunctionType && getCallMethodType(toType) != null) {
-      return false;
-    }
-
-    // Don't allow a non-generic function where a generic one is expected. The
-    // former wouldn't know how to handle type arguments being passed to it.
-    // TODO(rnystrom): This same check also exists in FunctionTypeImpl.relate()
-    // but we don't always reliably go through that code path. This should be
-    // cleaned up to avoid the redundancy.
-    if (fromType is FunctionType &&
-        toType is FunctionType &&
-        fromType.typeFormals.isEmpty &&
-        toType.typeFormals.isNotEmpty) {
-      return false;
-    }
-
-    // If the subtype relation goes the other way, allow the implicit downcast.
-    if (isSubtypeOf2(toType, fromType)) {
-      // TODO(leafp,jmesserly): we emit warnings/hints for these in
-      // src/task/strong/checker.dart, which is a bit inconsistent. That
-      // code should be handled into places that use isAssignableTo, such as
-      // ErrorVerifier.
-      return true;
-    }
-
-    return false;
-  }
-
-  /// Return `true`  for things in the equivalence class of `Never`.
-  bool isBottom(DartType type) {
-    // BOTTOM(Never) is true
-    if (identical(type, NeverTypeImpl.instance)) {
-      return true;
-    }
-
-    // BOTTOM(X&T) is true iff BOTTOM(T)
-    // BOTTOM(X extends T) is true iff BOTTOM(T)
-    if (type is TypeParameterType) {
-      var T = type.element.bound;
-      return isBottom(T);
-    }
-
-    // BOTTOM(T) is false otherwise
-    return false;
-  }
-
-  /// Defines an (almost) total order on bottom and `Null` types. This does not
-  /// currently consistently order two different type variables with the same
-  /// bound.
-  bool isMoreBottom(DartType T, DartType S) {
-    var T_impl = T as TypeImpl;
-    var S_impl = S as TypeImpl;
-
-    var T_nullability = T_impl.nullabilitySuffix;
-    var S_nullability = S_impl.nullabilitySuffix;
-
-    // MOREBOTTOM(Never, T) = true
-    if (identical(T, NeverTypeImpl.instance)) {
-      return true;
-    }
-
-    // MOREBOTTOM(T, Never) = false
-    if (identical(S, NeverTypeImpl.instance)) {
-      return false;
-    }
-
-    // MOREBOTTOM(Null, T) = true
-    if (T_nullability == NullabilitySuffix.none && T.isDartCoreNull) {
-      return true;
-    }
-
-    // MOREBOTTOM(T, Null) = false
-    if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
-      return false;
-    }
-
-    // MOREBOTTOM(T?, S?) = MOREBOTTOM(T, S)
-    if (T_nullability == NullabilitySuffix.question &&
-        S_nullability == NullabilitySuffix.question) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
-      return isMoreBottom(T2, S2);
-    }
-
-    // MOREBOTTOM(T, S?) = true
-    if (S_nullability == NullabilitySuffix.question) {
-      return true;
-    }
-
-    // MOREBOTTOM(T?, S) = false
-    if (T_nullability == NullabilitySuffix.question) {
-      return false;
-    }
-
-    // MOREBOTTOM(T*, S*) = MOREBOTTOM(T, S)
-    if (T_nullability == NullabilitySuffix.star &&
-        S_nullability == NullabilitySuffix.star) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
-      return isMoreBottom(T2, S2);
-    }
-
-    // MOREBOTTOM(T, S*) = true
-    if (S_nullability == NullabilitySuffix.star) {
-      return true;
-    }
-
-    // MOREBOTTOM(T*, S) = false
-    if (T_nullability == NullabilitySuffix.star) {
-      return false;
-    }
-
-    // Type parameters.
-    if (T is TypeParameterType && S is TypeParameterType) {
-      // We have eliminated the possibility that T_nullability or S_nullability
-      // is anything except none by this point.
-      assert(T_nullability == NullabilitySuffix.none);
-      assert(S_nullability == NullabilitySuffix.none);
-      var T_element = T.element;
-      var S_element = S.element;
-      // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
-      if (T_element is TypeParameterMember &&
-          S_element is TypeParameterMember) {
-        var T_bound = T_element.bound;
-        var S_bound = S_element.bound;
-        return isMoreBottom(T_bound, S_bound);
-      }
-      // MOREBOTTOM(X&T, S) = true
-      if (T_element is TypeParameterMember) {
-        return true;
-      }
-      // MOREBOTTOM(T, Y&S) = false
-      if (S_element is TypeParameterMember) {
-        return false;
-      }
-      // MOREBOTTOM(X extends T, Y extends S) = MOREBOTTOM(T, S)
-      var T_bound = T_element.bound;
-      var S_bound = S_element.bound;
-      // The invariant of the larger algorithm that this is only called with
-      // types that satisfy `BOTTOM(T)` or `NULL(T)`, and all such types, if
-      // they are type variables, have bounds which themselves are
-      // `BOTTOM` or `NULL` types.
-      assert(T_bound != null);
-      assert(S_bound != null);
-      return isMoreBottom(T_bound, S_bound);
-    }
-
-    return false;
-  }
-
-  @override
-  bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf2(t1, t2);
-
-  /// Defines a total order on top and Object types.
-  bool isMoreTop(DartType T, DartType S) {
-    var T_impl = T as TypeImpl;
-    var S_impl = S as TypeImpl;
-
-    var T_nullability = T_impl.nullabilitySuffix;
-    var S_nullability = S_impl.nullabilitySuffix;
-
-    // MORETOP(void, S) = true
-    if (identical(T, VoidTypeImpl.instance)) {
-      return true;
-    }
-
-    // MORETOP(T, void) = false
-    if (identical(S, VoidTypeImpl.instance)) {
-      return false;
-    }
-
-    // MORETOP(dynamic, S) = true
-    if (identical(T, DynamicTypeImpl.instance)) {
-      return true;
-    }
-
-    // MORETOP(T, dynamic) = false
-    if (identical(S, DynamicTypeImpl.instance)) {
-      return false;
-    }
-
-    // MORETOP(Object, S) = true
-    if (T_nullability == NullabilitySuffix.none && T.isDartCoreObject) {
-      return true;
-    }
-
-    // MORETOP(T, Object) = false
-    if (S_nullability == NullabilitySuffix.none && S.isDartCoreObject) {
-      return false;
-    }
-
-    // MORETOP(T*, S*) = MORETOP(T, S)
-    if (T_nullability == NullabilitySuffix.star &&
-        S_nullability == NullabilitySuffix.star) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
-      return isMoreTop(T2, S2);
-    }
-
-    // MORETOP(T, S*) = true
-    if (S_nullability == NullabilitySuffix.star) {
-      return true;
-    }
-
-    // MORETOP(T*, S) = false
-    if (T_nullability == NullabilitySuffix.star) {
-      return false;
-    }
-
-    // MORETOP(T?, S?) = MORETOP(T, S)
-    if (T_nullability == NullabilitySuffix.question &&
-        S_nullability == NullabilitySuffix.question) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
-      return isMoreTop(T2, S2);
-    }
-
-    // MORETOP(T, S?) = true
-    if (S_nullability == NullabilitySuffix.question) {
-      return true;
-    }
-
-    // MORETOP(T?, S) = false
-    if (T_nullability == NullabilitySuffix.question) {
-      return false;
-    }
-
-    // MORETOP(FutureOr<T>, FutureOr<S>) = MORETOP(T, S)
-    if (T is InterfaceType &&
-        T.isDartAsyncFutureOr &&
-        S is InterfaceType &&
-        S.isDartAsyncFutureOr) {
-      assert(T_nullability == NullabilitySuffix.none);
-      assert(S_nullability == NullabilitySuffix.none);
-      var T2 = T.typeArguments[0];
-      var S2 = S.typeArguments[0];
-      return isMoreTop(T2, S2);
-    }
-
-    return false;
-  }
-
-  /// Return `true` for things in the equivalence class of `Null`.
-  bool isNull(DartType type) {
-    var typeImpl = type as TypeImpl;
-    var nullabilitySuffix = typeImpl.nullabilitySuffix;
-
-    // NULL(Null) is true
-    // Also includes `Null?` and `Null*` from the rules below.
-    if (type.isDartCoreNull) {
-      return true;
-    }
-
-    // NULL(T?) is true iff NULL(T) or BOTTOM(T)
-    // NULL(T*) is true iff NULL(T) or BOTTOM(T)
-    // Cases for `Null?` and `Null*` are already checked above.
-    if (nullabilitySuffix == NullabilitySuffix.question ||
-        nullabilitySuffix == NullabilitySuffix.star) {
-      var T = typeImpl.withNullability(NullabilitySuffix.none);
-      return isBottom(T);
-    }
-
-    // NULL(T) is false otherwise
-    return false;
-  }
-
-  /// Return `true` for any type which is in the equivalence class of `Object`.
-  bool isObject(DartType type) {
-    TypeImpl typeImpl = type;
-    if (typeImpl.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    // OBJECT(Object) is true
-    if (type.isDartCoreObject) {
-      return true;
-    }
-
-    // OBJECT(FutureOr<T>) is OBJECT(T)
-    if (type is InterfaceType && type.isDartAsyncFutureOr) {
-      var T = type.typeArguments[0];
-      return isObject(T);
-    }
-
-    // OBJECT(T) is false otherwise
-    return false;
-  }
-
-  /// Check if [_T0] is a subtype of [_T1].
-  ///
-  /// Implements:
-  /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
-  @override
-  bool isSubtypeOf(DartType _T0, DartType _T1) {
-    if (!NullSafetyUnderstandingFlag.isEnabled) {
-      _T0 = NullabilityEliminator.perform(typeProvider, _T0);
-      _T1 = NullabilityEliminator.perform(typeProvider, _T1);
-    }
-    return isSubtypeOf2(_T0, _T1);
-  }
-
-  bool isSubtypeOf2(DartType _T0, DartType _T1) {
-    // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
-    if (identical(_T0, _T1)) {
-      return true;
-    }
-
-    // `?` is treated as a top and a bottom type during inference.
-    if (identical(_T0, UnknownInferredType.instance) ||
-        identical(_T1, UnknownInferredType.instance)) {
-      return true;
-    }
-
-    var T0 = _T0 as TypeImpl;
-    var T1 = _T1 as TypeImpl;
-
-    // Right Top: if `T1` is a top type (i.e. `dynamic`, or `void`, or
-    // `Object?`) then `T0 <: T1`.
-    if (identical(T1, DynamicTypeImpl.instance) ||
-        identical(T1, VoidTypeImpl.instance) ||
-        T1.nullabilitySuffix == NullabilitySuffix.question &&
-            T1.isDartCoreObject) {
-      return true;
-    }
-
-    // Left Top: if `T0` is `dynamic` or `void`,
-    //   then `T0 <: T1` if `Object? <: T1`.
-    if (identical(T0, DynamicTypeImpl.instance) ||
-        identical(T0, VoidTypeImpl.instance)) {
-      if (isSubtypeOf2(objectQuestion, T1)) {
-        return true;
-      }
-    }
-
-    // Left Bottom: if `T0` is `Never`, then `T0 <: T1`.
-    if (identical(T0, NeverTypeImpl.instance)) {
-      return true;
-    }
-
-    // Right Object: if `T1` is `Object` then:
-    var T1_nullability = T1.nullabilitySuffix;
-    if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreObject) {
-      var T0_nullability = T0.nullabilitySuffix;
-      // * if `T0` is an unpromoted type variable with bound `B`,
-      //   then `T0 <: T1` iff `B <: Object`.
-      // * if `T0` is a promoted type variable `X & S`,
-      //   then `T0 <: T1`iff `S <: Object`.
-      if (T0_nullability == NullabilitySuffix.none &&
-          T0 is TypeParameterTypeImpl) {
-        var bound = T0.element.bound ?? objectQuestion;
-        return isSubtypeOf2(bound, objectNone);
-      }
-      // * if `T0` is `FutureOr<S>` for some `S`,
-      //   then `T0 <: T1` iff `S <: Object`
-      if (T0_nullability == NullabilitySuffix.none &&
-          T0 is InterfaceTypeImpl &&
-          T0.isDartAsyncFutureOr) {
-        return isSubtypeOf2(T0.typeArguments[0], T1);
-      }
-      // * if `T0` is `S*` for any `S`, then `T0 <: T1` iff `S <: T1`
-      if (T0_nullability == NullabilitySuffix.star) {
-        return isSubtypeOf2(
-          T0.withNullability(NullabilitySuffix.none),
-          T1,
-        );
-      }
-      // * if `T0` is `Null`, `dynamic`, `void`, or `S?` for any `S`,
-      //   then the subtyping does not hold, the result is false.
-      if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull ||
-          identical(T0, DynamicTypeImpl.instance) ||
-          identical(T0, VoidTypeImpl.instance) ||
-          T0_nullability == NullabilitySuffix.question) {
-        return false;
-      }
-      // Otherwise `T0 <: T1` is true.
-      return true;
-    }
-
-    // Left Null: if `T0` is `Null` then:
-    var T0_nullability = T0.nullabilitySuffix;
-    if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull) {
-      // * If `T1` is `FutureOr<S>` for some `S`, then the query is true iff
-      // `Null <: S`.
-      if (T1_nullability == NullabilitySuffix.none &&
-          T1 is InterfaceTypeImpl &&
-          T1.isDartAsyncFutureOr) {
-        var S = T1.typeArguments[0];
-        return isSubtypeOf2(nullNone, S);
-      }
-      // If `T1` is `Null`, `S?` or `S*` for some `S`, then the query is true.
-      if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull ||
-          T1_nullability == NullabilitySuffix.question ||
-          T1_nullability == NullabilitySuffix.star) {
-        return true;
-      }
-      // * if `T1` is a type variable (promoted or not) the query is false
-      if (T1 is TypeParameterTypeImpl) {
-        return false;
-      }
-      // Otherwise, the query is false.
-      return false;
-    }
-
-    // Left Legacy if `T0` is `S0*` then:
-    if (T0_nullability == NullabilitySuffix.star) {
-      // * `T0 <: T1` iff `S0 <: T1`.
-      var S0 = T0.withNullability(NullabilitySuffix.none);
-      return isSubtypeOf2(S0, T1);
-    }
-
-    // Right Legacy `T1` is `S1*` then:
-    //   * `T0 <: T1` iff `T0 <: S1?`.
-    if (T1_nullability == NullabilitySuffix.star) {
-      var S1 = T1.withNullability(NullabilitySuffix.question);
-      return isSubtypeOf2(T0, S1);
-    }
-
-    // Left FutureOr: if `T0` is `FutureOr<S0>` then:
-    if (T0_nullability == NullabilitySuffix.none &&
-        T0 is InterfaceTypeImpl &&
-        T0.isDartAsyncFutureOr) {
-      var S0 = T0.typeArguments[0];
-      // * `T0 <: T1` iff `Future<S0> <: T1` and `S0 <: T1`
-      if (isSubtypeOf2(S0, T1)) {
-        var FutureS0 = typeProvider.futureElement.instantiate(
-          typeArguments: [S0],
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-        return isSubtypeOf2(FutureS0, T1);
-      }
-      return false;
-    }
-
-    // Left Nullable: if `T0` is `S0?` then:
-    //   * `T0 <: T1` iff `S0 <: T1` and `Null <: T1`.
-    if (T0_nullability == NullabilitySuffix.question) {
-      var S0 = T0.withNullability(NullabilitySuffix.none);
-      return isSubtypeOf2(S0, T1) && isSubtypeOf2(nullNone, T1);
-    }
-
-    // Right Promoted Variable: if `T1` is a promoted type variable `X1 & S1`:
-    //   * `T0 <: T1` iff `T0 <: X1` and `T0 <: S1`
-    if (T0 is TypeParameterTypeImpl) {
-      if (T1 is TypeParameterTypeImpl && T0.definition == T1.definition) {
-        var S0 = T0.element.bound ?? objectQuestion;
-        var S1 = T1.element.bound ?? objectQuestion;
-        if (isSubtypeOf2(S0, S1)) {
-          return true;
-        }
-      }
-
-      var T0_element = T0.element;
-      if (T0_element is TypeParameterMember) {
-        return isSubtypeOf2(T0_element.bound, T1);
-      }
-    }
-
-    // Right FutureOr: if `T1` is `FutureOr<S1>` then:
-    if (T1_nullability == NullabilitySuffix.none &&
-        T1 is InterfaceTypeImpl &&
-        T1.isDartAsyncFutureOr) {
-      var S1 = T1.typeArguments[0];
-      // `T0 <: T1` iff any of the following hold:
-      // * either `T0 <: Future<S1>`
-      var FutureS1 = typeProvider.futureElement.instantiate(
-        typeArguments: [S1],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-      if (isSubtypeOf2(T0, FutureS1)) {
-        return true;
-      }
-      // * or `T0 <: S1`
-      if (isSubtypeOf2(T0, S1)) {
-        return true;
-      }
-      // * or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
-      // * or `T0` is `X0 & S0` and `S0 <: T1`
-      if (T0 is TypeParameterTypeImpl) {
-        var S0 = T0.element.bound ?? objectQuestion;
-        if (isSubtypeOf2(S0, T1)) {
-          return true;
-        }
-      }
-      // iff
-      return false;
-    }
-
-    // Right Nullable: if `T1` is `S1?` then:
-    if (T1_nullability == NullabilitySuffix.question) {
-      var S1 = T1.withNullability(NullabilitySuffix.none);
-      // `T0 <: T1` iff any of the following hold:
-      // * either `T0 <: S1`
-      if (isSubtypeOf2(T0, S1)) {
-        return true;
-      }
-      // * or `T0 <: Null`
-      if (isSubtypeOf2(T0, nullNone)) {
-        return true;
-      }
-      // or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
-      // or `T0` is `X0 & S0` and `S0 <: T1`
-      if (T0 is TypeParameterTypeImpl) {
-        var S0 = T0.element.bound ?? objectQuestion;
-        return isSubtypeOf2(S0, T1);
-      }
-      // iff
-      return false;
-    }
-
-    // Super-Interface: `T0` is an interface type with super-interfaces
-    // `S0,...Sn`:
-    //   * and `Si <: T1` for some `i`.
-    if (T0 is InterfaceTypeImpl && T1 is InterfaceTypeImpl) {
-      return _isInterfaceSubtypeOf(T0, T1, null);
-    }
-
-    // Left Promoted Variable: `T0` is a promoted type variable `X0 & S0`
-    //   * and `S0 <: T1`
-    // Left Type Variable Bound: `T0` is a type variable `X0` with bound `B0`
-    //   * and `B0 <: T1`
-    if (T0 is TypeParameterTypeImpl) {
-      var S0 = T0.element.bound ?? objectQuestion;
-      if (isSubtypeOf2(S0, T1)) {
-        return true;
-      }
-    }
-
-    if (T0 is FunctionTypeImpl) {
-      // Function Type/Function: `T0` is a function type and `T1` is `Function`.
-      if (T1.isDartCoreFunction) {
-        return true;
-      }
-      if (T1 is FunctionTypeImpl) {
-        return _isFunctionSubtypeOf(T0, T1);
-      }
-    }
-
-    return false;
-  }
-
-  /// Return `true` for any type which is in the equivalence class of top types.
-  bool isTop(DartType type) {
-    // TOP(?) is true
-    if (identical(type, UnknownInferredType.instance)) {
-      return true;
-    }
-
-    // TOP(dynamic) is true
-    if (identical(type, DynamicTypeImpl.instance)) {
-      return true;
-    }
-
-    // TOP(void) is true
-    if (identical(type, VoidTypeImpl.instance)) {
-      return true;
-    }
-
-    var typeImpl = type as TypeImpl;
-    var nullabilitySuffix = typeImpl.nullabilitySuffix;
-
-    // TOP(T?) is true iff TOP(T) or OBJECT(T)
-    // TOP(T*) is true iff TOP(T) or OBJECT(T)
-    if (nullabilitySuffix == NullabilitySuffix.question ||
-        nullabilitySuffix == NullabilitySuffix.star) {
-      var T = typeImpl.withNullability(NullabilitySuffix.none);
-      return isTop(T) || isObject(T);
-    }
-
-    // TOP(FutureOr<T>) is TOP(T)
-    if (type is InterfaceType && type.isDartAsyncFutureOr) {
-      assert(nullabilitySuffix == NullabilitySuffix.none);
-      var T = type.typeArguments[0];
-      return isTop(T);
-    }
-
-    // TOP(T) is false otherwise
-    return false;
-  }
-
-  /**
-   * Compute the canonical representation of [T].
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/normalization.md`
-   */
-  DartType normalize(DartType T) {
-    return NormalizeHelper(this).normalize(T);
-  }
-
-  @override
-  DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType) {
-    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
-      if (rightType == leftType || rightType.isDartCoreInt) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.PLUS_EQ ||
-            operator == TokenType.MINUS_EQ ||
-            operator == TokenType.STAR_EQ) {
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(leftType as TypeImpl);
-          }
-          return leftType;
-        }
-      }
-      if (rightType.isDartCoreDouble) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.SLASH) {
-          InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(doubleType);
-          }
-          return doubleType;
-        }
-      }
-      return currentType;
-    }
-    return super
-        .refineBinaryExpressionType(leftType, operator, rightType, currentType);
-  }
-
-  /// Return `true` if runtime types [T1] and [T2] are equal.
-  ///
-  /// nnbd/feature-specification.md#runtime-type-equality-operator
-  bool runtimeTypesEqual(DartType T1, DartType T2) {
-    return RuntimeTypeEqualityHelper(this).equal(T1, T2);
-  }
-
-  DartType toLegacyType(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
-  }
-
-  /**
-   * Merges two types into a single type.
-   * Compute the canonical representation of [T].
-   *
-   * https://github.com/dart-lang/language/
-   * See `accepted/future-releases/nnbd/feature-specification.md`
-   * See `#classes-defined-in-opted-in-libraries`
-   */
-  DartType topMerge(DartType T, DartType S) {
-    return TopMergeHelper(this).topMerge(T, S);
-  }
-
-  @override
-  DartType tryPromoteToType(DartType to, DartType from) {
-    // Allow promoting to a subtype, for example:
-    //
-    //     f(Base b) {
-    //       if (b is SubTypeOfBase) {
-    //         // promote `b` to SubTypeOfBase for this block
-    //       }
-    //     }
-    //
-    // This allows the variable to be used wherever the supertype (here `Base`)
-    // is expected, while gaining a more precise type.
-    if (isSubtypeOf2(to, from)) {
-      return to;
-    }
-    // For a type parameter `T extends U`, allow promoting the upper bound
-    // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
-    if (from is TypeParameterType) {
-      if (isSubtypeOf2(to, from.bound ?? DynamicTypeImpl.instance)) {
-        var declaration = from.element.declaration;
-        var newElement = TypeParameterMember(declaration, null, to);
-        return newElement.instantiate(
-          nullabilitySuffix: from.nullabilitySuffix,
-        );
-      }
-    }
-
-    return null;
-  }
-
-  List<DartType> _defaultTypeArguments(
-    List<TypeParameterElement> typeParameters,
-  ) {
-    return typeParameters.map((typeParameter) {
-      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
-      return typeParameterImpl.defaultType;
-    }).toList();
-  }
-
-  /**
-   * Compute the greatest lower bound of function types [f] and [g].
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/upper-lower-bounds.md`
-   */
-  DartType _functionGreatestLowerBound(FunctionType f, FunctionType g) {
-    var fTypeFormals = f.typeFormals;
-    var gTypeFormals = g.typeFormals;
-
-    // The number of type parameters must be the same.
-    // Otherwise the result is `Never`.
-    if (fTypeFormals.length != gTypeFormals.length) {
-      return NeverTypeImpl.instance;
-    }
-
-    // The bounds of type parameters must be equal.
-    // Otherwise the result is `Never`.
-    var freshTypeFormalTypes =
-        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
-    if (freshTypeFormalTypes == null) {
-      return NeverTypeImpl.instance;
-    }
-
-    var typeFormals = freshTypeFormalTypes
-        .map<TypeParameterElement>((t) => t.element)
-        .toList();
-
-    f = f.instantiate(freshTypeFormalTypes);
-    g = g.instantiate(freshTypeFormalTypes);
-
-    var fParameters = f.parameters;
-    var gParameters = g.parameters;
-
-    var parameters = <ParameterElement>[];
-    var fIndex = 0;
-    var gIndex = 0;
-    while (fIndex < fParameters.length && gIndex < gParameters.length) {
-      var fParameter = fParameters[fIndex];
-      var gParameter = gParameters[gIndex];
-      if (fParameter.isPositional) {
-        if (gParameter.isPositional) {
-          fIndex++;
-          gIndex++;
-          parameters.add(
-            ParameterElementImpl.synthetic(
-              fParameter.name,
-              getLeastUpperBound(fParameter.type, gParameter.type),
-              fParameter.isOptional || gParameter.isOptional
-                  ? ParameterKind.POSITIONAL
-                  : ParameterKind.REQUIRED,
-            ),
-          );
-        } else {
-          return NeverTypeImpl.instance;
-        }
-      } else if (fParameter.isNamed) {
-        if (gParameter.isNamed) {
-          var compareNames = fParameter.name.compareTo(gParameter.name);
-          if (compareNames == 0) {
-            fIndex++;
-            gIndex++;
-            parameters.add(
-              ParameterElementImpl.synthetic(
-                fParameter.name,
-                getLeastUpperBound(fParameter.type, gParameter.type),
-                fParameter.isRequiredNamed && gParameter.isRequiredNamed
-                    ? ParameterKind.NAMED_REQUIRED
-                    : ParameterKind.NAMED,
-              ),
-            );
-          } else if (compareNames < 0) {
-            fIndex++;
-            parameters.add(
-              ParameterElementImpl.synthetic(
-                fParameter.name,
-                fParameter.type,
-                ParameterKind.NAMED,
-              ),
-            );
-          } else {
-            assert(compareNames > 0);
-            gIndex++;
-            parameters.add(
-              ParameterElementImpl.synthetic(
-                gParameter.name,
-                gParameter.type,
-                ParameterKind.NAMED,
-              ),
-            );
-          }
-        } else {
-          return NeverTypeImpl.instance;
-        }
-      }
-    }
-
-    while (fIndex < fParameters.length) {
-      var fParameter = fParameters[fIndex++];
-      if (fParameter.isPositional) {
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            fParameter.name,
-            fParameter.type,
-            ParameterKind.POSITIONAL,
-          ),
-        );
-      } else {
-        assert(fParameter.isNamed);
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            fParameter.name,
-            fParameter.type,
-            ParameterKind.NAMED,
-          ),
-        );
-      }
-    }
-
-    while (gIndex < gParameters.length) {
-      var gParameter = gParameters[gIndex++];
-      if (gParameter.isPositional) {
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            gParameter.name,
-            gParameter.type,
-            ParameterKind.POSITIONAL,
-          ),
-        );
-      } else {
-        assert(gParameter.isNamed);
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            gParameter.name,
-            gParameter.type,
-            ParameterKind.NAMED,
-          ),
-        );
-      }
-    }
-
-    var returnType = getGreatestLowerBound(f.returnType, g.returnType);
-
-    return FunctionTypeImpl(
-      typeFormals: typeFormals,
-      parameters: parameters,
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  /**
-   * Compute the least upper bound of function types [f] and [g].
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/upper-lower-bounds.md`
-   */
-  DartType _functionLeastUpperBound(FunctionType f, FunctionType g) {
-    var fTypeFormals = f.typeFormals;
-    var gTypeFormals = g.typeFormals;
-
-    // The number of type parameters must be the same.
-    // Otherwise the result is `Function`.
-    if (fTypeFormals.length != gTypeFormals.length) {
-      return _interfaceTypeFunctionNone;
-    }
-
-    // The bounds of type parameters must be equal.
-    // Otherwise the result is `Function`.
-    var freshTypeFormalTypes =
-        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
-    if (freshTypeFormalTypes == null) {
-      return _interfaceTypeFunctionNone;
-    }
-
-    var typeFormals = freshTypeFormalTypes
-        .map<TypeParameterElement>((t) => t.element)
-        .toList();
-
-    f = f.instantiate(freshTypeFormalTypes);
-    g = g.instantiate(freshTypeFormalTypes);
-
-    var fParameters = f.parameters;
-    var gParameters = g.parameters;
-
-    var parameters = <ParameterElement>[];
-    var fIndex = 0;
-    var gIndex = 0;
-    while (fIndex < fParameters.length && gIndex < gParameters.length) {
-      var fParameter = fParameters[fIndex];
-      var gParameter = gParameters[gIndex];
-      if (fParameter.isRequiredPositional) {
-        if (gParameter.isRequiredPositional) {
-          fIndex++;
-          gIndex++;
-          parameters.add(
-            ParameterElementImpl.synthetic(
-              fParameter.name,
-              getGreatestLowerBound(fParameter.type, gParameter.type),
-              ParameterKind.REQUIRED,
-            ),
-          );
-        } else {
-          break;
-        }
-      } else if (fParameter.isOptionalPositional) {
-        if (gParameter.isOptionalPositional) {
-          fIndex++;
-          gIndex++;
-          parameters.add(
-            ParameterElementImpl.synthetic(
-              fParameter.name,
-              getGreatestLowerBound(fParameter.type, gParameter.type),
-              ParameterKind.POSITIONAL,
-            ),
-          );
-        } else {
-          break;
-        }
-      } else if (fParameter.isNamed) {
-        if (gParameter.isNamed) {
-          var compareNames = fParameter.name.compareTo(gParameter.name);
-          if (compareNames == 0) {
-            fIndex++;
-            gIndex++;
-            parameters.add(
-              ParameterElementImpl.synthetic(
-                fParameter.name,
-                getGreatestLowerBound(fParameter.type, gParameter.type),
-                fParameter.isRequiredNamed || gParameter.isRequiredNamed
-                    ? ParameterKind.NAMED_REQUIRED
-                    : ParameterKind.NAMED,
-              ),
-            );
-          } else if (compareNames < 0) {
-            if (fParameter.isRequiredNamed) {
-              // We cannot skip required named.
-              return _interfaceTypeFunctionNone;
-            } else {
-              fIndex++;
-            }
-          } else {
-            assert(compareNames > 0);
-            if (gParameter.isRequiredNamed) {
-              // We cannot skip required named.
-              return _interfaceTypeFunctionNone;
-            } else {
-              gIndex++;
-            }
-          }
-        } else {
-          break;
-        }
-      }
-    }
-
-    while (fIndex < fParameters.length) {
-      var fParameter = fParameters[fIndex++];
-      if (fParameter.isNotOptional) {
-        return _interfaceTypeFunctionNone;
-      }
-    }
-
-    while (gIndex < gParameters.length) {
-      var gParameter = gParameters[gIndex++];
-      if (gParameter.isNotOptional) {
-        return _interfaceTypeFunctionNone;
-      }
-    }
-
-    var returnType = getLeastUpperBound(f.returnType, g.returnType);
-
-    return FunctionTypeImpl(
-      typeFormals: typeFormals,
-      parameters: parameters,
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  /// Check that [f] is a subtype of [g].
-  bool _isFunctionSubtypeOf(FunctionType f, FunctionType g) {
-    var fTypeFormals = f.typeFormals;
-    var gTypeFormals = g.typeFormals;
-
-    // The number of type parameters must be the same.
-    if (fTypeFormals.length != gTypeFormals.length) {
-      return false;
-    }
-
-    // The bounds of type parameters must be equal.
-    var freshTypeFormalTypes =
-        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) {
-      // Type parameter bounds are invariant.
-      // TODO(scheglov) We do this for top types, but the spec says explicitly.
-      return isSubtypeOf2(t, s) && isSubtypeOf2(s, t);
-    });
-    if (freshTypeFormalTypes == null) {
-      return false;
-    }
-
-    f = f.instantiate(freshTypeFormalTypes);
-    g = g.instantiate(freshTypeFormalTypes);
-
-    if (!isSubtypeOf2(f.returnType, g.returnType)) {
-      return false;
-    }
-
-    var fParameters = f.parameters;
-    var gParameters = g.parameters;
-
-    var fIndex = 0;
-    var gIndex = 0;
-    while (fIndex < fParameters.length && gIndex < gParameters.length) {
-      var fParameter = fParameters[fIndex];
-      var gParameter = gParameters[gIndex];
-      if (fParameter.isRequiredPositional) {
-        if (gParameter.isRequiredPositional) {
-          if (isSubtypeOf2(gParameter.type, fParameter.type)) {
-            fIndex++;
-            gIndex++;
-          } else {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      } else if (fParameter.isOptionalPositional) {
-        if (gParameter.isPositional) {
-          if (isSubtypeOf2(gParameter.type, fParameter.type)) {
-            fIndex++;
-            gIndex++;
-          } else {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      } else if (fParameter.isNamed) {
-        if (gParameter.isNamed) {
-          var compareNames = fParameter.name.compareTo(gParameter.name);
-          if (compareNames == 0) {
-            if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
-              return false;
-            } else if (isSubtypeOf2(gParameter.type, fParameter.type)) {
-              fIndex++;
-              gIndex++;
-            } else {
-              return false;
-            }
-          } else if (compareNames < 0) {
-            if (fParameter.isRequiredNamed) {
-              return false;
-            } else {
-              fIndex++;
-            }
-          } else {
-            assert(compareNames > 0);
-            // The subtype must accept all parameters of the supertype.
-            return false;
-          }
-        } else {
-          break;
-        }
-      }
-    }
-
-    // The supertype must provide all required parameters to the subtype.
-    while (fIndex < fParameters.length) {
-      var fParameter = fParameters[fIndex++];
-      if (fParameter.isNotOptional) {
-        return false;
-      }
-    }
-
-    // The subtype must accept all parameters of the supertype.
-    assert(fIndex == fParameters.length);
-    if (gIndex < gParameters.length) {
-      return false;
-    }
-
-    return true;
-  }
-
-  bool _isInterfaceSubtypeOf(
-      InterfaceType i1, InterfaceType i2, Set<ClassElement> visitedTypes) {
-    // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
-    // because top types are eliminated before `isSubtypeOf` calls this.
-    if (identical(i1, i2) || i2.isObject) {
-      return true;
-    }
-
-    // Object cannot subtype anything but itself (handled above).
-    if (i1.isObject) {
-      return false;
-    }
-
-    ClassElement i1Element = i1.element;
-    if (i1Element == i2.element) {
-      List<DartType> tArgs1 = i1.typeArguments;
-      List<DartType> tArgs2 = i2.typeArguments;
-      List<TypeParameterElement> tParams = i1Element.typeParameters;
-
-      assert(tArgs1.length == tArgs2.length);
-      assert(tParams.length == tArgs1.length);
-
-      for (int i = 0; i < tArgs1.length; i++) {
-        DartType t1 = tArgs1[i];
-        DartType t2 = tArgs2[i];
-
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        Variance variance = (tParams[i] as TypeParameterElementImpl).variance;
-        if (variance.isCovariant) {
-          if (!isSubtypeOf2(t1, t2)) {
-            return false;
-          }
-        } else if (variance.isContravariant) {
-          if (!isSubtypeOf2(t2, t1)) {
-            return false;
-          }
-        } else if (variance.isInvariant) {
-          if (!isSubtypeOf2(t1, t2) || !isSubtypeOf2(t2, t1)) {
-            return false;
-          }
-        } else {
-          throw StateError('Type parameter ${tParams[i]} has unknown '
-              'variance $variance for subtype checking.');
-        }
-      }
-      return true;
-    }
-
-    // Classes types cannot subtype `Function` or vice versa.
-    if (i1.isDartCoreFunction || i2.isDartCoreFunction) {
-      return false;
-    }
-
-    // Guard against loops in the class hierarchy.
-    //
-    // Dart 2 does not allow multiple implementations of the same generic type
-    // with different type arguments. So we can track just the class element
-    // to find cycles, rather than tracking the full interface type.
-    visitedTypes ??= HashSet<ClassElement>();
-    if (!visitedTypes.add(i1Element)) return false;
-
-    InterfaceType superclass = i1.superclass;
-    if (superclass != null &&
-        _isInterfaceSubtypeOf(superclass, i2, visitedTypes)) {
-      return true;
-    }
-
-    for (final parent in i1.interfaces) {
-      if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
-        return true;
-      }
-    }
-
-    for (final parent in i1.mixins) {
-      if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
-        return true;
-      }
-    }
-
-    if (i1Element.isMixin) {
-      for (final parent in i1.superclassConstraints) {
-        if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  DartType _typeParameterResolveToObjectBounds(DartType type) {
-    var element = type.element;
-    type = type.resolveToBound(typeProvider.objectType);
-    return Substitution.fromMap({element: typeProvider.objectType})
-        .substituteType(type);
-  }
 }
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -3566,28 +1522,29 @@ abstract class TypeSystem implements public.TypeSystem {
 
     if (type is TypeParameterTypeImpl) {
       var element = type.element;
-      var promotedBound =
-          promoteToNonNull(element.bound ?? typeProvider.objectType);
-      var identicalBound = identical(promotedBound, element.bound);
-      if (identicalBound) {
-        if (type.nullabilitySuffix == NullabilitySuffix.none) {
-          return type;
-        } else {
-          return TypeParameterTypeImpl(
-            element,
-            nullabilitySuffix: NullabilitySuffix.none,
-          );
-        }
-      } else {
-        // Note: we need to use `element.declaration` because `element` might
-        // itself be a TypeParameterMember (due to a previous promotion), and
-        // you can't create a TypeParameterMember wrapping a
-        // TypeParameterMember.
+
+      // NonNull(X & T) = X & NonNull(T)
+      if (type.promotedBound != null) {
+        var promotedBound = promoteToNonNull(type.promotedBound);
         return TypeParameterTypeImpl(
-          TypeParameterMember(element.declaration, null, promotedBound),
+          element: element,
           nullabilitySuffix: NullabilitySuffix.none,
+          promotedBound: promotedBound,
         );
       }
+
+      // NonNull(X) = X & NonNull(B), where B is the bound of X
+      var promotedBound = element.bound != null
+          ? promoteToNonNull(element.bound)
+          : typeProvider.objectType;
+      if (identical(promotedBound, element.bound)) {
+        promotedBound = null;
+      }
+      return TypeParameterTypeImpl(
+        element: element,
+        nullabilitySuffix: NullabilitySuffix.none,
+        promotedBound: promotedBound,
+      );
     }
 
     return (type as TypeImpl).withNullability(NullabilitySuffix.none);
@@ -3734,18 +1691,566 @@ abstract class TypeSystem implements public.TypeSystem {
 /**
  * The [public.TypeSystem] implementation.
  */
-class TypeSystemImpl extends Dart2TypeSystem {
+class TypeSystemImpl extends TypeSystem {
+  /**
+   * False if implicit casts should always be disallowed.
+   *
+   * This affects the behavior of [isAssignableTo].
+   */
+  final bool implicitCasts;
+
+  /// A flag indicating whether inference failures are allowed, off by default.
+  ///
+  /// This option is experimental and subject to change.
+  final bool strictInference;
+
+  @override
+  final TypeProvider typeProvider;
+
+  /// The cached instance of `Object?`.
+  InterfaceTypeImpl _objectQuestionCached;
+
+  /// The cached instance of `Object*`.
+  InterfaceTypeImpl _objectStarCached;
+
+  /// The cached instance of `Object!`.
+  InterfaceTypeImpl _objectNoneCached;
+
+  /// The cached instance of `Null!`.
+  InterfaceTypeImpl _nullNoneCached;
+
   TypeSystemImpl({
-    @required bool implicitCasts,
+    @required this.implicitCasts,
     @required bool isNonNullableByDefault,
-    @required bool strictInference,
-    @required TypeProvider typeProvider,
-  }) : super(
-          implicitCasts: implicitCasts,
-          isNonNullableByDefault: isNonNullableByDefault,
-          strictInference: strictInference,
-          typeProvider: typeProvider,
-        );
+    @required this.strictInference,
+    @required this.typeProvider,
+  }) : super(isNonNullableByDefault: isNonNullableByDefault);
+
+  InterfaceTypeImpl get nullNone =>
+      _nullNoneCached ??= (typeProvider.nullType as TypeImpl)
+          .withNullability(NullabilitySuffix.none);
+
+  InterfaceTypeImpl get objectNone =>
+      _objectNoneCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.none);
+
+  InterfaceTypeImpl get objectQuestion =>
+      _objectQuestionCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.question);
+
+  InterfaceTypeImpl get objectStar =>
+      _objectStarCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.star);
+
+  InterfaceType get _interfaceTypeFunctionNone {
+    return typeProvider.functionType.element.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  /// Returns true iff the type [t] accepts function types, and requires an
+  /// implicit coercion if interface types with a `call` method are passed in.
+  ///
+  /// This is true for:
+  /// - all function types
+  /// - the special type `Function` that is a supertype of all function types
+  /// - `FutureOr<T>` where T is one of the two cases above.
+  ///
+  /// Note that this returns false if [t] is a top type such as Object.
+  bool acceptsFunctionType(DartType t) {
+    if (t == null) return false;
+    if (t.isDartAsyncFutureOr) {
+      return acceptsFunctionType((t as InterfaceType).typeArguments[0]);
+    }
+    return t is FunctionType || t.isDartCoreFunction;
+  }
+
+  bool anyParameterType(FunctionType ft, bool Function(DartType t) predicate) {
+    return ft.parameters.any((p) => predicate(p.type));
+  }
+
+  /**
+   * Eliminates type variables from the context [type], replacing them with
+   * `Null` or `Object` as appropriate.
+   *
+   * For example in `List<T> list = const []`, the context type for inferring
+   * the list should be changed from `List<T>` to `List<Null>` so the constant
+   * doesn't depend on the type variables `T` (because it can't be canonicalized
+   * at compile time, as `T` is unknown).
+   *
+   * Conceptually this is similar to the "least closure", except instead of
+   * eliminating `?` ([UnknownInferredType]) it eliminates all type variables
+   * ([TypeParameterType]).
+   *
+   * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
+   */
+  DartType eliminateTypeVariables(DartType type) {
+    if (isNonNullableByDefault) {
+      return _TypeVariableEliminator(
+        objectQuestion,
+        NeverTypeImpl.instance,
+      ).substituteType(type);
+    } else {
+      return _TypeVariableEliminator(
+        objectNone,
+        typeProvider.nullType,
+      ).substituteType(type);
+    }
+  }
+
+  /// Given a type t, if t is an interface type with a call method
+  /// defined, return the function type for the call method, otherwise
+  /// return null.
+  FunctionType getCallMethodType(DartType t) {
+    if (t is InterfaceType) {
+      return t.lookUpMethod2('call', t.element.library)?.type;
+    }
+    return null;
+  }
+
+  /// Computes the greatest lower bound of [T1] and [T2].
+  DartType getGreatestLowerBound(DartType T1, DartType T2) {
+    // DOWN(T, T) = T
+    if (identical(T1, T2)) {
+      return T1;
+    }
+
+    // For any type T, DOWN(?, T) == T.
+    if (identical(T1, UnknownInferredType.instance)) {
+      return T2;
+    }
+    if (identical(T2, UnknownInferredType.instance)) {
+      return T1;
+    }
+
+    var T1_isTop = isTop(T1);
+    var T2_isTop = isTop(T2);
+
+    // DOWN(T1, T2) where TOP(T1) and TOP(T2)
+    if (T1_isTop && T2_isTop) {
+      // * T1 if MORETOP(T2, T1)
+      // * T2 otherwise
+      if (isMoreTop(T2, T1)) {
+        return T1;
+      } else {
+        return T2;
+      }
+    }
+
+    // DOWN(T1, T2) = T2 if TOP(T1)
+    if (T1_isTop) {
+      return T2;
+    }
+
+    // DOWN(T1, T2) = T1 if TOP(T2)
+    if (T2_isTop) {
+      return T1;
+    }
+
+    var T1_isBottom = isBottom(T1);
+    var T2_isBottom = isBottom(T2);
+
+    // DOWN(T1, T2) where BOTTOM(T1) and BOTTOM(T2)
+    if (T1_isBottom && T2_isBottom) {
+      // * T1 if MOREBOTTOM(T1, T2)
+      // * T2 otherwise
+      if (isMoreBottom(T1, T2)) {
+        return T1;
+      } else {
+        return T2;
+      }
+    }
+
+    // DOWN(T1, T2) = T1 if BOTTOM(T1)
+    if (T1_isBottom) {
+      return T1;
+    }
+
+    // DOWN(T1, T2) = T2 if BOTTOM(T2)
+    if (T2_isBottom) {
+      return T2;
+    }
+
+    var T1_isNull = isNull(T1);
+    var T2_isNull = isNull(T2);
+
+    // DOWN(T1, T2) where NULL(T1) and NULL(T2)
+    if (T1_isNull && T2_isNull) {
+      // * T1 if MOREBOTTOM(T1, T2)
+      // * T2 otherwise
+      if (isMoreBottom(T1, T2)) {
+        return T1;
+      } else {
+        return T2;
+      }
+    }
+
+    var T1_impl = T1 as TypeImpl;
+    var T2_impl = T2 as TypeImpl;
+
+    var T1_nullability = T1_impl.nullabilitySuffix;
+    var T2_nullability = T2_impl.nullabilitySuffix;
+
+    // DOWN(Null, T2)
+    if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull) {
+      // * Null if Null <: T2
+      // * Never otherwise
+      if (isSubtypeOf2(nullNone, T2)) {
+        return nullNone;
+      } else {
+        return NeverTypeImpl.instance;
+      }
+    }
+
+    // DOWN(T1, Null)
+    if (T2_nullability == NullabilitySuffix.none && T2.isDartCoreNull) {
+      // * Null if Null <: T1
+      // * Never otherwise
+      if (isSubtypeOf2(nullNone, T1)) {
+        return nullNone;
+      } else {
+        return NeverTypeImpl.instance;
+      }
+    }
+
+    var T1_isObject = isObject(T1);
+    var T2_isObject = isObject(T2);
+
+    // DOWN(T1, T2) where OBJECT(T1) and OBJECT(T2)
+    if (T1_isObject && T2_isObject) {
+      // * T1 if MORETOP(T2, T1)
+      // * T2 otherwise
+      if (isMoreTop(T2, T1)) {
+        return T1;
+      } else {
+        return T2;
+      }
+    }
+
+    // DOWN(T1, T2) where OBJECT(T1)
+    if (T1_isObject) {
+      // * T2 if T2 is non-nullable
+      if (isNonNullable(T2)) {
+        return T2;
+      }
+
+      // * NonNull(T2) if NonNull(T2) is non-nullable
+      var T2_nonNull = promoteToNonNull(T2_impl);
+      if (isNonNullable(T2_nonNull)) {
+        return T2_nonNull;
+      }
+
+      // * Never otherwise
+      return NeverTypeImpl.instance;
+    }
+
+    // DOWN(T1, T2) where OBJECT(T2)
+    if (T2_isObject) {
+      // * T1 if T1 is non-nullable
+      if (isNonNullable(T1)) {
+        return T1;
+      }
+
+      // * NonNull(T1) if NonNull(T1) is non-nullable
+      var T1_nonNull = promoteToNonNull(T1_impl);
+      if (isNonNullable(T1_nonNull)) {
+        return T1_nonNull;
+      }
+
+      // * Never otherwise
+      return NeverTypeImpl.instance;
+    }
+
+    // DOWN(T1*, T2*) = S* where S is DOWN(T1, T2)
+    // DOWN(T1*, T2?) = S* where S is DOWN(T1, T2)
+    // DOWN(T1?, T2*) = S* where S is DOWN(T1, T2)
+    // DOWN(T1*, T2) = S where S is DOWN(T1, T2)
+    // DOWN(T1, T2*) = S where S is DOWN(T1, T2)
+    // DOWN(T1?, T2?) = S? where S is DOWN(T1, T2)
+    // DOWN(T1?, T2) = S where S is DOWN(T1, T2)
+    // DOWN(T1, T2?) = S where S is DOWN(T1, T2)
+    if (T1_nullability != NullabilitySuffix.none ||
+        T2_nullability != NullabilitySuffix.none) {
+      var resultNullability = NullabilitySuffix.question;
+      if (T1_nullability == NullabilitySuffix.none ||
+          T2_nullability == NullabilitySuffix.none) {
+        resultNullability = NullabilitySuffix.none;
+      } else if (T1_nullability == NullabilitySuffix.star ||
+          T2_nullability == NullabilitySuffix.star) {
+        resultNullability = NullabilitySuffix.star;
+      }
+      var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
+      var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
+      var S = getGreatestLowerBound(T1_none, T2_none);
+      return (S as TypeImpl).withNullability(resultNullability);
+    }
+
+    assert(T1_nullability == NullabilitySuffix.none);
+    assert(T2_nullability == NullabilitySuffix.none);
+
+    // TODO(scheglov) incomplete
+    if (T1 is FunctionType && T2 is FunctionType) {
+      return _functionGreatestLowerBound(T1, T2);
+    }
+
+    // DOWN(T1, T2) = T1 if T1 <: T2
+    if (isSubtypeOf2(T1, T2)) {
+      return T1;
+    }
+
+    // DOWN(T1, T2) = T2 if T2 <: T1
+    if (isSubtypeOf2(T2, T1)) {
+      return T2;
+    }
+
+    // DOWN(T1, T2) = Never otherwise
+    return NeverTypeImpl.instance;
+  }
+
+  /**
+   * Compute the least upper bound of two types.
+   *
+   * https://github.com/dart-lang/language
+   * See `resources/type-system/upper-lower-bounds.md`
+   */
+  @override
+  DartType getLeastUpperBound(DartType T1, DartType T2) {
+    // UP(T, T) = T
+    if (identical(T1, T2)) {
+      return T1;
+    }
+
+    // For any type T, UP(?, T) == T.
+    if (identical(T1, UnknownInferredType.instance)) {
+      return T2;
+    }
+    if (identical(T2, UnknownInferredType.instance)) {
+      return T1;
+    }
+
+    var T1_isTop = isTop(T1);
+    var T2_isTop = isTop(T2);
+
+    // UP(T1, T2) where TOP(T1) and TOP(T2)
+    if (T1_isTop && T2_isTop) {
+      // * T1 if MORETOP(T1, T2)
+      // * T2 otherwise
+      if (isMoreTop(T1, T2)) {
+        return T1;
+      } else {
+        return T2;
+      }
+    }
+
+    // UP(T1, T2) = T1 if TOP(T1)
+    if (T1_isTop) {
+      return T1;
+    }
+
+    // UP(T1, T2) = T2 if TOP(T2)
+    if (T2_isTop) {
+      return T2;
+    }
+
+    var T1_isBottom = isBottom(T1);
+    var T2_isBottom = isBottom(T2);
+
+    // UP(T1, T2) where BOTTOM(T1) and BOTTOM(T2)
+    if (T1_isBottom && T2_isBottom) {
+      // * T2 if MOREBOTTOM(T1, T2)
+      // * T1 otherwise
+      if (isMoreBottom(T1, T2)) {
+        return T2;
+      } else {
+        return T1;
+      }
+    }
+
+    // UP(T1, T2) = T2 if BOTTOM(T1)
+    if (T1_isBottom) {
+      return T2;
+    }
+
+    // UP(T1, T2) = T1 if BOTTOM(T2)
+    if (T2_isBottom) {
+      return T1;
+    }
+
+    var T1_isNull = isNull(T1);
+    var T2_isNull = isNull(T2);
+
+    // UP(T1, T2) where NULL(T1) and NULL(T2)
+    if (T1_isNull && T2_isNull) {
+      // * T2 if MOREBOTTOM(T1, T2)
+      // * T1 otherwise
+      if (isMoreBottom(T1, T2)) {
+        return T2;
+      } else {
+        return T1;
+      }
+    }
+
+    var T1_impl = T1 as TypeImpl;
+    var T2_impl = T2 as TypeImpl;
+
+    var T1_nullability = T1_impl.nullabilitySuffix;
+    var T2_nullability = T2_impl.nullabilitySuffix;
+
+    // UP(T1, T2) where NULL(T1)
+    if (T1_isNull) {
+      // * T2 if T2 is nullable
+      // * T2* if Null <: T2 or T1 <: Object (that is, T1 or T2 is legacy)
+      // * T2? otherwise
+      if (isNullable(T2)) {
+        return T2;
+      } else if (T1_nullability == NullabilitySuffix.star ||
+          T2_nullability == NullabilitySuffix.star) {
+        return T2_impl.withNullability(NullabilitySuffix.star);
+      } else {
+        return makeNullable(T2);
+      }
+    }
+
+    // UP(T1, T2) where NULL(T2)
+    if (T2_isNull) {
+      // * T1 if T1 is nullable
+      // * T1* if Null <: T1 or T2 <: Object (that is, T1 or T2 is legacy)
+      // * T1? otherwise
+      if (isNullable(T1)) {
+        return T1;
+      } else if (T1_nullability == NullabilitySuffix.star ||
+          T2_nullability == NullabilitySuffix.star) {
+        return T1_impl.withNullability(NullabilitySuffix.star);
+      } else {
+        return makeNullable(T1);
+      }
+    }
+
+    var T1_isObject = isObject(T1);
+    var T2_isObject = isObject(T2);
+
+    // UP(T1, T2) where OBJECT(T1) and OBJECT(T2)
+    if (T1_isObject && T2_isObject) {
+      // * T1 if MORETOP(T1, T2)
+      // * T2 otherwise
+      if (isMoreTop(T1, T2)) {
+        return T1;
+      } else {
+        return T2;
+      }
+    }
+
+    // UP(T1, T2) where OBJECT(T1)
+    if (T1_isObject) {
+      // * T1 if T2 is non-nullable
+      // * T1? otherwise
+      if (isNonNullable(T2)) {
+        return T1;
+      } else {
+        return makeNullable(T1);
+      }
+    }
+
+    // UP(T1, T2) where OBJECT(T2)
+    if (T2_isObject) {
+      // * T2 if T1 is non-nullable
+      // * T2? otherwise
+      if (isNonNullable(T1)) {
+        return T2;
+      } else {
+        return makeNullable(T2);
+      }
+    }
+
+    // UP(T1*, T2*) = S* where S is UP(T1, T2)
+    // UP(T1*, T2?) = S? where S is UP(T1, T2)
+    // UP(T1?, T2*) = S? where S is UP(T1, T2)
+    // UP(T1*, T2) = S* where S is UP(T1, T2)
+    // UP(T1, T2*) = S* where S is UP(T1, T2)
+    // UP(T1?, T2?) = S? where S is UP(T1, T2)
+    // UP(T1?, T2) = S? where S is UP(T1, T2)
+    // UP(T1, T2?) = S? where S is UP(T1, T2)
+    if (T1_nullability != NullabilitySuffix.none ||
+        T2_nullability != NullabilitySuffix.none) {
+      var resultNullability = NullabilitySuffix.none;
+      if (T1_nullability == NullabilitySuffix.question ||
+          T2_nullability == NullabilitySuffix.question) {
+        resultNullability = NullabilitySuffix.question;
+      } else if (T1_nullability == NullabilitySuffix.star ||
+          T2_nullability == NullabilitySuffix.star) {
+        resultNullability = NullabilitySuffix.star;
+      }
+      var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
+      var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
+      var S = getLeastUpperBound(T1_none, T2_none);
+      return (S as TypeImpl).withNullability(resultNullability);
+    }
+
+    assert(T1_nullability == NullabilitySuffix.none);
+    assert(T2_nullability == NullabilitySuffix.none);
+
+    // UP(X1 extends B1, T2)
+    // UP(X1 & B1, T2)
+    if (T1 is TypeParameterType) {
+      // T2 if X1 <: T2
+      if (isSubtypeOf2(T1, T2)) {
+        return T2;
+      }
+      // otherwise X1 if T2 <: X1
+      if (isSubtypeOf2(T2, T1)) {
+        return T1;
+      }
+      // otherwise UP(B1[Object/X1], T2)
+      var T1_toObject = _typeParameterResolveToObjectBounds(T1);
+      return getLeastUpperBound(T1_toObject, T2);
+    }
+
+    // UP(T1, X2 extends B2)
+    // UP(T1, X2 & B2)
+    if (T2 is TypeParameterType) {
+      // X2 if T1 <: X2
+      if (isSubtypeOf2(T1, T2)) {
+        // TODO(scheglov) How to get here?
+        return T2;
+      }
+      // otherwise T1 if X2 <: T1
+      if (isSubtypeOf2(T2, T1)) {
+        return T1;
+      }
+      // otherwise UP(T1, B2[Object/X2])
+      var T2_toObject = _typeParameterResolveToObjectBounds(T2);
+      return getLeastUpperBound(T1, T2_toObject);
+    }
+
+    // UP(T Function<...>(...), Function) = Function
+    if (T1 is FunctionType && T2.isDartCoreFunction) {
+      return T2;
+    }
+
+    // UP(Function, T Function<...>(...)) = Function
+    if (T1.isDartCoreFunction && T2 is FunctionType) {
+      return T1;
+    }
+
+    // UP(T Function<...>(...), S Function<...>(...)) = Function
+    // And other, more interesting variants.
+    if (T1 is FunctionType && T2 is FunctionType) {
+      return _functionLeastUpperBound(T1, T2);
+    }
+
+    // UP(T Function<...>(...), T2) = Object
+    // UP(T1, T Function<...>(...)) = Object
+    if (T1 is FunctionType || T2 is FunctionType) {
+      return objectNone;
+    }
+
+    // UP(T1, T2) = T2 if T1 <: T2
+    // UP(T1, T2) = T1 if T2 <: T1
+    // And other, more complex variants of interface types.
+    var helper = InterfaceLeastUpperBoundHelper(this);
+    return helper.compute(T1, T2);
+  }
 
   /// Returns the greatest closure of the given type [schema] with respect to `?`.
   ///
@@ -3778,6 +2283,926 @@ class TypeSystemImpl extends Dart2TypeSystem {
     }
   }
 
+  /**
+   * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
+   * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
+   *
+   * This is similar to [inferGenericFunctionOrType], but the return type is
+   * also considered as part of the solution.
+   *
+   * If this function is called with a [contextType] that is also
+   * uninstantiated, or a [fnType] that is already instantiated, it will have
+   * no effect and return `null`.
+   */
+  List<DartType> inferFunctionTypeInstantiation(
+      FunctionType contextType, FunctionType fnType,
+      {ErrorReporter errorReporter, AstNode errorNode}) {
+    if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
+      return const <DartType>[];
+    }
+
+    // Create a TypeSystem that will allow certain type parameters to be
+    // inferred. It will optimistically assume these type parameters can be
+    // subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var inferrer = GenericInferrer(this, fnType.typeFormals);
+    inferrer.constrainGenericFunctionInContext(fnType, contextType);
+
+    // Infer and instantiate the resulting type.
+    return inferrer.infer(
+      fnType.typeFormals,
+      errorReporter: errorReporter,
+      errorNode: errorNode,
+    );
+  }
+
+  /// Infers type arguments for a generic type, function, method, or
+  /// list/map literal, using the downward context type as well as the
+  /// argument types if available.
+  ///
+  /// For example, given a function type with generic type parameters, this
+  /// infers the type parameters from the actual argument types, and returns the
+  /// instantiated function type.
+  ///
+  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
+  /// result type R, and generic type parameters T0, T1, ... Tm, use the
+  /// argument types A0, A1, ... An to solve for the type parameters.
+  ///
+  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
+  /// running the subtype algorithm, and when we reach a type parameter Tj,
+  /// recording the lower or upper bound it must satisfy. At the end, all
+  /// constraints can be combined to determine the type.
+  ///
+  /// All constraints on each type parameter Tj are tracked, as well as where
+  /// they originated, so we can issue an error message tracing back to the
+  /// argument values, type parameter "extends" clause, or the return type
+  /// context.
+  List<DartType> inferGenericFunctionOrType({
+    ClassElement genericClass,
+    @required List<TypeParameterElement> typeParameters,
+    @required List<ParameterElement> parameters,
+    @required DartType declaredReturnType,
+    @required List<DartType> argumentTypes,
+    @required DartType contextReturnType,
+    ErrorReporter errorReporter,
+    AstNode errorNode,
+    bool downwards = false,
+    bool isConst = false,
+  }) {
+    if (typeParameters.isEmpty) {
+      return null;
+    }
+
+    // Create a TypeSystem that will allow certain type parameters to be
+    // inferred. It will optimistically assume these type parameters can be
+    // subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var inferrer = GenericInferrer(this, typeParameters);
+
+    if (contextReturnType != null) {
+      if (isConst) {
+        contextReturnType = eliminateTypeVariables(contextReturnType);
+      }
+      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
+    }
+
+    for (int i = 0; i < argumentTypes.length; i++) {
+      // Try to pass each argument to each parameter, recording any type
+      // parameter bounds that were implied by this assignment.
+      inferrer.constrainArgument(
+        argumentTypes[i],
+        parameters[i].type,
+        parameters[i].name,
+        genericClass: genericClass,
+      );
+    }
+
+    return inferrer.infer(
+      typeParameters,
+      errorReporter: errorReporter,
+      errorNode: errorNode,
+      downwardsInferPhase: downwards,
+    );
+  }
+
+  /**
+   * Given a [DartType] [type], if [type] is an uninstantiated
+   * parameterized type then instantiate the parameters to their
+   * bounds. See the issue for the algorithm description.
+   *
+   * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
+   *
+   * TODO(scheglov) Move this method to elements for classes, typedefs,
+   * and generic functions; compute lazily and cache.
+   */
+  @override
+  DartType instantiateToBounds(DartType type,
+      {List<bool> hasError, Map<TypeParameterElement, DartType> knownTypes}) {
+    List<TypeParameterElement> typeFormals = typeFormalsAsElements(type);
+    List<DartType> arguments = instantiateTypeFormalsToBounds(typeFormals,
+        hasError: hasError, knownTypes: knownTypes);
+    if (arguments == null) {
+      return type;
+    }
+
+    return instantiateType(type, arguments);
+  }
+
+  @override
+  DartType instantiateToBounds2({
+    ClassElement classElement,
+    FunctionTypeAliasElement functionTypeAliasElement,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    if (classElement != null) {
+      var typeParameters = classElement.typeParameters;
+      var typeArguments = _defaultTypeArguments(typeParameters);
+      var type = classElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
+      type = toLegacyType(type);
+      return type;
+    } else if (functionTypeAliasElement != null) {
+      var typeParameters = functionTypeAliasElement.typeParameters;
+      var typeArguments = _defaultTypeArguments(typeParameters);
+      var type = functionTypeAliasElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
+      type = toLegacyType(type);
+      return type;
+    } else {
+      throw ArgumentError('Missing element');
+    }
+  }
+
+  /**
+   * Given uninstantiated [typeFormals], instantiate them to their bounds.
+   * See the issue for the algorithm description.
+   *
+   * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
+   */
+  @override
+  List<DartType> instantiateTypeFormalsToBounds(
+      List<TypeParameterElement> typeFormals,
+      {List<bool> hasError,
+      Map<TypeParameterElement, DartType> knownTypes}) {
+    int count = typeFormals.length;
+    if (count == 0) {
+      return const <DartType>[];
+    }
+
+    Set<TypeParameterElement> all = <TypeParameterElement>{};
+    // all ground
+    Map<TypeParameterElement, DartType> defaults = knownTypes ?? {};
+    // not ground
+    Map<TypeParameterElement, DartType> partials = {};
+
+    for (TypeParameterElement typeParameter in typeFormals) {
+      all.add(typeParameter);
+      if (!defaults.containsKey(typeParameter)) {
+        if (typeParameter.bound == null) {
+          defaults[typeParameter] = DynamicTypeImpl.instance;
+        } else {
+          partials[typeParameter] = typeParameter.bound;
+        }
+      }
+    }
+
+    List<TypeParameterElement> getFreeParameters(DartType rootType) {
+      List<TypeParameterElement> parameters;
+      Set<DartType> visitedTypes = HashSet<DartType>();
+
+      void appendParameters(DartType type) {
+        if (type == null) {
+          return;
+        }
+        if (visitedTypes.contains(type)) {
+          return;
+        }
+        visitedTypes.add(type);
+        if (type is TypeParameterType) {
+          var element = type.element;
+          if (all.contains(element)) {
+            parameters ??= <TypeParameterElement>[];
+            parameters.add(element);
+          }
+        } else {
+          if (type is FunctionType) {
+            appendParameters(type.returnType);
+            type.parameters.map((p) => p.type).forEach(appendParameters);
+          } else if (type is InterfaceType) {
+            type.typeArguments.forEach(appendParameters);
+          }
+        }
+      }
+
+      appendParameters(rootType);
+      return parameters;
+    }
+
+    bool hasProgress = true;
+    while (hasProgress) {
+      hasProgress = false;
+      for (TypeParameterElement parameter in partials.keys) {
+        DartType value = partials[parameter];
+        List<TypeParameterElement> freeParameters = getFreeParameters(value);
+        if (freeParameters == null) {
+          defaults[parameter] = value;
+          partials.remove(parameter);
+          hasProgress = true;
+          break;
+        } else if (freeParameters.every(defaults.containsKey)) {
+          defaults[parameter] =
+              Substitution.fromMap(defaults).substituteType(value);
+          partials.remove(parameter);
+          hasProgress = true;
+          break;
+        }
+      }
+    }
+
+    // If we stopped making progress, and not all types are ground,
+    // then the whole type is malbounded and an error should be reported
+    // if errors are requested, and a partially completed type should
+    // be returned.
+    if (partials.isNotEmpty) {
+      if (hasError != null) {
+        hasError[0] = true;
+      }
+      var domain = defaults.keys.toList();
+      var range = defaults.values.toList();
+      // Build a substitution Phi mapping each uncompleted type variable to
+      // dynamic, and each completed type variable to its default.
+      for (TypeParameterElement parameter in partials.keys) {
+        domain.add(parameter);
+        range.add(DynamicTypeImpl.instance);
+      }
+      // Set the default for an uncompleted type variable (T extends B)
+      // to be Phi(B)
+      for (TypeParameterElement parameter in partials.keys) {
+        defaults[parameter] = Substitution.fromPairs(domain, range)
+            .substituteType(partials[parameter]);
+      }
+    }
+
+    List<DartType> orderedArguments =
+        typeFormals.map((p) => defaults[p]).toList();
+    return orderedArguments;
+  }
+
+  @override
+  bool isAssignableTo(DartType fromType, DartType toType) {
+    if (!NullSafetyUnderstandingFlag.isEnabled) {
+      fromType = NullabilityEliminator.perform(typeProvider, fromType);
+      toType = NullabilityEliminator.perform(typeProvider, toType);
+    }
+    return isAssignableTo2(fromType, toType);
+  }
+
+  bool isAssignableTo2(DartType fromType, DartType toType) {
+    // An actual subtype
+    if (isSubtypeOf2(fromType, toType)) {
+      return true;
+    }
+
+    // A call method tearoff
+    if (fromType is InterfaceType &&
+        !isNullable(fromType) &&
+        acceptsFunctionType(toType)) {
+      var callMethodType = getCallMethodType(fromType);
+      if (callMethodType != null && isAssignableTo2(callMethodType, toType)) {
+        return true;
+      }
+    }
+
+    // First make sure --no-implicit-casts disables all downcasts, including
+    // dynamic casts.
+    if (!implicitCasts) {
+      return false;
+    }
+
+    // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
+    if (isNonNullableByDefault) {
+      return fromType.isDynamic;
+    }
+
+    // Don't allow implicit downcasts between function types
+    // and call method objects, as these will almost always fail.
+    if (fromType is FunctionType && getCallMethodType(toType) != null) {
+      return false;
+    }
+
+    // Don't allow a non-generic function where a generic one is expected. The
+    // former wouldn't know how to handle type arguments being passed to it.
+    // TODO(rnystrom): This same check also exists in FunctionTypeImpl.relate()
+    // but we don't always reliably go through that code path. This should be
+    // cleaned up to avoid the redundancy.
+    if (fromType is FunctionType &&
+        toType is FunctionType &&
+        fromType.typeFormals.isEmpty &&
+        toType.typeFormals.isNotEmpty) {
+      return false;
+    }
+
+    // If the subtype relation goes the other way, allow the implicit downcast.
+    if (isSubtypeOf2(toType, fromType)) {
+      // TODO(leafp,jmesserly): we emit warnings/hints for these in
+      // src/task/strong/checker.dart, which is a bit inconsistent. That
+      // code should be handled into places that use isAssignableTo, such as
+      // ErrorVerifier.
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Return `true`  for things in the equivalence class of `Never`.
+  bool isBottom(DartType type) {
+    // BOTTOM(Never) is true
+    if (identical(type, NeverTypeImpl.instance)) {
+      return true;
+    }
+
+    // BOTTOM(X&T) is true iff BOTTOM(T)
+    // BOTTOM(X extends T) is true iff BOTTOM(T)
+    if (type is TypeParameterTypeImpl) {
+      var T = type.promotedBound;
+      if (T != null) {
+        return isBottom(T);
+      }
+
+      T = type.element.bound;
+      if (T != null) {
+        return isBottom(T);
+      }
+    }
+
+    // BOTTOM(T) is false otherwise
+    return false;
+  }
+
+  /// Defines an (almost) total order on bottom and `Null` types. This does not
+  /// currently consistently order two different type variables with the same
+  /// bound.
+  bool isMoreBottom(DartType T, DartType S) {
+    var T_impl = T as TypeImpl;
+    var S_impl = S as TypeImpl;
+
+    var T_nullability = T_impl.nullabilitySuffix;
+    var S_nullability = S_impl.nullabilitySuffix;
+
+    // MOREBOTTOM(Never, T) = true
+    if (identical(T, NeverTypeImpl.instance)) {
+      return true;
+    }
+
+    // MOREBOTTOM(T, Never) = false
+    if (identical(S, NeverTypeImpl.instance)) {
+      return false;
+    }
+
+    // MOREBOTTOM(Null, T) = true
+    if (T_nullability == NullabilitySuffix.none && T.isDartCoreNull) {
+      return true;
+    }
+
+    // MOREBOTTOM(T, Null) = false
+    if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
+      return false;
+    }
+
+    // MOREBOTTOM(T?, S?) = MOREBOTTOM(T, S)
+    if (T_nullability == NullabilitySuffix.question &&
+        S_nullability == NullabilitySuffix.question) {
+      var T2 = T_impl.withNullability(NullabilitySuffix.none);
+      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      return isMoreBottom(T2, S2);
+    }
+
+    // MOREBOTTOM(T, S?) = true
+    if (S_nullability == NullabilitySuffix.question) {
+      return true;
+    }
+
+    // MOREBOTTOM(T?, S) = false
+    if (T_nullability == NullabilitySuffix.question) {
+      return false;
+    }
+
+    // MOREBOTTOM(T*, S*) = MOREBOTTOM(T, S)
+    if (T_nullability == NullabilitySuffix.star &&
+        S_nullability == NullabilitySuffix.star) {
+      var T2 = T_impl.withNullability(NullabilitySuffix.none);
+      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      return isMoreBottom(T2, S2);
+    }
+
+    // MOREBOTTOM(T, S*) = true
+    if (S_nullability == NullabilitySuffix.star) {
+      return true;
+    }
+
+    // MOREBOTTOM(T*, S) = false
+    if (T_nullability == NullabilitySuffix.star) {
+      return false;
+    }
+
+    // Type parameters.
+    if (T is TypeParameterTypeImpl && S is TypeParameterTypeImpl) {
+      // We have eliminated the possibility that T_nullability or S_nullability
+      // is anything except none by this point.
+      assert(T_nullability == NullabilitySuffix.none);
+      assert(S_nullability == NullabilitySuffix.none);
+      var T_element = T.element;
+      var S_element = S.element;
+
+      // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
+      var T_promotedBound = T.promotedBound;
+      var S_promotedBound = S.promotedBound;
+      if (T_promotedBound != null && S_promotedBound != null) {
+        return isMoreBottom(T_promotedBound, S_promotedBound);
+      }
+
+      // MOREBOTTOM(X&T, S) = true
+      if (T_promotedBound != null) {
+        return true;
+      }
+
+      // MOREBOTTOM(T, Y&S) = false
+      if (S_promotedBound != null) {
+        return false;
+      }
+
+      // MOREBOTTOM(X extends T, Y extends S) = MOREBOTTOM(T, S)
+      var T_bound = T_element.bound;
+      var S_bound = S_element.bound;
+      // The invariant of the larger algorithm that this is only called with
+      // types that satisfy `BOTTOM(T)` or `NULL(T)`, and all such types, if
+      // they are type variables, have bounds which themselves are
+      // `BOTTOM` or `NULL` types.
+      assert(T_bound != null);
+      assert(S_bound != null);
+      return isMoreBottom(T_bound, S_bound);
+    }
+
+    return false;
+  }
+
+  @override
+  bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf2(t1, t2);
+
+  /// Defines a total order on top and Object types.
+  bool isMoreTop(DartType T, DartType S) {
+    var T_impl = T as TypeImpl;
+    var S_impl = S as TypeImpl;
+
+    var T_nullability = T_impl.nullabilitySuffix;
+    var S_nullability = S_impl.nullabilitySuffix;
+
+    // MORETOP(void, S) = true
+    if (identical(T, VoidTypeImpl.instance)) {
+      return true;
+    }
+
+    // MORETOP(T, void) = false
+    if (identical(S, VoidTypeImpl.instance)) {
+      return false;
+    }
+
+    // MORETOP(dynamic, S) = true
+    if (identical(T, DynamicTypeImpl.instance)) {
+      return true;
+    }
+
+    // MORETOP(T, dynamic) = false
+    if (identical(S, DynamicTypeImpl.instance)) {
+      return false;
+    }
+
+    // MORETOP(Object, S) = true
+    if (T_nullability == NullabilitySuffix.none && T.isDartCoreObject) {
+      return true;
+    }
+
+    // MORETOP(T, Object) = false
+    if (S_nullability == NullabilitySuffix.none && S.isDartCoreObject) {
+      return false;
+    }
+
+    // MORETOP(T*, S*) = MORETOP(T, S)
+    if (T_nullability == NullabilitySuffix.star &&
+        S_nullability == NullabilitySuffix.star) {
+      var T2 = T_impl.withNullability(NullabilitySuffix.none);
+      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      return isMoreTop(T2, S2);
+    }
+
+    // MORETOP(T, S*) = true
+    if (S_nullability == NullabilitySuffix.star) {
+      return true;
+    }
+
+    // MORETOP(T*, S) = false
+    if (T_nullability == NullabilitySuffix.star) {
+      return false;
+    }
+
+    // MORETOP(T?, S?) = MORETOP(T, S)
+    if (T_nullability == NullabilitySuffix.question &&
+        S_nullability == NullabilitySuffix.question) {
+      var T2 = T_impl.withNullability(NullabilitySuffix.none);
+      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      return isMoreTop(T2, S2);
+    }
+
+    // MORETOP(T, S?) = true
+    if (S_nullability == NullabilitySuffix.question) {
+      return true;
+    }
+
+    // MORETOP(T?, S) = false
+    if (T_nullability == NullabilitySuffix.question) {
+      return false;
+    }
+
+    // MORETOP(FutureOr<T>, FutureOr<S>) = MORETOP(T, S)
+    if (T is InterfaceType &&
+        T.isDartAsyncFutureOr &&
+        S is InterfaceType &&
+        S.isDartAsyncFutureOr) {
+      assert(T_nullability == NullabilitySuffix.none);
+      assert(S_nullability == NullabilitySuffix.none);
+      var T2 = T.typeArguments[0];
+      var S2 = S.typeArguments[0];
+      return isMoreTop(T2, S2);
+    }
+
+    return false;
+  }
+
+  /// Return `true` for things in the equivalence class of `Null`.
+  bool isNull(DartType type) {
+    var typeImpl = type as TypeImpl;
+    var nullabilitySuffix = typeImpl.nullabilitySuffix;
+
+    // NULL(Null) is true
+    // Also includes `Null?` and `Null*` from the rules below.
+    if (type.isDartCoreNull) {
+      return true;
+    }
+
+    // NULL(T?) is true iff NULL(T) or BOTTOM(T)
+    // NULL(T*) is true iff NULL(T) or BOTTOM(T)
+    // Cases for `Null?` and `Null*` are already checked above.
+    if (nullabilitySuffix == NullabilitySuffix.question ||
+        nullabilitySuffix == NullabilitySuffix.star) {
+      var T = typeImpl.withNullability(NullabilitySuffix.none);
+      return isBottom(T);
+    }
+
+    // NULL(T) is false otherwise
+    return false;
+  }
+
+  /// Return `true` for any type which is in the equivalence class of `Object`.
+  bool isObject(DartType type) {
+    TypeImpl typeImpl = type;
+    if (typeImpl.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    // OBJECT(Object) is true
+    if (type.isDartCoreObject) {
+      return true;
+    }
+
+    // OBJECT(FutureOr<T>) is OBJECT(T)
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      var T = type.typeArguments[0];
+      return isObject(T);
+    }
+
+    // OBJECT(T) is false otherwise
+    return false;
+  }
+
+  /// Check if [_T0] is a subtype of [_T1].
+  ///
+  /// Implements:
+  /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
+  @override
+  bool isSubtypeOf(DartType _T0, DartType _T1) {
+    if (!NullSafetyUnderstandingFlag.isEnabled) {
+      _T0 = NullabilityEliminator.perform(typeProvider, _T0);
+      _T1 = NullabilityEliminator.perform(typeProvider, _T1);
+    }
+    return isSubtypeOf2(_T0, _T1);
+  }
+
+  bool isSubtypeOf2(DartType _T0, DartType _T1) {
+    // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
+    if (identical(_T0, _T1)) {
+      return true;
+    }
+
+    // `?` is treated as a top and a bottom type during inference.
+    if (identical(_T0, UnknownInferredType.instance) ||
+        identical(_T1, UnknownInferredType.instance)) {
+      return true;
+    }
+
+    var T0 = _T0 as TypeImpl;
+    var T1 = _T1 as TypeImpl;
+
+    // Right Top: if `T1` is a top type (i.e. `dynamic`, or `void`, or
+    // `Object?`) then `T0 <: T1`.
+    if (identical(T1, DynamicTypeImpl.instance) ||
+        identical(T1, VoidTypeImpl.instance) ||
+        T1.nullabilitySuffix == NullabilitySuffix.question &&
+            T1.isDartCoreObject) {
+      return true;
+    }
+
+    // Left Top: if `T0` is `dynamic` or `void`,
+    //   then `T0 <: T1` if `Object? <: T1`.
+    if (identical(T0, DynamicTypeImpl.instance) ||
+        identical(T0, VoidTypeImpl.instance)) {
+      if (isSubtypeOf2(objectQuestion, T1)) {
+        return true;
+      }
+    }
+
+    // Left Bottom: if `T0` is `Never`, then `T0 <: T1`.
+    if (identical(T0, NeverTypeImpl.instance)) {
+      return true;
+    }
+
+    // Right Object: if `T1` is `Object` then:
+    var T1_nullability = T1.nullabilitySuffix;
+    if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreObject) {
+      var T0_nullability = T0.nullabilitySuffix;
+      // * if `T0` is an unpromoted type variable with bound `B`,
+      //   then `T0 <: T1` iff `B <: Object`.
+      // * if `T0` is a promoted type variable `X & S`,
+      //   then `T0 <: T1` iff `S <: Object`.
+      if (T0_nullability == NullabilitySuffix.none &&
+          T0 is TypeParameterTypeImpl) {
+        var S = T0.promotedBound;
+        var B = T0.element.bound;
+        if (S == null && B != null) {
+          return isSubtypeOf2(B, objectNone);
+        }
+        if (S != null) {
+          return isSubtypeOf2(S, objectNone);
+        }
+      }
+      // * if `T0` is `FutureOr<S>` for some `S`,
+      //   then `T0 <: T1` iff `S <: Object`
+      if (T0_nullability == NullabilitySuffix.none &&
+          T0 is InterfaceTypeImpl &&
+          T0.isDartAsyncFutureOr) {
+        return isSubtypeOf2(T0.typeArguments[0], T1);
+      }
+      // * if `T0` is `S*` for any `S`, then `T0 <: T1` iff `S <: T1`
+      if (T0_nullability == NullabilitySuffix.star) {
+        return isSubtypeOf2(
+          T0.withNullability(NullabilitySuffix.none),
+          T1,
+        );
+      }
+      // * if `T0` is `Null`, `dynamic`, `void`, or `S?` for any `S`,
+      //   then the subtyping does not hold, the result is false.
+      if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull ||
+          identical(T0, DynamicTypeImpl.instance) ||
+          identical(T0, VoidTypeImpl.instance) ||
+          T0_nullability == NullabilitySuffix.question) {
+        return false;
+      }
+      // Otherwise `T0 <: T1` is true.
+      return true;
+    }
+
+    // Left Null: if `T0` is `Null` then:
+    var T0_nullability = T0.nullabilitySuffix;
+    if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull) {
+      // * If `T1` is `FutureOr<S>` for some `S`, then the query is true iff
+      // `Null <: S`.
+      if (T1_nullability == NullabilitySuffix.none &&
+          T1 is InterfaceTypeImpl &&
+          T1.isDartAsyncFutureOr) {
+        var S = T1.typeArguments[0];
+        return isSubtypeOf2(nullNone, S);
+      }
+      // If `T1` is `Null`, `S?` or `S*` for some `S`, then the query is true.
+      if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull ||
+          T1_nullability == NullabilitySuffix.question ||
+          T1_nullability == NullabilitySuffix.star) {
+        return true;
+      }
+      // * if `T1` is a type variable (promoted or not) the query is false
+      if (T1 is TypeParameterTypeImpl) {
+        return false;
+      }
+      // Otherwise, the query is false.
+      return false;
+    }
+
+    // Left Legacy if `T0` is `S0*` then:
+    if (T0_nullability == NullabilitySuffix.star) {
+      // * `T0 <: T1` iff `S0 <: T1`.
+      var S0 = T0.withNullability(NullabilitySuffix.none);
+      return isSubtypeOf2(S0, T1);
+    }
+
+    // Right Legacy `T1` is `S1*` then:
+    //   * `T0 <: T1` iff `T0 <: S1?`.
+    if (T1_nullability == NullabilitySuffix.star) {
+      var S1 = T1.withNullability(NullabilitySuffix.question);
+      return isSubtypeOf2(T0, S1);
+    }
+
+    // Left FutureOr: if `T0` is `FutureOr<S0>` then:
+    if (T0_nullability == NullabilitySuffix.none &&
+        T0 is InterfaceTypeImpl &&
+        T0.isDartAsyncFutureOr) {
+      var S0 = T0.typeArguments[0];
+      // * `T0 <: T1` iff `Future<S0> <: T1` and `S0 <: T1`
+      if (isSubtypeOf2(S0, T1)) {
+        var FutureS0 = typeProvider.futureElement.instantiate(
+          typeArguments: [S0],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+        return isSubtypeOf2(FutureS0, T1);
+      }
+      return false;
+    }
+
+    // Left Nullable: if `T0` is `S0?` then:
+    //   * `T0 <: T1` iff `S0 <: T1` and `Null <: T1`.
+    if (T0_nullability == NullabilitySuffix.question) {
+      var S0 = T0.withNullability(NullabilitySuffix.none);
+      return isSubtypeOf2(S0, T1) && isSubtypeOf2(nullNone, T1);
+    }
+
+    // Type Variable Reflexivity 1: if T0 is a type variable X0 or a promoted
+    // type variables X0 & S0 and T1 is X0 then:
+    //   * T0 <: T1
+    if (T0 is TypeParameterTypeImpl &&
+        T1 is TypeParameterTypeImpl &&
+        T1.promotedBound == null &&
+        T0.element == T1.element) {
+      return true;
+    }
+
+    // Right Promoted Variable: if `T1` is a promoted type variable `X1 & S1`:
+    //   * `T0 <: T1` iff `T0 <: X1` and `T0 <: S1`
+    if (T1 is TypeParameterTypeImpl && T1.promotedBound != null) {
+      var X1 = TypeParameterTypeImpl(
+        element: T1.element,
+        nullabilitySuffix: T1.nullabilitySuffix,
+      );
+      return isSubtypeOf2(T0, X1) && isSubtypeOf2(T0, T1.promotedBound);
+    }
+
+    // Right FutureOr: if `T1` is `FutureOr<S1>` then:
+    if (T1_nullability == NullabilitySuffix.none &&
+        T1 is InterfaceTypeImpl &&
+        T1.isDartAsyncFutureOr) {
+      var S1 = T1.typeArguments[0];
+      // `T0 <: T1` iff any of the following hold:
+      // * either `T0 <: Future<S1>`
+      var FutureS1 = typeProvider.futureElement.instantiate(
+        typeArguments: [S1],
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+      if (isSubtypeOf2(T0, FutureS1)) {
+        return true;
+      }
+      // * or `T0 <: S1`
+      if (isSubtypeOf2(T0, S1)) {
+        return true;
+      }
+      // * or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
+      // * or `T0` is `X0 & S0` and `S0 <: T1`
+      if (T0 is TypeParameterTypeImpl) {
+        var S0 = T0.promotedBound;
+        if (S0 != null && isSubtypeOf2(S0, T1)) {
+          return true;
+        }
+        var B0 = T0.element.bound;
+        if (B0 != null && isSubtypeOf2(B0, T1)) {
+          return true;
+        }
+      }
+      // iff
+      return false;
+    }
+
+    // Right Nullable: if `T1` is `S1?` then:
+    if (T1_nullability == NullabilitySuffix.question) {
+      var S1 = T1.withNullability(NullabilitySuffix.none);
+      // `T0 <: T1` iff any of the following hold:
+      // * either `T0 <: S1`
+      if (isSubtypeOf2(T0, S1)) {
+        return true;
+      }
+      // * or `T0 <: Null`
+      if (isSubtypeOf2(T0, nullNone)) {
+        return true;
+      }
+      // or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
+      // or `T0` is `X0 & S0` and `S0 <: T1`
+      if (T0 is TypeParameterTypeImpl) {
+        var S0 = T0.promotedBound;
+        if (S0 != null && isSubtypeOf2(S0, T1)) {
+          return true;
+        }
+        var B0 = T0.element.bound;
+        if (B0 != null && isSubtypeOf2(B0, T1)) {
+          return true;
+        }
+      }
+      // iff
+      return false;
+    }
+
+    // Super-Interface: `T0` is an interface type with super-interfaces
+    // `S0,...Sn`:
+    //   * and `Si <: T1` for some `i`.
+    if (T0 is InterfaceTypeImpl && T1 is InterfaceTypeImpl) {
+      return _isInterfaceSubtypeOf(T0, T1, null);
+    }
+
+    // Left Promoted Variable: `T0` is a promoted type variable `X0 & S0`
+    //   * and `S0 <: T1`
+    // Left Type Variable Bound: `T0` is a type variable `X0` with bound `B0`
+    //   * and `B0 <: T1`
+    if (T0 is TypeParameterTypeImpl) {
+      var S0 = T0.promotedBound;
+      if (S0 != null && isSubtypeOf2(S0, T1)) {
+        return true;
+      }
+
+      var B0 = T0.element.bound;
+      if (B0 != null && isSubtypeOf2(B0, T1)) {
+        return true;
+      }
+    }
+
+    if (T0 is FunctionTypeImpl) {
+      // Function Type/Function: `T0` is a function type and `T1` is `Function`.
+      if (T1.isDartCoreFunction) {
+        return true;
+      }
+      if (T1 is FunctionTypeImpl) {
+        return _isFunctionSubtypeOf(T0, T1);
+      }
+    }
+
+    return false;
+  }
+
+  /// Return `true` for any type which is in the equivalence class of top types.
+  bool isTop(DartType type) {
+    // TOP(?) is true
+    if (identical(type, UnknownInferredType.instance)) {
+      return true;
+    }
+
+    // TOP(dynamic) is true
+    if (identical(type, DynamicTypeImpl.instance)) {
+      return true;
+    }
+
+    // TOP(void) is true
+    if (identical(type, VoidTypeImpl.instance)) {
+      return true;
+    }
+
+    var typeImpl = type as TypeImpl;
+    var nullabilitySuffix = typeImpl.nullabilitySuffix;
+
+    // TOP(T?) is true iff TOP(T) or OBJECT(T)
+    // TOP(T*) is true iff TOP(T) or OBJECT(T)
+    if (nullabilitySuffix == NullabilitySuffix.question ||
+        nullabilitySuffix == NullabilitySuffix.star) {
+      var T = typeImpl.withNullability(NullabilitySuffix.none);
+      return isTop(T) || isObject(T);
+    }
+
+    // TOP(FutureOr<T>) is TOP(T)
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      assert(nullabilitySuffix == NullabilitySuffix.none);
+      var T = type.typeArguments[0];
+      return isTop(T);
+    }
+
+    // TOP(T) is false otherwise
+    return false;
+  }
+
   /// Returns the least closure of the given type [schema] with respect to `?`.
   ///
   /// The least closure of a type schema `P` with respect to `?` is defined as
@@ -3807,6 +3232,595 @@ class TypeSystemImpl extends Dart2TypeSystem {
         schema: schema,
       );
     }
+  }
+
+  /**
+   * Compute the canonical representation of [T].
+   *
+   * https://github.com/dart-lang/language
+   * See `resources/type-system/normalization.md`
+   */
+  DartType normalize(DartType T) {
+    return NormalizeHelper(this).normalize(T);
+  }
+
+  @override
+  DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
+      DartType rightType, DartType currentType) {
+    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
+      if (rightType == leftType || rightType.isDartCoreInt) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.PLUS_EQ ||
+            operator == TokenType.MINUS_EQ ||
+            operator == TokenType.STAR_EQ) {
+          if (isNonNullableByDefault) {
+            return promoteToNonNull(leftType as TypeImpl);
+          }
+          return leftType;
+        }
+      }
+      if (rightType.isDartCoreDouble) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.SLASH) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
+          if (isNonNullableByDefault) {
+            return promoteToNonNull(doubleType);
+          }
+          return doubleType;
+        }
+      }
+      return currentType;
+    }
+    return super
+        .refineBinaryExpressionType(leftType, operator, rightType, currentType);
+  }
+
+  /// Return `true` if runtime types [T1] and [T2] are equal.
+  ///
+  /// nnbd/feature-specification.md#runtime-type-equality-operator
+  bool runtimeTypesEqual(DartType T1, DartType T2) {
+    return RuntimeTypeEqualityHelper(this).equal(T1, T2);
+  }
+
+  DartType toLegacyType(DartType type) {
+    if (isNonNullableByDefault) return type;
+    return NullabilityEliminator.perform(typeProvider, type);
+  }
+
+  /**
+   * Merges two types into a single type.
+   * Compute the canonical representation of [T].
+   *
+   * https://github.com/dart-lang/language/
+   * See `accepted/future-releases/nnbd/feature-specification.md`
+   * See `#classes-defined-in-opted-in-libraries`
+   */
+  DartType topMerge(DartType T, DartType S) {
+    return TopMergeHelper(this).topMerge(T, S);
+  }
+
+  @override
+  DartType tryPromoteToType(DartType to, DartType from) {
+    // Allow promoting to a subtype, for example:
+    //
+    //     f(Base b) {
+    //       if (b is SubTypeOfBase) {
+    //         // promote `b` to SubTypeOfBase for this block
+    //       }
+    //     }
+    //
+    // This allows the variable to be used wherever the supertype (here `Base`)
+    // is expected, while gaining a more precise type.
+    if (isSubtypeOf2(to, from)) {
+      return to;
+    }
+    // For a type parameter `T extends U`, allow promoting the upper bound
+    // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
+    if (from is TypeParameterType) {
+      if (isSubtypeOf2(to, from.bound ?? DynamicTypeImpl.instance)) {
+        var declaration = from.element.declaration;
+        return TypeParameterTypeImpl(
+          element: declaration,
+          nullabilitySuffix: from.nullabilitySuffix,
+          promotedBound: to,
+        );
+      }
+    }
+
+    return null;
+  }
+
+  List<DartType> _defaultTypeArguments(
+    List<TypeParameterElement> typeParameters,
+  ) {
+    return typeParameters.map((typeParameter) {
+      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
+      return typeParameterImpl.defaultType;
+    }).toList();
+  }
+
+  /**
+   * Compute the greatest lower bound of function types [f] and [g].
+   *
+   * https://github.com/dart-lang/language
+   * See `resources/type-system/upper-lower-bounds.md`
+   */
+  DartType _functionGreatestLowerBound(FunctionType f, FunctionType g) {
+    var fTypeFormals = f.typeFormals;
+    var gTypeFormals = g.typeFormals;
+
+    // The number of type parameters must be the same.
+    // Otherwise the result is `Never`.
+    if (fTypeFormals.length != gTypeFormals.length) {
+      return NeverTypeImpl.instance;
+    }
+
+    // The bounds of type parameters must be equal.
+    // Otherwise the result is `Never`.
+    var freshTypeFormalTypes =
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
+    if (freshTypeFormalTypes == null) {
+      return NeverTypeImpl.instance;
+    }
+
+    var typeFormals = freshTypeFormalTypes
+        .map<TypeParameterElement>((t) => t.element)
+        .toList();
+
+    f = f.instantiate(freshTypeFormalTypes);
+    g = g.instantiate(freshTypeFormalTypes);
+
+    var fParameters = f.parameters;
+    var gParameters = g.parameters;
+
+    var parameters = <ParameterElement>[];
+    var fIndex = 0;
+    var gIndex = 0;
+    while (fIndex < fParameters.length && gIndex < gParameters.length) {
+      var fParameter = fParameters[fIndex];
+      var gParameter = gParameters[gIndex];
+      if (fParameter.isPositional) {
+        if (gParameter.isPositional) {
+          fIndex++;
+          gIndex++;
+          parameters.add(
+            ParameterElementImpl.synthetic(
+              fParameter.name,
+              getLeastUpperBound(fParameter.type, gParameter.type),
+              fParameter.isOptional || gParameter.isOptional
+                  ? ParameterKind.POSITIONAL
+                  : ParameterKind.REQUIRED,
+            ),
+          );
+        } else {
+          return NeverTypeImpl.instance;
+        }
+      } else if (fParameter.isNamed) {
+        if (gParameter.isNamed) {
+          var compareNames = fParameter.name.compareTo(gParameter.name);
+          if (compareNames == 0) {
+            fIndex++;
+            gIndex++;
+            parameters.add(
+              ParameterElementImpl.synthetic(
+                fParameter.name,
+                getLeastUpperBound(fParameter.type, gParameter.type),
+                fParameter.isRequiredNamed && gParameter.isRequiredNamed
+                    ? ParameterKind.NAMED_REQUIRED
+                    : ParameterKind.NAMED,
+              ),
+            );
+          } else if (compareNames < 0) {
+            fIndex++;
+            parameters.add(
+              ParameterElementImpl.synthetic(
+                fParameter.name,
+                fParameter.type,
+                ParameterKind.NAMED,
+              ),
+            );
+          } else {
+            assert(compareNames > 0);
+            gIndex++;
+            parameters.add(
+              ParameterElementImpl.synthetic(
+                gParameter.name,
+                gParameter.type,
+                ParameterKind.NAMED,
+              ),
+            );
+          }
+        } else {
+          return NeverTypeImpl.instance;
+        }
+      }
+    }
+
+    while (fIndex < fParameters.length) {
+      var fParameter = fParameters[fIndex++];
+      if (fParameter.isPositional) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            fParameter.name,
+            fParameter.type,
+            ParameterKind.POSITIONAL,
+          ),
+        );
+      } else {
+        assert(fParameter.isNamed);
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            fParameter.name,
+            fParameter.type,
+            ParameterKind.NAMED,
+          ),
+        );
+      }
+    }
+
+    while (gIndex < gParameters.length) {
+      var gParameter = gParameters[gIndex++];
+      if (gParameter.isPositional) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            gParameter.name,
+            gParameter.type,
+            ParameterKind.POSITIONAL,
+          ),
+        );
+      } else {
+        assert(gParameter.isNamed);
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            gParameter.name,
+            gParameter.type,
+            ParameterKind.NAMED,
+          ),
+        );
+      }
+    }
+
+    var returnType = getGreatestLowerBound(f.returnType, g.returnType);
+
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  /**
+   * Compute the least upper bound of function types [f] and [g].
+   *
+   * https://github.com/dart-lang/language
+   * See `resources/type-system/upper-lower-bounds.md`
+   */
+  DartType _functionLeastUpperBound(FunctionType f, FunctionType g) {
+    var fTypeFormals = f.typeFormals;
+    var gTypeFormals = g.typeFormals;
+
+    // The number of type parameters must be the same.
+    // Otherwise the result is `Function`.
+    if (fTypeFormals.length != gTypeFormals.length) {
+      return _interfaceTypeFunctionNone;
+    }
+
+    // The bounds of type parameters must be equal.
+    // Otherwise the result is `Function`.
+    var freshTypeFormalTypes =
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
+    if (freshTypeFormalTypes == null) {
+      return _interfaceTypeFunctionNone;
+    }
+
+    var typeFormals = freshTypeFormalTypes
+        .map<TypeParameterElement>((t) => t.element)
+        .toList();
+
+    f = f.instantiate(freshTypeFormalTypes);
+    g = g.instantiate(freshTypeFormalTypes);
+
+    var fParameters = f.parameters;
+    var gParameters = g.parameters;
+
+    var parameters = <ParameterElement>[];
+    var fIndex = 0;
+    var gIndex = 0;
+    while (fIndex < fParameters.length && gIndex < gParameters.length) {
+      var fParameter = fParameters[fIndex];
+      var gParameter = gParameters[gIndex];
+      if (fParameter.isRequiredPositional) {
+        if (gParameter.isRequiredPositional) {
+          fIndex++;
+          gIndex++;
+          parameters.add(
+            ParameterElementImpl.synthetic(
+              fParameter.name,
+              getGreatestLowerBound(fParameter.type, gParameter.type),
+              ParameterKind.REQUIRED,
+            ),
+          );
+        } else {
+          break;
+        }
+      } else if (fParameter.isOptionalPositional) {
+        if (gParameter.isOptionalPositional) {
+          fIndex++;
+          gIndex++;
+          parameters.add(
+            ParameterElementImpl.synthetic(
+              fParameter.name,
+              getGreatestLowerBound(fParameter.type, gParameter.type),
+              ParameterKind.POSITIONAL,
+            ),
+          );
+        } else {
+          break;
+        }
+      } else if (fParameter.isNamed) {
+        if (gParameter.isNamed) {
+          var compareNames = fParameter.name.compareTo(gParameter.name);
+          if (compareNames == 0) {
+            fIndex++;
+            gIndex++;
+            parameters.add(
+              ParameterElementImpl.synthetic(
+                fParameter.name,
+                getGreatestLowerBound(fParameter.type, gParameter.type),
+                fParameter.isRequiredNamed || gParameter.isRequiredNamed
+                    ? ParameterKind.NAMED_REQUIRED
+                    : ParameterKind.NAMED,
+              ),
+            );
+          } else if (compareNames < 0) {
+            if (fParameter.isRequiredNamed) {
+              // We cannot skip required named.
+              return _interfaceTypeFunctionNone;
+            } else {
+              fIndex++;
+            }
+          } else {
+            assert(compareNames > 0);
+            if (gParameter.isRequiredNamed) {
+              // We cannot skip required named.
+              return _interfaceTypeFunctionNone;
+            } else {
+              gIndex++;
+            }
+          }
+        } else {
+          break;
+        }
+      }
+    }
+
+    while (fIndex < fParameters.length) {
+      var fParameter = fParameters[fIndex++];
+      if (fParameter.isNotOptional) {
+        return _interfaceTypeFunctionNone;
+      }
+    }
+
+    while (gIndex < gParameters.length) {
+      var gParameter = gParameters[gIndex++];
+      if (gParameter.isNotOptional) {
+        return _interfaceTypeFunctionNone;
+      }
+    }
+
+    var returnType = getLeastUpperBound(f.returnType, g.returnType);
+
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  /// Check that [f] is a subtype of [g].
+  bool _isFunctionSubtypeOf(FunctionType f, FunctionType g) {
+    var fTypeFormals = f.typeFormals;
+    var gTypeFormals = g.typeFormals;
+
+    // The number of type parameters must be the same.
+    if (fTypeFormals.length != gTypeFormals.length) {
+      return false;
+    }
+
+    // The bounds of type parameters must be equal.
+    var freshTypeFormalTypes =
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) {
+      return isSubtypeOf2(t, s) && isSubtypeOf2(s, t);
+    });
+    if (freshTypeFormalTypes == null) {
+      return false;
+    }
+
+    f = f.instantiate(freshTypeFormalTypes);
+    g = g.instantiate(freshTypeFormalTypes);
+
+    if (!isSubtypeOf2(f.returnType, g.returnType)) {
+      return false;
+    }
+
+    var fParameters = f.parameters;
+    var gParameters = g.parameters;
+
+    var fIndex = 0;
+    var gIndex = 0;
+    while (fIndex < fParameters.length && gIndex < gParameters.length) {
+      var fParameter = fParameters[fIndex];
+      var gParameter = gParameters[gIndex];
+      if (fParameter.isRequiredPositional) {
+        if (gParameter.isRequiredPositional) {
+          if (isSubtypeOf2(gParameter.type, fParameter.type)) {
+            fIndex++;
+            gIndex++;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else if (fParameter.isOptionalPositional) {
+        if (gParameter.isPositional) {
+          if (isSubtypeOf2(gParameter.type, fParameter.type)) {
+            fIndex++;
+            gIndex++;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else if (fParameter.isNamed) {
+        if (gParameter.isNamed) {
+          var compareNames = fParameter.name.compareTo(gParameter.name);
+          if (compareNames == 0) {
+            if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
+              return false;
+            } else if (isSubtypeOf2(gParameter.type, fParameter.type)) {
+              fIndex++;
+              gIndex++;
+            } else {
+              return false;
+            }
+          } else if (compareNames < 0) {
+            if (fParameter.isRequiredNamed) {
+              return false;
+            } else {
+              fIndex++;
+            }
+          } else {
+            assert(compareNames > 0);
+            // The subtype must accept all parameters of the supertype.
+            return false;
+          }
+        } else {
+          break;
+        }
+      }
+    }
+
+    // The supertype must provide all required parameters to the subtype.
+    while (fIndex < fParameters.length) {
+      var fParameter = fParameters[fIndex++];
+      if (fParameter.isNotOptional) {
+        return false;
+      }
+    }
+
+    // The subtype must accept all parameters of the supertype.
+    assert(fIndex == fParameters.length);
+    if (gIndex < gParameters.length) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _isInterfaceSubtypeOf(
+      InterfaceType i1, InterfaceType i2, Set<ClassElement> visitedTypes) {
+    // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
+    // because top types are eliminated before `isSubtypeOf` calls this.
+    if (identical(i1, i2) || i2.isObject) {
+      return true;
+    }
+
+    // Object cannot subtype anything but itself (handled above).
+    if (i1.isObject) {
+      return false;
+    }
+
+    ClassElement i1Element = i1.element;
+    if (i1Element == i2.element) {
+      List<DartType> tArgs1 = i1.typeArguments;
+      List<DartType> tArgs2 = i2.typeArguments;
+      List<TypeParameterElement> tParams = i1Element.typeParameters;
+
+      assert(tArgs1.length == tArgs2.length);
+      assert(tParams.length == tArgs1.length);
+
+      for (int i = 0; i < tArgs1.length; i++) {
+        DartType t1 = tArgs1[i];
+        DartType t2 = tArgs2[i];
+
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        Variance variance = (tParams[i] as TypeParameterElementImpl).variance;
+        if (variance.isCovariant) {
+          if (!isSubtypeOf2(t1, t2)) {
+            return false;
+          }
+        } else if (variance.isContravariant) {
+          if (!isSubtypeOf2(t2, t1)) {
+            return false;
+          }
+        } else if (variance.isInvariant) {
+          if (!isSubtypeOf2(t1, t2) || !isSubtypeOf2(t2, t1)) {
+            return false;
+          }
+        } else {
+          throw StateError('Type parameter ${tParams[i]} has unknown '
+              'variance $variance for subtype checking.');
+        }
+      }
+      return true;
+    }
+
+    // Classes types cannot subtype `Function` or vice versa.
+    if (i1.isDartCoreFunction || i2.isDartCoreFunction) {
+      return false;
+    }
+
+    // Guard against loops in the class hierarchy.
+    //
+    // Dart 2 does not allow multiple implementations of the same generic type
+    // with different type arguments. So we can track just the class element
+    // to find cycles, rather than tracking the full interface type.
+    visitedTypes ??= HashSet<ClassElement>();
+    if (!visitedTypes.add(i1Element)) return false;
+
+    InterfaceType superclass = i1.superclass;
+    if (superclass != null &&
+        _isInterfaceSubtypeOf(superclass, i2, visitedTypes)) {
+      return true;
+    }
+
+    for (final parent in i1.interfaces) {
+      if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
+        return true;
+      }
+    }
+
+    for (final parent in i1.mixins) {
+      if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
+        return true;
+      }
+    }
+
+    if (i1Element.isMixin) {
+      for (final parent in i1.superclassConstraints) {
+        if (_isInterfaceSubtypeOf(parent, i2, visitedTypes)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  DartType _typeParameterResolveToObjectBounds(DartType type) {
+    var element = type.element;
+    type = type.resolveToBound(typeProvider.objectType);
+    return Substitution.fromMap({element: typeProvider.objectType})
+        .substituteType(type);
   }
 }
 

@@ -9,9 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
-/**
- * A computer for [HighlightRegion]s in a Dart [CompilationUnit].
- */
+/// A computer for [HighlightRegion]s in a Dart [CompilationUnit].
 class DartUnitHighlightsComputer2 {
   final CompilationUnit _unit;
 
@@ -19,9 +17,7 @@ class DartUnitHighlightsComputer2 {
 
   DartUnitHighlightsComputer2(this._unit);
 
-  /**
-   * Returns the computed highlight regions, not `null`.
-   */
+  /// Returns the computed highlight regions, not `null`.
   List<HighlightRegion> compute() {
     _unit.accept(_DartUnitHighlightsComputerVisitor2(this));
     _addCommentRanges();
@@ -429,9 +425,7 @@ class DartUnitHighlightsComputer2 {
   }
 }
 
-/**
- * An AST visitor for [DartUnitHighlightsComputer2].
- */
+/// An AST visitor for [DartUnitHighlightsComputer2].
 class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
   final DartUnitHighlightsComputer2 computer;
 

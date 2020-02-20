@@ -12,6 +12,8 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+#include "vm/constants_base.h"
+
 namespace dart {
 
 enum Register {

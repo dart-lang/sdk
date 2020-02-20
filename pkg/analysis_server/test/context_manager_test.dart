@@ -1601,10 +1601,8 @@ sky_engine:lib/''');
     });
   }
 
-  /**
-   * Verify that package URI's for source files in [path] will be resolved
-   * using a package root matching [expectation].
-   */
+  /// Verify that package URI's for source files in [path] will be resolved
+  /// using a package root matching [expectation].
   void _checkPackageRoot(String path, expectation) {
     // TODO(brianwilkerson) Figure out how to test this. Possibly by comparing
     // the contents of the package map (although that approach doesn't work at
@@ -1617,29 +1615,19 @@ sky_engine:lib/''');
 }
 
 abstract class ContextManagerTest with ResourceProviderMixin {
-  /**
-   * The name of the 'bin' directory.
-   */
+  /// The name of the 'bin' directory.
   static const String BIN_NAME = 'bin';
 
-  /**
-   * The name of the 'example' directory.
-   */
+  /// The name of the 'example' directory.
   static const String EXAMPLE_NAME = 'example';
 
-  /**
-   * The name of the 'lib' directory.
-   */
+  /// The name of the 'lib' directory.
   static const String LIB_NAME = 'lib';
 
-  /**
-   * The name of the 'src' directory.
-   */
+  /// The name of the 'src' directory.
   static const String SRC_NAME = 'src';
 
-  /**
-   * The name of the 'test' directory.
-   */
+  /// The name of the 'test' directory.
   static const String TEST_NAME = 'test';
 
   ContextManagerImpl manager;
@@ -1687,10 +1675,8 @@ abstract class ContextManagerTest with ResourceProviderMixin {
 
   Map<String, List<Folder>> get _currentPackageMap => _packageMap(projPath);
 
-  /**
-   * TODO(brianwilkerson) This doesn't add the strong mode processor when using
-   * the new analysis driver.
-   */
+  /// TODO(brianwilkerson) This doesn't add the strong mode processor when using
+  /// the new analysis driver.
   ErrorProcessor getProcessor(AnalysisError error) => errorProcessors
       .firstWhere((ErrorProcessor p) => p.appliesTo(error), orElse: () => null);
 
@@ -2353,67 +2339,43 @@ analyzer:
 }
 
 class TestContextManagerCallbacks extends ContextManagerCallbacks {
-  /**
-   * Source of timestamps stored in [currentContextFilePaths].
-   */
+  /// Source of timestamps stored in [currentContextFilePaths].
   int now = 0;
 
-  /**
-   * The analysis driver that was created.
-   */
+  /// The analysis driver that was created.
   AnalysisDriver currentDriver;
 
-  /**
-   * A table mapping paths to the analysis driver associated with that path.
-   */
+  /// A table mapping paths to the analysis driver associated with that path.
   Map<String, AnalysisDriver> driverMap = <String, AnalysisDriver>{};
 
-  /**
-   * Map from context to the timestamp when the context was created.
-   */
+  /// Map from context to the timestamp when the context was created.
   Map<String, int> currentContextTimestamps = <String, int>{};
 
-  /**
-   * Map from context to (map from file path to timestamp of last event).
-   */
+  /// Map from context to (map from file path to timestamp of last event).
   final Map<String, Map<String, int>> currentContextFilePaths =
       <String, Map<String, int>>{};
 
-  /**
-   * A map from the paths of contexts to a set of the sources that should be
-   * explicitly analyzed in those contexts.
-   */
+  /// A map from the paths of contexts to a set of the sources that should be
+  /// explicitly analyzed in those contexts.
   final Map<String, Set<Source>> currentContextSources =
       <String, Set<Source>>{};
 
-  /**
-   * Resource provider used for this test.
-   */
+  /// Resource provider used for this test.
   final ResourceProvider resourceProvider;
 
-  /**
-   * The manager managing the SDKs.
-   */
+  /// The manager managing the SDKs.
   final DartSdkManager sdkManager;
 
-  /**
-   * The logger used by the scheduler and the driver.
-   */
+  /// The logger used by the scheduler and the driver.
   final PerformanceLog logger;
 
-  /**
-   * The scheduler used by the driver.
-   */
+  /// The scheduler used by the driver.
   final AnalysisDriverScheduler scheduler;
 
-  /**
-   * The list of `flushedFiles` in the last [removeContext] invocation.
-   */
+  /// The list of `flushedFiles` in the last [removeContext] invocation.
   List<String> lastFlushedFiles;
 
-  /**
-   * The watch events that have been broadcast.
-   */
+  /// The watch events that have been broadcast.
   List<WatchEvent> watchEvents = <WatchEvent>[];
 
   @override
@@ -2422,21 +2384,15 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   TestContextManagerCallbacks(
       this.resourceProvider, this.sdkManager, this.logger, this.scheduler);
 
-  /**
-   * Return the current set of analysis options.
-   */
+  /// Return the current set of analysis options.
   AnalysisOptions get analysisOptions => currentDriver?.analysisOptions;
 
-  /**
-   * Return the paths to the context roots that currently exist.
-   */
+  /// Return the paths to the context roots that currently exist.
   Iterable<String> get currentContextRoots {
     return currentContextTimestamps.keys;
   }
 
-  /**
-   * Return the paths to the files being analyzed in the current context root.
-   */
+  /// Return the paths to the files being analyzed in the current context root.
   Iterable<String> get currentFilePaths {
     if (currentDriver == null) {
       return <String>[];
@@ -2444,9 +2400,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     return currentDriver.addedFiles;
   }
 
-  /**
-   * Return the current source factory.
-   */
+  /// Return the current source factory.
   SourceFactory get sourceFactory => currentDriver?.sourceFactory;
 
   @override
@@ -2525,9 +2479,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     return builder;
   }
 
-  /**
-   * Return the paths to the files being analyzed in the current context root.
-   */
+  /// Return the paths to the files being analyzed in the current context root.
   Iterable<Source> currentFileSources(String contextPath) {
     if (currentDriver == null) {
       return <Source>[];
@@ -2542,9 +2494,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     });
   }
 
-  /**
-   * Return the paths to the files being analyzed in the current context root.
-   */
+  /// Return the paths to the files being analyzed in the current context root.
   Iterable<String> getCurrentFilePaths(String contextPath) {
     if (currentDriver == null) {
       return <String>[];

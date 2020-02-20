@@ -516,6 +516,25 @@ class DartObjectImpl implements DartObject {
   /// the [rightOperand].
   DartObjectImpl isIdentical2(
       TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    // Workaround for Flutter `const kIsWeb = identical(0, 0.0)`.
+    if (type.isDartCoreInt && rightOperand.type.isDartCoreDouble) {
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        BoolState(
+          toIntValue() == 0 && rightOperand.toDoubleValue() == 0.0,
+        ),
+      );
+    }
+
+    if (!_typeSystem.runtimeTypesEqual(type, rightOperand.type)) {
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        BoolState(false),
+      );
+    }
+
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,

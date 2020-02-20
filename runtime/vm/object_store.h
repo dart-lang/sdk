@@ -39,6 +39,7 @@ class ObjectPointerVisitor;
   RW(Type, object_type)                                                        \
   RW(Type, legacy_object_type)                                                 \
   RW(Type, non_nullable_object_type)                                           \
+  RW(Type, nullable_object_type)                                               \
   RW(Class, null_class)                                                        \
   RW(Type, null_type)                                                          \
   RW(Type, function_type)                                                      \
@@ -167,6 +168,7 @@ class ObjectPointerVisitor;
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(Code, build_method_extractor_code)                                        \
+  RW(Code, dispatch_table_null_error_stub)                                     \
   RW(Code, null_error_stub_with_fpu_regs_stub)                                 \
   RW(Code, null_error_stub_without_fpu_regs_stub)                              \
   RW(Code, null_arg_error_stub_with_fpu_regs_stub)                             \

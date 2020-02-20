@@ -4,12 +4,9 @@
 
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/minitest.dart';
 
 main() {
-  useHtmlConfiguration();
-
   test('Basic TouchEvent', () {
     if (TouchEvent.supported) {
       var e = new TouchEvent('touch');

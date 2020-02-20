@@ -822,10 +822,8 @@ flutter:${libFolder.toUri()}
 ''');
   }
 
-  /**
-   * Tests that there is refactoring of the given [kind] is available at the
-   * [search] offset.
-   */
+  /// Tests that there is refactoring of the given [kind] is available at the
+  /// [search] offset.
   Future assertHasKind(
       String code, String search, RefactoringKind kind, bool expected) async {
     addTestFile(code);
@@ -839,17 +837,13 @@ flutter:${libFolder.toUri()}
     expect(kinds, matcher);
   }
 
-  /**
-   * Tests that there is a RENAME refactoring available at the [search] offset.
-   */
+  /// Tests that there is a RENAME refactoring available at the [search] offset.
   Future assertHasRenameRefactoring(String code, String search) async {
     return assertHasKind(code, search, RefactoringKind.RENAME, true);
   }
 
-  /**
-   * Returns the list of available refactorings for the given [offset] and
-   * [length].
-   */
+  /// Returns the list of available refactorings for the given [offset] and
+  /// [length].
   Future getRefactorings(int offset, int length) async {
     Request request =
         EditGetAvailableRefactoringsParams(testFile, offset, length)
@@ -860,9 +854,7 @@ flutter:${libFolder.toUri()}
     kinds = result.kinds;
   }
 
-  /**
-   * Returns the list of available refactorings at the offset of [search].
-   */
+  /// Returns the list of available refactorings at the offset of [search].
   Future getRefactoringsAtString(String search) {
     int offset = findOffset(search);
     return getRefactorings(offset, 0);
@@ -2132,9 +2124,7 @@ main() {
 class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   bool shouldWaitForFullAnalysis = true;
 
-  /**
-   * Asserts that [problems] has a single ERROR problem.
-   */
+  /// Asserts that [problems] has a single ERROR problem.
   void assertResultProblemsError(List<RefactoringProblem> problems,
       [String message]) {
     RefactoringProblem problem = problems[0];
@@ -2145,9 +2135,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     }
   }
 
-  /**
-   * Asserts that [result] has a single FATAL problem.
-   */
+  /// Asserts that [result] has a single FATAL problem.
   void assertResultProblemsFatal(List<RefactoringProblem> problems,
       [String message]) {
     RefactoringProblem problem = problems[0];
@@ -2159,18 +2147,14 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     }
   }
 
-  /**
-   * Asserts that [result] has no problems at all.
-   */
+  /// Asserts that [result] has no problems at all.
   void assertResultProblemsOK(EditGetRefactoringResult result) {
     expect(result.initialProblems, isEmpty);
     expect(result.optionsProblems, isEmpty);
     expect(result.finalProblems, isEmpty);
   }
 
-  /**
-   * Asserts that [result] has a single WARNING problem.
-   */
+  /// Asserts that [result] has a single WARNING problem.
   void assertResultProblemsWarning(List<RefactoringProblem> problems,
       [String message]) {
     RefactoringProblem problem = problems[0];
@@ -2193,10 +2177,8 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     assertTestRefactoringResult(result, expectedCode);
   }
 
-  /**
-   * Asserts that the given [EditGetRefactoringResult] has a [testFile] change
-   * which results in the [expectedCode].
-   */
+  /// Asserts that the given [EditGetRefactoringResult] has a [testFile] change
+  /// which results in the [expectedCode].
   void assertTestRefactoringResult(
       EditGetRefactoringResult result, String expectedCode) {
     SourceChange change = result.change;

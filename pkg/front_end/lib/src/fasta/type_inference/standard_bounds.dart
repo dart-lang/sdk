@@ -419,6 +419,15 @@ abstract class StandardBounds {
 
   DartType getNullabilityObliviousStandardLowerBound(
       DartType type1, DartType type2, Library clientLibrary) {
+    // Do legacy erasure on the argument, so that the result types that are
+    // computed from arguments are legacy.
+    type1 = type1 == coreTypes.nullType
+        ? type1
+        : type1.withNullability(Nullability.legacy);
+    type2 = type2 == coreTypes.nullType
+        ? type2
+        : type2.withNullability(Nullability.legacy);
+
     // For all types T, SLB(T,T) = T.  Note that we don't test for equality
     // because we don't want to make the algorithm quadratic.  This is ok
     // because the check is not needed for correctness; it's just a speed
@@ -1390,10 +1399,10 @@ abstract class StandardBounds {
     // 3. Otherwise return the spec-defined standard upper bound.  This will
     //    be an upper bound, might (or might not) be least, and might
     //    (or might not) be a well-formed type.
-    if (isSubtypeOf(type1, type2, SubtypeCheckMode.ignoringNullabilities)) {
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
       return type2;
     }
-    if (isSubtypeOf(type2, type1, SubtypeCheckMode.ignoringNullabilities)) {
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
       return type1;
     }
     if (type1 is InterfaceType &&
@@ -1411,7 +1420,7 @@ abstract class StandardBounds {
           tArgs[i] = getStandardLowerBound(tArgs1[i], tArgs2[i], clientLibrary);
         } else if (tParams[i].variance == Variance.invariant) {
           if (!areMutualSubtypes(
-              tArgs1[i], tArgs2[i], SubtypeCheckMode.ignoringNullabilities)) {
+              tArgs1[i], tArgs2[i], SubtypeCheckMode.withNullabilities)) {
             // No bound will be valid, find bound at the interface level.
             return getLegacyLeastUpperBound(type1, type2, clientLibrary);
           }

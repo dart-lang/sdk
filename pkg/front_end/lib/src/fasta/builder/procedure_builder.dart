@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -326,6 +327,7 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
     _extensionTearOffParameterMap = {};
 
     int fileOffset = _procedure.fileOffset;
+    int fileEndOffset = _procedure.fileEndOffset;
 
     int extensionTypeParameterCount =
         extensionBuilder.typeParameters?.length ?? 0;
@@ -434,7 +436,8 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
           requiredParameterCount: 1,
           returnType: closure.function.computeFunctionType(library.nonNullable))
       ..fileUri = fileUri
-      ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset
+      ..fileEndOffset = fileEndOffset;
     _extensionTearOff.function.parent = _extensionTearOff;
   }
 
@@ -499,6 +502,51 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
     } else {
       reportPatchMismatch(patch);
     }
+  }
+
+  @override
+  List<ClassMember> get localMembers => isSetter
+      ? const <ClassMember>[]
+      : <ClassMember>[new SourceProcedureMember(this)];
+
+  @override
+  List<ClassMember> get localSetters => isSetter
+      ? <ClassMember>[new SourceProcedureMember(this)]
+      : const <ClassMember>[];
+}
+
+class SourceProcedureMember extends BuilderClassMember {
+  @override
+  final ProcedureBuilderImpl memberBuilder;
+
+  SourceProcedureMember(this.memberBuilder);
+
+  @override
+  bool get isProperty =>
+      memberBuilder.kind == ProcedureKind.Getter ||
+      memberBuilder.kind == ProcedureKind.Setter;
+
+  @override
+  bool get isFunction => !isProperty;
+
+  List<FormalParameterBuilder> get formals => memberBuilder.formals;
+
+  TypeBuilder get returnType => memberBuilder.returnType;
+
+  bool get hadTypesInferred => memberBuilder.hadTypesInferred;
+
+  void set hadTypesInferred(bool value) {
+    memberBuilder.hadTypesInferred = value;
+  }
+
+  @override
+  bool get hasExplicitReturnType {
+    return memberBuilder.returnType != null;
+  }
+
+  @override
+  bool hasExplicitlyTypedFormalParameter(int index) {
+    return memberBuilder.formals[index].type != null;
   }
 }
 

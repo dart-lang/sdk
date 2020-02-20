@@ -22,6 +22,7 @@ import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
+import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
@@ -269,8 +270,10 @@ class Variables implements VariableRecorder, VariableRepository {
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (type is TypeParameterType) {
-      return TypeParameterTypeImpl(type.element,
-          nullabilitySuffix: nullabilitySuffix);
+      return TypeParameterTypeImpl(
+        element: type.element,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else {
       // The above cases should cover all possible types.  On the off chance
       // they don't, fall back on returning DecoratedType.type.
@@ -294,7 +297,15 @@ class Variables implements VariableRecorder, VariableRepository {
   /// an already-migrated library (or the SDK).
   DecoratedType _createDecoratedElementType(Element element) {
     if (_graph.isBeingMigrated(element.library.source)) {
-      throw StateError('A decorated type for $element should have been stored '
+      var description;
+      if (ElementTypeProvider.current is MigrationResolutionHooksImpl) {
+        // Don't attempt to call toString() on element, or we will overflow.
+        description = element.location;
+      } else {
+        description = element;
+      }
+      throw StateError(
+          'A decorated type for $description should have been stored '
           'by the NodeBuilder via recordDecoratedElementType');
     }
 

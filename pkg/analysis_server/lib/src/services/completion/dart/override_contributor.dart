@@ -20,10 +20,8 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * A completion contributor used to suggest replacing partial identifiers inside
- * a class declaration with templates for inherited members.
- */
+/// A completion contributor used to suggest replacing partial identifiers
+/// inside a class declaration with templates for inherited members.
 class OverrideContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -66,10 +64,8 @@ class OverrideContributor implements DartCompletionContributor {
     return suggestions;
   }
 
-  /**
-   * Build a suggestion to replace [targetId] in the given [request] with an
-   * override of the given [element].
-   */
+  /// Build a suggestion to replace [targetId] in the given [request] with an
+  /// override of the given [element].
   Future<CompletionSuggestion> _buildSuggestion(
       DartCompletionRequest request,
       SimpleIdentifier targetId,
@@ -124,10 +120,8 @@ class OverrideContributor implements DartCompletionContributor {
     return suggestion;
   }
 
-  /**
-   * If the target looks like a partial identifier inside a class declaration
-   * then return that identifier, otherwise return `null`.
-   */
+  /// If the target looks like a partial identifier inside a class declaration
+  /// then return that identifier, otherwise return `null`.
   SimpleIdentifier _getTargetId(CompletionTarget target) {
     AstNode node = target.containingNode;
     if (node is ClassOrMixinDeclaration) {
@@ -165,9 +159,7 @@ class OverrideContributor implements DartCompletionContributor {
     return null;
   }
 
-  /**
-   * Return `true` if the given [node] has an `override` annotation.
-   */
+  /// Return `true` if the given [node] has an `override` annotation.
   bool _hasOverride(AstNode node) {
     if (node is AnnotatedNode) {
       NodeList<Annotation> metadata = node.metadata;
@@ -181,10 +173,8 @@ class OverrideContributor implements DartCompletionContributor {
     return false;
   }
 
-  /**
-   * Return the list of names that belong to the [interface] of a class, but
-   * are not yet declared in the class.
-   */
+  /// Return the list of names that belong to the [interface] of a class, but
+  /// are not yet declared in the class.
   List<Name> _namesToOverride(Uri libraryUri, Interface interface) {
     var namesToOverride = <Name>[];
     for (var name in interface.map.keys) {

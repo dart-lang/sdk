@@ -60,7 +60,7 @@ class ForwardingNode {
   ForwardingNode(this.hierarchy, this.classBuilder,
       this.combinedMemberSignatureResult, this._candidates, this.kind);
 
-  Name get name => combinedMemberSignatureResult.member.name;
+  Name get name => combinedMemberSignatureResult.name;
 
   Class get enclosingClass => classBuilder.cls;
 
@@ -79,7 +79,7 @@ class ForwardingNode {
   /// they would not be checked in an inherited implementation, a forwarding
   /// stub is introduced as a place to put the checks.
   Member _computeCovarianceFixes() {
-    Member interfaceMember = combinedMemberSignatureResult.member;
+    Member interfaceMember = combinedMemberSignatureResult.getMember(hierarchy);
 
     List<TypeParameter> interfaceMemberTypeParameters =
         interfaceMember.function?.typeParameters ?? [];
@@ -464,8 +464,7 @@ class ForwardingNode {
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
   Member getCandidateAt(int i) {
     ClassMember candidate = _candidates[i];
-    assert(candidate is! DelayedMember);
-    return candidate.member;
+    return candidate.getMember(hierarchy);
   }
 
   static Member _getForwardingStubSuperTarget(Procedure forwardingStub) {

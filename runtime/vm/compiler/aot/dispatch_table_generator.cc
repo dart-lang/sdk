@@ -93,16 +93,10 @@ class CidInterval {
 
 class SelectorRow {
  public:
-  SelectorRow(Zone* zone, int32_t selector_id)
-      : selector_id_(selector_id), class_ranges_(zone, 0), ranges_(zone, 0) {}
+  SelectorRow(Zone* zone, TableSelector* selector)
+      : selector_(selector), class_ranges_(zone, 0), ranges_(zone, 0) {}
 
-  int32_t selector_id() const { return selector_id_; }
-
-  void DefineSelectorImplementationForInterval(classid_t cid,
-                                               int16_t depth,
-                                               const Interval& range,
-                                               const Function& function);
-  bool Finalize();
+  TableSelector* selector() const { return selector_; }
 
   int32_t total_size() const { return total_size_; }
 
@@ -112,14 +106,27 @@ class SelectorRow {
     return class_ranges_;
   }
 
-  int32_t offset() const { return offset_; }
-  void set_offset(int32_t value) { offset_ = value; }
+  void DefineSelectorImplementationForInterval(classid_t cid,
+                                               int16_t depth,
+                                               const Interval& range,
+                                               const Function* function);
+  bool Finalize();
+
+  int32_t CallCount() const { return selector_->call_count; }
+
+  bool IsAllocated() const {
+    return selector_->offset != SelectorMap::kInvalidSelectorOffset;
+  }
+
+  void AllocateAt(int32_t offset) {
+    ASSERT(!IsAllocated());
+    selector_->offset = offset;
+  }
 
   void FillTable(ClassTable* class_table, DispatchTable* table);
 
  private:
-  int32_t selector_id_;
-  int32_t offset_ = SelectorMap::kInvalidSelectorOffset;
+  TableSelector* selector_;
   int32_t total_size_ = 0;
 
   GrowableArray<CidInterval> class_ranges_;
@@ -128,20 +135,23 @@ class SelectorRow {
 
 class RowFitter {
  public:
-  RowFitter() { free_slots_.Add(Interval(0, INT_MAX)); }
+  RowFitter() : first_slot_index_(0) { free_slots_.Add(Interval(0, INT_MAX)); }
 
-  int32_t Fit(SelectorRow* row);
+  // Try to fit a row at the specified offset and return whether it was
+  // successful. If successful, the entries taken up by the row are marked
+  // internally as occupied. If unsuccessful, next_offset is set to the next
+  // potential offset where the row might fit.
+  bool TryFit(SelectorRow* row, int32_t offset, int32_t* next_offset);
+
+  // If the row is not already allocated, try to fit it within the given range
+  // of offsets and allocate it if successful.
+  void FitAndAllocate(SelectorRow* row,
+                      int32_t min_offset,
+                      int32_t max_offset = INT32_MAX);
 
   int32_t TableSize() const { return free_slots_.Last().begin(); }
 
  private:
-  int32_t FindOffset(const GrowableArray<Interval>& ranges,
-                     intptr_t* result_slot_index);
-
-  int32_t MatchRemaining(int32_t offset,
-                         const GrowableArray<Interval>& ranges,
-                         intptr_t slot_index);
-
   intptr_t MoveForwardToCover(const Interval range, intptr_t slot_index);
 
   void UpdateFreeSlots(int32_t offset,
@@ -151,14 +161,15 @@ class RowFitter {
   intptr_t FitInFreeSlot(const Interval range, intptr_t slot_index);
 
   GrowableArray<Interval> free_slots_;
+  intptr_t first_slot_index_;
 };
 
 void SelectorRow::DefineSelectorImplementationForInterval(
     classid_t cid,
     int16_t depth,
     const Interval& range,
-    const Function& function) {
-  CidInterval cid_range(cid, depth, range, &function);
+    const Function* function) {
+  CidInterval cid_range(cid, depth, range, function);
   class_ranges_.Add(cid_range);
 }
 
@@ -240,97 +251,59 @@ void SelectorRow::FillTable(ClassTable* class_table, DispatchTable* table) {
     const CidInterval& cid_range = class_ranges_[i];
     const Interval& range = cid_range.range();
     const Function* function = cid_range.function();
-    if (function->HasCode()) {
+    if (function != nullptr && function->HasCode()) {
       code = function->CurrentCode();
       for (classid_t cid = range.begin(); cid < range.end(); cid++) {
-        table->SetCodeAt(offset_ + cid, code);
+        table->SetCodeAt(selector()->offset + cid, code);
       }
     }
   }
 }
 
-int32_t RowFitter::Fit(SelectorRow* row) {
-  ASSERT(row->ranges().length() > 0);
+void RowFitter::FitAndAllocate(SelectorRow* row,
+                               int32_t min_offset,
+                               int32_t max_offset) {
+  if (row->IsAllocated()) {
+    return;
+  }
+
+  int32_t next_offset;
+
+  int32_t offset = min_offset;
+  while (offset <= max_offset && !TryFit(row, offset, &next_offset)) {
+    offset = next_offset;
+  }
+  if (offset <= max_offset) {
+    row->AllocateAt(offset);
+  }
+}
+
+bool RowFitter::TryFit(SelectorRow* row, int32_t offset, int32_t* next_offset) {
   const GrowableArray<Interval>& ranges = row->ranges();
 
-  intptr_t slot_index;
-  const int32_t offset = FindOffset(ranges, &slot_index);
-  UpdateFreeSlots(offset, ranges, slot_index);
-
-  return offset;
-}
-
-int32_t RowFitter::FindOffset(const GrowableArray<Interval>& ranges,
-                              intptr_t* result_slot_index) {
-  const Interval first_range = ranges[0];
-
-  intptr_t index = 0;
-  int32_t min_start = 0;
-
-  while (index < free_slots_.length() - 1) {
-    const Interval slot = free_slots_[index];
-
-    int32_t start = Utils::Maximum(
-        min_start, Utils::Maximum(slot.begin(), first_range.begin()));
-    int32_t end = slot.end() - first_range.length();
-
-    while (start <= end) {
-      int32_t offset = start - first_range.begin();
-      ASSERT(offset >= 0);
-      ASSERT(slot.Contains(first_range.WithOffset(offset)));
-
-      // If the first block was the only block, we are done.
-      if (ranges.length() == 1) {
-        *result_slot_index = index;
-        return offset;
-      }
-
-      // Found an offset where the first range fits. Now match the
-      // remaining ones.
-      int32_t displacement = MatchRemaining(offset, ranges, index);
-
-      // Displacement is either 0 for a match, or a minimum distance to where
-      // a potential match can happen.
-      if (displacement == 0) {
-        *result_slot_index = index;
-        return offset;
-      }
-
-      start += displacement;
-    }
-
-    min_start = start;
-
-    index++;
+  Interval first_range = ranges[0].WithOffset(offset);
+  if (first_slot_index_ > 0 &&
+      free_slots_[first_slot_index_ - 1].end() >= first_range.end()) {
+    // Trying lower offset than last time. Start over in free slots.
+    first_slot_index_ = 0;
   }
+  first_slot_index_ = MoveForwardToCover(first_range, first_slot_index_);
+  intptr_t slot_index = first_slot_index_;
 
-  ASSERT(index == (free_slots_.length() - 1));
-  const Interval slot = free_slots_[index];
-  ASSERT(slot.end() == INT_MAX);
-
-  // If we are at end, we know it fits.
-  int32_t offset = Utils::Maximum(0, slot.begin() - first_range.begin());
-
-  *result_slot_index = index;
-  return offset;
-}
-
-int32_t RowFitter::MatchRemaining(int32_t offset,
-                                  const GrowableArray<Interval>& ranges,
-                                  intptr_t slot_index) {
-  intptr_t index = 1;
-  intptr_t length = ranges.length();
-
-  for (; index < length; index++) {
-    const Interval range = ranges[index].WithOffset(offset);
-
+  for (intptr_t index = 0; index < ranges.length(); index++) {
+    Interval range = ranges[index].WithOffset(offset);
     slot_index = MoveForwardToCover(range, slot_index);
+    ASSERT(slot_index < free_slots_.length());
     const Interval slot = free_slots_[slot_index];
-
-    if (range.begin() < slot.begin()) return slot.begin() - range.begin();
+    ASSERT(slot.end() >= range.end());
+    if (slot.begin() > range.begin()) {
+      *next_offset = offset + slot.begin() - range.begin();
+      return false;
+    }
   }
 
-  return 0;
+  UpdateFreeSlots(offset, ranges, first_slot_index_);
+  return true;
 }
 
 intptr_t RowFitter::MoveForwardToCover(const Interval range,
@@ -353,7 +326,7 @@ void RowFitter::UpdateFreeSlots(int32_t offset,
 
     // Assert that we have a valid slot.
     ASSERT(slot_index < free_slots_.length());
-    ASSERT(free_slots_[slot_index].begin() < range.end());
+    ASSERT(free_slots_[slot_index].Contains(range));
 
     slot_index = FitInFreeSlot(range, slot_index);
   }
@@ -400,23 +373,23 @@ const TableSelector* SelectorMap::GetSelector(
   const int32_t sid = SelectorId(interface_target);
   if (sid == kInvalidSelectorId) return nullptr;
   const TableSelector* selector = &selectors_[sid];
+  if (!selector->IsUsed()) return nullptr;
   if (selector->offset == kInvalidSelectorOffset) return nullptr;
   return selector;
+}
+
+void SelectorMap::AddSelector(int32_t call_count, bool called_on_null) {
+  const int32_t added_sid = selectors_.length();
+  selectors_.Add(TableSelector(added_sid, call_count, kInvalidSelectorOffset,
+                               called_on_null));
 }
 
 void SelectorMap::SetSelectorProperties(int32_t sid,
                                         bool on_null_interface,
                                         bool requires_args_descriptor) {
-  while (selectors_.length() <= sid) {
-    const int32_t added_sid = selectors_.length();
-    selectors_.Add(TableSelector{added_sid, kInvalidSelectorId, false, false});
-  }
+  ASSERT(sid < selectors_.length());
   selectors_[sid].on_null_interface |= on_null_interface;
   selectors_[sid].requires_args_descriptor |= requires_args_descriptor;
-}
-
-void SelectorMap::SetSelectorOffset(int32_t sid, int32_t offset) {
-  selectors_[sid].offset = offset;
 }
 
 DispatchTableGenerator::DispatchTableGenerator(Zone* zone)
@@ -429,9 +402,24 @@ DispatchTableGenerator::DispatchTableGenerator(Zone* zone)
 void DispatchTableGenerator::Initialize(ClassTable* table) {
   classes_ = table;
 
+  ReadTableSelectorInfo();
   NumberSelectors();
   SetupSelectorRows();
   ComputeSelectorOffsets();
+}
+
+void DispatchTableGenerator::ReadTableSelectorInfo() {
+  const auto& object_class = Class::Handle(Z, classes_->At(kInstanceCid));
+  const auto& script = Script::Handle(Z, object_class.script());
+  const auto& info = KernelProgramInfo::Handle(Z, script.kernel_program_info());
+  kernel::TableSelectorMetadata* metadata =
+      kernel::TableSelectorMetadataForProgram(info, Z);
+  // This assert will fail if gen_kernel was run in non-AOT mode or without TFA.
+  RELEASE_ASSERT(metadata != nullptr);
+  for (intptr_t i = 0; i < metadata->selectors.length(); i++) {
+    const kernel::TableSelectorInfo* info = &metadata->selectors[i];
+    selector_map_.AddSelector(info->call_count, info->called_on_null);
+  }
 }
 
 void DispatchTableGenerator::NumberSelectors() {
@@ -546,7 +534,12 @@ void DispatchTableGenerator::SetupSelectorRows() {
   // Initialize selector rows.
   SelectorRow* selector_rows = Z->Alloc<SelectorRow>(num_selectors_);
   for (intptr_t i = 0; i < num_selectors_; i++) {
-    new (&selector_rows[i]) SelectorRow(Z, i);
+    TableSelector* selector = &selector_map_.selectors_[i];
+    new (&selector_rows[i]) SelectorRow(Z, selector);
+    if (selector->called_on_null && !selector->on_null_interface) {
+      selector_rows[i].DefineSelectorImplementationForInterval(
+          kNullCid, 0, Interval(kNullCid, kNullCid + 1), nullptr);
+    }
   }
 
   // Add implementation intervals to the selector rows for all classes that
@@ -572,7 +565,7 @@ void DispatchTableGenerator::SetupSelectorRows() {
               for (intptr_t i = 0; i < subclasss_cid_ranges.length(); i++) {
                 Interval& subclass_cid_range = subclasss_cid_ranges[i];
                 selector_rows[sid].DefineSelectorImplementationForInterval(
-                    cid, depth, subclass_cid_range, function_handle);
+                    cid, depth, subclass_cid_range, &function_handle);
               }
             }
           }
@@ -583,7 +576,8 @@ void DispatchTableGenerator::SetupSelectorRows() {
 
   // Retain all selectors that contain implementation intervals.
   for (intptr_t i = 0; i < num_selectors_; i++) {
-    if (selector_rows[i].Finalize()) {
+    const TableSelector& selector = selector_map_.selectors_[i];
+    if (selector.IsUsed() && selector_rows[i].Finalize()) {
       table_rows_.Add(&selector_rows[i]);
     }
   }
@@ -592,20 +586,49 @@ void DispatchTableGenerator::SetupSelectorRows() {
 void DispatchTableGenerator::ComputeSelectorOffsets() {
   ASSERT(table_rows_.length() > 0);
 
-  // Sort the table rows according to size.
-  struct SelectorRowSorter {
+  RowFitter fitter;
+
+  // Sort the table rows according to popularity, descending.
+  struct PopularitySorter {
+    static int Compare(SelectorRow* const* a, SelectorRow* const* b) {
+      return (*b)->CallCount() - (*a)->CallCount();
+    }
+  };
+  table_rows_.Sort(PopularitySorter::Compare);
+
+  // Try to allocate at optimal offset.
+  const int32_t optimal_offset = DispatchTable::OriginElement();
+  for (intptr_t i = 0; i < table_rows_.length(); i++) {
+    fitter.FitAndAllocate(table_rows_[i], optimal_offset, optimal_offset);
+  }
+
+  // Sort the table rows according to popularity / size, descending.
+  struct PopularitySizeRatioSorter {
+    static int Compare(SelectorRow* const* a, SelectorRow* const* b) {
+      return (*b)->CallCount() * (*a)->total_size() -
+             (*a)->CallCount() * (*b)->total_size();
+    }
+  };
+  table_rows_.Sort(PopularitySizeRatioSorter::Compare);
+
+  // Try to allocate at small offsets.
+  const int32_t max_offset = DispatchTable::LargestSmallOffset();
+  for (intptr_t i = 0; i < table_rows_.length(); i++) {
+    fitter.FitAndAllocate(table_rows_[i], 0, max_offset);
+  }
+
+  // Sort the table rows according to size, descending.
+  struct SizeSorter {
     static int Compare(SelectorRow* const* a, SelectorRow* const* b) {
       return (*b)->total_size() - (*a)->total_size();
     }
   };
-  table_rows_.Sort(SelectorRowSorter::Compare);
+  table_rows_.Sort(SizeSorter::Compare);
 
-  RowFitter fitter;
+  // Allocate remaining rows at large offsets.
+  const int32_t min_large_offset = DispatchTable::LargestSmallOffset() + 1;
   for (intptr_t i = 0; i < table_rows_.length(); i++) {
-    SelectorRow* row = table_rows_[i];
-    const int32_t offset = fitter.Fit(row);
-    row->set_offset(offset);
-    selector_map_.SetSelectorOffset(row->selector_id(), offset);
+    fitter.FitAndAllocate(table_rows_[i], min_large_offset);
   }
 
   table_size_ = fitter.TableSize();

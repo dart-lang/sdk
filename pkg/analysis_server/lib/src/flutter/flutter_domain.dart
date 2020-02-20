@@ -8,18 +8,13 @@ import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 
-/**
- * A [RequestHandler] that handles requests in the `flutter` domain.
- */
+/// A [RequestHandler] that handles requests in the `flutter` domain.
 class FlutterDomainHandler extends AbstractRequestHandler {
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   FlutterDomainHandler(AnalysisServer server) : super(server);
 
-  /**
-   * Implement the 'flutter.getWidgetDescription' request.
-   */
+  /// Implement the 'flutter.getWidgetDescription' request.
   void getWidgetDescription(Request request) async {
     var params = FlutterGetWidgetDescriptionParams.fromRequest(request);
     var file = params.file;
@@ -80,9 +75,7 @@ class FlutterDomainHandler extends AbstractRequestHandler {
     return null;
   }
 
-  /**
-   * Implement the 'flutter.setPropertyValue' request.
-   */
+  /// Implement the 'flutter.setPropertyValue' request.
   void setPropertyValue(Request request) async {
     var params = FlutterSetWidgetPropertyValueParams.fromRequest(request);
 
@@ -107,9 +100,7 @@ class FlutterDomainHandler extends AbstractRequestHandler {
     );
   }
 
-  /**
-   * Implement the 'flutter.setSubscriptions' request.
-   */
+  /// Implement the 'flutter.setSubscriptions' request.
   Response setSubscriptions(Request request) {
     var params = FlutterSetSubscriptionsParams.fromRequest(request);
     Map<FlutterService, Set<String>> subMap = mapMap(params.subscriptions,

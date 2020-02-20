@@ -506,8 +506,8 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
       // instantiated as int and String.
       registerNew(
           node.target,
-          new ir.InterfaceType(
-              node.target.enclosingClass, ir.Nullability.legacy, typeArguments),
+          new ir.InterfaceType(node.target.enclosingClass,
+              node.target.enclosingLibrary.nonNullable, typeArguments),
           positionArguments,
           namedArguments,
           node.arguments.types,

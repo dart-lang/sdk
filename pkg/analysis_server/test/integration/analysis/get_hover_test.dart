@@ -20,14 +20,10 @@ void main() {
 @reflectiveTest
 class AnalysisGetHoverIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
-  /**
-   * Pathname of the file containing Dart code.
-   */
+  /// Pathname of the file containing Dart code.
   String pathname;
 
-  /**
-   * Dart code under test.
-   */
+  /// Dart code under test.
   final String text = r'''
 library lib.test;
 
@@ -48,19 +44,17 @@ main() {
 }
 ''';
 
-  /**
-   * Check that a getHover request on the substring [target] produces a result
-   * which has length [length], has an elementDescription matching every
-   * regexp in [descriptionRegexps], has a kind of [kind], and has a staticType
-   * matching [staticTypeRegexps].
-   *
-   * [isCore] means the hover info should indicate that the element is defined
-   * in dart.core.  [docRegexp], if specified, should match the documentation
-   * string of the element.  [isLiteral] means the hover should indicate a
-   * literal value.  [parameterRegexps] means is a set of regexps which should
-   * match the hover parameters.  [propagatedType], if specified, is the
-   * expected propagated type of the element.
-   */
+  /// Check that a getHover request on the substring [target] produces a result
+  /// which has length [length], has an elementDescription matching every
+  /// regexp in [descriptionRegexps], has a kind of [kind], and has a staticType
+  /// matching [staticTypeRegexps].
+  ///
+  /// [isCore] means the hover info should indicate that the element is defined
+  /// in dart.core.  [docRegexp], if specified, should match the documentation
+  /// string of the element.  [isLiteral] means the hover should indicate a
+  /// literal value.  [parameterRegexps] means is a set of regexps which should
+  /// match the hover parameters.  [propagatedType], if specified, is the
+  /// expected propagated type of the element.
   Future<AnalysisGetHoverResult> checkHover(
     String target,
     int length,
@@ -123,10 +117,8 @@ main() {
     });
   }
 
-  /**
-   * Check that a getHover request on the substring [target] produces no
-   * results.
-   */
+  /// Check that a getHover request on the substring [target] produces no
+  /// results.
   Future checkNoHover(String target) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {

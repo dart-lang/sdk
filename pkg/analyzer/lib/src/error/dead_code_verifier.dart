@@ -10,14 +10,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 
 /// A visitor that finds dead code and unused labels.
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
@@ -30,9 +28,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker labelTracker;
 
-  /// Is `true` if the library being analyzed is non-nullable by default.
-  final bool _isNonNullableByDefault;
-
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
@@ -44,25 +39,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
               isNonNullableByDefault: false,
               strictInference: false,
               typeProvider: null,
-            ),
-        _isNonNullableByDefault = featureSet.isEnabled(Feature.non_nullable);
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    TokenType operatorType = node.operator.type;
-    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForDeadNullCoalesce(
-          getReadType(node.leftHandSide), node.rightHandSide);
-    }
-    super.visitAssignmentExpression(node);
-  }
+            );
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     Token operator = node.operator;
     bool isAmpAmp = operator.type == TokenType.AMPERSAND_AMPERSAND;
     bool isBarBar = operator.type == TokenType.BAR_BAR;
-    bool isQuestionQuestion = operator.type == TokenType.QUESTION_QUESTION;
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       if (!_isDebugConstant(lhsCondition)) {
@@ -105,9 +88,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 //                return null;
 //              }
 //            }
-    } else if (isQuestionQuestion) {
-      _checkForDeadNullCoalesce(
-          getReadType(node.leftOperand), node.rightOperand);
     }
     super.visitBinaryExpression(node);
   }
@@ -391,17 +371,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
         _errorReporter
             .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
       }
-    }
-  }
-
-  void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (!_isNonNullableByDefault) return;
-
-    if (_typeSystem.isStrictlyNonNullable(lhsType)) {
-      _errorReporter.reportErrorForNode(
-        StaticWarningCode.DEAD_NULL_COALESCE,
-        rhs,
-      );
     }
   }
 

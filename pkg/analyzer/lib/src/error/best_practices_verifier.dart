@@ -1034,6 +1034,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// See [HintCode.MISSING_RETURN].
   void _checkForMissingReturn(TypeAnnotation returnNode, FunctionBody body,
       ExecutableElement element, AstNode functionNode) {
+    if (_isNonNullableByDefault) {
+      return;
+    }
+
     if (body is BlockFunctionBody) {
       // Prefer the type from the element model, in case we've inferred one.
       DartType returnType = element?.returnType ?? returnNode?.type;

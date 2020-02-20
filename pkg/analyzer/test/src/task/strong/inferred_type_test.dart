@@ -892,7 +892,7 @@ Future test() async {
 import 'dart:async';
 
 abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
+  factory MyStream() => throw 0;
 }
 
 Future main() async {
@@ -1490,7 +1490,7 @@ void main() {
 import 'dart:async';
 
 abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
+  factory MyStream() => throw 0;
 }
 
 Stream<List<int>> foo() async* {
@@ -4433,7 +4433,7 @@ class InferredTypeTest_SetLiterals extends AbstractStrongTest
 import 'dart:async';
 
 abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
+  factory MyStream() => throw 0;
 }
 
 Stream<List<int>> foo() async* {

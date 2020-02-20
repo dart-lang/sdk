@@ -3,9 +3,9 @@ library fileapi;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:async_helper/async_minitest.dart';
+import 'package:expect/minitest.dart' as minitest;
 
 
 Future<FileSystem> _fileSystem;
@@ -25,15 +25,13 @@ Future<FileSystem> get fileSystem async {
 }
 
 main() {
-  useHtmlConfiguration();
-
   test('supported', () {
     expect(FileSystem.supported, true);
   });
 
   test('requestFileSystem', () async {
-    var expectation = FileSystem.supported ? returnsNormally : throws;
-    expect(() async {
+    var expectation = FileSystem.supported ? minitest.returnsNormally : throws;
+    minitest.expect(() async {
       var fs = await fileSystem;
       expect(fs.root != null, true);
     }, expectation);

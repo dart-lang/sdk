@@ -199,158 +199,103 @@ class CommandLineParser {
   }
 }
 
-/**
- * The [Driver] class represents a single running instance of the analysis
- * server application.  It is responsible for parsing command line options
- * and starting the HTTP and/or stdio servers.
- */
+/// The [Driver] class represents a single running instance of the analysis
+/// server application.  It is responsible for parsing command line options
+/// and starting the HTTP and/or stdio servers.
 class Driver implements ServerStarter {
-  /**
-   * The name of the application that is used to start a server.
-   */
+  /// The name of the application that is used to start a server.
   static const BINARY_NAME = 'server';
 
-  /**
-   * The name of the option used to set the identifier for the client.
-   */
+  /// The name of the option used to set the identifier for the client.
   static const String CLIENT_ID = 'client-id';
 
-  /**
-   * The name of the option used to set the version for the client.
-   */
+  /// The name of the option used to set the version for the client.
   static const String CLIENT_VERSION = 'client-version';
 
-  /**
-   * The name of the option used to enable DartPad specific functionality.
-   */
+  /// The name of the option used to enable DartPad specific functionality.
   static const String DARTPAD_OPTION = 'dartpad';
 
-  /**
-   * The name of the option to disable the completion feature.
-   */
+  /// The name of the option to disable the completion feature.
   static const String DISABLE_SERVER_FEATURE_COMPLETION =
       'disable-server-feature-completion';
 
-  /**
-   * The name of the option to disable the search feature.
-   */
+  /// The name of the option to disable the search feature.
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       'disable-server-feature-search';
 
-  /**
-   * The name of the option used to enable experiments.
-   */
+  /// The name of the option used to enable experiments.
   static const String ENABLE_EXPERIMENT_OPTION = 'enable-experiment';
 
-  /**
-   * The name of the option used to enable instrumentation.
-   */
+  /// The name of the option used to enable instrumentation.
   static const String ENABLE_INSTRUMENTATION_OPTION = 'enable-instrumentation';
 
-  /**
-   * The name of the option used to set the file read mode.
-   */
+  /// The name of the option used to set the file read mode.
   static const String FILE_READ_MODE = 'file-read-mode';
 
-  /**
-   * The name of the option used to print usage information.
-   */
+  /// The name of the option used to print usage information.
   static const String HELP_OPTION = 'help';
 
-  /**
-   * The name of the flag used to configure reporting analytics.
-   */
+  /// The name of the flag used to configure reporting analytics.
   static const String ANALYTICS_FLAG = 'analytics';
 
-  /**
-   * Suppress analytics for this session.
-   */
+  /// Suppress analytics for this session.
   static const String SUPPRESS_ANALYTICS_FLAG = 'suppress-analytics';
 
-  /**
-   * The name of the option used to cause instrumentation to also be written to
-   * a local file.
-   */
+  /// The name of the option used to cause instrumentation to also be written to
+  /// a local file.
   static const String INSTRUMENTATION_LOG_FILE = 'instrumentation-log-file';
 
-  /**
-   * The name of the option used to specify if [print] should print to the
-   * console instead of being intercepted.
-   */
+  /// The name of the option used to specify if [print] should print to the
+  /// console instead of being intercepted.
   static const String INTERNAL_PRINT_TO_CONSOLE = 'internal-print-to-console';
 
-  /**
-   * The name of the option used to describe the new analysis driver logger.
-   */
+  /// The name of the option used to describe the new analysis driver logger.
   static const String NEW_ANALYSIS_DRIVER_LOG = 'new-analysis-driver-log';
 
-  /**
-   * The name of the flag used to enable version 2 of semantic highlight
-   * notification.
-   */
+  /// The name of the flag used to enable version 2 of semantic highlight
+  /// notification.
   static const String USE_ANALYSIS_HIGHLIGHT2 = 'useAnalysisHighlight2';
 
-  /**
-   * The option for specifying the http diagnostic port.
-   * If specified, users can review server status and performance information
-   * by opening a web browser on http://localhost:<port>
-   */
+  /// The option for specifying the http diagnostic port.
+  /// If specified, users can review server status and performance information
+  /// by opening a web browser on http://localhost:<port>
   static const String PORT_OPTION = 'port';
 
-  /**
-   * The path to the SDK.
-   */
+  /// The path to the SDK.
   static const String SDK_OPTION = 'sdk';
 
-  /**
-   * The path to the data cache.
-   */
+  /// The path to the data cache.
   static const String CACHE_FOLDER = 'cache';
 
-  /**
-   * Whether to enable parsing via the Fasta parser.
-   */
+  /// Whether to enable parsing via the Fasta parser.
   static const String USE_FASTA_PARSER = 'use-fasta-parser';
 
-  /**
-   * The name of the flag to use the Language Server Protocol (LSP).
-   */
+  /// The name of the flag to use the Language Server Protocol (LSP).
   static const String USE_LSP = 'lsp';
 
-  /**
-   * Whether or not to enable ML ranking for code completion.
-   */
+  /// Whether or not to enable ML ranking for code completion.
   static const String ENABLE_COMPLETION_MODEL = 'enable-completion-model';
 
-  /**
-   * The path on disk to a directory containing language model files for smart
-   * code completion.
-   */
+  /// The path on disk to a directory containing language model files for smart
+  /// code completion.
   static const String COMPLETION_MODEL_FOLDER = 'completion-model';
 
-  /**
-   * A directory to analyze in order to train an analysis server snapshot.
-   */
+  /// A directory to analyze in order to train an analysis server snapshot.
   static const String TRAIN_USING = 'train-using';
 
-  /**
-   * The instrumentation service that is to be used by the analysis server.
-   */
+  /// The instrumentation service that is to be used by the analysis server.
   InstrumentationService instrumentationService;
 
-  /***
-   * An optional manager to handle file systems which may not always be
-   * available.
-   */
+  /// *
+  /// An optional manager to handle file systems which may not always be
+  /// available.
   DetachableFileSystemManager detachableFileSystemManager;
 
   HttpAnalysisServer httpServer;
 
   Driver();
 
-  /**
-   * Use the given command-line [arguments] to start this server.
-   */
+  /// Use the given command-line [arguments] to start this server.
   @override
   void start(List<String> arguments) {
     CommandLineParser parser = _createArgParser();
@@ -694,12 +639,10 @@ class Driver implements ServerStarter {
     });
   }
 
-  /**
-   * Execute the given [callback] within a zone that will capture any unhandled
-   * exceptions and both report them to the client and send them to the given
-   * instrumentation [service]. If a [print] function is provided, then also
-   * capture any data printed by the callback and redirect it to the function.
-   */
+  /// Execute the given [callback] within a zone that will capture any unhandled
+  /// exceptions and both report them to the client and send them to the given
+  /// instrumentation [service]. If a [print] function is provided, then also
+  /// capture any data printed by the callback and redirect it to the function.
   dynamic _captureExceptions(
       InstrumentationService service, dynamic Function() callback,
       {void Function(String line) print}) {
@@ -721,9 +664,7 @@ class Driver implements ServerStarter {
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
-  /**
-   * Create and return the parser used to parse the command-line arguments.
-   */
+  /// Create and return the parser used to parse the command-line arguments.
   CommandLineParser _createArgParser() {
     CommandLineParser parser = CommandLineParser();
     parser.addOption(CLIENT_ID,
@@ -814,9 +755,7 @@ class Driver implements ServerStarter {
     return sdk;
   }
 
-  /**
-   * Constructs a uuid combining the current date and a random integer.
-   */
+  /// Constructs a uuid combining the current date and a random integer.
   String _generateUuidString() {
     int millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
     int random = Random().nextInt(0x3fffffff);
@@ -835,9 +774,7 @@ class Driver implements ServerStarter {
     }
   }
 
-  /**
-   * Print information about how to use the server.
-   */
+  /// Print information about how to use the server.
   void _printUsage(ArgParser parser, telemetry.Analytics analytics,
       {bool fromHelp = false}) {
     print('Usage: $BINARY_NAME [flags]');
@@ -857,9 +794,7 @@ class Driver implements ServerStarter {
     }
   }
 
-  /**
-   * Read the UUID from disk, generating and storing a new one if necessary.
-   */
+  /// Read the UUID from disk, generating and storing a new one if necessary.
   String _readUuid(InstrumentationService service) {
     final instrumentationLocation =
         PhysicalResourceProvider.INSTANCE.getStateLocation('.instrumentation');
@@ -889,13 +824,11 @@ class Driver implements ServerStarter {
     return uuid;
   }
 
-  /**
-   * Perform log files rolling.
-   *
-   * Rename existing files with names `[path].(x)` to `[path].(x+1)`.
-   * Keep at most [numOld] files.
-   * Rename the file with the given [path] to `[path].1`.
-   */
+  /// Perform log files rolling.
+  ///
+  /// Rename existing files with names `[path].(x)` to `[path].(x+1)`.
+  /// Keep at most [numOld] files.
+  /// Rename the file with the given [path] to `[path].1`.
   static void _rollLogFiles(String path, int numOld) {
     for (int i = numOld - 1; i >= 0; i--) {
       try {
@@ -909,9 +842,7 @@ class Driver implements ServerStarter {
   }
 }
 
-/**
- * Implements the [DiagnosticServer] class by wrapping an [HttpAnalysisServer].
- */
+/// Implements the [DiagnosticServer] class by wrapping an [HttpAnalysisServer].
 class _DiagnosticServerImpl extends DiagnosticServer {
   HttpAnalysisServer httpServer;
 

@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // Patch file for the dart:isolate library.
 
 import "dart:async";
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show patch;
-import "dart:typed_data" show ByteData, TypedData, Uint8List;
+import "dart:typed_data" show TypedData;
 
 @patch
 class Isolate {
@@ -55,7 +53,7 @@ class Isolate {
       bool errorsAreFatal = true,
       bool? checked,
       Map<String, String>? environment,
-      Uri packageRoot,
+      Uri? packageRoot,
       Uri? packageConfig,
       bool automaticPackageResolution = false,
       String? debugName}) {
@@ -94,7 +92,7 @@ class Isolate {
 
   @patch
   void ping(SendPort responsePort,
-      {Object response, int priority = immediate}) {
+      {Object? response, int priority = immediate}) {
     throw new UnsupportedError("Isolate.ping");
   }
 
@@ -121,8 +119,10 @@ class ReceivePort {
 }
 
 class _ReceivePortImpl extends Stream implements ReceivePort {
-  StreamSubscription listen(void onData(var event)?,
-      {Function? onError, void Function()? onDone, bool cancelOnError = true}) {
+  StreamSubscription listen(void Function(dynamic)? onData,
+      {Function? onError,
+      void Function()? onDone,
+      bool? cancelOnError = true}) {
     throw new UnsupportedError("ReceivePort.listen");
   }
 

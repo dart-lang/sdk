@@ -21,12 +21,10 @@ void main() {
 
 @reflectiveTest
 class TypeMemberContributorTest extends DartCompletionContributorTest {
-  /**
-   * Check whether a declaration of the form [shadower] in a derived class
-   * shadows a declaration of the form [shadowee] in a base class, for the
-   * purposes of what is shown during completion.  [shouldBeShadowed] indicates
-   * whether shadowing is expected.
-   */
+  /// Check whether a declaration of the form [shadower] in a derived class
+  /// shadows a declaration of the form [shadowee] in a base class, for the
+  /// purposes of what is shown during completion.  [shouldBeShadowed] indicates
+  /// whether shadowing is expected.
   Future check_shadowing(
       String shadower, String shadowee, bool shouldBeShadowed) async {
     addTestSource('''
@@ -3238,7 +3236,7 @@ void main() {C.^ print("something");}''');
         var m;''');
     addTestSource('''
         part of libA;
-        class B { factory B.bar(int x) => null; }
+        class B { B.bar(int x); }
         main() {new ^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);

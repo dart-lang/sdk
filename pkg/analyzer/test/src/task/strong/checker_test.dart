@@ -20,7 +20,7 @@ class CheckerTest extends AbstractStrongTest with PackageMixin {
 import 'dart:async';
 
 abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
+  factory MyStream() => throw 0;
 }
 
 main() async {
@@ -964,7 +964,7 @@ dynamic x;
 Stream<int> intStream;
 
 abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
+  factory MyStream() => throw 0;
 }
 
 bar1() async* { yield x; }

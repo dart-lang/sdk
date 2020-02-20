@@ -17,9 +17,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * [ConvertMethodToGetterRefactoring] implementation.
- */
+/// [ConvertMethodToGetterRefactoring] implementation.
 class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     implements ConvertMethodToGetterRefactoring {
   final SearchEngine searchEngine;

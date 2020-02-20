@@ -62,14 +62,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
 
-/**
- * A predicate is a one-argument function that returns a boolean value.
- */
+/// A predicate is a one-argument function that returns a boolean value.
 typedef ElementPredicate = bool Function(Element argument);
 
-/**
- * A fix contributor that provides the default set of fixes for Dart files.
- */
+/// A fix contributor that provides the default set of fixes for Dart files.
 class DartFixContributor implements FixContributor {
   @override
   Future<List<Fix>> computeFixes(DartFixContext context) async {
@@ -168,9 +164,7 @@ class DartFixContributor implements FixContributor {
   }
 }
 
-/**
- * The computer for Dart fixes.
- */
+/// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
@@ -1749,10 +1743,8 @@ class FixProcessor extends BaseProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_CLASS, args: [name]);
   }
 
-  /**
-   * Here we handle cases when there are no constructors in a class, and the
-   * class has uninitialized final fields.
-   */
+  /// Here we handle cases when there are no constructors in a class, and the
+  /// class has uninitialized final fields.
   Future<void> _addFix_createConstructor_forUninitializedFinalFields() async {
     if (node is! SimpleIdentifier || node.parent is! VariableDeclaration) {
       return;
@@ -4501,10 +4493,8 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  /**
-   * Here we handle cases when a constructors does not initialize all of the
-   * final fields.
-   */
+  /// Here we handle cases when a constructors does not initialize all of the
+  /// final fields.
   Future<void> _addFix_updateConstructor_forUninitializedFinalFields() async {
     if (node is! SimpleIdentifier || node.parent is! ConstructorDeclaration) {
       return;
@@ -4634,10 +4624,8 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  /**
-   * Adds a fix that replaces [target] with a reference to the class declaring
-   * the given [element].
-   */
+  /// Adds a fix that replaces [target] with a reference to the class declaring
+  /// the given [element].
   Future<void> _addFix_useStaticAccess(AstNode target, Element element) async {
     var declaringElement = element.enclosingElement;
     var changeBuilder = _newDartChangeBuilder();
@@ -4748,10 +4736,8 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  /**
-   * Prepares proposal for creating function corresponding to the given
-   * [FunctionType].
-   */
+  /// Prepares proposal for creating function corresponding to the given
+  /// [FunctionType].
   Future<DartChangeBuilder> _addProposal_createFunction(
       FunctionType functionType,
       String name,
@@ -4784,6 +4770,13 @@ class FixProcessor extends BaseProcessor {
         // append parameters
         builder.write('(');
         List<ParameterElement> parameters = functionType.parameters;
+        var parameterNames = <String>{};
+        for (int i = 0; i < parameters.length; i++) {
+          var name = parameters[i].name;
+          if (name.isNotEmpty) {
+            parameterNames.add(name);
+          }
+        }
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
           // append separator
@@ -4802,7 +4795,12 @@ class FixProcessor extends BaseProcessor {
           }
           // append parameter name
           builder.addLinkedEdit('ARG$i', (DartLinkedEditBuilder builder) {
-            builder.write(parameter.displayName);
+            var name = parameter.name;
+            if (name.isEmpty) {
+              name = _generateUniqueName(parameterNames, 'p');
+              parameterNames.add(name);
+            }
+            builder.write(name);
           });
         }
         builder.write(')');
@@ -4817,10 +4815,8 @@ class FixProcessor extends BaseProcessor {
     return changeBuilder;
   }
 
-  /**
-   * Adds proposal for creating method corresponding to the given [FunctionType] in the given
-   * [ClassElement].
-   */
+  /// Adds proposal for creating method corresponding to the given
+  /// [FunctionType] in the given [ClassElement].
   Future<void> _addProposal_createFunction_function(
       FunctionType functionType) async {
     String name = (node as SimpleIdentifier).name;
@@ -4844,10 +4840,8 @@ class FixProcessor extends BaseProcessor {
         args: [name]);
   }
 
-  /**
-   * Adds proposal for creating method corresponding to the given [FunctionType] in the given
-   * [ClassElement].
-   */
+  /// Adds proposal for creating method corresponding to the given
+  /// [FunctionType] in the given [ClassElement].
   Future<void> _addProposal_createFunction_method(
       ClassElement targetClassElement, FunctionType functionType) async {
     String name = (node as SimpleIdentifier).name;
@@ -4887,6 +4881,18 @@ class FixProcessor extends BaseProcessor {
     return collector.references;
   }
 
+  /// Generate a name that does not occur in [existingNames] that begins with
+  /// the given [prefix].
+  String _generateUniqueName(Set<String> existingNames, String prefix) {
+    var index = 1;
+    var name = '$prefix$index';
+    while (existingNames.contains(name)) {
+      index++;
+      name = '$prefix$index';
+    }
+    return name;
+  }
+
   /// Return the class, enum or mixin declaration for the given [element].
   Future<ClassOrMixinDeclaration> _getClassDeclaration(
       ClassElement element) async {
@@ -4897,10 +4903,8 @@ class FixProcessor extends BaseProcessor {
     return null;
   }
 
-  /**
-   * Return the string to display as the name of the given constructor in a
-   * proposal name.
-   */
+  /// Return the string to display as the name of the given constructor in a
+  /// proposal name.
   String _getConstructorProposalName(ConstructorElement constructor) {
     StringBuffer buffer = StringBuffer();
     buffer.write('super');
@@ -4923,10 +4927,8 @@ class FixProcessor extends BaseProcessor {
     return null;
   }
 
-  /**
-   * Return the relative uri from the passed [library] to the given [path].
-   * If the [path] is not in the LibraryElement, `null` is returned.
-   */
+  /// Return the relative uri from the passed [library] to the given [path].
+  /// If the [path] is not in the LibraryElement, `null` is returned.
   String _getRelativeURIFromLibrary(LibraryElement library, String path) {
     var librarySource = library?.librarySource;
     if (librarySource == null) {
@@ -4943,10 +4945,8 @@ class FixProcessor extends BaseProcessor {
     return null;
   }
 
-  /**
-   * Returns an expected [DartType] of [expression], may be `null` if cannot be
-   * inferred.
-   */
+  /// Returns an expected [DartType] of [expression], may be `null` if cannot be
+  /// inferred.
   DartType _inferUndefinedExpressionType(Expression expression) {
     AstNode parent = expression.parent;
     // myFunction();
@@ -5069,9 +5069,7 @@ class FixProcessor extends BaseProcessor {
     return null;
   }
 
-  /**
-   * Returns `true` if [node] is in static context.
-   */
+  /// Returns `true` if [node] is in static context.
   bool _inStaticContext() {
     // constructor initializer cannot reference "this"
     if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
@@ -5167,11 +5165,9 @@ class FixProcessor extends BaseProcessor {
     return DartChangeBuilderImpl.forWorkspace(context.workspace);
   }
 
-  /**
-   * Removes any [ParenthesizedExpression] enclosing [expr].
-   *
-   * [exprPrecedence] - the effective precedence of [expr].
-   */
+  /// Removes any [ParenthesizedExpression] enclosing [expr].
+  ///
+  /// [exprPrecedence] - the effective precedence of [expr].
   void _removeEnclosingParentheses(
       DartFileEditBuilder builder, Expression expr, Precedence exprPrecedence) {
     while (expr.parent is ParenthesizedExpression) {
@@ -5225,10 +5221,8 @@ class FixProcessor extends BaseProcessor {
     return true;
   }
 
-  /**
-   * Return `true` if the given [node] is in a location where an implicit
-   * constructor invocation would be allowed.
-   */
+  /// Return `true` if the given [node] is in a location where an implicit
+  /// constructor invocation would be allowed.
   static bool _mayBeImplicitConstructor(AstNode node) {
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
@@ -5239,9 +5233,7 @@ class FixProcessor extends BaseProcessor {
     return false;
   }
 
-  /**
-   * Returns `true` if [node] is a type name.
-   */
+  /// Returns `true` if [node] is a type name.
   static bool _mayBeTypeIdentifier(AstNode node) {
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
@@ -5259,9 +5251,7 @@ class FixProcessor extends BaseProcessor {
   }
 }
 
-/**
- * Helper for finding [Element] with name closest to the given.
- */
+/// Helper for finding [Element] with name closest to the given.
 class _ClosestElementFinder {
   final String _targetName;
   final ElementPredicate _predicate;
@@ -5314,9 +5304,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-/**
- * [ExecutableElement], its parameters, and operations on them.
- */
+/// [ExecutableElement], its parameters, and operations on them.
 class _ExecutableParameters {
   final AnalysisSessionHelper sessionHelper;
   final ExecutableElement executable;
@@ -5363,10 +5351,8 @@ class _ExecutableParameters {
     return named.map((parameter) => parameter.name).toList();
   }
 
-  /**
-   * Return the [FormalParameterList] of the [executable], or `null` is cannot
-   * be found.
-   */
+  /// Return the [FormalParameterList] of the [executable], or `null` is cannot
+  /// be found.
   Future<FormalParameterList> getParameterList() async {
     var result = await sessionHelper.getElementDeclaration(executable);
     var targetDeclaration = result.node;
@@ -5381,10 +5367,8 @@ class _ExecutableParameters {
     return null;
   }
 
-  /**
-   * Return the [FormalParameter] of the [element] in [FormalParameterList],
-   * or `null` is cannot be found.
-   */
+  /// Return the [FormalParameter] of the [element] in [FormalParameterList],
+  /// or `null` is cannot be found.
   Future<FormalParameter> getParameterNode(ParameterElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
     var declaration = result.node;

@@ -196,12 +196,14 @@ class FfiTransformer extends Transformer {
   final Procedure castMethod;
   final Procedure offsetByMethod;
   final Procedure elementAtMethod;
+  final Procedure addressGetter;
   final Procedure asFunctionMethod;
   final Procedure asFunctionInternal;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
   final Field addressOfField;
   final Constructor structFromPointer;
+  final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
   final Procedure pointerFromFunctionProcedure;
@@ -231,14 +233,18 @@ class FfiTransformer extends Transformer {
         castMethod = index.getMember('dart:ffi', 'Pointer', 'cast'),
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
+        addressGetter = index.getMember('dart:ffi', 'Pointer', 'get:address'),
         addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
         structFromPointer =
             index.getMember('dart:ffi', 'Struct', '_fromPointer'),
-        asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
+        fromAddressInternal =
+            index.getTopLevelMember('dart:ffi', '_fromAddress'),
+        asFunctionMethod =
+            index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
             index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
-        lookupFunctionMethod =
-            index.getMember('dart:ffi', 'DynamicLibrary', 'lookupFunction'),
+        lookupFunctionMethod = index.getMember(
+            'dart:ffi', 'DynamicLibraryExtension', 'lookupFunction'),
         fromFunctionMethod =
             index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
         libraryLookupMethod =

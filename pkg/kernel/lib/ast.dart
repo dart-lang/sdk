@@ -315,6 +315,8 @@ class Reference {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
+enum NonNullableByDefaultCompiledMode { Disabled, Weak, Strong, Agnostic }
+
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
   /// An import path to this library.
@@ -347,6 +349,8 @@ class Library extends NamedNode
 
   static const int SyntheticFlag = 1 << 1;
   static const int NonNullableByDefaultFlag = 1 << 2;
+  static const int NonNullableByDefaultModeBit1Weak = 1 << 3;
+  static const int NonNullableByDefaultModeBit2Strong = 1 << 4;
 
   int flags = 0;
 
@@ -362,6 +366,38 @@ class Library extends NamedNode
     flags = value
         ? (flags | NonNullableByDefaultFlag)
         : (flags & ~NonNullableByDefaultFlag);
+  }
+
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode {
+    bool weak = (flags & NonNullableByDefaultModeBit1Weak) != 0;
+    bool strong = (flags & NonNullableByDefaultModeBit2Strong) != 0;
+
+    if (weak && strong) return NonNullableByDefaultCompiledMode.Agnostic;
+    if (strong) return NonNullableByDefaultCompiledMode.Strong;
+    if (weak) return NonNullableByDefaultCompiledMode.Weak;
+    return NonNullableByDefaultCompiledMode.Disabled;
+  }
+
+  void set nonNullableByDefaultCompiledMode(
+      NonNullableByDefaultCompiledMode mode) {
+    switch (mode) {
+      case NonNullableByDefaultCompiledMode.Disabled:
+        flags = (flags & ~NonNullableByDefaultModeBit1Weak) &
+            ~NonNullableByDefaultModeBit2Strong;
+        break;
+      case NonNullableByDefaultCompiledMode.Weak:
+        flags = (flags | NonNullableByDefaultModeBit1Weak) &
+            ~NonNullableByDefaultModeBit2Strong;
+        break;
+      case NonNullableByDefaultCompiledMode.Strong:
+        flags = (flags & ~NonNullableByDefaultModeBit1Weak) |
+            NonNullableByDefaultModeBit2Strong;
+        break;
+      case NonNullableByDefaultCompiledMode.Agnostic:
+        flags = (flags | NonNullableByDefaultModeBit1Weak) |
+            NonNullableByDefaultModeBit2Strong;
+        break;
+    }
   }
 
   String name;

@@ -57,6 +57,10 @@ class VmTarget extends Target {
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
 
   @override
+  bool get supportsExplicitGetterCalls =>
+      !flags.forceNoExplicitGetterCallsForTesting;
+
+  @override
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to
@@ -457,4 +461,28 @@ class VmTarget extends Target {
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
       new VmConstantsBackend(coreTypes);
+
+  @override
+  Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
+    // TODO(alexmarkov): Call this from the front-end in order to have
+    //  the same defines when compiling platform.
+    assert(map != null);
+    if (map['dart.vm.product'] == 'true') {
+      map['dart.developer.causal_async_stacks'] = 'false';
+    }
+    map['dart.isVM'] = 'true';
+    // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
+    for (String library in extraRequiredLibraries) {
+      Uri libraryUri = Uri.parse(library);
+      if (libraryUri.scheme == 'dart') {
+        final path = libraryUri.path;
+        if (!path.startsWith('_')) {
+          map['dart.library.${path}'] = 'true';
+        }
+      }
+    }
+    // dart:core is not mentioned in Target.extraRequiredLibraries.
+    map['dart.library.core'] = 'true';
+    return map;
+  }
 }

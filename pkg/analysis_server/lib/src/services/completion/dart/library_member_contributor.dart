@@ -12,10 +12,8 @@ import 'package:analyzer/dart/element/element.dart';
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
-/**
- * A contributor for calculating prefixed import library member suggestions
- * `completion.getSuggestions` request results.
- */
+/// A contributor for calculating prefixed import library member suggestions
+/// `completion.getSuggestions` request results.
 class LibraryMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(

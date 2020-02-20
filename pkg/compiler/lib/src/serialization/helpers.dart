@@ -89,8 +89,6 @@ class Tag {
 /// Enum used for identifying [DartType] subclasses in serialization.
 enum DartTypeKind {
   none,
-  legacyType,
-  nullableType,
   neverType,
   voidType,
   typeVariable,
@@ -101,127 +99,6 @@ enum DartTypeKind {
   erasedType,
   anyType,
   futureOr,
-}
-
-/// Visitor that serializes [DartType] object together with [AbstractDataSink].
-class DartTypeWriter
-    implements DartTypeVisitor<void, List<FunctionTypeVariable>> {
-  final AbstractDataSink _sink;
-
-  DartTypeWriter(this._sink);
-
-  @override
-  void visit(covariant DartType type,
-          List<FunctionTypeVariable> functionTypeVariables) =>
-      type.accept(this, functionTypeVariables);
-
-  void visitTypes(
-      List<DartType> types, List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeInt(types.length);
-    for (DartType type in types) {
-      _sink._writeDartType(type, functionTypeVariables);
-    }
-  }
-
-  @override
-  void visitLegacyType(covariant LegacyType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.legacyType);
-    _sink._writeDartType(type.baseType, functionTypeVariables);
-  }
-
-  @override
-  void visitNullableType(covariant NullableType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.nullableType);
-    _sink._writeDartType(type.baseType, functionTypeVariables);
-  }
-
-  @override
-  void visitNeverType(covariant NeverType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.neverType);
-  }
-
-  @override
-  void visitVoidType(covariant VoidType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.voidType);
-  }
-
-  @override
-  void visitTypeVariableType(covariant TypeVariableType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.typeVariable);
-    IndexedTypeVariable typeVariable = type.element;
-    _sink.writeTypeVariable(typeVariable);
-  }
-
-  @override
-  void visitFunctionTypeVariable(covariant FunctionTypeVariable type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    int index = functionTypeVariables.indexOf(type);
-    if (index == -1) {
-      // TODO(johnniwinther): Avoid free variables.
-      _sink._writeDartType(DynamicType(), functionTypeVariables);
-    } else {
-      _sink.writeEnum(DartTypeKind.functionTypeVariable);
-      _sink.writeInt(index);
-    }
-  }
-
-  @override
-  void visitFunctionType(covariant FunctionType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.functionType);
-    functionTypeVariables =
-        new List<FunctionTypeVariable>.from(functionTypeVariables)
-          ..addAll(type.typeVariables);
-    _sink.writeInt(type.typeVariables.length);
-    for (FunctionTypeVariable variable in type.typeVariables) {
-      _sink._writeDartType(variable.bound, functionTypeVariables);
-    }
-    _sink._writeDartType(type.returnType, functionTypeVariables);
-    visitTypes(type.parameterTypes, functionTypeVariables);
-    visitTypes(type.optionalParameterTypes, functionTypeVariables);
-    visitTypes(type.namedParameterTypes, functionTypeVariables);
-    for (String namedParameter in type.namedParameters) {
-      _sink.writeString(namedParameter);
-    }
-  }
-
-  @override
-  void visitInterfaceType(covariant InterfaceType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.interfaceType);
-    _sink.writeClass(type.element);
-    visitTypes(type.typeArguments, functionTypeVariables);
-  }
-
-  @override
-  void visitDynamicType(covariant DynamicType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.dynamicType);
-  }
-
-  @override
-  void visitErasedType(covariant ErasedType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.erasedType);
-  }
-
-  @override
-  void visitAnyType(covariant AnyType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.anyType);
-  }
-
-  @override
-  void visitFutureOrType(covariant FutureOrType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.futureOr);
-    _sink._writeDartType(type.typeArgument, functionTypeVariables);
-  }
 }
 
 /// Enum used for identifying [ir.DartType] subclasses in serialization.
@@ -303,6 +180,7 @@ class DartTypeNodeWriter
       _sink.writeEnum(DartTypeNodeKind.interfaceType);
     }
     _sink.writeClassNode(node.classNode);
+    _sink.writeEnum(node.nullability);
     visitTypes(node.typeArguments, functionTypeVariables);
   }
 
@@ -321,6 +199,7 @@ class DartTypeNodeWriter
       _sink._writeDartTypeNode(parameter.defaultType, functionTypeVariables);
     }
     _sink._writeDartTypeNode(node.returnType, functionTypeVariables);
+    _sink.writeEnum(node.nullability);
     _sink.writeInt(node.requiredParameterCount);
     visitTypes(node.positionalParameters, functionTypeVariables);
     _sink.writeInt(node.namedParameters.length);
@@ -340,11 +219,13 @@ class DartTypeNodeWriter
     if (index != -1) {
       _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
       _sink.writeInt(index);
+      _sink.writeEnum(node.typeParameterTypeNullability);
       _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
           allowNull: true);
     } else {
       _sink.writeEnum(DartTypeNodeKind.typeParameterType);
       _sink.writeTypeParameterNode(node.parameter);
+      _sink.writeEnum(node.typeParameterTypeNullability);
       _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
           allowNull: true);
     }
@@ -355,6 +236,7 @@ class DartTypeNodeWriter
       ir.TypedefType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.typedef);
     _sink.writeTypedefNode(node.typedefNode);
+    _sink.writeEnum(node.nullability);
     visitTypes(node.typeArguments, functionTypeVariables);
   }
 }

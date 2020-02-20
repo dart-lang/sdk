@@ -1328,6 +1328,8 @@ highest
 highlighted
 hint
 historically
+hoist
+hoisted
 hold
 holder
 holding
@@ -1969,6 +1971,7 @@ opted
 optimistically
 optimization
 optimize
+optimized
 option
 optional
 optionally
@@ -2364,6 +2367,7 @@ relationship
 relationships
 relative
 release
+releases
 relevant
 relied
 relies

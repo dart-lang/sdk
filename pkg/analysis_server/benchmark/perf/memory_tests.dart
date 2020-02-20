@@ -11,9 +11,7 @@ import 'package:test/test.dart';
 
 import '../../test/integration/support/integration_tests.dart';
 
-/**
- * Base class for analysis server memory usage tests.
- */
+/// Base class for analysis server memory usage tests.
 class AnalysisServerMemoryUsageTest
     extends AbstractAnalysisServerIntegrationTest {
   int _vmServicePort;
@@ -40,16 +38,12 @@ class AnalysisServerMemoryUsageTest
     return total;
   }
 
-  /**
-   * Send the server an 'analysis.setAnalysisRoots' command directing it to
-   * analyze [sourceDirectory].
-   */
+  /// Send the server an 'analysis.setAnalysisRoots' command directing it to
+  /// analyze [sourceDirectory].
   Future setAnalysisRoot() =>
       sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
 
-  /**
-   * The server is automatically started before every test.
-   */
+  /// The server is automatically started before every test.
   @override
   Future setUp() async {
     _vmServicePort = await _findAvailableSocketPort();
@@ -75,15 +69,11 @@ class AnalysisServerMemoryUsageTest
     });
   }
 
-  /**
-   * After every test, the server is stopped.
-   */
+  /// After every test, the server is stopped.
   Future shutdown() async => await shutdownIfNeeded();
 
-  /**
-   * Enable [ServerService.STATUS] notifications so that [analysisFinished]
-   * can be used.
-   */
+  /// Enable [ServerService.STATUS] notifications so that [analysisFinished]
+  /// can be used.
   Future subscribeToStatusNotifications() async {
     await sendServerSetSubscriptions([ServerService.STATUS]);
   }

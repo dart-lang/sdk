@@ -6,12 +6,10 @@ part of services.completion.dart.sorter.common;
 
 // Auto-generated, please do not edit.
 
-/**
- * A map of <library>.<classname> to an ordered list of method names,
- * field names, getter names, and named constructors.
- * The names are ordered from most relevant to least relevant.
- * Names not listed are considered equally less relevant than those listed.
- */
+/// A map of <library>.<classname> to an ordered list of method names,
+/// field names, getter names, and named constructors.
+/// The names are ordered from most relevant to least relevant.
+/// Names not listed are considered equally less relevant than those listed.
 const Map<String, List<String>> defaultSelectorRelevance = {
   'dart.core.Comparable': [
     'compareTo',

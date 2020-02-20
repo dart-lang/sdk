@@ -31,19 +31,14 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 // TODO(devoncarew): See #31456 for the tracking issue to remove this flag.
 final bool disableManageImportsOnPaste = true;
 
-/**
- * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
- * that handles requests in the `analysis` domain.
- */
+/// Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
+/// that handles requests in the `analysis` domain.
 class AnalysisDomainHandler extends AbstractRequestHandler {
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   AnalysisDomainHandler(AnalysisServer server) : super(server);
 
-  /**
-   * Implement the `analysis.getErrors` request.
-   */
+  /// Implement the `analysis.getErrors` request.
   Future<void> getErrors(Request request) async {
     String file = AnalysisGetErrorsParams.fromRequest(request).file;
 
@@ -63,9 +58,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
         AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
   }
 
-  /**
-   * Implement the `analysis.getHover` request.
-   */
+  /// Implement the `analysis.getHover` request.
   Future<void> getHover(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -95,9 +88,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     server.sendResponse(AnalysisGetHoverResult(hovers).toResponse(request.id));
   }
 
-  /**
-   * Implement the `analysis.getImportedElements` request.
-   */
+  /// Implement the `analysis.getImportedElements` request.
   Future<void> getImportedElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -137,9 +128,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
         AnalysisGetImportedElementsResult(elements).toResponse(request.id));
   }
 
-  /**
-   * Implement the `analysis.getLibraryDependencies` request.
-   */
+  /// Implement the `analysis.getLibraryDependencies` request.
   Response getLibraryDependencies(Request request) {
     return Response.unsupportedFeature(request.id,
         'Please contact the Dart analyzer team if you need this request.');
@@ -159,9 +148,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 //    return Response.DELAYED_RESPONSE;
   }
 
-  /**
-   * Implement the `analysis.getNavigation` request.
-   */
+  /// Implement the `analysis.getNavigation` request.
   Future<void> getNavigation(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -232,9 +219,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
   }
 
-  /**
-   * Implement the `analysis.getReachableSources` request.
-   */
+  /// Implement the `analysis.getReachableSources` request.
   Response getReachableSources(Request request) {
     return Response.unsupportedFeature(request.id,
         'Please contact the Dart analyzer team if you need this request.');
@@ -251,9 +236,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 //        .toResponse(request.id);
   }
 
-  /**
-   * Implement the `analysis.getSignature` request.
-   */
+  /// Implement the `analysis.getSignature` request.
   Future<void> getSignature(Request request) async {
     var params = AnalysisGetSignatureParams.fromRequest(request);
     var file = params.file;
@@ -333,9 +316,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     return null;
   }
 
-  /**
-   * Implement the 'analysis.reanalyze' request.
-   */
+  /// Implement the 'analysis.reanalyze' request.
   Response reanalyze(Request request) {
     server.options.analytics?.sendEvent('analysis', 'reanalyze');
 
@@ -352,9 +333,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     return AnalysisReanalyzeResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.setAnalysisRoots' request.
-   */
+  /// Implement the 'analysis.setAnalysisRoots' request.
   Response setAnalysisRoots(Request request) {
     var params = AnalysisSetAnalysisRootsParams.fromRequest(request);
     List<String> includedPathList = params.included;
@@ -387,9 +366,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     return AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.setGeneralSubscriptions' request.
-   */
+  /// Implement the 'analysis.setGeneralSubscriptions' request.
   Response setGeneralSubscriptions(Request request) {
     AnalysisSetGeneralSubscriptionsParams params =
         AnalysisSetGeneralSubscriptionsParams.fromRequest(request);
@@ -397,9 +374,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     return AnalysisSetGeneralSubscriptionsResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.setPriorityFiles' request.
-   */
+  /// Implement the 'analysis.setPriorityFiles' request.
   Response setPriorityFiles(Request request) {
     var params = AnalysisSetPriorityFilesParams.fromRequest(request);
 
@@ -422,9 +397,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     return AnalysisSetPriorityFilesResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.setSubscriptions' request.
-   */
+  /// Implement the 'analysis.setSubscriptions' request.
   Response setSubscriptions(Request request) {
     var params = AnalysisSetSubscriptionsParams.fromRequest(request);
 
@@ -452,9 +425,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     return AnalysisSetSubscriptionsResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.updateContent' request.
-   */
+  /// Implement the 'analysis.updateContent' request.
   Response updateContent(Request request) {
     var params = AnalysisUpdateContentParams.fromRequest(request);
 
@@ -477,9 +448,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     return AnalysisUpdateContentResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'analysis.updateOptions' request.
-   */
+  /// Implement the 'analysis.updateOptions' request.
   Response updateOptions(Request request) {
     // options
     var params = AnalysisUpdateOptionsParams.fromRequest(request);

@@ -71,6 +71,7 @@ namespace dart {
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)                                                     \
+  V(DispatchTableNullError)                                                    \
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(NullArgErrorSharedWithFPURegs)                                             \

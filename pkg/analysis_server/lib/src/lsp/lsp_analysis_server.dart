@@ -50,10 +50,9 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:watcher/watcher.dart';
 
-/**
- * Instances of the class [LspAnalysisServer] implement an LSP-based server that
- * listens on a [CommunicationChannel] for LSP messages and processes them.
- */
+/// Instances of the class [LspAnalysisServer] implement an LSP-based server
+/// that listens on a [CommunicationChannel] for LSP messages and processes
+/// them.
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities _clientCapabilities;
@@ -62,10 +61,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions _initializationOptions;
 
-  /**
-   * The channel from which messages are received and to which responses should
-   * be sent.
-   */
+  /// The channel from which messages are received and to which responses should
+  /// be sent.
   final LspServerCommunicationChannel channel;
 
   /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
@@ -73,37 +70,27 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   final NotificationManager notificationManager = NullNotificationManager();
 
-  /**
-   * The object used to manage the SDK's known to this server.
-   */
+  /// The object used to manage the SDK's known to this server.
   final DartSdkManager sdkManager;
 
-  /**
-   * The instrumentation service that is to be used by this analysis server.
-   */
+  /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService instrumentationService;
 
-  /**
-   * The default options used to create new analysis contexts. This object is
-   * also referenced by the ContextManager.
-   */
+  /// The default options used to create new analysis contexts. This object is
+  /// also referenced by the ContextManager.
   final AnalysisOptionsImpl defaultContextOptions = AnalysisOptionsImpl();
 
-  /**
-   * The workspace for rename refactorings. Should be accessed through the
-   * refactoringWorkspace getter to be automatically created (lazily).
-   */
+  /// The workspace for rename refactorings. Should be accessed through the
+  /// refactoringWorkspace getter to be automatically created (lazily).
   RefactoringWorkspace _refactoringWorkspace;
 
-  /**
-   * The versions of each document known to the server (keyed by path), used to
-   * send back to the client for server-initiated edits so that the client can
-   * ensure they have a matching version of the document before applying them.
-   *
-   * Handlers should prefer to use the `getVersionedDocumentIdentifier` method
-   * which will return a null-versioned identifier if the document version is
-   * not known.
-   */
+  /// The versions of each document known to the server (keyed by path), used to
+  /// send back to the client for server-initiated edits so that the client can
+  /// ensure they have a matching version of the document before applying them.
+  ///
+  /// Handlers should prefer to use the `getVersionedDocumentIdentifier` method
+  /// which will return a null-versioned identifier if the document version is
+  /// not known.
   final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
 
   PerformanceLog _analysisPerformanceLogger;
@@ -114,10 +101,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   final Map<int, Completer<ResponseMessage>> completers = {};
 
-  /**
-   * Capabilities of the server. Will be null prior to initialization as
-   * the server capabilities depend on the client capabilities.
-   */
+  /// Capabilities of the server. Will be null prior to initialization as
+  /// the server capabilities depend on the client capabilities.
   ServerCapabilities capabilities;
 
   LspPerformance performanceStats = LspPerformance();
@@ -126,10 +111,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// automatically.
   bool willExit = false;
 
-  /**
-   * Initialize a newly created server to send and receive messages to the given
-   * [channel].
-   */
+  /// Initialize a newly created server to send and receive messages to the
+  /// given [channel].
   LspAnalysisServer(
     this.channel,
     ResourceProvider baseResourceProvider,
@@ -200,9 +183,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
-  /**
-   * The socket from which messages are being read has been closed.
-   */
+  /// The socket from which messages are being read has been closed.
   void done() {}
 
   /// Return the LineInfo for the file with the given [path]. The file is
@@ -242,8 +223,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     message.id.map(
       (id) {
         // It's possible that even if we got a numeric ID that it's not valid.
-        // If it's not in our completers list (which is a list of the outstanding
-        // requests we've sent) then show an error.
+        // If it's not in our completers list (which is a list of the
+        // outstanding requests we've sent) then show an error.
         final completer = completers[id];
         if (completer == null) {
           showErrorMessageToUser('Response with ID $id was unexpected');
@@ -258,9 +239,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     );
   }
 
-  /**
-   * Handle a [message] that was read from the communication channel.
-   */
+  /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
     performance.logRequestTiming(null);
     runZoned(() {
@@ -326,8 +305,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     final fullError = stackTrace == null ? message : '$message\n$stackTrace';
 
-    // Log the full message since showMessage above may be truncated or formatted
-    // badly (eg. VS Code takes the newlines out).
+    // Log the full message since showMessage above may be truncated or
+    // formatted badly (eg. VS Code takes the newlines out).
     logErrorToClient(fullError);
 
     // remember the last few exceptions
@@ -394,8 +373,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       channel.sendResponse(
           ResponseMessage(message.id, null, error, jsonRpcVersion));
     } else if (message is ResponseMessage) {
-      // For bad response messages where we can't respond with an error, send it as
-      // show instead of log.
+      // For bad response messages where we can't respond with an error, send it
+      // as show instead of log.
       showErrorMessageToUser(error.message);
     } else {
       // For notifications where we couldn't respond with an error, send it as
@@ -417,16 +396,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
-  /**
-   * Send the given [notification] to the client.
-   */
+  /// Send the given [notification] to the client.
   void sendNotification(NotificationMessage notification) {
     channel.sendNotification(notification);
   }
 
-  /**
-   * Send the given [request] to the client and wait for a response.
-   */
+  /// Send the given [request] to the client and wait for a response.
   Future<ResponseMessage> sendRequest(Method method, Object params) {
     final requestId = nextRequestId++;
     final completer = Completer<ResponseMessage>();
@@ -442,9 +417,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return completer.future;
   }
 
-  /**
-   * Send the given [response] to the client.
-   */
+  /// Send the given [response] to the client.
   void sendResponse(ResponseMessage response) {
     channel.sendResponse(response);
   }
@@ -480,16 +453,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Returns `true` if closing labels should be sent for [file] with the given
   /// absolute path.
   bool shouldSendClosingLabelsFor(String file) {
-    // Closing labels should only be sent for open (priority) files in the workspace.
+    // Closing labels should only be sent for open (priority) files in the
+    // workspace.
     return initializationOptions.closingLabels &&
         priorityFiles.contains(file) &&
         contextManager.isInAnalysisRoot(file);
   }
 
-  /**
-   * Returns `true` if errors should be reported for [file] with the given
-   * absolute path.
-   */
+  /// Returns `true` if errors should be reported for [file] with the given
+  /// absolute path.
   bool shouldSendErrorsNotificationFor(String file) {
     // Errors should not be reported for things that are explicitly skipped
     // during normal analysis (for example dot folders are skipped over in
@@ -498,8 +470,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         !contextManager.isContainedInDotFolder(file);
   }
 
-  /// Returns `true` if Flutter outlines should be sent for [file] with the given
-  /// absolute path.
+  /// Returns `true` if Flutter outlines should be sent for [file] with the
+  /// given absolute path.
   bool shouldSendFlutterOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
     return initializationOptions.flutterOutline &&
@@ -538,10 +510,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     return Future.value();
   }
 
-  /**
-   * There was an error related to the socket from which messages are being
-   * read.
-   */
+  /// There was an error related to the socket from which messages are being
+  /// read.
   void socketError(error, stack) {
     // Don't send to instrumentation service; not an internal error.
     sendServerErrorNotification('Socket error', error, stack);
@@ -607,9 +577,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   final LspAnalysisServer analysisServer;
 
-  /**
-   * The [ResourceProvider] by which paths are converted into [Resource]s.
-   */
+  /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
   LspServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);

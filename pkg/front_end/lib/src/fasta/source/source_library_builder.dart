@@ -36,6 +36,7 @@ import 'package:kernel/ast.dart'
         Member,
         Name,
         NeverType,
+        NonNullableByDefaultCompiledMode,
         Nullability,
         Procedure,
         ProcedureKind,
@@ -66,7 +67,8 @@ import 'package:kernel/src/bounds_checks.dart'
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart'
+    show SubtypeCheckMode, TypeEnvironment;
 
 import '../builder/builder.dart';
 import '../builder/builtin_type_builder.dart';
@@ -161,7 +163,7 @@ import 'source_loader.dart' show SourceLoader;
 
 // TODO(johnniwinther,jensj): Replace this with the correct scheme.
 const int enableNonNullableDefaultMajorVersion = 2;
-const int enableNonNullableDefaultMinorVersion = 7;
+const int enableNonNullableDefaultMinorVersion = 8;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -310,6 +312,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top()) {
     library.isNonNullableByDefault = isNonNullableByDefault;
+    library.nonNullableByDefaultCompiledMode = loader.target.enableNonNullable
+        ? (loader.nnbdStrongMode
+            ? NonNullableByDefaultCompiledMode.Strong
+            : NonNullableByDefaultCompiledMode.Weak)
+        : NonNullableByDefaultCompiledMode.Disabled;
   }
 
   SourceLibraryBuilder(
@@ -958,6 +965,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     library.isNonNullableByDefault = isNonNullableByDefault;
+    // TODO(CFE Team): Is this really needed in two places?
+    library.nonNullableByDefaultCompiledMode = loader.target.enableNonNullable
+        ? (loader.nnbdStrongMode
+            ? NonNullableByDefaultCompiledMode.Strong
+            : NonNullableByDefaultCompiledMode.Weak)
+        : NonNullableByDefaultCompiledMode.Disabled;
 
     return library;
   }
@@ -3003,11 +3016,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void reportTypeArgumentIssues(
-      List<TypeArgumentIssue> issues, Uri fileUri, int offset,
+      Iterable<TypeArgumentIssue> issues, Uri fileUri, int offset,
       {bool inferred,
       TypeArgumentsInfo typeArgumentsInfo,
       DartType targetReceiver,
-      String targetName}) {
+      String targetName,
+      bool areWarnings = false}) {
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
@@ -3029,16 +3043,27 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else {
         if (issue.enclosingType == null && targetReceiver != null) {
           if (issueInferred) {
-            message =
-                templateIncorrectTypeArgumentQualifiedInferred.withArguments(
-                    argument,
-                    typeParameter.bound,
-                    typeParameter.name,
-                    targetReceiver,
-                    targetName,
-                    isNonNullableByDefault);
+            Template<
+                    Message Function(
+                        DartType, DartType, String, DartType, String, bool)>
+                template = areWarnings
+                    ? templateIncorrectTypeArgumentQualifiedInferredWarning
+                    : templateIncorrectTypeArgumentQualifiedInferred;
+            message = template.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                targetReceiver,
+                targetName,
+                isNonNullableByDefault);
           } else {
-            message = templateIncorrectTypeArgumentQualified.withArguments(
+            Template<
+                    Message Function(
+                        DartType, DartType, String, DartType, String, bool)>
+                template = areWarnings
+                    ? templateIncorrectTypeArgumentQualifiedWarning
+                    : templateIncorrectTypeArgumentQualified;
+            message = template.withArguments(
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
@@ -3052,19 +3077,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               : getGenericTypeName(issue.enclosingType);
           assert(enclosingName != null);
           if (issueInferred) {
-            message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name,
-                enclosingName,
-                isNonNullableByDefault);
+            Template<Message Function(DartType, DartType, String, String, bool)>
+                template = areWarnings
+                    ? templateIncorrectTypeArgumentInferredWarning
+                    : templateIncorrectTypeArgumentInferred;
+            message = template.withArguments(argument, typeParameter.bound,
+                typeParameter.name, enclosingName, isNonNullableByDefault);
           } else {
-            message = templateIncorrectTypeArgument.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name,
-                enclosingName,
-                isNonNullableByDefault);
+            Template<Message Function(DartType, DartType, String, String, bool)>
+                template = areWarnings
+                    ? templateIncorrectTypeArgumentWarning
+                    : templateIncorrectTypeArgument;
+            message = template.withArguments(argument, typeParameter.bound,
+                typeParameter.name, enclosingName, isNonNullableByDefault);
           }
         }
       }
@@ -3191,32 +3216,61 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     if (returnType != null) {
-      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-          returnType, typeEnvironment,
-          allowSuperBounded: true);
-      if (issues != null) {
+      Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssues(returnType,
+              typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
+              allowSuperBounded: true)
+          ?.toSet();
+      Set<TypeArgumentIssue> nnbdIssues =
+          isNonNullableByDefault && loader.performNnbdChecks
+              ? findTypeArgumentIssues(returnType, typeEnvironment,
+                      SubtypeCheckMode.withNullabilities)
+                  ?.toSet()
+              : null;
+      if (legacyIssues != null || nnbdIssues != null) {
+        Set<TypeArgumentIssue> mergedIssues = legacyIssues ?? {};
+        if (nnbdIssues != null) {
+          mergedIssues.addAll(nnbdIssues.where((issue) =>
+              legacyIssues == null || !legacyIssues.contains(issue)));
+        }
         int offset = fileOffset;
-        for (TypeArgumentIssue issue in issues) {
+        for (TypeArgumentIssue issue in mergedIssues) {
           DartType argument = issue.argument;
           TypeParameter typeParameter = issue.typeParameter;
 
           // We don't need to check if [argument] was inferred or specified
           // here, because inference in return types boils down to instantiate-
           // -to-bound, and it can't provide a type that violates the bound.
-          Message message;
           if (argument is FunctionType && argument.typeParameters.length > 0) {
-            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
-            typeParameter = null;
+            reportTypeArgumentIssue(
+                messageGenericFunctionTypeUsedAsActualTypeArgument,
+                fileUri,
+                offset,
+                null);
           } else {
-            message = templateIncorrectTypeArgumentInReturnType.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name,
-                getGenericTypeName(issue.enclosingType),
-                isNonNullableByDefault);
-          }
+            void reportProblem(
+                Template<
+                        Message Function(
+                            DartType, DartType, String, String, bool)>
+                    template) {
+              reportTypeArgumentIssue(
+                  template.withArguments(
+                      argument,
+                      typeParameter.bound,
+                      typeParameter.name,
+                      getGenericTypeName(issue.enclosingType),
+                      isNonNullableByDefault),
+                  fileUri,
+                  offset,
+                  typeParameter);
+            }
 
-          reportTypeArgumentIssue(message, fileUri, offset, typeParameter);
+            nnbdIssues ??= const {};
+            if (nnbdIssues.contains(issue) && !loader.nnbdStrongMode) {
+              reportProblem(templateIncorrectTypeArgumentInReturnTypeWarning);
+            } else {
+              reportProblem(templateIncorrectTypeArgumentInReturnType);
+            }
+          }
         }
       }
     }
@@ -3261,11 +3315,27 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInType(
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool inferred, bool allowSuperBounded = true}) {
-    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        type, typeEnvironment,
-        allowSuperBounded: allowSuperBounded);
-    if (issues != null) {
-      reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
+    Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssues(
+            type, typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
+            allowSuperBounded: allowSuperBounded)
+        ?.toSet();
+    Set<TypeArgumentIssue> nnbdIssues =
+        isNonNullableByDefault && loader.performNnbdChecks
+            ? findTypeArgumentIssues(
+                    type, typeEnvironment, SubtypeCheckMode.withNullabilities,
+                    allowSuperBounded: allowSuperBounded)
+                ?.toSet()
+            : null;
+    if (legacyIssues != null) {
+      reportTypeArgumentIssues(legacyIssues, fileUri, offset,
+          inferred: inferred);
+    }
+    if (nnbdIssues != null) {
+      if (legacyIssues != null) {
+        nnbdIssues = nnbdIssues.where((issue) => !legacyIssues.contains(issue));
+      }
+      reportTypeArgumentIssues(nnbdIssues, fileUri, offset,
+          inferred: inferred, areWarnings: !loader.nnbdStrongMode);
     }
   }
 
@@ -3318,19 +3388,45 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<DartType> arguments = node.arguments.types;
     // The following error is to be reported elsewhere.
     if (parameters.length != arguments.length) return;
-    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        parameters, arguments, typeEnvironment);
-    if (issues != null) {
+    Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssuesForInvocation(
+            parameters,
+            arguments,
+            typeEnvironment,
+            SubtypeCheckMode.ignoringNullabilities)
+        ?.toSet();
+    Set<TypeArgumentIssue> nnbdIssues =
+        isNonNullableByDefault && loader.performNnbdChecks
+            ? findTypeArgumentIssuesForInvocation(parameters, arguments,
+                    typeEnvironment, SubtypeCheckMode.withNullabilities)
+                ?.toSet()
+            : null;
+    if (legacyIssues != null) {
       DartType targetReceiver;
       if (klass != null) {
         targetReceiver =
             new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
       String targetName = node.target.name.name;
-      reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
+      reportTypeArgumentIssues(legacyIssues, fileUri, node.fileOffset,
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
           targetName: targetName);
+    }
+    if (nnbdIssues != null) {
+      DartType targetReceiver;
+      if (klass != null) {
+        targetReceiver =
+            new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
+      }
+      String targetName = node.target.name.name;
+      if (legacyIssues != null) {
+        nnbdIssues = nnbdIssues.where((issue) => !legacyIssues.contains(issue));
+      }
+      reportTypeArgumentIssues(nnbdIssues, fileUri, node.fileOffset,
+          typeArgumentsInfo: typeArgumentsInfo,
+          targetReceiver: targetReceiver,
+          targetName: targetName,
+          areWarnings: !loader.nnbdStrongMode);
     }
   }
 
@@ -3384,13 +3480,36 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       instantiatedMethodParameters[i].bound =
           substitute(methodParameters[i].bound, substitutionMap);
     }
-    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        instantiatedMethodParameters, arguments.types, typeEnvironment);
-    if (issues != null) {
-      reportTypeArgumentIssues(issues, fileUri, offset,
+    Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssuesForInvocation(
+            instantiatedMethodParameters,
+            arguments.types,
+            typeEnvironment,
+            SubtypeCheckMode.ignoringNullabilities)
+        ?.toSet();
+    Set<TypeArgumentIssue> nnbdIssues =
+        isNonNullableByDefault && loader.performNnbdChecks
+            ? findTypeArgumentIssuesForInvocation(
+                    instantiatedMethodParameters,
+                    arguments.types,
+                    typeEnvironment,
+                    SubtypeCheckMode.withNullabilities)
+                ?.toSet()
+            : null;
+    if (legacyIssues != null) {
+      reportTypeArgumentIssues(legacyIssues, fileUri, offset,
           typeArgumentsInfo: getTypeArgumentsInfo(arguments),
           targetReceiver: receiverType,
           targetName: name.name);
+    }
+    if (nnbdIssues != null) {
+      if (legacyIssues != null) {
+        nnbdIssues = nnbdIssues.where((issue) => !legacyIssues.contains(issue));
+      }
+      reportTypeArgumentIssues(nnbdIssues, fileUri, offset,
+          typeArgumentsInfo: getTypeArgumentsInfo(arguments),
+          targetReceiver: receiverType,
+          targetName: name.name,
+          areWarnings: !loader.nnbdStrongMode);
     }
   }
 

@@ -197,6 +197,6 @@ Try calling using ?. instead.
   nullableClass(); // error
                ^" in nullableClass.{self::Class::call}();
   nonNullableClass.{self::Class::call}();
-  let final self::Class #t43 = nonNullableClass in #t43.{core::Object::==}(null) ?{self::Class?} null : #t43.{self::Class::nonNullableClass}();
-  let final self::Class #t44 = nonNullableClass in #t44.{core::Object::==}(null) ?{self::Class?} null : #t44.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}();
+  let final self::Class #t43 = nonNullableClass in #t43.{core::Object::==}(null) ?{self::Class?} null : #t43.{self::Class::nonNullableClass}.{self::Class::call}();
+  let final self::Class #t44 = nonNullableClass in #t44.{core::Object::==}(null) ?{self::Class?} null : #t44.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}.{self::Class::call}();
 }

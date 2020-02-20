@@ -37,9 +37,7 @@ int findIdentifierLength(String search) {
   return length;
 }
 
-/**
- * An abstract base for all 'analysis' domain tests.
- */
+/// An abstract base for all 'analysis' domain tests.
 class AbstractAnalysisTest with ResourceProviderMixin {
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
@@ -130,9 +128,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
         InstrumentationService.NULL_SERVICE);
   }
 
-  /**
-   * Creates a project [projectPath].
-   */
+  /// Creates a project [projectPath].
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
     Request request = AnalysisSetAnalysisRootsParams([projectPath], [],
@@ -147,10 +143,8 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     }
   }
 
-  /**
-   * Returns the offset of [search] in the file at the given [path].
-   * Fails if not found.
-   */
+  /// Returns the offset of [search] in the file at the given [path].
+  /// Fails if not found.
   int findFileOffset(String path, String search) {
     File file = getFile(path);
     String code = file.createSource().contents.data;
@@ -159,19 +153,15 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     return offset;
   }
 
-  /**
-   * Returns the offset of [search] in [testCode].
-   * Fails if not found.
-   */
+  /// Returns the offset of [search] in [testCode].
+  /// Fails if not found.
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
   }
 
-  /**
-   * Validates that the given [request] is handled successfully.
-   */
+  /// Validates that the given [request] is handled successfully.
   Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
     handler ??= this.handler;
     Response response = handler.handleRequest(request);
@@ -227,17 +217,13 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     serverChannel = null;
   }
 
-  /**
-   * Returns a [Future] that completes when the server's analysis is complete.
-   */
+  /// Returns a [Future] that completes when the server's analysis is complete.
   Future waitForTasksFinished() {
     return server.onAnalysisComplete;
   }
 
-  /**
-   * Completes with a successful [Response] for the given [request].
-   * Otherwise fails.
-   */
+  /// Completes with a successful [Response] for the given [request].
+  /// Otherwise fails.
   Future<Response> waitResponse(Request request,
       {bool throwOnError = true}) async {
     return serverChannel.sendRequest(request, throwOnError: throwOnError);

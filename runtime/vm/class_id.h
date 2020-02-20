@@ -81,6 +81,7 @@ namespace dart {
   V(WeakProperty)                                                              \
   V(MirrorReference)                                                           \
   V(LinkedHashMap)                                                             \
+  V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
   V(TransferableTypedData)
 

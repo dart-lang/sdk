@@ -70,63 +70,43 @@ class ChangeSet {
   }
 }
 
-/**
- * Information tracked by the [ContextManager] for each context.
- */
+/// Information tracked by the [ContextManager] for each context.
 class ContextInfo {
-  /**
-   * The [Folder] for which this information object is created.
-   */
+  /// The [Folder] for which this information object is created.
   final Folder folder;
 
   /// The [PathFilter] used to filter sources from being analyzed.
   final PathFilter pathFilter;
 
-  /**
-   * The enclosed pubspec-based contexts.
-   */
+  /// The enclosed pubspec-based contexts.
   final List<ContextInfo> children = <ContextInfo>[];
 
-  /**
-   * The package root for this context, or null if there is no package root.
-   */
+  /// The package root for this context, or null if there is no package root.
   String packageRoot;
 
-  /**
-   * The [ContextInfo] that encloses this one, or `null` if this is the virtual
-   * [ContextInfo] object that acts as the ancestor of all other [ContextInfo]
-   * objects.
-   */
+  /// The [ContextInfo] that encloses this one, or `null` if this is the virtual
+  /// [ContextInfo] object that acts as the ancestor of all other [ContextInfo]
+  /// objects.
   ContextInfo parent;
 
-  /**
-   * The package description file path for this context.
-   */
+  /// The package description file path for this context.
   String packageDescriptionPath;
 
-  /**
-   * The folder disposition for this context.
-   */
+  /// The folder disposition for this context.
   final FolderDisposition disposition;
 
-  /**
-   * Paths to files which determine the folder disposition and package map.
-   *
-   * TODO(paulberry): if any of these files are outside of [folder], they won't
-   * be watched for changes.  I believe the use case for watching these files
-   * is no longer relevant.
-   */
+  /// Paths to files which determine the folder disposition and package map.
+  ///
+  /// TODO(paulberry): if any of these files are outside of [folder], they won't
+  /// be watched for changes.  I believe the use case for watching these files
+  /// is no longer relevant.
   Set<String> _dependencies = <String>{};
 
-  /**
-   * The analysis driver that was created for the [folder].
-   */
+  /// The analysis driver that was created for the [folder].
   AnalysisDriver analysisDriver;
 
-  /**
-   * Map from full path to the [Source] object, for each source that has been
-   * added to the context.
-   */
+  /// Map from full path to the [Source] object, for each source that has been
+  /// added to the context.
   Map<String, Source> sources = HashMap<String, Source>();
 
   ContextInfo(ContextManagerImpl contextManager, this.parent, Folder folder,
@@ -138,19 +118,15 @@ class ContextInfo {
     parent.children.add(this);
   }
 
-  /**
-   * Create the virtual [ContextInfo] which acts as an ancestor to all other
-   * [ContextInfo]s.
-   */
+  /// Create the virtual [ContextInfo] which acts as an ancestor to all other
+  /// [ContextInfo]s.
   ContextInfo._root()
       : folder = null,
         pathFilter = null,
         packageRoot = null,
         disposition = null;
 
-  /**
-   * Iterate through all [children] and their children, recursively.
-   */
+  /// Iterate through all [children] and their children, recursively.
   Iterable<ContextInfo> get descendants sync* {
     for (ContextInfo child in children) {
       yield child;
@@ -158,31 +134,23 @@ class ContextInfo {
     }
   }
 
-  /**
-   * Returns `true` if this is a "top level" context, meaning that the folder
-   * associated with it is not contained within any other folders that have an
-   * associated context.
-   */
+  /// Returns `true` if this is a "top level" context, meaning that the folder
+  /// associated with it is not contained within any other folders that have an
+  /// associated context.
   bool get isTopLevel => parent.parent == null;
 
-  /**
-   * Returns `true` if [path] is excluded, as it is in one of the children.
-   */
+  /// Returns `true` if [path] is excluded, as it is in one of the children.
   bool excludes(String path) {
     return children.any((child) {
       return child.folder.contains(path);
     });
   }
 
-  /**
-   * Returns `true` if [resource] is excluded, as it is in one of the children.
-   */
+  /// Returns `true` if [resource] is excluded, as it is in one of the children.
   bool excludesResource(Resource resource) => excludes(resource.path);
 
-  /**
-   * Return the first [ContextInfo] in [children] whose associated folder is or
-   * contains [path].  If there is no such [ContextInfo], return `null`.
-   */
+  /// Return the first [ContextInfo] in [children] whose associated folder is or
+  /// contains [path].  If there is no such [ContextInfo], return `null`.
   ContextInfo findChildInfoFor(String path) {
     for (ContextInfo info in children) {
       if (info.folder.isOrContains(path)) {
@@ -192,33 +160,25 @@ class ContextInfo {
     return null;
   }
 
-  /**
-   * Determine if the given [path] is one of the dependencies most recently
-   * passed to [setDependencies].
-   */
+  /// Determine if the given [path] is one of the dependencies most recently
+  /// passed to [setDependencies].
   bool hasDependency(String path) => _dependencies.contains(path);
 
   /// Returns `true` if  [path] should be ignored.
   bool ignored(String path) => pathFilter.ignored(path);
 
-  /**
-   * Returns `true` if [path] is the package description file for this context
-   * (pubspec.yaml or .packages).
-   */
+  /// Returns `true` if [path] is the package description file for this context
+  /// (pubspec.yaml or .packages).
   bool isPathToPackageDescription(String path) =>
       path == packageDescriptionPath;
 
-  /**
-   * Update the set of dependencies for this context.
-   */
+  /// Update the set of dependencies for this context.
   void setDependencies(Iterable<String> newDependencies) {
     _dependencies = newDependencies.toSet();
   }
 
-  /**
-   * Return `true` if the given [path] is managed by this context or by
-   * any of its children.
-   */
+  /// Return `true` if the given [path] is managed by this context or by
+  /// any of its children.
   bool _managesOrHasChildThatManages(String path) {
     if (parent == null) {
       for (ContextInfo child in children) {
@@ -241,293 +201,209 @@ class ContextInfo {
   }
 }
 
-/**
- * Class that maintains a mapping from included/excluded paths to a set of
- * folders that should correspond to analysis contexts.
- */
+/// Class that maintains a mapping from included/excluded paths to a set of
+/// folders that should correspond to analysis contexts.
 abstract class ContextManager {
   // TODO(brianwilkerson) Support:
   //   setting the default analysis options
   //   setting the default content cache
   //   setting the default SDK
-  //   telling server when a context has been added or removed (see onContextsChanged)
+  //   telling server when a context has been added or removed
+  //       (see onContextsChanged)
   //   telling server when a context needs to be re-analyzed
   //   notifying the client when results should be flushed
   //   using analyzeFileFunctions to determine which files to analyze
   //
   // TODO(brianwilkerson) Move this class to a public library.
 
-  /**
-   * Get the callback interface used to create, destroy, and update contexts.
-   */
+  /// Get the callback interface used to create, destroy, and update contexts.
   ContextManagerCallbacks get callbacks;
 
-  /**
-   * Set the callback interface used to create, destroy, and update contexts.
-   */
+  /// Set the callback interface used to create, destroy, and update contexts.
   set callbacks(ContextManagerCallbacks value);
 
-  /**
-   * A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
-   */
+  /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
   Map<Folder, AnalysisDriver> get driverMap;
 
-  /**
-   * Return the list of excluded paths (folders and files) most recently passed
-   * to [setRoots].
-   */
+  /// Return the list of excluded paths (folders and files) most recently passed
+  /// to [setRoots].
   List<String> get excludedPaths;
 
-  /**
-   * Return the list of included paths (folders and files) most recently passed
-   * to [setRoots].
-   */
+  /// Return the list of included paths (folders and files) most recently passed
+  /// to [setRoots].
   List<String> get includedPaths;
 
-  /**
-   * Like [getDriverFor], but returns the [Folder] which allows plugins to
-   * create & manage their own tree of drivers just like using [getDriverFor].
-   *
-   * This folder should be the root of analysis context, not just the containing
-   * folder of the path (like basename), as this is NOT just a file API.
-   *
-   * This exists at least temporarily, for plugin support until the new API is
-   * ready.
-   */
+  /// Like [getDriverFor], but returns the [Folder] which allows plugins to
+  /// create & manage their own tree of drivers just like using [getDriverFor].
+  ///
+  /// This folder should be the root of analysis context, not just the
+  /// containing folder of the path (like basename), as this is NOT just a file
+  /// API.
+  ///
+  /// This exists at least temporarily, for plugin support until the new API is
+  /// ready.
   Folder getContextFolderFor(String path);
 
-  /**
-   * Return the [AnalysisDriver] for the "innermost" context whose associated
-   * folder is or contains the given path.  ("innermost" refers to the nesting
-   * of contexts, so if there is a context for path /foo and a context for
-   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
-   * the context for /foo/bar.)
-   *
-   * If no driver contains the given path, `null` is returned.
-   */
+  /// Return the [AnalysisDriver] for the "innermost" context whose associated
+  /// folder is or contains the given path.  ("innermost" refers to the nesting
+  /// of contexts, so if there is a context for path /foo and a context for
+  /// path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+  /// the context for /foo/bar.)
+  ///
+  /// If no driver contains the given path, `null` is returned.
   AnalysisDriver getDriverFor(String path);
 
-  /**
-   * Return a list of all of the analysis drivers reachable from the given
-   * [analysisRoot] (the driver associated with [analysisRoot] and all of its
-   * descendants).
-   */
+  /// Return a list of all of the analysis drivers reachable from the given
+  /// [analysisRoot] (the driver associated with [analysisRoot] and all of its
+  /// descendants).
   List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot);
 
-  /**
-   * Determine whether the given [path], when interpreted relative to innermost
-   * context root, contains a folder whose name starts with '.'.
-   */
+  /// Determine whether the given [path], when interpreted relative to innermost
+  /// context root, contains a folder whose name starts with '.'.
   bool isContainedInDotFolder(String path);
 
-  /**
-   * Return `true` if the given [path] is ignored by a [ContextInfo] whose
-   * folder contains it.
-   */
+  /// Return `true` if the given [path] is ignored by a [ContextInfo] whose
+  /// folder contains it.
   bool isIgnored(String path);
 
-  /**
-   * Return `true` if the given absolute [path] is in one of the current
-   * root folders and is not excluded.
-   */
+  /// Return `true` if the given absolute [path] is in one of the current
+  /// root folders and is not excluded.
   bool isInAnalysisRoot(String path);
 
-  /**
-   * Return the number of contexts reachable from the given [analysisRoot] (the
-   * context associated with [analysisRoot] and all of its descendants).
-   */
+  /// Return the number of contexts reachable from the given [analysisRoot] (the
+  /// context associated with [analysisRoot] and all of its descendants).
   int numberOfContextsInAnalysisRoot(Folder analysisRoot);
 
-  /**
-   * Rebuild the set of contexts from scratch based on the data last sent to
-   * [setRoots]. Only contexts contained in the given list of analysis [roots]
-   * will be rebuilt, unless the list is `null`, in which case every context
-   * will be rebuilt.
-   */
+  /// Rebuild the set of contexts from scratch based on the data last sent to
+  /// [setRoots]. Only contexts contained in the given list of analysis [roots]
+  /// will be rebuilt, unless the list is `null`, in which case every context
+  /// will be rebuilt.
   void refresh(List<Resource> roots);
 
-  /**
-   * Change the set of paths which should be used as starting points to
-   * determine the context directories.
-   */
+  /// Change the set of paths which should be used as starting points to
+  /// determine the context directories.
   void setRoots(List<String> includedPaths, List<String> excludedPaths,
       Map<String, String> packageRoots);
 }
 
-/**
- * Callback interface used by [ContextManager] to (a) request that contexts be
- * created, destroyed or updated, (b) inform the client when "pub list"
- * operations are in progress, and (c) determine which files should be
- * analyzed.
- *
- * TODO(paulberry): eliminate this interface, and instead have [ContextManager]
- * operations return data structures describing how context state should be
- * modified.
- */
+/// Callback interface used by [ContextManager] to (a) request that contexts be
+/// created, destroyed or updated, (b) inform the client when "pub list"
+/// operations are in progress, and (c) determine which files should be
+/// analyzed.
+///
+/// TODO(paulberry): eliminate this interface, and instead have [ContextManager]
+/// operations return data structures describing how context state should be
+/// modified.
 abstract class ContextManagerCallbacks {
-  /**
-   * Return the notification manager associated with the server.
-   */
+  /// Return the notification manager associated with the server.
   NotificationManager get notificationManager;
 
-  /**
-   * Create and return a new analysis driver rooted at the given [folder], with
-   * the given analysis [options].
-   */
+  /// Create and return a new analysis driver rooted at the given [folder], with
+  /// the given analysis [options].
   AnalysisDriver addAnalysisDriver(
       Folder folder, ContextRoot contextRoot, AnalysisOptions options);
 
-  /**
-   * An [event] was processed, so analysis state might be different now.
-   */
+  /// An [event] was processed, so analysis state might be different now.
   void afterWatchEvent(WatchEvent event);
 
-  /**
-   * Called when analysis options or URI resolution in the [driver] are changed.
-   */
+  /// Called when analysis options or URI resolution in the [driver] are
+  /// changed.
   void analysisOptionsUpdated(AnalysisDriver driver);
 
-  /**
-   * Called when the set of files associated with a context have changed (or
-   * some of those files have been modified).  [changeSet] is the set of
-   * changes that need to be applied to the context.
-   */
+  /// Called when the set of files associated with a context have changed (or
+  /// some of those files have been modified).  [changeSet] is the set of
+  /// changes that need to be applied to the context.
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
 
-  /**
-   * The given [file] was removed from the folder analyzed in the [driver].
-   */
+  /// The given [file] was removed from the folder analyzed in the [driver].
   void applyFileRemoved(AnalysisDriver driver, String file);
 
-  /**
-   * Sent the given watch [event] to any interested plugins.
-   */
+  /// Sent the given watch [event] to any interested plugins.
   void broadcastWatchEvent(WatchEvent event);
 
-  /**
-   * Create and return a context builder that can be used to create a context
-   * for the files in the given [folder] when analyzed using the given [options].
-   */
+  /// Create and return a context builder that can be used to create a context
+  /// for the files in the given [folder] when analyzed using the given
+  /// [options].
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options);
 
-  /**
-   * Remove the context associated with the given [folder].  [flushedFiles] is
-   * a list of the files which will be "orphaned" by removing this context
-   * (they will no longer be analyzed by any context).
-   */
+  /// Remove the context associated with the given [folder].  [flushedFiles] is
+  /// a list of the files which will be "orphaned" by removing this context
+  /// (they will no longer be analyzed by any context).
   void removeContext(Folder folder, List<String> flushedFiles);
 }
 
-/**
- * Class that maintains a mapping from included/excluded paths to a set of
- * folders that should correspond to analysis contexts.
- */
+/// Class that maintains a mapping from included/excluded paths to a set of
+/// folders that should correspond to analysis contexts.
 class ContextManagerImpl implements ContextManager {
-  /**
-   * The name of the `doc` directory.
-   */
+  /// The name of the `doc` directory.
   static const String DOC_DIR_NAME = 'doc';
 
-  /**
-   * The name of the `lib` directory.
-   */
+  /// The name of the `lib` directory.
   static const String LIB_DIR_NAME = 'lib';
 
-  /**
-   * File name of Android manifest files.
-   */
+  /// File name of Android manifest files.
   static const String MANIFEST_NAME = 'AndroidManifest.xml';
 
-  /**
-   * File name of pubspec files.
-   */
+  /// File name of pubspec files.
   static const String PUBSPEC_NAME = 'pubspec.yaml';
 
-  /**
-   * File name of package spec files.
-   */
+  /// File name of package spec files.
   static const String PACKAGE_SPEC_NAME = '.packages';
 
-  /**
-   * The name of the key in an embedder file whose value is the list of
-   * libraries in the SDK.
-   * TODO(brianwilkerson) This is also defined in sdk.dart.
-   */
+  /// The name of the key in an embedder file whose value is the list of
+  /// libraries in the SDK.
+  /// TODO(brianwilkerson) This is also defined in sdk.dart.
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
 
-  /**
-   * The [ResourceProvider] using which paths are converted into [Resource]s.
-   */
+  /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
-  /**
-   * The manager used to access the SDK that should be associated with a
-   * particular context.
-   */
+  /// The manager used to access the SDK that should be associated with a
+  /// particular context.
   final DartSdkManager sdkManager;
 
-  /**
-   * The context used to work with file system paths.
-   */
+  /// The context used to work with file system paths.
   pathos.Context pathContext;
 
-  /**
-   * The list of excluded paths (folders and files) most recently passed to
-   * [setRoots].
-   */
+  /// The list of excluded paths (folders and files) most recently passed to
+  /// [setRoots].
   @override
   List<String> excludedPaths = <String>[];
 
-  /**
-   * The list of included paths (folders and files) most recently passed to
-   * [setRoots].
-   */
+  /// The list of included paths (folders and files) most recently passed to
+  /// [setRoots].
   @override
   List<String> includedPaths = <String>[];
 
-  /**
-   * The map of package roots most recently passed to [setRoots].
-   */
+  /// The map of package roots most recently passed to [setRoots].
   Map<String, String> packageRoots = <String, String>{};
 
-  /**
-   * Same as [packageRoots], except that source folders have been normalized
-   * and non-folders have been removed.
-   */
+  /// Same as [packageRoots], except that source folders have been normalized
+  /// and non-folders have been removed.
   Map<String, String> normalizedPackageRoots = <String, String>{};
 
-  /**
-   * A list of the globs used to determine which files should be analyzed.
-   */
+  /// A list of the globs used to determine which files should be analyzed.
   final List<Glob> analyzedFilesGlobs;
 
-  /**
-   * The default options used to create new analysis contexts.
-   */
+  /// The default options used to create new analysis contexts.
   final AnalysisOptionsImpl defaultContextOptions;
 
-  /**
-   * The instrumentation service used to report instrumentation data.
-   */
+  /// The instrumentation service used to report instrumentation data.
   final InstrumentationService _instrumentationService;
 
   @override
   ContextManagerCallbacks callbacks;
 
-  /**
-   * Virtual [ContextInfo] which acts as the ancestor of all other
-   * [ContextInfo]s.
-   */
+  /// Virtual [ContextInfo] which acts as the ancestor of all other
+  /// [ContextInfo]s.
   final ContextInfo rootInfo = ContextInfo._root();
 
   @override
   final Map<Folder, AnalysisDriver> driverMap =
       HashMap<Folder, AnalysisDriver>();
 
-  /**
-   * Stream subscription we are using to watch each analysis root directory for
-   * changes.
-   */
+  /// Stream subscription we are using to watch each analysis root directory for
+  /// changes.
   final Map<Folder, StreamSubscription<WatchEvent>> changeSubscriptions =
       <Folder, StreamSubscription<WatchEvent>>{};
 
@@ -540,9 +416,7 @@ class ContextManagerImpl implements ContextManager {
     pathContext = resourceProvider.pathContext;
   }
 
-  /**
-   * Check if this map defines embedded libraries.
-   */
+  /// Check if this map defines embedded libraries.
   bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
   @override
@@ -550,9 +424,7 @@ class ContextManagerImpl implements ContextManager {
     return _getInnermostContextInfoFor(path)?.folder;
   }
 
-  /**
-   * For testing: get the [ContextInfo] object for the given [folder], if any.
-   */
+  /// For testing: get the [ContextInfo] object for the given [folder], if any.
   ContextInfo getContextInfoFor(Folder folder) {
     ContextInfo info = _getInnermostContextInfoFor(folder.path);
     if (info != null && folder == info.folder) {
@@ -590,10 +462,8 @@ class ContextManagerImpl implements ContextManager {
     return drivers;
   }
 
-  /**
-   * Determine whether the given [path], when interpreted relative to innermost
-   * context root, contains a folder whose name starts with '.'.
-   */
+  /// Determine whether the given [path], when interpreted relative to innermost
+  /// context root, contains a folder whose name starts with '.'.
   @override
   bool isContainedInDotFolder(String path) {
     ContextInfo info = _getInnermostContextInfoFor(path);
@@ -654,9 +524,7 @@ class ContextManagerImpl implements ContextManager {
     return count;
   }
 
-  /**
-   * Process [options] for the given context [info].
-   */
+  /// Process [options] for the given context [info].
   void processOptionsForDriver(
       ContextInfo info, AnalysisOptionsImpl analysisOptions, YamlMap options) {
     if (options == null) {
@@ -698,9 +566,7 @@ class ContextManagerImpl implements ContextManager {
     setRoots(includedPaths, excludedPaths, packageRoots);
   }
 
-  /**
-   * Sets the [ignorePatterns] for the context having info [info].
-   */
+  /// Sets the [ignorePatterns] for the context having info [info].
   void setIgnorePatternsForContext(
       ContextInfo info, List<String> ignorePatterns) {
     info.pathFilter.setIgnorePatterns(ignorePatterns);
@@ -807,9 +673,7 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Recursively adds all Dart and HTML files to the [changeSet].
-   */
+  /// Recursively adds all Dart and HTML files to the [changeSet].
   void _addPreviouslyExcludedSources(ContextInfo info, ChangeSet changeSet,
       Folder folder, List<String> oldExcludedPaths) {
     if (info.excludesResource(folder)) {
@@ -851,9 +715,7 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Recursively adds all Dart and HTML files to the [changeSet].
-   */
+  /// Recursively adds all Dart and HTML files to the [changeSet].
   void _addSourceFiles(ChangeSet changeSet, Folder folder, ContextInfo info) {
     if (info.excludesResource(folder) ||
         folder.shortName.startsWith('.') ||
@@ -887,10 +749,8 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Use the given analysis [driver] to analyze the content of the analysis
-   * options file at the given [path].
-   */
+  /// Use the given analysis [driver] to analyze the content of the analysis
+  /// options file at the given [path].
   void _analyzeAnalysisOptionsFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
     try {
@@ -913,10 +773,8 @@ class ContextManagerImpl implements ContextManager {
         convertedErrors ?? <protocol.AnalysisError>[]);
   }
 
-  /**
-   * Use the given analysis [driver] to analyze the content of the
-   * AndroidManifest file at the given [path].
-   */
+  /// Use the given analysis [driver] to analyze the content of the
+  /// AndroidManifest file at the given [path].
   void _analyzeManifestFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
     try {
@@ -939,10 +797,8 @@ class ContextManagerImpl implements ContextManager {
         convertedErrors ?? <protocol.AnalysisError>[]);
   }
 
-  /**
-   * Use the given analysis [driver] to analyze the content of the pubspec file
-   * at the given [path].
-   */
+  /// Use the given analysis [driver] to analyze the content of the pubspec file
+  /// at the given [path].
   void _analyzePubspecFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
     try {
@@ -1025,12 +881,10 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Compute the set of files that are being flushed, this is defined as
-   * the set of sources in the removed context (context.sources), that are
-   * orphaned by this context being removed (no other context includes this
-   * file.)
-   */
+  /// Compute the set of files that are being flushed, this is defined as
+  /// the set of sources in the removed context (context.sources), that are
+  /// orphaned by this context being removed (no other context includes this
+  /// file.)
   List<String> _computeFlushedFiles(ContextInfo info) {
     Set<String> flushedFiles = info.analysisDriver.addedFiles.toSet();
     for (ContextInfo contextInfo in rootInfo.descendants) {
@@ -1042,15 +896,13 @@ class ContextManagerImpl implements ContextManager {
     return flushedFiles.toList(growable: false);
   }
 
-  /**
-   * Compute the appropriate [FolderDisposition] for [folder].  Use
-   * [addDependency] to indicate which files needed to be consulted in order to
-   * figure out the [FolderDisposition]; these dependencies will be watched in
-   * order to determine when it is necessary to call this function again.
-   *
-   * TODO(paulberry): use [addDependency] for tracking all folder disposition
-   * dependencies (currently we only use it to track "pub list" dependencies).
-   */
+  /// Compute the appropriate [FolderDisposition] for [folder].  Use
+  /// [addDependency] to indicate which files needed to be consulted in order to
+  /// figure out the [FolderDisposition]; these dependencies will be watched in
+  /// order to determine when it is necessary to call this function again.
+  ///
+  /// TODO(paulberry): use [addDependency] for tracking all folder disposition
+  /// dependencies (currently we only use it to track "pub list" dependencies).
   FolderDisposition _computeFolderDisposition(Folder folder,
       void Function(String path) addDependency, File packagespecFile) {
     String packageRoot = normalizedPackageRoots[folder.path];
@@ -1107,18 +959,14 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Compute line information for the given [content].
-   */
+  /// Compute line information for the given [content].
   LineInfo _computeLineInfo(String content) {
     List<int> lineStarts = StringUtilities.computeLineStarts(content);
     return LineInfo(lineStarts);
   }
 
-  /**
-   * Create an object that can be used to find and read the analysis options
-   * file for code being analyzed using the given [packages].
-   */
+  /// Create an object that can be used to find and read the analysis options
+  /// file for code being analyzed using the given [packages].
   AnalysisOptionsProvider _createAnalysisOptionsProvider(Packages packages) {
     var packageMap = <String, List<Folder>>{};
     if (packages != null) {
@@ -1135,10 +983,8 @@ class ContextManagerImpl implements ContextManager {
     return AnalysisOptionsProvider(sourceFactory);
   }
 
-  /**
-   * Create a new empty context associated with [folder], having parent
-   * [parent] and using [packagesFile] to resolve package URI's.
-   */
+  /// Create a new empty context associated with [folder], having parent
+  /// [parent] and using [packagesFile] to resolve package URI's.
   ContextInfo _createContext(ContextInfo parent, Folder folder,
       List<String> excludedPaths, File packagesFile) {
     List<String> dependencies = <String>[];
@@ -1208,18 +1054,16 @@ class ContextManagerImpl implements ContextManager {
     return info;
   }
 
-  /**
-   * Potentially create a new context associated with the given [folder].
-   *
-   * If there are subfolders with 'pubspec.yaml' files, separate contexts are
-   * created for them and excluded from the context associated with the
-   * [folder].
-   *
-   * If [withPackageSpecOnly] is `true`, a context will be created only if there
-   * is a 'pubspec.yaml' or '.packages' file in the [folder].
-   *
-   * [parent] should be the parent of any contexts that are created.
-   */
+  /// Potentially create a new context associated with the given [folder].
+  ///
+  /// If there are subfolders with 'pubspec.yaml' files, separate contexts are
+  /// created for them and excluded from the context associated with the
+  /// [folder].
+  ///
+  /// If [withPackageSpecOnly] is `true`, a context will be created only if
+  /// there is a 'pubspec.yaml' or '.packages' file in the [folder].
+  ///
+  /// [parent] should be the parent of any contexts that are created.
   void _createContexts(ContextInfo parent, Folder folder,
       List<String> excludedPaths, bool withPackageSpecOnly) {
     if (_isExcluded(folder.path) || folder.shortName.startsWith('.')) {
@@ -1263,18 +1107,14 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Set up a [SourceFactory] that resolves packages as appropriate for the
-   * given [folder].
-   */
+  /// Set up a [SourceFactory] that resolves packages as appropriate for the
+  /// given [folder].
   SourceFactory _createSourceFactory(AnalysisOptions options, Folder folder) {
     ContextBuilder builder = callbacks.createContextBuilder(folder, options);
     return builder.createSourceFactory(folder.path, options);
   }
 
-  /**
-   * Clean up and destroy the context associated with the given folder.
-   */
+  /// Clean up and destroy the context associated with the given folder.
   void _destroyContext(ContextInfo info) {
     changeSubscriptions.remove(info.folder)?.cancel();
     callbacks.removeContext(info.folder, _computeFlushedFiles(info));
@@ -1282,9 +1122,7 @@ class ContextManagerImpl implements ContextManager {
     assert(wasRemoved);
   }
 
-  /**
-   * Extract a new [packagespecFile]-based context from [oldInfo].
-   */
+  /// Extract a new [packagespecFile]-based context from [oldInfo].
   void _extractContext(ContextInfo oldInfo, File packagespecFile) {
     Folder newFolder = packagespecFile.parent;
     ContextInfo newInfo =
@@ -1319,11 +1157,9 @@ class ContextManagerImpl implements ContextManager {
     // adopted by newInfo now.
   }
 
-  /**
-   * Find the file that should be used to determine whether a context needs to
-   * be created here--this is either the ".packages" file or the "pubspec.yaml"
-   * file.
-   */
+  /// Find the file that should be used to determine whether a context needs to
+  /// be created here--this is either the ".packages" file or the "pubspec.yaml"
+  /// file.
   File _findPackageSpecFile(Folder folder) {
     // Decide whether a context needs to be created for [folder] here, and if
     // so, create it.
@@ -1356,15 +1192,13 @@ class ContextManagerImpl implements ContextManager {
     return embeddedOptions;
   }
 
-  /**
-   * Return the [ContextInfo] for the "innermost" context whose associated
-   * folder is or contains the given path.  ("innermost" refers to the nesting
-   * of contexts, so if there is a context for path /foo and a context for
-   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
-   * the context for /foo/bar.)
-   *
-   * If no context contains the given path, `null` is returned.
-   */
+  /// Return the [ContextInfo] for the "innermost" context whose associated
+  /// folder is or contains the given path.  ("innermost" refers to the nesting
+  /// of contexts, so if there is a context for path /foo and a context for
+  /// path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+  /// the context for /foo/bar.)
+  ///
+  /// If no context contains the given path, `null` is returned.
   ContextInfo _getInnermostContextInfoFor(String path) {
     ContextInfo info = rootInfo.findChildInfoFor(path);
     if (info == null) {
@@ -1379,9 +1213,7 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Return the parent for a new [ContextInfo] with the given [path] folder.
-   */
+  /// Return the parent for a new [ContextInfo] with the given [path] folder.
   ContextInfo _getParentForNewContext(String path) {
     ContextInfo parent = _getInnermostContextInfoFor(path);
     if (parent != null) {
@@ -1466,7 +1298,7 @@ class ContextManagerImpl implements ContextManager {
         }
 
         // If the file went away and was replaced by a folder before we
-        // had a chance to process the event, resource might be a Folder.  In
+        // had a chance to process the event, resource might be a Folder. In
         // that case don't add it.
         if (resource is File) {
           if (_shouldFileBeAnalyzed(resource)) {
@@ -1475,13 +1307,14 @@ class ContextManagerImpl implements ContextManager {
         }
         break;
       case ChangeType.REMOVE:
-        // If package spec info is removed, check to see if we can merge contexts.
-        // Note that it's important to verify that there is NEITHER a .packages nor a
-        // lingering pubspec.yaml before merging.
+        // If package spec info is removed, check to see if we can merge
+        // contexts. Note that it's important to verify that there is NEITHER a
+        // .packages nor a lingering pubspec.yaml before merging.
         if (!info.isTopLevel) {
           String directoryPath = pathContext.dirname(path);
 
-          // Only merge if this is the same directory described by our info object.
+          // Only merge if this is the same directory described by our info
+          // object.
           if (info.folder.path == directoryPath) {
             if (_isPubspec(path)) {
               // Check for a sibling .packages file.
@@ -1536,10 +1369,8 @@ class ContextManagerImpl implements ContextManager {
     refresh(null);
   }
 
-  /**
-   * Determine whether the given [path], when interpreted relative to the
-   * context root [root], contains a folder whose name starts with '.'.
-   */
+  /// Determine whether the given [path], when interpreted relative to the
+  /// context root [root], contains a folder whose name starts with '.'.
   bool _isContainedInDotFolder(String root, String path) {
     String pathDir = pathContext.dirname(path);
     String rootPrefix = root + pathContext.separator;
@@ -1554,14 +1385,10 @@ class ContextManagerImpl implements ContextManager {
     return false;
   }
 
-  /**
-   * Returns `true` if the given [path] is excluded by [excludedPaths].
-   */
+  /// Returns `true` if the given [path] is excluded by [excludedPaths].
   bool _isExcluded(String path) => _isExcludedBy(excludedPaths, path);
 
-  /**
-   * Returns `true` if the given [path] is excluded by [excludedPaths].
-   */
+  /// Returns `true` if the given [path] is excluded by [excludedPaths].
   bool _isExcludedBy(List<String> excludedPaths, String path) {
     return excludedPaths.any((excludedPath) {
       if (pathContext.isWithin(excludedPath, path)) {
@@ -1571,10 +1398,8 @@ class ContextManagerImpl implements ContextManager {
     });
   }
 
-  /**
-   * Determine whether the given [path] is in the direct 'doc' folder of the
-   * context root [root].
-   */
+  /// Determine whether the given [path] is in the direct 'doc' folder of the
+  /// context root [root].
   bool _isInTopLevelDocDir(String root, String path) {
     String rootPrefix = root + pathContext.separator;
     if (path.startsWith(rootPrefix)) {
@@ -1592,9 +1417,7 @@ class ContextManagerImpl implements ContextManager {
 
   bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
 
-  /**
-   * Merges [info] context into its parent.
-   */
+  /// Merges [info] context into its parent.
   void _mergeContext(ContextInfo info) {
     // destroy the context
     _destroyContext(info);
@@ -1611,18 +1434,14 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Read the contents of the file at the given [path], or throw an exception if
-   * the contents cannot be read.
-   */
+  /// Read the contents of the file at the given [path], or throw an exception
+  /// if the contents cannot be read.
   String _readFile(String path) {
     return resourceProvider.getFile(path).readAsStringSync();
   }
 
-  /**
-   * Recompute the [FolderDisposition] for the context described by [info],
-   * and update the client appropriately.
-   */
+  /// Recompute the [FolderDisposition] for the context described by [info],
+  /// and update the client appropriately.
   void _recomputeFolderDisposition(ContextInfo info) {
     // TODO(paulberry): when computePackageMap is changed into an
     // asynchronous API call, we'll want to suspend analysis for this context
@@ -1633,9 +1452,7 @@ class ContextManagerImpl implements ContextManager {
     _updateContextPackageUriResolver(info.folder);
   }
 
-  /**
-   * Return `true` if the given [file] should be analyzed.
-   */
+  /// Return `true` if the given [file] should be analyzed.
   bool _shouldFileBeAnalyzed(File file, {bool mustExist = true}) {
     for (Glob glob in analyzedFilesGlobs) {
       if (glob.matches(file.path)) {
@@ -1671,10 +1488,8 @@ class ContextManagerImpl implements ContextManager {
     driver.configure(sourceFactory: sourceFactory);
   }
 
-  /**
-   * Create and return a source representing the given [file] within the given
-   * [driver].
-   */
+  /// Create and return a source representing the given [file] within the given
+  /// [driver].
   static Source createSourceInContext(AnalysisDriver driver, File file) {
     // TODO(brianwilkerson) Optimize this, by allowing support for source
     // factories to restore URI's from a file path rather than a source.
@@ -1687,57 +1502,45 @@ class ContextManagerImpl implements ContextManager {
   }
 }
 
-/**
- * An instance of the class [FolderDisposition] represents the information
- * gathered by the [ContextManagerImpl] to determine how to create an analysis
- * driver for a given folder.
- *
- * Note: [ContextManagerImpl] may use equality testing and hash codes to
- * determine when two folders should share the same context, so derived classes
- * may need to override operator== and hashCode() if object identity is
- * insufficient.
- *
- * TODO(paulberry): consider adding a flag to indicate that it is not necessary
- * to recurse into the given folder looking for additional contexts to create
- * or files to analyze (this could help avoid unnecessarily weighing down the
- * system with file watchers).
- */
+/// An instance of the class [FolderDisposition] represents the information
+/// gathered by the [ContextManagerImpl] to determine how to create an analysis
+/// driver for a given folder.
+///
+/// Note: [ContextManagerImpl] may use equality testing and hash codes to
+/// determine when two folders should share the same context, so derived classes
+/// may need to override operator== and hashCode() if object identity is
+/// insufficient.
+///
+/// TODO(paulberry): consider adding a flag to indicate that it is not necessary
+/// to recurse into the given folder looking for additional contexts to create
+/// or files to analyze (this could help avoid unnecessarily weighing down the
+/// system with file watchers).
 abstract class FolderDisposition {
-  /**
-   * If this [FolderDisposition] was created based on a package root
-   * folder, the absolute path to that folder.  Otherwise `null`.
-   */
+  /// If this [FolderDisposition] was created based on a package root
+  /// folder, the absolute path to that folder.  Otherwise `null`.
   String get packageRoot;
 
-  /**
-   * If contexts governed by this [FolderDisposition] should resolve packages
-   * using the ".packages" file mechanism (DEP 5), retrieve the [Packages]
-   * object that resulted from parsing the ".packages" file.
-   */
+  /// If contexts governed by this [FolderDisposition] should resolve packages
+  /// using the ".packages" file mechanism (DEP 5), retrieve the [Packages]
+  /// object that resulted from parsing the ".packages" file.
   Packages get packages;
 
-  /**
-   * Create all the [UriResolver]s which should be used to resolve packages in
-   * contexts governed by this [FolderDisposition].
-   *
-   * [resourceProvider] is provided since it is needed to construct most
-   * [UriResolver]s.
-   */
+  /// Create all the [UriResolver]s which should be used to resolve packages in
+  /// contexts governed by this [FolderDisposition].
+  ///
+  /// [resourceProvider] is provided since it is needed to construct most
+  /// [UriResolver]s.
   Iterable<UriResolver> createPackageUriResolvers(
       ResourceProvider resourceProvider);
 
-  /**
-   * Return the locator used to locate the _embedder.yaml file used to configure
-   * the SDK. The [resourceProvider] is used to access the file system in cases
-   * where that is necessary.
-   */
+  /// Return the locator used to locate the _embedder.yaml file used to
+  /// configure the SDK. The [resourceProvider] is used to access the file
+  /// system in cases where that is necessary.
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider);
 }
 
-/**
- * Concrete [FolderDisposition] object indicating that the context for a given
- * folder should not resolve "package:" URIs at all.
- */
+/// Concrete [FolderDisposition] object indicating that the context for a given
+/// folder should not resolve "package:" URIs at all.
 class NoPackageFolderDisposition extends FolderDisposition {
   @override
   final String packageRoot;
@@ -1757,10 +1560,8 @@ class NoPackageFolderDisposition extends FolderDisposition {
       EmbedderYamlLocator(null);
 }
 
-/**
- * Concrete [FolderDisposition] object indicating that the context for a given
- * folder should resolve packages using a package map.
- */
+/// Concrete [FolderDisposition] object indicating that the context for a given
+/// folder should resolve packages using a package map.
 class PackageMapDisposition extends FolderDisposition {
   final Map<String, List<Folder>> packageMap;
 
@@ -1789,10 +1590,8 @@ class PackageMapDisposition extends FolderDisposition {
   }
 }
 
-/**
- * Concrete [FolderDisposition] object indicating that the context for a given
- * folder should resolve packages using a ".packages" file.
- */
+/// Concrete [FolderDisposition] object indicating that the context for a given
+/// folder should resolve packages using a ".packages" file.
 class PackagesFileDisposition extends FolderDisposition {
   @override
   final Packages packages;

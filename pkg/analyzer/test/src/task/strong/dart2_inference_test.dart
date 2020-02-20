@@ -830,20 +830,6 @@ class Derived extends Base {
     expect(operator.returnType, VoidTypeImpl.instance);
   }
 
-  test_inferObject_whenDownwardNull() async {
-    var code = r'''
-int f(void Function(Null) f2) {}
-void main() {
-  f((x) {});
-}
-''';
-    await resolveTestCode(code);
-    var xNode = findNode.simple('x) {}');
-    VariableElement xElement = xNode.staticElement;
-    expect(xNode.staticType, isNull);
-    expect(xElement.type, typeProvider.objectType);
-  }
-
   test_listMap_empty() async {
     var code = r'''
 var x = [];

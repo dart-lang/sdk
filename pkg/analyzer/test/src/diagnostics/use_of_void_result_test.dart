@@ -702,8 +702,10 @@ main(void x) sync* {
 @reflectiveTest
 class UseOfVoidResultTest_NonNullable extends DriverResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
   test_nullCheck() async {
     await assertErrorsInCode(r'''

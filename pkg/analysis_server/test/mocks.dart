@@ -18,22 +18,16 @@ import 'package:test/test.dart';
 
 const _jsonEncoder = JsonEncoder.withIndent('    ');
 
-/**
- * A [Matcher] that check that the given [Response] has an expected identifier
- * and has an error.  The error code may optionally be checked.
- */
+/// A [Matcher] that check that the given [Response] has an expected identifier
+/// and has an error.  The error code may optionally be checked.
 Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
     _IsResponseFailure(id, code);
 
-/**
- * A [Matcher] that check that the given [Response] has an expected identifier
- * and no error.
- */
+/// A [Matcher] that check that the given [Response] has an expected identifier
+/// and no error.
 Matcher isResponseSuccess(String id) => _IsResponseSuccess(id);
 
-/**
- * A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
- */
+/// A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
 class MockLspServerChannel implements LspServerCommunicationChannel {
   final StreamController<lsp.Message> _clientToServer =
       StreamController<lsp.Message>.broadcast();
@@ -42,9 +36,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
   String name;
 
-  /**
-   * Completer that will be signalled when the input stream is closed.
-   */
+  /// Completer that will be signalled when the input stream is closed.
   final Completer _closed = Completer();
 
   MockLspServerChannel(bool _printMessages) {
@@ -56,9 +48,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     }
   }
 
-  /**
-   * Future that will be completed when the input stream is closed.
-   */
+  /// Future that will be completed when the input stream is closed.
   @override
   Future get closed {
     return _closed.future;
@@ -122,11 +112,9 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     _serverToClient.add(request);
   }
 
-  /**
-   * Send the given [request] to the server and return a future that will
-   * complete when a response associated with the [request] has been received.
-   * The value of the future will be the received response.
-   */
+  /// Send the given [request] to the server and return a future that will
+  /// complete when a response associated with the [request] has been received.
+  /// The value of the future will be the received response.
   Future<lsp.ResponseMessage> sendRequestToServer(lsp.RequestMessage request) {
     // No further requests should be sent after the connection is closed.
     if (_closed.isCompleted) {
@@ -164,15 +152,13 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     _clientToServer.add(response);
   }
 
-  /**
-   * Return a future that will complete when a response associated with the
-   * given [request] has been received. The value of the future will be the
-   * received response. The returned future will throw an exception if a server
-   * error is reported before the response has been received.
-   *
-   * Unlike [sendLspRequest], this method assumes that the [request] has already
-   * been sent to the server.
-   */
+  /// Return a future that will complete when a response associated with the
+  /// given [request] has been received. The value of the future will be the
+  /// received response. The returned future will throw an exception if a server
+  /// error is reported before the response has been received.
+  ///
+  /// Unlike [sendLspRequest], this method assumes that the [request] has
+  /// already been sent to the server.
   Future<lsp.ResponseMessage> waitForResponse(
     lsp.RequestMessage request, {
     bool throwOnError = true,
@@ -252,9 +238,7 @@ class StringTypedMock {
   }
 }
 
-/**
- * A [Matcher] that check that there are no `error` in a given [Response].
- */
+/// A [Matcher] that check that there are no `error` in a given [Response].
 class _IsResponseFailure extends Matcher {
   final String _id;
   final RequestErrorCode _code;
@@ -300,9 +284,7 @@ class _IsResponseFailure extends Matcher {
   }
 }
 
-/**
- * A [Matcher] that check that there are no `error` in a given [Response].
- */
+/// A [Matcher] that check that there are no `error` in a given [Response].
 class _IsResponseSuccess extends Matcher {
   final String _id;
 

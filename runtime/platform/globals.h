@@ -128,6 +128,12 @@
 #define DEBUG_ONLY(code)
 #endif  // defined(DEBUG)
 
+#if defined(DEBUG)
+#define UNLESS_DEBUG(code)
+#else  // defined(DEBUG)
+#define UNLESS_DEBUG(code) code
+#endif  // defined(DEBUG)
+
 namespace dart {
 
 struct simd128_value_t {

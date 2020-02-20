@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 class CorrectOverrideHelper {
+  final LibraryElement _library;
   final TypeSystemImpl _typeSystem;
 
   final ExecutableElement _thisMember;
@@ -26,9 +27,10 @@ class CorrectOverrideHelper {
   Substitution _superSubstitution;
 
   CorrectOverrideHelper({
-    @required TypeSystemImpl typeSystem,
+    @required LibraryElement library,
     @required ExecutableElement thisMember,
-  })  : _typeSystem = typeSystem,
+  })  : _library = library,
+        _typeSystem = library.typeSystem,
         _thisMember = thisMember {
     _computeThisTypeForSubtype();
   }
@@ -37,6 +39,8 @@ class CorrectOverrideHelper {
   bool isCorrectOverrideOf({
     @required ExecutableElement superMember,
   }) {
+    superMember = _library.toLegacyElementIfOptOut(superMember);
+
     var superType = superMember.type;
     if (!_typeSystem.isSubtypeOf2(_thisTypeForSubtype, superType)) {
       return false;

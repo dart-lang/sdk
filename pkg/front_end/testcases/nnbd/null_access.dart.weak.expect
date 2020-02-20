@@ -147,6 +147,6 @@ static method errors(self::Class? nullableClass, self::Class nonNullableClass, c
   let final self::Class? #t25 = nullableClass in #t25.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t26 = #t25{self::Class}.{self::Class::nonNullableClass} in #t26{self::Class}.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t26{self::Class}.{self::Class::nullableField} = 0 : null;
   nullableClass.{self::Class::call}();
   nonNullableClass.{self::Class::call}();
-  let final self::Class #t27 = nonNullableClass in #t27.{core::Object::==}(null) ?{self::Class?} null : #t27.{self::Class::nonNullableClass}();
-  let final self::Class #t28 = nonNullableClass in #t28.{core::Object::==}(null) ?{self::Class?} null : #t28.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}();
+  let final self::Class #t27 = nonNullableClass in #t27.{core::Object::==}(null) ?{self::Class?} null : #t27.{self::Class::nonNullableClass}.{self::Class::call}();
+  let final self::Class #t28 = nonNullableClass in #t28.{core::Object::==}(null) ?{self::Class?} null : #t28.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}.{self::Class::call}();
 }

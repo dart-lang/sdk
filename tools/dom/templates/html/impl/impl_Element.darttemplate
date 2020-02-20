@@ -1452,7 +1452,14 @@ $endif
   String get innerHtml => _innerHtml;
 
   @JSName('innerText')
-  String$NULLABLE innerText;
+$if NNBD
+  String get innerText => JS<String>("String", "#.innerText", this);
+  set innerText(String value) {
+    JS("void", "#.innerText = #", this, value);
+  }
+$else
+  String innerText;
+$endif
 
   /**
    * This is an ease-of-use accessor for event streams which should only be

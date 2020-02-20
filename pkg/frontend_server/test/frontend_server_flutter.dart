@@ -1,6 +1,6 @@
 import 'dart:async' show StreamController;
 import 'dart:convert' show utf8, LineSplitter;
-import 'dart:io' show Directory, File, FileSystemEntity, IOSink, stdout;
+import 'dart:io' show Directory, File, FileSystemEntity, IOSink, exitCode;
 
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/kernel.dart' show loadComponentFromBytes;
@@ -18,13 +18,23 @@ main(List<String> args) async {
       flutterPlatformDir = arg.substring(21);
     }
   }
+
+  await compileTests(flutterDir, flutterPlatformDir, new StdoutLogger());
+}
+
+Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
+    {String filter}) async {
   if (flutterDir == null || !(new Directory(flutterDir).existsSync())) {
     throw "Didn't get a valid flutter directory to work with.";
   }
   Directory flutterDirectory = new Directory(flutterDir);
+  // Ensure the path ends in a slash.
+  flutterDirectory = new Directory.fromUri(flutterDirectory.uri);
+
   List<FileSystemEntity> allFlutterFiles =
       flutterDirectory.listSync(recursive: true, followLinks: false);
   Directory flutterPlatformDirectory;
+
   if (flutterPlatformDir == null) {
     List<File> platformFiles = new List<File>.from(allFlutterFiles.where((f) =>
         f.uri
@@ -40,13 +50,17 @@ main(List<String> args) async {
   if (!flutterPlatformDirectory.existsSync()) {
     throw "$flutterPlatformDirectory doesn't exist.";
   }
+  // Ensure the path ends in a slash.
+  flutterPlatformDirectory =
+      new Directory.fromUri(flutterPlatformDirectory.uri);
+
   if (!new File.fromUri(
           flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
       .existsSync()) {
     throw "$flutterPlatformDirectory doesn't contain a "
         "platform_strong.dill file.";
   }
-  print("Using $flutterPlatformDirectory as platform directory.");
+  logger.notice("Using $flutterPlatformDirectory as platform directory.");
   List<File> dotPackagesFiles = new List<File>.from(allFlutterFiles.where((f) =>
       (f.uri.toString().contains("/examples/") ||
           f.uri.toString().contains("/packages/")) &&
@@ -56,7 +70,7 @@ main(List<String> args) async {
   for (File dotPackage in dotPackagesFiles) {
     Directory tempDir;
     Directory systemTempDir = Directory.systemTemp;
-    tempDir = systemTempDir.createTempSync('foo bar');
+    tempDir = systemTempDir.createTempSync('flutter_frontend_test');
     try {
       Directory testDir =
           new Directory.fromUri(dotPackage.parent.uri.resolve("test/"));
@@ -66,11 +80,17 @@ main(List<String> args) async {
         // in a setup that can handle that.
         continue;
       }
-      print("Go for $testDir");
+      logger.notice("Go for $testDir");
       List<String> compilationErrors = await attemptStuff(
-          tempDir, flutterPlatformDirectory, dotPackage, testDir);
+          tempDir,
+          flutterPlatformDirectory,
+          dotPackage,
+          testDir,
+          flutterDirectory,
+          logger,
+          filter);
       if (compilationErrors.isNotEmpty) {
-        print("Notice that we had ${compilationErrors.length} "
+        logger.notice("Notice that we had ${compilationErrors.length} "
             "compilation errors for $testDir");
         allCompilationErrors.addAll(compilationErrors);
       }
@@ -79,9 +99,10 @@ main(List<String> args) async {
     }
   }
   if (allCompilationErrors.isNotEmpty) {
-    print("Had a total of ${allCompilationErrors.length} compilation errors:");
-    allCompilationErrors.forEach(print);
-    throw "Had a total of ${allCompilationErrors.length} compilation errors";
+    logger.notice(
+        "Had a total of ${allCompilationErrors.length} compilation errors:");
+    allCompilationErrors.forEach(logger.notice);
+    exitCode = 1;
   }
 }
 
@@ -89,11 +110,26 @@ Future<List<String>> attemptStuff(
     Directory tempDir,
     Directory flutterPlatformDirectory,
     File dotPackage,
-    Directory testDir) async {
+    Directory testDir,
+    Directory flutterDirectory,
+    Logger logger,
+    String filter) async {
+  List<File> testFiles =
+      new List<File>.from(testDir.listSync(recursive: true).where((f) {
+    if (!f.path.endsWith("_test.dart")) return false;
+    if (filter != null) {
+      String testName = f.path.substring(flutterDirectory.path.length);
+      if (!testName.startsWith(filter)) return false;
+    }
+    return true;
+  }));
+  if (testFiles.isEmpty) return [];
+
   File dillFile = new File('${tempDir.path}/dill.dill');
   if (dillFile.existsSync()) {
     throw "$dillFile already exists.";
   }
+
   List<int> platformData = new File.fromUri(
           flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
       .readAsBytesSync();
@@ -107,26 +143,6 @@ Future<List<String>> attemptStuff(
     '--output-dill=${dillFile.path}',
     // '--unsafe-package-serialization',
   ];
-
-  bool shouldSkip(File f) {
-    // TODO(jensj): Come up with a better way to (temporarily) skip some tests.
-    List<String> pathSegments = f.uri.pathSegments;
-    if (pathSegments.sublist(pathSegments.length - 5).join("/") ==
-        "packages/flutter/test/widgets/html_element_view_test.dart") {
-      return true;
-    }
-    if (pathSegments.sublist(pathSegments.length - 6).join("/") ==
-        "packages/flutter_driver/test/src/web_tests/web_extension_test.dart") {
-      return true;
-    }
-
-    return false;
-  }
-
-  List<File> testFiles = new List<File>.from(testDir
-      .listSync(recursive: true)
-      .where((f) => f.path.endsWith("_test.dart") && !shouldSkip(f)));
-  if (testFiles.isEmpty) return [];
 
   Stopwatch stopwatch = new Stopwatch()..start();
 
@@ -148,32 +164,37 @@ Future<List<String>> attemptStuff(
 
   final Future<int> result =
       starter(args, input: inputStreamController.stream, output: ioSink);
-  String shortTestPath =
-      testFileIterator.current.path.substring(testDir.path.length);
-  stdout.write("    => $shortTestPath");
+  String testName =
+      testFileIterator.current.path.substring(flutterDirectory.path.length);
+
+  logger.logTestStart(testName);
+  logger.notice("    => $testName");
   Stopwatch stopwatch2 = new Stopwatch()..start();
   inputStreamController
       .add('compile ${testFileIterator.current.path}\n'.codeUnits);
   int compilations = 0;
   List<String> compilationErrors = [];
   receivedResults.stream.listen((Result compiledResult) {
-    stdout.write(" --- done in ${stopwatch2.elapsedMilliseconds} ms\n");
+    logger.notice(" --- done in ${stopwatch2.elapsedMilliseconds} ms\n");
     stopwatch2.reset();
     bool error = false;
     try {
       compiledResult.expectNoErrors();
+      logger.logExpectedResult(testName);
     } catch (e) {
-      print("Got errors. Compiler output for this compile:");
-      outputParser.allReceived.forEach(print);
+      logger.log("Got errors. Compiler output for this compile:");
+      outputParser.allReceived.forEach(logger.log);
       compilationErrors.add(testFileIterator.current.path);
       error = true;
+      logger.logUnexpectedResult(testName);
     }
     if (!error) {
       List<int> resultBytes = dillFile.readAsBytesSync();
       Component component = loadComponentFromBytes(platformData);
       component = loadComponentFromBytes(resultBytes, component);
       verifyComponent(component);
-      print("        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
+      logger
+          .log("        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
     }
     stopwatch2.reset();
 
@@ -186,9 +207,11 @@ Future<List<String>> attemptStuff(
       inputStreamController.add('quit\n'.codeUnits);
       return;
     }
-    String shortTestPath =
-        testFileIterator.current.path.substring(testDir.path.length);
-    stdout.write("    => $shortTestPath");
+
+    testName =
+        testFileIterator.current.path.substring(flutterDirectory.path.length);
+    logger.logTestStart(testName);
+    logger.notice("    => $testName");
     inputStreamController.add('recompile ${testFileIterator.current.path} abc\n'
             '${testFileIterator.current.uri}\n'
             'abc\n'
@@ -202,7 +225,7 @@ Future<List<String>> attemptStuff(
 
   inputStreamController.close();
 
-  print("Did $compilations compilations and verifications in "
+  logger.log("Did $compilations compilations and verifications in "
       "${stopwatch.elapsedMilliseconds} ms.");
 
   return compilationErrors;
@@ -296,5 +319,46 @@ class CompilationResult {
     }
     filename = filenameAndErrorCount.substring(0, delim);
     errorsCount = int.parse(filenameAndErrorCount.substring(delim + 1).trim());
+  }
+}
+
+abstract class Logger {
+  void logTestStart(String testName);
+  void logExpectedResult(String testName);
+  void logUnexpectedResult(String testName);
+  void log(String s);
+  void notice(String s);
+}
+
+class StdoutLogger extends Logger {
+  List<String> _log = new List<String>();
+
+  @override
+  void logExpectedResult(String testName) {
+    print("$testName: OK.");
+    for (String s in _log) {
+      print(s);
+    }
+  }
+
+  @override
+  void logTestStart(String testName) {
+    _log.clear();
+  }
+
+  @override
+  void logUnexpectedResult(String testName) {
+    print("$testName: Fail.");
+    for (String s in _log) {
+      print(s);
+    }
+  }
+
+  void log(String s) {
+    _log.add(s);
+  }
+
+  void notice(String s) {
+    print(s);
   }
 }

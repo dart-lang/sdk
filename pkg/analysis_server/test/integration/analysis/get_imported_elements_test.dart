@@ -21,21 +21,15 @@ void main() {
 @reflectiveTest
 class AnalysisGetImportedElementsIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
-  /**
-   * Pathname of the file containing Dart code.
-   */
+  /// Pathname of the file containing Dart code.
   String pathname;
 
-  /**
-   * Dart code under test.
-   */
+  /// Dart code under test.
   String text;
 
-  /**
-   * Check that an analysis.getImportedElements request on the region starting
-   * with the first character that matches [target] and having the given
-   * [length] matches the given list of [expected] imported elements.
-   */
+  /// Check that an analysis.getImportedElements request on the region starting
+  /// with the first character that matches [target] and having the given
+  /// [length] matches the given list of [expected] imported elements.
   Future<void> checkElements(
       String target, List<ImportedElements> expected) async {
     bool equals(
@@ -81,10 +75,8 @@ class AnalysisGetImportedElementsIntegrationTest
     }
   }
 
-  /**
-   * Check that an analysis.getImportedElements request on the region matching
-   * [target] produces an empty list of elements.
-   */
+  /// Check that an analysis.getImportedElements request on the region matching
+  /// [target] produces an empty list of elements.
   Future<void> checkNoElements(String target) async {
     int offset = text.indexOf(target);
     AnalysisGetImportedElementsResult result =

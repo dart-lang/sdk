@@ -56,7 +56,10 @@ abstract class TargetImplementation extends Target {
   bool performNnbdChecks;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
-      : enableExtensionMethods = CompilerContext.current.options
+      : assert(ticker != null),
+        assert(uriTranslator != null),
+        assert(backendTarget != null),
+        enableExtensionMethods = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.extensionMethods),
         enableNonNullable = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.nonNullable),

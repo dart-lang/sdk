@@ -907,9 +907,9 @@ static bool IsPotentialExactGeneric(const AbstractType& type) {
   // TODO(dartbug.com/34170) Investigate supporting this for fields with types
   // that depend on type parameters of the enclosing class.
   if (type.IsType() && !type.IsFunctionType() && !type.IsDartFunctionType() &&
-      type.IsInstantiated()) {
+      type.IsInstantiated() && !type.IsFutureOrType()) {
     const Class& cls = Class::Handle(type.type_class());
-    return cls.IsGeneric() && !cls.IsFutureOrClass();
+    return cls.IsGeneric();
   }
 
   return false;

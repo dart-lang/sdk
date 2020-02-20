@@ -163,10 +163,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // override.
     if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
       if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
-        return type2;
+        return type2.withNullability(type1.nullability);
       }
       if (type2 is InterfaceType && type2.classNode == coreTypes.doubleClass) {
-        return type2;
+        return type2.withNullability(type1.nullability);
       }
     }
     return coreTypes.numRawType(type1.nullability);
@@ -326,8 +326,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (success && !hasOmittedBound(typeParam)) {
         // If everything else succeeded, check the `extends` constraint.
         DartType extendsConstraint = typeParamBound;
-        success = isSubtypeOf(inferred, extendsConstraint,
-            SubtypeCheckMode.ignoringNullabilities);
+        success = isSubtypeOf(
+            inferred, extendsConstraint, SubtypeCheckMode.withNullabilities);
       }
 
       if (!success) {
@@ -351,7 +351,15 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   bool isSubtypeOf(
       DartType subtype, DartType supertype, SubtypeCheckMode mode) {
     if (subtype is UnknownType) return true;
-    if (subtype == Null && supertype is UnknownType) return true;
+    DartType unwrappedSupertype = supertype;
+    while (unwrappedSupertype is InterfaceType &&
+        unwrappedSupertype.classNode == futureOrClass) {
+      unwrappedSupertype =
+          (unwrappedSupertype as InterfaceType).typeArguments.single;
+    }
+    if (subtype == coreTypes.nullType && unwrappedSupertype is UnknownType) {
+      return true;
+    }
     return super.isSubtypeOf(subtype, supertype, mode);
   }
 
@@ -444,9 +452,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// Determine if the given [type] satisfies the given type [constraint].
   bool typeSatisfiesConstraint(DartType type, TypeConstraint constraint) {
     return isSubtypeOf(
-            constraint.lower, type, SubtypeCheckMode.ignoringNullabilities) &&
-        isSubtypeOf(
-            type, constraint.upper, SubtypeCheckMode.ignoringNullabilities);
+            constraint.lower, type, SubtypeCheckMode.withNullabilities) &&
+        isSubtypeOf(type, constraint.upper, SubtypeCheckMode.withNullabilities);
   }
 
   DartType _inferTypeParameterFromAll(

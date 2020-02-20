@@ -22,6 +22,7 @@ acov
 across
 affecting
 afterwards
+agnostic
 agree
 ahe
 ai
@@ -97,6 +98,8 @@ bin
 binder
 binders
 binds
+bit1
+bit2
 bj
 blob
 blocking
@@ -366,6 +369,8 @@ fffff
 ffffffff
 ffi
 field1
+field1a
+field1b
 field2
 file's
 filenames
@@ -402,6 +407,8 @@ g
 gardening
 generation
 gets
+getter1a
+getter1b
 getting
 gft
 github
@@ -630,6 +637,7 @@ ncurses
 nd
 near
 neighboring
+newest
 nextnext
 ni
 nine
@@ -679,6 +687,7 @@ orders
 ordinal
 org
 orphans
+ors
 os
 overlap
 overloader

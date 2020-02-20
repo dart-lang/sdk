@@ -20,10 +20,18 @@ final Uri repoDir = computeRepoDirUri();
 
 Set<String> whitelistedExternalDartFiles = {
   "third_party/pkg/charcode/lib/ascii.dart",
-  "third_party/pkg_tested/package_config/lib/packages.dart",
-  "third_party/pkg_tested/package_config/lib/packages_file.dart",
-  "third_party/pkg_tested/package_config/lib/src/packages_impl.dart",
+
+  "third_party/pkg_tested/package_config/lib/package_config.dart",
+  "third_party/pkg_tested/package_config/lib/package_config_types.dart",
+  "third_party/pkg_tested/package_config/lib/src/discovery.dart",
+  "third_party/pkg_tested/package_config/lib/src/errors.dart",
+  "third_party/pkg_tested/package_config/lib/src/package_config_impl.dart",
+  "third_party/pkg_tested/package_config/lib/src/package_config_io.dart",
+  "third_party/pkg_tested/package_config/lib/src/package_config_json.dart",
+  "third_party/pkg_tested/package_config/lib/src/package_config.dart",
+  "third_party/pkg_tested/package_config/lib/src/packages_file.dart",
   "third_party/pkg_tested/package_config/lib/src/util.dart",
+
   // TODO(CFE-team): This file should not be included.
   // The package isn't even in pubspec.yaml.
   "pkg/meta/lib/meta.dart",

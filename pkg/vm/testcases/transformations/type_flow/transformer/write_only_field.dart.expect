@@ -2,6 +2,8 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
+abstract class A extends core::Object {
+}
 class B extends core::Object {
   constructor •() → self::B*
     : super core::Object::•() {
@@ -14,7 +16,8 @@ class C extends core::Object {
     : super core::Object::•()
     ;
 }
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field self::A* field = throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
 static method main() → void {
-  null;
-  [@vm.direct-call.metadata=#lib::C::instanceField] new self::C::•().{self::C::instanceField} = null;
+  self::field = null;
+  [@vm.direct-call.metadata=#lib::C::instanceField] [@vm.inferred-type.metadata=!? (skip check)] new self::C::•().{self::C::instanceField} = null;
 }

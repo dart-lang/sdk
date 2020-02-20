@@ -19,17 +19,6 @@ import 'package:migration/src/test_directories.dart';
 // TODO(rnystrom): Update this with numbers from migrating some language tests.
 const _linesPerDay = 24607;
 
-const _includeNonCoreLibs = false;
-
-const _nonCoreLibs = [
-  "lib_2/html/",
-  "lib_2/isolate/",
-  "lib_2/mirrors/",
-  "lib_2/profiler/",
-  "lib_2/wasm/",
-  "standalone_2/io/",
-];
-
 /// Some legacy files test behavior that doesn't apply to NNBD at all which
 /// means they don't end up in the migrated directory but are done. We put this
 /// comment in the *legacy* file to track that it has been migrated.
@@ -57,10 +46,6 @@ void main(List<String> arguments) {
       var migratedLines = 0;
 
       for (var legacyPath in listFiles(dir)) {
-        if (!_includeNonCoreLibs && _nonCoreLibs.any(legacyPath.startsWith)) {
-          continue;
-        }
-
         files++;
         var sourceLines = readFileLines(legacyPath);
         lines += sourceLines.length;

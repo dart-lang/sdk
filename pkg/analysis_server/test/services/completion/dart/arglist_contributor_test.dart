@@ -27,10 +27,8 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     }
   }
 
-  /**
-   * Assert that there is a suggestion with the given parameter [name] that has
-   * the given [completion], [selectionOffset] and [selectionLength].
-   */
+  /// Assert that there is a suggestion with the given parameter [name] that has
+  /// the given [completion], [selectionOffset] and [selectionLength].
   void assertSuggestArgumentAndCompletion(String name,
       {String completion, int selectionOffset, int selectionLength = 0}) {
     CompletionSuggestion suggestion =
@@ -71,10 +69,8 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     fail(msg.toString());
   }
 
-  /**
-   * Assert that the specified named argument suggestions with their types are
-   * the only suggestions.
-   */
+  /// Assert that the specified named argument suggestions with their types are
+  /// the only suggestions.
   void assertSuggestArgumentsAndTypes(
       {Map<String, String> namedArgumentsWithTypes,
       List<int> requiredParamIndices = const <int>[],
@@ -102,9 +98,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     assertNoOtherSuggestions(expected);
   }
 
-  /**
-   * Assert that the specified suggestions are the only suggestions.
-   */
+  /// Assert that the specified suggestions are the only suggestions.
   void assertSuggestions(List<String> suggestions) {
     List<CompletionSuggestion> expected = <CompletionSuggestion>[];
     for (String suggestion in suggestions) {
@@ -606,7 +600,7 @@ foo({String children}) {}
   Future<void> test_ArgumentList_imported_factory_named_param() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
     addSource('/home/test/lib/a.dart',
-        'library libA; class A{factory A({int one}) => null;}');
+        'library libA; class A{factory A({int one}) => throw 0;}');
     addTestSource('import "a.dart"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});

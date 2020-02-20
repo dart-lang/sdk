@@ -1225,10 +1225,8 @@ void main() {
     assertTestChangeResult(expectedCode);
   }
 
-  /**
-   * Checks that all conditions are OK and the result of applying the change
-   * to [testUnit] is [expectedCode].
-   */
+  /// Checks that all conditions are OK and the result of applying the change
+  /// to [testUnit] is [expectedCode].
   Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     await _assertRefactoringChange(expectedCode);
@@ -1246,10 +1244,8 @@ void main() {
     _createRefactoring(offset, length);
   }
 
-  /**
-   * Creates a new refactoring in [refactoring] at the offset of the given
-   * [search] pattern.
-   */
+  /// Creates a new refactoring in [refactoring] at the offset of the given
+  /// [search] pattern.
   void _createRefactoringForStringOffset(String search) {
     int offset = findOffset(search);
     _createRefactoring(offset, 0);

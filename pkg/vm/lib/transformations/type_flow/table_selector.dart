@@ -5,18 +5,20 @@
 import 'package:kernel/ast.dart';
 
 import '../../metadata/procedure_attributes.dart';
+import '../../metadata/table_selector.dart';
 
 // Assigns dispatch table selector IDs to interface targets.
 // TODO(dartbug.com/40188): Implement a more fine-grained assignment based on
 // hierarchy connectedness.
 class TableSelectorAssigner {
+  final TableSelectorMetadata metadata = TableSelectorMetadata();
+
   final Map<Name, int> _methodSelectorId = {};
   final Map<Name, int> _getterSelectorId = {};
   final Map<Name, int> _setterSelectorId = {};
-  int _nextSelectorId = ProcedureAttributesMetadata.kInvalidSelectorId + 1;
 
   int _selectorIdForMap(Map<Name, int> map, Member member) {
-    return map.putIfAbsent(member.name, () => _nextSelectorId++);
+    return map.putIfAbsent(member.name, () => metadata.addSelector());
   }
 
   int methodOrSetterSelectorId(Member member) {
@@ -56,5 +58,18 @@ class TableSelectorAssigner {
       return _selectorIdForMap(_getterSelectorId, member);
     }
     throw "Unexpected member kind '${member.runtimeType}'";
+  }
+
+  void registerCall(int selectorId, bool calledOnNull) {
+    metadata.selectors[selectorId].callCount++;
+    metadata.selectors[selectorId].calledOnNull |= calledOnNull;
+  }
+
+  void registerMethodOrSetterCall(Member member, bool calledOnNull) {
+    registerCall(methodOrSetterSelectorId(member), calledOnNull);
+  }
+
+  void registerGetterCall(Member member, bool calledOnNull) {
+    registerCall(getterSelectorId(member), calledOnNull);
   }
 }

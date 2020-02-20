@@ -1544,6 +1544,137 @@ void h() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_exact_nullability_counterexample() async {
+    var content = '''
+void f(List<int> x) {
+  x.add(1);
+}
+void g() {
+  f([null]);
+}
+void h(List<int> x) {
+  f(x);
+}
+''';
+    // The `null` in `g` causes `f`'s `x` argument to have type `List<int?>`.
+    // Even though `f` calls a method that uses `List`'s type parameter
+    // contravariantly (the `add` method), that is not sufficient to cause exact
+    // nullability propagation, since value passed to `add` has a
+    // non-nullable type.  So nullability is *not* propagated back to `h`.
+    var expected = '''
+void f(List<int?> x) {
+  x.add(1);
+}
+void g() {
+  f([null]);
+}
+void h(List<int> x) {
+  f(x);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_exact_nullability_doesnt_affect_function_args() async {
+    // Test attempting to create a bug from #40625. Currently passes, but if it
+    // breaks, that bug may need to be reopened.
+    var content = '''
+class C<T> {
+  int Function(T) f;
+}
+void main() {
+  C<String> c;
+  int Function(String) f1 = c.f; // should not have a nullable arg
+  c.f(null); // exact nullability induced here
+}
+''';
+    var expected = '''
+class C<T> {
+  int Function(T)? f;
+}
+void main() {
+  C<String?> c;
+  int Function(String)? f1 = c.f; // should not have a nullable arg
+  c.f!(null); // exact nullability induced here
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_exact_nullability_doesnt_affect_function_returns() async {
+    // Test attempting to create a bug from #40625. Currently passes, but if it
+    // breaks, that bug may need to be reopened.
+    var content = '''
+class C<T> {
+  T Function(String) f;
+}
+int Function(String) f1; // should not have a nullable return
+void main() {
+  C<int> c;
+  c.f = f1;
+  c.f = (_) => null; // exact nullability induced here
+}
+''';
+    var expected = '''
+class C<T> {
+  T Function(String)? f;
+}
+int Function(String) f1; // should not have a nullable return
+void main() {
+  C<int?> c;
+  c.f = f1;
+  c.f = (_) => null; // exact nullability induced here
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_exact_nullability_doesnt_affect_typedef_args() async {
+    // Test attempting to create a bug from #40625. Currently passes, but if it
+    // breaks, that bug may need to be reopened.
+    var content = '''
+typedef F<T> = int Function(T);
+F<String> f1;
+
+void main() {
+  f1(null); // induce exact nullability
+  int Function(String) f2 = f1; // shouldn't have a nullable arg
+}
+''';
+    var expected = '''
+typedef F<T> = int Function(T);
+F<String?> f1;
+
+void main() {
+  f1(null); // induce exact nullability
+  int Function(String) f2 = f1; // shouldn't have a nullable arg
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_exact_nullability_doesnt_affect_typedef_returns() async {
+    // Test attempting to create a bug from #40625. Currently passes, but if it
+    // breaks, that bug may need to be reopened.
+    var content = '''
+typedef F<T> = T Function(String);
+int Function(String) f1; // should not have a nullable return
+void main() {
+  F<int> f2 = f1;
+  f2 = (_) => null; // exact nullability induced here
+}
+''';
+    var expected = '''
+typedef F<T> = T Function(String);
+int Function(String) f1; // should not have a nullable return
+void main() {
+  F<int?> f2 = f1;
+  f2 = (_) => null; // exact nullability induced here
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_explicit_nullable_overrides_hard_edge() async {
     var content = '''
 int f(int/*?*/ i) => i + 1;
@@ -2243,6 +2374,31 @@ Object g(C c) => c.f()();
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void>
+      test_generic_typedef_respects_explicit_nullability_of_type_arg() async {
+    var content = '''
+class C {
+  final Comparator<int/*!*/> comparison;
+  C(int Function(int, int) comparison) : comparison = comparison;
+  void test() {
+    comparison(f(), f());
+  }
+}
+int f() => null;
+''';
+    var expected = '''
+class C {
+  final Comparator<int/*!*/> comparison;
+  C(int Function(int, int) comparison) : comparison = comparison;
+  void test() {
+    comparison(f()!, f()!);
+  }
+}
+int? f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_genericType_noTypeArguments() async {
     var content = '''
 void f(C c) {}
@@ -2792,6 +2948,33 @@ class C {
         {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
   }
 
+  Future<void> test_literals_maintain_nullability() async {
+    // See #40590. Without exact nullability, this would migrate to
+    // `List<int?> list = <int>[1, 2]`. While the function of exact nullability
+    // may change, this case should continue to work.
+    var content = r'''
+void f() {
+  List<int> list = [1, 2];
+  list.add(null);
+  Set<int> set_ = {1, 2};
+  set_.add(null);
+  Map<int, int> map = {1: 2};
+  map[null] = null;
+}
+''';
+    var expected = r'''
+void f() {
+  List<int?> list = [1, 2];
+  list.add(null);
+  Set<int?> set_ = {1, 2};
+  set_.add(null);
+  Map<int?, int?> map = {1: 2};
+  map[null] = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_local_function() async {
     var content = '''
 int f(int i) {
@@ -3312,6 +3495,33 @@ int f(int i, [int j]) {
 int f(int i, [int? j]) {
   if (i == 0) return i;
   return i + j!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_non_null_intent_propagated_through_substitution_nodes() async {
+    var content = '''
+abstract class C {
+  void f(List<int/*!*/> x, int y) {
+    x.add(y);
+  }
+  int/*?*/ g();
+  void test() {
+    f(<int>[], g());
+  }
+}
+''';
+    var expected = '''
+abstract class C {
+  void f(List<int/*!*/> x, int y) {
+    x.add(y);
+  }
+  int?/*?*/ g();
+  void test() {
+    f(<int>[], g()!);
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -3863,6 +4073,32 @@ void test() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_property_access_on_cascade_result() async {
+    var content = '''
+int f(List<int> l) {
+  l..first.isEven
+   ..firstWhere((_) => true).isEven
+   ..[0].isEven;
+}
+
+void g() {
+  f([null]);
+}
+''';
+    var expected = '''
+int f(List<int?> l) {
+  l..first!.isEven
+   ..firstWhere((_) => true)!.isEven
+   ..[0]!.isEven;
+}
+
+void g() {
+  f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_redirecting_constructor_factory() async {
     var content = '''
 class C {
@@ -3928,6 +4164,50 @@ class C {
 }
 main() {
   C.named(null, 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_regression_40551() async {
+    var content = '''
+class B<T extends Object> { // bound should not be made nullable
+  void f(T t) { // parameter should not be made nullable
+    // Create an edge from the bound to some type
+    List<dynamic> x = [t];
+    // and make that type exact nullable
+    x[0] = null;
+  }
+}
+''';
+    var expected = '''
+class B<T extends Object> { // bound should not be made nullable
+  void f(T t) { // parameter should not be made nullable
+    // Create an edge from the bound to some type
+    List<dynamic> x = [t];
+    // and make that type exact nullable
+    x[0] = null;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_regression_40552() async {
+    var content = '''
+void f(Object o) { // parameter should not be made nullable
+  // Create an edge from the bound to some type
+  List<dynamic> x = [o];
+  // and make that type exact nullable
+  x[0] = null;
+}
+''';
+    var expected = '''
+void f(Object o) { // parameter should not be made nullable
+  // Create an edge from the bound to some type
+  List<dynamic> x = [o];
+  // and make that type exact nullable
+  x[0] = null;
 }
 ''';
     await _checkSingleFileChanges(content, expected);

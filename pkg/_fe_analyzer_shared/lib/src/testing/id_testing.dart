@@ -501,8 +501,7 @@ Future<TestResult<T>> checkCode<T>(
   Set<Uri> neededDiffs = new Set<Uri>();
 
   void checkActualMap(
-      Map<Id, ActualData<T>> actualMap, Map<Id, IdValue> expectedMap,
-      [Uri uri]) {
+      Map<Id, ActualData<T>> actualMap, Map<Id, IdValue> expectedMap, Uri uri) {
     expectedMap ??= {};
     bool hasLocalFailure = false;
     actualMap?.forEach((Id id, ActualData<T> actualData) {
@@ -561,7 +560,8 @@ Future<TestResult<T>> checkCode<T>(
   compiledData.actualMaps.forEach((Uri uri, Map<Id, ActualData<T>> actualMap) {
     checkActualMap(actualMap, expectedMaps[uri], uri);
   });
-  checkActualMap(compiledData.globalData, expectedMaps.globalData);
+  checkActualMap(compiledData.globalData, expectedMaps.globalData,
+      Uri.parse("global:data"));
 
   Set<Id> missingIds = new Set<Id>();
   void checkMissing(
@@ -603,8 +603,8 @@ Future<TestResult<T>> checkCode<T>(
       for (Uri uri in neededDiffs) {
         print('--annotations diff [${uri.pathSegments.last}]-------------');
         AnnotatedCode annotatedCode = code[uri];
-        print(new AnnotatedCode(annotatedCode.annotatedCode,
-                annotatedCode.sourceCode, annotations[uri])
+        print(new AnnotatedCode(annotatedCode?.annotatedCode ?? "",
+                annotatedCode?.sourceCode ?? "", annotations[uri])
             .toText());
         print('----------------------------------------------------------');
       }
@@ -625,7 +625,8 @@ typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
     bool verbose,
     bool succinct,
     bool printCode,
-    Map<String, List<String>> skipMap});
+    Map<String, List<String>> skipMap,
+    Uri nullUri});
 
 /// Check code for all tests in [dataDir] using [runTest].
 Future<void> runTests<T>(Directory dataDir,
@@ -679,13 +680,17 @@ Future<void> runTests<T>(Directory dataDir,
     print('----------------------------------------------------------------');
 
     Map<Uri, Uri> testToFileUri = {};
-    TestData testData =
-        computeTestData(entity, supportedMarkers: supportedMarkers,
-            createTestUri: (Uri fileUri, String fileName) {
+
+    Uri createTestUri(Uri fileUri, String fileName) {
       Uri testUri = createUriForFileName(fileName);
       testToFileUri[testUri] = fileUri;
       return testUri;
-    }, onFailure: onFailure);
+    }
+
+    TestData testData = computeTestData(entity,
+        supportedMarkers: supportedMarkers,
+        createTestUri: createTestUri,
+        onFailure: onFailure);
     print('Test: ${testData.testFileUri}');
 
     Map<String, TestResult<T>> results = await runTest(testData,
@@ -693,7 +698,8 @@ Future<void> runTests<T>(Directory dataDir,
         verbose: verbose,
         succinct: succinct,
         printCode: printCode,
-        skipMap: skipMap);
+        skipMap: skipMap,
+        nullUri: createTestUri(entity.uri.resolve("null"), "null"));
 
     bool hasMismatches = false;
     bool hasErrors = false;
@@ -746,7 +752,7 @@ Future<void> runTests<T>(Directory dataDir,
           assert(code != null,
               "No annotated code for $uri with annotations: $annotations");
           AnnotatedCode generated = new AnnotatedCode(
-              code.annotatedCode, code.sourceCode, annotations);
+              code?.annotatedCode ?? "", code?.sourceCode ?? "", annotations);
           Uri fileUri = testToFileUri[uri];
           new File.fromUri(fileUri).writeAsStringSync(generated.toText());
           print('Generated annotations for ${fileUri}');

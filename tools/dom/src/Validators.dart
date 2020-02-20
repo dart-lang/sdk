@@ -147,6 +147,7 @@ class _ThrowsNodeValidator implements NodeValidator {
       throw new ArgumentError(
           '${Element._safeTagName(element)}[$attributeName="$value"]');
     }
+    return true;
   }
 }
 

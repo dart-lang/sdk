@@ -13,29 +13,20 @@ import 'package:analysis_server/src/search/workspace_symbols.dart' as search;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
- * that handles requests in the search domain.
- */
+/// Instances of the class [SearchDomainHandler] implement a [RequestHandler]
+/// that handles requests in the search domain.
 class SearchDomainHandler implements protocol.RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
+  /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
-  /**
-   * The [SearchEngine] for this server.
-   */
+  /// The [SearchEngine] for this server.
   final SearchEngine searchEngine;
 
-  /**
-   * The next search response id.
-   */
+  /// The next search response id.
   int _nextSearchId = 0;
 
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   SearchDomainHandler(AnalysisServer server)
       : server = server,
         searchEngine = server.searchEngine;
@@ -133,9 +124,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     _sendSearchNotification(searchId, true, matches.map(toResult));
   }
 
-  /**
-   * Implement the `search.getDeclarations` request.
-   */
+  /// Implement the `search.getDeclarations` request.
   Future getDeclarations(protocol.Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -217,9 +206,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
         .toResponse(request.id));
   }
 
-  /**
-   * Implement the `search.getTypeHierarchy` request.
-   */
+  /// Implement the `search.getTypeHierarchy` request.
   Future getTypeHierarchy(protocol.Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -288,9 +275,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
             .toNotification());
   }
 
-  /**
-   * Send a search response with the given [result] to the given [request].
-   */
+  /// Send a search response with the given [result] to the given [request].
   void _sendSearchResult(protocol.Request request, result) {
     protocol.Response response = result.toResponse(request.id);
     server.sendResponse(response);

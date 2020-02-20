@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code for enumerating the set of types implied by the API.
- */
+/// Code for enumerating the set of types implied by the API.
 import 'package:analysis_tool/tools.dart';
 
 import 'api.dart';
@@ -20,20 +18,16 @@ class ImpliedType {
   final String humanReadableName;
   final TypeDecl type;
 
-  /**
-   * Kind of implied type this is.  One of:
-   * - 'requestParams'
-   * - 'requestResult'
-   * - 'notificationParams'
-   * - 'refactoringFeedback'
-   * - 'refactoringOptions'
-   * - 'typeDefinition'
-   */
+  /// Kind of implied type this is.  One of:
+  /// - 'requestParams'
+  /// - 'requestResult'
+  /// - 'notificationParams'
+  /// - 'refactoringFeedback'
+  /// - 'refactoringOptions'
+  /// - 'typeDefinition'
   final String kind;
 
-  /**
-   * API node from which this type was inferred.
-   */
+  /// API node from which this type was inferred.
   final ApiNode apiNode;
 
   ImpliedType(this.camelName, this.humanReadableName, this.type, this.kind,

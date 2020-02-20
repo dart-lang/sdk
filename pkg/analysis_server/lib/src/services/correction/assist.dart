@@ -7,9 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
-/**
- * The implementation of [DartAssistContext].
- */
+/// The implementation of [DartAssistContext].
 class DartAssistContextImpl implements DartAssistContext {
   @override
   final ChangeWorkspace workspace;
@@ -27,9 +25,7 @@ class DartAssistContextImpl implements DartAssistContext {
       this.selectionOffset, this.selectionLength);
 }
 
-/**
- * An enumeration of possible assist kinds.
- */
+/// An enumeration of possible assist kinds.
 class DartAssistKind {
   static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE = AssistKind(
       'ADD_DIAGNOSTIC_PROPERTY_REFERENCE',

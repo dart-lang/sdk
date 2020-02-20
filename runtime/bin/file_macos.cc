@@ -161,7 +161,8 @@ int64_t File::Read(void* buffer, int64_t num_bytes) {
 }
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
-  ASSERT(handle_->fd() >= 0);
+  // Invalid argument error will pop if num_bytes exceeds the limit.
+  ASSERT(handle_->fd() >= 0 && num_bytes <= kMaxInt32);
   return TEMP_FAILURE_RETRY(write(handle_->fd(), buffer, num_bytes));
 }
 

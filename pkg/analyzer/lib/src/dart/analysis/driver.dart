@@ -91,7 +91,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 96;
+  static const int DATA_VERSION = 97;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -290,7 +290,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {@required Packages packages,
+      {Packages packages,
       this.disableChangesAndCacheAllResults = false,
       this.enableIndex = false,
       SummaryDataStore externalSummaries,
@@ -1474,7 +1474,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       resourceProvider: resourceProvider,
       packages: _packages,
       sourceFactory: _sourceFactory,
-      defaultFeatureSet: _analysisOptions.contextFeatures,
+      packageDefaultFeatureSet: _analysisOptions.contextFeatures,
+      nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
     );
 
     _fsState = FileSystemState(

@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field core::int foo;
+  const constructor •(core::int foo) → self::A
+    : self::A::foo = foo, super core::Object::•()
+    ;
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •(core::int foo) → self::B
+    : super self::A::•(foo)
+    ;
+}
+class C extends self::B /*hasConstConstructor*/  {
+  const constructor •(core::int foo) → self::C
+    : super self::B::•(foo)
+    ;
+}
+class D extends self::B /*hasConstConstructor*/  {
+  const constructor •(core::int foo) → self::D
+    : super self::B::•(foo)
+    ;
+  operator ==(dynamic other) → core::bool
+    ;
+}
+static method bar(self::B b) → dynamic
+  ;
+static method main() → dynamic
+  ;

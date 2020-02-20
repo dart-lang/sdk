@@ -101,6 +101,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   FunctionNode _currentFunction;
 
+  void setIncrementalCompilationScope(Library library, Class cls) {
+    _currentLibrary = library;
+    _staticTypeContext.enterLibrary(_currentLibrary);
+    _currentClass = cls;
+  }
+
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
@@ -1427,7 +1433,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Also for const constructors we need to ensure default values are
     // available for use by top-level constant initializers.
     var fn = node.function;
-    var body = _emitArgumentInitializers(fn);
+    var body = _emitArgumentInitializers(fn, node.name.name);
 
     // Redirecting constructors: these are not allowed to have initializers,
     // and the redirecting ctor invocation runs before field initializers.
@@ -1898,10 +1904,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// If a future Dart version allows factory constructors to take their
     /// own type parameters, this will need to be changed to call
     /// [_emitFunction] instead.
-    var jsBody = _emitSyncFunctionBody(function);
+    var name = node.name.name;
+    var jsBody = _emitSyncFunctionBody(function, name);
 
-    return js_ast.Method(_constructorName(node.name.name),
-        js_ast.Fun(_emitParameters(function), jsBody),
+    return js_ast.Method(
+        _constructorName(name), js_ast.Fun(_emitParameters(function), jsBody),
         isStatic: true)
       ..sourceInformation = _nodeEnd(node.fileEndOffset);
   }
@@ -2594,7 +2601,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitBottomType(BottomType type) =>
-      _emitNullabilityWrapper(runtimeCall('bottom'), type.nullability);
+      _emitType(_types.nullType);
 
   @override
   js_ast.Expression visitNeverType(NeverType type) =>
@@ -2906,6 +2913,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitTypedefType(TypedefType type) =>
       visitFunctionType(type.unalias as FunctionType);
 
+  js_ast.Fun emitFunction(FunctionNode f, String name) =>
+      _emitFunction(f, name);
+
   js_ast.Fun _emitFunction(FunctionNode f, String name) {
     // normal function (sync), vs (sync*, async, async*)
     var isSync = f.asyncMarker == AsyncMarker.Sync;
@@ -2921,8 +2931,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // potentially mutated in Kernel. For now we assume all parameters are.
     super.enterFunction(name, formals, () => true);
 
-    var block =
-        isSync ? _emitSyncFunctionBody(f) : _emitGeneratorFunctionBody(f, name);
+    var block = isSync
+        ? _emitSyncFunctionBody(f, name)
+        : _emitGeneratorFunctionBody(f, name);
 
     block = super.exitFunction(name, formals, block);
     return js_ast.Fun(formals, block);
@@ -3115,13 +3126,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// To emit an `async`, `sync*`, or `async*` function body, use
   /// [_emitGeneratorFunctionBody] instead.
-  js_ast.Block _emitSyncFunctionBody(FunctionNode f) {
+  js_ast.Block _emitSyncFunctionBody(FunctionNode f, String name) {
     assert(f.asyncMarker == AsyncMarker.Sync);
 
     var block = _withCurrentFunction(f, () {
       /// For (normal) `sync` bodies, execute the function body immediately
       /// after the argument initializers.
-      var block = _emitArgumentInitializers(f);
+      var block = _emitArgumentInitializers(f, name);
       block.add(_emitFunctionScopedBody(f));
       return block;
     });
@@ -3144,7 +3155,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(f.asyncMarker != AsyncMarker.Sync);
 
     var statements =
-        _withCurrentFunction(f, () => _emitArgumentInitializers(f));
+        _withCurrentFunction(f, () => _emitArgumentInitializers(f, name));
     statements.add(_emitGeneratorFunctionExpression(f, name).toReturn()
       ..sourceInformation = _nodeStart(f));
     return js_ast.Block(statements);
@@ -3171,9 +3182,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return result;
   }
 
+  /// Returns true if the underlying type does not accept a null value.
+  bool _mustBeNonNullable(DartType type) {
+    if (type.nullability == Nullability.nonNullable) {
+      if (type is InterfaceType && type.classNode == _coreTypes.futureOrClass) {
+        // A `FutureOr<T>` can still accept null if `T` can.
+        return _mustBeNonNullable(type.typeArguments.single);
+      }
+      return true;
+    }
+    return false;
+  }
+
   /// Emits argument initializers, which handles optional/named args, as well
   /// as generic type checks needed due to our covariance.
-  List<js_ast.Statement> _emitArgumentInitializers(FunctionNode f) {
+  List<js_ast.Statement> _emitArgumentInitializers(
+      FunctionNode f, String name) {
     var body = <js_ast.Statement>[];
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
@@ -3183,8 +3207,33 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
       }
-      if (_annotatedNullCheck(p.annotations)) {
+      if (name == '==') {
+        // In Dart `operator ==` methods are not called with a null argument.
+        // This is handled before calling them. For performance reasons, we push
+        // this check inside the method, to simplify our `equals` helper.
+        //
+        // TODO(jmesserly): in most cases this check is not necessary, because
+        // the Dart code already handles it (typically by an `is` check).
+        // Eliminate it when possible.
+        body.add(js.statement('if (# == null) return false;', [jsParam]));
+      } else if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
+      } else if (_mustBeNonNullable(p.type)) {
+        // TODO(vsm): Remove if / when CFE does this:
+        // https://github.com/dart-lang/sdk/issues/40597
+        // The check on `p.type` is per:
+        // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
+        var condition = js.call('# == null', [jsParam]);
+        var location = p.location;
+        var check = js.statement(' if (#) #.nullFailed(#, #, #, #);', [
+          condition,
+          runtimeModule,
+          js.escapedString(location.file.toString()),
+          js.number(location.line),
+          js.number(location.column),
+          js.escapedString('${p.name}'),
+        ]);
+        body.add(check);
       }
     }
 

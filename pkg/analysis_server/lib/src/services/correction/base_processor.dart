@@ -776,7 +776,7 @@ abstract class BaseProcessor {
             : (fromDouble ? "'" : '"');
         int quoteLength = literal.isMultiline ? 3 : 1;
         String lexeme = literal.literal.lexeme;
-        if (lexeme.indexOf(newQuote) < 0) {
+        if (!lexeme.contains(newQuote)) {
           var changeBuilder = _newDartChangeBuilder();
           await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
             builder.addSimpleReplacement(
@@ -801,7 +801,7 @@ abstract class BaseProcessor {
           InterpolationElement element = elements[i];
           if (element is InterpolationString) {
             String lexeme = element.contents.lexeme;
-            if (lexeme.indexOf(newQuote) >= 0) {
+            if (lexeme.contains(newQuote)) {
               return null;
             }
           }
@@ -1463,10 +1463,8 @@ abstract class BaseProcessor {
     return node != null;
   }
 
-  /**
-   * Return `true` if all of the parameters in the given list of [parameters]
-   * have an explicit type annotation.
-   */
+  /// Return `true` if all of the parameters in the given list of [parameters]
+  /// have an explicit type annotation.
   bool _allParametersHaveTypes(FormalParameterList parameters) {
     for (FormalParameter parameter in parameters.parameters) {
       if (parameter is DefaultFormalParameter) {

@@ -15,7 +15,8 @@ import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/class_hierarchy_builder.dart'
+    show ClassHierarchyBuilder, ClassMember;
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 import '../kernel/late_lowering.dart' as late_lowering;
 
@@ -577,11 +578,38 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
-      <ClassMember>[fieldBuilder];
+      <ClassMember>[new SourceFieldMember(fieldBuilder)];
 
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
       const <ClassMember>[];
+}
+
+class SourceFieldMember extends BuilderClassMember {
+  @override
+  final SourceFieldBuilder memberBuilder;
+
+  SourceFieldMember(this.memberBuilder);
+
+  @override
+  bool get isProperty => true;
+
+  @override
+  bool get isFunction => false;
+
+  TypeBuilder get type => memberBuilder.type;
+
+  bool get hadTypesInferred => memberBuilder.hadTypesInferred;
+
+  void set hadTypesInferred(bool value) {
+    memberBuilder.hadTypesInferred = value;
+  }
+
+  DartType get fieldType => memberBuilder.fieldType;
+
+  void set fieldType(DartType value) {
+    memberBuilder.fieldType = value;
+  }
 }
 
 abstract class AbstractLateFieldEncoding implements FieldEncoding {
@@ -868,11 +896,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) {
     List<ClassMember> list = <ClassMember>[
-      new _ClassMember(fieldBuilder, field),
-      new _ClassMember(fieldBuilder, _lateGetter)
+      new _LateFieldClassMember(fieldBuilder, field),
+      new _LateFieldClassMember(fieldBuilder, _lateGetter)
     ];
     if (_lateIsSetField != null) {
-      list.add(new _ClassMember(fieldBuilder, _lateIsSetField));
+      list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField));
     }
     return list;
   }
@@ -881,7 +909,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) {
     return _lateSetter == null
         ? const <ClassMember>[]
-        : <ClassMember>[new _ClassMember(fieldBuilder, _lateSetter)];
+        : <ClassMember>[new _LateFieldClassMember(fieldBuilder, _lateSetter)];
   }
 }
 
@@ -1022,16 +1050,28 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       null;
 }
 
-class _ClassMember implements ClassMember {
+class _LateFieldClassMember implements ClassMember {
   final SourceFieldBuilder fieldBuilder;
 
-  @override
-  final Member member;
+  final Member _member;
 
-  _ClassMember(this.fieldBuilder, this.member);
+  _LateFieldClassMember(this.fieldBuilder, this._member);
+
+  Member getMember(ClassHierarchyBuilder hierarchy) => _member;
+
+  @override
+  bool get isProperty => isField || isGetter || isSetter;
+
+  @override
+  bool get isFunction => !isProperty;
 
   @override
   ClassBuilder get classBuilder => fieldBuilder.classBuilder;
+
+  @override
+  bool isObjectMember(ClassBuilder objectClass) {
+    return classBuilder == objectClass;
+  }
 
   @override
   bool get isDuplicate => fieldBuilder.isDuplicate;
@@ -1040,36 +1080,48 @@ class _ClassMember implements ClassMember {
   bool get isStatic => fieldBuilder.isStatic;
 
   @override
-  bool get isField => member is Field;
+  bool get isField => _member is Field;
 
   @override
   bool get isAssignable {
-    Member field = member;
+    Member field = _member;
     return field is Field && field.hasSetter;
   }
 
   @override
   bool get isSetter {
-    Member procedure = member;
+    Member procedure = _member;
     return procedure is Procedure && procedure.kind == ProcedureKind.Setter;
   }
 
   @override
   bool get isGetter {
-    Member procedure = member;
+    Member procedure = _member;
     return procedure is Procedure && procedure.kind == ProcedureKind.Getter;
   }
 
   @override
   bool get isFinal {
-    Member field = member;
+    Member field = _member;
     return field is Field && field.isFinal;
   }
 
   @override
   bool get isConst {
-    Member field = member;
+    Member field = _member;
     return field is Field && field.isConst;
+  }
+
+  @override
+  Name get name => _member.name;
+
+  @override
+  String get fullName {
+    String suffix = isSetter ? "=" : "";
+    String className = classBuilder?.fullNameForErrors;
+    return className == null
+        ? "${fullNameForErrors}$suffix"
+        : "${className}.${fullNameForErrors}$suffix";
   }
 
   @override
@@ -1082,5 +1134,21 @@ class _ClassMember implements ClassMember {
   int get charOffset => fieldBuilder.charOffset;
 
   @override
-  String toString() => '_ClassMember($fieldBuilder,$member)';
+  bool get isAbstract => _member.isAbstract;
+
+  @override
+  bool get hasExplicitReturnType {
+    // The return type of the getter is explicit if the field type is explicit.
+    return fieldBuilder.type != null;
+  }
+
+  @override
+  bool hasExplicitlyTypedFormalParameter(int index) {
+    // The type of the setter parameter is explicit if the field type is
+    // explicit.
+    return fieldBuilder.type != null;
+  }
+
+  @override
+  String toString() => '_ClassMember($fieldBuilder,$_member)';
 }

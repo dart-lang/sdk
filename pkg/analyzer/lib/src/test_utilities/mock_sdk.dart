@@ -222,6 +222,8 @@ abstract class Comparable<T> {
   int compareTo(T other);
 }
 
+typedef Comparator<T> = int Function(T a, T b);
+
 class DateTime extends Object {}
 
 class Deprecated extends Object {
@@ -434,6 +436,8 @@ abstract class Set<E> implements Iterable<E> {
   factory Set.of(Iterable<E> elements) => null;
 
   Set<R> cast<R>();
+
+  void add(E element) {}
 }
 
 class StackTrace {}
@@ -532,13 +536,19 @@ class Pointer<T extends NativeType> extends NativeType {
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
       [Object exceptionalReturn]);
-  R asFunction<@DartRepresentationOf("T") R extends Function>();
+}
+extension NativeFunctionPointer<NF extends Function>
+    on Pointer<NativeFunction<NF>> {
+  external DF asFunction<DF extends Function>();
 }
 class Struct extends NativeType {}
 
-abstract class DynamicLibrary {
-  F lookupFunction<T extends Function, F extends Function>(String symbolName);
+abstract class DynamicLibrary {}
+extension DynamicLibraryExtension on DynamicLibrary {
+  external F lookupFunction<T extends Function, F extends Function>(
+      String symbolName);
 }
+
 abstract class NativeFunction<T extends Function> extends NativeType {}
 
 class DartRepresentationOf {

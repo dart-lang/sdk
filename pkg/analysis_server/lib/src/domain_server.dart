@@ -9,24 +9,17 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 
-/**
- * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
- * that handles requests in the server domain.
- */
+/// Instances of the class [ServerDomainHandler] implement a [RequestHandler]
+/// that handles requests in the server domain.
 class ServerDomainHandler implements RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
+  /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   ServerDomainHandler(this.server);
 
-  /**
-   * Return the version number of the analysis server.
-   */
+  /// Return the version number of the analysis server.
   Response getVersion(Request request) {
     return ServerGetVersionResult(PROTOCOL_VERSION).toResponse(request.id);
   }
@@ -49,11 +42,9 @@ class ServerDomainHandler implements RequestHandler {
     return null;
   }
 
-  /**
-   * Subscribe for services.
-   *
-   * All previous subscriptions are replaced by the given set of subscriptions.
-   */
+  /// Subscribe for services.
+  ///
+  /// All previous subscriptions are replaced by the given set of subscriptions.
   Response setSubscriptions(Request request) {
     server.serverServices =
         ServerSetSubscriptionsParams.fromRequest(request).subscriptions.toSet();
@@ -64,9 +55,7 @@ class ServerDomainHandler implements RequestHandler {
     return ServerSetSubscriptionsResult().toResponse(request.id);
   }
 
-  /**
-   * Cleanly shutdown the analysis server.
-   */
+  /// Cleanly shutdown the analysis server.
   Future<void> shutdown(Request request) async {
     await server.shutdown();
     Response response = ServerShutdownResult().toResponse(request.id);

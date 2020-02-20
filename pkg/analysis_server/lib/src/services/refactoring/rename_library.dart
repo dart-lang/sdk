@@ -10,9 +10,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * A [Refactoring] for renaming [LibraryElement]s.
- */
+/// A [Refactoring] for renaming [LibraryElement]s.
 class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   RenameLibraryRefactoringImpl(
       RefactoringWorkspace workspace, LibraryElement element)

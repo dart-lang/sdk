@@ -10,9 +10,7 @@ import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 
 final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
-/**
- * Returns all variants of names by removing leading words one by one.
- */
+/// Returns all variants of names by removing leading words one by one.
 List<String> getCamelWordCombinations(String name) {
   List<String> result = [];
   List<String> parts = getCamelWords(name);
@@ -25,10 +23,8 @@ List<String> getCamelWordCombinations(String name) {
   return result;
 }
 
-/**
- * Returns possible names for a variable with the given expected type and
- * expression assigned.
- */
+/// Returns possible names for a variable with the given expected type and
+/// expression assigned.
 List<String> getVariableNameSuggestionsForExpression(
     DartType expectedType, Expression assignedExpression, Set<String> excluded,
     {bool isMethod = false}) {
@@ -78,9 +74,7 @@ List<String> getVariableNameSuggestionsForExpression(
   return List.from(res);
 }
 
-/**
- * Returns possible names for a [String] variable with [text] value.
- */
+/// Returns possible names for a [String] variable with [text] value.
 List<String> getVariableNameSuggestionsForText(
     String text, Set<String> excluded) {
   // filter out everything except of letters and white spaces
@@ -113,9 +107,7 @@ List<String> getVariableNameSuggestionsForText(
   return List.from(res);
 }
 
-/**
- * Adds [toAdd] items which are not excluded.
- */
+/// Adds [toAdd] items which are not excluded.
 void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
     {String prefix}) {
   for (String item in toAdd) {
@@ -135,9 +127,7 @@ void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
   }
 }
 
-/**
- * Adds to [result] either [c] or the first ASCII character after it.
- */
+/// Adds to [result] either [c] or the first ASCII character after it.
 void _addSingleCharacterName(Set<String> excluded, Set<String> result, int c) {
   while (c < 0x7A) {
     String name = String.fromCharCode(c);

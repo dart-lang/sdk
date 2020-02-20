@@ -20,7 +20,7 @@ class RedirectGenerativeToNonGenerativeConstructorTest
     await assertErrorsInCode(r'''
 class A {
   A() : this.x();
-  factory A.x() => null;
+  factory A.x() => throw 0;
 }
 ''', [
       error(

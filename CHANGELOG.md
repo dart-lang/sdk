@@ -15,7 +15,22 @@ used (see Issue [39627][]).
 
 [39627]: https://github.com/dart-lang/sdk/issues/39627
 
+* **Breaking Change**: `Node.insertAllBefore` erroneously had a return type of
+`Node`, even though it was not returning anything. This has been corrected to
+`void`.
+
 #### `dart:io`
+
+* Class `HttpParser` will no longer throw an exception when a HTTP response
+  status code is within [0, 999]. Customized status codes in this range are now valid.
+* **Breaking change** [#33501](https://github.com/dart-lang/sdk/issues/33501):
+
+An named parameter is added to `add` and `set` for class `HttpHeaders`.
+The signature of has been changed from `void add(String name, Object value)` to
+`void add(String name, Object value, {bool preserveHeaderCase: false})`.
+Same change is applied to `set`. `preserveHeaderCase` will preserve the
+case of `name` instead of converting them to lowercase.
+`HttpHeader.forEach()` provides the current case of each header.
 
 * The `Socket` class will now throw a `SocketException` if the socket has been
   destroyed or upgraded to a secure socket upon setting or getting socket
@@ -30,6 +45,23 @@ used (see Issue [39627][]).
 
 * Added `Dart_TypeDynamic`, `Dart_TypeVoid` and `Dart_TypeNever`. Type dynamic
   can no longer by reached by `Dart_GetType(dart:core, dynamic)`.
+* Added the following methods to the VM embedding API:
+  * `Dart_GetNonNullableType`
+  * `Dart_GetNullableType`
+  * `Dart_TypeToNonNullable`
+  * `Dart_TypeToNullable`
+  * `Dart_IsLegacyType`
+  * `Dart_IsNonNullableType`
+  * `Dart_IsNullableType`
+
+### Foreign Function Interface (`dart:ffi`)
+
+* **Breaking Change**: `Pointer.asFunction` and `DynamicLibrary.lookupFunction`
+  changed to extension methods. Invoking them dynamically previously already
+  threw an Exception, so runtime behavior stays the same. However, the
+  extension methods are only visible if `dart:ffi` is imported directly. So
+  this breaks code where `dart:ffi` is not directly imported. Fix: add an
+  import of `dart:ffi`.
 
 ### Tools
 
@@ -68,6 +100,11 @@ additional details see the [announcement].
   web has been unsupported and prevented by the Dart build systems since Dart
   v2.0.0. All known exception cases have been cleaned up. This change makes DDC
   and dart2js now issue a compile-time error directly as well.
+* **Breaking Change**: Types are now normalized. See [normalization] for the
+  full specification. Types will now be printed in their normal form, and
+  mutual subtypes with the same normal form will now be considered equal.
+
+ [normalization]: https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 
 #### Linter
 

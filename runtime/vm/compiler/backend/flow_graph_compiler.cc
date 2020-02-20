@@ -127,6 +127,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       block_info_(block_order_.length()),
       deopt_infos_(),
       static_calls_target_table_(),
+      indirect_gotos_(),
       is_optimizing_(is_optimizing),
       speculative_policy_(speculative_policy),
       may_reoptimize_(false),
@@ -628,6 +629,10 @@ void FlowGraphCompiler::VisitBlocks() {
       }
 #endif
       StatsEnd(instr);
+
+      if (auto indirect_goto = instr->AsIndirectGoto()) {
+        indirect_gotos_.Add(indirect_goto);
+      }
     }
 
 #if defined(DEBUG)
@@ -745,11 +750,18 @@ void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                 CurrentTryIndex());
 }
 
-void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
-                                     TokenPosition token_pos,
-                                     intptr_t null_check_name_idx) {
-  code_source_map_builder_->NoteNullCheck(pc_offset, token_pos,
-                                          null_check_name_idx);
+void FlowGraphCompiler::AddNullCheck(TokenPosition token_pos,
+                                     const String& name) {
+  // If we have DWARF stack traces enabled, the AOT runtime is unable to obtain
+  // the pool index at runtime. There is therefore no reason to put the name
+  // into the pool in the first place.
+  // TODO(dartbug.com/40605): Move this info to the pc descriptors.
+  if (!FLAG_dwarf_stack_traces) {
+    const intptr_t name_index =
+        assembler()->object_pool_builder().FindObject(name);
+    code_source_map_builder_->NoteNullCheck(assembler()->CodeSize(), token_pos,
+                                            name_index);
+  }
 }
 
 void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,
@@ -2255,13 +2267,14 @@ bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
 FlowGraphCompiler::TypeTestStubKind
 FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
     const TypeParameter& type_param) {
-  // TODO(regis): Revisit the bound check taking NNBD into consideration.
   // If it's guaranteed, by type-parameter bound, that the type parameter will
   // never have a value of a function type, then we can safely do a 4-type
   // test instead of a 6-type test.
-  const AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
-  return !bound.IsTopType() && !bound.IsFunctionType() &&
-                 !bound.IsDartFunctionType() && bound.IsType()
+  AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
+  bound = bound.UnwrapFutureOr();
+  return !bound.IsTopType() && !bound.IsObjectType() &&
+                 !bound.IsFunctionType() && !bound.IsDartFunctionType() &&
+                 bound.IsType()
              ? kTestTypeFourArgs
              : kTestTypeSixArgs;
 }

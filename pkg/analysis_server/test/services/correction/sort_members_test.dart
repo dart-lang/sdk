@@ -248,15 +248,15 @@ class A {
   /// constructor generative unnamed
   A();
   /// constructor factory unnamed
-  factory A() => null;
+  factory A() => A();
   /// constructor generative public
   A.nnn();
   /// constructor factory public
-  factory A.ooo() => null;
+  factory A.ooo() => A();
   /// constructor generative private
   A._nnn();
   /// constructor factory private
-  factory A._ooo() => null;
+  factory A._ooo() => A();
 }
 ''');
     // validate change
@@ -281,15 +281,15 @@ class A {
   /// constructor generative unnamed
   A();
   /// constructor factory unnamed
-  factory A() => null;
+  factory A() => A();
   /// constructor generative public
   A.nnn();
   /// constructor factory public
-  factory A.ooo() => null;
+  factory A.ooo() => A();
   /// constructor generative private
   A._nnn();
   /// constructor factory private
-  factory A._ooo() => null;
+  factory A._ooo() => A();
   /// instance getter public
   int get nnn => null;
   /// instance setter public

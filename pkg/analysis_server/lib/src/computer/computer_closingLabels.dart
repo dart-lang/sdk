@@ -8,9 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A computer for [CompilationUnit] closing labels.
- */
+/// A computer for [CompilationUnit] closing labels.
 class DartUnitClosingLabelsComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
@@ -20,9 +18,7 @@ class DartUnitClosingLabelsComputer {
 
   DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
 
-  /**
-   * Returns a list of closing labels, not `null`.
-   */
+  /// Returns a list of closing labels, not `null`.
   List<ClosingLabel> compute() {
     _unit.accept(_DartUnitClosingLabelsComputerVisitor(this));
 
@@ -42,9 +38,7 @@ class DartUnitClosingLabelsComputer {
   }
 }
 
-/**
- * An AST visitor for [DartUnitClosingLabelsComputer].
- */
+/// An AST visitor for [DartUnitClosingLabelsComputer].
 class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
   final DartUnitClosingLabelsComputer computer;
 

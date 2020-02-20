@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -615,7 +616,9 @@ class _OptionsProcessor {
             enabledExperiments.add(experimentName);
           }
         }
-        options.enabledExperiments = enabledExperiments;
+        options.contextFeatures = FeatureSet.fromEnableFlags(
+          enabledExperiments,
+        );
       }
 
       // Process optional checks options.

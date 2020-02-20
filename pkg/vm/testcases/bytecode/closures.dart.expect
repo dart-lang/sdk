@@ -1615,19 +1615,18 @@ Bytecode {
   Entry                3
   CheckStack           0
   Push                 FP[-5]
-  StoreLocal           r0
-  Push                 FP[-5]
   InterfaceCall        CP#0, 1
-  PopLocal             r1
+  PopLocal             r0
   Push                 FP[-5]
   InterfaceCall        CP#2, 1
-  PopLocal             r2
+  PopLocal             r1
+  Push                 FP[-5]
+  InterfaceCall        CP#4, 1
+  StoreLocal           r2
   Push                 r0
-  NullCheck            CP#4
-  InterfaceCall        CP#5, 1
   Push                 r1
   Push                 r2
-  DynamicCall          CP#7, 3
+  UncheckedClosureCall CP#6, 3
   ReturnTOS
 }
 ConstantPool {
@@ -1635,11 +1634,9 @@ ConstantPool {
   [1] = Reserved
   [2] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
-  [4] = ObjectRef 'foo1'
-  [5] = InterfaceCall '#lib::E::get:foo1', ArgDesc num-args 1, num-type-args 0, names []
-  [6] = Reserved
-  [7] = DynamicCall 'call', ArgDesc num-args 3, num-type-args 0, names []
-  [8] = Reserved
+  [4] = InterfaceCall '#lib::E::get:foo1', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef ArgDesc num-args 3, num-type-args 0, names []
 }
 
 
@@ -1650,34 +1647,31 @@ Function 'testCallThroughGetter2', reflectable, debuggable
 Bytecode {
   Entry                3
   CheckStack           0
-  PushConstant         CP#0
   Push                 FP[-5]
-  StoreLocal           r0
+  InterfaceCall        CP#0, 1
+  PopLocal             r0
   Push                 FP[-5]
-  InterfaceCall        CP#1, 1
+  InterfaceCall        CP#2, 1
   PopLocal             r1
+  PushConstant         CP#4
   Push                 FP[-5]
-  InterfaceCall        CP#3, 1
-  PopLocal             r2
+  InterfaceCall        CP#5, 1
+  StoreLocal           r2
   Push                 r0
-  NullCheck            CP#5
-  InterfaceCall        CP#6, 1
   Push                 r1
   Push                 r2
-  DynamicCall          CP#8, 4
+  UncheckedClosureCall CP#7, 4
   ReturnTOS
 }
 ConstantPool {
-  [0] = ObjectRef < dart:core::int >
-  [1] = InterfaceCall '#lib::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
-  [2] = Reserved
-  [3] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
-  [4] = Reserved
-  [5] = ObjectRef 'foo2'
-  [6] = InterfaceCall '#lib::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
-  [7] = Reserved
-  [8] = DynamicCall 'call', ArgDesc num-args 3, num-type-args 1, names []
-  [9] = Reserved
+  [0] = InterfaceCall '#lib::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = ObjectRef < dart:core::int >
+  [5] = InterfaceCall '#lib::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+  [7] = ObjectRef ArgDesc num-args 3, num-type-args 1, names []
 }
 
 
@@ -1686,39 +1680,38 @@ Function 'testCallThroughGetter3', reflectable, debuggable
     return-type dart:core::int
 
 Bytecode {
-  Entry                3
+  Entry                4
   CheckStack           0
-  PushConstant         CP#0
   Push                 FP[-5]
-  InterfaceCall        CP#1, 1
-  StoreLocal           r0
+  InterfaceCall        CP#0, 1
+  PopLocal             r0
   Push                 FP[-5]
-  InterfaceCall        CP#3, 1
+  InterfaceCall        CP#2, 1
   PopLocal             r1
   Push                 FP[-5]
-  InterfaceCall        CP#5, 1
+  InterfaceCall        CP#4, 1
   PopLocal             r2
+  PushConstant         CP#6
   Push                 r0
-  NullCheck            CP#7
-  InterfaceCall        CP#8, 1
+  InterfaceCall        CP#7, 1
+  StoreLocal           r3
   Push                 r1
   Push                 r2
-  DynamicCall          CP#10, 4
+  Push                 r3
+  UncheckedClosureCall CP#9, 4
   ReturnTOS
 }
 ConstantPool {
-  [0] = ObjectRef < dart:core::int >
-  [1] = InterfaceCall '#lib::E::getE', ArgDesc num-args 1, num-type-args 0, names []
-  [2] = Reserved
-  [3] = InterfaceCall '#lib::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
-  [4] = Reserved
-  [5] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
-  [6] = Reserved
-  [7] = ObjectRef 'foo2'
-  [8] = InterfaceCall '#lib::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
-  [9] = Reserved
-  [10] = DynamicCall 'call', ArgDesc num-args 3, num-type-args 1, names []
-  [11] = Reserved
+  [0] = InterfaceCall '#lib::E::getE', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = InterfaceCall '#lib::E::evalArg1', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef < dart:core::int >
+  [7] = InterfaceCall '#lib::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
+  [8] = Reserved
+  [9] = ObjectRef ArgDesc num-args 3, num-type-args 1, names []
 }
 
 
@@ -1880,11 +1873,11 @@ ConstantPool {
     abstract method evalArg2() → dart.core::int*;
     abstract method getE() → #lib::E*;
     method testCallThroughGetter1() → dart.core::int*
-      return this.{#lib::E::foo1}(this.{#lib::E::evalArg1}(), this.{#lib::E::evalArg2}());
+      return let final dart.core::int* #t1 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t2 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*, dart.core::int*) →* dart.core::int*] this.{#lib::E::foo1}.call(#t1, #t2);
     method testCallThroughGetter2() → dart.core::int*
-      return this.{#lib::E::foo2}<dart.core::int*>(this.{#lib::E::evalArg1}(), this.{#lib::E::evalArg2}());
+      return let final dart.core::int* #t3 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t4 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:<T extends dart.core::Object* = dynamic>(T*, T*) →* dart.core::int*] this.{#lib::E::foo2}.call<dart.core::int*>(#t3, #t4);
     method testCallThroughGetter3() → dart.core::int*
-      return this.{#lib::E::getE}().{#lib::E::foo2}<dart.core::int*>(this.{#lib::E::evalArg1}(), this.{#lib::E::evalArg2}());
+      return let final #lib::E* #t5 = this.{#lib::E::getE}() in let final dart.core::int* #t6 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t7 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:<T extends dart.core::Object* = dynamic>(T*, T*) →* dart.core::int*] #t5.{#lib::E::foo2}.call<dart.core::int*>(#t6, #t7);
   }
   static method simpleClosure() → dart.core::int* {
     dart.core::int* x = 5;

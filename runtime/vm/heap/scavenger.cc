@@ -477,7 +477,6 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 
 SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   isolate->ReleaseStoreBuffers();
-  AbandonTLABs(isolate);
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -1048,6 +1047,9 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
+  AbandonTLABs(isolate);
+  intptr_t abandoned_bytes = GetAndResetAbandonedInBytes();
+
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
@@ -1078,9 +1080,10 @@ void Scavenger::Scavenge() {
     int64_t end = OS::GetCurrentMonotonicMicros();
     heap_->RecordTime(kProcessToSpace, process_to_space - iterate_roots);
     heap_->RecordTime(kIterateWeaks, end - process_to_space);
-    stats_history_.Add(ScavengeStats(
-        start, end, usage_before, GetCurrentUsage(), promo_candidate_words,
-        visitor.bytes_promoted() >> kWordSizeLog2));
+    stats_history_.Add(ScavengeStats(start, end, usage_before,
+                                     GetCurrentUsage(), promo_candidate_words,
+                                     visitor.bytes_promoted() >> kWordSizeLog2,
+                                     abandoned_bytes >> kWordSizeLog2));
   }
   Epilogue(isolate, from);
 

@@ -2271,9 +2271,7 @@ res() {
 ''');
   }
 
-  /**
-   * We should always add ";" when invoke method with extracted statements.
-   */
+  /// We should always add ";" when invoke method with extracted statements.
   Future<void> test_statements_endsWithBlock() async {
     await indexTestUnit('''
 main() {
@@ -2852,10 +2850,8 @@ int res() {
 ''');
   }
 
-  /**
-   * We have 3 identical statements, but select only 2.
-   * This should not cause problems.
-   */
+  /// We have 3 identical statements, but select only 2.
+  /// This should not cause problems.
   Future<void> test_statements_twoOfThree() async {
     await indexTestUnit('''
 main() {
@@ -2915,10 +2911,8 @@ Completer<int> newCompleter() => null;
     assertTestChangeResult(expectedCode);
   }
 
-  /**
-   * Checks that all conditions are OK and the result of applying the [Change]
-   * to [testUnit] is [expectedCode].
-   */
+  /// Checks that all conditions are OK and the result of applying the [Change]
+  /// to [testUnit] is [expectedCode].
   Future _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     refactoring.createGetter = false;
@@ -2944,20 +2938,16 @@ Completer<int> newCompleter() => null;
     _createRefactoring(offset, end - offset);
   }
 
-  /**
-   * Creates a new refactoring in [refactoring] for the selection range of the
-   * given [search] pattern.
-   */
+  /// Creates a new refactoring in [refactoring] for the selection range of the
+  /// given [search] pattern.
   void _createRefactoringForString(String search) {
     int offset = findOffset(search);
     int length = search.length;
     _createRefactoring(offset, length);
   }
 
-  /**
-   * Creates a new refactoring in [refactoring] at the offset of the given
-   * [search] pattern, and with `0` length.
-   */
+  /// Creates a new refactoring in [refactoring] at the offset of the given
+  /// [search] pattern, and with `0` length.
   void _createRefactoringForStringOffset(String search) {
     int offset = findOffset(search);
     _createRefactoring(offset, 0);
@@ -2969,11 +2959,9 @@ Completer<int> newCompleter() => null;
     _createRefactoring(offset, length);
   }
 
-  /**
-   * Returns a deep copy of [refactoring] parameters.
-   * There was a bug masked by updating parameter instances shared between the
-   * refactoring and the test.
-   */
+  /// Returns a deep copy of [refactoring] parameters.
+  /// There was a bug masked by updating parameter instances shared between the
+  /// refactoring and the test.
   List<RefactoringMethodParameter> _getParametersCopy() {
     return refactoring.parameters.map((p) {
       return RefactoringMethodParameter(p.kind, p.type, p.name, id: p.id);

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -108,7 +109,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
     ..useFastaParser = analyzer.Parser.useFasta
-    ..enabledExperiments = enabledExperiments;
+    ..contextFeatures = FeatureSet.fromEnableFlags(enabledExperiments);
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);

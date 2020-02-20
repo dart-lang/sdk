@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Helper for building Dart source with linked positions.
- */
+/// Helper for building Dart source with linked positions.
 class SourceBuilder {
   final String file;
   final int offset;
@@ -14,9 +12,7 @@ class SourceBuilder {
 
   SourceBuilder(this.file, this.offset);
 
-  /**
-   * Returns the exit offset, maybe `null` if not set.
-   */
+  /// Returns the exit offset, maybe `null` if not set.
   int get exitOffset {
     if (_exitOffset == null) {
       return null;
@@ -26,17 +22,13 @@ class SourceBuilder {
 
   int get length => _buffer.length;
 
-  /**
-   * Appends [s] to the buffer.
-   */
+  /// Appends [s] to the buffer.
   SourceBuilder append(String s) {
     _buffer.write(s);
     return this;
   }
 
-  /**
-   * Marks the current offset as an "exit" one.
-   */
+  /// Marks the current offset as an "exit" one.
   void setExitOffset() {
     _exitOffset = _buffer.length;
   }

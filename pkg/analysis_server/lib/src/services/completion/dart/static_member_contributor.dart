@@ -12,10 +12,8 @@ import 'package:analyzer/dart/element/visitor.dart';
 
 import '../../../protocol_server.dart' show CompletionSuggestion;
 
-/**
- * A contributor for calculating static member invocation / access suggestions
- * `completion.getSuggestions` request results.
- */
+/// A contributor for calculating static member invocation / access suggestions
+/// `completion.getSuggestions` request results.
 class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -42,19 +40,13 @@ class StaticMemberContributor extends DartCompletionContributor {
   }
 }
 
-/**
- * This class visits elements in a class and provides suggestions based upon
- * the visible static members in that class.
- */
+/// This class visits elements in a class and provides suggestions based upon
+/// the visible static members in that class.
 class _SuggestionBuilder extends GeneralizingElementVisitor<void> {
-  /**
-   * The library containing the unit in which the completion is requested.
-   */
+  /// The library containing the unit in which the completion is requested.
   final LibraryElement containingLibrary;
 
-  /**
-   * A collection of completion suggestions.
-   */
+  /// A collection of completion suggestions.
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   _SuggestionBuilder(this.containingLibrary);
@@ -100,9 +92,7 @@ class _SuggestionBuilder extends GeneralizingElementVisitor<void> {
     }
   }
 
-  /**
-     * Add a suggestion based upon the given element.
-     */
+  /// Add a suggestion based upon the given element.
   void _addSuggestion(Element element) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
@@ -127,10 +117,8 @@ class _SuggestionBuilder extends GeneralizingElementVisitor<void> {
     }
   }
 
-  /**
-     * Determine if the given element is one of the synthetic enum accessors
-     * for which we should generate a suggestion.
-     */
+  /// Determine if the given element is one of the synthetic enum accessors
+  /// for which we should generate a suggestion.
   bool _isSpecialEnumField(FieldElement element) {
     Element parent = element.enclosingElement;
     if (parent is ClassElement && parent.isEnum) {

@@ -45,6 +45,7 @@ class Declaration {
   final bool isConst;
   final bool isDeprecated;
   final bool isFinal;
+  final bool isStatic;
   final DeclarationKind kind;
   final LineInfo lineInfo;
   final int locationOffset;
@@ -75,6 +76,7 @@ class Declaration {
     @required this.isConst,
     @required this.isDeprecated,
     @required this.isFinal,
+    @required this.isStatic,
     @required this.kind,
     @required this.lineInfo,
     @required this.locationOffset,
@@ -925,6 +927,7 @@ class _DeclarationStorage {
       isConst: d.isConst,
       isDeprecated: d.isDeprecated,
       isFinal: d.isFinal,
+      isStatic: d.isStatic,
       kind: kind,
       lineInfo: lineInfo,
       locationOffset: d.locationOffset,
@@ -1049,6 +1052,7 @@ class _DeclarationStorage {
       isConst: d.isConst,
       isDeprecated: d.isDeprecated,
       isFinal: d.isFinal,
+      isStatic: d.isStatic,
       kind: idlKind,
       locationOffset: d.locationOffset,
       locationStartColumn: d.locationStartColumn,
@@ -1105,7 +1109,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 14;
+  static const int DATA_VERSION = 15;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1318,6 +1322,7 @@ class _File {
       bool isConst = false,
       bool isDeprecated = false,
       bool isFinal = false,
+      bool isStatic = false,
       @required DeclarationKind kind,
       @required Identifier name,
       String parameters,
@@ -1347,6 +1352,7 @@ class _File {
         isConst: isConst,
         isDeprecated: isDeprecated,
         isFinal: isFinal,
+        isStatic: isStatic,
         kind: kind,
         lineInfo: lineInfo,
         locationOffset: locationOffset,
@@ -1413,6 +1419,7 @@ class _File {
             );
             hasConstructor = true;
           } else if (classMember is FieldDeclaration) {
+            var isStatic = classMember.isStatic;
             var isConst = classMember.fields.isConst;
             var isFinal = classMember.fields.isFinal;
             for (var field in classMember.fields.variables) {
@@ -1421,6 +1428,7 @@ class _File {
                 isConst: isConst,
                 isDeprecated: isDeprecated,
                 isFinal: isFinal,
+                isStatic: isStatic,
                 kind: DeclarationKind.FIELD,
                 name: field.name,
                 parent: parent,
@@ -1429,10 +1437,12 @@ class _File {
               );
             }
           } else if (classMember is MethodDeclaration) {
+            var isStatic = classMember.isStatic;
             var parameters = classMember.parameters;
             if (classMember.isGetter) {
               addDeclaration(
                 isDeprecated: isDeprecated,
+                isStatic: isStatic,
                 kind: DeclarationKind.GETTER,
                 name: classMember.name,
                 parent: parent,
@@ -1441,6 +1451,7 @@ class _File {
             } else if (classMember.isSetter) {
               addDeclaration(
                 isDeprecated: isDeprecated,
+                isStatic: isStatic,
                 kind: DeclarationKind.SETTER,
                 name: classMember.name,
                 parameters: parameters.toSource(),
@@ -1456,6 +1467,7 @@ class _File {
                 defaultArgumentListString: defaultArguments?.text,
                 defaultArgumentListTextRanges: defaultArguments?.ranges,
                 isDeprecated: isDeprecated,
+                isStatic: isStatic,
                 kind: DeclarationKind.METHOD,
                 name: classMember.name,
                 parameters: parameters.toSource(),
@@ -1496,6 +1508,7 @@ class _File {
             isConst: false,
             isDeprecated: false,
             isFinal: false,
+            isStatic: false,
             kind: DeclarationKind.CONSTRUCTOR,
             locationOffset: -1,
             locationPath: path,

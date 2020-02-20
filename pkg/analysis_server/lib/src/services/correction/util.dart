@@ -26,10 +26,8 @@ import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as pathos;
 
-/**
- * Adds edits to the given [change] that ensure that all the [libraries] are
- * imported into the given [targetLibrary].
- */
+/// Adds edits to the given [change] that ensure that all the [libraries] are
+/// imported into the given [targetLibrary].
 Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     LibraryElement targetLibrary, Set<Source> libraries) async {
   var libraryPath = targetLibrary.source.fullName;
@@ -123,9 +121,8 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   }
 }
 
-/**
- * Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include [node].
- */
+/// Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include
+/// [node].
 Expression climbPropertyAccess(AstNode node) {
   while (true) {
     AstNode parent = node.parent;
@@ -141,9 +138,7 @@ Expression climbPropertyAccess(AstNode node) {
   }
 }
 
-/**
- * Return references to the [element] inside the [root] node.
- */
+/// Return references to the [element] inside the [root] node.
 List<SimpleIdentifier> findLocalElementReferences(
     AstNode root, LocalElement element) {
   var collector = _ElementReferenceCollector(element);
@@ -151,11 +146,10 @@ List<SimpleIdentifier> findLocalElementReferences(
   return collector.references;
 }
 
-/**
- * TODO(scheglov) replace with nodes once there will be [CompilationUnit.getComments].
- *
- * Returns [SourceRange]s of all comments in [unit].
- */
+/// TODO(scheglov) replace with nodes once there will be
+/// [CompilationUnit.getComments].
+///
+/// Returns [SourceRange]s of all comments in [unit].
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
   List<SourceRange> ranges = <SourceRange>[];
   Token token = unit.beginToken;
@@ -170,11 +164,9 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   return ranges;
 }
 
-/**
- * Return the given [element] if it is a [CompilationUnitElement].
- * Return the enclosing [CompilationUnitElement] of the given [element],
- * maybe `null`.
- */
+/// Return the given [element] if it is a [CompilationUnitElement].
+/// Return the enclosing [CompilationUnitElement] of the given [element],
+/// maybe `null`.
 CompilationUnitElement getCompilationUnitElement(Element element) {
   if (element is CompilationUnitElement) {
     return element;
@@ -201,25 +193,19 @@ String getDefaultValueCode(DartType type) {
   return 'null';
 }
 
-/**
- * Return all [LocalElement]s defined in the given [node].
- */
+/// Return all [LocalElement]s defined in the given [node].
 List<LocalElement> getDefinedLocalElements(AstNode node) {
   var collector = _LocalElementsCollector();
   node.accept(collector);
   return collector.elements;
 }
 
-/**
- * Return the name of the [Element] kind.
- */
+/// Return the name of the [Element] kind.
 String getElementKindName(Element element) {
   return element.kind.displayName;
 }
 
-/**
- * Returns the name to display in the UI for the given [Element].
- */
+/// Returns the name to display in the UI for the given [Element].
 String getElementQualifiedName(Element element) {
   ElementKind kind = element.kind;
   if (kind == ElementKind.CONSTRUCTOR ||
@@ -236,9 +222,7 @@ String getElementQualifiedName(Element element) {
 ClassElement getEnclosingClassElement(AstNode node) =>
     node.thisOrAncestorOfType<ClassOrMixinDeclaration>()?.declaredElement;
 
-/**
- * Returns a class or an unit member enclosing the given [node].
- */
+/// Returns a class or an unit member enclosing the given [node].
 AstNode getEnclosingClassOrUnitMember(AstNode node) {
   AstNode member = node;
   while (node != null) {
@@ -254,9 +238,7 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
   return null;
 }
 
-/**
- * Return the [ExecutableElement] of the enclosing executable [AstNode].
- */
+/// Return the [ExecutableElement] of the enclosing executable [AstNode].
 ExecutableElement getEnclosingExecutableElement(AstNode node) {
   while (node != null) {
     if (node is FunctionDeclaration) {
@@ -273,9 +255,7 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
   return null;
 }
 
-/**
- * Return the enclosing executable [AstNode].
- */
+/// Return the enclosing executable [AstNode].
 AstNode getEnclosingExecutableNode(AstNode node) {
   while (node != null) {
     if (node is FunctionDeclaration) {
@@ -297,12 +277,10 @@ AstNode getEnclosingExecutableNode(AstNode node) {
 ExtensionElement getEnclosingExtensionElement(AstNode node) =>
     node.thisOrAncestorOfType<ExtensionDeclaration>()?.declaredElement;
 
-/**
- * Returns [getExpressionPrecedence] for the parent of [node], or
- * ASSIGNMENT_PRECEDENCE if the parent node is a [ParenthesizedExpression].
- *
- * The reason is that `(expr)` is always executed after `expr`.
- */
+/// Returns [getExpressionPrecedence] for the parent of [node], or
+/// ASSIGNMENT_PRECEDENCE if the parent node is a [ParenthesizedExpression].
+///
+/// The reason is that `(expr)` is always executed after `expr`.
 Precedence getExpressionParentPrecedence(AstNode node) {
   AstNode parent = node.parent;
   if (parent is ParenthesizedExpression) {
@@ -322,10 +300,8 @@ Precedence getExpressionParentPrecedence(AstNode node) {
   return getExpressionPrecedence(parent);
 }
 
-/**
- * Returns the precedence of [node] it is an [Expression], NO_PRECEDENCE
- * otherwise.
- */
+/// Returns the precedence of [node] it is an [Expression], NO_PRECEDENCE
+/// otherwise.
 Precedence getExpressionPrecedence(AstNode node) {
   if (node is Expression) {
     return node.precedence;
@@ -333,16 +309,12 @@ Precedence getExpressionPrecedence(AstNode node) {
   return Precedence.none;
 }
 
-/**
- * Returns the namespace of the given [ImportElement].
- */
+/// Returns the namespace of the given [ImportElement].
 Map<String, Element> getImportNamespace(ImportElement imp) {
   return imp.namespace.definedNames;
 }
 
-/**
- * Computes the best URI to import [what] into [from].
- */
+/// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
     pathos.Context pathContext, LibraryElement from, Uri what) {
   if (what.scheme == 'file') {
@@ -353,10 +325,8 @@ String getLibrarySourceUri(
   return what.toString();
 }
 
-/**
- * Returns the line prefix from the given source, i.e. basically just a
- * whitespace prefix of the given [String].
- */
+/// Returns the line prefix from the given source, i.e. basically just a
+/// whitespace prefix of the given [String].
 String getLinePrefix(String line) {
   int index = 0;
   while (index < line.length) {
@@ -369,10 +339,8 @@ String getLinePrefix(String line) {
   return line.substring(0, index);
 }
 
-/**
- * Return the [LocalVariableElement] if given [node] is a reference to a local
- * variable, or `null` in the other case.
- */
+/// Return the [LocalVariableElement] if given [node] is a reference to a local
+/// variable, or `null` in the other case.
 LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
   Element element = node.staticElement;
   if (element is LocalVariableElement) {
@@ -381,9 +349,7 @@ LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
   return null;
 }
 
-/**
- * Return the nearest common ancestor of the given [nodes].
- */
+/// Return the nearest common ancestor of the given [nodes].
 AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   // may be no nodes
   if (nodes.isEmpty) {
@@ -409,10 +375,8 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   return parents[0][i - 1];
 }
 
-/**
- * Returns the [Expression] qualifier if given [node] is the name part of a
- * [PropertyAccess] or a [PrefixedIdentifier]. Maybe `null`.
- */
+/// Returns the [Expression] qualifier if given [node] is the name part of a
+/// [PropertyAccess] or a [PrefixedIdentifier]. Maybe `null`.
 Expression getNodeQualifier(SimpleIdentifier node) {
   AstNode parent = node.parent;
   if (parent is MethodInvocation && identical(parent.methodName, node)) {
@@ -427,10 +391,8 @@ Expression getNodeQualifier(SimpleIdentifier node) {
   return null;
 }
 
-/**
- * Returns the [ParameterElement] if the given [node] is a reference to a
- * parameter, or `null` in the other case.
- */
+/// Returns the [ParameterElement] if the given [node] is a reference to a
+/// parameter, or `null` in the other case.
 ParameterElement getParameterElement(SimpleIdentifier node) {
   Element element = node.staticElement;
   if (element is ParameterElement) {
@@ -439,10 +401,8 @@ ParameterElement getParameterElement(SimpleIdentifier node) {
   return null;
 }
 
-/**
- * Return parent [AstNode]s from compilation unit (at index "0") to the given
- * [node].
- */
+/// Return parent [AstNode]s from compilation unit (at index "0") to the given
+/// [node].
 List<AstNode> getParents(AstNode node) {
   // prepare number of parents
   int numParents = 0;
@@ -464,10 +424,8 @@ List<AstNode> getParents(AstNode node) {
   return parents;
 }
 
-/**
- * If given [node] is name of qualified property extraction, returns target from
- * which this property is extracted, otherwise `null`.
- */
+/// If given [node] is name of qualified property extraction, returns target
+/// from which this property is extracted, otherwise `null`.
 Expression getQualifiedPropertyTarget(AstNode node) {
   AstNode parent = node.parent;
   if (parent is PrefixedIdentifier) {
@@ -485,10 +443,8 @@ Expression getQualifiedPropertyTarget(AstNode node) {
   return null;
 }
 
-/**
- * Returns the given [statement] if not a block, or the first child statement if
- * a block, or `null` if more than one child.
- */
+/// Returns the given [statement] if not a block, or the first child statement
+/// if a block, or `null` if more than one child.
 Statement getSingleStatement(Statement statement) {
   if (statement is Block) {
     List<Statement> blockStatements = statement.statements;
@@ -500,10 +456,8 @@ Statement getSingleStatement(Statement statement) {
   return statement;
 }
 
-/**
- * Returns the given [statement] if not a block, or all the children statements
- * if a block.
- */
+/// Returns the given [statement] if not a block, or all the children statements
+/// if a block.
 List<Statement> getStatements(Statement statement) {
   if (statement is Block) {
     return statement.statements;
@@ -511,9 +465,7 @@ List<Statement> getStatements(Statement statement) {
   return [statement];
 }
 
-/**
- * Checks if the given [element]'s display name equals to the given [name].
- */
+/// Checks if the given [element]'s display name equals to the given [name].
 bool hasDisplayName(Element element, String name) {
   if (element == null) {
     return false;
@@ -521,10 +473,8 @@ bool hasDisplayName(Element element, String name) {
   return element.displayName == name;
 }
 
-/**
- * Checks if given [DartNode] is the left hand side of an assignment, or a
- * declaration of a variable.
- */
+/// Checks if given [DartNode] is the left hand side of an assignment, or a
+/// declaration of a variable.
 bool isLeftHandOfAssignment(SimpleIdentifier node) {
   if (node.inSetterContext()) {
     return true;
@@ -533,9 +483,7 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
       (node.parent as VariableDeclaration).name == node;
 }
 
-/**
- * Return `true` if the given [node] is the name of a [NamedExpression].
- */
+/// Return `true` if the given [node] is the name of a [NamedExpression].
 bool isNamedExpressionName(SimpleIdentifier node) {
   AstNode parent = node.parent;
   if (parent is Label) {
@@ -550,10 +498,9 @@ bool isNamedExpressionName(SimpleIdentifier node) {
   return false;
 }
 
-/**
- * If the given [expression] is the `expression` property of a [NamedExpression]
- * then returns this [NamedExpression], otherwise returns [expression].
- */
+/// If the given [expression] is the `expression` property of a
+/// [NamedExpression] then returns this [NamedExpression], otherwise returns
+/// [expression].
 Expression stepUpNamedExpression(Expression expression) {
   if (expression != null) {
     AstNode parent = expression.parent;
@@ -564,9 +511,7 @@ Expression stepUpNamedExpression(Expression expression) {
   return expression;
 }
 
-/**
- * Return `true` if the given [lists] are identical at the given [position].
- */
+/// Return `true` if the given [lists] are identical at the given [position].
 bool _allListsIdentical(List<List> lists, int position) {
   Object element = lists[0][position];
   for (List list in lists) {
@@ -577,21 +522,17 @@ bool _allListsIdentical(List<List> lists, int position) {
   return true;
 }
 
-/**
- * This exception is thrown to cancel the current correction operation,
- * such as quick assist or quick fix because an inconsistency was detected.
- * These inconsistencies may happen as a part of normal workflow, e.g. because
- * a resource was deleted, or an analysis result was invalidated.
- */
+/// This exception is thrown to cancel the current correction operation,
+/// such as quick assist or quick fix because an inconsistency was detected.
+/// These inconsistencies may happen as a part of normal workflow, e.g. because
+/// a resource was deleted, or an analysis result was invalidated.
 class CancelCorrectionException {
   final Object exception;
 
   CancelCorrectionException({this.exception});
 }
 
-/**
- * Describes the location for a newly created [ClassMember].
- */
+/// Describes the location for a newly created [ClassMember].
 class ClassMemberLocation {
   final String prefix;
   final int offset;
@@ -605,10 +546,8 @@ class CorrectionUtils {
   final LibraryElement _library;
   final String _buffer;
 
-  /**
-   * The [ClassElement] the generated code is inserted to, so we can decide if
-   * a type parameter may or may not be used.
-   */
+  /// The [ClassElement] the generated code is inserted to, so we can decide if
+  /// a type parameter may or may not be used.
   ClassElement targetClassElement;
 
   ExecutableElement targetExecutableElement;
@@ -620,9 +559,7 @@ class CorrectionUtils {
         _library = result.libraryElement,
         _buffer = result.content;
 
-  /**
-   * Returns the EOL to use for this [CompilationUnit].
-   */
+  /// Returns the EOL to use for this [CompilationUnit].
   String get endOfLine {
     if (_endOfLine == null) {
       if (_buffer.contains('\r\n')) {
@@ -634,15 +571,11 @@ class CorrectionUtils {
     return _endOfLine;
   }
 
-  /**
-   * Returns the [AstNode] that encloses the given offset.
-   */
+  /// Returns the [AstNode] that encloses the given offset.
   AstNode findNode(int offset) => NodeLocator(offset).searchWithin(unit);
 
-  /**
-   * Returns names of elements that might conflict with a new local variable
-   * declared at [offset].
-   */
+  /// Returns names of elements that might conflict with a new local variable
+  /// declared at [offset].
   Set<String> findPossibleLocalVariableConflicts(int offset) {
     Set<String> conflicts = <String>{};
     AstNode enclosingNode = findNode(offset);
@@ -656,15 +589,11 @@ class CorrectionUtils {
     return conflicts;
   }
 
-  /**
-   * Returns the indentation with the given level.
-   */
+  /// Returns the indentation with the given level.
   String getIndent(int level) => repeat('  ', level);
 
-  /**
-   * Returns a [InsertDesc] describing where to insert a new directive or a
-   * top-level declaration at the top of the file.
-   */
+  /// Returns a [InsertDesc] describing where to insert a new directive or a
+  /// top-level declaration at the top of the file.
   CorrectionUtils_InsertDesc getInsertDescTop() {
     // skip leading line comments
     int offset = 0;
@@ -722,12 +651,10 @@ class CorrectionUtils {
     return desc;
   }
 
-  /**
-   * Skips whitespace characters and single EOL on the right from [index].
-   *
-   * If [index] the end of a statement or method, then in the most cases it is
-   * a start of the next line.
-   */
+  /// Skips whitespace characters and single EOL on the right from [index].
+  ///
+  /// If [index] the end of a statement or method, then in the most cases it is
+  /// a start of the next line.
   int getLineContentEnd(int index) {
     int length = _buffer.length;
     // skip whitespace characters
@@ -750,12 +677,10 @@ class CorrectionUtils {
     return index;
   }
 
-  /**
-   * Skips spaces and tabs on the left from [index].
-   *
-   * If [index] is the start or a statement, then in the most cases it is a
-   * start on its line.
-   */
+  /// Skips spaces and tabs on the left from [index].
+  ///
+  /// If [index] is the start or a statement, then in the most cases it is a
+  /// start on its line.
   int getLineContentStart(int index) {
     while (index > 0) {
       int c = _buffer.codeUnitAt(index - 1);
@@ -767,10 +692,8 @@ class CorrectionUtils {
     return index;
   }
 
-  /**
-   * Returns a start index of the next line after the line which contains the
-   * given index.
-   */
+  /// Returns a start index of the next line after the line which contains the
+  /// given index.
   int getLineNext(int index) {
     int length = _buffer.length;
     // skip to the end of the line
@@ -793,9 +716,7 @@ class CorrectionUtils {
     return index;
   }
 
-  /**
-   * Returns the whitespace prefix of the line which contains given offset.
-   */
+  /// Returns the whitespace prefix of the line which contains given offset.
   String getLinePrefix(int index) {
     int lineStart = getLineThis(index);
     int length = _buffer.length;
@@ -813,10 +734,8 @@ class CorrectionUtils {
     return getText(lineStart, lineNonWhitespace - lineStart);
   }
 
-  /**
-   * Returns a [SourceRange] that covers [sourceRange] and extends (if possible)
-   * to cover whole lines.
-   */
+  /// Returns a [SourceRange] that covers [sourceRange] and extends (if
+  /// possible) to cover whole lines.
   SourceRange getLinesRange(SourceRange sourceRange,
       {bool skipLeadingEmptyLines = false}) {
     // start
@@ -840,16 +759,12 @@ class CorrectionUtils {
     return range.startOffsetEndOffset(startLineOffset, afterEndLineOffset);
   }
 
-  /**
-   * Returns a [SourceRange] that covers all the given [Statement]s.
-   */
+  /// Returns a [SourceRange] that covers all the given [Statement]s.
   SourceRange getLinesRangeStatements(List<Statement> statements) {
     return getLinesRange(range.nodes(statements));
   }
 
-  /**
-   * Returns the start index of the line which contains given index.
-   */
+  /// Returns the start index of the line which contains given index.
   int getLineThis(int index) {
     while (index > 0) {
       int c = _buffer.codeUnitAt(index - 1);
@@ -861,10 +776,8 @@ class CorrectionUtils {
     return index;
   }
 
-  /**
-   * Returns the line prefix consisting of spaces and tabs on the left from the given
-   *         [AstNode].
-   */
+  /// Returns the line prefix consisting of spaces and tabs on the left from the
+  /// given [AstNode].
   String getNodePrefix(AstNode node) {
     int offset = node.offset;
     // function literal is special, it uses offset of enclosing line
@@ -875,42 +788,32 @@ class CorrectionUtils {
     return getPrefix(offset);
   }
 
-  /**
-   * Returns the text of the given [AstNode] in the unit.
-   */
+  /// Returns the text of the given [AstNode] in the unit.
   String getNodeText(AstNode node) {
     return getText(node.offset, node.length);
   }
 
-  /**
-   * Returns the line prefix consisting of spaces and tabs on the left from the
-   * given offset.
-   */
+  /// Returns the line prefix consisting of spaces and tabs on the left from the
+  /// given offset.
   String getPrefix(int endIndex) {
     int startIndex = getLineContentStart(endIndex);
     return _buffer.substring(startIndex, endIndex);
   }
 
-  /**
-   * Returns the text of the given range in the unit.
-   */
+  /// Returns the text of the given range in the unit.
   String getRangeText(SourceRange range) {
     return getText(range.offset, range.length);
   }
 
-  /**
-   * Returns the text of the given range in the unit.
-   */
+  /// Returns the text of the given range in the unit.
   String getText(int offset, int length) {
     return _buffer.substring(offset, offset + length);
   }
 
-  /**
-   * Returns the source to reference [type] in this [CompilationUnit].
-   *
-   * Fills [librariesToImport] with [LibraryElement]s whose elements are
-   * used by the generated source, but not imported.
-   */
+  /// Returns the source to reference [type] in this [CompilationUnit].
+  ///
+  /// Fills [librariesToImport] with [LibraryElement]s whose elements are
+  /// used by the generated source, but not imported.
   String getTypeSource(DartType type, Set<Source> librariesToImport,
       {StringBuffer parametersBuffer}) {
     StringBuffer sb = StringBuffer();
@@ -1010,9 +913,7 @@ class CorrectionUtils {
     return sb.toString();
   }
 
-  /**
-   * Indents given source left or right.
-   */
+  /// Indents given source left or right.
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
     StringBuffer sb = StringBuffer();
     String indent = getIndent(1);
@@ -1037,24 +938,19 @@ class CorrectionUtils {
     return sb.toString();
   }
 
-  /**
-   * Return the source of the inverted condition for the given logical expression.
-   */
+  /// Return the source of the inverted condition for the given logical
+  /// expression.
   String invertCondition(Expression expression) =>
       _invertCondition0(expression)._source;
 
-  /**
-   * Return `true` if the given class, mixin, enum or extension [declaration]
-   * has open '{' and close '}' on the same line, e.g. `class X {}`.
-   */
+  /// Return `true` if the given class, mixin, enum or extension [declaration]
+  /// has open '{' and close '}' on the same line, e.g. `class X {}`.
   bool isClassWithEmptyBody(CompilationUnitMember declaration) {
     return getLineThis(_getLeftBracket(declaration).offset) ==
         getLineThis(_getRightBracket(declaration).offset);
   }
 
-  /**
-   * Return <code>true</code> if [range] contains only whitespace or comments.
-   */
+  /// Return <code>true</code> if [range] contains only whitespace or comments.
   bool isJustWhitespaceOrComment(SourceRange range) {
     String trimmedText = getRangeText(range).trim();
     // may be whitespace
@@ -1129,10 +1025,8 @@ class CorrectionUtils {
             member is MethodDeclaration);
   }
 
-  /**
-   * Returns the source with indentation changed from [oldIndent] to
-   * [newIndent], keeping indentation of lines relative to each other.
-   */
+  /// Returns the source with indentation changed from [oldIndent] to
+  /// [newIndent], keeping indentation of lines relative to each other.
   String replaceSourceIndent(
       String source, String oldIndent, String newIndent) {
     // prepare STRING token ranges
@@ -1179,33 +1073,27 @@ class CorrectionUtils {
     return sb.toString();
   }
 
-  /**
-   * Returns the source of the given [SourceRange] with indentation changed
-   * from [oldIndent] to [newIndent], keeping indentation of lines relative
-   * to each other.
-   */
+  /// Returns the source of the given [SourceRange] with indentation changed
+  /// from [oldIndent] to [newIndent], keeping indentation of lines relative
+  /// to each other.
   String replaceSourceRangeIndent(
       SourceRange range, String oldIndent, String newIndent) {
     String oldSource = getRangeText(range);
     return replaceSourceIndent(oldSource, oldIndent, newIndent);
   }
 
-  /**
-   * @return <code>true</code> if "selection" covers "node" and there are any non-whitespace tokens
-   *         between "selection" and "node" start/end.
-   */
+  /// Return `true` if [selection] covers [node] and there are any
+  /// non-whitespace tokens between [selection] and [node] start/end.
   bool selectionIncludesNonWhitespaceOutsideNode(
       SourceRange selection, AstNode node) {
     return _selectionIncludesNonWhitespaceOutsideRange(
         selection, range.node(node));
   }
 
-  /**
-   * Skip spaces, tabs and EOLs on the left from [index].
-   *
-   * If [index] is the start of a method, then in the most cases return the end
-   * of the previous not-whitespace line.
-   */
+  /// Skip spaces, tabs and EOLs on the left from [index].
+  ///
+  /// If [index] is the start of a method, then in the most cases return the end
+  /// of the previous not-whitespace line.
   int skipEmptyLinesLeft(int index) {
     int lastLine = index;
     while (index > 0) {
@@ -1221,10 +1109,8 @@ class CorrectionUtils {
     return 0;
   }
 
-  /**
-   * @return the [ImportElement] used to import given [Element] into [library].
-   *         May be `null` if was not imported, i.e. declared in the same library.
-   */
+  /// Return the import element used to import given [element] into the library.
+  /// May be `null` if was not imported, i.e. declared in the same library.
   ImportElement _getImportElement(Element element) {
     for (ImportElement imp in _library.imports) {
       Map<String, Element> definedNames = getImportNamespace(imp);
@@ -1262,9 +1148,7 @@ class CorrectionUtils {
     return null;
   }
 
-  /**
-   * @return the [InvertedCondition] for the given logical expression.
-   */
+  /// @return the [InvertedCondition] for the given logical expression.
   _InvertedCondition _invertCondition0(Expression expression) {
     if (expression is BooleanLiteral) {
       if (expression.value) {
@@ -1332,10 +1216,8 @@ class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  /**
-   * Checks if [type] is visible in [targetExecutableElement] or
-   * [targetClassElement].
-   */
+  /// Checks if [type] is visible in [targetExecutableElement] or
+  /// [targetClassElement].
   bool _isTypeVisible(DartType type) {
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
@@ -1346,10 +1228,8 @@ class CorrectionUtils {
     return true;
   }
 
-  /**
-   * @return <code>true</code> if "selection" covers "range" and there are any non-whitespace tokens
-   *         between "selection" and "range" start/end.
-   */
+  /// Return `true` if [selection] covers [range] and there are any
+  /// non-whitespace tokens between [selection] and [range] start/end.
   bool _selectionIncludesNonWhitespaceOutsideRange(
       SourceRange selection, SourceRange sourceRange) {
     // selection should cover range
@@ -1371,18 +1251,14 @@ class CorrectionUtils {
   }
 }
 
-/**
- * Describes where to insert new directive or top-level declaration.
- */
+/// Describes where to insert new directive or top-level declaration.
 class CorrectionUtils_InsertDesc {
   int offset = 0;
   String prefix = '';
   String suffix = '';
 }
 
-/**
- * Utilities to work with [Token]s.
- */
+/// Utilities to work with [Token]s.
 class TokenUtils {
   static List<Token> getNodeTokens(AstNode node) {
     var result = <Token>[];
@@ -1395,10 +1271,8 @@ class TokenUtils {
     return result;
   }
 
-  /**
-   * @return [Token]s of the given Dart source, not <code>null</code>, may be empty if no
-   *         tokens or some exception happens.
-   */
+  /// Return the tokens of the given Dart source, not `null`, may be empty if no
+  /// tokens or some exception happens.
   static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
       List<Token> tokens = [];
@@ -1459,9 +1333,7 @@ class _ImportDirectiveInfo {
   _ImportDirectiveInfo(this.uri, this.offset, this.end);
 }
 
-/**
- * A container with a source and its precedence.
- */
+/// A container with a source and its precedence.
 class _InvertedCondition {
   final int _precedence;
 
@@ -1484,10 +1356,8 @@ class _InvertedCondition {
         1 << 20, '${left._source}$operation${right._source}');
   }
 
-  /**
-   * Adds enclosing parenthesis if the precedence of the [_InvertedCondition] if less than the
-   * precedence of the expression we are going it to use in.
-   */
+  /// Adds enclosing parenthesis if the precedence of the [_InvertedCondition]
+  /// if less than the precedence of the expression we are going it to use in.
   static String _parenthesizeIfRequired(
       _InvertedCondition expr, int newOperatorPrecedence) {
     if (expr._precedence < newOperatorPrecedence) {
@@ -1500,9 +1370,7 @@ class _InvertedCondition {
       _InvertedCondition(2147483647, source);
 }
 
-/**
- * Visitor that collects defined [LocalElement]s.
- */
+/// Visitor that collects defined [LocalElement]s.
 class _LocalElementsCollector extends RecursiveAstVisitor<void> {
   final elements = <LocalElement>[];
 

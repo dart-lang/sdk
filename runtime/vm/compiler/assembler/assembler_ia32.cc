@@ -42,10 +42,6 @@ int32_t Assembler::jit_cookie() {
   return jit_cookie_;
 }
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
-  memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
-}
-
 void Assembler::call(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xFF);

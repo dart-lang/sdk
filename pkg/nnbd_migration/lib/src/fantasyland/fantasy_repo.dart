@@ -110,11 +110,11 @@ abstract class FantasyRepo {
   Folder get repoRoot;
 
   static Future<FantasyRepo> buildGitRepoFrom(
-      FantasyRepoSettings repoSettings, String repoRootPath,
+      FantasyRepoSettings repoSettings, String repoRootPath, bool allowUpdate,
       {FantasyRepoDependencies fantasyRepoDependencies}) async {
     FantasyRepoGitImpl newRepo = FantasyRepoGitImpl(repoSettings, repoRootPath,
         fantasyRepoDependencies: fantasyRepoDependencies);
-    await newRepo.init();
+    await newRepo.init(allowUpdate);
     return newRepo;
   }
 }

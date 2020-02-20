@@ -6,7 +6,7 @@ library fasta.uri_translator;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:package_config/packages.dart' show Packages;
+import 'package:package_config/package_config.dart';
 
 import '../base/libraries_specification.dart' show TargetLibrariesSpecification;
 import 'compiler_context.dart' show CompilerContext;
@@ -15,7 +15,7 @@ import 'fasta_codes.dart';
 class UriTranslator {
   final TargetLibrariesSpecification dartLibraries;
 
-  final Packages packages;
+  final PackageConfig packages;
 
   UriTranslator(this.dartLibraries, this.packages);
 
@@ -39,26 +39,14 @@ class UriTranslator {
     return null;
   }
 
-  /// For a package uri, get the fragment of the uri specified for that package.
-  String getPackageFragment(Uri uri) {
+  /// For a package uri, get the corresponding [Package].
+  Package getPackage(Uri uri) {
     if (packages == null) return null;
     if (uri.scheme != "package") return null;
     int firstSlash = uri.path.indexOf('/');
     if (firstSlash == -1) return null;
     String packageName = uri.path.substring(0, firstSlash);
-    Uri packageBaseUri = packages.asMap()[packageName];
-    if (packageBaseUri == null) return null;
-    return packageBaseUri.fragment;
-  }
-
-  /// Get the fragment for the package specified as the default package, if any.
-  String getDefaultPackageFragment() {
-    Uri emptyPackageRedirect = packages.asMap()[""];
-    if (emptyPackageRedirect == null) return null;
-    String packageName = emptyPackageRedirect.toString();
-    Uri packageBaseUri = packages.asMap()[packageName];
-    if (packageBaseUri == null) return null;
-    return packageBaseUri.fragment;
+    return packages[packageName];
   }
 
   bool isLibrarySupported(String libraryName) {
@@ -76,10 +64,13 @@ class UriTranslator {
     try {
       // TODO(sigmund): once we remove the `parse` API, we can ensure that
       // packages will never be null and get rid of `?` below.
-      return packages?.resolve(uri,
-          notFound: reportMessage
-              ? _packageUriNotFound
-              : _packageUriNotFoundNoReport);
+      Uri translated = packages?.resolve(uri);
+      if (translated == null) {
+        return (reportMessage
+            ? _packageUriNotFound
+            : _packageUriNotFoundNoReport)(uri);
+      }
+      return translated;
     } on ArgumentError catch (e) {
       // TODO(sigmund): catch a more precise error when
       // https://github.com/dart-lang/package_config/issues/40 is fixed.

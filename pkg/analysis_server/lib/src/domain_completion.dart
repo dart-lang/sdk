@@ -28,61 +28,41 @@ import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
-/**
- * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
- * that handles requests in the completion domain.
- */
+/// Instances of the class [CompletionDomainHandler] implement a
+/// [RequestHandler] that handles requests in the completion domain.
 class CompletionDomainHandler extends AbstractRequestHandler {
-  /**
-   * The maximum number of performance measurements to keep.
-   */
+  /// The maximum number of performance measurements to keep.
   static const int performanceListMaxLength = 50;
 
-  /**
-   * The completion services that the client is currently subscribed.
-   */
+  /// The completion services that the client is currently subscribed.
   final Set<CompletionService> subscriptions = <CompletionService>{};
 
-  /**
-   * The next completion response id.
-   */
+  /// The next completion response id.
   int _nextCompletionId = 0;
 
-  /**
-   * Code completion performance for the last completion operation.
-   */
+  /// Code completion performance for the last completion operation.
   CompletionPerformance performance;
 
-  /**
-   * A list of code completion performance measurements for the latest
-   * completion operation up to [performanceListMaxLength] measurements.
-   */
+  /// A list of code completion performance measurements for the latest
+  /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> performanceList =
       RecentBuffer<CompletionPerformance>(performanceListMaxLength);
 
-  /**
-   * The current request being processed or `null` if none.
-   */
+  /// The current request being processed or `null` if none.
   CompletionRequestImpl _currentRequest;
 
-  /**
-   * The identifiers of the latest `getSuggestionDetails` request.
-   * We use it to abort previous requests.
-   */
+  /// The identifiers of the latest `getSuggestionDetails` request.
+  /// We use it to abort previous requests.
   int _latestGetSuggestionDetailsId = 0;
 
-  /**
-   * Initialize a new request handler for the given [server].
-   */
+  /// Initialize a new request handler for the given [server].
   CompletionDomainHandler(AnalysisServer server) : super(server);
 
-  /**
-   * Compute completion results for the given request and append them to the stream.
-   * Clients should not call this method directly as it is automatically called
-   * when a client listens to the stream returned by [results].
-   * Subclasses should override this method, append at least one result
-   * to the [controller], and close the controller stream once complete.
-   */
+  /// Compute completion results for the given request and append them to the
+  /// stream. Clients should not call this method directly as it is
+  /// automatically called when a client listens to the stream returned by
+  /// [results]. Subclasses should override this method, append at least one
+  /// result to the [controller], and close the controller stream once complete.
   Future<CompletionResult> computeSuggestions(
     CompletionRequestImpl request,
     CompletionGetSuggestionsParams params,
@@ -163,9 +143,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         request.replacementOffset, request.replacementLength, suggestions);
   }
 
-  /**
-   * Process a `completion.getSuggestionDetails` request.
-   */
+  /// Process a `completion.getSuggestionDetails` request.
   void getSuggestionDetails(Request request) async {
     var params = CompletionGetSuggestionDetailsParams.fromRequest(request);
 
@@ -270,9 +248,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     }
   }
 
-  /**
-   * Process a `completion.listTokenDetails` request.
-   */
+  /// Process a `completion.listTokenDetails` request.
   Future<void> listTokenDetails(Request request) async {
     CompletionListTokenDetailsParams params =
         CompletionListTokenDetailsParams.fromRequest(request);
@@ -307,9 +283,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     );
   }
 
-  /**
-   * Process a `completion.getSuggestions` request.
-   */
+  /// Process a `completion.getSuggestions` request.
   Future<void> processRequest(Request request) async {
     performance = CompletionPerformance();
 
@@ -406,10 +380,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     });
   }
 
-  /**
-   * If tracking code completion performance over time, then
-   * record addition information about the request in the performance record.
-   */
+  /// If tracking code completion performance over time, then
+  /// record addition information about the request in the performance record.
   void recordRequest(CompletionPerformance performance, String path,
       String content, int offset) {
     performance.path = path;
@@ -420,9 +392,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     performanceList.add(performance);
   }
 
-  /**
-   * Send completion notification results.
-   */
+  /// Send completion notification results.
   void sendCompletionNotification(
     String completionId,
     int replacementOffset,
@@ -453,9 +423,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     _currentRequest = completionRequest;
   }
 
-  /**
-   * Implement the 'completion.setSubscriptions' request.
-   */
+  /// Implement the 'completion.setSubscriptions' request.
   Response setSubscriptions(Request request) {
     var params = CompletionSetSubscriptionsParams.fromRequest(request);
 
@@ -485,9 +453,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     return CompletionSetSubscriptionsResult().toResponse(request.id);
   }
 
-  /**
-   * Abort the current completion request, if any.
-   */
+  /// Abort the current completion request, if any.
   void _abortCurrentRequest() {
     if (_currentRequest != null) {
       _currentRequest.abort();
@@ -496,28 +462,20 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   }
 }
 
-/**
- * The result of computing suggestions for code completion.
- */
+/// The result of computing suggestions for code completion.
 class CompletionResult {
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
   final int replacementLength;
 
-  /**
-   * The offset of the start of the text to be replaced. This will be different
-   * than the offset used to request the completion suggestions if there was a
-   * portion of an identifier before the original offset. In particular, the
-   * replacementOffset will be the offset of the beginning of said identifier.
-   */
+  /// The offset of the start of the text to be replaced. This will be different
+  /// than the offset used to request the completion suggestions if there was a
+  /// portion of an identifier before the original offset. In particular, the
+  /// replacementOffset will be the offset of the beginning of said identifier.
   final int replacementOffset;
 
-  /**
-   * The suggested completions.
-   */
+  /// The suggested completions.
   final List<CompletionSuggestion> suggestions;
 
   CompletionResult(

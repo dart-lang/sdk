@@ -17,9 +17,7 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
 
-/**
- * A contributor for calculating label suggestions.
- */
+/// A contributor for calculating label suggestions.
 class LabelContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -43,21 +41,15 @@ class LabelContributor extends DartCompletionContributor {
   }
 }
 
-/**
- * A visitor for collecting suggestions for break and continue labels.
- */
+/// A visitor for collecting suggestions for break and continue labels.
 class _LabelVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final List<CompletionSuggestion> suggestions;
 
-  /**
-   * True if statement labels should be included as suggestions.
-   */
+  /// True if statement labels should be included as suggestions.
   final bool includeStatementLabels;
 
-  /**
-   * True if case labels should be included as suggestions.
-   */
+  /// True if case labels should be included as suggestions.
   final bool includeCaseLabels;
 
   _LabelVisitor(DartCompletionRequest request, this.includeStatementLabels,

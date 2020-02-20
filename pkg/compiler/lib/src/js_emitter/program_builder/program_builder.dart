@@ -108,6 +108,7 @@ class ProgramBuilder {
   final Set<TypeVariableType> _lateNamedTypeVariablesNewRti = {};
 
   ClassHierarchy get _classHierarchy => _closedWorld.classHierarchy;
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
 
   ProgramBuilder(
       this._options,
@@ -1009,9 +1010,11 @@ class ProgramBuilder {
       if (!_rtiNeed.classNeedsTypeArguments(enclosingClass)) {
         // Erase type arguments.
         List<DartType> typeArguments = enclosingType.typeArguments;
-        type = type.subst(
-            List<DartType>.filled(typeArguments.length, ErasedType()),
-            typeArguments);
+        type = _dartTypes.subst(
+            List<DartType>.filled(
+                typeArguments.length, _dartTypes.erasedType()),
+            typeArguments,
+            type);
       }
     }
 

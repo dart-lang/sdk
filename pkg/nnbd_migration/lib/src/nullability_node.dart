@@ -6,8 +6,16 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/postmortem_file.dart';
 
 import 'edge_origin.dart';
+
+/// Abstract interface for assigning ids numbers to nodes.  This allows us to
+/// annotate nodes with their ids when analyzing postmortem output.
+abstract class NodeToIdMapper {
+  /// Gets the id corresponding to the given [node].
+  int idForNode(NullabilityNode node);
+}
 
 /// Data structure to keep track of the relationship from one [NullabilityNode]
 /// object to another [NullabilityNode] that is "downstream" from it (meaning
@@ -23,6 +31,18 @@ class NullabilityEdge implements EdgeInfo {
   final List<NullabilityNode> upstreamNodes;
 
   final _NullabilityEdgeKind _kind;
+
+  NullabilityEdge.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : destinationNode = deserializer.nodeForId(json['dest'] as int),
+        upstreamNodes = [],
+        _kind = _deserializeKind(json['kind']) {
+    deserializer.defer(() {
+      for (var id in json['us'] as List<dynamic>) {
+        upstreamNodes.add(deserializer.nodeForId(id as int));
+      }
+    });
+  }
 
   NullabilityEdge._(this.destinationNode, this.upstreamNodes, this._kind);
 
@@ -65,8 +85,30 @@ class NullabilityEdge implements EdgeInfo {
   @override
   NullabilityNode get sourceNode => upstreamNodes.first;
 
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = <String, Object>{};
+    switch (_kind) {
+      case _NullabilityEdgeKind.soft:
+        break;
+      case _NullabilityEdgeKind.uncheckable:
+        json['kind'] = 'uncheckable';
+        break;
+      case _NullabilityEdgeKind.hard:
+        json['kind'] = 'hard';
+        break;
+      case _NullabilityEdgeKind.union:
+        json['kind'] = 'union';
+        break;
+    }
+    serializer.defer(() {
+      json['dest'] = serializer.idForNode(destinationNode);
+      json['us'] = [for (var n in upstreamNodes) serializer.idForNode(n)];
+    });
+    return json;
+  }
+
   @override
-  String toString() {
+  String toString({NodeToIdMapper idMapper}) {
     var edgeDecorations = <Object>[];
     switch (_kind) {
       case _NullabilityEdgeKind.soft:
@@ -84,7 +126,23 @@ class NullabilityEdge implements EdgeInfo {
     edgeDecorations.addAll(guards);
     var edgeDecoration =
         edgeDecorations.isEmpty ? '' : '-(${edgeDecorations.join(', ')})';
-    return '$sourceNode $edgeDecoration-> $destinationNode';
+    return '${sourceNode.toString(idMapper: idMapper)} $edgeDecoration-> '
+        '${destinationNode.toString(idMapper: idMapper)}';
+  }
+
+  static _NullabilityEdgeKind _deserializeKind(dynamic json) {
+    if (json == null) return _NullabilityEdgeKind.soft;
+    var kind = json as String;
+    switch (kind) {
+      case 'uncheckable':
+        return _NullabilityEdgeKind.uncheckable;
+      case 'hard':
+        return _NullabilityEdgeKind.hard;
+      case 'union':
+        return _NullabilityEdgeKind.union;
+      default:
+        throw StateError('Unrecognized edge kind $kind');
+    }
   }
 }
 
@@ -105,13 +163,13 @@ class NullabilityGraph {
   ///
   /// Propagation of nullability always proceeds downstream starting at this
   /// node.
-  final NullabilityNode always = _NullabilityNodeImmutable('always', true);
+  final NullabilityNode always;
 
   /// Returns a [NullabilityNode] that is a priori non-nullable.
   ///
   /// Propagation of nullability always proceeds upstream starting at this
   /// node.
-  final NullabilityNode never = _NullabilityNodeImmutable('never', false);
+  final NullabilityNode never;
 
   /// Set containing all sources being migrated.
   final _sourcesBeingMigrated = <Source>{};
@@ -119,7 +177,21 @@ class NullabilityGraph {
   /// A set containing all of the nodes in the graph.
   final Set<NullabilityNode> nodes = {};
 
-  NullabilityGraph({this.instrumentation});
+  NullabilityGraph({this.instrumentation})
+      : always = _NullabilityNodeImmutable('always', true),
+        never = _NullabilityNodeImmutable('never', false);
+
+  NullabilityGraph.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : instrumentation = null,
+        always = deserializer.nodeForId(json['always'] as int),
+        never = deserializer.nodeForId(json['never'] as int) {
+    var serializedNodes = json['nodes'] as List<dynamic>;
+    for (int id = 0; id < serializedNodes.length; id++) {
+      nodes.add(deserializer.nodeForId(id));
+    }
+    deserializer.finish();
+  }
 
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
@@ -138,106 +210,9 @@ class NullabilityGraph {
     return _connect(upstreamNodes, destinationNode, kind, origin);
   }
 
-  /// Determine if [source] is in the code being migrated.
-  bool isBeingMigrated(Source source) {
-    return _sourcesBeingMigrated.contains(source);
-  }
-
-  /// Creates a graph edge that will try to force the given [node] to be
-  /// non-nullable.
-  NullabilityEdge makeNonNullable(NullabilityNode node, EdgeOrigin origin,
-      {bool hard: true, List<NullabilityNode> guards: const []}) {
-    return connect(node, never, origin, hard: hard, guards: guards);
-  }
-
-  /// Creates union edges that will guarantee that the given [node] is
-  /// non-nullable.
-  void makeNonNullableUnion(NullabilityNode node, EdgeOrigin origin) {
-    union(node, never, origin);
-  }
-
-  /// Creates a graph edge that will try to force the given [node] to be
-  /// nullable.
-  void makeNullable(NullabilityNode node, EdgeOrigin origin,
-      {List<NullabilityNode> guards: const []}) {
-    connect(always, node, origin, guards: guards);
-  }
-
-  /// Creates a `union` graph edge that will try to force the given [node] to be
-  /// nullable.  This is a stronger signal than [makeNullable] (it overrides
-  /// [makeNonNullable]).
-  void makeNullableUnion(NullabilityNode node, EdgeOrigin origin) {
-    union(always, node, origin);
-  }
-
-  /// Record source as code that is being migrated.
-  void migrating(Source source) {
-    _sourcesBeingMigrated.add(source);
-  }
-
-  /// Determines the nullability of each node in the graph by propagating
-  /// nullability information from one node to another.
-  PropagationResult propagate() {
-    if (_debugBeforePropagation) _debugDump();
-    var propagationState = _PropagationState(always, never).result;
-    if (_debugAfterPropagation) _debugDump();
-    return propagationState;
-  }
-
-  /// Records that nodes [x] and [y] should have exactly the same nullability.
-  void union(NullabilityNode x, NullabilityNode y, EdgeOrigin origin) {
-    _connect([x], y, _NullabilityEdgeKind.union, origin);
-    _connect([y], x, _NullabilityEdgeKind.union, origin);
-  }
-
-  /// Update the graph after an edge has been added or removed.
-  void update() {
-    //
-    // Reset the state of the nodes.
-    //
-    // This is inefficient because we reset the state of some nodes more than
-    // once, but not all nodes are reachable from both `never` and `always`, so
-    // we need to traverse the graph from both directions.
-    //
-    for (var node in nodes) {
-      node.resetState();
-    }
-    //
-    // Reset the state of the listener.
-    //
-    instrumentation.prepareForUpdate();
-    //
-    // Re-run the propagation step.
-    //
-    propagate();
-  }
-
-  NullabilityEdge _connect(
-      List<NullabilityNode> upstreamNodes,
-      NullabilityNode destinationNode,
-      _NullabilityEdgeKind kind,
-      EdgeOrigin origin) {
-    var edge = NullabilityEdge._(destinationNode, upstreamNodes, kind);
-    instrumentation?.graphEdge(edge, origin);
-    for (var upstreamNode in upstreamNodes) {
-      _connectDownstream(upstreamNode, edge);
-    }
-    destinationNode._upstreamEdges.add(edge);
-    nodes.addAll(upstreamNodes);
-    nodes.add(destinationNode);
-    return edge;
-  }
-
-  void _connectDownstream(NullabilityNode upstreamNode, NullabilityEdge edge) {
-    upstreamNode._downstreamEdges.add(edge);
-    if (upstreamNode is _NullabilityNodeCompound) {
-      for (var component in upstreamNode._components) {
-        _connectDownstream(component, edge);
-      }
-    }
-  }
-
-  void _debugDump() {
+  /// Prints out a representation of the graph nodes.  Useful in debugging
+  /// broken tests.
+  void debugDump() {
     Set<NullabilityNode> visitedNodes = {};
     Map<NullabilityNode, String> shortNames = {};
     int counter = 0;
@@ -301,6 +276,192 @@ class NullabilityGraph {
     }
     print('}');
   }
+
+  /// Determine if [source] is in the code being migrated.
+  bool isBeingMigrated(Source source) {
+    return _sourcesBeingMigrated.contains(source);
+  }
+
+  /// Creates a graph edge that will try to force the given [node] to be
+  /// non-nullable.
+  NullabilityEdge makeNonNullable(NullabilityNode node, EdgeOrigin origin,
+      {bool hard: true, List<NullabilityNode> guards: const []}) {
+    return connect(node, never, origin, hard: hard, guards: guards);
+  }
+
+  /// Creates union edges that will guarantee that the given [node] is
+  /// non-nullable.
+  void makeNonNullableUnion(NullabilityNode node, EdgeOrigin origin) {
+    union(node, never, origin);
+  }
+
+  /// Creates a graph edge that will try to force the given [node] to be
+  /// nullable.
+  void makeNullable(NullabilityNode node, EdgeOrigin origin,
+      {List<NullabilityNode> guards: const []}) {
+    connect(always, node, origin, guards: guards);
+  }
+
+  /// Creates a `union` graph edge that will try to force the given [node] to be
+  /// nullable.  This is a stronger signal than [makeNullable] (it overrides
+  /// [makeNonNullable]).
+  void makeNullableUnion(NullabilityNode node, EdgeOrigin origin) {
+    union(always, node, origin);
+  }
+
+  /// Record source as code that is being migrated.
+  void migrating(Source source) {
+    _sourcesBeingMigrated.add(source);
+  }
+
+  /// Determines the nullability of each node in the graph by propagating
+  /// nullability information from one node to another.
+  PropagationResult propagate(PostmortemFileWriter postmortemFileWriter) {
+    postmortemFileWriter?.downstreamPropagationSteps?.clear();
+    if (_debugBeforePropagation) debugDump();
+    var propagationState =
+        _PropagationState(always, never, postmortemFileWriter).result;
+    if (_debugAfterPropagation) debugDump();
+    return propagationState;
+  }
+
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = <String, Object>{};
+    json['always'] = serializer.idForNode(always);
+    json['never'] = serializer.idForNode(never);
+    serializer.finish();
+    json['nodes'] = serializer.serializedNodes;
+    json['edges'] = serializer.serializedEdges;
+    return json;
+  }
+
+  /// Records that nodes [x] and [y] should have exactly the same nullability.
+  void union(NullabilityNode x, NullabilityNode y, EdgeOrigin origin) {
+    _connect([x], y, _NullabilityEdgeKind.union, origin);
+    _connect([y], x, _NullabilityEdgeKind.union, origin);
+  }
+
+  /// Update the graph after an edge has been added or removed.
+  void update(PostmortemFileWriter postmortemFileWriter) {
+    //
+    // Reset the state of the nodes.
+    //
+    // This is inefficient because we reset the state of some nodes more than
+    // once, but not all nodes are reachable from both `never` and `always`, so
+    // we need to traverse the graph from both directions.
+    //
+    for (var node in nodes) {
+      node.resetState();
+    }
+    //
+    // Reset the state of the listener.
+    //
+    instrumentation.prepareForUpdate();
+    //
+    // Re-run the propagation step.
+    //
+    propagate(postmortemFileWriter);
+  }
+
+  NullabilityEdge _connect(
+      List<NullabilityNode> upstreamNodes,
+      NullabilityNode destinationNode,
+      _NullabilityEdgeKind kind,
+      EdgeOrigin origin) {
+    var edge = NullabilityEdge._(destinationNode, upstreamNodes, kind);
+    instrumentation?.graphEdge(edge, origin);
+    for (var upstreamNode in upstreamNodes) {
+      _connectDownstream(upstreamNode, edge);
+    }
+    destinationNode._upstreamEdges.add(edge);
+    nodes.addAll(upstreamNodes);
+    nodes.add(destinationNode);
+    return edge;
+  }
+
+  void _connectDownstream(NullabilityNode upstreamNode, NullabilityEdge edge) {
+    upstreamNode._downstreamEdges.add(edge);
+    if (upstreamNode is _NullabilityNodeCompound) {
+      for (var component in upstreamNode._components) {
+        _connectDownstream(component, edge);
+      }
+    }
+  }
+}
+
+/// Helper object used to deserialize a nullability graph from a JSON
+/// representation.
+class NullabilityGraphDeserializer implements NodeToIdMapper {
+  final List<dynamic> _serializedNodes;
+
+  final List<dynamic> _serializedEdges;
+
+  final Map<int, NullabilityNode> _idToNodeMap = {};
+
+  final Map<int, NullabilityEdge> _idToEdgeMap = {};
+
+  final List<void Function()> _deferred = [];
+
+  final Map<NullabilityNode, int> _nodeToIdMap = {};
+
+  NullabilityGraphDeserializer(this._serializedNodes, this._serializedEdges);
+
+  /// Defers a deserialization action until later.  The nullability node
+  /// `fromJson` constructors use this method to defer populating edge lists
+  /// until all nodes have been deserialized.
+  void defer(void Function() callback) {
+    _deferred.add(callback);
+  }
+
+  /// Gets the edge having the given [id], deserializing it if it hasn't been
+  /// deserialized already.
+  NullabilityEdge edgeForId(int id) {
+    var edge = _idToEdgeMap[id];
+    if (edge == null) {
+      _idToEdgeMap[id] =
+          edge = NullabilityEdge.fromJson(_serializedEdges[id], this);
+    }
+    return edge;
+  }
+
+  /// Runs all deferred actions that have been passed to [defer].
+  void finish() {
+    while (_deferred.isNotEmpty) {
+      var callback = _deferred.removeLast();
+      callback();
+    }
+  }
+
+  @override
+  int idForNode(NullabilityNode node) => _nodeToIdMap[node];
+
+  /// Gets the node having the given [id], deserializing it if it hasn't been
+  /// deserialized already.
+  NullabilityNode nodeForId(int id) {
+    var node = _idToNodeMap[id];
+    if (node == null) {
+      _idToNodeMap[id] = node = _deserializeNode(id);
+      _nodeToIdMap[node] = id;
+    }
+    return node;
+  }
+
+  NullabilityNode _deserializeNode(int id) {
+    var json = _serializedNodes[id];
+    var kind = json['kind'] as String;
+    switch (kind) {
+      case 'immutable':
+        return _NullabilityNodeImmutable.fromJson(json, this);
+      case 'simple':
+        return _NullabilityNodeSimple.fromJson(json, this);
+      case 'lub':
+        return NullabilityNodeForLUB.fromJson(json, this);
+      case 'substitution':
+        return NullabilityNodeForSubstitution.fromJson(json, this);
+      default:
+        throw StateError('Unrecognized node kind $kind');
+    }
+  }
 }
 
 /// Same as [NullabilityGraph], but extended with extra methods for easier
@@ -310,12 +471,6 @@ class NullabilityGraphForTesting extends NullabilityGraph {
   final List<NullabilityEdge> _allEdges = [];
 
   final Map<NullabilityEdge, EdgeOrigin> _edgeOrigins = {};
-
-  /// Prints out a representation of the graph nodes.  Useful in debugging
-  /// broken tests.
-  void debugDump() {
-    _debugDump();
-  }
 
   /// Iterates through all edges in the graph.
   @visibleForTesting
@@ -337,6 +492,73 @@ class NullabilityGraphForTesting extends NullabilityGraph {
     _allEdges.add(edge);
     _edgeOrigins[edge] = origin;
     return edge;
+  }
+}
+
+/// Helper object used to serialize a nullability graph into a JSON
+/// representation.
+class NullabilityGraphSerializer {
+  /// The list of serialized node objects to be stored in the output JSON.
+  final List<Map<String, Object>> serializedNodes = [];
+
+  final Map<NullabilityNode, int> _nodeToIdMap = {};
+
+  /// The list of serialized edge objects to be stored in the output JSON.
+  final List<Map<String, Object>> serializedEdges = [];
+
+  final Map<NullabilityEdge, int> _edgeToIdMap = {};
+
+  final List<void Function()> _deferred = [];
+
+  bool _serializingNodeOrEdge = false;
+
+  /// Defers a serialization action until later.  The nullability node
+  /// `toJson` methods use this method to defer serializing edge lists
+  /// until all nodes have been serialized.
+  void defer(void Function() callback) {
+    _deferred.add(callback);
+  }
+
+  /// Runs all deferred actions that have been passed to [defer].
+  void finish() {
+    while (_deferred.isNotEmpty) {
+      var callback = _deferred.removeLast();
+      callback();
+    }
+  }
+
+  /// Gets the id for the given [edge], serializing it if it hasn't been
+  /// serialized already.
+  int idForEdge(NullabilityEdge edge) {
+    var result = _edgeToIdMap[edge];
+    if (result == null) {
+      if (_serializingNodeOrEdge) {
+        throw StateError('Illegal nesting of idForEdge');
+      }
+      _serializingNodeOrEdge = true;
+      assert(_edgeToIdMap.length == serializedEdges.length);
+      result = _edgeToIdMap[edge] = _edgeToIdMap.length;
+      serializedEdges.add(edge.toJson(this));
+      _serializingNodeOrEdge = false;
+    }
+    return result;
+  }
+
+  /// Gets the id for the given [node], serializing it if it hasn't been
+  /// serialized already.
+  int idForNode(NullabilityNode node) {
+    var result = _nodeToIdMap[node];
+    if (result == null) {
+      if (_serializingNodeOrEdge) {
+        throw StateError('Illegal nesting of idForEdge');
+      }
+      _serializingNodeOrEdge = true;
+      assert(_nodeToIdMap.length == serializedNodes.length);
+      result = _nodeToIdMap[node] = _nodeToIdMap.length;
+      serializedNodes.add(node.toJson(this));
+      _serializingNodeOrEdge = false;
+    }
+    return result;
   }
 }
 
@@ -363,7 +585,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   final _upstreamEdges = <NullabilityEdge>[];
 
   /// List of compound nodes wrapping this node.
-  final List<NullabilityNode> outerCompoundNodes = <NullabilityNode>[];
+  final List<_NullabilityNodeCompound> outerCompoundNodes =
+      <_NullabilityNodeCompound>[];
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type comes from an already-migrated library.
@@ -411,6 +634,25 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   factory NullabilityNode.forTypeAnnotation(int endOffset) =>
       _NullabilityNodeSimple('type($endOffset)');
 
+  NullabilityNode.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer) {
+    deserializer.defer(() {
+      if (json['isPossiblyOptional'] == true) {
+        _isPossiblyOptional = true;
+      }
+      for (var id in json['ds'] ?? []) {
+        _downstreamEdges.add(deserializer.edgeForId(id as int));
+      }
+      for (var id in json['us'] ?? []) {
+        _upstreamEdges.add(deserializer.edgeForId(id as int));
+      }
+      for (var id in json['outerCompoundNodes'] ?? []) {
+        outerCompoundNodes
+            .add(deserializer.nodeForId(id as int) as _NullabilityNodeCompound);
+      }
+    });
+  }
+
   NullabilityNode._();
 
   /// Gets a string that can be appended to a type name during debugging to help
@@ -442,6 +684,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   String get _debugPrefix;
 
+  String get _jsonKind;
+
   Nullability get _nullability;
 
   /// Records the fact that an invocation was made to a function with named
@@ -457,7 +701,29 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// Reset the state of this node to what it was before the graph was solved.
   void resetState();
 
-  String toString() {
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = <String, Object>{};
+    json['kind'] = _jsonKind;
+    if (_isPossiblyOptional) {
+      json['isPossiblyOptional'] = true;
+    }
+    serializer.defer(() {
+      if (_downstreamEdges.isNotEmpty) {
+        json['ds'] = [for (var e in _downstreamEdges) serializer.idForEdge(e)];
+      }
+      if (_upstreamEdges.isNotEmpty) {
+        json['us'] = [for (var e in _upstreamEdges) serializer.idForEdge(e)];
+      }
+      if (outerCompoundNodes.isNotEmpty) {
+        json['outerCompoundNodes'] = [
+          for (var e in outerCompoundNodes) serializer.idForNode(e)
+        ];
+      }
+    });
+    return json;
+  }
+
+  String toString({NodeToIdMapper idMapper}) {
     if (_debugName == null) {
       var prefix = _debugPrefix;
       if (_debugNamesInUse.add(prefix)) {
@@ -472,7 +738,11 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
         }
       }
     }
-    return _debugName;
+    if (idMapper == null) {
+      return _debugName;
+    } else {
+      return '${idMapper.idForNode(this)}: $_debugName';
+    }
   }
 
   /// Tracks the possibility that this node is associated with a named parameter
@@ -495,6 +765,12 @@ class NullabilityNodeForLUB extends _NullabilityNodeCompound {
 
   final NullabilityNode right;
 
+  NullabilityNodeForLUB.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : left = deserializer.nodeForId(json['left'] as int),
+        right = deserializer.nodeForId(json['right'] as int),
+        super.fromJson(json, deserializer);
+
   NullabilityNodeForLUB._(this.left, this.right) {
     left.outerCompoundNodes.add(this);
     right.outerCompoundNodes.add(this);
@@ -507,9 +783,22 @@ class NullabilityNodeForLUB extends _NullabilityNodeCompound {
   String get _debugPrefix => 'LUB($left, $right)';
 
   @override
+  String get _jsonKind => 'lub';
+
+  @override
   void resetState() {
     left.resetState();
     right.resetState();
+  }
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = super.toJson(serializer);
+    serializer.defer(() {
+      json['left'] = serializer.idForNode(left);
+      json['right'] = serializer.idForNode(right);
+    });
+    return json;
   }
 }
 
@@ -523,6 +812,12 @@ class NullabilityNodeForSubstitution extends _NullabilityNodeCompound
   @override
   final NullabilityNode outerNode;
 
+  NullabilityNodeForSubstitution.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : innerNode = deserializer.nodeForId(json['inner'] as int),
+        outerNode = deserializer.nodeForId(json['outer'] as int),
+        super.fromJson(json, deserializer);
+
   NullabilityNodeForSubstitution._(this.innerNode, this.outerNode) {
     innerNode.outerCompoundNodes.add(this);
     outerNode.outerCompoundNodes.add(this);
@@ -535,9 +830,22 @@ class NullabilityNodeForSubstitution extends _NullabilityNodeCompound
   String get _debugPrefix => 'Substituted($innerNode, $outerNode)';
 
   @override
+  String get _jsonKind => 'substitution';
+
+  @override
   void resetState() {
     innerNode.resetState();
     outerNode.resetState();
+  }
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = super.toJson(serializer);
+    serializer.defer(() {
+      json['inner'] = serializer.idForNode(innerNode);
+      json['outer'] = serializer.idForNode(outerNode);
+    });
+    return json;
   }
 }
 
@@ -549,6 +857,16 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   Nullability _nullability;
 
   NonNullIntent _nonNullIntent;
+
+  NullabilityNodeMutable.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : _nullability = json['nullability'] == null
+            ? Nullability.nonNullable
+            : Nullability.fromJson(json['nullability']),
+        _nonNullIntent = json['nonNullIntent'] == null
+            ? NonNullIntent.none
+            : NonNullIntent.fromJson(json['nonNullIntent']),
+        super.fromJson(json, deserializer);
 
   NullabilityNodeMutable._(
       {Nullability initialNullability = Nullability.nonNullable})
@@ -572,6 +890,18 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   void resetState() {
     _nullability = Nullability.nonNullable;
     _nonNullIntent = NonNullIntent.none;
+  }
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = super.toJson(serializer);
+    if (_nullability != Nullability.nonNullable) {
+      json['nullability'] = _nullability.toJson();
+    }
+    if (_nonNullIntent != NonNullIntent.none) {
+      json['intent'] = _nonNullIntent.toJson();
+    }
+    return json;
   }
 }
 
@@ -609,6 +939,10 @@ enum _NullabilityEdgeKind {
 abstract class _NullabilityNodeCompound extends NullabilityNodeMutable {
   _NullabilityNodeCompound() : super._();
 
+  _NullabilityNodeCompound.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : super.fromJson(json, deserializer);
+
   @override
   bool get isExactNullable => _components.any((c) => c.isExactNullable);
 
@@ -626,6 +960,12 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   final bool isNullable;
 
   _NullabilityNodeImmutable(this._debugPrefix, this.isNullable) : super._();
+
+  _NullabilityNodeImmutable.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : _debugPrefix = json['debugPrefix'] as String,
+        isNullable = json['isNullable'] as bool,
+        super.fromJson(json, deserializer);
 
   @override
   String get debugSuffix => isNullable ? '?' : '';
@@ -645,12 +985,23 @@ class _NullabilityNodeImmutable extends NullabilityNode {
       isNullable ? NonNullIntent.none : NonNullIntent.direct;
 
   @override
+  String get _jsonKind => 'immutable';
+
+  @override
   Nullability get _nullability =>
       isNullable ? Nullability.ordinaryNullable : Nullability.nonNullable;
 
   @override
   void resetState() {
     // There is no state to reset.
+  }
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = super.toJson(serializer);
+    json['debugPrefix'] = _debugPrefix;
+    json['isNullable'] = isNullable;
+    return json;
   }
 }
 
@@ -659,6 +1010,21 @@ class _NullabilityNodeSimple extends NullabilityNodeMutable {
   final String _debugPrefix;
 
   _NullabilityNodeSimple(this._debugPrefix) : super._();
+
+  _NullabilityNodeSimple.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : _debugPrefix = json['debugPrefix'] as String,
+        super.fromJson(json, deserializer);
+
+  @override
+  String get _jsonKind => 'simple';
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = super.toJson(serializer);
+    json['debugPrefix'] = _debugPrefix;
+    return json;
+  }
 }
 
 /// Workspace for performing graph propagation.
@@ -680,11 +1046,13 @@ class _PropagationState {
   /// that need to be examined before the stage is complete.
   final List<NullabilityEdge> _pendingEdges = [];
 
+  final PostmortemFileWriter _postmortemFileWriter;
+
   /// During execution of [_propagateDownstream], a list of all the substitution
   /// nodes that have not yet been resolved.
   List<NullabilityNodeForSubstitution> _pendingSubstitutions = [];
 
-  _PropagationState(this._always, this._never) {
+  _PropagationState(this._always, this._never, this._postmortemFileWriter) {
     _propagateUpstream();
     _propagateDownstream();
   }
@@ -715,7 +1083,7 @@ class _PropagationState {
           }
         }
         if (node is NullabilityNodeMutable && !node.isNullable) {
-          _setNullable(node, Nullability.ordinaryNullable);
+          _setNullable(node, Nullability.ordinaryNullable, causeEdge: edge);
         }
       }
       if (_pendingSubstitutions.isEmpty) break;
@@ -730,28 +1098,44 @@ class _PropagationState {
   /// Propagates non-null intent upstream along unconditional control flow
   /// lines.
   void _propagateUpstream() {
-    assert(_pendingEdges.isEmpty);
-    _pendingEdges.addAll(_never._upstreamEdges);
-    while (_pendingEdges.isNotEmpty) {
-      var edge = _pendingEdges.removeLast();
-      // We only propagate for nodes that are "upstream triggered".  At this
-      // point of propagation, a node is upstream triggered if it is hard.
-      assert(edge.isUpstreamTriggered == edge.isHard);
-      if (!edge.isHard) continue;
-      var node = edge.sourceNode;
-      if (node is NullabilityNodeMutable) {
-        var oldNonNullIntent = node._nonNullIntent;
-        if (edge.isUnion && edge.destinationNode == _never) {
-          // If a node is unioned with "never" then it's considered to have
-          // direct non-null intent.
-          node._nonNullIntent = NonNullIntent.direct;
-        } else {
-          node._nonNullIntent = oldNonNullIntent.addIndirect();
+    var pendingNodes = <NullabilityNode>[_never];
+    while (pendingNodes.isNotEmpty) {
+      var pendingNode = pendingNodes.removeLast();
+      for (var edge in pendingNode._upstreamEdges) {
+        // We only propagate for nodes that are "upstream triggered".  At this
+        // point of propagation, a node is upstream triggered if it is hard.
+        assert(edge.isUpstreamTriggered == edge.isHard);
+        if (!edge.isHard) continue;
+        var node = edge.sourceNode;
+        if (node is NullabilityNodeMutable) {
+          var oldNonNullIntent = node._nonNullIntent;
+          if (edge.isUnion && edge.destinationNode == _never) {
+            // If a node is unioned with "never" then it's considered to have
+            // direct non-null intent.
+            node._nonNullIntent = NonNullIntent.direct;
+          } else {
+            node._nonNullIntent = oldNonNullIntent.addIndirect();
+          }
+          if (!oldNonNullIntent.isPresent) {
+            // We did not previously have non-null intent, so we need to
+            // propagate.
+            pendingNodes.add(node);
+          }
         }
+      }
+      // If any compound node is forced to be non-nullable by this change,
+      // propagate to it.
+      for (var node in pendingNode.outerCompoundNodes) {
+        if (node._components
+            .any((component) => !component.nonNullIntent.isPresent)) {
+          continue;
+        }
+        var oldNonNullIntent = node._nonNullIntent;
+        node._nonNullIntent = oldNonNullIntent.addIndirect();
         if (!oldNonNullIntent.isPresent) {
           // We did not previously have non-null intent, so we need to
           // propagate.
-          _pendingEdges.addAll(node._upstreamEdges);
+          pendingNodes.add(node);
         }
       }
     }
@@ -778,7 +1162,8 @@ class _PropagationState {
     // node to the ordinary nullable state.
     if (substitutionNode.innerNode.nonNullIntent.isPresent) {
       _setNullable(substitutionNode.outerNode as NullabilityNodeMutable,
-          Nullability.ordinaryNullable);
+          Nullability.ordinaryNullable,
+          causeNode: substitutionNode);
       return;
     }
 
@@ -790,7 +1175,8 @@ class _PropagationState {
     var pendingEdges = <NullabilityEdge>[];
     var node = substitutionNode.innerNode;
     if (node is NullabilityNodeMutable) {
-      var oldNullability = _setNullable(node, Nullability.exactNullable);
+      var oldNullability = _setNullable(node, Nullability.exactNullable,
+          causeNode: substitutionNode);
       if (!oldNullability.isExactNullable) {
         // Was not previously in the "exact nullable" state.  Need to
         // propagate.
@@ -801,11 +1187,13 @@ class _PropagationState {
         // TODO(mfairhurst): should this propagate back up outerContainerNodes?
       }
     }
+
     while (pendingEdges.isNotEmpty) {
       var edge = pendingEdges.removeLast();
       var node = edge.sourceNode;
-      if (node is NullabilityNodeMutable) {
-        var oldNullability = _setNullable(node, Nullability.exactNullable);
+      if (node is NullabilityNodeMutable && !edge.isCheckable) {
+        var oldNullability =
+            _setNullable(node, Nullability.exactNullable, causeEdge: edge);
         if (!oldNullability.isExactNullable) {
           // Was not previously in the "exact nullable" state.  Need to
           // propagate.
@@ -817,9 +1205,13 @@ class _PropagationState {
     }
   }
 
-  Nullability _setNullable(NullabilityNodeMutable node, Nullability newState) {
+  Nullability _setNullable(NullabilityNodeMutable node, Nullability newState,
+      {NullabilityNode causeNode, NullabilityEdge causeEdge}) {
     var oldState = node._nullability;
     node._nullability = newState;
+    _postmortemFileWriter?.downstreamPropagationSteps?.add(
+        DownstreamPropagationStep(node, newState,
+            causeNode: causeNode, causeEdge: causeEdge));
     if (!oldState.isNullable) {
       // Was not previously nullable, so we need to propagate.
       _pendingEdges.addAll(node._downstreamEdges);

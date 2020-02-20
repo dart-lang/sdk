@@ -250,6 +250,7 @@ $!MEMBERS
     } else if (JS('bool', '!!#.webkitLineDash', this)) {
       return JS('List<num>', '#.webkitLineDash', this);
     }
+    return [];
   }
 
   @SupportedBrowser(SupportedBrowser.CHROME)

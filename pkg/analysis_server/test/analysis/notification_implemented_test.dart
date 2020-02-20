@@ -24,12 +24,10 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   List<ImplementedClass> implementedClasses;
   List<ImplementedMember> implementedMembers;
 
-  /**
-   * Validates that there is an [ImplementedClass] at the offset of [search].
-   *
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
+  /// Validates that there is an [ImplementedClass] at the offset of [search].
+  ///
+  /// If [length] is not specified explicitly, then length of an identifier
+  /// from [search] is used.
   void assertHasImplementedClass(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -47,12 +45,10 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
         ' in $implementedClasses');
   }
 
-  /**
-   * Validates that there is an [ImplementedClass] at the offset of [search].
-   *
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
+  /// Validates that there is an [ImplementedClass] at the offset of [search].
+  ///
+  /// If [length] is not specified explicitly, then length of an identifier
+  /// from [search] is used.
   void assertHasImplementedMember(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -70,12 +66,10 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
         ' in $implementedMembers');
   }
 
-  /**
-   * Validates that there is no [ImplementedMember] at the offset of [search].
-   *
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
+  /// Validates that there is no [ImplementedMember] at the offset of [search].
+  ///
+  /// If [length] is not specified explicitly, then length of an identifier
+  /// from [search] is used.
   void assertNoImplementedMember(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -92,9 +86,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     }
   }
 
-  /**
-   * Subscribe for `IMPLEMENTED` and wait for the notification.
-   */
+  /// Subscribe for `IMPLEMENTED` and wait for the notification.
   Future prepareImplementedElements() {
     subscribeForImplemented();
     return waitForImplementedElements();

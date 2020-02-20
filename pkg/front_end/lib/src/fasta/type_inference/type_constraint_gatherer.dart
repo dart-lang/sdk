@@ -318,7 +318,8 @@ abstract class TypeConstraintGatherer {
           futureType(subtypeArg, _currentLibrary.nonNullable);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
           _isSubtypeMatch(subtypeArg, supertype) &&
-          new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype)
+          new IsSubtypeOf.basedSolelyOnNullabilities(
+                  subtype, supertype, futureOrClass)
               .isSubtypeWhenUsingNullabilities();
     }
 

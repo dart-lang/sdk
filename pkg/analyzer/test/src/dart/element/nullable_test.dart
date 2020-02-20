@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -572,58 +572,137 @@ class PromoteToNonNullTest extends _NullableBase {
     _check(nullStar, neverNone);
   }
 
-  test_typeParameter_noneBound() {
+  test_typeParameter_bound_dynamic() {
+    var element = typeParameter('T', bound: dynamicNone);
+
+    var result = typeSystem.promoteToNonNull(
+      typeParameterTypeNone(element),
+    ) as TypeParameterTypeImpl;
+    expect(result.element, same(element));
+    expect(result.promotedBound, isNull);
+    expect(result.nullabilitySuffix, NullabilitySuffix.none);
+  }
+
+  test_typeParameter_bound_none() {
     var element = typeParameter('T', bound: intNone);
 
     _checkTypeParameter(
       typeParameterTypeNone(element),
-      baseElement: element,
+      element: element,
+      promotedBound: null,
     );
 
     _checkTypeParameter(
       typeParameterTypeQuestion(element),
-      baseElement: element,
+      element: element,
+      promotedBound: null,
     );
   }
 
-  test_typeParameter_nullBound() {
+  test_typeParameter_bound_null() {
     var element = typeParameter('T', bound: null);
     _checkTypeParameter(
       typeParameterTypeNone(element),
-      baseElement: element,
-      expectedBound: objectNone,
+      element: element,
+      promotedBound: objectNone,
     );
   }
 
-  test_typeParameter_questionBound() {
+  test_typeParameter_bound_question() {
     var element = typeParameter('T', bound: intQuestion);
 
     _checkTypeParameter(
       typeParameterTypeNone(element),
-      baseElement: element,
-      expectedBound: intNone,
+      element: element,
+      promotedBound: intNone,
     );
 
     _checkTypeParameter(
       typeParameterTypeQuestion(element),
-      baseElement: element,
-      expectedBound: intNone,
+      element: element,
+      promotedBound: intNone,
     );
 
     _checkTypeParameter(
       typeParameterTypeStar(element),
-      baseElement: element,
-      expectedBound: intNone,
+      element: element,
+      promotedBound: intNone,
     );
   }
 
-  test_typeParameter_starBound() {
+  test_typeParameter_bound_star() {
     var element = typeParameter('T', bound: intStar);
 
     _checkTypeParameter(
       typeParameterTypeNone(element),
-      baseElement: element,
-      expectedBound: intNone,
+      element: element,
+      promotedBound: intNone,
+    );
+  }
+
+  test_typeParameter_promotedBound_none() {
+    var element = typeParameter('T', bound: numQuestion);
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeNone(element, intNone),
+      element: element,
+      promotedBound: intNone,
+    );
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeQuestion(element, intNone),
+      element: element,
+      promotedBound: intNone,
+    );
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeStar(element, intNone),
+      element: element,
+      promotedBound: intNone,
+    );
+  }
+
+  test_typeParameter_promotedBound_question() {
+    var element = typeParameter('T', bound: numQuestion);
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeNone(element, intQuestion),
+      element: element,
+      promotedBound: intNone,
+    );
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeQuestion(element, intQuestion),
+      element: element,
+      promotedBound: intNone,
+    );
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeStar(element, intQuestion),
+      element: element,
+      promotedBound: intNone,
+    );
+  }
+
+  test_typeParameter_promotedBound_star() {
+    var element = typeParameter('T', bound: numQuestion);
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeNone(element, intStar),
+      element: element,
+      promotedBound: intNone,
+    );
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeQuestion(element, intStar),
+      element: element,
+      promotedBound: intNone,
+    );
+
+    _checkTypeParameter(
+      promotedTypeParameterTypeStar(element, intStar),
+      element: element,
+      promotedBound: intNone,
     );
   }
 
@@ -636,22 +715,14 @@ class PromoteToNonNullTest extends _NullableBase {
     expect(result, expected);
   }
 
-  /// If [expectedBound] is `null`, the element of the result must be the same
-  /// as the [baseElement].  Otherwise the element of the result must be a
-  /// [TypeParameterMember] with the [baseElement] and the [expectedBound].
   void _checkTypeParameter(
     TypeParameterType type, {
-    @required TypeParameterElement baseElement,
-    DartType expectedBound,
+    @required TypeParameterElement element,
+    @required DartType promotedBound,
   }) {
-    var actual = typeSystem.promoteToNonNull(type);
-    if (expectedBound != null) {
-      var actualMember = actual.element as TypeParameterMember;
-      expect(actualMember.declaration, same(baseElement));
-      expect(actualMember.bound, expectedBound);
-    } else {
-      expect(actual.element, same(baseElement));
-    }
+    var actual = typeSystem.promoteToNonNull(type) as TypeParameterTypeImpl;
+    expect(actual.element, same(element));
+    expect(actual.promotedBound, promotedBound);
     expect(actual.nullabilitySuffix, NullabilitySuffix.none);
   }
 }

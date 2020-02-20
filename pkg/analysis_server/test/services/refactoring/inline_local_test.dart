@@ -436,10 +436,7 @@ main() {
 ''');
   }
 
-  /**
-   * <p>
-   * https://code.google.com/p/dart/issues/detail?id=18587
-   */
+  /// https://code.google.com/p/dart/issues/detail?id=18587
   Future<void> test_OK_keepNextCommentedLine() async {
     await indexTestUnit('''
 main() {

@@ -114,7 +114,9 @@ class FantasyRepoE2ETest {
     // checked out.
     io.Directory repoRoot = io.Directory(path.join(tempDir.path, 'repoRoot'));
     await FantasyRepo.buildGitRepoFrom(
-        FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot.path,
+        FantasyRepoSettings('repoE2Etest', origRepoDir.path),
+        repoRoot.path,
+        true,
         fantasyRepoDependencies: fantasyRepoDependencies);
 
     dotPackages = io.File(path.join(repoRoot.path, '.packages'));
@@ -141,7 +143,9 @@ class FantasyRepoE2ETest {
     // Finally, use the repoBuilder to update a repository from head and verify
     // we did it right.
     await FantasyRepo.buildGitRepoFrom(
-        FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot.path,
+        FantasyRepoSettings('repoE2Etest', origRepoDir.path),
+        repoRoot.path,
+        true,
         fantasyRepoDependencies: fantasyRepoDependencies);
 
     aNewFile = io.File(path.join(repoRoot.path, 'hello_new_file_here'));
@@ -172,7 +176,7 @@ class FantasyRepoTest extends FilesystemTestBase {
     FantasyRepoSettings settings = FantasyRepoSettings.fromName(repoName);
     FantasyRepoDependencies fantasyRepoDependencies = FantasyRepoDependencies(
         launcher: mockLauncher, resourceProvider: resourceProvider);
-    await FantasyRepo.buildGitRepoFrom(settings, repoPath,
+    await FantasyRepo.buildGitRepoFrom(settings, repoPath, true,
         fantasyRepoDependencies: fantasyRepoDependencies);
   }
 

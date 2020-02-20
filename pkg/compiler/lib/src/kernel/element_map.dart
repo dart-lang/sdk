@@ -53,9 +53,9 @@ abstract class KernelToElementMap {
   FunctionType getFunctionType(ir.FunctionNode node);
 
   /// Return the [InterfaceType] corresponding to the [cls] with the given
-  /// [typeArguments].
+  /// [typeArguments] and [nullability].
   InterfaceType createInterfaceType(
-      ir.Class cls, List<ir.DartType> typeArguments);
+      ir.Class cls, List<ir.DartType> typeArguments, Nullability nullability);
 
   /// Returns the [CallStructure] corresponding to the [arguments].
   CallStructure getCallStructure(ir.Arguments arguments);

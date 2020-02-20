@@ -18,15 +18,18 @@ class FeatureSetProvider {
 
   final FeatureSet _sdkFeatureSet;
   final Packages _packages;
-  final FeatureSet _defaultFeatureSet;
+  final FeatureSet _packageDefaultFeatureSet;
+  final FeatureSet _nonPackageDefaultFeatureSet;
 
   FeatureSetProvider._({
     FeatureSet sdkFeatureSet,
     Packages packages,
-    FeatureSet defaultFeatureSet,
+    FeatureSet packageDefaultFeatureSet,
+    FeatureSet nonPackageDefaultFeatureSet,
   })  : _sdkFeatureSet = sdkFeatureSet,
         _packages = packages,
-        _defaultFeatureSet = defaultFeatureSet;
+        _packageDefaultFeatureSet = packageDefaultFeatureSet,
+        _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
 
   /// Return the [FeatureSet] for the Dart file with the given [uri].
   FeatureSet getFeatureSet(String path, Uri uri) {
@@ -38,32 +41,34 @@ class FeatureSetProvider {
       if (package.rootFolder.contains(path)) {
         var languageVersion = package.languageVersion;
         if (languageVersion == null) {
-          _defaultFeatureSet;
+          return _packageDefaultFeatureSet;
         } else {
-          return _defaultFeatureSet.restrictToVersion(languageVersion);
+          return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
         }
       }
     }
 
-    return _defaultFeatureSet;
+    return _nonPackageDefaultFeatureSet;
   }
 
   static FeatureSetProvider build({
     @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required SourceFactory sourceFactory,
-    @required FeatureSet defaultFeatureSet,
+    @required FeatureSet packageDefaultFeatureSet,
+    @required FeatureSet nonPackageDefaultFeatureSet,
   }) {
     var sdkFeatureSet = _determineSdkFeatureSet(
       resourceProvider,
       sourceFactory,
-      defaultFeatureSet,
+      packageDefaultFeatureSet,
     );
 
     return FeatureSetProvider._(
       sdkFeatureSet: sdkFeatureSet,
       packages: packages,
-      defaultFeatureSet: defaultFeatureSet,
+      packageDefaultFeatureSet: packageDefaultFeatureSet,
+      nonPackageDefaultFeatureSet: nonPackageDefaultFeatureSet,
     );
   }
 

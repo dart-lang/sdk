@@ -15,87 +15,57 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-/**
- * The object used to coordinate the results of notifications from the analysis
- * server and multiple plugins.
- */
+/// The object used to coordinate the results of notifications from the analysis
+/// server and multiple plugins.
 class NotificationManager {
-  /**
-   * The identifier used to identify results from the server.
-   */
+  /// The identifier used to identify results from the server.
   static const String serverId = 'server';
 
-  /**
-   * The channel used to send notifications to the client.
-   */
+  /// The channel used to send notifications to the client.
   final ServerCommunicationChannel channel;
 
-  /**
-   * The resource provider used to get the path context.
-   */
+  /// The resource provider used to get the path context.
   final ResourceProvider provider;
 
-  /**
-   * A list of the paths of files and directories that are included for analysis.
-   */
+  /// A list of the paths of files and directories that are included for
+  /// analysis.
   List<String> includedPaths = <String>[];
 
-  /**
-   * A list of the paths of files and directories that are excluded from
-   * analysis.
-   */
+  /// A list of the paths of files and directories that are excluded from
+  /// analysis.
   List<String> excludedPaths = <String>[];
 
-  /**
-   * The current set of subscriptions to which the client has subscribed.
-   */
+  /// The current set of subscriptions to which the client has subscribed.
   Map<server.AnalysisService, Set<String>> currentSubscriptions =
       <server.AnalysisService, Set<String>>{};
 
-  /**
-   * The collector being used to collect the analysis errors from the plugins.
-   */
+  /// The collector being used to collect the analysis errors from the plugins.
   ResultCollector<List<AnalysisError>> errors;
 
-  /**
-   * The collector being used to collect the folding regions from the plugins.
-   */
+  /// The collector being used to collect the folding regions from the plugins.
   ResultCollector<List<FoldingRegion>> folding;
 
-  /**
-   * The collector being used to collect the highlight regions from the plugins.
-   */
+  /// The collector being used to collect the highlight regions from the
+  /// plugins.
   ResultCollector<List<HighlightRegion>> highlights;
 
-  /**
-   * The collector being used to collect the navigation parameters from the
-   * plugins.
-   */
+  /// The collector being used to collect the navigation parameters from the
+  /// plugins.
   ResultCollector<server.AnalysisNavigationParams> navigation;
 
-  /**
-   * The collector being used to collect the occurrences from the plugins.
-   */
+  /// The collector being used to collect the occurrences from the plugins.
   ResultCollector<List<Occurrences>> occurrences;
 
-  /**
-   * The collector being used to collect the outlines from the plugins.
-   */
+  /// The collector being used to collect the outlines from the plugins.
   ResultCollector<List<Outline>> outlines;
 
-  /**
-   * The object used to convert results.
-   */
+  /// The object used to convert results.
   final ResultConverter converter = ResultConverter();
 
-  /**
-   * The object used to merge results.
-   */
+  /// The object used to merge results.
   final ResultMerger merger = ResultMerger();
 
-  /**
-   * Initialize a newly created notification manager.
-   */
+  /// Initialize a newly created notification manager.
   NotificationManager(this.channel, this.provider) {
     errors =
         ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded);
@@ -106,9 +76,7 @@ class NotificationManager {
     outlines = ResultCollector<List<Outline>>(serverId);
   }
 
-  /**
-   * Handle the given [notification] from the plugin with the given [pluginId].
-   */
+  /// Handle the given [notification] from the plugin with the given [pluginId].
   void handlePluginNotification(
       String pluginId, plugin.Notification notification) {
     String event = notification.event;
@@ -158,10 +126,8 @@ class NotificationManager {
     }
   }
 
-  /**
-   * Record error information from the plugin with the given [pluginId] for the
-   * file with the given [filePath].
-   */
+  /// Record error information from the plugin with the given [pluginId] for the
+  /// file with the given [filePath].
   void recordAnalysisErrors(
       String pluginId, String filePath, List<AnalysisError> errorData) {
     if (errors.isCollectingFor(filePath)) {
@@ -174,10 +140,8 @@ class NotificationManager {
     }
   }
 
-  /**
-   * Record folding information from the plugin with the given [pluginId] for
-   * the file with the given [filePath].
-   */
+  /// Record folding information from the plugin with the given [pluginId] for
+  /// the file with the given [filePath].
   void recordFoldingRegions(
       String pluginId, String filePath, List<FoldingRegion> foldingData) {
     if (folding.isCollectingFor(filePath)) {
@@ -191,10 +155,8 @@ class NotificationManager {
     }
   }
 
-  /**
-   * Record highlight information from the plugin with the given [pluginId] for
-   * the file with the given [filePath].
-   */
+  /// Record highlight information from the plugin with the given [pluginId] for
+  /// the file with the given [filePath].
   void recordHighlightRegions(
       String pluginId, String filePath, List<HighlightRegion> highlightData) {
     if (highlights.isCollectingFor(filePath)) {
@@ -209,10 +171,8 @@ class NotificationManager {
     }
   }
 
-  /**
-   * Record navigation information from the plugin with the given [pluginId] for
-   * the file with the given [filePath].
-   */
+  /// Record navigation information from the plugin with the given [pluginId]
+  /// for the file with the given [filePath].
   void recordNavigationParams(String pluginId, String filePath,
       server.AnalysisNavigationParams navigationData) {
     if (navigation.isCollectingFor(filePath)) {
@@ -225,10 +185,8 @@ class NotificationManager {
     }
   }
 
-  /**
-   * Record occurrences information from the plugin with the given [pluginId]
-   * for the file with the given [filePath].
-   */
+  /// Record occurrences information from the plugin with the given [pluginId]
+  /// for the file with the given [filePath].
   void recordOccurrences(
       String pluginId, String filePath, List<Occurrences> occurrencesData) {
     if (occurrences.isCollectingFor(filePath)) {
@@ -243,10 +201,8 @@ class NotificationManager {
     }
   }
 
-  /**
-   * Record outline information from the plugin with the given [pluginId] for
-   * the file with the given [filePath].
-   */
+  /// Record outline information from the plugin with the given [pluginId] for
+  /// the file with the given [filePath].
   void recordOutlines(
       String pluginId, String filePath, List<Outline> outlineData) {
     if (outlines.isCollectingFor(filePath)) {
@@ -259,23 +215,17 @@ class NotificationManager {
     }
   }
 
-  /**
-   * Set the lists of [included] and [excluded] files.
-   */
+  /// Set the lists of [included] and [excluded] files.
   void setAnalysisRoots(List<String> included, List<String> excluded) {
     includedPaths = included;
     excludedPaths = excluded;
   }
 
-  /**
-   * Set the current subscriptions to the given set of [newSubscriptions].
-   */
+  /// Set the current subscriptions to the given set of [newSubscriptions].
   void setSubscriptions(
       Map<server.AnalysisService, Set<String>> newSubscriptions) {
-    /**
-     * Return the collector associated with the given service, or `null` if the
-     * service is not handled by this manager.
-     */
+    /// Return the collector associated with the given service, or `null` if the
+    /// service is not handled by this manager.
     ResultCollector collectorFor(server.AnalysisService service) {
       switch (service) {
         case server.AnalysisService.FOLDING:
@@ -332,10 +282,8 @@ class NotificationManager {
     currentSubscriptions = newSubscriptions;
   }
 
-  /**
-   * Return `true` if errors should be collected for the file with the given
-   * [path] (because it is being analyzed).
-   */
+  /// Return `true` if errors should be collected for the file with the given
+  /// [path] (because it is being analyzed).
   bool _isIncluded(String path) {
     bool isIncluded() {
       for (String includedPath in includedPaths) {

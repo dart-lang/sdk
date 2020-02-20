@@ -23,10 +23,8 @@ const PART_STATEMENT = "part '';";
 const SYNC_STAR = 'sync*';
 const YIELD_STAR = 'yield*';
 
-/**
- * A contributor for calculating `completion.getSuggestions` request results
- * for the local library in which the completion is requested.
- */
+/// A contributor for calculating `completion.getSuggestions` request results
+/// for the local library in which the completion is requested.
 class KeywordContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -45,9 +43,7 @@ class KeywordContributor extends DartCompletionContributor {
   }
 }
 
-/**
- * A visitor for generating keyword suggestions.
- */
+/// A visitor for generating keyword suggestions.
 class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   final DartCompletionRequest request;
   final Object entity;

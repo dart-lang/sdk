@@ -23,20 +23,14 @@ void main() {
 class ByteStreamClientChannelTest {
   ByteStreamClientChannel channel;
 
-  /**
-   * Sink that may be used to deliver data to the channel, as though it's
-   * coming from the server.
-   */
+  /// Sink that may be used to deliver data to the channel, as though it's
+  /// coming from the server.
   IOSink inputSink;
 
-  /**
-   * Sink through which the channel delivers data to the server.
-   */
+  /// Sink through which the channel delivers data to the server.
   IOSink outputSink;
 
-  /**
-   * Stream of lines sent back to the client by the channel.
-   */
+  /// Stream of lines sent back to the client by the channel.
   Stream<String> outputLineStream;
 
   void setUp() {
@@ -109,30 +103,20 @@ class ByteStreamClientChannelTest {
 class ByteStreamServerChannelTest {
   ByteStreamServerChannel channel;
 
-  /**
-   * Sink that may be used to deliver data to the channel, as though it's
-   * coming from the client.
-   */
+  /// Sink that may be used to deliver data to the channel, as though it's
+  /// coming from the client.
   IOSink inputSink;
 
-  /**
-   * Stream of lines sent back to the client by the channel.
-   */
+  /// Stream of lines sent back to the client by the channel.
   Stream<String> outputLineStream;
 
-  /**
-   * Stream of requests received from the channel via [listen()].
-   */
+  /// Stream of requests received from the channel via [listen()].
   Stream<Request> requestStream;
 
-  /**
-   * Stream of errors received from the channel via [listen()].
-   */
+  /// Stream of errors received from the channel via [listen()].
   Stream errorStream;
 
-  /**
-   * Future which is completed when then [listen()] reports [onDone].
-   */
+  /// Future which is completed when then [listen()] reports [onDone].
   Future doneFuture;
 
   void setUp() {

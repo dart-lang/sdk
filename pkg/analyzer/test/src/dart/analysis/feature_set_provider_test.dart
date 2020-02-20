@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -86,6 +87,45 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     _assertNonNullableForPath('/other/file.dart', true);
   }
 
+  test_nonPackageDefaultFeatureSet() {
+    newFile('/test/.packages', content: '''
+test:lib/
+''');
+    _simulateNonNullableSdk();
+    _buildProvider(['non-nullable']);
+
+    provider = FeatureSetProvider.build(
+      resourceProvider: resourceProvider,
+      packages: Packages(
+        {
+          'aaa': Package(
+            name: 'aaa',
+            rootFolder: newFolder('/packages/aaa'),
+            libFolder: newFolder('/packages/aaa/lib'),
+            languageVersion: null,
+          ),
+          'bbb': Package(
+            name: 'bbb',
+            rootFolder: newFolder('/packages/bbb'),
+            libFolder: newFolder('/packages/bbb/lib'),
+            languageVersion: Version(2, 7, 0),
+          ),
+        },
+      ),
+      sourceFactory: sourceFactory,
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags(['non-nullable']),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    _assertNonNullableForPath('/packages/aaa/lib/a.dart', true);
+    _assertNonNullableForPath('/packages/aaa/test/b.dart', true);
+
+    _assertNonNullableForPath('/packages/bbb/lib/a.dart', false);
+    _assertNonNullableForPath('/packages/bbb/test/b.dart', false);
+
+    _assertNonNullableForPath('/foo/bar.dart', false);
+  }
+
   test_sdk_defaultLegacy_sdkLegacy() {
     newFile('/test/.packages', content: '''
 test:lib/
@@ -125,11 +165,13 @@ test:lib/
   }
 
   void _buildProvider(List<String> enabledExperiments) {
+    var featureSet = FeatureSet.fromEnableFlags(enabledExperiments);
     provider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
       sourceFactory: sourceFactory,
-      defaultFeatureSet: FeatureSet.fromEnableFlags(enabledExperiments),
+      packageDefaultFeatureSet: featureSet,
+      nonPackageDefaultFeatureSet: featureSet,
     );
   }
 

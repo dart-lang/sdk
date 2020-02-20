@@ -228,7 +228,7 @@ void f(d) {
   test_factoryConstructor_notUsed_multiple() async {
     await assertErrorsInCode(r'''
 class A {
-  factory A._factory() => null;
+  factory A._factory() => A();
   A();
 }
 ''', [
@@ -239,7 +239,7 @@ class A {
   test_factoryConstructor_notUsed_single() async {
     await assertNoErrorsInCode(r'''
 class A {
-  factory A._factory() => null;
+  factory A._factory() => throw 0;
 }
 ''');
   }

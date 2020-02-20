@@ -74,20 +74,23 @@ class ScavengeStats {
                 SpaceUsage before,
                 SpaceUsage after,
                 intptr_t promo_candidates_in_words,
-                intptr_t promoted_in_words)
+                intptr_t promoted_in_words,
+                intptr_t abandoned_in_words)
       : start_micros_(start_micros),
         end_micros_(end_micros),
         before_(before),
         after_(after),
         promo_candidates_in_words_(promo_candidates_in_words),
-        promoted_in_words_(promoted_in_words) {}
+        promoted_in_words_(promoted_in_words),
+        abandoned_in_words_(abandoned_in_words) {}
 
   // Of all data before scavenge, what fraction was found to be garbage?
   // If this scavenge included growth, assume the extra capacity would become
   // garbage to give the scavenger a chance to stablize at the new capacity.
   double ExpectedGarbageFraction() const {
-    intptr_t survived = after_.used_in_words + promoted_in_words_;
-    return 1.0 - (survived / static_cast<double>(after_.capacity_in_words));
+    double work =
+        after_.used_in_words + promoted_in_words_ + abandoned_in_words_;
+    return 1.0 - (work / after_.capacity_in_words);
   }
 
   // Fraction of promotion candidates that survived and was thereby promoted.
@@ -110,6 +113,7 @@ class ScavengeStats {
   SpaceUsage after_;
   intptr_t promo_candidates_in_words_;
   intptr_t promoted_in_words_;
+  intptr_t abandoned_in_words_;
 };
 
 class Scavenger {
@@ -175,6 +179,15 @@ class Scavenger {
   void set_end(uword value) {
     ASSERT(to_->end() == value);
     end_ = value;
+  }
+
+  // Report (TLAB) abandoned bytes that should be taken account when
+  // deciding whether to grow new space or not.
+  void AddAbandonedInBytes(intptr_t value) { abandoned_ += value; }
+  int64_t GetAndResetAbandonedInBytes() {
+    int64_t result = abandoned_;
+    abandoned_ = 0;
+    return result;
   }
 
   int64_t UsedInWords() const {
@@ -295,6 +308,10 @@ class Scavenger {
 
   // Objects below this address have survived a scavenge.
   uword survivor_end_;
+
+  // Abandoned (TLAB) bytes that need to be accounted for when deciding
+  // whether to grow newspace or not.
+  intptr_t abandoned_ = 0;
 
   intptr_t max_semi_capacity_in_words_;
 

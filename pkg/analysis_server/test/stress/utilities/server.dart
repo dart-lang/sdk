@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Support for interacting with an analysis server that is running in a separate
- * process.
- */
+/// Support for interacting with an analysis server that is running in a
+/// separate process.
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert' hide JsonDecoder;
@@ -19,30 +17,20 @@ import 'package:path/path.dart' as path;
 
 import 'logger.dart';
 
-/**
- * Return the current time expressed as milliseconds since the epoch.
- */
+/// Return the current time expressed as milliseconds since the epoch.
 int get currentTime => DateTime.now().millisecondsSinceEpoch;
 
-/**
- * ???
- */
+/// ???
 class ErrorMap {
-  /**
-   * A table mapping file paths to the errors associated with that file.
-   */
+  /// A table mapping file paths to the errors associated with that file.
   final Map<String, List<AnalysisError>> pathMap =
       HashMap<String, List<AnalysisError>>();
 
-  /**
-   * Initialize a newly created error map.
-   */
+  /// Initialize a newly created error map.
   ErrorMap();
 
-  /**
-   * Initialize a newly created error map to contain the same mapping as the
-   * given [errorMap].
-   */
+  /// Initialize a newly created error map to contain the same mapping as the
+  /// given [errorMap].
   ErrorMap.from(ErrorMap errorMap) {
     pathMap.addAll(errorMap.pathMap);
   }
@@ -52,60 +40,38 @@ class ErrorMap {
   }
 }
 
-/**
- * Data that has been collected about a request sent to the server.
- */
+/// Data that has been collected about a request sent to the server.
 class RequestData {
-  /**
-   * The unique id of the request.
-   */
+  /// The unique id of the request.
   final String id;
 
-  /**
-   * The method that was requested.
-   */
+  /// The method that was requested.
   final String method;
 
-  /**
-   * The request parameters.
-   */
+  /// The request parameters.
   final Map<String, dynamic> params;
 
-  /**
-   * The time at which the request was sent.
-   */
+  /// The time at which the request was sent.
   final int requestTime;
 
-  /**
-   * The time at which the response was received, or `null` if no response has
-   * been received.
-   */
+  /// The time at which the response was received, or `null` if no response has
+  /// been received.
   int responseTime;
 
-  /**
-   * The response that was received.
-   */
+  /// The response that was received.
   Response _response;
 
-  /**
-   * The completer that will be completed when a response is received.
-   */
+  /// The completer that will be completed when a response is received.
   Completer<Response> _responseCompleter;
 
-  /**
-   * Initialize a newly created set of request data.
-   */
+  /// Initialize a newly created set of request data.
   RequestData(this.id, this.method, this.params, this.requestTime);
 
-  /**
-   * Return the number of milliseconds that elapsed between the request and the
-   * response. This getter assumes that the response was received.
-   */
+  /// Return the number of milliseconds that elapsed between the request and the
+  /// response. This getter assumes that the response was received.
   int get elapsedTime => responseTime - requestTime;
 
-  /**
-   * Return a future that will complete when a response is received.
-   */
+  /// Return a future that will complete when a response is received.
   Future<Response> get respondedTo {
     if (_response != null) {
       return Future.value(_response);
@@ -114,9 +80,7 @@ class RequestData {
     return _responseCompleter.future;
   }
 
-  /**
-   * Record that the given [response] was received.
-   */
+  /// Record that the given [response] was received.
   void recordResponse(Response response) {
     if (_response != null) {
       stdout.writeln(
@@ -132,113 +96,80 @@ class RequestData {
   }
 }
 
-/**
- * A utility for starting and communicating with an analysis server that is
- * running in a separate process.
- */
+/// A utility for starting and communicating with an analysis server that is
+/// running in a separate process.
 class Server {
-  /**
-   * The label used for communications from the client.
-   */
+  /// The label used for communications from the client.
   static const String fromClient = 'client';
 
-  /**
-   * The label used for normal communications from the server.
-   */
+  /// The label used for normal communications from the server.
   static const String fromServer = 'server';
 
-  /**
-   * The label used for output written by the server on [fromStderr].
-   */
+  /// The label used for output written by the server on [fromStderr].
   static const String fromStderr = 'stderr';
 
-  /**
-   * The logger to which the communications log should be written, or `null` if
-   * the log should not be written.
-   */
+  /// The logger to which the communications log should be written, or `null` if
+  /// the log should not be written.
   final Logger logger;
 
-  /**
-   * The process in which the server is running, or `null` if the server hasn't
-   * been started yet.
-   */
+  /// The process in which the server is running, or `null` if the server hasn't
+  /// been started yet.
   Process _process;
 
-  /**
-   * Number that should be used to compute the 'id' to send in the next command
-   * sent to the server.
-   */
+  /// Number that should be used to compute the 'id' to send in the next command
+  /// sent to the server.
   int _nextId = 0;
 
-  /**
-   * The analysis roots that are included.
-   */
+  /// The analysis roots that are included.
   List<String> _analysisRootIncludes = <String>[];
 
-  /**
-   * A list containing the paths of files for which an overlay has been created.
-   */
+  /// A list containing the paths of files for which an overlay has been
+  /// created.
   List<String> filesWithOverlays = <String>[];
 
-  /**
-   * The files that the server reported as being analyzed.
-   */
+  /// The files that the server reported as being analyzed.
   List<String> _analyzedFiles = <String>[];
 
   /// A mapping from the absolute paths of files to the most recent set of
   /// errors received for that file.
   final ErrorMap _errorMap = ErrorMap();
 
-  /**
-   * The completer that will be completed the next time a 'server.status'
-   * notification is received from the server with 'analyzing' set to false.
-   */
+  /// The completer that will be completed the next time a 'server.status'
+  /// notification is received from the server with 'analyzing' set to false.
   Completer<void> _analysisFinishedCompleter;
 
-  /**
-   * The completer that will be completed the next time a 'server.connected'
-   * notification is received from the server.
-   */
+  /// The completer that will be completed the next time a 'server.connected'
+  /// notification is received from the server.
   Completer<void> _serverConnectedCompleter;
 
-  /**
-   * A table mapping the ids of requests that have been sent to the server to
-   * data about those requests.
-   */
+  /// A table mapping the ids of requests that have been sent to the server to
+  /// data about those requests.
   final Map<String, RequestData> _requestDataMap = <String, RequestData>{};
 
-  /**
-   * A table mapping the number of times a request whose 'event' is equal to the
-   * key was sent to the server.
-   */
+  /// A table mapping the number of times a request whose 'event' is equal to
+  /// the key was sent to the server.
   final Map<String, int> _notificationCountMap = <String, int>{};
 
-  /**
-   * Initialize a new analysis server. The analysis server is not running and
-   * must be started using [start].
-   *
-   * If a [logger] is provided, the communications between the client (this
-   * test) and the server will be written to it.
-   */
+  /// Initialize a new analysis server. The analysis server is not running and
+  /// must be started using [start].
+  ///
+  /// If a [logger] is provided, the communications between the client (this
+  /// test) and the server will be written to it.
   Server({this.logger});
 
-  /**
-   * Return a future that will complete when a 'server.status' notification is
-   * received from the server with 'analyzing' set to false.
-   *
-   * The future will only be completed by 'server.status' notifications that are
-   * received after this function call, so it is safe to use this getter
-   * multiple times in one test; each time it is used it will wait afresh for
-   * analysis to finish.
-   */
+  /// Return a future that will complete when a 'server.status' notification is
+  /// received from the server with 'analyzing' set to false.
+  ///
+  /// The future will only be completed by 'server.status' notifications that
+  /// are received after this function call, so it is safe to use this getter
+  /// multiple times in one test; each time it is used it will wait afresh for
+  /// analysis to finish.
   Future get analysisFinished {
     _analysisFinishedCompleter ??= Completer<void>();
     return _analysisFinishedCompleter.future;
   }
 
-  /**
-   * Return a list of the paths of files that are currently being analyzed.
-   */
+  /// Return a list of the paths of files that are currently being analyzed.
   List<String> get analyzedDartFiles {
     bool isAnalyzed(String filePath) {
       // TODO(brianwilkerson) This should use the path package to determine
@@ -260,17 +191,13 @@ class Server {
     return analyzedFiles;
   }
 
-  /**
-   * Return a table mapping the absolute paths of files to the most recent set
-   * of errors received for that file. The content of the map will not change
-   * when new sets of errors are received.
-   */
+  /// Return a table mapping the absolute paths of files to the most recent set
+  /// of errors received for that file. The content of the map will not change
+  /// when new sets of errors are received.
   ErrorMap get errorMap => ErrorMap.from(_errorMap);
 
-  /**
-   * Compute a mapping from each of the file paths in the given list of
-   * [filePaths] to the list of errors in the file at that path.
-   */
+  /// Compute a mapping from each of the file paths in the given list of
+  /// [filePaths] to the list of errors in the file at that path.
   Future<ErrorMap> computeErrorMap(List<String> filePaths) async {
     ErrorMap errorMap = ErrorMap();
     List<Future> futures = <Future>[];
@@ -288,9 +215,7 @@ class Server {
     return errorMap;
   }
 
-  /**
-   * Print information about the communications with the server.
-   */
+  /// Print information about the communications with the server.
   void printStatistics() {
     void writeSpaces(int count) {
       for (int i = 0; i < count; i++) {
@@ -381,9 +306,7 @@ class Server {
     }
   }
 
-  /**
-   * Remove any existing overlays.
-   */
+  /// Remove any existing overlays.
   void removeAllOverlays() {
     Map<String, dynamic> files = HashMap<String, dynamic>();
     for (String path in filesWithOverlays) {
@@ -584,20 +507,18 @@ class Server {
     _send('server.shutdown', null);
   }
 
-  /**
-   * Start the server and listen for communications from it.
-   *
-   * If [checked] is `true`, the server's VM will be running in checked mode.
-   *
-   * If [diagnosticPort] is not `null`, the server will serve status pages to
-   * the specified port.
-   *
-   * If [profileServer] is `true`, the server will be started with "--observe"
-   * and "--pause-isolates-on-exit", allowing the observatory to be used.
-   *
-   * If [useAnalysisHighlight2] is `true`, the server will use the new highlight
-   * APIs.
-   */
+  /// Start the server and listen for communications from it.
+  ///
+  /// If [checked] is `true`, the server's VM will be running in checked mode.
+  ///
+  /// If [diagnosticPort] is not `null`, the server will serve status pages to
+  /// the specified port.
+  ///
+  /// If [profileServer] is `true`, the server will be started with "--observe"
+  /// and "--pause-isolates-on-exit", allowing the observatory to be used.
+  ///
+  /// If [useAnalysisHighlight2] is `true`, the server will use the new
+  /// highlight APIs.
   Future<void> start(
       {bool checked = true,
       int diagnosticPort,
@@ -663,10 +584,8 @@ class Server {
     return _serverConnectedCompleter.future;
   }
 
-  /**
-   * Find the root directory of the analysis_server package by proceeding
-   * upward to the 'test' dir, and then going up one more directory.
-   */
+  /// Find the root directory of the analysis_server package by proceeding
+  /// upward to the 'test' dir, and then going up one more directory.
   String _findRoot(String pathname) {
     while (!['benchmark', 'test'].contains(path.basename(pathname))) {
       String parent = path.dirname(pathname);
@@ -678,9 +597,7 @@ class Server {
     return path.dirname(pathname);
   }
 
-  /**
-   * Handle a [notification] received from the server.
-   */
+  /// Handle a [notification] received from the server.
   void _handleNotification(Notification notification) {
     switch (notification.event) {
       case 'server.connected':
@@ -753,9 +670,7 @@ class Server {
     }
   }
 
-  /**
-   * Handle a [response] received from the server.
-   */
+  /// Handle a [response] received from the server.
   void _handleResponse(Response response) {
     String id = response.id.toString();
     RequestData requestData = _requestDataMap[id];
@@ -832,23 +747,17 @@ class Server {
 //    }
   }
 
-  /**
-   * Handle a [line] of input read from stderr.
-   */
+  /// Handle a [line] of input read from stderr.
   void _handleStdErr(String line) {
     String trimmedLine = line.trim();
     logger?.log(fromStderr, '$trimmedLine');
     throw StateError('Message received on stderr: "$trimmedLine"');
   }
 
-  /**
-   * Handle a [line] of input read from stdout.
-   */
+  /// Handle a [line] of input read from stdout.
   void _handleStdOut(String line) {
-    /**
-     * Cast the given [value] to a Map, or throw an [ArgumentError] if the value
-     * cannot be cast.
-     */
+    /// Cast the given [value] to a Map, or throw an [ArgumentError] if the
+    /// value cannot be cast.
     Map asMap(Object value) {
       if (value is Map) {
         return value;
@@ -876,14 +785,10 @@ class Server {
     }
   }
 
-  /**
-   * Start listening to output from the server.
-   */
+  /// Start listening to output from the server.
   void _listenToOutput() {
-    /**
-     * Install the given [handler] to listen to transformed output from the
-     * given [stream].
-     */
+    /// Install the given [handler] to listen to transformed output from the
+    /// given [stream].
     void installHandler(
         Stream<List<int>> stream, void Function(String) handler) {
       stream
@@ -896,9 +801,7 @@ class Server {
     installHandler(_process.stderr, _handleStdErr);
   }
 
-  /**
-   * Send a command to the server. An 'id' will be automatically assigned.
-   */
+  /// Send a command to the server. An 'id' will be automatically assigned.
   RequestData _send(String method, Map<String, dynamic> params,
       {void Function(Response) onResponse}) {
     String id = '${_nextId++}';

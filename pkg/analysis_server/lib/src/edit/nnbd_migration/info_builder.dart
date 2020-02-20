@@ -560,11 +560,7 @@ class InfoBuilder {
     String content = result.content;
     List<RegionInfo> regions = unitInfo.regions;
     var lineInfo = result.unit.lineInfo;
-
-    // [fileEdit] is null when a file has no edits.
-    List<SourceEdit> edits = fileEdit == null ? [] : List.of(fileEdit.edits);
-    edits.sort((first, second) => first.offset.compareTo(second.offset));
-    OffsetMapper mapper = OffsetMapper.forEdits(edits);
+    Map<int, List<AtomicEdit>> insertions = {};
 
     // Apply edits and build the regions.
     var changes = sourceInfo.changes ?? {};
@@ -581,7 +577,10 @@ class InfoBuilder {
         String replacement = edit.replacement;
         int end = offset + length;
         // Insert the replacement text without deleting the replaced text.
-        content = content.replaceRange(end, end, replacement);
+        if (replacement.isNotEmpty) {
+          content = content.replaceRange(end, end, replacement);
+          (insertions[sourceOffset] ??= []).add(AtomicEdit.insert(replacement));
+        }
         var info = edit.info;
         String explanation = info?.description?.appliedMessage;
         List<EditDetail> edits =
@@ -602,6 +601,14 @@ class InfoBuilder {
         offset += replacement.length;
       }
     }
+
+    // Build the map from source file offset to offset in the modified text.
+    // We only account for insertions because in the code above, we don't delete
+    // the modified text.
+    List<SourceEdit> edits = insertions.toSourceEdits();
+    edits.sort((first, second) => first.offset.compareTo(second.offset));
+    OffsetMapper mapper = OffsetMapper.forEdits(edits);
+
     if (explainNonNullableTypes) {
       _explainNonNullableTypes(
           sourceInfo, regions, mapper, result.unit.lineInfo);

@@ -8,6 +8,7 @@ import 'dart:core';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
+import 'package:analyzer/dart/analysis/features.dart' as analyzer_features;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
@@ -182,7 +183,9 @@ class AnalysisServer extends AbstractAnalysisServer {
     PluginWatcher pluginWatcher =
         PluginWatcher(resourceProvider, pluginManager);
 
-    defaultContextOptions.enabledExperiments = options.enabledExperiments;
+    defaultContextOptions.contextFeatures =
+        analyzer_features.FeatureSet.fromEnableFlags(
+            options.enabledExperiments);
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 

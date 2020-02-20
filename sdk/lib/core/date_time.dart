@@ -393,9 +393,7 @@ class DateTime implements Comparable<DateTime> {
       throw ArgumentError(
           "DateTime is outside valid range: $millisecondsSinceEpoch");
     }
-    if (isUtc == null) {
-      throw ArgumentError("'isUtc' flag may not be 'null'");
-    }
+    ArgumentError.checkNotNull(isUtc, "isUtc");
   }
 
   /**

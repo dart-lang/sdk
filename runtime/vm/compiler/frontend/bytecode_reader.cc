@@ -2208,6 +2208,10 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   Array& parameter_names = Array::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
 
+  name = cls.ScrubbedName();
+  const bool is_async_await_completer_owner =
+      Symbols::_AsyncAwaitCompleter().Equals(name);
+
   for (intptr_t i = 0; i < num_functions; ++i) {
     intptr_t flags = reader_.ReadUInt();
 
@@ -2265,16 +2269,30 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     function.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
     function.set_is_extension_member(is_extension_member);
 
+    // _AsyncAwaitCompleter.start should be made non-visible in stack traces,
+    // since it is an implementation detail of our await/async desugaring.
+    if (is_async_await_completer_owner &&
+        Symbols::_AsyncAwaitStart().Equals(name)) {
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
+    }
+
     if ((flags & kIsSyncStarFlag) != 0) {
       function.set_modifier(RawFunction::kSyncGen);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
     } else if ((flags & kIsAsyncFlag) != 0) {
       function.set_modifier(RawFunction::kAsync);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
     } else if ((flags & kIsAsyncStarFlag) != 0) {
       function.set_modifier(RawFunction::kAsyncGen);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
     }
 
     if ((flags & kHasTypeParamsFlag) != 0) {

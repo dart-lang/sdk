@@ -3,9 +3,8 @@ library fileapi;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:async_helper/async_minitest.dart';
 
 class FileAndDir {
   FileEntry file;
@@ -16,8 +15,6 @@ class FileAndDir {
 FileSystem fs;
 
 main() async {
-  useHtmlConfiguration();
-
   getFileSystem() async {
     var fileSystem = await window.requestFileSystem(100);
     fs = fileSystem;
@@ -47,8 +44,10 @@ main() async {
       var fileObj = await fileAndDir.file.file();
       expect(fileObj.name, fileAndDir.file.name);
       expect(fileObj.relativePath, '');
-      expect(new DateTime.now().difference(fileObj.lastModifiedDate).inMinutes,
-          lessThan(30));
+      expect(
+          new DateTime.now().difference(fileObj.lastModifiedDate).inMinutes <
+              30,
+          isTrue);
     });
   }
 }

@@ -463,13 +463,6 @@ Dart_Handle Api::NewArgumentError(const char* format, ...) {
   return Api::NewHandle(T, error.raw());
 }
 
-void Api::SetupAcquiredError(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  state->SetupAcquiredError();
-}
-
 Dart_Handle Api::AcquiredError(Isolate* isolate) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -707,7 +700,7 @@ void FinalizablePersistentHandle::Finalize(
   (*callback)(isolate->init_callback_data(), object, peer);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  state->weak_persistent_handles().FreeHandle(handle);
+  state->FreeWeakPersistentHandle(handle);
 }
 
 // --- Handles ---
@@ -929,7 +922,7 @@ DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   ApiState* state = I->api_state();
   ASSERT(state != NULL);
   const Object& old_ref = Object::Handle(Z, Api::UnwrapHandle(object));
-  PersistentHandle* new_ref = state->persistent_handles().AllocateHandle();
+  PersistentHandle* new_ref = state->AllocatePersistentHandle();
   new_ref->set_raw(old_ref);
   return new_ref->apiHandle();
 }
@@ -998,7 +991,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   PersistentHandle* ref = PersistentHandle::Cast(object);
   ASSERT(!state->IsProtectedHandle(ref));
   if (!state->IsProtectedHandle(ref)) {
-    state->persistent_handles().FreeHandle(ref);
+    state->FreePersistentHandle(ref);
   }
 }
 
@@ -1011,10 +1004,9 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   ASSERT(isolate == Isolate::Current());
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  FinalizablePersistentHandle* weak_ref =
-      FinalizablePersistentHandle::Cast(object);
+  auto weak_ref = FinalizablePersistentHandle::Cast(object);
   weak_ref->EnsureFreeExternal(isolate);
-  state->weak_persistent_handles().FreeHandle(weak_ref);
+  state->FreeWeakPersistentHandle(weak_ref);
 }
 
 // --- Initialization and Globals ---
@@ -2032,9 +2024,17 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
   }
 }
 
-// TODO(iposva): This call actually implements IsInstanceOfClass.
-// Do we also need a real Dart_IsInstanceOf, which should take an instance
-// rather than an object?
+// Assumes type is non-null.
+static bool InstanceIsType(const Thread* thread,
+                           const Instance& instance,
+                           const Type& type) {
+  ASSERT(!type.IsNull());
+  CHECK_CALLBACK_STATE(thread);
+  return instance.IsInstanceOf(NNBDMode::kLegacyLib, type,
+                               Object::null_type_arguments(),
+                               Object::null_type_arguments());
+}
+
 DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle type,
                                           bool* value) {
@@ -2059,10 +2059,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     *value = false;
     RETURN_TYPE_ERROR(Z, object, Instance);
   }
-  CHECK_CALLBACK_STATE(T);
-  *value = instance.IsInstanceOf(NNBDMode::kLegacyLib, type_obj,
-                                 Object::null_type_arguments(),
-                                 Object::null_type_arguments());
+  *value = InstanceIsType(T, instance, type_obj);
   return Api::Success();
 }
 
@@ -2835,9 +2832,9 @@ static RawTypeArguments* TypeArgumentsForElementType(
     case Dart_CoreType_Dynamic:
       return TypeArguments::null();
     case Dart_CoreType_Int:
-      return store->type_argument_int();
+      return store->type_argument_legacy_int();
     case Dart_CoreType_String:
-      return store->type_argument_string();
+      return store->type_argument_legacy_string();
   }
   UNREACHABLE();
   return NULL;
@@ -2857,6 +2854,11 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
   return Api::NewHandle(T, arr.raw());
 }
 
+static bool CanTypeContainNull(const Type& type) {
+  return (type.nullability() == Nullability::kLegacy) ||
+         (type.nullability() == Nullability::kNullable);
+}
+
 DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
                                            intptr_t length) {
   DARTSCOPE(Thread::Current());
@@ -2871,7 +2873,46 @@ DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
         "%s expects argument 'type' to be a fully resolved type.",
         CURRENT_FUNC);
   }
+  if ((length > 0) && !CanTypeContainNull(type)) {
+    return Api::NewError("%s expects argument 'type' to be a nullable type.",
+                         CURRENT_FUNC);
+  }
   return Api::NewHandle(T, Array::New(length, type));
+}
+
+DART_EXPORT Dart_Handle Dart_NewListOfTypeFilled(Dart_Handle element_type,
+                                                 Dart_Handle fill_object,
+                                                 intptr_t length) {
+  DARTSCOPE(Thread::Current());
+  CHECK_LENGTH(length, Array::kMaxElements);
+  CHECK_CALLBACK_STATE(T);
+  const Type& type = Api::UnwrapTypeHandle(Z, element_type);
+  if (type.IsNull()) {
+    RETURN_TYPE_ERROR(Z, element_type, Type);
+  }
+  if (!type.IsFinalized()) {
+    return Api::NewError(
+        "%s expects argument 'type' to be a fully resolved type.",
+        CURRENT_FUNC);
+  }
+  const Instance& instance = Api::UnwrapInstanceHandle(Z, fill_object);
+  if (!instance.IsNull() && !InstanceIsType(T, instance, type)) {
+    return Api::NewError(
+        "%s expects argument 'fill_object' to have the same type as "
+        "'element_type'.",
+        CURRENT_FUNC);
+  }
+  if ((length > 0) && instance.IsNull() && !CanTypeContainNull(type)) {
+    return Api::NewError(
+        "%s expects argument 'fill_object' to be non-null for a non-nullable "
+        "'element_type'.",
+        CURRENT_FUNC);
+  }
+  Array& arr = Array::Handle(Z, Array::New(length, type));
+  for (intptr_t i = 0; i < arr.Length(); ++i) {
+    arr.SetAt(i, instance);
+  }
+  return Api::NewHandle(T, arr.raw());
 }
 
 #define GET_LIST_LENGTH(zone, type, obj, len)                                  \
@@ -5269,12 +5310,12 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
   return Api::NewHandle(T, cls.RareType());
 }
 
-DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
-                                     Dart_Handle class_name,
-                                     intptr_t number_of_type_arguments,
-                                     Dart_Handle* type_arguments) {
+static Dart_Handle GetTypeCommon(Dart_Handle library,
+                                 Dart_Handle class_name,
+                                 intptr_t number_of_type_arguments,
+                                 Dart_Handle* type_arguments,
+                                 Nullability nullability) {
   DARTSCOPE(Thread::Current());
-
   // Validate the input arguments.
   const Library& lib = Api::UnwrapLibraryHandle(Z, library);
   if (lib.IsNull()) {
@@ -5296,6 +5337,8 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   }
   cls.EnsureDeclarationLoaded();
   CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+
+  Type& type = Type::Handle();
   if (cls.NumTypeArguments() == 0) {
     if (number_of_type_arguments != 0) {
       return Api::NewError(
@@ -5303,44 +5346,116 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
           "got %" Pd " expected 0",
           number_of_type_arguments);
     }
-    return Api::NewHandle(T, Type::NewNonParameterizedType(cls));
-  }
-  intptr_t num_expected_type_arguments = cls.NumTypeParameters();
-  TypeArguments& type_args_obj = TypeArguments::Handle();
-  if (number_of_type_arguments > 0) {
-    if (type_arguments == NULL) {
-      RETURN_NULL_ERROR(type_arguments);
+    type ^= Type::NewNonParameterizedType(cls);
+    type ^= type.ToNullability(nullability, Heap::kOld);
+  } else {
+    intptr_t num_expected_type_arguments = cls.NumTypeParameters();
+    TypeArguments& type_args_obj = TypeArguments::Handle();
+    if (number_of_type_arguments > 0) {
+      if (type_arguments == NULL) {
+        RETURN_NULL_ERROR(type_arguments);
+      }
+      if (num_expected_type_arguments != number_of_type_arguments) {
+        return Api::NewError(
+            "Invalid number of type arguments specified, "
+            "got %" Pd " expected %" Pd,
+            number_of_type_arguments, num_expected_type_arguments);
+      }
+      const Array& array = Api::UnwrapArrayHandle(Z, *type_arguments);
+      if (array.IsNull()) {
+        RETURN_TYPE_ERROR(Z, *type_arguments, Array);
+      }
+      if (array.Length() != num_expected_type_arguments) {
+        return Api::NewError(
+            "Invalid type arguments specified, expected an "
+            "array of len %" Pd " but got an array of len %" Pd,
+            number_of_type_arguments, array.Length());
+      }
+      // Set up the type arguments array.
+      type_args_obj = TypeArguments::New(num_expected_type_arguments);
+      AbstractType& type_arg = AbstractType::Handle();
+      for (intptr_t i = 0; i < number_of_type_arguments; i++) {
+        type_arg ^= array.At(i);
+        type_args_obj.SetTypeAt(i, type_arg);
+      }
     }
-    if (num_expected_type_arguments != number_of_type_arguments) {
-      return Api::NewError(
-          "Invalid number of type arguments specified, "
-          "got %" Pd " expected %" Pd,
-          number_of_type_arguments, num_expected_type_arguments);
-    }
-    const Array& array = Api::UnwrapArrayHandle(Z, *type_arguments);
-    if (array.IsNull()) {
-      RETURN_TYPE_ERROR(Z, *type_arguments, Array);
-    }
-    if (array.Length() != num_expected_type_arguments) {
-      return Api::NewError(
-          "Invalid type arguments specified, expected an "
-          "array of len %" Pd " but got an array of len %" Pd,
-          number_of_type_arguments, array.Length());
-    }
-    // Set up the type arguments array.
-    type_args_obj = TypeArguments::New(num_expected_type_arguments);
-    AbstractType& type_arg = AbstractType::Handle();
-    for (intptr_t i = 0; i < number_of_type_arguments; i++) {
-      type_arg ^= array.At(i);
-      type_args_obj.SetTypeAt(i, type_arg);
-    }
-  }
 
-  // Construct the type object, canonicalize it and return.
-  Type& instantiated_type =
-      Type::Handle(Type::New(cls, type_args_obj, TokenPosition::kNoSource));
-  instantiated_type ^= ClassFinalizer::FinalizeType(cls, instantiated_type);
-  return Api::NewHandle(T, instantiated_type.raw());
+    // Construct the type object, canonicalize it and return.
+    type ^=
+        Type::New(cls, type_args_obj, TokenPosition::kNoSource, nullability);
+  }
+  type ^= ClassFinalizer::FinalizeType(cls, type);
+  return Api::NewHandle(T, type.raw());
+}
+
+DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
+                                     Dart_Handle class_name,
+                                     intptr_t number_of_type_arguments,
+                                     Dart_Handle* type_arguments) {
+  return GetTypeCommon(library, class_name, number_of_type_arguments,
+                       type_arguments, Nullability::kLegacy);
+}
+
+DART_EXPORT Dart_Handle Dart_GetNullableType(Dart_Handle library,
+                                             Dart_Handle class_name,
+                                             intptr_t number_of_type_arguments,
+                                             Dart_Handle* type_arguments) {
+  return GetTypeCommon(library, class_name, number_of_type_arguments,
+                       type_arguments, Nullability::kNullable);
+}
+
+DART_EXPORT Dart_Handle
+Dart_GetNonNullableType(Dart_Handle library,
+                        Dart_Handle class_name,
+                        intptr_t number_of_type_arguments,
+                        Dart_Handle* type_arguments) {
+  return GetTypeCommon(library, class_name, number_of_type_arguments,
+                       type_arguments, Nullability::kNonNullable);
+}
+
+static Dart_Handle TypeToHelper(Dart_Handle type, Nullability nullability) {
+  DARTSCOPE(Thread::Current());
+  const Type& ty = Api::UnwrapTypeHandle(Z, type);
+  if (ty.IsNull()) {
+    RETURN_TYPE_ERROR(Z, type, Type);
+  }
+  if (ty.nullability() == nullability) {
+    return type;
+  }
+  return Api::NewHandle(T, ty.ToNullability(nullability, Heap::kOld));
+}
+
+DART_EXPORT Dart_Handle Dart_TypeToNullableType(Dart_Handle type) {
+  return TypeToHelper(type, Nullability::kNullable);
+}
+
+DART_EXPORT Dart_Handle Dart_TypeToNonNullableType(Dart_Handle type) {
+  return TypeToHelper(type, Nullability::kNonNullable);
+}
+
+static Dart_Handle IsOfTypeNullabilityHelper(Dart_Handle type,
+                                             Nullability nullability,
+                                             bool* result) {
+  DARTSCOPE(Thread::Current());
+  const Type& ty = Api::UnwrapTypeHandle(Z, type);
+  if (ty.IsNull()) {
+    *result = false;
+    RETURN_TYPE_ERROR(Z, type, Type);
+  }
+  *result = (ty.nullability() == nullability);
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_IsNullableType(Dart_Handle type, bool* result) {
+  return IsOfTypeNullabilityHelper(type, Nullability::kNullable, result);
+}
+
+DART_EXPORT Dart_Handle Dart_IsNonNullableType(Dart_Handle type, bool* result) {
+  return IsOfTypeNullabilityHelper(type, Nullability::kNonNullable, result);
+}
+
+DART_EXPORT Dart_Handle Dart_IsLegacyType(Dart_Handle type, bool* result) {
+  return IsOfTypeNullabilityHelper(type, Nullability::kLegacy, result);
 }
 
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
@@ -6243,78 +6358,6 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   if (generate_debug) {
     debug_dwarf->Write();
     debug_elf->Finalize();
-  }
-
-  return Api::Success();
-#endif
-}
-
-DART_EXPORT Dart_Handle
-Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
-                                 intptr_t* vm_snapshot_data_size,
-                                 uint8_t** vm_snapshot_instructions_buffer,
-                                 intptr_t* vm_snapshot_instructions_size,
-                                 uint8_t** isolate_snapshot_data_buffer,
-                                 intptr_t* isolate_snapshot_data_size,
-                                 uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size,
-                                 Dart_StreamingWriteCallback callback,
-                                 void* debug_callback_data) {
-#if defined(TARGET_ARCH_IA32)
-  return Api::NewError("AOT compilation is not supported on IA32.");
-#elif !defined(DART_PRECOMPILER)
-  return Api::NewError(
-      "This VM was built without support for AOT compilation.");
-#else
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-  if (I->compilation_allowed()) {
-    return Api::NewError(
-        "Isolate is not precompiled. "
-        "Did you forget to call Dart_Precompile?");
-  }
-  CHECK_NULL(vm_snapshot_data_buffer);
-  CHECK_NULL(vm_snapshot_data_size);
-  CHECK_NULL(vm_snapshot_instructions_buffer);
-  CHECK_NULL(vm_snapshot_instructions_size);
-  CHECK_NULL(isolate_snapshot_data_buffer);
-  CHECK_NULL(isolate_snapshot_data_size);
-  CHECK_NULL(isolate_snapshot_instructions_buffer);
-  CHECK_NULL(isolate_snapshot_instructions_size);
-
-  TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
-
-  const bool generate_debug = debug_callback_data != nullptr;
-
-  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
-                                    callback, debug_callback_data);
-
-  Elf* elf = nullptr;
-  Dwarf* dwarf = nullptr;
-  if (generate_debug) {
-    elf = new (Z) Elf(Z, &debug_stream);
-    dwarf = new (Z) Dwarf(Z, nullptr, elf);
-  }
-
-  BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
-                                  ApiReallocate, kInitialSize, dwarf);
-  BlobImageWriter isolate_image_writer(T, isolate_snapshot_instructions_buffer,
-                                       ApiReallocate, kInitialSize, dwarf);
-  FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
-                            isolate_snapshot_data_buffer, ApiReallocate,
-                            &vm_image_writer, &isolate_image_writer);
-
-  writer.WriteFullSnapshot();
-  *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
-  *vm_snapshot_instructions_size = vm_image_writer.InstructionsBlobSize();
-  *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
-  *isolate_snapshot_instructions_size =
-      isolate_image_writer.InstructionsBlobSize();
-
-  if (generate_debug) {
-    dwarf->Write();
-    elf->Finalize();
   }
 
   return Api::Success();
