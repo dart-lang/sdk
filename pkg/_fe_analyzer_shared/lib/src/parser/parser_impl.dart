@@ -65,7 +65,7 @@ import 'formal_parameter_kind.dart'
         isMandatoryFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
 
-import 'forwarding_listener.dart' show ForwardingListener;
+import 'forwarding_listener.dart' show ForwardingListener, NullListener;
 
 import 'identifier_context.dart'
     show IdentifierContext, looksLikeExpressionStart;
@@ -91,7 +91,8 @@ import 'recovery_listeners.dart'
         ImportRecoveryListener,
         MixinHeaderRecoveryListener;
 
-import 'token_stream_rewriter.dart' show TokenStreamRewriter;
+import 'token_stream_rewriter.dart'
+    show TokenStreamGhostWriter, TokenStreamRewriter;
 
 import 'type_info.dart'
     show
@@ -4199,6 +4200,52 @@ class Parser {
         : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
   }
 
+  /// Tries to parse expression without cascade. Does so without notifying any
+  /// listener or rewriting the stream.
+  ///
+  /// If no errors occur, the token returned from
+  /// [parseExpressionWithoutCascade] is returned.
+  ///
+  /// If an error occurs, null is returned.
+  Token canParseExpressionWithoutCascade(Token token) {
+    Listener originalListener = listener;
+    TokenStreamRewriter originalRewriter = cachedRewriter;
+
+    NullListener nullListener = listener = new NullListener();
+    cachedRewriter = new TokenStreamGhostWriter();
+    Token afterExpression = parseExpressionWithoutCascade(token);
+
+    listener = originalListener;
+    cachedRewriter = originalRewriter;
+
+    if (nullListener.hasErrors) return null;
+    return afterExpression;
+  }
+
+  Token parseNullAwareBracketOrConditionalExpressionRest(
+      Token token, TypeParamOrArgInfo typeArg) {
+    Token question = token.next;
+    assert(optional('?', question));
+    Token bracket = question.next;
+    assert(optional('[', bracket));
+
+    // Skip expression to find if there's a ':' after it. Copied from
+    // parseExpressionStatementOrDeclarationAfterModifiers.
+    Token afterExpression1 = canParseExpressionWithoutCascade(question)?.next;
+
+    if (afterExpression1 != null && optional(':', afterExpression1)) {
+      Token afterExpression2 =
+          canParseExpressionWithoutCascade(afterExpression1)?.next;
+      if (afterExpression2 != null) {
+        // Now we know it's a conditional expression.
+        return parseConditionalExpressionRest(token);
+      }
+    }
+
+    // It wasn't a conditional expression. Must be a null aware bracket then.
+    return parseArgumentOrIndexStar(token, typeArg);
+  }
+
   Token parseConditionalExpressionRest(Token token) {
     Token question = token = token.next;
     assert(optional('?', question));
@@ -4293,7 +4340,12 @@ class Parser {
         } else if (identical(type, TokenType.AS)) {
           token = parseAsOperatorRest(token);
         } else if (identical(type, TokenType.QUESTION)) {
-          token = parseConditionalExpressionRest(token);
+          if (optional('[', next.next)) {
+            token = parseNullAwareBracketOrConditionalExpressionRest(
+                token, typeArg);
+          } else {
+            token = parseConditionalExpressionRest(token);
+          }
         } else {
           if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
             // We don't allow (a == b == c) or (a < b < c).
@@ -4446,11 +4498,20 @@ class Parser {
 
   Token parseArgumentOrIndexStar(Token token, TypeParamOrArgInfo typeArg) {
     Token next = token.next;
-    Token beginToken = next;
+    final Token beginToken = next;
     while (true) {
-      if (optional('[', next) || optional('?.[', next)) {
+      if (optional('[', next) ||
+          optional('?.[', next) ||
+          (optional('?', next) && optional('[', next.next))) {
         assert(typeArg == noTypeParamOrArg);
         Token openSquareBracket = next;
+        Token question;
+        if (optional('?', next)) {
+          question = next;
+          next = next.next;
+          openSquareBracket = next;
+          assert(optional('[', openSquareBracket));
+        }
         bool old = mayParseFunctionExpressions;
         mayParseFunctionExpressions = true;
         token = parseExpression(next);
@@ -4470,7 +4531,7 @@ class Parser {
             next = endGroup;
           }
         }
-        listener.handleIndexedExpression(openSquareBracket, next);
+        listener.handleIndexedExpression(question, openSquareBracket, next);
         token = next;
         typeArg = computeMethodTypeArguments(token);
         if (typeArg != noTypeParamOrArg) {

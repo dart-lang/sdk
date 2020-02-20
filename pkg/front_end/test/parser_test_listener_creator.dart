@@ -22,8 +22,8 @@ main(List<String> args) {
     out = new StringBuffer();
   }
 
-  File f = new File.fromUri(
-      Platform.script.resolve("../lib/src/fasta/parser/listener.dart"));
+  File f = new File.fromUri(Platform.script
+      .resolve("../../_fe_analyzer_shared/lib/src/parser/listener.dart"));
   List<int> rawBytes = f.readAsBytesSync();
 
   Uint8List bytes = new Uint8List(rawBytes.length + 1);

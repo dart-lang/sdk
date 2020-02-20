@@ -1,0 +1,13 @@
+f() {
+var a, b;
+
+a?.call<Foo>(b);
+a?<Foo>(b);
+}
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] a[StringToken],[SimpleToken] b[StringToken];[SimpleToken]
+
+a[StringToken]?.[SimpleToken]call[StringToken]<[BeginToken]Foo[StringToken]>[SimpleToken]([BeginToken]b[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken]?[SimpleToken]<[BeginToken]Foo[StringToken]>[SimpleToken]([BeginToken]b[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]
