@@ -140,7 +140,6 @@ linter:
     - unnecessary_await_in_return
     - unnecessary_brace_in_string_interps
     - unnecessary_const
-    - unnecessary_escapes_in_string
     - unnecessary_final
     - unnecessary_getters_setters
     - unnecessary_lambdas
@@ -150,6 +149,7 @@ linter:
     - unnecessary_overrides
     - unnecessary_parenthesis
     - unnecessary_statements
+    - unnecessary_string_escapes
     - unnecessary_string_interpolations
     - unnecessary_this
     - unrelated_type_equality_checks

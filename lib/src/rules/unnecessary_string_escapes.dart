@@ -29,10 +29,10 @@ Remove unnecessary backslashes in strings.
 
 ''';
 
-class UnnecessaryEscapesInString extends LintRule implements NodeLintRule {
-  UnnecessaryEscapesInString()
+class UnnecessaryStringEscapes extends LintRule implements NodeLintRule {
+  UnnecessaryStringEscapes()
       : super(
-            name: 'unnecessary_escapes_in_string',
+            name: 'unnecessary_string_escapes',
             description: _desc,
             details: _details,
             group: Group.style);
