@@ -5,6 +5,7 @@
 #include "vm/lockers.h"
 #include "platform/assert.h"
 #include "vm/heap/safepoint.h"
+#include "vm/isolate.h"
 
 namespace dart {
 
@@ -26,7 +27,7 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
     // Fast update failed which means we could potentially be in the middle
     // of a safepoint operation and need to block for it.
     monitor_->Exit();
-    SafepointHandler* handler = thread->isolate()->safepoint_handler();
+    SafepointHandler* handler = thread->isolate_group()->safepoint_handler();
     handler->ExitSafepointUsingLock(thread);
     monitor_->Enter();
   }
@@ -82,24 +83,6 @@ Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
   } else {
     return monitor_->Wait(millis);
   }
-}
-
-ReadRwLocker::ReadRwLocker(ThreadState* thread_state, RwLock* rw_lock)
-    : StackResource(thread_state), rw_lock_(rw_lock) {
-  rw_lock_->EnterRead();
-}
-
-ReadRwLocker::~ReadRwLocker() {
-  rw_lock_->LeaveRead();
-}
-
-WriteRwLocker::WriteRwLocker(ThreadState* thread_state, RwLock* rw_lock)
-    : StackResource(thread_state), rw_lock_(rw_lock) {
-  rw_lock_->EnterWrite();
-}
-
-WriteRwLocker::~WriteRwLocker() {
-  rw_lock_->LeaveWrite();
 }
 
 }  // namespace dart

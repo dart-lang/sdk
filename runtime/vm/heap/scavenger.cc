@@ -87,10 +87,10 @@ static inline void objcpy(void* dst, const void* src, size_t size) {
 
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
-  explicit ScavengerVisitor(Isolate* isolate,
+  explicit ScavengerVisitor(IsolateGroup* isolate_group,
                             Scavenger* scavenger,
                             SemiSpace* from)
-      : ObjectPointerVisitor(isolate),
+      : ObjectPointerVisitor(isolate_group),
         thread_(Thread::Current()),
         scavenger_(scavenger),
         from_(from),
@@ -280,8 +280,8 @@ class ScavengerWeakVisitor : public HandleVisitor {
   ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
       : HandleVisitor(thread),
         scavenger_(scavenger),
-        class_table_(thread->isolate()->shared_class_table()) {
-    ASSERT(scavenger->heap_->isolate() == thread->isolate());
+        class_table_(thread->isolate_group()->class_table()) {
+    ASSERT(scavenger->heap_->isolate_group() == thread->isolate_group());
   }
 
   void VisitHandle(uword addr) {
@@ -289,9 +289,9 @@ class ScavengerWeakVisitor : public HandleVisitor {
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
-      handle->UpdateUnreachable(thread()->isolate());
+      handle->UpdateUnreachable(thread()->isolate_group());
     } else {
-      handle->UpdateRelocated(thread()->isolate());
+      handle->UpdateRelocated(thread()->isolate_group());
     }
   }
 
@@ -306,8 +306,9 @@ class ScavengerWeakVisitor : public HandleVisitor {
 // StoreBuffers.
 class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
  public:
-  VerifyStoreBufferPointerVisitor(Isolate* isolate, const SemiSpace* to)
-      : ObjectPointerVisitor(isolate), to_(to) {}
+  VerifyStoreBufferPointerVisitor(IsolateGroup* isolate_group,
+                                  const SemiSpace* to)
+      : ObjectPointerVisitor(isolate_group), to_(to) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
@@ -475,8 +476,8 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   }
 }
 
-SemiSpace* Scavenger::Prologue(Isolate* isolate) {
-  isolate->ReleaseStoreBuffers();
+SemiSpace* Scavenger::Prologue(IsolateGroup* isolate_group) {
+  isolate_group->ReleaseStoreBuffers();
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -497,14 +498,18 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   return from;
 }
 
-void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
+void Scavenger::Epilogue(IsolateGroup* isolate_group, SemiSpace* from) {
   // All objects in the to space have been copied from the from space at this
   // moment.
 
   // Ensure the mutator thread will fail the next allocation. This will force
   // mutator to allocate a new TLAB
-  Thread* mutator_thread = isolate->mutator_thread();
-  ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
+  isolate_group->ForEachIsolate(
+      [&](Isolate* isolate) {
+        Thread* mutator_thread = isolate->mutator_thread();
+        ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
+      },
+      /*at_safepoint=*/true);
 
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
   if (stats_history_.Size() >= 2) {
@@ -567,7 +572,8 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
     PageSpace* page_space = heap_->old_space();
     MonitorLocker ml(page_space->tasks_lock());
     if (page_space->tasks() == 0) {
-      VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
+      VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate_group,
+                                                                  to_);
       heap_->old_space()->VisitObjectPointers(&verify_store_buffer_visitor);
     }
   }
@@ -595,11 +601,11 @@ bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
   return estimated_scavenge_completion <= deadline;
 }
 
-void Scavenger::IterateStoreBuffers(Isolate* isolate,
+void Scavenger::IterateStoreBuffers(IsolateGroup* isolate_group,
                                     ScavengerVisitor* visitor) {
   // Iterating through the store buffers.
   // Grab the deduplication sets out of the isolate's consolidated store buffer.
-  StoreBufferBlock* pending = isolate->store_buffer()->Blocks();
+  StoreBufferBlock* pending = isolate_group->store_buffer()->Blocks();
   intptr_t total_count = 0;
   while (pending != NULL) {
     StoreBufferBlock* next = pending->next();
@@ -617,7 +623,8 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     }
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
-    isolate->store_buffer()->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
+    isolate_group->store_buffer()->PushBlock(pending,
+                                             StoreBuffer::kIgnoreThreshold);
     pending = next;
   }
 
@@ -631,29 +638,34 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
   visitor->VisitingOldObject(NULL);
 }
 
-void Scavenger::IterateObjectIdTable(Isolate* isolate,
+void Scavenger::IterateObjectIdTable(IsolateGroup* isolate_group,
                                      ScavengerVisitor* visitor) {
 #ifndef PRODUCT
-  isolate->object_id_ring()->VisitPointers(visitor);
+  isolate_group->ForEachIsolate(
+      [&](Isolate* isolate) {
+        isolate->object_id_ring()->VisitPointers(visitor);
+      },
+      /*at_safepoint=*/true);
 #endif  // !PRODUCT
 }
 
-void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
+void Scavenger::IterateRoots(IsolateGroup* isolate_group,
+                             ScavengerVisitor* visitor) {
 #ifdef SUPPORT_TIMELINE
   Thread* thread = Thread::Current();
 #endif
   int64_t start = OS::GetCurrentMonotonicMicros();
   {
     TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRoots");
-    isolate->VisitObjectPointers(visitor,
-                                 ValidationPolicy::kDontValidateFrames);
+    isolate_group->VisitObjectPointers(visitor,
+                                       ValidationPolicy::kDontValidateFrames);
   }
   int64_t middle = OS::GetCurrentMonotonicMicros();
   {
     TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRememberedSet");
-    IterateStoreBuffers(isolate, visitor);
+    IterateStoreBuffers(isolate_group, visitor);
   }
-  IterateObjectIdTable(isolate, visitor);
+  IterateObjectIdTable(isolate_group, visitor);
   int64_t end = OS::GetCurrentMonotonicMicros();
   heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
   heap_->RecordTime(kVisitIsolateRoots, middle - start);
@@ -682,8 +694,9 @@ bool Scavenger::IsUnreachable(RawObject** p) {
   return true;
 }
 
-void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
-  isolate->VisitWeakPersistentHandles(visitor);
+void Scavenger::IterateWeakRoots(IsolateGroup* isolate_group,
+                                 HandleVisitor* visitor) {
+  isolate_group->VisitWeakPersistentHandles(visitor);
 }
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
@@ -767,10 +780,10 @@ void Scavenger::UpdateMaxHeapCapacity() {
   }
   ASSERT(to_ != NULL);
   ASSERT(heap_ != NULL);
-  Isolate* isolate = heap_->isolate();
-  ASSERT(isolate != NULL);
-  isolate->GetHeapNewCapacityMaxMetric()->SetValue(to_->size_in_words() *
-                                                   kWordSize);
+  auto isolate_group = heap_->isolate_group();
+  ASSERT(isolate_group != NULL);
+  isolate_group->GetHeapNewCapacityMaxMetric()->SetValue(to_->size_in_words() *
+                                                         kWordSize);
 #endif  // !defined(PRODUCT)
 }
 
@@ -782,9 +795,9 @@ void Scavenger::UpdateMaxHeapUsage() {
   }
   ASSERT(to_ != NULL);
   ASSERT(heap_ != NULL);
-  Isolate* isolate = heap_->isolate();
-  ASSERT(isolate != NULL);
-  isolate->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
+  auto isolate_group = heap_->isolate_group();
+  ASSERT(isolate_group != NULL);
+  isolate_group->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
 #endif  // !defined(PRODUCT)
 }
 
@@ -859,13 +872,16 @@ void Scavenger::ProcessWeakReferences() {
 
   // Each isolate might have a weak table used for fast snapshot writing (i.e.
   // isolate communication). Rehash those tables if need be.
-  auto isolate = heap_->isolate();
-  auto table = isolate->forward_table_new();
-  if (table != NULL) {
-    auto replacement = WeakTable::NewFrom(table);
-    rehash_weak_table(table, replacement, isolate->forward_table_old());
-    isolate->set_forward_table_new(replacement);
-  }
+  heap_->isolate_group()->ForEachIsolate(
+      [&](Isolate* isolate) {
+        auto table = isolate->forward_table_new();
+        if (table != nullptr) {
+          auto replacement = WeakTable::NewFrom(table);
+          rehash_weak_table(table, replacement, isolate->forward_table_old());
+          isolate->set_forward_table_new(replacement);
+        }
+      },
+      /*at_safepoint=*/true);
 
   // The queued weak properties at this point do not refer to reachable keys,
   // so we clear their key and value fields.
@@ -898,45 +914,41 @@ void Scavenger::MakeNewSpaceIterable() const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
-  Isolate* isolate = heap_->isolate();
-  MonitorLocker ml(isolate->threads_lock(), false);
-  Thread* current = heap_->isolate()->thread_registry()->active_list();
+  auto isolate_group = heap_->isolate_group();
+  MonitorLocker ml(isolate_group->threads_lock(), false);
+  Thread* current = heap_->isolate_group()->thread_registry()->active_list();
   while (current != NULL) {
-    // NOTE: During the transition period all isolates within an isolate group
-    // share the thread registry, but have their own heap.
-    // So we explicitly filter those threads which belong to the isolate of
-    // interest (once we have a shared heap this needs to change).
-    if (current->isolate() == isolate) {
-      if (current->HasActiveTLAB()) {
-        heap_->MakeTLABIterable(current);
-      }
+    if (current->HasActiveTLAB()) {
+      heap_->MakeTLABIterable(current);
     }
     current = current->next();
   }
-  Thread* mutator_thread = isolate->mutator_thread();
-  if (mutator_thread != NULL) {
-    heap_->MakeTLABIterable(mutator_thread);
-  }
+  isolate_group->ForEachIsolate(
+      [&](Isolate* isolate) {
+        Thread* mutator_thread = isolate->mutator_thread();
+        if (mutator_thread != NULL) {
+          heap_->MakeTLABIterable(mutator_thread);
+        }
+      },
+      /*at_safepoint=*/true);
 }
 
-void Scavenger::AbandonTLABs(Isolate* isolate) {
+void Scavenger::AbandonTLABs(IsolateGroup* isolate_group) {
   ASSERT(Thread::Current()->IsAtSafepoint());
-  MonitorLocker ml(isolate->threads_lock(), false);
-  Thread* current = isolate->thread_registry()->active_list();
+  MonitorLocker ml(isolate_group->threads_lock(), false);
+  Thread* current = isolate_group->thread_registry()->active_list();
   while (current != NULL) {
-    // NOTE: During the transition period all isolates within an isolate group
-    // share the thread registry, but have their own heap.
-    // So we explicitly filter those threads which belong to the isolate of
-    // interest (once we have a shared heap this needs to change).
-    if (current->isolate() == isolate) {
-      heap_->AbandonRemainingTLAB(current);
-    }
+    heap_->AbandonRemainingTLAB(current);
     current = current->next();
   }
-  Thread* mutator_thread = isolate->mutator_thread();
-  if (mutator_thread != NULL) {
-    heap_->AbandonRemainingTLAB(mutator_thread);
-  }
+  isolate_group->ForEachIsolate(
+      [&](Isolate* isolate) {
+        Thread* mutator_thread = isolate->mutator_thread();
+        if (mutator_thread != NULL) {
+          heap_->AbandonRemainingTLAB(mutator_thread);
+        }
+      },
+      /*at_safepoint=*/true);
 }
 
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
@@ -1015,7 +1027,7 @@ uword Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t size) {
 }
 
 void Scavenger::Scavenge() {
-  Isolate* isolate = heap_->isolate();
+  auto isolate_group = heap_->isolate_group();
   // Ensure that all threads for this isolate are at a safepoint (either stopped
   // or in native code). If two threads are racing at this point, the loser
   // will continue with its scavenge after waiting for the winner to complete.
@@ -1047,21 +1059,21 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
-  AbandonTLABs(isolate);
+  AbandonTLABs(isolate_group);
   intptr_t abandoned_bytes = GetAndResetAbandonedInBytes();
 
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
-  SemiSpace* from = Prologue(isolate);
+  SemiSpace* from = Prologue(isolate_group);
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
     StackZone zone(thread);
     // Setup the visitor and run the scavenge.
-    ScavengerVisitor visitor(isolate, this, from);
+    ScavengerVisitor visitor(isolate_group, this, from);
     page_space->AcquireDataLock();
-    IterateRoots(isolate, &visitor);
+    IterateRoots(isolate_group, &visitor);
     int64_t iterate_roots = OS::GetCurrentMonotonicMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessToSpace");
@@ -1071,7 +1083,7 @@ void Scavenger::Scavenge() {
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
       ScavengerWeakVisitor weak_visitor(thread, this);
-      IterateWeakRoots(isolate, &weak_visitor);
+      IterateWeakRoots(isolate_group, &weak_visitor);
     }
     ProcessWeakReferences();
     page_space->ReleaseDataLock();
@@ -1085,7 +1097,7 @@ void Scavenger::Scavenge() {
                                      visitor.bytes_promoted() >> kWordSizeLog2,
                                      abandoned_bytes >> kWordSizeLog2));
   }
-  Epilogue(isolate, from);
+  Epilogue(isolate_group, from);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {
@@ -1106,15 +1118,15 @@ void Scavenger::WriteProtect(bool read_only) {
 
 #ifndef PRODUCT
 void Scavenger::PrintToJSONObject(JSONObject* object) const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  auto isolate_group = IsolateGroup::Current();
+  ASSERT(isolate_group != nullptr);
   JSONObject space(object, "new");
   space.AddProperty("type", "HeapSpace");
   space.AddProperty("name", "new");
   space.AddProperty("vmName", "Scavenger");
   space.AddProperty("collections", collections());
   if (collections() > 0) {
-    int64_t run_time = isolate->UptimeMicros();
+    int64_t run_time = isolate_group->UptimeMicros();
     run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
     double run_time_millis = MicrosecondsToMilliseconds(run_time);
     double avg_time_between_collections =

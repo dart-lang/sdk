@@ -11,7 +11,6 @@ namespace dart {
 
 // Forward declarations.
 class RawObject;
-class Isolate;
 class ObjectPointerVisitor;
 class JSONStream;
 
@@ -40,8 +39,7 @@ class ObjectIdRing {
   static const int32_t kInvalidId = -1;
   static const int32_t kDefaultCapacity = 8192;
 
-  static void Init(Isolate* isolate, int32_t capacity = kDefaultCapacity);
-
+  explicit ObjectIdRing(int32_t capacity = kDefaultCapacity);
   ~ObjectIdRing();
 
   // Adds the argument to the ring and returns its id. Note we do not allow
@@ -61,8 +59,6 @@ class ObjectIdRing {
   void SetCapacityAndMaxSerial(int32_t capacity, int32_t max_serial);
   int32_t FindExistingIdForObject(RawObject* raw_obj);
 
-  ObjectIdRing(Isolate* isolate, int32_t capacity);
-  Isolate* isolate_;
   RawObject** table_;
   int32_t max_serial_;
   int32_t capacity_;

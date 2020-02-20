@@ -122,7 +122,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->VisitWeakPersistentHandles(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(2, visitor.new_count_[cid]);
       EXPECT_EQ(0, visitor.old_count_[cid]);
     }
@@ -135,7 +135,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->VisitWeakPersistentHandles(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(1, visitor.new_count_[cid]);
       EXPECT_EQ(0, visitor.old_count_[cid]);
     }
@@ -149,7 +149,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->VisitWeakPersistentHandles(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(0, visitor.new_count_[cid]);
       EXPECT_EQ(1, visitor.old_count_[cid]);
     }
@@ -162,7 +162,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->VisitWeakPersistentHandles(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(0, visitor.new_count_[cid]);
       EXPECT_EQ(1, visitor.old_count_[cid]);
     }
@@ -174,7 +174,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->VisitWeakPersistentHandles(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(0, visitor.new_count_[cid]);
       EXPECT_EQ(1, visitor.old_count_[cid]);
     }
@@ -190,7 +190,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->VisitWeakPersistentHandles(&visitor);
+      isolate->group()->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(0, visitor.new_count_[cid]);
       EXPECT_EQ(0, visitor.old_count_[cid]);
     }
@@ -627,7 +627,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
     CountObjectsVisitor visitor(thread, isolate->class_table()->NumCids());
     HeapIterationScope iter(thread);
     iter.IterateObjects(&visitor);
-    isolate->VisitWeakPersistentHandles(&visitor);
+    isolate->group()->VisitWeakPersistentHandles(&visitor);
     EXPECT_LE(visitor.old_external_size_[kArrayCid],
               heap->old_space()->ExternalInWords() * kWordSize);
     EXPECT_LE(visitor.new_external_size_[kArrayCid],

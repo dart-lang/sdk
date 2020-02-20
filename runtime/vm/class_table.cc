@@ -33,7 +33,7 @@ SharedClassTable::SharedClassTable()
     table_ = static_cast<intptr_t*>(calloc(capacity_, sizeof(intptr_t)));
   } else {
     // Duplicate the class table from the VM isolate.
-    auto vm_shared_class_table = Dart::vm_isolate()->shared_class_table();
+    auto vm_shared_class_table = Dart::vm_isolate()->group()->class_table();
     capacity_ = vm_shared_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
     table_ = static_cast<intptr_t*>(calloc(capacity_, sizeof(RawClass*)));
@@ -113,14 +113,6 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     table_[kNeverCid] = vm_class_table->At(kNeverCid);
   }
 }
-
-ClassTable::ClassTable(ClassTable* original,
-                       SharedClassTable* shared_class_table)
-    : top_(original->top_),
-      capacity_(original->top_),
-      table_(original->table_),
-      old_class_tables_(nullptr),
-      shared_class_table_(shared_class_table) {}
 
 ClassTable::~ClassTable() {
   if (old_class_tables_ != nullptr) {
@@ -308,26 +300,23 @@ void SharedClassTable::Unregister(intptr_t index) {
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());
-  shared_class_table_->Remap(old_to_new_cid);
-
   const intptr_t num_cids = NumCids();
-  auto cls_by_old_cid = new RawClass*[num_cids];
-  memmove(cls_by_old_cid, table_, sizeof(RawClass*) * num_cids);
+  std::unique_ptr<RawClass*[]> cls_by_old_cid(new RawClass*[num_cids]);
+  memmove(cls_by_old_cid.get(), table_, sizeof(RawClass*) * num_cids);
   for (intptr_t i = 0; i < num_cids; i++) {
     table_[old_to_new_cid[i]] = cls_by_old_cid[i];
   }
-  delete[] cls_by_old_cid;
 }
 
 void SharedClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   const intptr_t num_cids = NumCids();
-  std::unique_ptr<intptr_t[]> cls_by_old_cid(new intptr_t[num_cids]);
+  std::unique_ptr<intptr_t[]> size_by_old_cid(new intptr_t[num_cids]);
   for (intptr_t i = 0; i < num_cids; i++) {
-    cls_by_old_cid[i] = table_[i];
+    size_by_old_cid[i] = table_[i];
   }
   for (intptr_t i = 0; i < num_cids; i++) {
-    table_[old_to_new_cid[i]] = cls_by_old_cid[i];
+    table_[old_to_new_cid[i]] = size_by_old_cid[i];
   }
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
@@ -428,18 +417,20 @@ intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  Heap* heap = isolate->heap();
+  auto isolate_group = isolate->group();
+  Heap* heap = isolate_group->heap();
   ASSERT(heap != NULL);
   JSONObject obj(stream);
   obj.AddProperty("type", "AllocationProfile");
-  if (isolate->last_allocationprofile_accumulator_reset_timestamp() != 0) {
+  if (isolate_group->last_allocationprofile_accumulator_reset_timestamp() !=
+      0) {
     obj.AddPropertyF(
         "dateLastAccumulatorReset", "%" Pd64 "",
-        isolate->last_allocationprofile_accumulator_reset_timestamp());
+        isolate_group->last_allocationprofile_accumulator_reset_timestamp());
   }
-  if (isolate->last_allocationprofile_gc_timestamp() != 0) {
+  if (isolate_group->last_allocationprofile_gc_timestamp() != 0) {
     obj.AddPropertyF("dateLastServiceGC", "%" Pd64 "",
-                     isolate->last_allocationprofile_gc_timestamp());
+                     isolate_group->last_allocationprofile_gc_timestamp());
   }
 
   if (internal) {
@@ -458,7 +449,7 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   {
     HeapIterationScope iter(thread);
     iter.IterateObjects(&visitor);
-    isolate->VisitWeakPersistentHandles(&visitor);
+    isolate->group()->VisitWeakPersistentHandles(&visitor);
   }
 
   {

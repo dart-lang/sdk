@@ -177,7 +177,7 @@ class Api : AllStatic {
   static Dart_Handle Success() { return Api::True(); }
 
   // Gets the handle which holds the pre-created acquired error object.
-  static Dart_Handle AcquiredError(Isolate* isolate);
+  static Dart_Handle AcquiredError(IsolateGroup* isolate_group);
 
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
@@ -325,7 +325,7 @@ class Api : AllStatic {
 #define CHECK_CALLBACK_STATE(thread)                                           \
   if (thread->no_callback_scope_depth() != 0) {                                \
     return reinterpret_cast<Dart_Handle>(                                      \
-        Api::AcquiredError(thread->isolate()));                                \
+        Api::AcquiredError(thread->isolate_group()));                          \
   }
 
 #define CHECK_COMPILATION_ALLOWED(isolate)                                     \

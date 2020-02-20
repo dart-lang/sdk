@@ -26,7 +26,7 @@ bool RawObject::InVMIsolateHeap() const {
   return heap->old_space()->ContainsUnsafe(ToAddr(this));
 }
 
-void RawObject::Validate(Isolate* isolate) const {
+void RawObject::Validate(IsolateGroup* isolate_group) const {
   if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
     // Validation relies on properly initialized class classes. Skip if the
     // VM is still being initialized.
@@ -63,12 +63,12 @@ void RawObject::Validate(Isolate* isolate) const {
       FATAL1("Old object missing kOldBit: %x\n", tags);
     }
   }
-  intptr_t class_id = ClassIdTag::decode(tags);
-  if (!isolate->shared_class_table()->IsValidIndex(class_id)) {
+  const intptr_t class_id = ClassIdTag::decode(tags);
+  if (!isolate_group->class_table()->IsValidIndex(class_id)) {
     FATAL1("Invalid class id encountered %" Pd "\n", class_id);
   }
   if (class_id == kNullCid &&
-      isolate->shared_class_table()->HasValidClassAt(class_id)) {
+      isolate_group->class_table()->HasValidClassAt(class_id)) {
     // Null class not yet initialized; skip.
     return;
   }
@@ -225,11 +225,10 @@ intptr_t RawObject::HeapSizeFromClass() const {
     default: {
       // Get the (constant) instance size out of the class object.
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
-      Isolate* isolate = Isolate::Current();
+      auto isolate_group = IsolateGroup::Current();
 #if defined(DEBUG)
-      auto class_table = isolate->shared_class_table();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      auto reload_context = isolate->group()->reload_context();
+      auto reload_context = isolate_group->reload_context();
       const bool use_saved_class_table =
           reload_context != nullptr ? reload_context->UseSavedSizeTableForGC()
                                     : false;
@@ -237,6 +236,7 @@ intptr_t RawObject::HeapSizeFromClass() const {
       const bool use_saved_class_table = false;
 #endif
 
+      auto class_table = isolate_group->class_table();
       ASSERT(use_saved_class_table || class_table->SizeAt(class_id) > 0);
       if (!class_table->IsValidIndex(class_id) ||
           (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
@@ -244,7 +244,7 @@ intptr_t RawObject::HeapSizeFromClass() const {
                class_id, this, static_cast<uint32_t>(ptr()->tags_));
       }
 #endif  // DEBUG
-      instance_size = isolate->GetClassSizeForHeapWalkAt(class_id);
+      instance_size = isolate_group->GetClassSizeForHeapWalkAt(class_id);
     }
   }
   ASSERT(instance_size != 0);
@@ -379,7 +379,8 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #endif
 }
 
-void RawObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
+void RawObject::VisitPointersPrecise(Isolate* isolate,
+                                     ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
   if (class_id < kNumPredefinedCids) {
     VisitPointersPredefined(visitor, class_id);
@@ -387,8 +388,7 @@ void RawObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
   }
 
   // N.B.: Not using the heap size!
-  uword next_field_offset = visitor->isolate()
-                                ->GetClassForHeapWalkAt(class_id)
+  uword next_field_offset = isolate->GetClassForHeapWalkAt(class_id)
                                 ->ptr()
                                 ->host_next_field_offset_in_words_
                             << kWordSizeLog2;
@@ -657,8 +657,8 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   uint32_t tags = raw_obj->ptr()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
-    instance_size =
-        visitor->isolate()->GetClassSizeForHeapWalkAt(raw_obj->GetClassId());
+    instance_size = visitor->isolate_group()->GetClassSizeForHeapWalkAt(
+        raw_obj->GetClassId());
   }
 
   // Calculate the first and last raw object pointer fields.

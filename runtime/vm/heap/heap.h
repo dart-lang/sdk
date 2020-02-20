@@ -23,6 +23,7 @@ namespace dart {
 
 // Forward declarations.
 class Isolate;
+class IsolateGroup;
 class ObjectPointerVisitor;
 class ObjectSet;
 class ServiceEvent;
@@ -151,7 +152,6 @@ class Heap {
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
   void InitGrowthControl();
-  void EnableGrowthControl() { SetGrowthControlState(true); }
   void DisableGrowthControl() { SetGrowthControlState(false); }
   void SetGrowthControlState(bool state);
   bool GrowthControlState();
@@ -164,7 +164,7 @@ class Heap {
   }
 
   // Initialize the heap and register it with the isolate.
-  static void Init(Isolate* isolate,
+  static void Init(IsolateGroup* isolate_group,
                    intptr_t max_new_gen_words,
                    intptr_t max_old_gen_words);
 
@@ -293,7 +293,7 @@ class Heap {
   }
 #endif  // PRODUCT
 
-  Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
 
   Monitor* barrier() const { return &barrier_; }
   Monitor* barrier_done() const { return &barrier_done_; }
@@ -316,6 +316,8 @@ class Heap {
   Space SpaceForExternal(intptr_t size) const;
 
   void CollectOnNthAllocation(intptr_t num_allocations);
+
+  void MergeOtherHeap(Heap* other);
 
  private:
   class GCStats : public ValueObject {
@@ -348,7 +350,7 @@ class Heap {
     DISALLOW_COPY_AND_ASSIGN(GCStats);
   };
 
-  Heap(Isolate* isolate,
+  Heap(IsolateGroup* isolate_group,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
@@ -391,7 +393,7 @@ class Heap {
   // Trigger major GC if 'gc_on_nth_allocation_' is set.
   void CollectForDebugging();
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;

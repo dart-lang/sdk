@@ -75,7 +75,8 @@ void _printInterpreterStackTrace(RawObject** fp,
 
 class PrintObjectPointersVisitor : public ObjectPointerVisitor {
  public:
-  PrintObjectPointersVisitor() : ObjectPointerVisitor(Isolate::Current()) {}
+  PrintObjectPointersVisitor()
+      : ObjectPointerVisitor(IsolateGroup::Current()) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** p = first; p <= last; p++) {

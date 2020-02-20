@@ -82,8 +82,8 @@ VM_UNIT_TEST_CASE(Monitor) {
 
 class ObjectCounter : public ObjectPointerVisitor {
  public:
-  explicit ObjectCounter(Isolate* isolate, const Object* obj)
-      : ObjectPointerVisitor(isolate), obj_(obj), count_(0) {}
+  explicit ObjectCounter(IsolateGroup* isolate_group, const Object* obj)
+      : ObjectPointerVisitor(isolate_group), obj_(obj), count_(0) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
@@ -131,7 +131,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       EXPECT(smi.Value() == unique_smi);
       {
         HeapIterationScope iteration(thread);
-        ObjectCounter counter(isolate_, &smi);
+        ObjectCounter counter(isolate_->group(), &smi);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&counter,
                                        ValidationPolicy::kValidateFrames);
@@ -148,7 +148,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       EXPECT(unique_str.Equals(unique_chars));
       {
         HeapIterationScope iteration(thread);
-        ObjectCounter str_counter(isolate_, &unique_str);
+        ObjectCounter str_counter(isolate_->group(), &unique_str);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&str_counter,
                                        ValidationPolicy::kValidateFrames);
@@ -568,7 +568,7 @@ class SafepointTestTask : public ThreadPool::Task {
         // But occasionally, organize a rendezvous.
         HeapIterationScope iteration(thread);  // Establishes a safepoint.
         ASSERT(thread->IsAtSafepoint());
-        ObjectCounter counter(isolate_, &smi);
+        ObjectCounter counter(isolate_->group(), &smi);
         iteration.IterateStackPointers(&counter,
                                        ValidationPolicy::kValidateFrames);
         {

@@ -946,7 +946,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
   class ConstObjectVisitor : public ObjectPointerVisitor {
    public:
     ConstObjectVisitor(Precompiler* precompiler, Isolate* isolate)
-        : ObjectPointerVisitor(isolate),
+        : ObjectPointerVisitor(isolate->group()),
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 

@@ -780,11 +780,11 @@ class MessageWriter : public SnapshotWriter {
 };
 
 // An object pointer visitor implementation which writes out
-// objects to a snap shot.
+// objects to a snapshot.
 class SnapshotWriterVisitor : public ObjectPointerVisitor {
  public:
   SnapshotWriterVisitor(SnapshotWriter* writer, bool as_references)
-      : ObjectPointerVisitor(Isolate::Current()),
+      : ObjectPointerVisitor(Isolate::Current()->group()),
         writer_(writer),
         as_references_(as_references) {}
 

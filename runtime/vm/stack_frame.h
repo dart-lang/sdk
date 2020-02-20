@@ -100,7 +100,10 @@ class StackFrame : public ValueObject {
   //
   // If the frame does not belong to a bare instructions snapshot, it will
   // return nullptr.
-  Isolate* IsolateOfBareInstructionsFrame() const;
+  //
+  // [needed_for_gc] has to be set to `true` if the caller needs only GC
+  // relevant information.
+  Isolate* IsolateOfBareInstructionsFrame(bool needed_for_gc) const;
 
   // Returns true iff the current frame is a bare instructions dart frame.
   bool IsBareInstructionsDartFrame() const;
@@ -150,6 +153,7 @@ class StackFrame : public ValueObject {
   }
 
   Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
   Thread* thread() const { return thread_; }
 
@@ -172,7 +176,7 @@ class StackFrame : public ValueObject {
                 kWordSize)));
     ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow().EntryPoint());
     if (raw_pc == StubCode::DeoptimizeLazyFromReturn().EntryPoint()) {
-      return isolate()->FindPendingDeopt(GetCallerFp());
+      return isolate_group()->FindPendingDeoptAtSafepoint(GetCallerFp());
     }
     return raw_pc;
   }

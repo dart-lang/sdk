@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+#include <utility>
+
 #include "vm/heap/heap.h"
 
 #include "platform/assert.h"
@@ -33,10 +36,27 @@ namespace dart {
 
 DEFINE_FLAG(bool, write_protect_vm_isolate, true, "Write protect vm_isolate.");
 
-Heap::Heap(Isolate* isolate,
+// We ensure that the GC does not use the current isolate.
+class NoActiveIsolateScope {
+ public:
+  NoActiveIsolateScope() : thread_(Thread::Current()) {
+    saved_isolate_ = thread_->isolate_;
+    thread_->isolate_ = nullptr;
+  }
+  ~NoActiveIsolateScope() {
+    ASSERT(thread_->isolate_ == nullptr);
+    thread_->isolate_ = saved_isolate_;
+  }
+
+ private:
+  Thread* thread_;
+  Isolate* saved_isolate_;
+};
+
+Heap::Heap(IsolateGroup* isolate_group,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)
-    : isolate_(isolate),
+    : isolate_group_(isolate_group),
       new_space_(this, max_new_gen_semi_words),
       old_space_(this, max_old_gen_words),
       barrier_(),
@@ -178,7 +198,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
 void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
-    isolate()->AssertCurrentThreadIsMutator();
+    Isolate::Current()->AssertCurrentThreadIsMutator();
     new_space_.AllocateExternal(cid, size);
     if (new_space_.ExternalInWords() <= (4 * new_space_.CapacityInWords())) {
       return;
@@ -331,13 +351,13 @@ void HeapIterationScope::IterateVMIsolateObjects(ObjectVisitor* visitor) const {
 void HeapIterationScope::IterateObjectPointers(
     ObjectPointerVisitor* visitor,
     ValidationPolicy validate_frames) {
-  isolate()->VisitObjectPointers(visitor, validate_frames);
+  isolate_group()->VisitObjectPointers(visitor, validate_frames);
 }
 
 void HeapIterationScope::IterateStackPointers(
     ObjectPointerVisitor* visitor,
     ValidationPolicy validate_frames) {
-  isolate()->VisitStackPointers(visitor, validate_frames);
+  isolate_group()->VisitStackPointers(visitor, validate_frames);
 }
 
 void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
@@ -462,7 +482,7 @@ void Heap::NotifyLowMemory() {
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
-  if (thread->isolate() == Dart::vm_isolate()) {
+  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -483,8 +503,9 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 }
 
 void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
+  NoActiveIsolateScope no_active_isolate_scope;
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
-  if (thread->isolate() == Dart::vm_isolate()) {
+  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -516,12 +537,14 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   GCType type,
                                   GCReason reason) {
+  NoActiveIsolateScope no_active_isolate_scope;
+
   ASSERT(reason != kNewSpace);
   ASSERT(type != kScavenge);
   if (FLAG_use_compactor) {
     type = kMarkCompact;
   }
-  if (thread->isolate() == Dart::vm_isolate()) {
+  if (thread->isolate_group() == Dart::vm_isolate()->group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
     // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
     // trigger a nice out-of-memory message instead of a crash in the middle of
@@ -537,9 +560,12 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     RecordAfterGC(type);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
+
     // Some Code objects may have been collected so invalidate handler cache.
-    thread->isolate()->handler_info_cache()->Clear();
-    thread->isolate()->catch_entry_moves_cache()->Clear();
+    thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
+      isolate->handler_info_cache()->Clear();
+      isolate->catch_entry_moves_cache()->Clear();
+    });
     EndOldSpaceGC();
   }
 }
@@ -649,10 +675,10 @@ void Heap::WaitForSweeperTasks(Thread* thread) {
 
 void Heap::UpdateGlobalMaxUsed() {
 #if !defined(PRODUCT)
-  ASSERT(isolate_ != NULL);
+  ASSERT(isolate_group_ != NULL);
   // We are accessing the used in words count for both new and old space
   // without synchronizing. The value of this metric is approximate.
-  isolate_->GetHeapGlobalUsedMaxMetric()->SetValue(
+  isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
 #endif  // !defined(PRODUCT)
@@ -676,12 +702,13 @@ void Heap::WriteProtect(bool read_only) {
   old_space_.WriteProtect(read_only);
 }
 
-void Heap::Init(Isolate* isolate,
+void Heap::Init(IsolateGroup* isolate_group,
                 intptr_t max_new_gen_words,
                 intptr_t max_old_gen_words) {
-  ASSERT(isolate->heap() == NULL);
-  Heap* heap = new Heap(isolate, max_new_gen_words, max_old_gen_words);
-  isolate->set_heap(heap);
+  ASSERT(isolate_group->heap() == nullptr);
+  std::unique_ptr<Heap> heap(
+      new Heap(isolate_group, max_new_gen_words, max_old_gen_words));
+  isolate_group->set_heap(std::move(heap));
 }
 
 const char* Heap::RegionName(Space space) {
@@ -708,6 +735,22 @@ void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
   gc_on_nth_allocation_ = num_allocations;
 }
 
+void Heap::MergeOtherHeap(Heap* other) {
+  ASSERT(!other->gc_new_space_in_progress_);
+  ASSERT(!other->gc_old_space_in_progress_);
+  ASSERT(!other->read_only_);
+  ASSERT(other->new_space()->UsedInWords() == 0);
+  ASSERT(other->old_space()->tasks() == 0);
+
+  old_space_.MergeOtherPageSpace(other->old_space());
+
+  for (intptr_t i = 0; i < kNumWeakSelectors; ++i) {
+    // The new space rehashing should not be necessary.
+    new_weak_tables_[i]->MergeOtherWeakTable(other->new_weak_tables_[i]);
+    old_weak_tables_[i]->MergeOtherWeakTable(other->old_weak_tables_[i]);
+  }
+}
+
 void Heap::CollectForDebugging() {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
   gc_on_nth_allocation_--;
@@ -727,12 +770,12 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
 
   this->AddRegionsToObjectSet(allocated_set);
   {
-    VerifyObjectVisitor object_visitor(isolate(), allocated_set,
+    VerifyObjectVisitor object_visitor(isolate_group(), allocated_set,
                                        mark_expectation);
     this->VisitObjectsNoImagePages(&object_visitor);
   }
   {
-    VerifyObjectVisitor object_visitor(isolate(), allocated_set,
+    VerifyObjectVisitor object_visitor(isolate_group(), allocated_set,
                                        kRequireMarked);
     this->VisitObjectsImagePages(&object_visitor);
   }
@@ -741,7 +784,7 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   vm_isolate->heap()->AddRegionsToObjectSet(allocated_set);
   {
     // VM isolate heap is premarked.
-    VerifyObjectVisitor vm_object_visitor(isolate(), allocated_set,
+    VerifyObjectVisitor vm_object_visitor(isolate_group(), allocated_set,
                                           kRequireMarked);
     vm_isolate->heap()->VisitObjects(&vm_object_visitor);
   }
@@ -762,7 +805,7 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
 
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
-  VerifyPointersVisitor visitor(isolate(), allocated_set);
+  VerifyPointersVisitor visitor(isolate_group(), allocated_set);
   VisitObjectPointers(&visitor);
 
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
@@ -908,8 +951,12 @@ void Heap::ForwardWeakEntries(RawObject* before_object,
 
   // We only come here during hot reload, in which case we assume that none of
   // the isolates is in the middle of sending messages.
-  RELEASE_ASSERT(isolate()->forward_table_new() == nullptr);
-  RELEASE_ASSERT(isolate()->forward_table_old() == nullptr);
+  isolate_group()->ForEachIsolate(
+      [&](Isolate* isolate) {
+        RELEASE_ASSERT(isolate->forward_table_new() == nullptr);
+        RELEASE_ASSERT(isolate->forward_table_old() == nullptr);
+      },
+      /*at_safepoint=*/true);
 }
 
 void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
@@ -922,8 +969,12 @@ void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
 
   // Isolates might have forwarding tables (used for during snapshoting in
   // isolate communication).
-  auto table_old = isolate()->forward_table_old();
-  if (table_old != nullptr) table_old->Forward(visitor);
+  isolate_group()->ForEachIsolate(
+      [&](Isolate* isolate) {
+        auto table_old = isolate->forward_table_old();
+        if (table_old != nullptr) table_old->Forward(visitor);
+      },
+      /*at_safepoint=*/true);
 }
 
 #ifndef PRODUCT
@@ -980,11 +1031,15 @@ void Heap::RecordAfterGC(GCType type) {
          (type == kMarkSweep && gc_old_space_in_progress_) ||
          (type == kMarkCompact && gc_old_space_in_progress_));
 #ifndef PRODUCT
-  if (Service::gc_stream.enabled() &&
-      !Isolate::IsVMInternalIsolate(isolate())) {
-    ServiceEvent event(isolate(), ServiceEvent::kGC);
-    event.set_gc_stats(&stats_);
-    Service::HandleEvent(&event);
+  // For now we'll emit the same GC events on all isolates.
+  if (Service::gc_stream.enabled()) {
+    isolate_group_->ForEachIsolate([&](Isolate* isolate) {
+      if (!Isolate::IsVMInternalIsolate(isolate)) {
+        ServiceEvent event(isolate, ServiceEvent::kGC);
+        event.set_gc_stats(&stats_);
+        Service::HandleEvent(&event);
+      }
+    });
   }
 #endif  // !PRODUCT
 }
@@ -1012,7 +1067,7 @@ void Heap::PrintStats() {
 
   // clang-format off
   OS::PrintErr(
-    "[ %-13.13s, %10s(%9s), "  // GC(isolate), type(reason)
+    "[ %-13.13s, %10s(%9s), "  // GC(isolate-group), type(reason)
     "%4" Pd ", "  // count
     "%6.2f, "  // start time
     "%5.1f, "  // total time
@@ -1025,11 +1080,11 @@ void Heap::PrintStats() {
     "%6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, "  // times
     "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
-    isolate()->name(),
+    isolate_group()->source()->name,
     GCTypeToString(stats_.type_),
     GCReasonToString(stats_.reason_),
     stats_.num_,
-    MicrosecondsToSeconds(isolate()->UptimeMicros()),
+    MicrosecondsToSeconds(isolate_group_->UptimeMicros()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                stats_.before_.micros_),
     RoundWordsToKB(stats_.before_.new_.used_in_words),

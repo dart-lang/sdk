@@ -206,7 +206,7 @@ class ClassSerializationCluster : public SerializationCluster {
   UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(Serializer* s,
                                                         intptr_t class_id) {
     const auto unboxed_fields_bitmap_host =
-        s->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(class_id);
 
     UnboxedFieldBitmap unboxed_fields_bitmap;
     if (unboxed_fields_bitmap_host.IsEmpty() ||
@@ -310,6 +310,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
     }
 
+    auto shared_class_table = d->isolate()->group()->class_table();
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawClass* cls = reinterpret_cast<RawClass*>(d->Ref(id));
       Deserializer::InitializeHeader(cls, kClassCid, Class::InstanceSize());
@@ -347,8 +348,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
       if (FLAG_precompiled_mode) {
         const UnboxedFieldBitmap unboxed_fields_map(d->ReadUnsigned64());
-        d->isolate()->shared_class_table()->SetUnboxedFieldsMapAt(
-            class_id, unboxed_fields_map);
+        shared_class_table->SetUnboxedFieldsMapAt(class_id, unboxed_fields_map);
       }
     }
   }
@@ -2802,7 +2802,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t next_field_offset = host_next_field_offset_in_words_
                                        << kWordSizeLog2;
     const auto unboxed_fields_bitmap =
-        s->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     intptr_t offset = Instance::NextFieldOffset();
     while (offset < next_field_offset) {
       // Skips unboxed fields
@@ -2837,13 +2837,12 @@ class InstanceSerializationCluster : public SerializationCluster {
     intptr_t next_field_offset = host_next_field_offset_in_words_
                                  << kWordSizeLog2;
     const intptr_t count = objects_.length();
-    const auto shared_class_table = s->isolate()->shared_class_table();
+    const auto unboxed_fields_bitmap =
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     for (intptr_t i = 0; i < count; i++) {
       RawInstance* instance = objects_[i];
       AutoTraceObject(instance);
       s->Write<bool>(instance->IsCanonical());
-      const auto unboxed_fields_bitmap =
-          shared_class_table->GetUnboxedFieldsMapAt(cid_);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
@@ -2896,14 +2895,13 @@ class InstanceDeserializationCluster : public DeserializationCluster {
     intptr_t instance_size =
         Object::RoundedAllocationSize(instance_size_in_words_ * kWordSize);
 
-    const auto shared_class_table = d->isolate()->shared_class_table();
+    const auto unboxed_fields_bitmap =
+        d->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawInstance* instance = reinterpret_cast<RawInstance*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(instance, cid_, instance_size,
                                      is_canonical);
-      const auto unboxed_fields_bitmap =
-          shared_class_table->GetUnboxedFieldsMapAt(cid_);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kWordSize)) {

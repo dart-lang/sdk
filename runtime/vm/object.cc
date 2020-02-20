@@ -2540,8 +2540,7 @@ void Object::CheckHandle() const {
     }
     ASSERT(vtable() == builtin_vtables_[cid]);
     if (FLAG_verify_handles && raw_->IsHeapObject()) {
-      Isolate* isolate = Isolate::Current();
-      Heap* isolate_heap = isolate->heap();
+      Heap* isolate_heap = IsolateGroup::Current()->heap();
       Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
       uword addr = RawObject::ToAddr(raw_);
       if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
@@ -2577,7 +2576,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     }
   }
 #ifndef PRODUCT
-  auto class_table = thread->isolate()->shared_class_table();
+  auto class_table = thread->isolate_group()->class_table();
   if (class_table->TraceAllocationFor(cls_id)) {
     Profiler::SampleAllocation(thread, cls_id);
   }
@@ -2604,7 +2603,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
 class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
  public:
   explicit WriteBarrierUpdateVisitor(Thread* thread, RawObject* obj)
-      : ObjectPointerVisitor(thread->isolate()),
+      : ObjectPointerVisitor(thread->isolate()->group()),
         thread_(thread),
         old_obj_(obj) {
     ASSERT(old_obj_->IsOldObject());
@@ -3235,7 +3234,7 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
 
     if (FLAG_precompiled_mode) {
       host_bitmap =
-          Isolate::Current()->shared_class_table()->GetUnboxedFieldsMapAt(
+          Isolate::Current()->group()->class_table()->GetUnboxedFieldsMapAt(
               super.id());
     }
   }
@@ -3701,7 +3700,8 @@ void Class::Finalize() const {
       // Sets the new size in the class table.
       isolate->class_table()->SetAt(id(), raw());
       if (FLAG_precompiled_mode) {
-        isolate->shared_class_table()->SetUnboxedFieldsMapAt(id(), host_bitmap);
+        isolate->group()->class_table()->SetUnboxedFieldsMapAt(id(),
+                                                               host_bitmap);
       }
     }
   }
@@ -3797,7 +3797,7 @@ void Class::DisableAllCHAOptimizedCode() {
 
 bool Class::TraceAllocation(Isolate* isolate) const {
 #ifndef PRODUCT
-  auto class_table = isolate->shared_class_table();
+  auto class_table = isolate->group()->class_table();
   return class_table->TraceAllocationFor(id());
 #else
   return false;
@@ -3809,7 +3809,7 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   Isolate* isolate = Isolate::Current();
   const bool changed = trace_allocation != this->TraceAllocation(isolate);
   if (changed) {
-    auto class_table = isolate->shared_class_table();
+    auto class_table = isolate->group()->class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
@@ -17169,8 +17169,9 @@ uint32_t Instance::CanonicalizeHash() const {
   hash = instance_size / kWordSize;
   uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
   Instance& member = Instance::Handle();
+
   const auto unboxed_fields_bitmap =
-      thread->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(
+      thread->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(
           GetClassId());
 
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
@@ -17191,8 +17192,8 @@ uint32_t Instance::CanonicalizeHash() const {
 #if defined(DEBUG)
 class CheckForPointers : public ObjectPointerVisitor {
  public:
-  explicit CheckForPointers(Isolate* isolate)
-      : ObjectPointerVisitor(isolate), has_pointers_(false) {}
+  explicit CheckForPointers(IsolateGroup* isolate_group)
+      : ObjectPointerVisitor(isolate_group), has_pointers_(false) {}
 
   bool has_pointers() const { return has_pointers_; }
 
@@ -17222,7 +17223,7 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
-        thread->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(
+        thread->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(
             GetClassId());
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kWordSize) {
@@ -17249,7 +17250,7 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
   } else {
 #if defined(DEBUG)
     // Make sure that we are not missing any fields.
-    CheckForPointers has_pointers(Isolate::Current());
+    CheckForPointers has_pointers(Isolate::Current()->group());
     this->raw()->VisitPointers(&has_pointers);
     ASSERT(!has_pointers.has_pointers());
 #endif  // DEBUG

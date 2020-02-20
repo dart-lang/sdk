@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_CLASS_FINALIZER_H_
 #define RUNTIME_VM_CLASS_FINALIZER_H_
 
+#include <memory>
+
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
@@ -41,7 +43,7 @@ class ClassFinalizer : public AllStatic {
 
   // Useful for sorting classes to make dispatch faster.
   static void SortClasses();
-  static void RemapClassIds(intptr_t* old_to_new_cid);
+  static void RemapClassIds(std::unique_ptr<intptr_t[]> old_to_new_cid);
   static void RehashTypes();
   static void ClearAllCode(bool including_nonchanging_cids = false);
 

@@ -249,6 +249,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         new IsolateGroupSource(nullptr, kVmIsolateName, vm_isolate_snapshot,
                                instructions_snapshot, nullptr, -1, api_flags));
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
+    group->CreateHeap(/*is_vm_isolate=*/true,
+                      /*is_service_or_kernel_isolate=*/false);
     IsolateGroup::RegisterIsolateGroup(group);
     vm_isolate_ =
         Isolate::InitIsolate(kVmIsolateName, group, api_flags, is_vm_isolate);
@@ -947,18 +949,7 @@ void Dart::ShutdownIsolate(Isolate* isolate) {
 }
 
 void Dart::ShutdownIsolate() {
-  Isolate* isolate = Isolate::Current();
-  const bool is_application_isolate = !Isolate::IsVMInternalIsolate(isolate);
-  isolate->Shutdown();
-  if (KernelIsolate::IsKernelIsolate(isolate)) {
-    KernelIsolate::SetKernelIsolate(NULL);
-  }
-  delete isolate;
-
-  // Only now do we know for sure that the isolate and all it's resources have
-  // been deleted. So we can let any potential Dart::Cleanup() know it's safe to
-  // proceed shutdown of the VM.
-  Isolate::MarkIsolateDead(is_application_isolate);
+  Isolate::Current()->Shutdown();
 }
 
 bool Dart::VmIsolateNameEquals(const char* name) {

@@ -801,7 +801,7 @@ class Object {
 #undef DECLARE_SHARED_READONLY_HANDLE
 
   friend void ClassTable::Register(const Class& cls);
-  friend void RawObject::Validate(Isolate* isolate) const;
+  friend void RawObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
   friend class SnapshotReader;
   friend class InstanceDeserializationCluster;
@@ -10518,7 +10518,7 @@ RawClass* Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  ASSERT(!Isolate::Current()->compaction_in_progress());
+  ASSERT(!IsolateGroup::Current()->compaction_in_progress());
   return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
 

@@ -23,4 +23,8 @@ Isolate* ThreadStackResource::isolate() const {
   return thread()->isolate();
 }
 
+IsolateGroup* ThreadStackResource::isolate_group() const {
+  return thread()->isolate_group();
+}
+
 }  // namespace dart

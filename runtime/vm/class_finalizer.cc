@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+#include <utility>
+
 #include "vm/class_finalizer.h"
 
 #include "vm/compiler/jit/compiler.h"
@@ -1389,7 +1392,9 @@ void ClassFinalizer::SortClasses() {
 
   ClassTable* table = I->class_table();
   intptr_t num_cids = table->NumCids();
-  intptr_t* old_to_new_cid = new intptr_t[num_cids];
+
+  std::unique_ptr<intptr_t[]> old_to_new_cid(new intptr_t[num_cids]);
+
   for (intptr_t cid = 0; cid < kNumPredefinedCids; cid++) {
     old_to_new_cid[cid] = cid;  // The predefined classes cannot change cids.
   }
@@ -1450,9 +1455,7 @@ void ClassFinalizer::SortClasses() {
     }
   }
   ASSERT(next_new_cid == num_cids);
-
-  RemapClassIds(old_to_new_cid);
-  delete[] old_to_new_cid;
+  RemapClassIds(std::move(old_to_new_cid));
   RehashTypes();         // Types use cid's as part of their hashes.
   I->RehashConstants();  // Const objects use cid's as part of their hashes.
 }
@@ -1501,34 +1504,52 @@ class CidRewriteVisitor : public ObjectVisitor {
   intptr_t* old_to_new_cids_;
 };
 
-void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
+void ClassFinalizer::RemapClassIds(std::unique_ptr<intptr_t[]> old_to_new_cid) {
   Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
+  IsolateGroup* IG = T->isolate_group();
 
   // Code, ICData, allocation stubs have now-invalid cids.
   ClearAllCode();
 
   {
+    // The [HeapIterationScope] also safepoints all threads.
     HeapIterationScope his(T);
-    I->set_remapping_cids(true);
 
-    // Update the class table. Do it before rewriting cids in headers, as the
-    // heap walkers load an object's size *after* calling the visitor.
-    I->class_table()->Remap(old_to_new_cid);
+    IG->class_table()->Remap(old_to_new_cid.get());
+    IG->ForEachIsolate(
+        [&](Isolate* I) {
+          I->set_remapping_cids(true);
+
+          // Update the class table. Do it before rewriting cids in headers, as
+          // the heap walkers load an object's size *after* calling the visitor.
+          I->class_table()->Remap(old_to_new_cid.get());
+        },
+        /*is_at_safepoint=*/true);
 
     // Rewrite cids in headers and cids in Classes, Fields, Types and
     // TypeParameters.
     {
-      CidRewriteVisitor visitor(old_to_new_cid);
-      I->heap()->VisitObjects(&visitor);
+      CidRewriteVisitor visitor(old_to_new_cid.get());
+      IG->heap()->VisitObjects(&visitor);
     }
-    I->set_remapping_cids(false);
+
+    IG->ForEachIsolate(
+        [&](Isolate* I) {
+          I->set_remapping_cids(false);
+#if defined(DEBUG)
+          I->class_table()->Validate();
+#endif
+        },
+        /*is_at_safepoint=*/true);
   }
 
 #if defined(DEBUG)
-  I->class_table()->Validate();
-  I->heap()->Verify();
+  IG->heap()->Verify();
 #endif
+
+  // Ensure any newly spawned isolate will apply this permutation map right
+  // after kernel loading.
+  IG->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 // Clears the cached canonicalized hash codes for all instances which directly

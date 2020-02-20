@@ -395,7 +395,8 @@ TimelineEvent::TimelineEvent()
       label_(NULL),
       stream_(NULL),
       thread_(OSThread::kInvalidThreadId),
-      isolate_id_(ILLEGAL_PORT) {}
+      isolate_id_(ILLEGAL_PORT),
+      isolate_group_id_(0) {}
 
 TimelineEvent::~TimelineEvent() {
   Reset();
@@ -408,6 +409,7 @@ void TimelineEvent::Reset() {
   state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
+  isolate_group_id_ = 0;
   stream_ = NULL;
   label_ = NULL;
   arguments_.Free();
@@ -560,12 +562,11 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   thread_ = os_thread->trace_id();
-  Isolate* isolate = Isolate::Current();
-  if (isolate != NULL) {
-    isolate_id_ = isolate->main_port();
-  } else {
-    isolate_id_ = ILLEGAL_PORT;
-  }
+  auto thread = Thread::Current();
+  auto isolate = thread != nullptr ? thread->isolate() : nullptr;
+  auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
+  isolate_id_ = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
+  isolate_group_id_ = (isolate_group != nullptr) ? isolate_group->id() : 0;
   label_ = label;
   arguments_.Free();
   set_event_type(event_type);
@@ -664,11 +665,19 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     ASSERT(arguments_.length() == 1);
     stream->AppendSerializedObject("args", arguments_[0].value);
     if (isolate_id_ != ILLEGAL_PORT) {
-      // If we have one, append the isolate id.
       stream->UncloseObject();
       stream->PrintfProperty("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                              static_cast<int64_t>(isolate_id_));
       stream->CloseObject();
+    }
+    if (isolate_group_id_ != 0) {
+      stream->UncloseObject();
+      stream->PrintfProperty("isolateGroupId",
+                             ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                             isolate_group_id_);
+      stream->CloseObject();
+    } else {
+      ASSERT(isolate_group_id_ == ILLEGAL_PORT);
     }
   } else {
     JSONObject args(&obj, "args");
@@ -677,9 +686,15 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
       args.AddProperty(arg.name, arg.value);
     }
     if (isolate_id_ != ILLEGAL_PORT) {
-      // If we have one, append the isolate id.
       args.AddPropertyF("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                         static_cast<int64_t>(isolate_id_));
+    }
+    if (isolate_group_id_ != 0) {
+      args.AddPropertyF("isolateGroupId",
+                        ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                        isolate_group_id_);
+    } else {
+      ASSERT(isolate_group_id_ == ILLEGAL_PORT);
     }
   }
 }

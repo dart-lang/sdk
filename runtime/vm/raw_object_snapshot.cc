@@ -1713,7 +1713,7 @@ void RawTransferableTypedData::WriteTo(SnapshotWriter* writer,
       [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
         TransferableTypedDataPeer* tpeer =
             reinterpret_cast<TransferableTypedDataPeer*>(peer);
-        tpeer->handle()->EnsureFreeExternal(Isolate::Current());
+        tpeer->handle()->EnsureFreeExternal(IsolateGroup::Current());
         tpeer->ClearData();
       });
 }

@@ -374,7 +374,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate() != NULL);
   ASSERT(!FLAG_verify_handles || thread->IsValidLocalHandle(object) ||
-         thread->isolate()->api_state()->IsActivePersistentHandle(
+         thread->isolate()->group()->api_state()->IsActivePersistentHandle(
              reinterpret_cast<Dart_PersistentHandle>(object)) ||
          Dart::IsReadOnlyApiHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
@@ -477,9 +477,8 @@ Dart_Handle Api::NewArgumentError(const char* format, ...) {
   return Api::NewHandle(T, error.raw());
 }
 
-Dart_Handle Api::AcquiredError(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
+Dart_Handle Api::AcquiredError(IsolateGroup* isolate_group) {
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   PersistentHandle* acquired_error_handle = state->AcquiredError();
   return reinterpret_cast<Dart_Handle>(acquired_error_handle);
@@ -494,9 +493,9 @@ bool Api::IsValid(Dart_Handle handle) {
   // Check against all of the handles in the current isolate as well as the
   // read-only handles.
   return thread->IsValidHandle(handle) ||
-         isolate->api_state()->IsActivePersistentHandle(
+         isolate->group()->api_state()->IsActivePersistentHandle(
              reinterpret_cast<Dart_PersistentHandle>(handle)) ||
-         isolate->api_state()->IsActiveWeakPersistentHandle(
+         isolate->group()->api_state()->IsActiveWeakPersistentHandle(
              reinterpret_cast<Dart_WeakPersistentHandle>(handle)) ||
          Dart::IsReadOnlyApiHandle(handle) ||
          Dart::IsReadOnlyHandle(reinterpret_cast<uword>(handle));
@@ -527,7 +526,7 @@ void Api::InitHandles() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ASSERT(isolate == Dart::vm_isolate());
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   ASSERT(state != NULL);
 
   ASSERT(true_handle_ == NULL);
@@ -688,21 +687,21 @@ void Api::SetWeakHandleReturnValue(NativeArguments* args,
 }
 
 PersistentHandle* PersistentHandle::Cast(Dart_PersistentHandle handle) {
-  ASSERT(Isolate::Current()->api_state()->IsValidPersistentHandle(handle));
+  ASSERT(IsolateGroup::Current()->api_state()->IsValidPersistentHandle(handle));
   return reinterpret_cast<PersistentHandle*>(handle);
 }
 
 FinalizablePersistentHandle* FinalizablePersistentHandle::Cast(
     Dart_WeakPersistentHandle handle) {
 #if defined(DEBUG)
-  ApiState* state = Isolate::Current()->api_state();
+  ApiState* state = IsolateGroup::Current()->api_state();
   ASSERT(state->IsValidWeakPersistentHandle(handle));
 #endif
   return reinterpret_cast<FinalizablePersistentHandle*>(handle);
 }
 
 void FinalizablePersistentHandle::Finalize(
-    Isolate* isolate,
+    IsolateGroup* isolate_group,
     FinalizablePersistentHandle* handle) {
   if (!handle->raw()->IsHeapObject()) {
     return;  // Free handle.
@@ -711,8 +710,8 @@ void FinalizablePersistentHandle::Finalize(
   ASSERT(callback != NULL);
   void* peer = handle->peer();
   Dart_WeakPersistentHandle object = handle->apiHandle();
-  (*callback)(isolate->init_callback_data(), object, peer);
-  ApiState* state = isolate->api_state();
+  (*callback)(isolate_group->embedder_data(), object, peer);
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   state->FreeWeakPersistentHandle(handle);
 }
@@ -908,7 +907,7 @@ Dart_HandleFromPersistent(Dart_PersistentHandle object) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   ASSERT(state != NULL);
   TransitionNativeToVM transition(thread);
   NoSafepointScope no_safepoint_scope;
@@ -921,7 +920,7 @@ Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   ASSERT(state != NULL);
   TransitionNativeToVM transition(thread);
   NoSafepointScope no_safepoint_scope;
@@ -933,7 +932,7 @@ Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object) {
 DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
-  ApiState* state = I->api_state();
+  ApiState* state = I->group()->api_state();
   ASSERT(state != NULL);
   const Object& old_ref = Object::Handle(Z, Api::UnwrapHandle(object));
   PersistentHandle* new_ref = state->AllocatePersistentHandle();
@@ -945,7 +944,7 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
                                           Dart_Handle obj2) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
-  ApiState* state = I->api_state();
+  ApiState* state = I->group()->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsValidPersistentHandle(obj1));
   const Object& obj2_ref = Object::Handle(Z, Api::UnwrapHandle(obj2));
@@ -1000,7 +999,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   ASSERT(state != NULL);
   PersistentHandle* ref = PersistentHandle::Cast(object);
   ASSERT(!state->IsProtectedHandle(ref));
@@ -1016,10 +1015,10 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   ASSERT(isolate == Isolate::Current());
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   ASSERT(state != NULL);
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->EnsureFreeExternal(isolate);
+  weak_ref->EnsureFreeExternal(isolate->group());
   state->FreeWeakPersistentHandle(weak_ref);
 }
 
@@ -1073,6 +1072,17 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 VM_METRIC_LIST(VM_METRIC_API);
 #undef VM_METRIC_API
 
+#define ISOLATE_GROUP_METRIC_API(type, variable, name, unit)                   \
+  DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
+    if (isolate == nullptr) {                                                  \
+      FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);   \
+    }                                                                          \
+    Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
+    return iso->group()->Get##variable##Metric()->Value();                     \
+  }
+ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
+#undef ISOLATE_GROUP_METRIC_API
+
 #define ISOLATE_METRIC_API(type, variable, name, unit)                         \
   DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
     if (isolate == NULL) {                                                     \
@@ -1081,24 +1091,28 @@ VM_METRIC_LIST(VM_METRIC_API);
     Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
     return iso->Get##variable##Metric()->Value();                              \
   }
-ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
+ISOLATE_METRIC_LIST(ISOLATE_METRIC_API)
 #undef ISOLATE_METRIC_API
+
 #else  // !defined(PRODUCT)
+
 #define VM_METRIC_API(type, variable, name, unit)                              \
   DART_EXPORT int64_t Dart_VM##variable##Metric() { return -1; }
-VM_METRIC_LIST(VM_METRIC_API);
+VM_METRIC_LIST(VM_METRIC_API)
 #undef VM_METRIC_API
 
 #define ISOLATE_METRIC_API(type, variable, name, unit)                         \
   DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
     return -1;                                                                 \
   }
-ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
+ISOLATE_METRIC_LIST(ISOLATE_METRIC_API)
+ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_API)
 #endif  // !defined(PRODUCT)
 
 // --- Isolates ---
 
 static Dart_Isolate CreateIsolate(IsolateGroup* group,
+                                  bool is_new_group,
                                   const char* name,
                                   void* isolate_data,
                                   char** error) {
@@ -1142,6 +1156,9 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   }
 
   if (success) {
+    if (is_new_group) {
+      I->heap()->InitGrowthControl();
+    }
     // A Thread structure has been associated to the thread, we do the
     // safepoint transition explicitly here instead of using the
     // TransitionXXX scope objects as the reverse transition happens
@@ -1158,17 +1175,42 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
 
+static bool IsServiceOrKernelIsolateName(const char* name) {
+  if (ServiceIsolate::NameEquals(name)) {
+    ASSERT(!ServiceIsolate::Exists());
+    return true;
+  }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (KernelIsolate::NameEquals(name)) {
+    ASSERT(!KernelIsolate::Exists());
+    return true;
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return false;
+}
+
 Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                           const char* name,
                                           char** error) {
   API_TIMELINE_DURATION(Thread::Current());
   CHECK_NO_ISOLATE(Isolate::Current());
 
+  // During isolate start we'll make a temporary anonymous group from the same
+  // [source]. Once the isolate has been fully loaded we will merge it's heap
+  // into the shared heap.
+  auto spawning_group = new IsolateGroup(group->shareable_source(),
+                                         /*isolate_group_data=*/nullptr);
+  IsolateGroup::RegisterIsolateGroup(spawning_group);
+  spawning_group->CreateHeap(
+      /*is_vm_isolate=*/false,
+      IsServiceOrKernelIsolateName(group->source()->name));
+
   Isolate* isolate = reinterpret_cast<Isolate*>(
-      CreateIsolate(group, name, /*isolate_data=*/nullptr, error));
+      CreateIsolate(spawning_group, /*is_new_group=*/false, name,
+                    /*isolate_data=*/nullptr, error));
   if (isolate == nullptr) return nullptr;
 
-  auto source = group->source();
+  auto source = spawning_group->source();
   ASSERT(isolate->source() == source);
 
   if (source->script_kernel_buffer != nullptr) {
@@ -1207,6 +1249,100 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
 
+  // If we are running in AppJIT training mode we'll have to remap class ids.
+  if (auto permutation_map = group->source()->cid_permutation_map.get()) {
+    Dart_EnterScope();
+    {
+      auto T = Thread::Current();
+      TransitionNativeToVM transition(T);
+      HANDLESCOPE(T);
+
+      const intptr_t num_cids = group->class_table()->NumCids();
+      std::unique_ptr<intptr_t[]> permutation_map_copy(new intptr_t[num_cids]);
+      for (intptr_t i = 0; i < num_cids; ++i) {
+        permutation_map_copy[i] = permutation_map[i];
+      }
+
+      // Remap all class ids loaded atm (e.g. from snapshot) and do appropriate
+      // re-hashing of constants and types.
+      ClassFinalizer::RemapClassIds(std::move(permutation_map_copy));
+      // Types use cid's as part of their hashes.
+      ClassFinalizer::RehashTypes();
+      // Const objects use cid's as part of their hashes.
+      isolate->RehashConstants();
+    }
+    Dart_ExitScope();
+  }
+
+  auto thread = Thread::Current();
+  {
+    TransitionNativeToVM native_to_vm(thread);
+
+    // Ensure new space is empty and there are no threads running.
+    BackgroundCompiler::Stop(isolate);
+    isolate->heap()->new_space()->Evacuate();
+    isolate->heap()->WaitForMarkerTasks(thread);
+    isolate->heap()->WaitForSweeperTasks(thread);
+    RELEASE_ASSERT(isolate->heap()->new_space()->UsedInWords() == 0);
+    RELEASE_ASSERT(isolate->heap()->old_space()->tasks() == 0);
+  }
+
+  Dart_ExitIsolate();
+  {
+    const bool kBypassSafepoint = false;
+    Thread::EnterIsolateGroupAsHelper(group, Thread::kUnknownTask,
+                                      kBypassSafepoint);
+    ASSERT(group == IsolateGroup::Current());
+
+    {
+      auto thread = Thread::Current();
+
+      // Prevent additions of new isolates to [group] until we're done.
+      group->RunWithLockedGroup([&]() {
+        // Ensure no other old space GC tasks are running and "occupy" the old
+        // space.
+        {
+          auto old_space = group->heap()->old_space();
+          MonitorLocker ml(old_space->tasks_lock());
+          while (old_space->tasks() > 0) {
+            ml.WaitWithSafepointCheck(thread);
+          }
+          old_space->set_tasks(1);
+        }
+
+        // Merge the heap from [spawning_group] to [group].
+        {
+          SafepointOperationScope safepoint_scope(thread);
+          group->heap()->MergeOtherHeap(isolate->group()->heap());
+        }
+
+        spawning_group->UnregisterIsolate(isolate);
+        const bool shutdown_group =
+            spawning_group->UnregisterIsolateDecrementCount(isolate);
+        ASSERT(shutdown_group);
+
+        isolate->isolate_group_ = group;
+        group->RegisterIsolateLocked(isolate);
+        isolate->class_table()->shared_class_table_ = group->class_table();
+
+        // Allow other old space GC tasks to run again.
+        {
+          auto old_space = group->heap()->old_space();
+          MonitorLocker ml(old_space->tasks_lock());
+          ASSERT(old_space->tasks() == 1);
+          old_space->set_tasks(0);
+          ml.NotifyAll();
+        }
+
+        spawning_group->Shutdown();
+      });
+    }
+
+    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+  }
+  Dart_EnterIsolate(Api::CastIsolate(isolate));
+  ASSERT(Thread::Current()->isolate_group() == isolate->group());
+
   return isolate;
 }
 
@@ -1236,9 +1372,11 @@ Dart_CreateIsolateGroup(const char* script_uri,
       new IsolateGroupSource(script_uri, non_null_name, snapshot_data,
                              snapshot_instructions, nullptr, -1, *flags));
   auto group = new IsolateGroup(std::move(source), isolate_group_data);
+  group->CreateHeap(
+      /*is_vm_isolate=*/false, IsServiceOrKernelIsolateName(non_null_name));
   IsolateGroup::RegisterIsolateGroup(group);
-  Dart_Isolate isolate =
-      CreateIsolate(group, non_null_name, isolate_data, error);
+  Dart_Isolate isolate = CreateIsolate(group, /*is_new_group=*/true,
+                                       non_null_name, isolate_data, error);
   if (isolate != nullptr) {
     group->set_initial_spawn_successful();
   }
@@ -1263,13 +1401,15 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
   }
 
   const char* non_null_name = name == nullptr ? "isolate" : name;
-  std::unique_ptr<IsolateGroupSource> source(
+  std::shared_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, nullptr, nullptr,
                              kernel_buffer, kernel_buffer_size, *flags));
-  auto group = new IsolateGroup(std::move(source), isolate_group_data);
+  auto group = new IsolateGroup(source, isolate_group_data);
   IsolateGroup::RegisterIsolateGroup(group);
-  Dart_Isolate isolate =
-      CreateIsolate(group, non_null_name, isolate_data, error);
+  group->CreateHeap(
+      /*is_vm_isolate=*/false, IsServiceOrKernelIsolateName(non_null_name));
+  Dart_Isolate isolate = CreateIsolate(group, /*is_new_group=*/true,
+                                       non_null_name, isolate_data, error);
   if (isolate != nullptr) {
     group->set_initial_spawn_successful();
   }
@@ -1607,7 +1747,7 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   CHECK_ISOLATE(T->isolate());
   API_TIMELINE_BEGIN_END(T);
   TransitionNativeToVM transition(T);
-  T->isolate()->idle_time_handler()->NotifyIdle(deadline);
+  T->isolate()->group()->idle_time_handler()->NotifyIdle(deadline);
 }
 
 DART_EXPORT void Dart_NotifyLowMemory() {
@@ -3952,7 +4092,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
       ASSERT(I->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
     }
     const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
-    WeakTable* table = I->api_state()->acquired_table();
+    WeakTable* table = I->group()->api_state()->acquired_table();
     intptr_t current = table->GetValue(obj.raw());
     if (current != 0) {
       return Api::NewError("Data was already acquired for this object.");
@@ -3982,7 +4122,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   END_NO_CALLBACK_SCOPE(T);
   if (FLAG_verify_acquired_data) {
     const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
-    WeakTable* table = I->api_state()->acquired_table();
+    WeakTable* table = I->group()->api_state()->acquired_table();
     intptr_t current = table->GetValue(obj.raw());
     if (current == 0) {
       return Api::NewError("Data was not acquired for this object.");
@@ -5062,8 +5202,8 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 #if defined(DEBUG)
   Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
-  ASSERT(isolate->api_state() != NULL &&
-         (isolate->api_state()->IsValidWeakPersistentHandle(rval)));
+  ASSERT(isolate->group()->api_state() != NULL &&
+         (isolate->group()->api_state()->IsValidWeakPersistentHandle(rval)));
 #endif
   Api::SetWeakHandleReturnValue(arguments, rval);
 }
@@ -5647,7 +5787,13 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   I->debugger()->NotifyDoneLoading();
 #endif
 
-  I->heap()->old_space()->EvaluateAfterLoading();
+  // After having loaded all the code, we can let the GC set reaonsable limits
+  // for the heap growth.
+  // If this is an auxiliary isolate inside a larger isolate group, we will not
+  // re-initialize the growth policy.
+  if (I->group()->ContainsOnlyOneIsolate()) {
+    I->heap()->old_space()->EvaluateAfterLoading();
+  }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_mirrors) {
@@ -6486,6 +6632,28 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
 #endif
 }
 
+#if !defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+static void KillNonMainIsolatesSlow(Thread* thread, Isolate* main_isolate) {
+  auto group = main_isolate->group();
+  while (true) {
+    bool non_main_isolates_alive = false;
+    {
+      SafepointOperationScope safepoint(thread);
+      group->ForEachIsolate([&](Isolate* isolate) {
+        if (isolate != main_isolate) {
+          Isolate::KillIfExists(isolate, Isolate::kKillMsg);
+          non_main_isolates_alive = true;
+        }
+      });
+      if (!non_main_isolates_alive) {
+        break;
+      }
+    }
+    OS::SleepMicros(10 * 1000);
+  }
+}
+#endif  // !defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+
 DART_EXPORT Dart_Handle
 Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
@@ -6503,11 +6671,16 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   CHECK_NULL(isolate_snapshot_data_size);
   CHECK_NULL(isolate_snapshot_instructions_buffer);
   CHECK_NULL(isolate_snapshot_instructions_size);
+
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (Api::IsError(state)) {
     return state;
   }
+
+  // Kill off any auxiliary isolates before starting with deduping.
+  KillNonMainIsolatesSlow(T, I);
+
   BackgroundCompiler::Stop(I);
   DropRegExpMatchCode(Z);
 

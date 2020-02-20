@@ -3440,26 +3440,41 @@ static bool HandleNativeMetricsList(Thread* thread, JSONStream* js) {
   obj.AddProperty("type", "MetricList");
   {
     JSONArray metrics(&obj, "metrics");
-    Metric* current = thread->isolate()->metrics_list_head();
-    while (current != NULL) {
-      metrics.AddValue(current);
-      current = current->next();
-    }
+
+    auto isolate = thread->isolate();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  metrics.AddValue(isolate->Get##variable##Metric());
+    ISOLATE_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
+    auto isolate_group = thread->isolate_group();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  metrics.AddValue(isolate_group->Get##variable##Metric());
+    ISOLATE_GROUP_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
   }
   return true;
 }
 
 static bool HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
-  Metric* current = thread->isolate()->metrics_list_head();
-  while (current != NULL) {
-    const char* name = current->name();
-    ASSERT(name != NULL);
-    if (strcmp(name, id) == 0) {
-      current->PrintJSON(js);
-      return true;
-    }
-    current = current->next();
+  auto isolate = thread->isolate();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  if (strcmp(id, name) == 0) {                                                 \
+    isolate->Get##variable##Metric()->PrintJSON(js);                           \
+    return true;                                                               \
   }
+  ISOLATE_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
+  auto isolate_group = thread->isolate_group();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  if (strcmp(id, name) == 0) {                                                 \
+    isolate_group->Get##variable##Metric()->PrintJSON(js);                     \
+    return true;                                                               \
+  }
+  ISOLATE_GROUP_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
   PrintInvalidParamError(js, "metricId");
   return true;
 }
@@ -3965,13 +3980,14 @@ static bool GetAllocationProfileImpl(Thread* thread,
       return true;
     }
   }
-  Isolate* isolate = thread->isolate();
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   if (should_reset_accumulator) {
-    isolate->UpdateLastAllocationProfileAccumulatorResetTimestamp();
+    isolate_group->UpdateLastAllocationProfileAccumulatorResetTimestamp();
   }
   if (should_collect) {
-    isolate->UpdateLastAllocationProfileGCTimestamp();
-    isolate->heap()->CollectAllGarbage();
+    isolate_group->UpdateLastAllocationProfileGCTimestamp();
+    isolate_group->heap()->CollectAllGarbage();
   }
   isolate->class_table()->AllocationProfilePrintJSON(js, internal);
   return true;
@@ -4161,7 +4177,7 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
 
-  ApiState* api_state = isolate->api_state();
+  ApiState* api_state = isolate->group()->api_state();
   ASSERT(api_state != NULL);
 
   {

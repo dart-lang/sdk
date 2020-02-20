@@ -229,7 +229,7 @@ class Scavenger {
 
   void MakeNewSpaceIterable() const;
   int64_t FreeSpaceInWords(Isolate* isolate) const;
-  void AbandonTLABs(Isolate* isolate);
+  void AbandonTLABs(IsolateGroup* isolate_group);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -251,18 +251,22 @@ class Scavenger {
   uword FirstObjectStart() const {
     return to_->start() + kNewObjectAlignmentOffset;
   }
-  SemiSpace* Prologue(Isolate* isolate);
-  void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateRoots(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateWeakProperties(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateWeakReferences(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
+  SemiSpace* Prologue(IsolateGroup* isolate_group);
+  void IterateStoreBuffers(IsolateGroup* isolate_group,
+                           ScavengerVisitor* visitor);
+  void IterateObjectIdTable(IsolateGroup* isolate_group,
+                            ScavengerVisitor* visitor);
+  void IterateRoots(IsolateGroup* isolate_group, ScavengerVisitor* visitor);
+  void IterateWeakProperties(IsolateGroup* isolate_group,
+                             ScavengerVisitor* visitor);
+  void IterateWeakReferences(IsolateGroup* isolate_group,
+                             ScavengerVisitor* visitor);
+  void IterateWeakRoots(IsolateGroup* isolate_group, HandleVisitor* visitor);
   void ProcessToSpace(ScavengerVisitor* visitor);
   void EnqueueWeakProperty(RawWeakProperty* raw_weak);
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);
-  void Epilogue(Isolate* isolate, SemiSpace* from);
+  void Epilogue(IsolateGroup* isolate_group, SemiSpace* from);
 
   bool IsUnreachable(RawObject** p);
 

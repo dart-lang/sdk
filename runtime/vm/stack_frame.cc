@@ -103,15 +103,25 @@ void FrameLayout::Init() {
 #endif
 }
 
-Isolate* StackFrame::IsolateOfBareInstructionsFrame() const {
-  auto isolate = this->isolate();
-
+Isolate* StackFrame::IsolateOfBareInstructionsFrame(bool needed_for_gc) const {
+  Isolate* isolate = Dart::vm_isolate();
   if (isolate->object_store()->code_order_table() != Object::null()) {
     auto rct = isolate->reverse_pc_lookup_cache();
     if (rct->Contains(pc())) return isolate;
   }
 
-  isolate = Dart::vm_isolate();
+  isolate = this->isolate();
+  // The active isolate is null only during GC, in which case it does not matter
+  // which isolate we use for the reverse-pc lookup table, since the metadata
+  // is the same across all isolates.
+  // TODO(dartbug.com/36097): Avoid having the [ReversePcLookupTable]
+  // per-isolate.  Right now we still need it per-isolate for non-GC cases, e.g.
+  // for stack walking code which relies on finding owner functions of code
+  // objects.
+  if (isolate == nullptr) {
+    ASSERT(needed_for_gc);
+    isolate = isolate_group()->isolates_.First();
+  }
   if (isolate->object_store()->code_order_table() != Object::null()) {
     auto rct = isolate->reverse_pc_lookup_cache();
     if (rct->Contains(pc())) return isolate;
@@ -123,7 +133,7 @@ Isolate* StackFrame::IsolateOfBareInstructionsFrame() const {
 bool StackFrame::IsBareInstructionsDartFrame() const {
   NoSafepointScope no_safepoint;
 
-  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/true)) {
     Code code;
     auto rct = isolate->reverse_pc_lookup_cache();
     code = rct->Lookup(pc(), /*is_return_address=*/true);
@@ -138,7 +148,7 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
 bool StackFrame::IsBareInstructionsStubFrame() const {
   NoSafepointScope no_safepoint;
 
-  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/true)) {
     Code code;
     auto rct = isolate->reverse_pc_lookup_cache();
     code = rct->Lookup(pc(), /*is_return_address=*/true);
@@ -252,7 +262,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   NoSafepointScope no_safepoint;
   Code code;
 
-  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/true)) {
     auto const rct = isolate->reverse_pc_lookup_cache();
     code = rct->Lookup(pc(), /*is_return_address=*/true);
   } else {
@@ -278,8 +288,16 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     CompressedStackMaps maps;
     maps = code.compressed_stackmaps();
     CompressedStackMaps global_table;
-    global_table =
-        this->isolate()->object_store()->canonicalized_stack_map_entries();
+
+    // The GC does not have an active isolate, only an active isolate group,
+    // yet the global compressed stack map table is only stored in the object
+    // store. It has the same contents for all isolates, so we just pick the
+    // one from the first isolate here.
+    // TODO(dartbug.com/36097): Avoid having this per-isolate and instead store
+    // it per isolate group.
+    auto isolate = isolate_group()->isolates_.First();
+
+    global_table = isolate->object_store()->canonicalized_stack_map_entries();
     CompressedStackMapsIterator it(maps, global_table);
     const uword start = code.PayloadStart();
     const uint32_t pc_offset = pc() - start;
@@ -387,7 +405,7 @@ RawCode* StackFrame::LookupDartCode() const {
   // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
-  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/false)) {
     auto const rct = isolate->reverse_pc_lookup_cache();
     return rct->Lookup(pc(), /*is_return_address=*/true);
   }
@@ -402,7 +420,7 @@ RawCode* StackFrame::LookupDartCode() const {
 
 RawCode* StackFrame::GetCodeObject() const {
   ASSERT(!is_interpreted());
-  if (auto isolate = IsolateOfBareInstructionsFrame()) {
+  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/false)) {
     auto const rct = isolate->reverse_pc_lookup_cache();
     return rct->Lookup(pc(), /*is_return_address=*/true);
   } else {

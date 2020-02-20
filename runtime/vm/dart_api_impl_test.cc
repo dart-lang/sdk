@@ -2933,7 +2933,7 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   EXPECT(state != NULL);
   ApiLocalScope* scope = thread->api_top_scope();
 
@@ -3001,7 +3001,7 @@ VM_UNIT_TEST_CASE(DartAPI_NewPersistentHandle_FromPersistentHandle) {
 
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   EXPECT(state != NULL);
   Thread* thread = Thread::Current();
   CHECK_API_SCOPE(thread);
@@ -3034,7 +3034,7 @@ VM_UNIT_TEST_CASE(DartAPI_AssignToPersistentHandle) {
   CHECK_API_SCOPE(T);
   Isolate* isolate = T->isolate();
   EXPECT(isolate != NULL);
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   EXPECT(state != NULL);
 
   // Start with a known persistent handle.

@@ -342,11 +342,9 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
                                   TaskKind kind,
                                   bool bypass_safepoint) {
   ASSERT(kind != kMutatorTask);
-  const bool kIsNotMutatorThread = false;
-  Thread* thread =
-      isolate->ScheduleThread(kIsNotMutatorThread, bypass_safepoint);
+  const bool kIsMutatorThread = false;
+  Thread* thread = isolate->ScheduleThread(kIsMutatorThread, bypass_safepoint);
   if (thread != NULL) {
-    ASSERT(thread->store_buffer_block_ == NULL);
     ASSERT(!thread->IsMutatorThread());
     ASSERT(thread->isolate() == isolate);
     ASSERT(thread->isolate_group() == isolate->group());
@@ -367,8 +365,37 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
 
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  const bool kIsNotMutatorThread = false;
-  isolate->UnscheduleThread(thread, kIsNotMutatorThread, bypass_safepoint);
+  const bool kIsMutatorThread = false;
+  isolate->UnscheduleThread(thread, kIsMutatorThread, bypass_safepoint);
+}
+
+bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
+                                       TaskKind kind,
+                                       bool bypass_safepoint) {
+  ASSERT(kind != kMutatorTask);
+  Thread* thread = isolate_group->ScheduleThread(bypass_safepoint);
+  if (thread != NULL) {
+    ASSERT(!thread->IsMutatorThread());
+    ASSERT(thread->isolate() == nullptr);
+    ASSERT(thread->isolate_group() == isolate_group);
+    thread->FinishEntering(kind);
+    return true;
+  }
+  return false;
+}
+
+void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  ASSERT(!thread->IsMutatorThread());
+  ASSERT(thread->isolate() == nullptr);
+  ASSERT(thread->isolate_group() != nullptr);
+
+  thread->PrepareLeaving();
+
+  const bool kIsMutatorThread = false;
+  thread->isolate_group()->UnscheduleThread(thread, kIsMutatorThread,
+                                            bypass_safepoint);
 }
 
 void Thread::ReleaseStoreBuffer() {
@@ -379,7 +406,7 @@ void Thread::ReleaseStoreBuffer() {
   // Make sure to get an *empty* block; the isolate needs all entries
   // at GC time.
   // TODO(koda): Replace with an epilogue (PrepareAfterGC) that acquires.
-  store_buffer_block_ = isolate()->store_buffer()->PopEmptyBlock();
+  store_buffer_block_ = isolate_group()->store_buffer()->PopEmptyBlock();
 }
 
 void Thread::SetStackLimit(uword limit) {
@@ -490,7 +517,7 @@ RawError* Thread::HandleInterrupts() {
   uword interrupt_bits = GetAndClearInterrupts();
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
-    if (isolate()->store_buffer()->Overflowed()) {
+    if (isolate_group()->store_buffer()->Overflowed()) {
       if (FLAG_verbose_gc) {
         OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
       }
@@ -546,11 +573,11 @@ void Thread::StoreBufferAddObjectGC(RawObject* obj) {
 void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
   StoreBufferBlock* block = store_buffer_block_;
   store_buffer_block_ = NULL;
-  isolate()->store_buffer()->PushBlock(block, policy);
+  isolate_group()->store_buffer()->PushBlock(block, policy);
 }
 
 void Thread::StoreBufferAcquire() {
-  store_buffer_block_ = isolate()->store_buffer()->PopNonFullBlock();
+  store_buffer_block_ = isolate_group()->store_buffer()->PopNonFullBlock();
 }
 
 void Thread::MarkingStackBlockProcess() {
@@ -581,11 +608,11 @@ void Thread::MarkingStackRelease() {
   MarkingStackBlock* block = marking_stack_block_;
   marking_stack_block_ = NULL;
   write_barrier_mask_ = RawObject::kGenerationalBarrierMask;
-  isolate()->marking_stack()->PushBlock(block);
+  isolate_group()->marking_stack()->PushBlock(block);
 }
 
 void Thread::MarkingStackAcquire() {
-  marking_stack_block_ = isolate()->marking_stack()->PopEmptyBlock();
+  marking_stack_block_ = isolate_group()->marking_stack()->PopEmptyBlock();
   write_barrier_mask_ =
       RawObject::kGenerationalBarrierMask | RawObject::kIncrementalBarrierMask;
 }
@@ -593,16 +620,19 @@ void Thread::MarkingStackAcquire() {
 void Thread::DeferredMarkingStackRelease() {
   MarkingStackBlock* block = deferred_marking_stack_block_;
   deferred_marking_stack_block_ = NULL;
-  isolate()->deferred_marking_stack()->PushBlock(block);
+  isolate_group()->deferred_marking_stack()->PushBlock(block);
 }
 
 void Thread::DeferredMarkingStackAcquire() {
   deferred_marking_stack_block_ =
-      isolate()->deferred_marking_stack()->PopEmptyBlock();
+      isolate_group()->deferred_marking_stack()->PopEmptyBlock();
 }
 
 bool Thread::IsMutatorThread() const {
-  return ((isolate_ != NULL) && (isolate_->mutator_thread() == this));
+  if (isolate_ != nullptr) {
+    ASSERT(is_mutator_thread_ == (isolate_->mutator_thread() == this));
+  }
+  return is_mutator_thread_;
 }
 
 bool Thread::CanCollectGarbage() const {
@@ -894,22 +924,22 @@ void Thread::UnwindScopes(uword stack_marker) {
 }
 
 void Thread::EnterSafepointUsingLock() {
-  isolate()->safepoint_handler()->EnterSafepointUsingLock(this);
+  isolate_group()->safepoint_handler()->EnterSafepointUsingLock(this);
 }
 
 void Thread::ExitSafepointUsingLock() {
-  isolate()->safepoint_handler()->ExitSafepointUsingLock(this);
+  isolate_group()->safepoint_handler()->ExitSafepointUsingLock(this);
 }
 
 void Thread::BlockForSafepoint() {
-  isolate()->safepoint_handler()->BlockForSafepoint(this);
+  isolate_group()->safepoint_handler()->BlockForSafepoint(this);
 }
 
 void Thread::FinishEntering(TaskKind kind) {
   ASSERT(store_buffer_block_ == nullptr);
 
   task_kind_ = kind;
-  if (isolate()->marking_stack() != NULL) {
+  if (isolate_group()->marking_stack() != NULL) {
     // Concurrent mark in progress. Enable barrier for this thread.
     MarkingStackAcquire();
     DeferredMarkingStackAcquire();
@@ -920,7 +950,7 @@ void Thread::FinishEntering(TaskKind kind) {
   if (kind == kMutatorTask) {
     StoreBufferAcquire();
   } else {
-    store_buffer_block_ = isolate()->store_buffer()->PopEmptyBlock();
+    store_buffer_block_ = isolate_group()->store_buffer()->PopEmptyBlock();
   }
 }
 

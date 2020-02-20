@@ -237,7 +237,10 @@ class PageSpaceController {
   bool is_enabled() { return is_enabled_; }
 
  private:
+  friend class PageSpace;  // For MergeOtherPageSpaceController
+
   void RecordUpdate(SpaceUsage before, SpaceUsage after, const char* reason);
+  void MergeOtherPageSpaceController(PageSpaceController* other);
 
   Heap* heap_;
 
@@ -261,7 +264,7 @@ class PageSpaceController {
   // we grow the heap more aggressively.
   const int garbage_collection_time_ratio_;
 
-  // Perform a synchronous GC when capacity exceeds this amount.
+  // Perform a GC when capacity exceeds this amount.
   intptr_t gc_threshold_in_words_;
 
   // Start considering idle GC when capacity exceeds this amount.
@@ -450,6 +453,8 @@ class PageSpace {
 
   bool IsObjectFromImagePages(RawObject* object);
 
+  void MergeOtherPageSpace(PageSpace* other);
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -506,7 +511,7 @@ class PageSpace {
                                  int64_t pre_safe_point);
   void SweepLarge();
   void Sweep();
-  void ConcurrentSweep(Isolate* isolate);
+  void ConcurrentSweep(IsolateGroup* isolate_group);
   void Compact(Thread* thread);
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);

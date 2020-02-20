@@ -29,6 +29,7 @@ typedef RawObject* RawCompressed;
 
 // Forward declarations.
 class Isolate;
+class IsolateGroup;
 #define DEFINE_FORWARD_DECLARATION(clazz) class Raw##clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
@@ -456,7 +457,7 @@ class RawObject {
     return (addr >= this_addr) && (addr < (this_addr + this_size));
   }
 
-  void Validate(Isolate* isolate) const;
+  void Validate(IsolateGroup* isolate_group) const;
   bool FindObject(FindObjectVisitor* visitor);
 
   // This function may access the class-ID in the header, but it cannot access
@@ -539,7 +540,7 @@ class RawObject {
 
   // This variant ensures that we do not visit the extra slot created from
   // rounding up instance sizes up to the allocation unit.
-  void VisitPointersPrecise(ObjectPointerVisitor* visitor);
+  void VisitPointersPrecise(Isolate* isolate, ObjectPointerVisitor* visitor);
 
   static RawObject* FromAddr(uword addr) {
     // We expect the untagged address here.
