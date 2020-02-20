@@ -125,7 +125,7 @@ class _SignalController {
   }
 
   static _setSignalHandler(int signal) native "Process_SetSignalHandler";
-  static int _clearSignalHandler(int signal)
+  static void _clearSignalHandler(int signal)
       native "Process_ClearSignalHandler";
 }
 
