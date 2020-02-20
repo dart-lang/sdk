@@ -1735,7 +1735,7 @@ void ParallelMoveResolver::EmitMove(int index) {
 #if defined(DEBUG)
   // Allocating a scratch register here may cause stack spilling. Neither the
   // source nor destination register should be SP-relative in that case.
-  for (const Location loc : {dst, src}) {
+  for (const Location& loc : {dst, src}) {
     ASSERT(!temp.DidAllocateTemporary() || !loc.HasStackIndex() ||
            loc.base_reg() != SPREG);
   }
