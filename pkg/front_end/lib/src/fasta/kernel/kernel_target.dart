@@ -54,6 +54,7 @@ import 'package:kernel/verifier.dart' show verifyGetStaticType;
 import 'package:package_config/package_config.dart';
 
 import '../../api_prototype/file_system.dart' show FileSystem;
+import '../../base/nnbd_mode.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -830,16 +831,7 @@ class KernelTarget extends TargetImplementation {
         if (library.isNonNullableByDefault &&
             library.loader.performNnbdChecks) {
           if (constructor.isConst && lateFinalFields.isNotEmpty) {
-            if (library.loader.nnbdStrongMode) {
-              builder.addProblem(messageConstConstructorLateFinalFieldError,
-                  constructor.fileOffset, noLength,
-                  context: lateFinalFields
-                      .map((field) => messageConstConstructorLateFinalFieldCause
-                          .withLocation(
-                              field.fileUri, field.charOffset, noLength))
-                      .toList());
-              lateFinalFields.clear();
-            } else {
+            if (library.loader.nnbdMode == NnbdMode.Weak) {
               builder.addProblem(messageConstConstructorLateFinalFieldWarning,
                   constructor.fileOffset, noLength,
                   context: lateFinalFields
@@ -847,8 +839,16 @@ class KernelTarget extends TargetImplementation {
                           .withLocation(
                               field.fileUri, field.charOffset, noLength))
                       .toList());
-              lateFinalFields.clear();
+            } else {
+              builder.addProblem(messageConstConstructorLateFinalFieldError,
+                  constructor.fileOffset, noLength,
+                  context: lateFinalFields
+                      .map((field) => messageConstConstructorLateFinalFieldCause
+                          .withLocation(
+                              field.fileUri, field.charOffset, noLength))
+                      .toList());
             }
+            lateFinalFields.clear();
           }
         }
       }
@@ -893,9 +893,9 @@ class KernelTarget extends TargetImplementation {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault &&
                 library.loader.performNnbdChecks) {
-              if (library.loader.nnbdStrongMode) {
+              if (library.loader.nnbdMode == NnbdMode.Weak) {
                 library.addProblem(
-                    templateFieldNonNullableWithoutInitializerError
+                    templateFieldNonNullableWithoutInitializerWarning
                         .withArguments(field.name.name, field.type,
                             library.isNonNullableByDefault),
                     field.fileOffset,
@@ -903,7 +903,7 @@ class KernelTarget extends TargetImplementation {
                     library.fileUri);
               } else {
                 library.addProblem(
-                    templateFieldNonNullableWithoutInitializerWarning
+                    templateFieldNonNullableWithoutInitializerError
                         .withArguments(field.name.name, field.type,
                             library.isNonNullableByDefault),
                     field.fileOffset,
@@ -945,15 +945,7 @@ class KernelTarget extends TargetImplementation {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault &&
                 library.loader.performNnbdChecks) {
-              if (library.loader.nnbdStrongMode) {
-                library.addProblem(
-                    templateFieldNonNullableNotInitializedByConstructorError
-                        .withArguments(field.name.name, field.type,
-                            library.isNonNullableByDefault),
-                    field.fileOffset,
-                    field.name.name.length,
-                    library.fileUri);
-              } else {
+              if (library.loader.nnbdMode == NnbdMode.Weak) {
                 library.addProblem(
                     templateFieldNonNullableNotInitializedByConstructorWarning
                         .withArguments(field.name.name, field.type,
@@ -961,6 +953,14 @@ class KernelTarget extends TargetImplementation {
                     field.fileOffset,
                     field.name.name.length,
                     field.fileUri);
+              } else {
+                library.addProblem(
+                    templateFieldNonNullableNotInitializedByConstructorError
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
               }
             }
           }
@@ -983,10 +983,10 @@ class KernelTarget extends TargetImplementation {
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode;
     if (enableNonNullable) {
-      if (loader.nnbdStrongMode) {
-        evaluationMode = constants.EvaluationMode.strong;
-      } else {
+      if (loader.nnbdMode == NnbdMode.Weak) {
         evaluationMode = constants.EvaluationMode.weak;
+      } else {
+        evaluationMode = constants.EvaluationMode.strong;
       }
     } else {
       evaluationMode = constants.EvaluationMode.legacy;

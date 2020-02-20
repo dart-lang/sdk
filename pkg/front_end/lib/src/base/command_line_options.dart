@@ -6,6 +6,7 @@
 class Flags {
   // TODO(johnniwinther): What is the right name for this?
   static const String nnbdStrongMode = "--nnbd-strong";
+  static const String nnbdAgnosticMode = "--nnbd-agnostic";
 
   static const String forceLateLowering = "--force-late-lowering";
   static const String forceNnbdChecks = "--force-nnbd-checks";

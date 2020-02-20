@@ -39,6 +39,8 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/base/command_line_options.dart';
 
+import 'package:front_end/src/base/nnbd_mode.dart';
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
@@ -185,7 +187,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool skipVm;
   final bool verify;
-  final bool weak;
+  final NnbdMode nnbdMode;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
@@ -220,7 +222,7 @@ class FastaContext extends ChainContext with MatchContext {
       bool kernelTextSerialization,
       bool fullCompile,
       this.verify,
-      this.weak)
+      this.nnbdMode)
       : steps = <Step>[
           new Outline(fullCompile, updateComments: updateComments),
           const Print(),
@@ -228,7 +230,7 @@ class FastaContext extends ChainContext with MatchContext {
         ] {
     String fullPrefix;
     String outlinePrefix;
-    if (weak) {
+    if (nnbdMode == NnbdMode.Weak) {
       fullPrefix = '.weak';
       outlinePrefix = '.weak.outline';
     } else {
@@ -352,7 +354,7 @@ class FastaContext extends ChainContext with MatchContext {
             ..environmentDefines = {}
             ..experimentalFlags =
                 testOptions.computeExperimentalFlags(experimentalFlags)
-            ..nnbdStrongMode = !weak
+            ..nnbdMode = nnbdMode
             ..librariesSpecificationUri = librariesSpecificationUri);
       uriTranslator = await options.getUriTranslator();
       _uriTranslators[librariesSpecificationUri] = uriTranslator;
@@ -458,7 +460,8 @@ class FastaContext extends ChainContext with MatchContext {
     addForcedExperimentalFlag(
         "enableNonNullable", ExperimentalFlag.nonNullable);
 
-    bool weak = environment["weak"] == "true";
+    NnbdMode nnbdMode =
+        environment["weak"] == "true" ? NnbdMode.Weak : NnbdMode.Strong;
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment["updateExpectations"] == "true";
@@ -486,7 +489,7 @@ class FastaContext extends ChainContext with MatchContext {
         kernelTextSerialization,
         environment.containsKey(ENABLE_FULL_COMPILE),
         verify,
-        weak);
+        nnbdMode);
   }
 }
 
@@ -551,7 +554,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           ..experimentalFlags =
               testOptions.computeExperimentalFlags(context.experimentalFlags)
           ..performNnbdChecks = testOptions.forceNnbdChecks
-          ..nnbdStrongMode = !context.weak
+          ..nnbdMode = context.nnbdMode
           ..librariesSpecificationUri = librariesSpecificationUri,
         inputs: <Uri>[description.uri]);
 

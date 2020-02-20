@@ -11,6 +11,8 @@ import 'package:kernel/ast.dart' as kernel show Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
+import '../base/nnbd_mode.dart';
+
 import 'experimental_flags.dart'
     show
         defaultExperimentalFlags,
@@ -230,8 +232,9 @@ class CompilerOptions {
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
 
-  /// Whether nnbd strong mode is used if experiment 'non-nullable' is enabled.
-  bool nnbdStrongMode = false;
+  /// Whether nnbd weak, strong or agnostic mode is used if experiment
+  /// 'non-nullable' is enabled.
+  NnbdMode nnbdMode = NnbdMode.Weak;
 
   /// Whether nnbd checks are performed when experiment 'non-nullable' is
   /// enabled.

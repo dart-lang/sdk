@@ -57,6 +57,8 @@ import 'package:kernel/type_environment.dart'
 
 import '../../base/common.dart';
 
+import '../../base/nnbd_mode.dart';
+
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart';
@@ -756,14 +758,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
           nnbdIssues ??= const {};
           if (inferred) {
-            if (nnbdIssues.contains(issue) && !library.loader.nnbdStrongMode) {
+            if (nnbdIssues.contains(issue) &&
+                library.loader.nnbdMode == NnbdMode.Weak) {
               reportProblem(
                   templateIncorrectTypeArgumentInSupertypeInferredWarning);
             } else {
               reportProblem(templateIncorrectTypeArgumentInSupertypeInferred);
             }
           } else {
-            if (nnbdIssues.contains(issue) && !library.loader.nnbdStrongMode) {
+            if (nnbdIssues.contains(issue) &&
+                library.loader.nnbdMode == NnbdMode.Weak) {
               reportProblem(templateIncorrectTypeArgumentInSupertypeWarning);
             } else {
               reportProblem(templateIncorrectTypeArgumentInSupertype);
@@ -836,7 +840,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             }
 
             nnbdIssues ??= const {};
-            if (nnbdIssues.contains(issue) && !library.loader.nnbdStrongMode) {
+            if (nnbdIssues.contains(issue) &&
+                library.loader.nnbdMode == NnbdMode.Weak) {
               reportProblem(templateIncorrectTypeArgumentWarning);
             } else {
               reportProblem(templateIncorrectTypeArgument);
@@ -1268,11 +1273,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       bool performNnbdChecks = loader is SourceLoader &&
           library.isNonNullableByDefault &&
           loader.performNnbdChecks;
-      bool nnbdStrongMode = loader is SourceLoader && loader.nnbdStrongMode;
+      bool nnbdWeakMode =
+          loader is SourceLoader && loader.nnbdMode == NnbdMode.Weak;
       bool isError =
-          isErrorInNnbdOptedOutMode || performNnbdChecks && nnbdStrongMode;
+          isErrorInNnbdOptedOutMode || performNnbdChecks && !nnbdWeakMode;
       bool isWarning =
-          !isErrorInNnbdOptedOutMode && performNnbdChecks && !nnbdStrongMode;
+          !isErrorInNnbdOptedOutMode && performNnbdChecks && nnbdWeakMode;
       assert(
           !isError || !isWarning,
           "A compile-time problem can't be an error and a warning "
@@ -1771,15 +1777,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             loader.performNnbdChecks) {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
-            if (loader.nnbdStrongMode) {
-              addProblem(
-                  templateRedirectingFactoryIncompatibleTypeArgument
-                      .withArguments(typeArgument, typeParameterBound,
-                          library.isNonNullableByDefault),
-                  redirectionTarget.charOffset,
-                  noLength);
-              hasProblem = true;
-            } else {
+            if (loader.nnbdMode == NnbdMode.Weak) {
               addProblem(
                   templateRedirectingFactoryIncompatibleTypeArgumentWarning
                       .withArguments(typeArgument, typeParameterBound,
@@ -1787,6 +1785,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                   redirectionTarget.charOffset,
                   noLength);
               hasProblem = false;
+            } else {
+              addProblem(
+                  templateRedirectingFactoryIncompatibleTypeArgument
+                      .withArguments(typeArgument, typeParameterBound,
+                          library.isNonNullableByDefault),
+                  redirectionTarget.charOffset,
+                  noLength);
+              hasProblem = true;
             }
           }
         }
@@ -1856,15 +1862,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         loader.performNnbdChecks) {
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
-        if (loader.nnbdStrongMode) {
+        if (loader.nnbdMode == NnbdMode.Weak) {
           addProblem(
-              templateIncompatibleRedirecteeFunctionType.withArguments(
+              templateIncompatibleRedirecteeFunctionTypeWarning.withArguments(
                   redirecteeType, factoryType, library.isNonNullableByDefault),
               factory.redirectionTarget.charOffset,
               noLength);
         } else {
           addProblem(
-              templateIncompatibleRedirecteeFunctionTypeWarning.withArguments(
+              templateIncompatibleRedirecteeFunctionType.withArguments(
                   redirecteeType, factoryType, library.isNonNullableByDefault),
               factory.redirectionTarget.charOffset,
               noLength);

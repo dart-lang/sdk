@@ -69,6 +69,8 @@ import 'libraries_specification.dart'
         LibrariesSpecificationException,
         TargetLibrariesSpecification;
 
+import 'nnbd_mode.dart';
+
 /// All options needed for the front end implementation.
 ///
 /// This includes: all of [CompilerOptions] in a form useful to the
@@ -173,7 +175,7 @@ class ProcessedOptions {
 
   bool get performNnbdChecks => _raw.performNnbdChecks;
 
-  bool get nnbdStrongMode => _raw.nnbdStrongMode;
+  NnbdMode get nnbdMode => _raw.nnbdMode;
 
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;

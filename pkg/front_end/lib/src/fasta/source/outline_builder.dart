@@ -26,6 +26,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
     show InvalidType, Nullability, ProcedureKind, Variance;
 
+import '../../base/nnbd_mode.dart';
+
 import '../builder/constructor_reference_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/fixed_type_builder.dart';
@@ -584,16 +586,16 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertypeForErrors != null) {
         if (supertypeForErrors.nullabilityBuilder.build(libraryBuilder) ==
             Nullability.nullable) {
-          if (libraryBuilder.loader.nnbdStrongMode) {
+          if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
             libraryBuilder.addProblem(
-                templateNullableSuperclassError
+                templateNullableSuperclassWarning
                     .withArguments(supertypeForErrors.fullNameForErrors),
                 nameOffset,
                 classNameForErrors.length,
                 uri);
           } else {
             libraryBuilder.addProblem(
-                templateNullableSuperclassWarning
+                templateNullableSuperclassError
                     .withArguments(supertypeForErrors.fullNameForErrors),
                 nameOffset,
                 classNameForErrors.length,
@@ -605,16 +607,16 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder mixin in mixins) {
           if (mixin.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
-            if (libraryBuilder.loader.nnbdStrongMode) {
+            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
               libraryBuilder.addProblem(
-                  templateNullableMixinError
+                  templateNullableMixinWarning
                       .withArguments(mixin.fullNameForErrors),
                   nameOffset,
                   classNameForErrors.length,
                   uri);
             } else {
               libraryBuilder.addProblem(
-                  templateNullableMixinWarning
+                  templateNullableMixinError
                       .withArguments(mixin.fullNameForErrors),
                   nameOffset,
                   classNameForErrors.length,
@@ -627,16 +629,16 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
-            if (libraryBuilder.loader.nnbdStrongMode) {
+            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
               libraryBuilder.addProblem(
-                  templateNullableInterfaceError
+                  templateNullableInterfaceWarning
                       .withArguments(interface.fullNameForErrors),
                   nameOffset,
                   classNameForErrors.length,
                   uri);
             } else {
               libraryBuilder.addProblem(
-                  templateNullableInterfaceWarning
+                  templateNullableInterfaceError
                       .withArguments(interface.fullNameForErrors),
                   nameOffset,
                   classNameForErrors.length,
@@ -702,16 +704,16 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder supertype in supertypeConstraints) {
           if (supertype.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
-            if (libraryBuilder.loader.nnbdStrongMode) {
+            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
               libraryBuilder.addProblem(
-                  templateNullableSuperclassError
+                  templateNullableSuperclassWarning
                       .withArguments(supertype.fullNameForErrors),
                   nameOffset,
                   classNameForErrors.length,
                   uri);
             } else {
               libraryBuilder.addProblem(
-                  templateNullableSuperclassWarning
+                  templateNullableSuperclassError
                       .withArguments(supertype.fullNameForErrors),
                   nameOffset,
                   classNameForErrors.length,
@@ -724,16 +726,16 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
-            if (libraryBuilder.loader.nnbdStrongMode) {
+            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
               libraryBuilder.addProblem(
-                  templateNullableInterfaceError
+                  templateNullableInterfaceWarning
                       .withArguments(interface.fullNameForErrors),
                   nameOffset,
                   classNameForErrors.length,
                   uri);
             } else {
               libraryBuilder.addProblem(
-                  templateNullableInterfaceWarning
+                  templateNullableInterfaceError
                       .withArguments(interface.fullNameForErrors),
                   nameOffset,
                   classNameForErrors.length,
@@ -1242,16 +1244,16 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype != null && supertype is! MixinApplicationBuilder) {
         if (supertype.nullabilityBuilder.build(libraryBuilder) ==
             Nullability.nullable) {
-          if (libraryBuilder.loader.nnbdStrongMode) {
+          if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
             libraryBuilder.addProblem(
-                templateNullableSuperclassError
+                templateNullableSuperclassWarning
                     .withArguments(supertype.fullNameForErrors),
                 charOffset,
                 classNameForErrors.length,
                 uri);
           } else {
             libraryBuilder.addProblem(
-                templateNullableSuperclassWarning
+                templateNullableSuperclassError
                     .withArguments(supertype.fullNameForErrors),
                 charOffset,
                 classNameForErrors.length,
@@ -1262,16 +1264,16 @@ class OutlineBuilder extends StackListenerImpl {
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build(libraryBuilder) ==
             Nullability.nullable) {
-          if (libraryBuilder.loader.nnbdStrongMode) {
+          if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
             libraryBuilder.addProblem(
-                templateNullableMixinError
+                templateNullableMixinWarning
                     .withArguments(mixin.fullNameForErrors),
                 charOffset,
                 classNameForErrors.length,
                 uri);
           } else {
             libraryBuilder.addProblem(
-                templateNullableMixinWarning
+                templateNullableMixinError
                     .withArguments(mixin.fullNameForErrors),
                 charOffset,
                 classNameForErrors.length,
@@ -1283,16 +1285,16 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
-            if (libraryBuilder.loader.nnbdStrongMode) {
+            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
               libraryBuilder.addProblem(
-                  templateNullableInterfaceError
+                  templateNullableInterfaceWarning
                       .withArguments(interface.fullNameForErrors),
                   charOffset,
                   classNameForErrors.length,
                   uri);
             } else {
               libraryBuilder.addProblem(
-                  templateNullableInterfaceWarning
+                  templateNullableInterfaceError
                       .withArguments(interface.fullNameForErrors),
                   charOffset,
                   classNameForErrors.length,

@@ -70,6 +70,8 @@ import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
+import '../../base/nnbd_mode.dart';
+
 import '../builder/builder.dart';
 import '../builder/builtin_type_builder.dart';
 import '../builder/class_builder.dart';
@@ -312,11 +314,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top()) {
     library.isNonNullableByDefault = isNonNullableByDefault;
-    library.nonNullableByDefaultCompiledMode = loader.target.enableNonNullable
-        ? (loader.nnbdStrongMode
-            ? NonNullableByDefaultCompiledMode.Strong
-            : NonNullableByDefaultCompiledMode.Weak)
-        : NonNullableByDefaultCompiledMode.Disabled;
+    if (loader.target.enableNonNullable) {
+      switch (loader.nnbdMode) {
+        case NnbdMode.Weak:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Weak;
+          break;
+        case NnbdMode.Strong:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Strong;
+          break;
+        case NnbdMode.Agnostic:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Agnostic;
+          break;
+      }
+    } else {
+      library.nonNullableByDefaultCompiledMode =
+          NonNullableByDefaultCompiledMode.Disabled;
+    }
   }
 
   SourceLibraryBuilder(
@@ -966,11 +982,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     library.isNonNullableByDefault = isNonNullableByDefault;
     // TODO(CFE Team): Is this really needed in two places?
-    library.nonNullableByDefaultCompiledMode = loader.target.enableNonNullable
-        ? (loader.nnbdStrongMode
-            ? NonNullableByDefaultCompiledMode.Strong
-            : NonNullableByDefaultCompiledMode.Weak)
-        : NonNullableByDefaultCompiledMode.Disabled;
+    if (loader.target.enableNonNullable) {
+      switch (loader.nnbdMode) {
+        case NnbdMode.Weak:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Weak;
+          break;
+        case NnbdMode.Strong:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Strong;
+          break;
+        case NnbdMode.Agnostic:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Agnostic;
+          break;
+      }
+    } else {
+      library.nonNullableByDefaultCompiledMode =
+          NonNullableByDefaultCompiledMode.Disabled;
+    }
 
     return library;
   }
@@ -3130,9 +3160,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           fieldType is! InvalidType &&
           fieldType.isPotentiallyNonNullable &&
           !fieldBuilder.hasInitializer) {
-        if (loader.nnbdStrongMode) {
+        if (loader.nnbdMode == NnbdMode.Weak) {
           addProblem(
-              templateFieldNonNullableWithoutInitializerError.withArguments(
+              templateFieldNonNullableWithoutInitializerWarning.withArguments(
                   fieldBuilder.name,
                   fieldBuilder.field.type,
                   isNonNullableByDefault),
@@ -3141,7 +3171,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               fileUri);
         } else {
           addProblem(
-              templateFieldNonNullableWithoutInitializerWarning.withArguments(
+              templateFieldNonNullableWithoutInitializerError.withArguments(
                   fieldBuilder.name,
                   fieldBuilder.field.type,
                   isNonNullableByDefault),
@@ -3165,18 +3195,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (isOptional &&
           formal.variable.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
-        if (loader.nnbdStrongMode) {
+        if (loader.nnbdMode == NnbdMode.Weak) {
           addProblem(
-              templateOptionalNonNullableWithoutInitializerError.withArguments(
-                  formal.name, formal.variable.type, isNonNullableByDefault),
+              templateOptionalNonNullableWithoutInitializerWarning
+                  .withArguments(formal.name, formal.variable.type,
+                      isNonNullableByDefault),
               formal.charOffset,
               formal.name.length,
               fileUri);
         } else {
           addProblem(
-              templateOptionalNonNullableWithoutInitializerWarning
-                  .withArguments(formal.name, formal.variable.type,
-                      isNonNullableByDefault),
+              templateOptionalNonNullableWithoutInitializerError.withArguments(
+                  formal.name, formal.variable.type, isNonNullableByDefault),
               formal.charOffset,
               formal.name.length,
               fileUri);
@@ -3265,7 +3295,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
 
             nnbdIssues ??= const {};
-            if (nnbdIssues.contains(issue) && !loader.nnbdStrongMode) {
+            if (nnbdIssues.contains(issue) &&
+                loader.nnbdMode == NnbdMode.Weak) {
               reportProblem(templateIncorrectTypeArgumentInReturnTypeWarning);
             } else {
               reportProblem(templateIncorrectTypeArgumentInReturnType);
@@ -3335,7 +3366,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nnbdIssues = nnbdIssues.where((issue) => !legacyIssues.contains(issue));
       }
       reportTypeArgumentIssues(nnbdIssues, fileUri, offset,
-          inferred: inferred, areWarnings: !loader.nnbdStrongMode);
+          inferred: inferred, areWarnings: loader.nnbdMode == NnbdMode.Weak);
     }
   }
 
@@ -3426,7 +3457,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
           targetName: targetName,
-          areWarnings: !loader.nnbdStrongMode);
+          areWarnings: loader.nnbdMode == NnbdMode.Weak);
     }
   }
 
@@ -3509,7 +3540,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           typeArgumentsInfo: getTypeArgumentsInfo(arguments),
           targetReceiver: receiverType,
           targetName: name.name,
-          areWarnings: !loader.nnbdStrongMode);
+          areWarnings: loader.nnbdMode == NnbdMode.Weak);
     }
   }
 

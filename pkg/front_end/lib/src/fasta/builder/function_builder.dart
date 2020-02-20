@@ -11,6 +11,8 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
+import '../../base/nnbd_mode.dart';
+
 import '../identifiers.dart';
 import '../scope.dart';
 
@@ -391,16 +393,16 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
             library.loader.target.performNnbdChecks) {
           // Required named parameters can't have default values.
           if (formal.isNamedRequired && formal.initializerToken != null) {
-            if (library.loader.nnbdStrongMode) {
+            if (library.loader.nnbdMode == NnbdMode.Weak) {
               library.addProblem(
-                  templateRequiredNamedParameterHasDefaultValueError
+                  templateRequiredNamedParameterHasDefaultValueWarning
                       .withArguments(formal.name),
                   formal.charOffset,
                   formal.name.length,
                   formal.fileUri);
             } else {
               library.addProblem(
-                  templateRequiredNamedParameterHasDefaultValueWarning
+                  templateRequiredNamedParameterHasDefaultValueError
                       .withArguments(formal.name),
                   formal.charOffset,
                   formal.name.length,
