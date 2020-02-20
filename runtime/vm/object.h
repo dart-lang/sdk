@@ -7051,6 +7051,13 @@ class TypeArguments : public Instance {
   // Names of internal classes are mapped to their public interfaces.
   RawString* UserVisibleName() const;
 
+  // Print the internal or public name of a subvector of this type argument
+  // vector, e.g. "<T, dynamic, List<T>, int>".
+  void PrintSubvectorName(intptr_t from_index,
+                          intptr_t len,
+                          NameVisibility name_visibility,
+                          ZoneTextBuffer* printer) const;
+
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
   bool IsRaw(intptr_t from_index, intptr_t len) const {
@@ -7227,13 +7234,6 @@ class TypeArguments : public Instance {
                       intptr_t from_index,
                       intptr_t len) const;
 
-  // Return the internal or public name of a subvector of this type argument
-  // vector, e.g. "<T, dynamic, List<T>, int>".
-  void PrintSubvectorName(intptr_t from_index,
-                          intptr_t len,
-                          NameVisibility name_visibility,
-                          ZoneTextBuffer* printer) const;
-
   RawArray* instantiations() const;
   void set_instantiations(const Array& value) const;
   RawAbstractType* const* TypeAddr(intptr_t index) const;
@@ -7363,6 +7363,10 @@ class AbstractType : public Instance {
 
   // Return a formatted string of the uris.
   static RawString* PrintURIs(URIs* uris);
+
+  // Returns a C-String (possibly "") representing the nullability of this type.
+  // Legacy and undetermined suffixes are only displayed with kInternalName.
+  virtual const char* NullabilitySuffix(NameVisibility name_visibility) const;
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const;

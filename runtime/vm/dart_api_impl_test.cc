@@ -6086,7 +6086,7 @@ TEST_CASE(DartAPI_GetNullableType) {
   EXPECT_VALID(name);
   const char* name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
-  EXPECT_STREQ("Class", name_cstr);
+  EXPECT_STREQ("Class?", name_cstr);
 
   name = Dart_GetField(type, NewString("name"));
   EXPECT_VALID(name);

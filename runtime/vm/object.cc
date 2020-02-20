@@ -73,9 +73,8 @@ DEFINE_FLAG(
     show_internal_names,
     false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
-    "instead of showing the corresponding interface names (e.g. \"String\")");
-// TODO(regis): Remove this temporary flag used to debug nullability.
-DEFINE_FLAG(bool, show_nullability, false, "Show nullability in type names");
+    "instead of showing the corresponding interface names (e.g. \"String\"). "
+    "Also show legacy nullability in type names.");
 DEFINE_FLAG(bool, use_lib_cache, false, "Use library name cache");
 DEFINE_FLAG(bool, use_exp_cache, false, "Use library exported name cache");
 
@@ -5664,7 +5663,11 @@ void TypeArguments::PrintSubvectorName(intptr_t from_index,
   for (intptr_t i = 0; i < len; i++) {
     if (from_index + i < Length()) {
       type = TypeAt(from_index + i);
-      type.PrintName(name_visibility, printer);
+      if (type.IsNull()) {
+        printer->AddString("null");  // Unfinalized vector.
+      } else {
+        type.PrintName(name_visibility, printer);
+      }
     } else {
       printer->AddString("dynamic");
     }
@@ -18084,17 +18087,26 @@ RawString* AbstractType::PrintURIs(URIs* uris) {
   return Symbols::FromConcatAll(thread, pieces);
 }
 
-static const char* NullabilitySuffix(Nullability value) {
+const char* AbstractType::NullabilitySuffix(
+    NameVisibility name_visibility) const {
+  if (IsDynamicType() || IsVoidType() || IsNullType()) {
+    // Hide nullable suffix.
+    return "";
+  }
   // Keep in sync with Nullability enum in runtime/vm/object.h.
-  switch (value) {
+  switch (nullability()) {
     case Nullability::kUndetermined:
-      return "%";
+      return (FLAG_show_internal_names || name_visibility == kInternalName)
+                 ? "%"
+                 : "";
     case Nullability::kNullable:
       return "?";
     case Nullability::kNonNullable:
       return "";
     case Nullability::kLegacy:
-      return "*";
+      return (FLAG_show_internal_names || name_visibility == kInternalName)
+                 ? "*"
+                 : "";
     default:
       UNREACHABLE();
   }
@@ -18121,9 +18133,7 @@ void AbstractType::PrintName(NameVisibility name_visibility,
   Zone* zone = thread->zone();
   if (IsTypeParameter()) {
     printer->AddString(String::Handle(zone, TypeParameter::Cast(*this).name()));
-    if (FLAG_show_nullability) {
-      printer->AddString(NullabilitySuffix(nullability()));
-    }
+    printer->AddString(NullabilitySuffix(name_visibility));
     return;
   }
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
@@ -18136,9 +18146,14 @@ void AbstractType::PrintName(NameVisibility name_visibility,
     const Function& signature_function =
         Function::Handle(zone, Type::Cast(*this).signature());
     if (!cls.IsTypedefClass()) {
-      signature_function.PrintSignature(kUserVisibleName, printer);
-      if (FLAG_show_nullability) {
-        printer->AddString(NullabilitySuffix(nullability()));
+      const char* suffix = NullabilitySuffix(name_visibility);
+      if (suffix[0] != '\0') {
+        printer->AddString("(");
+      }
+      signature_function.PrintSignature(name_visibility, printer);
+      if (suffix[0] != '\0') {
+        printer->AddString(")");
+        printer->AddString(suffix);
       }
       return;
     }
@@ -18148,9 +18163,7 @@ void AbstractType::PrintName(NameVisibility name_visibility,
     if (!IsFinalized() || IsBeingFinalized()) {
       // TODO(regis): Check if this is dead code.
       printer->AddString(class_name);
-      if (FLAG_show_nullability) {
-        printer->AddString(NullabilitySuffix(nullability()));
-      }
+      printer->AddString(NullabilitySuffix(name_visibility));
       return;
     }
     // Print the name of a typedef as a regular, possibly parameterized, class.
@@ -18188,9 +18201,7 @@ void AbstractType::PrintName(NameVisibility name_visibility,
     args.PrintSubvectorName(first_type_param_index, num_type_params,
                             name_visibility, printer);
   }
-  if (FLAG_show_nullability) {
-    printer->AddString(NullabilitySuffix(nullability()));
-  }
+  printer->AddString(NullabilitySuffix(name_visibility));
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
@@ -19251,32 +19262,42 @@ const char* Type::ToCString() const {
     return "Type: null";
   }
   Zone* zone = Thread::Current()->zone();
+  ZoneTextBuffer args(zone);
   const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-  const char* args_cstr = type_args.IsNull() ? "null" : type_args.ToCString();
+  const char* args_cstr = "";
+  if (!type_args.IsNull()) {
+    type_args.PrintSubvectorName(0, type_args.Length(), kInternalName, &args);
+    args_cstr = args.buffer();
+  }
   const Class& cls = Class::Handle(zone, type_class());
   const char* class_name;
   const String& name = String::Handle(zone, cls.Name());
   class_name = name.IsNull() ? "<null>" : name.ToCString();
+  const char* suffix = NullabilitySuffix(kInternalName);
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(zone, signature());
     ZoneTextBuffer sig(zone);
+    if (suffix[0] != '\0') {
+      sig.AddString("(");
+    }
     sig_fun.PrintSignature(kInternalName, &sig);
+    if (suffix[0] != '\0') {
+      sig.AddString(")");
+      sig.AddString(suffix);
+    }
     if (cls.IsClosureClass()) {
       ASSERT(type_args.IsNull());
       return OS::SCreate(zone, "Function Type: %s", sig.buffer());
     }
-    return OS::SCreate(zone, "Function Type: %s (class: %s, args: %s)",
-                       sig.buffer(), class_name, args_cstr);
+    return OS::SCreate(zone, "Function Type: %s (%s%s%s)", sig.buffer(),
+                       class_name, args_cstr, suffix);
   }
-  if (type_args.IsNull()) {
-    return OS::SCreate(zone, "Type: class '%s'", class_name);
-  } else if (IsFinalized() && IsRecursive()) {
+  if (IsFinalized() && IsRecursive()) {
     const intptr_t hash = Hash();
-    return OS::SCreate(zone, "Type: (H%" Px ") class '%s', args:[%s]", hash,
-                       class_name, args_cstr);
+    return OS::SCreate(zone, "Type: (H%" Px ") %s%s%s", hash, class_name,
+                       args_cstr, suffix);
   } else {
-    return OS::SCreate(zone, "Type: class '%s', args:[%s]", class_name,
-                       args_cstr);
+    return OS::SCreate(zone, "Type: %s%s%s", class_name, args_cstr, suffix);
   }
 }
 
@@ -19713,7 +19734,8 @@ const char* TypeParameter::ToCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
   printer.Printf("TypeParameter: name ");
-  printer.AddString(String::Handle(Name()));
+  printer.AddString(String::Handle(name()));
+  printer.AddString(NullabilitySuffix(kInternalName));
   printer.Printf("; index: %" Pd ";", index());
   if (IsFunctionTypeParameter()) {
     const Function& function = Function::Handle(parameterized_function());
