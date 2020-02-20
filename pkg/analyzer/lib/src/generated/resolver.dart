@@ -34,6 +34,7 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
@@ -219,6 +220,7 @@ class ResolverVisitor extends ScopedVisitor {
   FunctionExpressionInvocationResolver _functionExpressionInvocationResolver;
   PostfixExpressionResolver _postfixExpressionResolver;
   PrefixExpressionResolver _prefixExpressionResolver;
+  YieldStatementResolver _yieldStatementResolver;
 
   InvocationInferenceHelper inferenceHelper;
 
@@ -374,6 +376,9 @@ class ResolverVisitor extends ScopedVisitor {
     this._prefixExpressionResolver = PrefixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
+    );
+    this._yieldStatementResolver = YieldStatementResolver(
+      resolver: this,
     );
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
@@ -1886,51 +1891,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    Expression e = node.expression;
-    DartType returnType = inferenceContext.returnContext;
-    bool isGenerator = _enclosingFunction?.isGenerator ?? false;
-    if (returnType != null && isGenerator) {
-      // If we're not in a generator ([a]sync*, then we shouldn't have a yield.
-      // so don't infer
-
-      // If this just a yield, then we just pass on the element type
-      DartType type = returnType;
-      if (node.star != null) {
-        // If this is a yield*, then we wrap the element return type
-        // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-        type = _enclosingFunction.isSynchronous
-            ? typeProvider.iterableType2(type)
-            : typeProvider.streamType2(type);
-      }
-      InferenceContext.setType(e, type);
-    }
-    super.visitYieldStatement(node);
-
-    if (node.star != null) {
-      nullableDereferenceVerifier.expression(node.expression);
-    }
-
-    DartType type = e?.staticType;
-    if (type != null && isGenerator) {
-      // If this just a yield, then we just pass on the element type
-      if (node.star != null) {
-        // If this is a yield*, then we unwrap the element return type
-        // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-        if (type is InterfaceType) {
-          ClassElement wrapperElement = _enclosingFunction.isSynchronous
-              ? typeProvider.iterableElement
-              : typeProvider.streamElement;
-          var asInstanceType =
-              (type as InterfaceTypeImpl).asInstanceOf(wrapperElement);
-          if (asInstanceType != null) {
-            type = asInstanceType.typeArguments[0];
-          }
-        }
-      }
-      if (type != null) {
-        inferenceContext.addReturnOrYieldType(type);
-      }
-    }
+    _yieldStatementResolver.resolve(node);
   }
 
   void _checkForBodyMayCompleteNormally({

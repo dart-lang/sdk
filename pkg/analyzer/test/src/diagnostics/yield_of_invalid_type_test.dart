@@ -285,6 +285,19 @@ f() sync* {
     ]);
   }
 
+  test_star_syncStar_int_closure() async {
+    await assertErrorsInCode('''
+main() {
+  var f = () sync* {
+    yield* 0;
+  };
+  f;
+}
+''', [
+      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 41, 1),
+    ]);
+  }
+
   test_star_syncStar_iterableDynamic_to_dynamic() async {
     await assertNoErrorsInCode('''
 f() sync* {

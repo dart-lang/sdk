@@ -1312,23 +1312,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     super.visitWithClause(node);
   }
 
-  @override
-  void visitYieldStatement(YieldStatement node) {
-    if (_inGenerator) {
-      _checkForYieldOfInvalidType(node.expression, node.star != null);
-    } else {
-      CompileTimeErrorCode errorCode;
-      if (node.star != null) {
-        errorCode = CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR;
-      } else {
-        errorCode = CompileTimeErrorCode.YIELD_IN_NON_GENERATOR;
-      }
-      _errorReporter.reportErrorForNode(errorCode, node);
-    }
-    _checkForUseOfVoidResult(node.expression);
-    super.visitYieldStatement(node);
-  }
-
   /**
    * Checks the class for problems with the superclass, mixins, or implemented
    * interfaces.
@@ -5071,52 +5054,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           variance.toKeywordString()
         ],
       );
-    }
-  }
-
-  /**
-   * Check for a type mis-match between the yielded type and the declared
-   * return type of a generator function.
-   *
-   * This method should only be called in generator functions.
-   */
-  void _checkForYieldOfInvalidType(
-      Expression yieldExpression, bool isYieldEach) {
-    assert(_inGenerator);
-    if (_enclosingFunction == null) {
-      return;
-    }
-    DartType declaredReturnType = _enclosingFunction.returnType;
-    DartType staticYieldedType = getStaticType(yieldExpression);
-    DartType impliedReturnType;
-    if (isYieldEach) {
-      impliedReturnType = staticYieldedType;
-    } else if (_enclosingFunction.isAsynchronous) {
-      impliedReturnType = _typeProvider.streamType2(staticYieldedType);
-    } else {
-      impliedReturnType = _typeProvider.iterableType2(staticYieldedType);
-    }
-    if (!_checkForAssignableExpressionAtType(yieldExpression, impliedReturnType,
-        declaredReturnType, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE)) {
-      return;
-    }
-    if (isYieldEach) {
-      // Since the declared return type might have been "dynamic", we need to
-      // also check that the implied return type is assignable to generic
-      // Stream/Iterable.
-      DartType requiredReturnType;
-      if (_enclosingFunction.isAsynchronous) {
-        requiredReturnType = _typeProvider.streamDynamicType;
-      } else {
-        requiredReturnType = _typeProvider.iterableDynamicType;
-      }
-      if (!_typeSystem.isAssignableTo2(impliedReturnType, requiredReturnType)) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
-            yieldExpression,
-            [impliedReturnType, requiredReturnType]);
-        return;
-      }
     }
   }
 
