@@ -110,6 +110,9 @@ ConstEvalKeyImplementsEqual:
   template: "The key '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
 
+ConstEvalCaseImplementsEqual:
+  template: "Case expression '#constant' does not have a primitive operator '=='."
+
 ConstEvalInvalidType:
   template: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
 

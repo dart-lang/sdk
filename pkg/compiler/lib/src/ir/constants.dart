@@ -81,6 +81,11 @@ class ErrorReporter implements ir.ErrorReporter {
 
   ErrorReporter(this._reportError);
 
+  // TODO(johnniwinther,dmitryas): Remove the getter when the NNBD error
+  // reporting is enabled by default.
+  @override
+  bool get performNnbdChecks => false;
+
   @override
   void reportInvalidExpression(ir.InvalidExpression node) {
     // Ignore.

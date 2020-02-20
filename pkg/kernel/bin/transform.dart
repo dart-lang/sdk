@@ -104,7 +104,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
           component,
           backend,
           defines,
-          const constants.SimpleErrorReporter(),
+          const constants.SimpleErrorReporter(false),
           constants.EvaluationMode.legacy);
       break;
     case 'empty':

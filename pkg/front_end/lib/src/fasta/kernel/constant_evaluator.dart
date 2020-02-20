@@ -46,6 +46,7 @@ import '../fasta_codes.dart'
         messageConstEvalStartingPoint,
         messageConstEvalUnevaluated,
         noLength,
+        templateConstEvalCaseImplementsEqual,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateElement,
         templateConstEvalDuplicateKey,
@@ -407,6 +408,36 @@ class ConstantsTransformer extends Transformer {
   SwitchCase visitSwitchCase(SwitchCase node) {
     transformExpressions(node.expressions, node);
     return super.visitSwitchCase(node);
+  }
+
+  @override
+  SwitchStatement visitSwitchStatement(SwitchStatement node) {
+    SwitchStatement result = super.visitSwitchStatement(node);
+    Library library = constantEvaluator.libraryOf(node);
+    if (library != null &&
+        library.isNonNullableByDefault &&
+        constantEvaluator.errorReporter.performNnbdChecks) {
+      for (SwitchCase switchCase in node.cases) {
+        for (Expression caseExpression in switchCase.expressions) {
+          if (caseExpression is ConstantExpression) {
+            if (!constantEvaluator.hasPrimitiveEqual(caseExpression.constant)) {
+              Uri uri = constantEvaluator.getFileUri(caseExpression);
+              int offset = constantEvaluator.getFileOffset(uri, caseExpression);
+              constantEvaluator.errorReporter.report(
+                  templateConstEvalCaseImplementsEqual
+                      .withArguments(caseExpression.constant,
+                          constantEvaluator.isNonNullableByDefault)
+                      .withLocation(uri, offset, noLength),
+                  null);
+            }
+          } else {
+            // If caseExpression is not ConstantExpression, an error is reported
+            // elsewhere.
+          }
+        }
+      }
+    }
+    return result;
   }
 
   @override
@@ -2270,13 +2301,20 @@ class _AbortDueToInvalidExpression {
 abstract class ErrorReporter {
   const ErrorReporter();
 
+  // TODO(johnniwinther,dmitryas): Remove the getter when the NNBD error
+  // reporting is enabled by default.
+  bool get performNnbdChecks;
+
   void report(LocatedMessage message, List<LocatedMessage> context);
 
   void reportInvalidExpression(InvalidExpression node);
 }
 
 class SimpleErrorReporter implements ErrorReporter {
-  const SimpleErrorReporter();
+  @override
+  final bool performNnbdChecks;
+
+  const SimpleErrorReporter(this.performNnbdChecks);
 
   @override
   void report(LocatedMessage message, List<LocatedMessage> context) {

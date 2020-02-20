@@ -78,6 +78,8 @@ ConstConstructorLateFinalFieldWarning/analyzerCode: Fail
 ConstConstructorLateFinalFieldWarning/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't report this error.
+ConstEvalCaseImplementsEqual/analyzerCode: Fail
+ConstEvalCaseImplementsEqual/example: Fail
 ConstEvalCircularity/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.

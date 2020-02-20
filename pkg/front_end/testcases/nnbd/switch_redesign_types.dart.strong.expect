@@ -1,13 +1,34 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:37:16: Error: Case expression 'D {}' does not have a primitive operator '=='.
+//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
+//     case const D(42): // Error: D has custom operator ==.
+//                ^
+//
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:10: Error: Case expression 'D {}' does not have a primitive operator '=='.
+//  - 'D' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
+//     case x: // Error: D has custom operator ==.
+//          ^
+//
 library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:34:16: Error: Type 'A' of the case expression is not a subtype of type 'B' of this switch expression.
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:35:16: Error: Type 'A' of the case expression is not a subtype of type 'B' of this switch expression.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
 //     case const A(42): // Error: not a subtype of B.
 //                ^
-// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:29:11: Context: The switch expression is here.
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:30:11: Context: The switch expression is here.
+//   switch (b) {
+//           ^
+//
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:39:10: Error: Type 'dynamic' of the case expression is not a subtype of type 'B' of this switch expression.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd/switch_redesign_types.dart'.
+//     case x: // Error: D has custom operator ==.
+//          ^
+// pkg/front_end/testcases/nnbd/switch_redesign_types.dart:30:11: Context: The switch expression is here.
 //   switch (b) {
 //           ^
 //
@@ -61,6 +82,11 @@ static method bar(self::B b) → dynamic {
         break #L1;
       }
     #L6:
+    case #C7:
+      {
+        break #L1;
+      }
+    #L7:
     default:
       {}
   }
@@ -73,4 +99,6 @@ constants  {
   #C3 = self::C {foo:#C1}
   #C4 = self::A {foo:#C1}
   #C5 = self::D {foo:#C1}
+  #C6 = 123
+  #C7 = self::D {foo:#C6}
 }
