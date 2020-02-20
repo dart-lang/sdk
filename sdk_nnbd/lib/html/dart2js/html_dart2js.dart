@@ -40284,10 +40284,10 @@ class _WrappedList<E extends Node> extends ListBase<E>
     }
   }
 
-  int indexOf(Object element, [int start = 0]) =>
+  int indexOf(Object? element, [int start = 0]) =>
       _list.indexOf(element as Node, start);
 
-  int lastIndexOf(Object element, [int? start]) =>
+  int lastIndexOf(Object? element, [int? start]) =>
       _list.lastIndexOf(element as Node, start);
 
   void insert(int index, E element) => _list.insert(index, element);
