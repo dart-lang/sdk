@@ -10482,7 +10482,9 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (keyword != null) {
+    if (lateKeyword != null) {
+      return lateKeyword;
+    } else if (keyword != null) {
       return keyword;
     } else if (_type != null) {
       return _type.beginToken;
