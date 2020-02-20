@@ -5875,12 +5875,10 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     if ((type_param.index() != i) || type_param.IsFunctionTypeParameter()) {
       return false;
     }
-    // If this type parameter specifies an upper bound, then the type argument
-    // vector does not really represent the identity vector. It cannot be
-    // substituted by the instantiator's type argument vector without checking
-    // the upper bound.
-    const AbstractType& bound = AbstractType::Handle(type_param.bound());
-    if (!bound.IsObjectType() && !bound.IsDynamicType()) {
+    // Instantiating nullable and legacy type parameters may change
+    // nullability of a type, so type arguments vector containing such type
+    // parameters cannot be substituted with instantiator type arguments.
+    if (type_param.IsNullable() || type_param.IsLegacy()) {
       return false;
     }
   }
