@@ -4858,94 +4858,56 @@ bool Class::IsFutureClass() const {
          (library() == Library::AsyncLibrary());
 }
 
-// Checks if type T0 is a subtype of type T1, assuming that T0 is non-nullable.
-// Type T0 is specified by class 'cls' parameterized with 'type_arguments', and
-// type T1 is specified by 'other' and must have a type class.
+// Checks if type S is a subtype of type T, assuming that S is non-nullable.
+// Type S is specified by class 'cls' parameterized with 'type_arguments', and
+// type T by class 'other' parameterized with 'other_type_arguments'.
 // This class and class 'other' do not need to be finalized, however, they must
 // be resolved as well as their interfaces.
 bool Class::IsSubtypeOf(NNBDMode mode,
                         const Class& cls,
                         const TypeArguments& type_arguments,
-                        const AbstractType& other,
+                        const Class& other,
+                        const TypeArguments& other_type_arguments,
                         Heap::Space space) {
-  // This function does not support Null, Never, dynamic, or void as type T0.
-  classid_t this_cid = cls.id();
-  ASSERT(this_cid != kNullCid && this_cid != kNeverCid &&
-         this_cid != kDynamicCid && this_cid != kVoidCid);
-  // Type T1 must have a type class (e.g. not a type parameter).
-  ASSERT(other.HasTypeClass());
-  const classid_t other_cid = other.type_class_id();
-  // Since T0 is assumed non-nullable, the nullability of T1 is irrelevant.
-  if (other_cid == kDynamicCid || other_cid == kVoidCid ||
-      other_cid == kObjectCid) {
+  // This function does not support Null, dynamic, or void as type S.
+  ASSERT(!cls.IsNullClass() && !cls.IsDynamicClass() && !cls.IsVoidClass());
+  // Since we assume that S is non-nullable, the nullability of T is irrelevant.
+  if (other.IsDynamicClass() || other.IsVoidClass() || other.IsObjectClass()) {
     return true;
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Class& other_class = Class::Handle(zone, other.type_class());
-  const TypeArguments& other_type_arguments =
-      TypeArguments::Handle(zone, other.arguments());
   // Use the 'this_class' object as if it was the receiver of this method, but
   // instead of recursing, reset it to the super class and loop.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   Class& this_class = Class::Handle(zone, cls.raw());
   while (true) {
-    // Apply additional subtyping rules if T0 or T1 are 'FutureOr'.
-
-    // Left FutureOr:
-    //   if T0 is FutureOr<S0> then:
-    //     T0 <: T1 iff Future<S0> <: T1 and S0 <: T1
-    if (this_cid == kFutureOrCid) {
-      // Check Future<S0> <: T1.
-      ObjectStore* object_store = Isolate::Current()->object_store();
-      const Class& future_class =
-          Class::Handle(zone, object_store->future_class());
-      ASSERT(!future_class.IsNull() && future_class.NumTypeParameters() == 1 &&
-             this_class.NumTypeParameters() == 1);
-      ASSERT(type_arguments.IsNull() || type_arguments.Length() >= 1);
-      if (Class::IsSubtypeOf(mode, future_class, type_arguments, other,
-                             space)) {
-        // Check S0 <: T1.
-        const AbstractType& type_arg =
-            AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
-        if (type_arg.IsSubtypeOf(mode, other, space)) {
-          return true;
-        }
+    // Apply additional subtyping rules if 'other' is 'FutureOr'.
+    if (other.IsFutureOrClass()) {
+      if (other_type_arguments.IsNull()) {
+        return true;
       }
-    }
-
-    // Right FutureOr:
-    //   if T1 is FutureOr<S1> then:
-    //     T0 <: T1 iff any of the following hold:
-    //     either T0 <: Future<S1>
-    //     or T0 <: S1
-    //     or T0 is X0 and X0 has bound S0 and S0 <: T1  (checked elsewhere)
-    if (other_cid == kFutureOrCid) {
       const AbstractType& other_type_arg =
-          AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
-      // Check if S1 is a top type.
+          AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
       if (other_type_arg.IsTopType()) {
         return true;
       }
-      // Check T0 <: Future<S1> when T0 is Future<S0>.
-      if (this_class.IsFutureClass()) {
+      if (!type_arguments.IsNull() && this_class.IsFutureClass()) {
         const AbstractType& type_arg =
-            AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
-        // If T0 is Future<S0>, then T0 <: Future<S1>, iff S0 <: S1.
+            AbstractType::Handle(zone, type_arguments.TypeAt(0));
         if (type_arg.IsSubtypeOf(mode, other_type_arg, space)) {
           return true;
         }
       }
-      // Check T0 <: Future<S1> when T0 is FutureOr<S0> is already done.
-      // Check T0 <: S1.
       if (other_type_arg.HasTypeClass() &&
-          Class::IsSubtypeOf(mode, this_class, type_arguments, other_type_arg,
-                             space)) {
+          Class::IsSubtypeOf(
+              mode, this_class, type_arguments,
+              Class::Handle(zone, other_type_arg.type_class()),
+              TypeArguments::Handle(zone, other_type_arg.arguments()), space)) {
         return true;
       }
     }
-
     // Check for reflexivity.
-    if (this_class.raw() == other_class.raw()) {
+    if (this_class.raw() == other.raw()) {
       const intptr_t num_type_params = this_class.NumTypeParameters();
       if (num_type_params == 0) {
         return true;
@@ -4999,7 +4961,7 @@ bool Class::IsSubtypeOf(NNBDMode mode,
         continue;
       }
       if (Class::IsSubtypeOf(mode, interface_class, interface_args, other,
-                             space)) {
+                             other_type_arguments, space)) {
         return true;
       }
     }
@@ -5008,7 +4970,6 @@ bool Class::IsSubtypeOf(NNBDMode mode,
     if (this_class.IsNull()) {
       return false;
     }
-    this_cid = this_class.id();
   }
   UNREACHABLE();
   return false;
@@ -17608,28 +17569,35 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   }
   // RuntimeType of non-null instance is non-nullable, so there is no need to
   // check nullability of other type.
-  return Class::IsSubtypeOf(mode, cls, type_arguments, instantiated_other,
-                            Heap::kOld);
+  return Class::IsSubtypeOf(
+      mode, cls, type_arguments,
+      Class::Handle(zone, instantiated_other.type_class()),
+      TypeArguments::Handle(zone, instantiated_other.arguments()), Heap::kOld);
 }
 
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
                                     NNBDMode mode,
                                     const AbstractType& other) const {
   if (other.IsType() && other.IsFutureOrType()) {
+    if (other.arguments() == TypeArguments::null()) {
+      return true;
+    }
     const TypeArguments& other_type_arguments =
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
-        AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
+        AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
     if (other_type_arg.IsTopType()) {
       return true;
     }
     if (Class::Handle(zone, clazz()).IsFutureClass()) {
       const TypeArguments& type_arguments =
           TypeArguments::Handle(zone, GetTypeArguments());
-      const AbstractType& type_arg =
-          AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
-      if (type_arg.IsSubtypeOf(mode, other_type_arg, Heap::kOld)) {
-        return true;
+      if (!type_arguments.IsNull()) {
+        const AbstractType& type_arg =
+            AbstractType::Handle(zone, type_arguments.TypeAt(0));
+        if (type_arg.IsSubtypeOf(mode, other_type_arg, Heap::kOld)) {
+          return true;
+        }
       }
     }
     // Retry RuntimeTypeIsSubtypeOf after unwrapping type arg of FutureOr.
@@ -18428,7 +18396,8 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
     return false;
   }
   return Class::IsSubtypeOf(
-      mode, type_cls, TypeArguments::Handle(zone, arguments()), other, space);
+      mode, type_cls, TypeArguments::Handle(zone, arguments()), other_type_cls,
+      TypeArguments::Handle(zone, other.arguments()), space);
 }
 
 bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
@@ -18436,6 +18405,9 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
                                        const AbstractType& other,
                                        Heap::Space space) const {
   if (other.IsType() && other.IsFutureOrType()) {
+    if (other.arguments() == TypeArguments::null()) {
+      return true;
+    }
     // This function is only called with a receiver that is either a function
     // type or an uninstantiated type parameter, therefore, it cannot be of
     // class Future and we can spare the check.
@@ -18443,7 +18415,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
     const TypeArguments& other_type_arguments =
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
-        AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
+        AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
     if (other_type_arg.IsTopType()) {
       return true;
     }

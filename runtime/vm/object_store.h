@@ -73,9 +73,6 @@ class ObjectPointerVisitor;
   RW(Type, string_type)                                                        \
   RW(Type, legacy_string_type)                                                 \
   RW(Type, non_nullable_string_type)                                           \
-  RW(Type, non_nullable_list_rare_type)   /* maybe be null, lazily built */    \
-  RW(Type, non_nullable_map_rare_type)    /* maybe be null, lazily built */    \
-  RW(Type, non_nullable_future_rare_type) /* maybe be null, lazily built */    \
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_non_nullable_int)                            \

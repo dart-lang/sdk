@@ -1112,7 +1112,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
                    (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType());
     } else {
       is_subtype = Class::IsSubtypeOf(mode, cls, Object::null_type_arguments(),
-                                      type, Heap::kOld);
+                                      type_class, Object::null_type_arguments(),
+                                      Heap::kOld);
     }
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
@@ -1459,9 +1460,11 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   const ClassTable& class_table = *Isolate::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
-    const bool smi_is_subtype =
-        Class::IsSubtypeOf(NNBDMode::kLegacyLib, smi_class,
-                           Object::null_type_arguments(), type, Heap::kOld);
+    const Class& type_class = Class::Handle(type.type_class());
+    // When testing '42 is type', the nullability of type is irrelevant.
+    const bool smi_is_subtype = Class::IsSubtypeOf(
+        NNBDMode::kLegacyLib, smi_class, Object::null_type_arguments(),
+        type_class, Object::null_type_arguments(), Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {

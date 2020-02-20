@@ -146,22 +146,15 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
 
 static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
   if (obj.IsInstance()) {
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    Type& list_rare_type =
-        Type::Handle(zone, object_store->non_nullable_list_rare_type());
-    if (list_rare_type.IsNull()) {
-      const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-      const Class& list_class =
-          Class::Handle(zone, core_lib.LookupClass(Symbols::List()));
-      ASSERT(!list_class.IsNull());
-      list_rare_type ^= list_class.RareType();
-      object_store->set_non_nullable_list_rare_type(list_rare_type);
-    }
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    const Class& list_class =
+        Class::Handle(zone, core_lib.LookupClass(Symbols::List()));
+    ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
     if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, obj_class,
-                           Object::null_type_arguments(), list_rare_type,
-                           Heap::kNew)) {
+                           Object::null_type_arguments(), list_class,
+                           Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -170,22 +163,15 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
 
 static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
   if (obj.IsInstance()) {
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    Type& map_rare_type =
-        Type::Handle(zone, object_store->non_nullable_map_rare_type());
-    if (map_rare_type.IsNull()) {
-      const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-      const Class& map_class =
-          Class::Handle(zone, core_lib.LookupClass(Symbols::Map()));
-      ASSERT(!map_class.IsNull());
-      map_rare_type ^= map_class.RareType();
-      object_store->set_non_nullable_map_rare_type(map_rare_type);
-    }
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    const Class& map_class =
+        Class::Handle(core_lib.LookupClass(Symbols::Map()));
+    ASSERT(!map_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
     if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, obj_class,
-                           Object::null_type_arguments(), map_rare_type,
-                           Heap::kNew)) {
+                           Object::null_type_arguments(), map_class,
+                           Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -2226,21 +2212,16 @@ DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle handle) {
 DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
+  Isolate* I = T->isolate();
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
   if (obj.IsInstance()) {
-    ObjectStore* object_store = T->isolate()->object_store();
-    Type& future_rare_type =
-        Type::Handle(Z, object_store->non_nullable_future_rare_type());
-    if (future_rare_type.IsNull()) {
-      const Class& future_class = Class::Handle(object_store->future_class());
-      ASSERT(!future_class.IsNull());
-      future_rare_type ^= future_class.RareType();
-      object_store->set_non_nullable_future_rare_type(future_rare_type);
-    }
+    const Class& future_class =
+        Class::Handle(I->object_store()->future_class());
+    ASSERT(!future_class.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
-    bool is_future = Class::IsSubtypeOf(NNBDMode::kLegacyLib, obj_class,
-                                        Object::null_type_arguments(),
-                                        future_rare_type, Heap::kNew);
+    bool is_future = Class::IsSubtypeOf(
+        NNBDMode::kLegacyLib, obj_class, Object::null_type_arguments(),
+        future_class, Object::null_type_arguments(), Heap::kNew);
     return is_future;
   }
   return false;
