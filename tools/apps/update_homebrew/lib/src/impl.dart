@@ -149,9 +149,10 @@ class Dart < Formula
     EOS
   end
 
-  def caveats; <<~EOS
-    Please note the path to the Dart SDK:
-      #{opt_libexec}
+  def caveats
+    <<~EOS
+      Please note the path to the Dart SDK:
+        #{opt_libexec}
     EOS
   end
 
