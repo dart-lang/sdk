@@ -799,9 +799,9 @@ class Assembler : public AssemblerBase {
 
   void RestoreCodePointer();
   void LoadPoolPointer(Register reg = PP);
+  void SetupGlobalPoolAndDispatchTable();
 
   void LoadIsolate(Register rd);
-  void LoadDispatchTable(Register dst);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.

@@ -1177,8 +1177,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(
-                   THR, compiler::target::Thread::global_object_pool_offset()));
+    __ SetupGlobalPoolAndDispatchTable();
   }
 
   EmitReturnMoves(compiler);
@@ -1384,8 +1383,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ StoreToOffset(kWord, CODE_REG, FPREG,
                    kPcMarkerSlotFromFp * compiler::target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(
-                   THR, compiler::target::Thread::global_object_pool_offset()));
+    __ SetupGlobalPoolAndDispatchTable();
   } else {
     __ LoadImmediate(PP, 0);  // GC safe value into PP.
   }

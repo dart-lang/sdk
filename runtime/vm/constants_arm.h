@@ -286,6 +286,7 @@ extern const char* fpu_d_reg_names[kNumberOfDRegisters];
 const Register TMP = IP;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
 const Register PP = R5;     // Caches object pool pointer in generated code.
+const Register DISPATCH_TABLE_REG = NOTFP;  // Dispatch table register.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = LR;  // Link register.

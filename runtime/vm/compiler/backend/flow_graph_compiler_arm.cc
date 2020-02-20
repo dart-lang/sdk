@@ -1241,27 +1241,24 @@ void FlowGraphCompiler::EmitDispatchTableCall(
     Register cid_reg,
     int32_t selector_offset,
     const Array& arguments_descriptor) {
-  const Register table_reg = LR;
-  ASSERT(cid_reg != table_reg);
   ASSERT(cid_reg != ARGS_DESC_REG);
   if (!arguments_descriptor.IsNull()) {
     __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   }
   intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
                     compiler::target::kWordSize;
-  __ LoadDispatchTable(table_reg);
   if (offset == 0) {
-    __ ldr(LR, compiler::Address(table_reg, cid_reg, LSL,
+    __ ldr(LR, compiler::Address(DISPATCH_TABLE_REG, cid_reg, LSL,
                                  compiler::target::kWordSizeLog2));
   } else {
-    __ add(table_reg, table_reg,
+    __ add(LR, DISPATCH_TABLE_REG,
            compiler::Operand(cid_reg, LSL, compiler::target::kWordSizeLog2));
     if (!Utils::IsAbsoluteUint(12, offset)) {
       const intptr_t adjust = offset & -(1 << 12);
-      __ AddImmediate(table_reg, table_reg, adjust);
+      __ AddImmediate(LR, LR, adjust);
       offset -= adjust;
     }
-    __ ldr(LR, compiler::Address(table_reg, offset));
+    __ ldr(LR, compiler::Address(LR, offset));
   }
   __ blx(LR);
 }
