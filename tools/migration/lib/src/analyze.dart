@@ -21,6 +21,12 @@ bool analyzeTests(String nnbdTestDir) {
     }
   }
 
+  // Pre-existing multi-line errors will modify the character length in the
+  // errors reported by the analyzer. Strip all errors first before updating.
+  for (var file in files.values) {
+    if (!dryRun) _removeErrors(file.path);
+  }
+
   // Analyze the directory both in legacy and NNBD modes.
   var legacyErrors = _runAnalyzer(nnbdTestDir, nnbd: false);
   var nnbdErrors = _runAnalyzer(nnbdTestDir, nnbd: true);
@@ -65,7 +71,7 @@ bool analyzeTests(String nnbdTestDir) {
       errorFileCount++;
     }
 
-    if (!dryRun) _updateErrors(file.path, file.addedErrors);
+    if (!dryRun) _insertErrors(file.path, file.addedErrors);
   }
 
   if (errorCount == 0) {
@@ -106,9 +112,8 @@ Map<String, List<_StaticError>> _runAnalyzer(String inputDir, {bool nnbd}) {
   return errorsByFile;
 }
 
-/// Removes any previously inserted errors from the file at [path] and inserts
-/// any new errors in [errors].
-void _updateErrors(String path, List<_StaticError> errors) {
+/// Removes pre-existing errors in the file at [path].
+void _removeErrors(String path) {
   // Sanity check.
   if (!p.isWithin(testRoot, path)) {
     throw ArgumentError("$path is outside of test directory.");
@@ -125,7 +130,26 @@ void _updateErrors(String path, List<_StaticError> errors) {
     } else {
       changed = true;
     }
+  }
 
+  if (changed) {
+    writeFile(path, result.toString());
+  }
+}
+
+/// Inserts any new errors in [errors] into the file at [path].
+void _insertErrors(String path, List<_StaticError> errors) {
+  // Sanity check.
+  if (!p.isWithin(testRoot, path)) {
+    throw ArgumentError("$path is outside of test directory.");
+  }
+
+  var lines = readFileLines(path);
+  var result = StringBuffer();
+  var changed = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    result.writeln(lines[i]);
     // TODO(rnystrom): Inefficient.
     for (var error in errors) {
       if (error.line == i + 1) {
