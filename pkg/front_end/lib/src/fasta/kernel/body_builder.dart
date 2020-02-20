@@ -3584,7 +3584,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleIndexedExpression(
-      Token question, Token openSquareBracket, Token closeSquareBracket) {
+      Token openSquareBracket, Token closeSquareBracket) {
     assert(checkState(openSquareBracket, [
       unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
       unionOfKinds(
@@ -3593,7 +3593,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("IndexedExpression");
     Expression index = popForValue();
     Object receiver = pop();
-    bool isNullAware = optional('?.[', openSquareBracket) || question != null;
+    bool isNullAware = optional('?.[', openSquareBracket);
     if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
       reportMissingNonNullableSupport(openSquareBracket);
     }

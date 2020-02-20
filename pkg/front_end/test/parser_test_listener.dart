@@ -835,7 +835,7 @@ class ParserTestListener implements Listener {
   }
 
   void handleStringJuxtaposition(Token startToken, int literalCount) {
-    doPrint('handleStringJuxtaposition(' '$startToken, ' '$literalCount)');
+    doPrint('handleStringJuxtaposition(' '$literalCount)');
   }
 
   void beginMember() {
@@ -1171,6 +1171,18 @@ class ParserTestListener implements Listener {
     doPrint('handleNonNullAssertExpression(' '$bang)');
   }
 
+  void reportErrorIfNullableType(Token questionMark) {
+    doPrint('reportErrorIfNullableType(' '$questionMark)');
+  }
+
+  void reportNonNullableModifierError(Token modifierToken) {
+    doPrint('reportNonNullableModifierError(' '$modifierToken)');
+  }
+
+  void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    doPrint('reportNonNullAssertExpressionNotEnabled(' '$bang)');
+  }
+
   void handleNoName(Token token) {
     doPrint('handleNoName(' '$token)');
   }
@@ -1370,9 +1382,8 @@ class ParserTestListener implements Listener {
   }
 
   void handleIndexedExpression(
-      Token question, Token openSquareBracket, Token closeSquareBracket) {
+      Token openSquareBracket, Token closeSquareBracket) {
     doPrint('handleIndexedExpression('
-        '$question, '
         '$openSquareBracket, '
         '$closeSquareBracket)');
   }

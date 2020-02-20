@@ -34,18 +34,6 @@ void _buildTests() {
     test(relPath, () {
       var code = file.readAsStringSync();
       assertParseCodeAndPrintAst(base, code, mightHasParseErrors: true);
-    }, skip: tempSkiped(file));
+    });
   }
-}
-
-dynamic tempSkiped(File file) {
-  String uriString = file.uri.toString();
-  if (uriString.endsWith(
-          "front_end/parser_testcases/nnbd/issue_40267_case_02.dart") ||
-      uriString.endsWith(
-          "front_end/parser_testcases/nnbd/issue_40267_case_05.dart")) {
-    return "Temporarily skipped because of "
-        "https://dart-review.googlesource.com/c/sdk/+/135903";
-  }
-  return false;
 }

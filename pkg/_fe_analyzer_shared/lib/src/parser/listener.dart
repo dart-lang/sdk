@@ -1349,7 +1349,7 @@ class Listener implements UnescapeErrorListener {
   }
 
   void handleIndexedExpression(
-      Token question, Token openSquareBracket, Token closeSquareBracket) {
+      Token openSquareBracket, Token closeSquareBracket) {
     logEvent("IndexedExpression");
   }
 

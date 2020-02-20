@@ -1204,26 +1204,6 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token canParseExpressionWithoutCascade(Token token) {
-    doPrint('canParseExpressionWithoutCascade(' '$token)');
-    indent++;
-    var result = super.canParseExpressionWithoutCascade(token);
-    indent--;
-    return result;
-  }
-
-  Token parseNullAwareBracketOrConditionalExpressionRest(
-      Token token, TypeParamOrArgInfo typeArg) {
-    doPrint('parseNullAwareBracketOrConditionalExpressionRest('
-        '$token, '
-        '$typeArg)');
-    indent++;
-    var result =
-        super.parseNullAwareBracketOrConditionalExpressionRest(token, typeArg);
-    indent--;
-    return result;
-  }
-
   Token parseConditionalExpressionRest(Token token) {
     doPrint('parseConditionalExpressionRest(' '$token)');
     indent++;
@@ -1483,14 +1463,6 @@ class TestParser extends Parser {
     doPrint('parseLiteralNull(' '$token)');
     indent++;
     var result = super.parseLiteralNull(token);
-    indent--;
-    return result;
-  }
-
-  Token parseBangBeforeTypeArguments(Token token) {
-    doPrint('parseBangBeforeTypeArguments(' '$token)');
-    indent++;
-    var result = super.parseBangBeforeTypeArguments(token);
     indent--;
     return result;
   }
