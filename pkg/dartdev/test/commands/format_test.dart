@@ -22,7 +22,7 @@ void format() {
     var result = p.runSync('format');
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Idiomatically formats Dart source code.'));
+    expect(result.stdout, contains('Format Dart source code.'));
     expect(result.stdout, contains('Usage: dart format [arguments]'));
   });
 
@@ -31,7 +31,7 @@ void format() {
     var result = p.runSync('format', ['--help']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Idiomatically formats Dart source code.'));
+    expect(result.stdout, contains('Format Dart source code.'));
     expect(result.stdout, contains('Usage: dart format [arguments]'));
   });
 

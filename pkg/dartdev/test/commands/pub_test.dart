@@ -31,7 +31,7 @@ void pub() {
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Pub is a package manager for Dart.'));
+    expect(result.stdout, contains('Work with packages'));
     expect(result.stdout, contains('Usage: dart pub <subcommand> [arguments]'));
     expect(result.stdout,
         contains('Print debugging information when an error occurs.'));

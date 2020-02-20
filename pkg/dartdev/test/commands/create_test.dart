@@ -12,10 +12,10 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('create', defineCreate);
+  group('create', defineCreateTests);
 }
 
-void defineCreate() {
+void defineCreateTests() {
   TestProject p;
 
   setUp(() => p = null);

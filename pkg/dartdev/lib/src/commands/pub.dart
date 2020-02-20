@@ -24,8 +24,7 @@ import '../utils.dart';
 class PubCommand extends DartdevCommand<int> {
   var pubCommandRunner = PubCommandRunner();
 
-  PubCommand({bool verbose = false})
-      : super('pub', 'Pub is a package manager for Dart.') {
+  PubCommand({bool verbose = false}) : super('pub', 'Work with packages.') {
     argParser.addFlag('version', negatable: false, help: 'Print pub version.');
     argParser.addFlag('trace',
         help: 'Print debugging information when an error occurs.');
