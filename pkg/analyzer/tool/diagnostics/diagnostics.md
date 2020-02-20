@@ -1479,7 +1479,7 @@ expression, rather than a map entry, in what appears to be a map literal.
 
 #### Examples
 
-The following code generates this diagnostic:
+The following code produces this diagnostic:
 
 {% prettify dart %}
 var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
@@ -4226,7 +4226,7 @@ set literal doesn't implement the type `Iterable`.
 
 #### Examples
 
-The following code generates this diagnostic:
+The following code produces this diagnostic:
 
 {% prettify dart %}
 var m = <String, int>{'a': 0, 'b': 1};
@@ -4785,7 +4785,7 @@ environment:
   sdk: '>=2.1.0 <2.4.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}
@@ -4943,7 +4943,7 @@ environment:
  sdk: '>=2.4.0 <2.7.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}
@@ -4999,7 +4999,7 @@ environment:
   sdk: '>=2.1.0 <2.4.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}
@@ -5096,7 +5096,7 @@ environment:
   sdk: '>=2.2.0 <2.4.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}
@@ -5152,7 +5152,7 @@ environment:
   sdk: '>=2.4.0 <2.6.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}

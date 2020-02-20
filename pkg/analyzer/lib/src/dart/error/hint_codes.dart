@@ -1492,7 +1492,7 @@ class HintCode extends AnalyzerErrorCode {
   //   sdk: '>=2.1.0 <2.4.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -1668,7 +1668,7 @@ class HintCode extends AnalyzerErrorCode {
   //  sdk: '>=2.4.0 <2.7.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -1787,7 +1787,7 @@ class HintCode extends AnalyzerErrorCode {
   //   sdk: '>=2.1.0 <2.4.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -1947,7 +1947,7 @@ class HintCode extends AnalyzerErrorCode {
   //   sdk: '>=2.2.0 <2.4.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -2008,7 +2008,7 @@ class HintCode extends AnalyzerErrorCode {
   //   sdk: '>=2.4.0 <2.6.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
