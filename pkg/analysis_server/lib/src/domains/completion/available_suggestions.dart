@@ -191,6 +191,12 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
       }
     } else if (declaration.kind == DeclarationKind.ENUM_CONSTANT) {
       label = '${declaration.parent.name}.${declaration.name}';
+    } else if (declaration.kind == DeclarationKind.GETTER &&
+        declaration.isStatic) {
+      label = '${declaration.parent.name}.${declaration.name}';
+    } else if (declaration.kind == DeclarationKind.FIELD &&
+        declaration.isStatic) {
+      label = '${declaration.parent.name}.${declaration.name}';
     } else {
       return null;
     }

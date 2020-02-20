@@ -182,6 +182,7 @@ main() {
         ElementKind.ENUM,
         ElementKind.ENUM_CONSTANT,
         ElementKind.EXTENSION,
+        ElementKind.FIELD,
         ElementKind.FUNCTION,
         ElementKind.FUNCTION_TYPE_ALIAS,
         ElementKind.GETTER,

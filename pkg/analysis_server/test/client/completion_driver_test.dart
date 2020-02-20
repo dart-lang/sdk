@@ -385,6 +385,41 @@ void main() {
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
+  Future<void> test_project_lib_fields_class() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  int f = 0;
+}
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    assertNoSuggestion(completion: 'f');
+  }
+
+  Future<void> test_project_lib_fields_static() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  static int f = 0;
+}
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    assertSuggestion(
+        completion: 'A.f',
+        element: ElementKind.FIELD,
+        kind: CompletionSuggestionKind.INVOCATION);
+  }
+
   Future<void> test_project_lib_getters_class() async {
     await addProjectFile('lib/a.dart', r'''
 class A {
@@ -401,7 +436,6 @@ void main() {
     assertNoSuggestion(completion: 'g');
   }
 
-  @failingTest
   Future<void> test_project_lib_getters_static() async {
     await addProjectFile('lib/a.dart', r'''
 class A {
@@ -415,7 +449,10 @@ void main() {
 }
 ''');
 
-    assertSuggestion(completion: 'g');
+    assertSuggestion(
+        completion: 'A.g',
+        element: ElementKind.GETTER,
+        kind: CompletionSuggestionKind.INVOCATION);
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
@@ -488,7 +525,7 @@ void main() {
 }
 ''');
 
-    assertNoSuggestion(completion: 'g');
+    assertNoSuggestion(completion: 'A.g');
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
