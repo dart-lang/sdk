@@ -88,7 +88,7 @@ String _createDartFormula(
     '''
 class Dart < Formula
   desc "The Dart SDK"
-  homepage "https://www.dartlang.org/"
+  homepage "https://dart.dev"
 
   version "$stableVersion"
   if OS.mac?
