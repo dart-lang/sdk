@@ -1913,12 +1913,21 @@ class RelevanceMetricsComputer {
   void _writeTable(StringSink sink, List<List<String>> table) {
     var columnWidths = _computeColumnWidths(table);
     for (var row in table) {
-      for (int i = 0; i < row.length; i++) {
+      int lastNonEmpty = row.length - 1;
+      while (lastNonEmpty > 0) {
+        if (row[lastNonEmpty].isNotEmpty) {
+          break;
+        }
+        lastNonEmpty--;
+      }
+      for (int i = 0; i <= lastNonEmpty; i++) {
         var cellContent = row[i];
         var columnWidth = columnWidths[i];
         var padding = columnWidth - cellContent.length;
         sink.write(cellContent);
-        sink.write(' ' * (padding + 2));
+        if (i < lastNonEmpty) {
+          sink.write(' ' * (padding + 2));
+        }
       }
       sink.writeln();
     }
