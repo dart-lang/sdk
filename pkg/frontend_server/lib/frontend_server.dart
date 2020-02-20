@@ -465,7 +465,8 @@ class FrontendCompiler implements CompilerInterface {
     KernelCompilationResults results;
     IncrementalSerializer incrementalSerializer;
     if (options['incremental']) {
-      setVMEnvironmentDefines(environmentDefines, _compilerOptions);
+      _compilerOptions.environmentDefines =
+          _compilerOptions.target.updateEnvironmentDefines(environmentDefines);
 
       _compilerOptions.omitPlatform = false;
       _generator = generator ?? _createGenerator(Uri.file(_initializeFromDill));

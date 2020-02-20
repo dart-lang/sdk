@@ -315,7 +315,9 @@ Future<KernelCompilationResults> compileToKernel(
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
   options.onDiagnostic = errorDetector;
 
-  setVMEnvironmentDefines(environmentDefines, options);
+  options.environmentDefines =
+      options.target.updateEnvironmentDefines(environmentDefines);
+
   CompilerResult compilerResult = await kernelForProgram(source, options);
   Component component = compilerResult?.component;
   final compiledSources = component?.uriToSource?.keys;
@@ -389,30 +391,6 @@ Set<Library> createLoadedLibrariesSet(
     }
   }
   return loadedLibraries;
-}
-
-void setVMEnvironmentDefines(
-    Map<String, dynamic> environmentDefines, CompilerOptions options) {
-  // TODO(alexmarkov): move this logic into VmTarget and call from front-end
-  // in order to have the same defines when compiling platform.
-  assert(environmentDefines != null);
-  if (environmentDefines['dart.vm.product'] == 'true') {
-    environmentDefines['dart.developer.causal_async_stacks'] = 'false';
-  }
-  environmentDefines['dart.isVM'] = 'true';
-  // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
-  for (String library in options.target.extraRequiredLibraries) {
-    Uri libraryUri = Uri.parse(library);
-    if (libraryUri.scheme == 'dart') {
-      final path = libraryUri.path;
-      if (!path.startsWith('_')) {
-        environmentDefines['dart.library.${path}'] = 'true';
-      }
-    }
-  }
-  // dart:core is not mentioned in Target.extraRequiredLibraries.
-  environmentDefines['dart.library.core'] = 'true';
-  options.environmentDefines = environmentDefines;
 }
 
 Future runGlobalTransformations(

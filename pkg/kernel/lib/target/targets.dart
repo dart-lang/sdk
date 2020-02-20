@@ -271,6 +271,9 @@ abstract class Target {
   /// Returns the configured component.
   Component configureComponent(Component component) => component;
 
+  // Configure environment defines in a target-specific way.
+  Map<String, String> updateEnvironmentDefines(Map<String, String> map) => map;
+
   String toString() => 'Target($name)';
 
   Class concreteListLiteralClass(CoreTypes coreTypes) => null;
