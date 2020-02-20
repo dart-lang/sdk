@@ -137,8 +137,10 @@ class CompactorTask : public ThreadPool::Task {
         free_current_(0),
         free_end_(0) {}
 
- private:
   void Run();
+  void RunEnteredIsolateGroup();
+
+ private:
   void PlanPage(HeapPage* page);
   void SlidePage(HeapPage* page);
   uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
@@ -237,21 +239,24 @@ void GCCompactor::Compact(HeapPage* pages,
   }
 
   {
-    ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
-                          heap_->barrier_done());
+    ThreadBarrier barrier(num_tasks, heap_->barrier(), heap_->barrier_done());
     RelaxedAtomic<intptr_t> next_forwarding_task = {0};
 
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-      Dart::thread_pool()->Run<CompactorTask>(
-          thread()->isolate_group(), this, &barrier, &next_forwarding_task,
-          heads[task_index], &tails[task_index], freelist);
+      if (task_index < (num_tasks - 1)) {
+        // Begin compacting on a helper thread.
+        Dart::thread_pool()->Run<CompactorTask>(
+            thread()->isolate_group(), this, &barrier, &next_forwarding_task,
+            heads[task_index], &tails[task_index], freelist);
+      } else {
+        // Last worker is the main thread.
+        CompactorTask task(thread()->isolate_group(), this, &barrier,
+                           &next_forwarding_task, heads[task_index],
+                           &tails[task_index], freelist);
+        task.RunEnteredIsolateGroup();
+        barrier.Exit();
+      }
     }
-
-    // Plan pages.
-    barrier.Sync();
-    // Slides pages. Forward large pages, new space, etc.
-    barrier.Sync();
-    barrier.Exit();
   }
 
   // Update inner pointers in typed data views (needs to be done after all
@@ -320,9 +325,20 @@ void GCCompactor::Compact(HeapPage* pages,
 }
 
 void CompactorTask::Run() {
-  bool result = Thread::EnterIsolateGroupAsHelper(isolate_group_,
-                                                  Thread::kCompactorTask, true);
+  bool result =
+      Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kCompactorTask,
+                                        /*bypass_safepoint=*/true);
   ASSERT(result);
+
+  RunEnteredIsolateGroup();
+
+  Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
+
+  // This task is done. Notify the original thread.
+  barrier_->Exit();
+}
+
+void CompactorTask::RunEnteredIsolateGroup() {
 #ifdef SUPPORT_TIMELINE
   Thread* thread = Thread::Current();
 #endif
@@ -415,10 +431,6 @@ void CompactorTask::Run() {
 
     barrier_->Sync();
   }
-  Thread::ExitIsolateGroupAsHelper(true);
-
-  // This task is done. Notify the original thread.
-  barrier_->Exit();
 }
 
 void CompactorTask::PlanPage(HeapPage* page) {

@@ -569,6 +569,16 @@ class ParallelMarkTask : public ThreadPool::Task {
     bool result = Thread::EnterIsolateGroupAsHelper(
         isolate_group_, Thread::kMarkerTask, /*bypass_safepoint=*/true);
     ASSERT(result);
+
+    RunEnteredIsolateGroup();
+
+    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
+
+    // This task is done. Notify the original thread.
+    barrier_->Exit();
+  }
+
+  void RunEnteredIsolateGroup() {
     {
       Thread* thread = Thread::Current();
       TIMELINE_FUNCTION_GC_DURATION(thread, "ParallelMark");
@@ -589,7 +599,7 @@ class ParallelMarkTask : public ThreadPool::Task {
           if (num_busy_->fetch_sub(1u) == 1) break;
 
           // Wait for some work to appear.
-          // TODO(iposva): Replace busy-waiting with a solution using Monitor,
+          // TODO(40695): Replace busy-waiting with a solution using Monitor,
           // and redraw the boundaries between stack/visitor/task as needed.
           while (marking_stack_->IsEmpty() && num_busy_->load() > 0) {
           }
@@ -650,10 +660,6 @@ class ParallelMarkTask : public ThreadPool::Task {
 
       delete visitor_;
     }
-    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-    // This task is done. Notify the original thread.
-    barrier_->Exit();
   }
 
  private:
@@ -843,8 +849,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       mark.AddMicros(stop - start);
       FinalizeResultsFrom(&mark);
     } else {
-      ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
-                            heap_->barrier_done());
+      ThreadBarrier barrier(num_tasks, heap_->barrier(), heap_->barrier_done());
       ResetSlices();
       // Used to coordinate draining among tasks; all start out as 'busy'.
       RelaxedAtomic<uintptr_t> num_busy(num_tasks);
@@ -859,42 +864,20 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
               new SyncMarkingVisitor(isolate_group_, page_space,
                                      &marking_stack_, &deferred_marking_stack_);
         }
-
-        bool result = Dart::thread_pool()->Run<ParallelMarkTask>(
-            this, isolate_group_, &marking_stack_, &barrier, visitor,
-            &num_busy);
-        ASSERT(result);
+        if (i < (num_tasks - 1)) {
+          // Begin marking on a helper thread.
+          bool result = Dart::thread_pool()->Run<ParallelMarkTask>(
+              this, isolate_group_, &marking_stack_, &barrier, visitor,
+              &num_busy);
+          ASSERT(result);
+        } else {
+          // Last worker is the main thread.
+          ParallelMarkTask task(this, isolate_group_, &marking_stack_, &barrier,
+                                visitor, &num_busy);
+          task.RunEnteredIsolateGroup();
+          barrier.Exit();
+        }
       }
-      bool more_to_mark = false;
-      do {
-        // Wait for all markers to stop.
-        barrier.Sync();
-#if defined(DEBUG)
-        ASSERT(num_busy.load() == 0);
-        // Caveat: must not allow any marker to continue past the barrier
-        // before we checked num_busy, otherwise one of them might rush
-        // ahead and increment it.
-        barrier.Sync();
-#endif
-
-        // Wait for all markers to go through weak properties and verify
-        // that there are no more objects to mark.
-        // Note: we need to have two barriers here because we want all markers
-        // and main thread to make decisions in lock step.
-        barrier.Sync();
-        more_to_mark = num_busy.load() > 0;
-        barrier.Sync();
-      } while (more_to_mark);
-
-      // Phase 2: Deferred marking.
-      barrier.Sync();
-
-      // Phase 3: Weak processing.
-      IterateWeakRoots(thread);
-      barrier.Sync();
-
-      // Phase 4: Gather statistics from all markers.
-      barrier.Exit();
     }
   }
   Epilogue();
