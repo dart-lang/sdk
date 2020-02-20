@@ -71,8 +71,19 @@ class InfoBuilder {
       if (!session.getFile(filePath).isPart) {
         ResolvedLibraryResult result =
             await session.getResolvedLibrary(filePath);
-        SourceInformation sourceInfo = sourceInfoMap[source];
         for (ResolvedUnitResult unitResult in result.units) {
+          SourceInformation sourceInfo =
+              sourceInfoMap[unitResult.unit.declaredElement.source];
+          // Note: there might have been no information for this unit in
+          // sourceInfoMap.  That can happen if there's an already-migrated
+          // library being referenced by the code being migrated, but not all
+          // parts of that library are referenced.  To avoid exceptions later
+          // on, we just create an empty SourceInformation object.
+          // TODO(paulberry): we don't do a good job of the case where the
+          // already-migrated library's defining compilation unit isn't
+          // referenced (we'll just skip the entire library because we'll only
+          // ever see its parts).
+          sourceInfo ??= SourceInformation();
           SourceFileEdit edit =
               listener.sourceChange.getFileEdit(unitResult.path);
           UnitInfo unit = _explainUnit(sourceInfo, unitResult, edit);

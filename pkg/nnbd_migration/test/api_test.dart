@@ -52,15 +52,27 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     var migration = NullabilityMigration(listener,
         permissive: _usePermissiveMode, removeViaComments: removeViaComments);
     for (var path in input.keys) {
-      migration.prepareInput(await session.getResolvedUnit(path));
+      if (!(await session.getFile(path)).isPart) {
+        for (var unit in (await session.getResolvedLibrary(path)).units) {
+          migration.prepareInput(unit);
+        }
+      }
     }
     _betweenStages();
     for (var path in input.keys) {
-      migration.processInput(await session.getResolvedUnit(path));
+      if (!(await session.getFile(path)).isPart) {
+        for (var unit in (await session.getResolvedLibrary(path)).units) {
+          migration.processInput(unit);
+        }
+      }
     }
     _betweenStages();
     for (var path in input.keys) {
-      migration.finalizeInput(await session.getResolvedUnit(path));
+      if (!(await session.getFile(path)).isPart) {
+        for (var unit in (await session.getResolvedLibrary(path)).units) {
+          migration.finalizeInput(unit);
+        }
+      }
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
@@ -2943,6 +2955,34 @@ part of '../../lib.dart';
 class C {
   static void m(C c) {}
 }
+''';
+    await _checkMultipleFileChanges(
+        {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
+  }
+
+  Future<void> test_libraryWithParts_add_questions() async {
+    var root = '/home/test/lib';
+    var path1 = convertPath('$root/lib.dart');
+    var file1 = '''
+part 'src/foo/part.dart';
+
+int f() => null;
+''';
+    var expected1 = '''
+part 'src/foo/part.dart';
+
+int? f() => null;
+''';
+    var path2 = convertPath('$root/src/foo/part.dart');
+    var file2 = '''
+part of '../../lib.dart';
+
+int g() => null;
+''';
+    var expected2 = '''
+part of '../../lib.dart';
+
+int? g() => null;
 ''';
     await _checkMultipleFileChanges(
         {path2: file2, path1: file1}, {path1: expected1, path2: expected2});

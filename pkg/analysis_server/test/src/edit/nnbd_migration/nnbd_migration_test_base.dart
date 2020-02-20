@@ -8,6 +8,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
@@ -82,15 +83,20 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         permissive: false,
         instrumentation: instrumentationListener,
         removeViaComments: removeViaComments);
-    for (var testPath in testPaths) {
-      var result = await server
-          .getAnalysisDriver(testPath)
-          .currentSession
-          .getResolvedUnit(testPath);
-      migration.prepareInput(result);
-      migration.processInput(result);
-      migration.finalizeInput(result);
+    Future<void> _forEachPath(
+        void Function(ResolvedUnitResult) callback) async {
+      for (var testPath in testPaths) {
+        var result = await server
+            .getAnalysisDriver(testPath)
+            .currentSession
+            .getResolvedUnit(testPath);
+        callback(result);
+      }
     }
+
+    await _forEachPath(migration.prepareInput);
+    await _forEachPath(migration.processInput);
+    await _forEachPath(migration.finalizeInput);
     migration.finish();
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;
