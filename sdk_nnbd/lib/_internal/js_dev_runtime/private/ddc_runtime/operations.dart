@@ -422,7 +422,27 @@ bool instanceOf(obj, type) {
 
 @JSExportName('as')
 cast(obj, type, @notNull bool isImplicit) {
-  if (obj == null && (_isNullable(type) || _isNullType(type))) return obj;
+  // We hoist the common case where null is checked against another type here
+  // for better performance.
+  if (obj == null) {
+    if (_isLegacy(type) ||
+        _isNullType(type) ||
+        _isTop(type) ||
+        _isNullable(type)) {
+      return obj;
+    }
+    if (_strictSubtypeChecks) {
+      return castError(obj, type, isImplicit);
+    }
+    // Check the null comparison cache to avoid emitting repeated warnings.
+    bool result = JS('', '#.get(#)', _nullComparisonMap, type);
+    if (JS('!', '# === void 0', result)) {
+      JS('', '#.set(#, #)', _nullComparisonMap, type, false);
+      _warn("Null is not a subtype of $type.\n"
+          "This will be a runtime failure when strict mode is enabled.");
+    }
+    return obj;
+  }
   var actual = getReifiedType(obj);
   if (isSubtypeOf(actual, type)) {
     return obj;

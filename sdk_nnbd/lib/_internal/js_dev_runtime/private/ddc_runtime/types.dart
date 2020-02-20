@@ -215,8 +215,13 @@ void _warn(arg) {
   JS('void', 'console.warn(#)', arg);
 }
 
-var _lazyJSTypes = JS('', 'new Map()');
-var _anonymousJSTypes = JS('', 'new Map()');
+/// Tracks objects that have been compared against null (i.e., null is Type).
+/// Separating this null map out from _cacheMaps lets us fast-track common
+/// legacy type checks.
+/// TODO: Delete this map when legacy nullability is phased out.
+var _nullComparisonMap = JS<Object>('', 'new Map()');
+var _lazyJSTypes = JS<Object>('', 'new Map()');
+var _anonymousJSTypes = JS<Object>('', 'new Map()');
 
 lazyJSType(Function() getJSTypeCallback, String name) {
   var ret = JS('', '#.get(#)', _lazyJSTypes, name);
@@ -251,7 +256,7 @@ final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
 Object nullable(type) {
   if (_isNullable(type) || _isTop(type) || _isNullType(type)) return type;
   if (type == never_) return unwrapType(Null);
-  if (_isLegacy(type)) type = type.type;
+  if (_isLegacy(type)) type = JS<Object>('', '#.type', type);
 
   // Check if a nullable version of this type has already been created.
   if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedNullable)) {
@@ -1168,6 +1173,8 @@ _isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
 bool isSubtypeOf(Object t1, Object t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
+  // TODO: Find a way to eagerly attach this cache to the Null object at
+  // compile-time so we can remove the top-level null comparison cache entirely.
   Object map;
   if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
     JS('', '#[#] = #', t1, _subtypeCache, map = JS<Object>('!', 'new Map()'));
