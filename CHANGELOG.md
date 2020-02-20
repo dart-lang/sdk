@@ -22,7 +22,9 @@ used (see Issue [39627][]).
 #### `dart:io`
 
 * Class `HttpParser` will no longer throw an exception when a HTTP response
-  status code is within [0, 999]. Customized status codes in this range are now valid.
+  status code is within [0, 999]. Customized status codes in this range are now
+  valid.
+
 * **Breaking change** [#33501](https://github.com/dart-lang/sdk/issues/33501):
 
 An named parameter is added to `add` and `set` for class `HttpHeaders`.
@@ -36,6 +38,14 @@ case of `name` instead of converting them to lowercase.
   destroyed or upgraded to a secure socket upon setting or getting socket
   options. Previously setting a socket options would be ignored and getting a
   socket option would return `null`.
+
+* **Breaking change** [#40483](https://github.com/dart-lang/sdk/issues/40483):
+  The `Process` class will now throw a `StateError` if the process is detached
+  (`ProcessStartMode.detached` and `ProcessStartMode.detachedWithStdio`) upon
+  accessing the `exitCode` getter. It now also throws when not connected to the
+  child process's stdio (`ProcessStartMode.detached` and
+  `ProcessStartMode.inheritStdio`) upon accessing the `stdin`, `stdout`, and
+  `stderr` getters. Previously these getters would all return `null`.
 
 #### `dart:mirrors`
 
