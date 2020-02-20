@@ -2366,15 +2366,6 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   return initializer_fun.raw();
 }
 
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
-  Thread* thread = Thread::Current();
-
-  const Function& initializer_fun = Function::ZoneHandle(
-      zone, CreateFieldInitializerFunction(thread, zone, field));
-
-  return new (zone) ParsedFunction(thread, initializer_fun);
-}
-
 }  // namespace kernel
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

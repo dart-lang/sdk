@@ -34,7 +34,6 @@
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
-#include "vm/kernel_loader.h"  // For kernel::ParseStaticFieldInitializer.
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -1021,8 +1020,10 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   Zone* zone = stack_zone.GetZone();
   ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
 
+  const Function& initializer_fun =
+      Function::ZoneHandle(zone, field.EnsureInitializerFunction());
   ParsedFunction* parsed_function =
-      kernel::ParseStaticFieldInitializer(zone, field);
+      new (zone) ParsedFunction(thread, initializer_fun);
 
   DartCompilationPipeline pipeline;
   PrecompileParsedFunctionHelper helper(Precompiler::Instance(),
