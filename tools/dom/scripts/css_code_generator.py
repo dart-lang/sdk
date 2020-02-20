@@ -125,8 +125,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   ///
   /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
-    var propValue = _getPropertyValueHelper(propertyName);
-    return propValue ?? '';
+    return _getPropertyValueHelper(propertyName);
   }
 
   String _getPropertyValueHelper(String propertyName) {
