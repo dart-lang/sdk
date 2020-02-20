@@ -402,7 +402,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   static RwLock* isolate_groups_rwlock_;
   static IntrusiveDList<IsolateGroup>* isolate_groups_;
 
-  Random isolate_group_random_;
+  static Random isolate_group_random_;
   uint64_t id_ = isolate_group_random_.NextUInt64();
 };
 

@@ -397,7 +397,7 @@ void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
   jsobj->AddProperty("type", (ref ? "@IsolateGroup" : "IsolateGroup"));
   jsobj->AddServiceId(ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, id());
 
-  jsobj->AddProperty("name", "isolate_group");
+  jsobj->AddProperty("name", source()->script_uri);
   jsobj->AddPropertyF("number", "%" Pu64 "", id());
   if (ref) {
     return;
@@ -2295,6 +2295,7 @@ Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
 Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
 
+Random IsolateGroup::isolate_group_random_ = {};
 Monitor* Isolate::isolates_list_monitor_ = nullptr;
 Isolate* Isolate::isolates_list_head_ = nullptr;
 bool Isolate::creation_enabled_ = false;
