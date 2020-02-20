@@ -1226,13 +1226,12 @@ class Class : public Object {
         cls->ptr()->library_->ptr()->flags_);
   }
 
-  // Returns true if the type specified by cls and type_arguments is a
-  // subtype of the type specified by other class and other_type_arguments.
+  // Returns true if the type specified by cls and type_arguments is a subtype
+  // of the other type.
   static bool IsSubtypeOf(NNBDMode mode,
                           const Class& cls,
                           const TypeArguments& type_arguments,
-                          const Class& other,
-                          const TypeArguments& other_type_arguments,
+                          const AbstractType& other,
                           Heap::Space space);
 
   // Check if this is the top level class.

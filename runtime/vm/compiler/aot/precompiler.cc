@@ -419,7 +419,6 @@ void Precompiler::DoCompileAll() {
       Class& null_class = Class::Handle(Z);
       Function& null_function = Function::Handle(Z);
       Field& null_field = Field::Handle(Z);
-      I->object_store()->set_future_class(null_class);
       I->object_store()->set_pragma_class(null_class);
       I->object_store()->set_pragma_name(null_field);
       I->object_store()->set_pragma_options(null_field);
