@@ -19,7 +19,7 @@ void format() {
 
   test('implicit --help', () {
     p = project();
-    var result = p.runSync('format');
+    var result = p.runSync('format', []);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Format Dart source code.'));

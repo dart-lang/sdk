@@ -15,9 +15,12 @@ class Sdk {
 
   Sdk() : dir = getSdkPath();
 
+  String get sdkPath => dir;
+
   String get dart => path.join(dir, 'bin', _exeName('dart'));
 
-  String get dartanalyzer => path.join(dir, 'bin', _binName('dartanalyzer'));
+  String get analysis_server_snapshot =>
+      path.join(dir, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
 
   String get dartfmt => path.join(dir, 'bin', _binName('dartfmt'));
 

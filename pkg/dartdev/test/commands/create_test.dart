@@ -50,7 +50,7 @@ void defineCreateTests() {
   test('no directory given', () {
     p = project();
 
-    ProcessResult result = p.runSync('create');
+    ProcessResult result = p.runSync('create', []);
     expect(result.exitCode, 1);
   });
 

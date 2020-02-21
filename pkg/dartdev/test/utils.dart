@@ -9,9 +9,11 @@ import 'package:path/path.dart' as path;
 TestProject project({String mainSrc}) => TestProject(mainSrc: mainSrc);
 
 class TestProject {
+  static String get defaultProjectName => 'dartdev_temp';
+
   Directory dir;
 
-  static String get defaultProjectName => 'dartdev_temp';
+  String get dirPath => dir.path;
 
   String get name => defaultProjectName;
 
@@ -35,7 +37,11 @@ class TestProject {
     dir.deleteSync(recursive: true);
   }
 
-  ProcessResult runSync(String command, [List<String> args]) {
+  ProcessResult runSync(
+    String command,
+    List<String> args, {
+    String workingDir,
+  }) {
     var arguments = [
       absolutePathToDartdevFile,
       command,
@@ -48,7 +54,7 @@ class TestProject {
     return Process.runSync(
       Platform.resolvedExecutable,
       arguments,
-      workingDirectory: dir.path,
+      workingDirectory: workingDir ?? dir.path,
     );
   }
 

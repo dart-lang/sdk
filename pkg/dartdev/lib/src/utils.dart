@@ -36,3 +36,11 @@ String formatNumber(int i) => _numberFormat.format(i);
 
 /// Emit the given word with the correct pluralization.
 String pluralize(String word, int count) => count == 1 ? word : '${word}s';
+
+/// String utility to trim some suffix from the end of a [String].
+String trimEnd(String s, String suffix) {
+  if (s != null && suffix != null && suffix.isNotEmpty && s.endsWith(suffix)) {
+    return s.substring(0, s.length - suffix.length);
+  }
+  return s;
+}

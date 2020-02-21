@@ -6,6 +6,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 
+import 'src/commands/analyze.dart';
 import 'src/commands/create.dart';
 import 'src/commands/format.dart';
 import 'src/commands/pub.dart';
@@ -21,6 +22,7 @@ class DartdevRunner<int> extends CommandRunner {
     argParser.addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output.');
 
+    addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
     addCommand(PubCommand(verbose: verbose));

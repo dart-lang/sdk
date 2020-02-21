@@ -17,7 +17,7 @@ void pub() {
 
   test('implicit --help', () {
     p = project();
-    var result = p.runSync('pub');
+    var result = p.runSync('pub', []);
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
     expect(result.stderr, contains('Usage: dart pub <subcommand> [arguments]'));

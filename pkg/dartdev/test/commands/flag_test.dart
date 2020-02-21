@@ -19,7 +19,7 @@ void help() {
   test('--help', () {
     p = project();
 
-    var result = p.runSync('--help');
+    var result = p.runSync('--help', []);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
