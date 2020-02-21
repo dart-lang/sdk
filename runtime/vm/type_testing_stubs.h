@@ -76,6 +76,7 @@ class TypeTestingStubGenerator {
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
+      const Type& type,
       const Class& type_class,
       const TypeArguments& type_parameters,
       const TypeArguments& type_arguments);
@@ -83,6 +84,7 @@ class TypeTestingStubGenerator {
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
+      const Type& type,
       const Class& type_class,
       const TypeArguments& type_parameters,
       const TypeArguments& type_arguments,

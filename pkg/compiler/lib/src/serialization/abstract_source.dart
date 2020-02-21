@@ -643,7 +643,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         ClassEntity cls = readClass();
         return new AnonymousClosureLocal(cls);
       case LocalKind.typeVariableLocal:
-        TypeVariableType typeVariable = readDartType();
+        TypeVariableEntity typeVariable = readTypeVariable();
         return new TypeVariableLocal(typeVariable);
     }
     throw new UnsupportedError("Unexpected local kind $kind");

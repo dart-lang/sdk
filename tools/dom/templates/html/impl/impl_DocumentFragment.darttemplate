@@ -29,13 +29,13 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
-  List<Element> _docChildren;
+  List<Element>$NULLABLE _docChildren;
 
   List<Element> get children {
     if (_docChildren == null) {
       _docChildren = new FilteredElementList(this);
     }
-    return _docChildren;
+    return _docChildren$NULLASSERT;
   }
 
   set children(List<Element> value) {

@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart' as ir;
 import 'common.dart';
 import 'elements/entities.dart';
-import 'elements/types.dart';
 import 'js_model/closure.dart';
 import 'js_model/element_map.dart';
 import 'serialization/serialization.dart';
@@ -345,12 +344,12 @@ class ThisLocal extends Local {
 
 /// A type variable as a local variable.
 class TypeVariableLocal implements Local {
-  final TypeVariableType typeVariable;
+  final TypeVariableEntity typeVariable;
 
   TypeVariableLocal(this.typeVariable);
 
   @override
-  String get name => typeVariable.element.name;
+  String get name => typeVariable.name;
 
   @override
   int get hashCode => typeVariable.hashCode;

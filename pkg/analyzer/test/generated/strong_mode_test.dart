@@ -54,7 +54,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
   AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, InterfaceType>
       _isMapOf;
-  AsserterBuilder<List<Asserter<DartType>>, InterfaceType> _isStreamOf;
   AsserterBuilder<DartType, DartType> _isType;
 
   AsserterBuilder<Element, DartType> _hasElement;
@@ -97,7 +96,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       _isFutureOfInt = _isFutureOf([_isInt]);
       _isFutureOfNull = _isFutureOf([_isNull]);
       _isFutureOrOfInt = _isFutureOrOf([_isInt]);
-      _isStreamOf = _isInstantiationOf(_hasElement(typeProvider.streamElement));
     }
     return result;
   }
@@ -220,61 +218,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     check("g3", _isFutureOfInt);
     check("g4", _isFutureOfInt);
     check("g5", _isFutureOfInt);
-  }
-
-  test_async_star_method_propagation() async {
-    String code = r'''
-      import "dart:async";
-      class A {
-        Stream g0() async* { yield []; }
-        Stream g1() async* { yield* new Stream(); }
-
-        Stream<List<int>> g2() async* { yield []; }
-        Stream<List<int>> g3() async* { yield* new Stream(); }
-      }
-    ''';
-    CompilationUnit unit = await resolveSource(code);
-
-    void check(String name, Asserter<InterfaceType> typeTest) {
-      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
-      BlockFunctionBody body = test.body;
-      YieldStatement stmt = body.block.statements[0];
-      Expression exp = stmt.expression;
-      typeTest(exp.staticType);
-    }
-
-    check("g0", _isListOf(_isDynamic));
-    check("g1", _isStreamOf([_isDynamic]));
-
-    check("g2", _isListOf(_isInt));
-    check("g3", _isStreamOf([(DartType type) => _isListOf(_isInt)(type)]));
-  }
-
-  test_async_star_propagation() async {
-    String code = r'''
-      import "dart:async";
-
-      Stream g0() async* { yield []; }
-      Stream g1() async* { yield* new Stream(); }
-
-      Stream<List<int>> g2() async* { yield []; }
-      Stream<List<int>> g3() async* { yield* new Stream(); }
-   ''';
-    CompilationUnit unit = await resolveSource(code);
-
-    void check(String name, Asserter<InterfaceType> typeTest) {
-      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
-      BlockFunctionBody body = test.functionExpression.body;
-      YieldStatement stmt = body.block.statements[0];
-      Expression exp = stmt.expression;
-      typeTest(exp.staticType);
-    }
-
-    check("g0", _isListOf(_isDynamic));
-    check("g1", _isStreamOf([_isDynamic]));
-
-    check("g2", _isListOf(_isInt));
-    check("g3", _isStreamOf([(DartType type) => _isListOf(_isInt)(type)]));
   }
 
   test_cascadeExpression() async {
@@ -2423,61 +2366,6 @@ class B<T2, U2> {
     SuperConstructorInvocation invocation = constructor.initializers[0];
     Expression exp = invocation.argumentList.arguments[0];
     _isListOf(_isString)(exp.staticType);
-  }
-
-  test_sync_star_method_propagation() async {
-    String code = r'''
-      import "dart:async";
-      class A {
-        Iterable f0() sync* { yield []; }
-        Iterable f1() sync* { yield* new List(); }
-
-        Iterable<List<int>> f2() sync* { yield []; }
-        Iterable<List<int>> f3() sync* { yield* new List(); }
-      }
-   ''';
-    CompilationUnit unit = await resolveSource(code);
-
-    void check(String name, Asserter<InterfaceType> typeTest) {
-      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
-      BlockFunctionBody body = test.body;
-      YieldStatement stmt = body.block.statements[0];
-      Expression exp = stmt.expression;
-      typeTest(exp.staticType);
-    }
-
-    check("f0", _isListOf(_isDynamic));
-    check("f1", _isListOf(_isDynamic));
-
-    check("f2", _isListOf(_isInt));
-    check("f3", _isListOf((DartType type) => _isListOf(_isInt)(type)));
-  }
-
-  test_sync_star_propagation() async {
-    String code = r'''
-      import "dart:async";
-
-      Iterable f0() sync* { yield []; }
-      Iterable f1() sync* { yield* new List(); }
-
-      Iterable<List<int>> f2() sync* { yield []; }
-      Iterable<List<int>> f3() sync* { yield* new List(); }
-   ''';
-    CompilationUnit unit = await resolveSource(code);
-
-    void check(String name, Asserter<InterfaceType> typeTest) {
-      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
-      BlockFunctionBody body = test.functionExpression.body;
-      YieldStatement stmt = body.block.statements[0];
-      Expression exp = stmt.expression;
-      typeTest(exp.staticType);
-    }
-
-    check("f0", _isListOf(_isDynamic));
-    check("f1", _isListOf(_isDynamic));
-
-    check("f2", _isListOf(_isInt));
-    check("f3", _isListOf((DartType type) => _isListOf(_isInt)(type)));
   }
 
   /// Verifies the source has the expected [errorCodes] as well as the

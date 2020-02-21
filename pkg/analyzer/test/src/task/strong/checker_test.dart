@@ -955,48 +955,6 @@ Future<String> issue_sdk_26404() async {
 ''');
   }
 
-  test_functionModifiers_asyncStar() async {
-    await checkFile('''
-import 'dart:async';
-
-dynamic x;
-
-Stream<int> intStream;
-
-abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => throw 0;
-}
-
-bar1() async* { yield x; }
-Stream bar2() async* { yield x; }
-Stream<int> bar3() async* { yield x; }
-Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/intStream; }
-
-baz1() async* { yield* x; }
-Stream baz2() async* { yield* x; }
-Stream<int> baz3() async* { yield* x; }
-Stream<int> baz4() async* { yield* intStream; }
-Stream<int> baz5() async* { yield* new MyStream(); }
-''');
-  }
-
-  test_functionModifiers_syncStar() async {
-    await checkFile('''
-dynamic x;
-
-bar1() sync* { yield x; }
-Iterable bar2() sync* { yield x; }
-Iterable<int> bar3() sync* { yield x; }
-Iterable<int> bar4() sync* { yield /*error:YIELD_OF_INVALID_TYPE*/bar3(); }
-
-baz1() sync* { yield* x; }
-Iterable baz2() sync* { yield* x; }
-Iterable<int> baz3() sync* { yield* x; }
-Iterable<int> baz4() sync* { yield* bar3(); }
-Iterable<int> baz5() sync* { yield* new List(); }
-''');
-  }
-
   test_functionTypingAndSubtyping_classes() async {
     await checkFile('''
 class A {}

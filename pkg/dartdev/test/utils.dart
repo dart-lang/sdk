@@ -34,7 +34,9 @@ class TestProject {
   }
 
   void dispose() {
-    dir.deleteSync(recursive: true);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+    }
   }
 
   ProcessResult runSync(

@@ -302,7 +302,7 @@ class Rti {
   /// different indexing in the recipe.
   Object? _evalCache;
 
-  static Object? _getEvalCache(Rti rti) => rti._evalCache!;
+  static Object? _getEvalCache(Rti rti) => rti._evalCache;
   static void _setEvalCache(Rti rti, value) {
     rti._evalCache = value;
   }
@@ -322,7 +322,7 @@ class Rti {
   /// instantiations.
   Object? _bindCache;
 
-  static Object? _getBindCache(Rti rti) => rti._bindCache!;
+  static Object? _getBindCache(Rti rti) => rti._bindCache;
   static void _setBindCache(Rti rti, value) {
     rti._bindCache = value;
   }
@@ -331,10 +331,10 @@ class Rti {
     return new Rti();
   }
 
-  late Object _canonicalRecipe;
+  Object? _canonicalRecipe;
 
   static String _getCanonicalRecipe(Rti rti) {
-    Object s = rti._canonicalRecipe;
+    Object s = rti._canonicalRecipe!;
     assert(_Utils.isString(s), 'Missing canonical recipe');
     return _Utils.asString(s);
   }
@@ -349,7 +349,7 @@ class _FunctionParameters {
 
   static _FunctionParameters allocate() => _FunctionParameters();
 
-  late Object _requiredPositional;
+  Object? _requiredPositional;
   static JSArray _getRequiredPositional(_FunctionParameters parameters) =>
       JS('JSUnmodifiableArray', '#', parameters._requiredPositional);
   static void _setRequiredPositional(
@@ -357,7 +357,7 @@ class _FunctionParameters {
     parameters._requiredPositional = requiredPositional;
   }
 
-  late Object _optionalPositional;
+  Object? _optionalPositional;
   static JSArray _getOptionalPositional(_FunctionParameters parameters) =>
       JS('JSUnmodifiableArray', '#', parameters._optionalPositional);
   static void _setOptionalPositional(
@@ -374,7 +374,7 @@ class _FunctionParameters {
   /// the name [String]s and the odd indices are the type [Rti]s.
   ///
   /// Invariant: These pairs are sorted by name in lexicographically ascending order.
-  late Object _optionalNamed;
+  Object? _optionalNamed;
   static JSArray _getOptionalNamed(_FunctionParameters parameters) =>
       JS('JSUnmodifiableArray', '#', parameters._optionalNamed);
   static void _setOptionalNamed(

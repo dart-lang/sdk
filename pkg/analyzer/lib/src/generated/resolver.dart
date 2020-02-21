@@ -1914,7 +1914,7 @@ class ResolverVisitor extends ScopedVisitor {
 
       if (typeSystem.isPotentiallyNonNullable(returnType)) {
         errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY,
+          CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
           errorNode,
         );
       }

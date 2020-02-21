@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,11 +12,23 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(YieldOfInvalidTypeTest);
+    defineReflectiveTests(YieldOfInvalidTypeTest2);
   });
 }
 
 @reflectiveTest
 class YieldOfInvalidTypeTest extends DriverResolutionTest {
+  test_none_asyncStar_dynamic_to_streamInt() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+Stream<int> f() async* {
+  dynamic a = 0;
+  yield a;
+}
+''');
+  }
+
   test_none_asyncStar_int_to_basic() async {
     await assertErrorsInCode('''
 int f() async* {
@@ -22,7 +36,6 @@ int f() async* {
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 25, 1),
     ]);
   }
 
@@ -85,6 +98,15 @@ f() async* {
 ''');
   }
 
+  test_none_syncStar_dynamic_to_iterableInt() async {
+    await assertNoErrorsInCode('''
+Iterable<int> f() sync* {
+  dynamic a = 0;
+  yield a;
+}
+''');
+  }
+
   test_none_syncStar_int_to_basic() async {
     await assertErrorsInCode('''
 int f() sync* {
@@ -92,7 +114,6 @@ int f() sync* {
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 24, 1),
     ]);
   }
 
@@ -173,7 +194,7 @@ g() => throw 0;
 ''');
   }
 
-  test_star_asyncStar_dynamic_to_streamTyped() async {
+  test_star_asyncStar_dynamic_to_streamInt() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
 
@@ -195,11 +216,56 @@ f() async* {
     ]);
   }
 
+  test_star_asyncStar_iterableInt_to_dynamic() async {
+    await assertNoErrorsInCode('''
+f() async* {
+  var a = <int>[];
+  yield* a;
+}
+''');
+  }
+
+  test_star_asyncStar_iterableInt_to_streamInt() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+Stream<int> f() async* {
+  var a = <int>[];
+  yield* a;
+}
+''');
+  }
+
+  test_star_asyncStar_iterableString_to_streamInt() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+
+Stream<int> f() async* {
+  var a = <String>[];
+  yield* a;
+}
+''', [
+      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 78, 1),
+    ]);
+  }
+
   test_star_asyncStar_streamDynamic_to_dynamic() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
 
 f() async* {
+  yield* g();
+}
+
+Stream g() => throw 0;
+''');
+  }
+
+  test_star_asyncStar_streamDynamic_to_streamInt() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+Stream<int> f() async* {
   yield* g();
 }
 
@@ -308,6 +374,16 @@ Iterable g() => throw 0;
 ''');
   }
 
+  test_star_syncStar_iterableDynamic_to_iterableInt() async {
+    await assertNoErrorsInCode('''
+Iterable<int> f() sync* {
+  yield* g();
+}
+
+Iterable g() => throw 0;
+''');
+  }
+
   test_star_syncStar_iterableInt_to_dynamic() async {
     await assertNoErrorsInCode('''
 f() sync* {
@@ -339,4 +415,12 @@ Iterable<String> g() => throw 0;
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 3),
     ]);
   }
+}
+
+@reflectiveTest
+class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
 }

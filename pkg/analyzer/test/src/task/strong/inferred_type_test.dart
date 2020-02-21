@@ -1485,30 +1485,6 @@ void main() {
 ''');
   }
 
-  test_downwardsInferenceYieldYieldStar() async {
-    await checkFileElement('''
-import 'dart:async';
-
-abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => throw 0;
-}
-
-Stream<List<int>> foo() async* {
-  yield [];
-  yield /*error:YIELD_OF_INVALID_TYPE*/new MyStream();
-  yield* /*error:YIELD_OF_INVALID_TYPE*/[];
-  yield* new MyStream();
-}
-
-Iterable<Map<int, int>> bar() sync* {
-  yield {};
-  yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* {};
-  yield* new List();
-}
-''');
-  }
-
   test_fieldRefersToStaticGetter() async {
     var mainUnit = await checkFileElement('''
 class C {
@@ -4423,33 +4399,6 @@ class InferredTypeTest_SetLiterals extends AbstractStrongTest
   Future<CompilationUnitElement> checkFileElement(String content) async {
     CompilationUnit unit = await checkFile(content);
     return unit.declaredElement;
-  }
-
-  @override
-  test_downwardsInferenceYieldYieldStar() async {
-    // The fifth to last case is inferred differently with set_literals enabled,
-    // and no longer an error compared to the base implementation.
-    await checkFileElement('''
-import 'dart:async';
-
-abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => throw 0;
-}
-
-Stream<List<int>> foo() async* {
-  yield [];
-  yield /*error:YIELD_OF_INVALID_TYPE*/new MyStream();
-  yield* /*error:YIELD_OF_INVALID_TYPE*/[];
-  yield* new MyStream();
-}
-
-Iterable<Map<int, int>> bar() sync* {
-  yield {};
-  yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* {};
-  yield* new List();
-}
-''');
   }
 
   @failingTest
