@@ -12,8 +12,6 @@ import 'dart:io';
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-import "process_test_util.dart";
-
 void test() {
   asyncStart();
   var script =
@@ -27,10 +25,10 @@ void test() {
   future.then((process) {
     Expect.isNotNull(process.pid);
     Expect.isTrue(process.pid is int);
-    Expect.isNull(process.exitCode);
-    Expect.isNull(process.stderr);
-    Expect.isNull(process.stdin);
-    Expect.isNull(process.stdout);
+    Expect.throwsStateError(() => process.exitCode);
+    Expect.throwsStateError(() => process.stderr);
+    Expect.throwsStateError(() => process.stdin);
+    Expect.throwsStateError(() => process.stdout);
     Expect.isTrue(process.kill());
   }).whenComplete(() {
     asyncEnd();
@@ -47,7 +45,7 @@ void testWithStdio() {
   future.then((process) {
     Expect.isNotNull(process.pid);
     Expect.isTrue(process.pid is int);
-    Expect.isNull(process.exitCode);
+    Expect.throwsStateError(() => process.exitCode);
     var message = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     process.stdin.add(message);
     process.stdin.flush().then((_) => process.stdin.close());
