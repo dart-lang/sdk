@@ -747,7 +747,12 @@ class SdkLibrariesReader {
     Scanner scanner =
         Scanner(source, CharSequenceReader(libraryFileContents), errorListener)
           ..configureFeatures(featureSet);
-    Parser parser = Parser(source, errorListener, featureSet: featureSet);
+    Parser parser = Parser(
+      source,
+      errorListener,
+      languageVersion: scanner.languageVersion,
+      featureSet: featureSet,
+    );
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder =
         SdkLibrariesReader_LibraryBuilder();

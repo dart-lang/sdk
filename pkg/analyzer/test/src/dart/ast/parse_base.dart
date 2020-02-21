@@ -34,8 +34,13 @@ class ParseBase with ResourceProviderMixin {
     featureSet = scanner.featureSet;
 
     var useFasta = analysisOptions.useFastaParser;
-    var parser = Parser(source, errorListener,
-        featureSet: featureSet, useFasta: useFasta);
+    var parser = Parser(
+      source,
+      errorListener,
+      languageVersion: scanner.languageVersion,
+      featureSet: featureSet,
+      useFasta: useFasta,
+    );
     parser.enableOptionalNewAndConst = true;
 
     var unit = parser.parseCompilationUnit(token);

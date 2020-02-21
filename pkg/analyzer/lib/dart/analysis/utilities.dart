@@ -118,7 +118,12 @@ ParseStringResult parseString(
   var scanner = Scanner(source, reader, errorCollector)
     ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = Parser(source, errorCollector, featureSet: scanner.featureSet);
+  var parser = Parser(
+    source,
+    errorCollector,
+    languageVersion: scanner.languageVersion,
+    featureSet: scanner.featureSet,
+  );
   var unit = parser.parseCompilationUnit(token);
   unit.lineInfo = LineInfo(scanner.lineStarts);
   ParseStringResult result =

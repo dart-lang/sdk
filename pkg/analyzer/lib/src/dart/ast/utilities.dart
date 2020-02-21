@@ -286,6 +286,7 @@ class AstCloner implements AstVisitor<AstNode> {
         directives: cloneNodeList(node.directives),
         declarations: cloneNodeList(node.declarations),
         endToken: cloneToken(node.endToken),
+        languageVersion: node.languageVersion,
         featureSet: node.featureSet);
     clone.lineInfo = node.lineInfo;
     return clone;

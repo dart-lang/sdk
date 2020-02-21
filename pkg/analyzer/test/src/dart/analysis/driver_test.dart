@@ -1612,6 +1612,19 @@ part '';
     await driver.getResult(testFile);
   }
 
+  test_getResult_languageVersion() async {
+    var path = convertPath('/test/lib/test.dart');
+    newFile(path, content: r'''
+// @dart = 2.7
+class A{}
+''');
+
+    var result = await driver.getResult(path);
+    var languageVersion = result.unit.languageVersion;
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 7);
+  }
+
   test_getResult_mix_fileAndPackageUris() async {
     var a = convertPath('/test/bin/a.dart');
     var b = convertPath('/test/bin/b.dart');
@@ -2184,6 +2197,31 @@ import 'b.dart';
     ParsedUnitResult parseResult = await driver.parseFile(p);
     var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
     expect(clazz.name.name, 'A2');
+  }
+
+  test_parseFileSync_languageVersion() async {
+    var path = '/test/lib/test.dart';
+
+    newFile(path, content: r'''
+// @dart = 2.7
+class A {}
+''');
+
+    var parseResult = driver.parseFileSync(path);
+    var languageVersion = parseResult.unit.languageVersion;
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 7);
+  }
+
+  test_parseFileSync_languageVersion_null() async {
+    var path = '/test/lib/test.dart';
+
+    newFile(path, content: r'''
+class A {}
+''');
+
+    var parseResult = driver.parseFileSync(path);
+    expect(parseResult.unit.languageVersion, isNull);
   }
 
   test_parseFileSync_notAbsolutePath() async {
