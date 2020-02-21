@@ -2247,7 +2247,7 @@ Still need entries for all changes to dart:html since 1.x
 
 #### `dart:isolate`
 
-*   Make `Isolate.spawn` takes a type parameter representing the argument type of
+*   Make `Isolate.spawn` take a type parameter representing the argument type of
     the provided function. This allows functions with arguments types other than
     `Object` in strong mode.
 *   Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
