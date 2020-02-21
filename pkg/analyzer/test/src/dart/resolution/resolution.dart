@@ -662,6 +662,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
           messageContains: messageContains,
           expectedContextMessages: contextMessages);
 
+  List<ExpectedError> expectedErrorsByNullability({
+    @required List<ExpectedError> nullable,
+    @required List<ExpectedError> legacy,
+  }) {
+    if (typeToStringWithNullability) {
+      return nullable;
+    } else {
+      return legacy;
+    }
+  }
+
   AuxiliaryElements getNodeAuxElements(AstNode node) {
     if (node is IndexExpression) {
       return node.auxiliaryElements;
@@ -738,6 +749,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
   /// tests.
   String typeString(DartType type) =>
       type.getDisplayString(withNullability: typeToStringWithNullability);
+
+  String typeStringByNullability({
+    @required String nullable,
+    @required String legacy,
+  }) {
+    if (typeToStringWithNullability) {
+      return nullable;
+    } else {
+      return legacy;
+    }
+  }
 
   _ElementMatcher _elementMatcher(Object elementOrMatcher) {
     if (elementOrMatcher is Element) {
