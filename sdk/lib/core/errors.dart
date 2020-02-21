@@ -112,9 +112,9 @@ class AssertionError extends Error {
 }
 
 /**
- * Error thrown by the runtime system when a type assertion fails.
+ * Error thrown by the runtime system when a dynamic type error happens.
  */
-class TypeError extends AssertionError {}
+class TypeError extends Error {}
 
 /**
  * Error thrown by the runtime system when a cast operation fails.

@@ -6,6 +6,14 @@
 
 ### Core libraries
 
+#### `dart:core`
+
+* The class `TypeError` no longer extends `AssertionError`.
+  This also means that it no longer inherits the spurious `message` getter
+  which was added to `AssertionError` when the second operand to `assert`
+  was allowed. The value of that getter on a `TypeError` was the same
+  string as returned by `toString`, so it is still available.
+
 #### `dart:html`
 
 * **Breaking Change**: Changed the return type of several html native methods

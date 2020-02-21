@@ -20,7 +20,7 @@ main() {
     dynamic y = 3;
     Expect.throws(() => new Bar().foo(i: x, a: y), (e) {
       if (e is TypeError) {
-        var m = e.message.toString();
+        var m = e.toString();
         return m.contains("is not a subtype of type 'int'") ||
             m.contains(
                 "Expected a value of type 'int', but got one of type 'String'");
