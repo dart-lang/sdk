@@ -34,10 +34,11 @@ Same change is applied to `set`. `preserveHeaderCase` will preserve the
 case of `name` instead of converting them to lowercase.
 `HttpHeader.forEach()` provides the current case of each header.
 
-* The `Socket` class will now throw a `SocketException` if the socket has been
-  destroyed or upgraded to a secure socket upon setting or getting socket
-  options. Previously setting a socket options would be ignored and getting a
-  socket option would return `null`.
+* **Breaking change** [#40702](https://github.com/dart-lang/sdk/issues/40702):
+  The `Socket` class will now throw a `SocketException` if the socket has been
+  explicitly destroyed or upgraded to a secure socket upon setting or getting
+  socket options. Previously setting a socket option would be ignored and
+  getting a socket option would return `null`.
 
 * **Breaking change** [#40483](https://github.com/dart-lang/sdk/issues/40483):
   The `Process` class will now throw a `StateError` if the process is detached
