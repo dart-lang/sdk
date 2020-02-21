@@ -35,7 +35,7 @@ used (see Issue [39627][]).
 
 * **Breaking change** [#33501](https://github.com/dart-lang/sdk/issues/33501):
 
-An named parameter is added to `add` and `set` for class `HttpHeaders`.
+A named parameter is added to `add` and `set` for class `HttpHeaders`.
 The signature of has been changed from `void add(String name, Object value)` to
 `void add(String name, Object value, {bool preserveHeaderCase: false})`.
 Same change is applied to `set`. `preserveHeaderCase` will preserve the
@@ -780,7 +780,7 @@ The Linter was updated to `0.1.91`, which includes the following changes:
 
 * `pub publish` will no longer warn about missing dependencies for import
    statements in `example/`.
-* OAuth2 authentication will explicitely ask for the `openid` scope.
+* OAuth2 authentication will explicitly ask for the `openid` scope.
 
 ## 2.3.2 - 2019-06-11
 
@@ -2174,7 +2174,7 @@ significant changes across all areas of the platform. Large changes include:
 #### `dart:developer`
 
 *   `Flow` class added.
-*   `Timeline.startSync` and `Timeline.timeSync` now accept an optional
+*   `Timeline.startSync` and `Timeline.timeSync` now accepts an optional
     parameter `flow` of type `Flow`. The `flow` parameter is used to generate
     flow timeline events that are enclosed by the slice described by
     `Timeline.{start,finish}Sync` and `Timeline.timeSync`.
@@ -2247,7 +2247,7 @@ Still need entries for all changes to dart:html since 1.x
 
 #### `dart:isolate`
 
-*   Make `Isolate.spawn` take a type parameter representing the argument type of
+*   Make `Isolate.spawn` takes a type parameter representing the argument type of
     the provided function. This allows functions with arguments types other than
     `Object` in strong mode.
 *   Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
@@ -2663,7 +2663,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 #### Strong Mode
 
 * Removed ad hoc `Future.then` inference in favor of using `FutureOr`.  Prior to
-  adding `FutureOr` to the language, the analyzer implented an ad hoc type
+  adding `FutureOr` to the language, the analyzer implemented an ad hoc type
   inference for `Future.then` (and overrides) treating it as if the onValue
   callback was typed to return `FutureOr` for the purposes of inference.
   This ad hoc inference has been removed now that `FutureOr` has been added.
