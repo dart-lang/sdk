@@ -15,9 +15,23 @@ main() {
 
 @reflectiveTest
 class BadDartLanguageOverrideTest extends DriverResolutionTest {
-  test_correct_withMultipleWhitespace() async {
+  test_correct_11_12() async {
     await assertNoErrorsInCode(r'''
-//  @dart  =  2.0  
+// @dart = 11.12
+int i = 0;
+''');
+  }
+
+  test_correct_2_10() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.10
+int i = 0;
+''');
+  }
+
+  test_correct_withMultipleWhitespace() async {
+    await assertNoErrorsInCode('''
+//  @dart  =  2.0${"  "}
 int i = 0;
 ''');
   }
@@ -113,8 +127,8 @@ int i = 0;
   }
 
   test_nonVersionOverride_onlyWhitespace() async {
-    await assertNoErrorsInCode(r'''
-///  
+    await assertNoErrorsInCode('''
+///${"  "}
 
 int i = 0;
 ''');
@@ -231,15 +245,5 @@ int i = 0;
 // @dart = v2.0
 int i = 0;
 ''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX, 0, 15)]);
-  }
-
-  test_wrongVersion_tooManyDigits() async {
-    await assertErrorsInCode(r'''
-// @dart = 2.00
-int i = 0;
-''', [
-      error(
-          HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS, 0, 15)
-    ]);
   }
 }
