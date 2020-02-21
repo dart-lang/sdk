@@ -1434,6 +1434,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   arguments.SetReturn(target);
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
 static bool IsSingleTarget(Isolate* isolate,
                            Zone* zone,
                            intptr_t lower_cid,
@@ -1456,12 +1457,16 @@ static bool IsSingleTarget(Isolate* isolate,
   }
   return true;
 }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 // Handle a miss of a single target cache.
 //   Arg1: Receiver.
 //   Arg0: Stub out.
 //   Returns: the ICData used to continue with a polymorphic call.
 DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
   DartFrameIterator iterator(thread,
@@ -1534,7 +1539,6 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
 
   // Call site is not single target, switch to call using ICData.
   const Code& stub = StubCode::ICCallThroughCode();
-  ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
 
@@ -1542,6 +1546,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
   // IC call stub.
   arguments.SetArgAt(0, stub);
   arguments.SetReturn(ic_data);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1606,6 +1611,9 @@ static RawUnlinkedCall* LoadUnlinkedCall(Zone* zone,
 //   Arg0: Stub out.
 //   Returns: the ICData used to continue with a polymorphic call.
 DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
   const UnlinkedCall& unlinked =
       UnlinkedCall::CheckedHandle(zone, arguments.ArgAt(2));
@@ -1707,7 +1715,6 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
 
   // Patch to call through stub.
   const Code& stub = StubCode::ICCallThroughCode();
-  ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
 
@@ -1715,6 +1722,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
   // stub.
   arguments.SetArgAt(0, stub);
   arguments.SetReturn(ic_data);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1859,7 +1867,6 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
 
   // Patch to call through stub.
   const Code& stub = StubCode::ICCallThroughCode();
-  ASSERT(!Isolate::Current()->compilation_allowed());
   CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, ic_data,
                                      stub);
 
@@ -1951,8 +1958,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     if ((number_of_checks == 0) &&
         (!FLAG_precompiled_mode || ic_data.receiver_cannot_be_smi()) &&
         !target_function.HasOptionalParameters() &&
-        !target_function.IsGeneric() &&
-        !Isolate::Current()->compilation_allowed()) {
+        !target_function.IsGeneric()) {
       // This call site is unlinked: transition to a monomorphic direct call.
       // Note we cannot do this if the target has optional parameters because
       // the monomorphic direct call does not load the arguments descriptor.

@@ -238,25 +238,25 @@ static void PrintSuccess(JSONStream* js) {
 }
 
 static bool CheckDebuggerDisabled(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
-    return true;
-  }
-  if (isolate->debugger() == NULL) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
+  return true;
+#else
+  if (thread->isolate()->debugger() == NULL) {
     js->PrintError(kFeatureDisabled, "Debugger is disabled.");
     return true;
   }
   return false;
+#endif
 }
 
 static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
-    return true;
-  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
+  return true;
+#else
   return false;
+#endif
 }
 
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {

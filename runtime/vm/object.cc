@@ -14535,23 +14535,26 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
     data_pos = 0;
   }
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
-  if (Isolate::Current()->compilation_allowed()) {
-    data.SetAt(data_pos + TargetIndexFor(kNumArgsTested), target);
-    data.SetAt(data_pos + CountIndexFor(kNumArgsTested),
-               Smi::Handle(Smi::New(count)));
-    if (is_tracking_exactness()) {
-      data.SetAt(data_pos + ExactnessIndexFor(kNumArgsTested),
-                 Smi::Handle(Smi::New(exactness.Encode())));
-    }
-  } else {
-    // Precompilation only, after all functions have been compiled.
-    ASSERT(target.HasCode());
-    const Code& code = Code::Handle(target.CurrentCode());
-    const Smi& entry_point =
-        Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
-    data.SetAt(data_pos + CodeIndexFor(kNumArgsTested), code);
-    data.SetAt(data_pos + EntryPointIndexFor(kNumArgsTested), entry_point);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // JIT
+  data.SetAt(data_pos + TargetIndexFor(kNumArgsTested), target);
+  data.SetAt(data_pos + CountIndexFor(kNumArgsTested),
+             Smi::Handle(Smi::New(count)));
+  if (is_tracking_exactness()) {
+    data.SetAt(data_pos + ExactnessIndexFor(kNumArgsTested),
+               Smi::Handle(Smi::New(exactness.Encode())));
   }
+#else
+  // AOT
+  ASSERT(target.HasCode());
+  const Code& code = Code::Handle(target.CurrentCode());
+  const Smi& entry_point =
+      Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
+  data.SetAt(data_pos + CodeIndexFor(kNumArgsTested), code);
+  data.SetAt(data_pos + EntryPointIndexFor(kNumArgsTested), entry_point);
+#endif
+
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
   set_entries(data);
@@ -14663,7 +14666,10 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
 }
 
 RawFunction* ICData::GetTargetAt(intptr_t index) const {
-  ASSERT(Isolate::Current()->compilation_allowed());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return nullptr;
+#else
   const intptr_t data_pos =
       index * TestEntryLength() + TargetIndexFor(NumArgsTested());
   ASSERT(Object::Handle(Array::Handle(entries()).At(data_pos)).IsFunction());
@@ -14671,6 +14677,7 @@ RawFunction* ICData::GetTargetAt(intptr_t index) const {
   NoSafepointScope no_safepoint;
   RawArray* raw_data = entries();
   return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
+#endif
 }
 
 RawObject* ICData::GetTargetOrCodeAt(intptr_t index) const {
@@ -14702,7 +14709,10 @@ void ICData::SetCountAt(intptr_t index, intptr_t value) const {
 }
 
 intptr_t ICData::GetCountAt(intptr_t index) const {
-  ASSERT(Isolate::Current()->compilation_allowed());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return 0;
+#else
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   Array& data = thread->ArrayHandle();
@@ -14716,6 +14726,7 @@ intptr_t ICData::GetCountAt(intptr_t index) const {
   // would rather just reset it to zero.
   SetCountAt(index, 0);
   return 0;
+#endif
 }
 
 intptr_t ICData::AggregateCount() const {
@@ -14729,7 +14740,9 @@ intptr_t ICData::AggregateCount() const {
 }
 
 void ICData::SetCodeAt(intptr_t index, const Code& value) const {
-  ASSERT(!Isolate::Current()->compilation_allowed());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   Array& data = thread->ArrayHandle();
@@ -14737,10 +14750,13 @@ void ICData::SetCodeAt(intptr_t index, const Code& value) const {
   const intptr_t data_pos =
       index * TestEntryLength() + CodeIndexFor(NumArgsTested());
   data.SetAt(data_pos, value);
+#endif
 }
 
 void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
-  ASSERT(!Isolate::Current()->compilation_allowed());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   Array& data = thread->ArrayHandle();
@@ -14748,6 +14764,7 @@ void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
   const intptr_t data_pos =
       index * TestEntryLength() + EntryPointIndexFor(NumArgsTested());
   data.SetAt(data_pos, value);
+#endif
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -15494,12 +15511,6 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
                             bool optimized,
                             CodeStatistics* stats /* = nullptr */) {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
-  Isolate* isolate = Isolate::Current();
-  if (!isolate->compilation_allowed()) {
-    FATAL(
-        "Compilation is not allowed (precompilation might have missed a "
-        "code\n");
-  }
 
   ASSERT(assembler != NULL);
   const auto object_pool =

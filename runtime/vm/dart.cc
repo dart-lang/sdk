@@ -280,9 +280,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 
       if (Snapshot::IncludesCode(vm_snapshot_kind_)) {
         if (vm_snapshot_kind_ == Snapshot::kFullAOT) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-          vm_isolate_->set_compilation_allowed(false);
-#else
+#if !defined(DART_PRECOMPILED_RUNTIME)
           return strdup("JIT runtime cannot run a precompiled snapshot");
 #endif
         }

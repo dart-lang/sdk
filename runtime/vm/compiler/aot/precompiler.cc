@@ -194,8 +194,6 @@ Precompiler::~Precompiler() {
 }
 
 void Precompiler::DoCompileAll() {
-  ASSERT(I->compilation_allowed());
-
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
@@ -389,8 +387,6 @@ void Precompiler::DoCompileAll() {
           pool.DebugPrint();
         }
       }
-
-      I->set_compilation_allowed(false);
 
       if (FLAG_serialize_flow_graphs_to != nullptr &&
           Dart::file_write_callback() != nullptr) {
@@ -2143,8 +2139,6 @@ void Precompiler::BindStaticCalls() {
 }
 
 void Precompiler::DedupUnlinkedCalls() {
-  ASSERT(!I->compilation_allowed());
-
   class UnlinkedCallDeduper {
    public:
     explicit UnlinkedCallDeduper(Zone* zone)

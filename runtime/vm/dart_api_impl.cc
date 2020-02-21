@@ -5389,7 +5389,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
                          CURRENT_FUNC, library_url.ToCString());
   }
   CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
 
   // NOTE: We do not attach a finalizer for this object, because the embedder
   // will free it once the isolate group has shutdown.
@@ -5703,10 +5702,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   StackZone zone(T);
-  Isolate* I = T->isolate();
 
   CHECK_CALLBACK_STATE(T);
-  CHECK_COMPILATION_ALLOWED(I);
 
   // NOTE: We do not attach a finalizer for this object, because the embedder
   // will/should free it once the isolate group has shutdown.
@@ -6398,12 +6395,6 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
-  if (I->compilation_allowed()) {
-    return Api::NewError(
-        "Isolate is not precompiled. "
-        "Did you forget to call Dart_Precompile?");
-  }
   CHECK_NULL(callback);
 
   TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");

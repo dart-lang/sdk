@@ -949,13 +949,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   RawError* sticky_error() const { return sticky_error_; }
   DART_WARN_UNUSED_RESULT RawError* StealStickyError();
 
-  bool compilation_allowed() const {
-    return CompilationAllowedBit::decode(isolate_flags_);
-  }
-  void set_compilation_allowed(bool allowed) {
-    isolate_flags_ = CompilationAllowedBit::update(allowed, isolate_flags_);
-  }
-
   // In precompilation we finalize all regular classes before compiling.
   bool all_classes_finalized() const {
     return AllClassesFinalizedBit::decode(isolate_flags_);
@@ -1242,7 +1235,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(IsRunnable)                                                                \
   V(IsServiceIsolate)                                                          \
   V(IsKernelIsolate)                                                           \
-  V(CompilationAllowed)                                                        \
   V(AllClassesFinalized)                                                       \
   V(RemappingCids)                                                             \
   V(ResumeRequest)                                                             \

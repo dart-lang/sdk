@@ -328,12 +328,6 @@ class Api : AllStatic {
         Api::AcquiredError(thread->isolate_group()));                          \
   }
 
-#define CHECK_COMPILATION_ALLOWED(isolate)                                     \
-  if (!isolate->compilation_allowed()) {                                       \
-    return Api::NewError("%s: Cannot load after Dart_Precompile",              \
-                         CURRENT_FUNC);                                        \
-  }
-
 #define ASSERT_CALLBACK_STATE(thread)                                          \
   ASSERT(thread->no_callback_scope_depth() == 0)
 

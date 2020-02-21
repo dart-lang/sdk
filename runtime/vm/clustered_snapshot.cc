@@ -5934,7 +5934,6 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
       size_(snapshot->length()),
       data_image_(snapshot->DataImage()),
       instructions_image_(instructions_buffer) {
-  thread->isolate()->set_compilation_allowed(kind_ != Snapshot::kFullAOT);
 }
 
 char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(

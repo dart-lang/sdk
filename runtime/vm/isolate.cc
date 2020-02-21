@@ -1366,7 +1366,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       catch_entry_moves_cache_() {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
-  set_compilation_allowed(true);
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
   // move to the OSThread structure.
