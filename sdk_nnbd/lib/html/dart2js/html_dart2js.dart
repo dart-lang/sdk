@@ -10342,13 +10342,13 @@ class DocumentFragment extends Node
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
-  List<Element> _docChildren;
+  List<Element>? _docChildren;
 
   List<Element> get children {
     if (_docChildren == null) {
       _docChildren = new FilteredElementList(this);
     }
-    return _docChildren;
+    return _docChildren!;
   }
 
   set children(List<Element> value) {
@@ -12814,6 +12814,7 @@ class Element extends Node
   @pragma('dart2js:tryInline')
   String? getAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
     return _getAttribute(name);
   }
 
@@ -12821,12 +12822,14 @@ class Element extends Node
   String? getAttributeNS(String? namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
     return _getAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
     return _hasAttribute(name);
   }
 
@@ -12834,30 +12837,37 @@ class Element extends Node
   bool hasAttributeNS(String? namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
     return _hasAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
     _removeAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
   void removeAttributeNS(String? namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
     _removeAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
     _setAttribute(name, value);
   }
 
   @pragma('dart2js:tryInline')
   void setAttributeNS(String? namespaceURI, String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
     _setAttributeNS(namespaceURI, name, value);
   }
 
@@ -32590,7 +32600,7 @@ class Window extends EventTarget
    */
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(_wrapZone(callback));
+    return _requestAnimationFrame(_wrapZone(callback)!);
   }
 
   /**
@@ -41233,15 +41243,17 @@ class _WrappedEvent implements Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void Function(T) _wrapZone<T>(void Function(T) callback) {
+void Function(T)? _wrapZone<T>(void Function(T) callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
+  if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
-void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
+void Function(T1, T2)? _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
+  if (callback == null) return null;
   return Zone.current.bindBinaryCallbackGuarded(callback);
 }
 

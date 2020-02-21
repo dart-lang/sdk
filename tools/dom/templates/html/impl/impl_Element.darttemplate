@@ -567,10 +567,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @pragma('dart2js:tryInline')
   String$NULLABLE getAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     return _getAttribute(name);
   }
 
@@ -578,20 +575,14 @@ $endif
   String$NULLABLE getAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     return _getAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     return _hasAttribute(name);
   }
 
@@ -599,52 +590,37 @@ $endif
   bool hasAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     return _hasAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     _removeAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
   void removeAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     _removeAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
-$endif
     _setAttribute(name, value);
   }
 
   @pragma('dart2js:tryInline')
   void setAttributeNS(String$NULLABLE namespaceURI, String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
-$endif
     _setAttributeNS(namespaceURI, name, value);
   }
 
