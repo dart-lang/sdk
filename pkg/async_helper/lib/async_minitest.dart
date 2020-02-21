@@ -151,61 +151,61 @@ dynamic expectAsync(Function f, {int count = 1}) {
 }
 
 // Matchers
-typedef Matcher = void Function(Object);
+typedef Matcher = void Function(dynamic);
 
-Matcher same(Object o) => (v) {
+Matcher same(dynamic o) => (v) {
       Expect.identical(o, v);
     };
 
-Matcher equals(Object o) => (v) {
+Matcher equals(dynamic o) => (v) {
       Expect.deepEquals(o, v);
     };
 
-Matcher greaterThan(num n) => (Object v) {
+Matcher greaterThan(num n) => (dynamic v) {
       Expect.type<num>(v);
       num value = v;
       if (value > n) return;
       Expect.fail("$v is not greater than $n");
     };
 
-Matcher greaterThanOrEqualTo(num n) => (Object v) {
+Matcher greaterThanOrEqualTo(num n) => (dynamic v) {
       Expect.type<num>(v);
       num value = v;
       if (value >= n) return;
       Expect.fail("$v is not greater than $n");
     };
 
-Matcher lessThan(num n) => (Object v) {
+Matcher lessThan(num n) => (dynamic v) {
       Expect.type<num>(v);
       num value = v;
       if (value < n) return;
       Expect.fail("$v is not less than $n");
     };
 
-Matcher lessThanOrEqualTo(num n) => (Object v) {
+Matcher lessThanOrEqualTo(num n) => (dynamic v) {
       Expect.type<num>(v);
       num value = v;
       if (value <= n) return;
       Expect.fail("$v is not less than $n");
     };
 
-void isTrue(Object v) {
+void isTrue(dynamic v) {
   Expect.isTrue(v);
 }
 
-void isFalse(Object v) {
+void isFalse(dynamic v) {
   Expect.isFalse(v);
 }
 
-void isNull(Object o) {
+void isNull(dynamic o) {
   Expect.isNull(o);
 }
 
-bool isStateError(Object o) {
+bool isStateError(dynamic o) {
   Expect.type<StateError>(o);
 }
 
-void _checkThrow<T>(Object v, void onError(error)) {
+void _checkThrow<T>(dynamic v, void onError(error)) {
   if (v is Future) {
     var test = _currentTest..asyncWait();
     v.then((_) {
@@ -223,17 +223,17 @@ void _checkThrow<T>(Object v, void onError(error)) {
   });
 }
 
-void throws(Object v) {
-  _checkThrow<Object>(v, null);
+void throws(dynamic v) {
+  _checkThrow<Object>(v, (_) {});
 }
 
-Matcher throwsA(matcher) => (Object o) {
-      _checkThrow<Object>(o, (Object error) {
+Matcher throwsA(matcher) => (dynamic o) {
+      _checkThrow<Object>(o, (error) {
         expect(error, matcher);
       });
     };
 
-Matcher completion(matcher) => (Object o) {
+Matcher completion(matcher) => (dynamic o) {
       Expect.type<Future>(o);
       Future future = o;
       _currentTest.asyncWait();
@@ -243,7 +243,7 @@ Matcher completion(matcher) => (Object o) {
       });
     };
 
-void completes(Object o) {
+void completes(dynamic o) {
   Expect.type<Future>(o);
   Future future = o;
   _currentTest.asyncWait();
@@ -252,30 +252,30 @@ void completes(Object o) {
   });
 }
 
-void isMap(Object o) {
+void isMap(dynamic o) {
   Expect.type<Map>(o);
 }
 
-void isList(Object o) {
+void isList(dynamic o) {
   Expect.type<List>(o);
 }
 
-void isNotNull(Object o) {
+void isNotNull(dynamic o) {
   Expect.isNotNull(o);
 }
 
 abstract class _Matcher {
-  void call(Object o);
+  void call(dynamic o);
 }
 
 class isInstanceOf<T> implements _Matcher {
-  void call(Object o) {
+  void call(dynamic o) {
     Expect.type<T>(o);
   }
 }
 
-void throwsArgumentError(Object v) {
-  _checkThrow<ArgumentError>(v, null);
+void throwsArgumentError(dynamic v) {
+  _checkThrow<ArgumentError>(v, (_) {});
 }
 
 String fail(String message) {
