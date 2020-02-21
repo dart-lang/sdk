@@ -11,6 +11,7 @@
     "analyzer_unit_tests": [
       ".packages",
       "pkg/",
+      "tests/compiler/dart2js/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "tools/",

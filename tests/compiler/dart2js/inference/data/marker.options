@@ -1,0 +1,2 @@
+strong=tests/compiler/dart2js/inference/inference_test_helper.dart
+omit=tests/compiler/dart2js/inference/inference_test_helper.dart

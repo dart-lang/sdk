@@ -24,7 +24,6 @@ main(List<String> args) {
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
         args: args,
-        supportedMarkers: [strongMarker],
         testedConfigs: [strongConfig]);
 
     print('Testing computation of ResolutionImpact through ImpactData');
@@ -32,7 +31,6 @@ main(List<String> args) {
     useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
         args: args,
-        supportedMarkers: [strongMarker],
         testedConfigs: [strongConfig]);
   });
 }

@@ -949,6 +949,7 @@ stale
 statics
 stderr
 stdin
+stdio
 stdout
 stmt
 str
@@ -1015,6 +1016,7 @@ termcap
 terminator
 test
 tester
+testers
 testing
 tex
 tflite

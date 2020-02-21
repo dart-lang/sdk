@@ -17,7 +17,6 @@ main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: cfeMarkersWithNnbd,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const StaticTypeDataComputer(),

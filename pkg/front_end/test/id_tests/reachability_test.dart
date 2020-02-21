@@ -19,7 +19,6 @@ main(List<String> args) async {
       '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data'));
   await runTests<Set<_ReachabilityAssertion>>(dataDir,
       args: args,
-      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(

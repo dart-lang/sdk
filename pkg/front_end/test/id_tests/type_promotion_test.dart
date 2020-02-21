@@ -17,7 +17,6 @@ main(List<String> args) async {
           'data'));
   await runTests<DartType>(dataDir,
       args: args,
-      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(

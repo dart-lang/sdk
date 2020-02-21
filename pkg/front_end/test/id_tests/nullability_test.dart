@@ -15,7 +15,6 @@ main(List<String> args) async {
       '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
   await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(

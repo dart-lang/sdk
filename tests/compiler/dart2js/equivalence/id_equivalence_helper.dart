@@ -398,7 +398,6 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     int shards: 1,
     int shardIndex: 0,
     void onTest(Uri uri),
-    Iterable<String> supportedMarkers = allInternalMarkers,
     List<TestConfig> testedConfigs = defaultInternalConfigs}) async {
   Set<String> testedMarkers =
       testedConfigs.map((config) => config.marker).toSet();
@@ -406,12 +405,6 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       testedConfigs.length == testedMarkers.length,
       "Unexpected test markers $testedMarkers. "
       "Tested configs: $testedConfigs.");
-  Iterable<String> unknownMarkers =
-      testedMarkers.where((marker) => !supportedMarkers.contains(marker));
-  Expect.isTrue(
-      unknownMarkers.isEmpty,
-      "Unexpected test markers $unknownMarkers. "
-      "Supported markers: $supportedMarkers.");
 
   dataComputer.setup();
 
@@ -422,6 +415,13 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       bool printCode,
       Map<String, List<String>> skipMap,
       Uri nullUri}) async {
+    for (TestConfig testConfiguration in testedConfigs) {
+      Expect.isTrue(
+          testData.expectedMaps.containsKey(testConfiguration.marker),
+          "Unexpected test marker '${testConfiguration.marker}'. "
+          "Supported markers: ${testData.expectedMaps.keys}.");
+    }
+
     String name = testData.name;
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {
@@ -457,7 +457,6 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       shards: shards,
       shardIndex: shardIndex,
       onTest: onTest,
-      supportedMarkers: supportedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: Expect.fail,
       runTest: checkTest);

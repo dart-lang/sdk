@@ -23,7 +23,6 @@ main(List<String> args) async {
   await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
     return runTests<DartType>(dataDir,
         args: args,
-        supportedMarkers: sharedMarkers,
         createUriForFileName: createUriForFileName,
         onFailure: onFailure,
         runTest: runTestFor(

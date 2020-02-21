@@ -34,7 +34,7 @@ main(List<String> args) {
     await checkTests(dataDir, const OutputUnitDataComputer(),
         options: compilerOptions,
         args: args,
-        supportedMarkers: [strongMarker], setUpFunction: () {
+        setUpFunction: () {
       importPrefixes.clear();
     }, testedConfigs: allStrongConfigs);
   });

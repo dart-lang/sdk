@@ -1,0 +1,2 @@
+cfe=pkg/front_end/test/id_tests/inheritance_test.dart
+cfe:builder=pkg/front_end/test/id_tests/inheritance_test.dart

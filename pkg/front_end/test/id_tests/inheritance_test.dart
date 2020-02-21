@@ -20,7 +20,6 @@ main(List<String> args) async {
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
   await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: [cfeMarker, cfeFromBuilderMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const InheritanceDataComputer(), [
