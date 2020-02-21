@@ -287,8 +287,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     const TypeArguments& ta = TypeArguments::Handle(type.arguments());
     ASSERT(ta.Length() == num_type_arguments);
 
-    BuildOptimizedSubclassRangeCheckWithTypeArguments(assembler, hi, type_class,
-                                                      tp, ta);
+    BuildOptimizedSubclassRangeCheckWithTypeArguments(assembler, hi, type,
+                                                      type_class, tp, ta);
   }
 
   // Fast case for 'null'.
@@ -325,6 +325,7 @@ void TypeTestingStubGenerator::
     BuildOptimizedSubclassRangeCheckWithTypeArguments(
         compiler::Assembler* assembler,
         HierarchyInfo* hi,
+        const Type& type,
         const Class& type_class,
         const TypeArguments& tp,
         const TypeArguments& ta,
@@ -353,11 +354,16 @@ void TypeTestingStubGenerator::
   // TODO(kustermann): We could consider not using "null" as type argument
   // vector representing all-dynamic to avoid this extra check (which will be
   // uncommon because most Dart code in 2.0 will be strongly typed)!
-  compiler::Label process_done;
   __ CompareObject(instance_type_args_reg, Object::null_object());
-  __ BranchIf(NOT_EQUAL, &process_done);
-  __ Ret();
-  __ Bind(&process_done);
+  const Type& rare_type = Type::Handle(Type::RawCast(type_class.RareType()));
+  if (rare_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kNew)) {
+    compiler::Label process_done;
+    __ BranchIf(NOT_EQUAL, &process_done);
+    __ Ret();
+    __ Bind(&process_done);
+  } else {
+    __ BranchIf(EQUAL, &check_failed);
+  }
 
   // c) Then we'll check each value of the type argument.
   AbstractType& type_arg = AbstractType::Handle();

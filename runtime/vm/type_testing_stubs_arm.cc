@@ -34,6 +34,7 @@ void TypeTestingStubGenerator::
     BuildOptimizedSubclassRangeCheckWithTypeArguments(
         compiler::Assembler* assembler,
         HierarchyInfo* hi,
+        const Type& type,
         const Class& type_class,
         const TypeArguments& tp,
         const TypeArguments& ta) {
@@ -42,7 +43,7 @@ void TypeTestingStubGenerator::
   const Register kClassIdReg = R9;
 
   BuildOptimizedSubclassRangeCheckWithTypeArguments(
-      assembler, hi, type_class, tp, ta, kClassIdReg, kInstanceReg,
+      assembler, hi, type, type_class, tp, ta, kClassIdReg, kInstanceReg,
       kInstanceTypeArguments);
 }
 
