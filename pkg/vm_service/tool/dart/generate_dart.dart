@@ -1341,6 +1341,8 @@ class Type extends Member {
     if (docs != null) gen.writeDocs(docs);
     gen.write('class ${name} ');
     if (superName != null) gen.write('extends ${superName} ');
+    if (parent.getType('${name}Ref') != null)
+      gen.write('implements ${name}Ref ');
     gen.writeln('{');
     gen.writeln('static ${name} parse(Map<String, dynamic> json) => '
         'json == null ? null : ${name}._fromJson(json);');

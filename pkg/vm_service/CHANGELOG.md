@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.3
+- Classes now implement their corresponding reference types to handle cases
+  where the service returns a more specific type than promised.
+
 ## 2.3.2
 - Added `getClientName`, `setClientName`, and `requireResumePermission` methods.
 - Added `ClientName` class.

@@ -2228,6 +2228,12 @@ class Function extends Object {
   // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
 
+  // Is this function static?
+  bool static;
+
+  // Is this function const?
+  bool const;
+
   // The location of this function in the source code.
   SourceLocation location [optional];
 
@@ -2490,7 +2496,19 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   RegExp
-  String pattern [optional];
+  @Instance pattern [optional];
+
+// The function associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Function closureFunction [optional];
+
+  // The context associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Context closureContext [optional];
 
   // Whether this regular expression is case sensitive.
   //

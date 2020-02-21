@@ -618,6 +618,8 @@ vms.Func assertFunc(vms.Func obj) {
   } else {
     throw "Unexpected value: ${obj.owner}";
   }
+  assertBool(obj.isStatic);
+  assertBool(obj.isConst);
   return obj;
 }
 

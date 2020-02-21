@@ -2601,7 +2601,7 @@ class ClassRef extends ObjRef {
 }
 
 /// A `Class` provides information about a Dart language class.
-class Class extends Obj {
+class Class extends Obj implements ClassRef {
   static Class parse(Map<String, dynamic> json) =>
       json == null ? null : Class._fromJson(json);
 
@@ -2870,7 +2870,7 @@ class CodeRef extends ObjRef {
 }
 
 /// A `Code` object represents compiled code in the Dart VM.
-class Code extends ObjRef {
+class Code extends ObjRef implements CodeRef {
   static Code parse(Map<String, dynamic> json) =>
       json == null ? null : Code._fromJson(json);
 
@@ -2942,7 +2942,7 @@ class ContextRef extends ObjRef {
 
 /// A `Context` is a data structure which holds the captured variables for some
 /// closure.
-class Context extends Obj {
+class Context extends Obj implements ContextRef {
   static Context parse(Map<String, dynamic> json) =>
       json == null ? null : Context._fromJson(json);
 
@@ -3209,7 +3209,7 @@ class ErrorRef extends ObjRef {
 
 /// An `Error` represents a Dart language level error. This is distinct from an
 /// [rpc error].
-class Error extends Obj {
+class Error extends Obj implements ErrorRef {
   static Error parse(Map<String, dynamic> json) =>
       json == null ? null : Error._fromJson(json);
 
@@ -3613,7 +3613,7 @@ class FieldRef extends ObjRef {
 }
 
 /// A `Field` provides information about a Dart language field or variable.
-class Field extends Obj {
+class Field extends Obj implements FieldRef {
   static Field parse(Map<String, dynamic> json) =>
       json == null ? null : Field._fromJson(json);
 
@@ -3886,7 +3886,7 @@ class FuncRef extends ObjRef {
 }
 
 /// A `Func` represents a Dart language function.
-class Func extends Obj {
+class Func extends Obj implements FuncRef {
   static Func parse(Map<String, dynamic> json) =>
       json == null ? null : Func._fromJson(json);
 
@@ -3897,6 +3897,12 @@ class Func extends Obj {
   ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
   dynamic owner;
+
+  /// Is this function static?
+  bool isStatic;
+
+  /// Is this function const?
+  bool isConst;
 
   /// The location of this function in the source code.
   @optional
@@ -3909,6 +3915,8 @@ class Func extends Obj {
   Func({
     @required this.name,
     @required this.owner,
+    @required this.isStatic,
+    @required this.isConst,
     this.location,
     this.code,
   });
@@ -3916,6 +3924,8 @@ class Func extends Obj {
     name = json['name'];
     owner = createServiceObject(
         json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']);
+    isStatic = json['static'];
+    isConst = json['const'];
     location = createServiceObject(json['location'], const ['SourceLocation']);
     code = createServiceObject(json['code'], const ['CodeRef']);
   }
@@ -3927,6 +3937,8 @@ class Func extends Obj {
     json.addAll({
       'name': name,
       'owner': owner.toJson(),
+      'static': isStatic,
+      'const': isConst,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     _setIfNotNull(json, 'code', code?.toJson());
@@ -3937,8 +3949,9 @@ class Func extends Obj {
 
   operator ==(other) => other is Func && id == other.id;
 
-  String toString() =>
-      '[Func type: ${type}, id: ${id}, name: ${name}, owner: ${owner}]';
+  String toString() => '[Func ' //
+      'type: ${type}, id: ${id}, name: ${name}, owner: ${owner}, ' //
+      'isStatic: ${isStatic}, isConst: ${isConst}]';
 }
 
 /// `InstanceRef` is a reference to an `Instance`.
@@ -4102,7 +4115,7 @@ class InstanceRef extends ObjRef {
 }
 
 /// An `Instance` represents an instance of the Dart language class `Obj`.
-class Instance extends Obj {
+class Instance extends Obj implements InstanceRef {
   static Instance parse(Map<String, dynamic> json) =>
       json == null ? null : Instance._fromJson(json);
 
@@ -4275,7 +4288,21 @@ class Instance extends Obj {
   /// Provided for instance kinds:
   ///  - RegExp
   @optional
-  String pattern;
+  InstanceRef pattern;
+
+  /// The function associated with a Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Closure
+  @optional
+  FuncRef closureFunction;
+
+  /// The context associated with a Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Closure
+  @optional
+  ContextRef closureContext;
 
   /// Whether this regular expression is case sensitive.
   ///
@@ -4359,6 +4386,8 @@ class Instance extends Obj {
     this.bytes,
     this.mirrorReferent,
     this.pattern,
+    this.closureFunction,
+    this.closureContext,
     this.isCaseSensitive,
     this.isMultiLine,
     this.propertyKey,
@@ -4395,7 +4424,11 @@ class Instance extends Obj {
     bytes = json['bytes'];
     mirrorReferent =
         createServiceObject(json['mirrorReferent'], const ['InstanceRef']);
-    pattern = json['pattern'];
+    pattern = createServiceObject(json['pattern'], const ['InstanceRef']);
+    closureFunction =
+        createServiceObject(json['closureFunction'], const ['FuncRef']);
+    closureContext =
+        createServiceObject(json['closureContext'], const ['ContextRef']);
     isCaseSensitive = json['isCaseSensitive'];
     isMultiLine = json['isMultiLine'];
     propertyKey =
@@ -4433,7 +4466,9 @@ class Instance extends Obj {
         json, 'associations', associations?.map((f) => f?.toJson())?.toList());
     _setIfNotNull(json, 'bytes', bytes);
     _setIfNotNull(json, 'mirrorReferent', mirrorReferent?.toJson());
-    _setIfNotNull(json, 'pattern', pattern);
+    _setIfNotNull(json, 'pattern', pattern?.toJson());
+    _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
+    _setIfNotNull(json, 'closureContext', closureContext?.toJson());
     _setIfNotNull(json, 'isCaseSensitive', isCaseSensitive);
     _setIfNotNull(json, 'isMultiLine', isMultiLine);
     _setIfNotNull(json, 'propertyKey', propertyKey?.toJson());
@@ -4499,7 +4534,7 @@ class IsolateRef extends Response {
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
-class Isolate extends Response {
+class Isolate extends Response implements IsolateRef {
   static Isolate parse(Map<String, dynamic> json) =>
       json == null ? null : Isolate._fromJson(json);
 
@@ -4671,7 +4706,7 @@ class IsolateGroupRef extends Response {
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
-class IsolateGroup extends Response {
+class IsolateGroup extends Response implements IsolateGroupRef {
   static IsolateGroup parse(Map<String, dynamic> json) =>
       json == null ? null : IsolateGroup._fromJson(json);
 
@@ -4875,7 +4910,7 @@ class LibraryRef extends ObjRef {
 /// A `Library` provides information about a Dart language library.
 ///
 /// See [setLibraryDebuggable].
-class Library extends Obj {
+class Library extends Obj implements LibraryRef {
   static Library parse(Map<String, dynamic> json) =>
       json == null ? null : Library._fromJson(json);
 
@@ -5281,7 +5316,7 @@ class NullValRef extends InstanceRef {
 }
 
 /// A `NullVal` object represents the Dart language value null.
-class NullVal extends Instance {
+class NullVal extends Instance implements NullValRef {
   static NullVal parse(Map<String, dynamic> json) =>
       json == null ? null : NullVal._fromJson(json);
 
@@ -5358,7 +5393,7 @@ class ObjRef extends Response {
 }
 
 /// An `Obj` is a persistent object that is owned by some isolate.
-class Obj extends Response {
+class Obj extends Response implements ObjRef {
   static Obj parse(Map<String, dynamic> json) =>
       json == null ? null : Obj._fromJson(json);
 
@@ -5732,7 +5767,7 @@ class ScriptRef extends ObjRef {
 /// 100 | 1 | 5
 /// 101 | 1 | 8
 /// 102 | 2 | 7
-class Script extends Obj {
+class Script extends Obj implements ScriptRef {
   static Script parse(Map<String, dynamic> json) =>
       json == null ? null : Script._fromJson(json);
 
@@ -6311,7 +6346,7 @@ class TypeArgumentsRef extends ObjRef {
 
 /// A `TypeArguments` object represents the type argument vector for some
 /// instantiated generic type.
-class TypeArguments extends Obj {
+class TypeArguments extends Obj implements TypeArgumentsRef {
   static TypeArguments parse(Map<String, dynamic> json) =>
       json == null ? null : TypeArguments._fromJson(json);
 
@@ -6487,7 +6522,7 @@ class VMRef extends Response {
   String toString() => '[VMRef type: ${type}, name: ${name}]';
 }
 
-class VM extends Response {
+class VM extends Response implements VMRef {
   static VM parse(Map<String, dynamic> json) =>
       json == null ? null : VM._fromJson(json);
 

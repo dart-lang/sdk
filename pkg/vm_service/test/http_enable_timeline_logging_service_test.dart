@@ -42,5 +42,5 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const []]) async =>
+main([args = const <String>[]]) async =>
     runIsolateTests(args, tests, testeeBefore: setup);
