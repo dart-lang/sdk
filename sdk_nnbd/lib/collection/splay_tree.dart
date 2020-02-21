@@ -166,9 +166,9 @@ abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
     _count--;
     // assert(_count >= 0);
     if (_root!.left == null) {
-      _root = _root!.right as Node;
+      _root = _root!.right as Node?;
     } else {
-      Node right = _root!.right as Node;
+      Node? right = _root!.right as Node?;
       // Splay to make sure that the new root has an empty right child.
       _root = _splayMax(_root!.left as Node);
       // Insert the original right child as the right child of the new
@@ -429,7 +429,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
         if (node.right != null && visit(node.right as _SplayTreeMapNode)) {
           return true;
         }
-        node = node.left as _SplayTreeMapNode;
+        node = node.left as _SplayTreeMapNode?;
       }
       return false;
     }
