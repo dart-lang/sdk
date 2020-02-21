@@ -689,6 +689,23 @@
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "enable-asserts": true
+      }
+    },
+    "dartkp-weak-asserts-win-(debug|product|release)-x64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "enable-asserts": true,
+        "use-elf": true
+      }
+    },
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "enable-experiment": [
@@ -1176,6 +1193,43 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-nnbd-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM AOT nnbd builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--nnbd",
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm weak legacy tests with asserts",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel-nnbd",
+          "shards": 6
+        },
+        {
+          "name": "vm weak tests with asserts",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
+            "language",
+            "lib/mirrors",
+            "standalone/io"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-linux-product-x64",
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
@@ -1543,16 +1597,6 @@
           ]
         },
         {
-          "name": "vm weak tests with asserts",
-          "arguments": [
-            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
-            "ffi",
-            "language",
-            "lib/mirrors",
-            "standalone/io"
-          ]
-        },
-	{
           "name": "vm weak legacy tests with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}"
@@ -1563,11 +1607,21 @@
         {
           "name": "vm weak legacy tests(co19_2) with asserts",
           "arguments": [
-	    "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
             "co19_2"
           ],
           "fileset": "vm-kernel-nnbd",
           "shards": 6
+        },
+        {
+          "name": "vm weak tests with asserts",
+          "arguments": [
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
+            "language",
+            "lib/mirrors",
+            "standalone/io"
+          ]
         }
       ]
     },
