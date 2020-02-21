@@ -10,7 +10,7 @@ dependencies:
   cli_util: ^0.1.0
   intl: ^0.16.0
   path: ^1.6.2
-  stagehand: 3.3.6
+  stagehand: 3.3.7
   watcher: ^0.9.7+13
   yaml: ^2.2.0
 

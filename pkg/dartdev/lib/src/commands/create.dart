@@ -15,10 +15,10 @@ import '../sdk.dart';
 
 /// A command to create a new project from a set of templates.
 class CreateCommand extends DartdevCommand {
-  static String defaultTemplateId = 'console-full';
+  static String defaultTemplateId = 'console-simple';
 
   static List<String> legalTemplateIds = [
-    'console-full',
+    'console-simple',
     'package-simple',
     'web-simple'
   ];
