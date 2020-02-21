@@ -85,9 +85,9 @@ void _copyFiles(String testDir) {
   _showNextStep("Then use analyzer to migrate the files", "analyze", testDir);
 }
 
-void _analyzeFiles(String testDir) {
+Future _analyzeFiles(String testDir) async {
   var toDir = p.join(testRoot, toNnbdPath(testDir));
-  if (analyzeTests(toDir)) {
+  if (await analyzeTests(toDir)) {
     print(
         "Next, commit the changed files and upload a new patchset with them:");
     print(bold("  git add ."));

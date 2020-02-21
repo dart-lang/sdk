@@ -8,7 +8,7 @@ import 'package:path/path.dart' as p;
 import 'io.dart';
 import 'log.dart';
 
-bool analyzeTests(String nnbdTestDir) {
+Future<bool> analyzeTests(String nnbdTestDir) async {
   var files = <String, _FileInfo>{};
 
   for (var entry in Directory(nnbdTestDir).listSync(recursive: true)) {
@@ -28,8 +28,11 @@ bool analyzeTests(String nnbdTestDir) {
   }
 
   // Analyze the directory both in legacy and NNBD modes.
-  var legacyErrors = _runAnalyzer(nnbdTestDir, nnbd: false);
-  var nnbdErrors = _runAnalyzer(nnbdTestDir, nnbd: true);
+  var legacyErrorsFuture = _runAnalyzer(nnbdTestDir, nnbd: false);
+  var nnbdErrorsFuture = _runAnalyzer(nnbdTestDir, nnbd: true);
+
+  var legacyErrors = await legacyErrorsFuture;
+  var nnbdErrors = await nnbdErrorsFuture;
 
   legacyErrors.forEach((path, errors) {
     // Sometimes the analysis reaches out to things like pkg/expect.
@@ -85,10 +88,11 @@ bool analyzeTests(String nnbdTestDir) {
   return errorCount == 0;
 }
 
-Map<String, List<_StaticError>> _runAnalyzer(String inputDir, {bool nnbd}) {
+Future<Map<String, List<_StaticError>>> _runAnalyzer(String inputDir,
+    {bool nnbd}) async {
   print("Analyzing ${p.relative(inputDir, from: testRoot)}"
       "${nnbd ? ' with NNBD' : ''}...");
-  var result = Process.runSync("dartanalyzer", [
+  var result = await Process.run("dartanalyzer", [
     "--packages=${p.join(sdkRoot, '.packages')}",
     if (nnbd) ...[
       "--dart-sdk=$nnbdSdkBuildDir",
