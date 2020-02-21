@@ -636,6 +636,8 @@ class Namer extends ModularNamer {
   String privateName(Name originalName) {
     String text = originalName.text;
 
+    text = text.replaceAll(_nonIdentifierRE, '_');
+
     // Public names are easy.
     if (!originalName.isPrivate) return text;
 
@@ -883,7 +885,8 @@ class Namer extends ModularNamer {
     if (_closedWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
-      String proposeName() => '${enclosingClass.name}_${element.name}';
+      String proposeName() => '${enclosingClass.name}_${element.name}'
+          .replaceAll(_nonIdentifierRE, '_');
       return _disambiguateInternalMember(element, proposeName);
     }
 
