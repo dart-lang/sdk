@@ -35,7 +35,7 @@ used (see Issue [39627][]).
 
 * **Breaking change** [#33501](https://github.com/dart-lang/sdk/issues/33501):
   This is breaking only for classes extending or implementing `HttpHeaders` and
-  hvaing their own `add` or `set` methods without the `bool preserveHeaderCase`
+  having their own `add` or `set` methods without the `bool preserveHeaderCase`
   named parameter. The signature of `add` and `set` has been changed to
 
   ```dart
