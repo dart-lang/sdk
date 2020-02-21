@@ -487,9 +487,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * expression with a potentially non-nullable return type may completely
    * normally.
    */
-  static const CompileTimeErrorCode BODY_MAY_COMPLETE_NORMALLY =
+  static const CompileTimeErrorCode BODY_MIGHT_COMPLETE_NORMALLY =
       CompileTimeErrorCode(
-          'BODY_MAY_COMPLETE_NORMALLY',
+          'BODY_MIGHT_COMPLETE_NORMALLY',
           "The body might complete normally, which would cause 'null' to be "
               "returned, but the return type is a potentially "
               "non-nullable type.",

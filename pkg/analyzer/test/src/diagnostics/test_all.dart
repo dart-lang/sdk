@@ -27,7 +27,7 @@ import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
-import 'body_may_complete_normally_test.dart' as body_may_complete_normally;
+import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
 import 'builtin_identifier_as_extension_name_test.dart'
     as builtin_as_extension_name;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
@@ -520,7 +520,7 @@ main() {
     assignment_to_type.main();
     async_keyword_used_as_identifier.main();
     await_in_late_local_variable_initializer.main();
-    body_may_complete_normally.main();
+    body_might_complete_normally.main();
     builtin_as_extension_name.main();
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();

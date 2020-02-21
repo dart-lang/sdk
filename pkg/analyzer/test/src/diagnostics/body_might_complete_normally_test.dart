@@ -26,7 +26,7 @@ class BodyMayCompleteNormallyTest extends DriverResolutionTest {
     await assertErrorsInCode(r'''
 Future<int> foo() async {}
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 12, 3),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 12, 3),
     ]);
   }
 
@@ -34,7 +34,7 @@ Future<int> foo() async {}
     await assertErrorsInCode(r'''
 Future<void> foo() {}
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 13, 3),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 13, 3),
     ]);
   }
 
@@ -48,7 +48,7 @@ Future<void> foo() async {}
     await assertErrorsInCode(r'''
 int foo() {}
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 4, 3),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 4, 3),
     ]);
   }
 
@@ -79,7 +79,7 @@ main() {
   foo;
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 43, 8),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 43, 8),
     ]);
   }
 
@@ -90,7 +90,7 @@ main() {
   foo;
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 44, 2),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 44, 2),
     ]);
   }
 
@@ -111,7 +111,7 @@ main() {
   foo;
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 35, 5),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 35, 5),
     ]);
   }
 
@@ -142,7 +142,7 @@ class A {
   Future<int> foo() async {}
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 24, 3),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 24, 3),
     ]);
   }
 
@@ -152,7 +152,7 @@ class A {
   Future<void> foo() {}
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 25, 3),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 25, 3),
     ]);
   }
 
@@ -170,7 +170,7 @@ class A {
   int foo() {}
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY, 16, 3),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 16, 3),
     ]);
   }
 
