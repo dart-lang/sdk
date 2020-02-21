@@ -108,11 +108,9 @@ class ExpressionLifter extends Transformer {
   // Perform an action with a given list of statements so that it cannot emit
   // statements into the 'outer' list.
   Expression delimit(Expression action(), List<Statement> inner) {
-    var index = nameIndex;
     var outer = statements;
     statements = inner;
     Expression result = action();
-    nameIndex = index;
     statements = outer;
     return result;
   }
@@ -373,11 +371,16 @@ class ExpressionLifter extends Transformer {
     // evaluated.
     var shouldName = seenAwait;
 
+    final savedNameIndex = nameIndex;
+
     var thenStatements = <Statement>[];
     seenAwait = false;
     expr.then = delimit(() => expr.then.accept<TreeNode>(this), thenStatements)
       ..parent = expr;
     var thenAwait = seenAwait;
+
+    final thenNameIndex = nameIndex;
+    nameIndex = savedNameIndex;
 
     var otherwiseStatements = <Statement>[];
     seenAwait = false;
@@ -385,6 +388,12 @@ class ExpressionLifter extends Transformer {
         () => expr.otherwise.accept<TreeNode>(this), otherwiseStatements)
       ..parent = expr;
     var otherwiseAwait = seenAwait;
+
+    // Only one side of this branch will get executed at a time, so just make
+    // sure we have enough temps for either, not both at the same time.
+    if (thenNameIndex > nameIndex) {
+      nameIndex = thenNameIndex;
+    }
 
     if (thenStatements.isEmpty && otherwiseStatements.isEmpty) {
       // Easy case: neither then nor otherwise emitted any statements.
