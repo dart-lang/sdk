@@ -423,7 +423,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       writeClass(local.closureClass);
     } else if (local is TypeVariableLocal) {
       writeEnum(LocalKind.typeVariableLocal);
-      writeDartType(local.typeVariable);
+      writeTypeVariable(local.typeVariable);
     } else {
       throw new UnsupportedError("Unsupported local ${local.runtimeType}");
     }

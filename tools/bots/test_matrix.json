@@ -2478,9 +2478,7 @@
             "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
             "--target",
-            "dart2js",
-            "--libraries",
-            "sdk_nnbd/lib/dart2js_migration_libraries.json"
+            "dart2js"
           ]
         },
         {

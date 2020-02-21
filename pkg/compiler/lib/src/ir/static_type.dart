@@ -192,7 +192,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // subtypes of Object (not just interface types), and function types are
     // considered subtypes of Function.
     if (superclass.typeParameters.isEmpty) {
-      return typeEnvironment.coreTypes.rawType(superclass, type.nullability);
+      return typeEnvironment.coreTypes
+          .rawType(superclass, ir.Nullability.legacy);
     }
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
