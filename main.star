@@ -517,6 +517,8 @@ dart_vm_extra_builder(
     "vm-kernel-nnbd-linux-debug-x64", category="vm|nnbd|d", on_cq=True)
 dart_vm_extra_builder(
     "vm-kernel-nnbd-linux-release-x64", category="vm|nnbd|r", on_cq=True)
+dart_vm_extra_builder(
+    "vm-kernel-precomp-nnbd-linux-release-x64", category="vm|nnbd|r")
 
 # vm|app-kernel
 dart_vm_extra_builder(
