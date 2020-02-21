@@ -753,6 +753,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               t, t.typeArguments.map(emitDeferredType));
         }
         return _emitInterfaceType(t, emitNullability: false);
+      } else if (t is TypeParameterType) {
+        return _emitTypeParameterType(t, emitNullability: false);
       }
       return _emitType(t);
     }
