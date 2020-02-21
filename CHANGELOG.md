@@ -34,13 +34,18 @@ used (see Issue [39627][]).
   valid.
 
 * **Breaking change** [#33501](https://github.com/dart-lang/sdk/issues/33501):
+  This is breaking only for classes extending or implementing `HttpHeaders` and
+  hvaing their own `add` or `set` methods without the `bool preserveHeaderCase`
+  named parameter. The signature of `add` and `set` has been changed to
 
-An named parameter is added to `add` and `set` for class `HttpHeaders`.
-The signature of has been changed from `void add(String name, Object value)` to
-`void add(String name, Object value, {bool preserveHeaderCase: false})`.
-Same change is applied to `set`. `preserveHeaderCase` will preserve the
-case of `name` instead of converting them to lowercase.
-`HttpHeader.forEach()` provides the current case of each header.
+  ```dart
+  void add(String name, Object value, {bool preserveHeaderCase: false})
+  void set(String name, Object value, {bool preserveHeaderCase: false})
+  ```
+
+  Setting `preserveHeaderCase` to `true` will preserve the case of the `name`
+  parameter instead of converting it to lowercase. The `HttpHeader.forEach()`
+  method provides the current case of each header.
 
 * **Breaking change** [#40702](https://github.com/dart-lang/sdk/issues/40702):
   The `Socket` class will now throw a `SocketException` if the socket has been
