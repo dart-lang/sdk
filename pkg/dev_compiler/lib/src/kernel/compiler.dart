@@ -1375,7 +1375,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     FunctionType result;
     if (!f.positionalParameters.any(isCovariantParameter) &&
         !f.namedParameters.any(isCovariantParameter)) {
-      result = f.computeThisFunctionType(member.enclosingLibrary.nonNullable);
+      // Avoid tagging a member as Function? or Function*
+      result = f.computeThisFunctionType(Nullability.nonNullable);
     } else {
       DartType reifyParameter(VariableDeclaration p) => isCovariantParameter(p)
           ? _coreTypes.objectRawType(member.enclosingLibrary.nullable)
@@ -1386,7 +1387,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): do covariant type parameter bounds also need to be
       // reified as `Object`?
       result = FunctionType(f.positionalParameters.map(reifyParameter).toList(),
-          f.returnType, Nullability.legacy,
+          f.returnType, Nullability.nonNullable,
           namedParameters: f.namedParameters.map(reifyNamedParameter).toList()
             ..sort(),
           typeParameters: f
@@ -2543,7 +2544,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
       {bool topLevel = false}) {
     var lazy = topLevel && !_canEmitTypeAtTopLevel(type);
-    var typeRep = visitFunctionType(type, lazy: lazy);
+    var typeRep = visitFunctionType(
+        // Avoid tagging a closure as Function? or Function*
+        type.withNullability(Nullability.nonNullable),
+        lazy: lazy);
     return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
@@ -2743,14 +2747,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         : namedTypes.add(param));
     var allNamedTypes = type.namedParameters;
 
-    var returnType = _emitNullabilityWrapper(
-        _emitType(type.returnType), type.returnType.nullability);
+    var returnType = _emitType(type.returnType);
     var requiredArgs = _emitTypeNames(requiredTypes, requiredParams, member);
 
     List<js_ast.Expression> typeParts;
     if (allNamedTypes.isNotEmpty) {
       assert(optionalTypes.isEmpty);
-      // TODO(vsm): The old pageloader may require annotations here.
       var namedArgs = _emitTypeProperties(namedTypes);
       var requiredNamedArgs = _emitTypeProperties(requiredNamedTypes);
       typeParts = [returnType, requiredArgs, namedArgs, requiredNamedArgs];
@@ -2816,9 +2818,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       helperCall = 'fnType(#)';
     }
     var typeRep = runtimeCall(helperCall, [typeParts]);
-    return _cacheTypes
+    // Avoid caching the nullability of the function type itself so it can be
+    // shared by nullable, non-nullable, and legacy versions at the use site.
+    typeRep = _cacheTypes
         ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
         : typeRep;
+
+    return _emitNullabilityWrapper(typeRep, type.nullability);
   }
 
   js_ast.Expression _emitAnnotatedFunctionType(

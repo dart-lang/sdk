@@ -757,7 +757,6 @@ class FunctionType extends AbstractFunctionType {
 
   @JSExportName('as')
   as_T(obj, [@notNull bool isImplicit = false]) {
-    if (obj == null) return obj;
     if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
       // If there's no actual type, it's a JS function.
@@ -981,13 +980,13 @@ class GenericFunctionType extends AbstractFunctionType {
 
   @JSExportName('as')
   as_T(obj) {
-    if (obj == null || is_T(obj)) return obj;
+    if (is_T(obj)) return obj;
     return castError(obj, this, false);
   }
 
   @JSExportName('_check')
   check_T(obj) {
-    if (obj == null || is_T(obj)) return obj;
+    if (is_T(obj)) return obj;
     return castError(obj, this, true);
   }
 }
