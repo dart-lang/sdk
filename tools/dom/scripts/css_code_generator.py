@@ -150,7 +150,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
 
-  void setProperty(String propertyName, String value,
+  void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
       value, priority);
@@ -240,7 +240,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
       _elementCssStyleDeclarationSetIterable$NULLASSERT.first.getPropertyValue(
           propertyName);
 
-  void setProperty(String propertyName, String value,
+  void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]) {
     _elementCssStyleDeclarationSetIterable$NULLASSERT.forEach((e) =>
         e.setProperty(propertyName, value, priority));
@@ -277,7 +277,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value,
+  void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]);
 """)
 

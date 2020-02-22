@@ -4096,7 +4096,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
     return JS('bool', '# in #', propertyName, this);
   }
 
-  void setProperty(String propertyName, String value, [String? priority]) {
+  void setProperty(String propertyName, String? value, [String? priority]) {
     return _setPropertyHelper(
         _browserPropertyName(propertyName), value, priority);
   }
@@ -5275,7 +5275,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
       _elementCssStyleDeclarationSetIterable!.first
           .getPropertyValue(propertyName);
 
-  void setProperty(String propertyName, String value, [String? priority]) {
+  void setProperty(String propertyName, String? value, [String? priority]) {
     _elementCssStyleDeclarationSetIterable!
         .forEach((e) => e.setProperty(propertyName, value, priority));
   }
@@ -5746,7 +5746,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String? priority]);
+  void setProperty(String propertyName, String? value, [String? priority]);
 
   /** Gets the value of "align-content" */
   String get alignContent => getPropertyValue('align-content');
