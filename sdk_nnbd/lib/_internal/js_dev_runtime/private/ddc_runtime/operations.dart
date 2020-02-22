@@ -186,7 +186,7 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
       var error = "Dynamic call with missing required named arguments: "
           "${missingRequired.join(', ')}.";
       if (!_strictSubtypeChecks) {
-        _warn("$error This will be an error when strict mode is enabled.");
+        _nullWarn(error);
       } else {
         return error;
       }
@@ -438,8 +438,7 @@ cast(obj, type, @notNull bool isImplicit) {
     bool result = JS('', '#.get(#)', _nullComparisonMap, type);
     if (JS('!', '# === void 0', result)) {
       JS('', '#.set(#, #)', _nullComparisonMap, type, false);
-      _warn("Null is not a subtype of $type.\n"
-          "This will be a runtime failure when strict mode is enabled.");
+      _nullWarn("Null is not a subtype of $type.");
     }
     return obj;
   }

@@ -215,6 +215,11 @@ void _warn(arg) {
   JS('void', 'console.warn(#)', arg);
 }
 
+void _nullWarn(arg) {
+  _warn('$arg\n'
+      'This will become a failure when runtime null safety is enabled.');
+}
+
 /// Tracks objects that have been compared against null (i.e., null is Type).
 /// Separating this null map out from _cacheMaps lets us fast-track common
 /// legacy type checks.
@@ -1191,9 +1196,8 @@ bool isSubtypeOf(Object t1, Object t2) {
     if (validSubtype) {
       // TODO(nshahan) Need more information to be helpful here.
       // File and line number that caused the subtype check?
-      // Possibly break into debuger?
-      _warn("$t1 is not a subtype of $t2.\n"
-          "This will be a runtime failure when strict mode is enabled.");
+      // Possibly break into debugger?
+      _nullWarn("$t1 is not a subtype of $t2.");
     }
   }
   JS('', '#.set(#, #)', map, t2, validSubtype);
