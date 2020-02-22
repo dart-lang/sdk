@@ -1,2 +1,3 @@
 [style]
 based_on_style = google
+indent_dictionary_value=True

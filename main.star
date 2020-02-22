@@ -325,7 +325,7 @@ def dart_try_builder(name,
                        not location_regexp)
     luci.cq_tryjob_verifier(
         builder=builder,
-        cq_group='sdk',
+        cq_group="sdk",
         experiment_percentage=experiment_percentage,
         location_regexp=location_regexp,
         includable_only=includable_only)
@@ -339,10 +339,10 @@ postponed_alt_console_entries = []
 
 # Global builder defaults
 luci.builder.defaults.properties.set({
-    '$recipe_engine/isolated': {
+    "$recipe_engine/isolated": {
         "server": "https://isolateserver.appspot.com"
     },
-    '$recipe_engine/swarming': {
+    "$recipe_engine/swarming": {
         "server": "https://chromium-swarm.appspot.com"
     },
 })
@@ -356,6 +356,7 @@ def dart_builder(name,
                  channels=[],
                  dimensions={},
                  cpu="x86-64",
+                 executable=None,
                  execution_timeout=None,
                  fyi=False,
                  notifies="dart",
@@ -395,7 +396,7 @@ def dart_builder(name,
                 triggered_by = [
                     trigger.replace("%s", branch) for trigger in triggered_by
                 ]
-                if channel in ['dev', 'stable']:
+                if channel in ["dev", "stable"]:
                     # Always run vm builders on dev and stable.
                     triggered_by = [
                         trigger.replace("dart-vm-", "dart-")
@@ -407,7 +408,7 @@ def dart_builder(name,
                 bucket=bucket,
                 caches=[swarming.cache("browsers")],
                 dimensions=dimensions,
-                executable=dart_recipe(recipe),
+                executable=executable or dart_recipe(recipe),
                 execution_timeout=execution_timeout,
                 priority=priority,
                 properties=channel_properties,
@@ -431,12 +432,9 @@ def dart_builder(name,
                 if console == "be":
                     if toplevel_category == "vm":
                         postponed_alt_console_entries.append({
-                            "builder":
-                            builder,
-                            "short_name":
-                            short_name,
-                            "category":
-                            console_category,
+                            "builder": builder,
+                            "short_name": short_name,
+                            "category": console_category,
                         })
                     else:
                         luci.console_view_entry(
@@ -858,4 +856,42 @@ luci.console_view_entry(
     short_name="3H",
     category="flutter",
     console_view="flutter-hhh",
+)
+
+dart_ci_builder(
+    name="recipe-bundler",
+    channels=[],
+    executable=luci.recipe(
+        name="recipe_bundler",
+        cipd_package=
+        "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
+        cipd_version="git_revision:40621e908eb88bd10451ee9d013b7ef89ea91e37",
+    ),
+    execution_timeout=5 * time.minute,
+    notifies="infra",
+    properties={
+        # This property controls the version of the recipe_bundler go tool:
+        #   https://chromium.googlesource.com/infra/infra/+/master/go/src/infra/tools/recipe_bundler
+        "recipe_bundler_vers":
+            "git_revision:2ed88b2c854578b512e1c0486824175fe0d7aab6",
+        # These control the prefix of the CIPD package names that the tool
+        # will create.
+        "package_name_prefix":
+            "dart/recipe_bundles",
+        "package_name_internal_prefix":
+            "dart_internal/recipe_bundles",
+        # Where to grab the recipes to bundle.
+        "repo_specs": [
+            "dart.googlesource.com/recipes=FETCH_HEAD,refs/heads/master",
+        ],
+    },
+    schedule="*/30 * * * *",
+    triggered_by=[
+        luci.gitiles_poller(
+            name="recipes-dart",
+            bucket="ci",
+            repo="https://dart.googlesource.com/recipes",
+            refs=["refs/heads/master"],
+        ),
+    ],
 )
