@@ -1378,8 +1378,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       result = f.computeThisFunctionType(member.enclosingLibrary.nonNullable);
     } else {
       DartType reifyParameter(VariableDeclaration p) => isCovariantParameter(p)
-          ? _coreTypes.objectClass.getThisType(
-              _coreTypes, _coreTypes.objectClass.enclosingLibrary.nonNullable)
+          ? _coreTypes.objectRawType(member.enclosingLibrary.nullable)
           : p.type;
       NamedType reifyNamedParameter(VariableDeclaration p) =>
           NamedType(p.name, reifyParameter(p));

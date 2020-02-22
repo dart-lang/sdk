@@ -48,7 +48,6 @@ main() {
   Expect.equals(namedTToVoid.runtimeType, namedSToVoid.runtimeType);
   Expect.equals(
       namedNullableTToVoid.runtimeType, namedNullableSToVoid.runtimeType);
-  Expect.equals(A().fn.runtimeType, legacy.A().fn.runtimeType);
   Expect.equals(requiredTToVoid.runtimeType, requiredSToVoid.runtimeType);
   Expect.equals(
       requiredNullableTToVoid.runtimeType, requiredNullableSToVoid.runtimeType);
@@ -62,12 +61,11 @@ main() {
       optionalTToVoid.runtimeType, legacy.optionalRToVoid.runtimeType);
   Expect.notEquals(namedTToVoid.runtimeType, legacy.namedRToVoid.runtimeType);
 
-  // TODO(nshahan) What should the bound be of the type arguments in the
-  // tearoffs? Object?, Object*, B etc?
-  Expect.equals(A().fn.runtimeType, legacy.A().fn.runtimeType);
-  Expect.equals(A().fn.runtimeType, legacy.rawAFnTearoff.runtimeType);
-  Expect.equals(A<B>().fn.runtimeType, legacy.A<C>().fn.runtimeType);
-  Expect.equals(A<C>().fn.runtimeType, legacy.A<C>().fn.runtimeType);
+  // Type arguments in methods tear-offs from null safe libraries become Object?
+  // and Object* from legacy libraries and are not equal.
+  Expect.notEquals(A().fn.runtimeType, legacy.A().fn.runtimeType);
+  Expect.notEquals(A().fn.runtimeType, legacy.rawAFnTearoff.runtimeType);
+  Expect.notEquals(A<C>().fn.runtimeType, legacy.A<C>().fn.runtimeType);
 
   // Same signatures but one is from a legacy library.
   Expect.equals(positionalTToVoidWithBound.runtimeType,
