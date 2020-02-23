@@ -475,6 +475,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       throw RequestFailure(Response.unsupportedFeature(requestId, e.message));
     }
     addContextsToDeclarationsTracker();
+    analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
   }
 
   /// Implementation for `analysis.setSubscriptions`.

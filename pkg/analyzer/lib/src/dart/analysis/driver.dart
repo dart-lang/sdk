@@ -1943,6 +1943,17 @@ class AnalysisDriverScheduler {
     _run();
   }
 
+  /// Usually we transition status to analyzing only if there are files to
+  /// analyze. However when used in the server, there are rare cases when
+  /// analysis roots don't have any Dart files, but for consistency we still
+  /// want to get status to transition to analysis, and back to idle.
+  void transitionToAnalyzingToIdleIfNoFilesToAnalyze() {
+    if (!_hasFilesToAnalyze) {
+      _statusSupport.transitionToAnalyzing();
+      _statusSupport.transitionToIdle();
+    }
+  }
+
   /// Return a future that will be completed the next time the status is idle.
   ///
   /// If the status is currently idle, the returned future will be signaled
