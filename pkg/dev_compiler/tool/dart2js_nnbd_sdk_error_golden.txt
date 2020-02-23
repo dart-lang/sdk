@@ -11,8 +11,8 @@ ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interc
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1659|17|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1664|18|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1664|44|1|The operator '&' isn't defined for the type 'JSInt'.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|1476|39|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|8384|60|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|9311|54|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/developer/developer.dart|315|25|23|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/io/io.dart|9167|16|1|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/_http/http.dart|1476|39|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/_http/http.dart|8384|60|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/_http/http.dart|9311|54|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/developer/developer.dart|332|25|23|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/io/io.dart|9167|16|1|The left operand can't be null, so the right operand is never executed.

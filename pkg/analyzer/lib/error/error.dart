@@ -721,7 +721,7 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
-  StaticWarningCode.DEAD_NULL_COALESCE,
+  StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION,
   StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,

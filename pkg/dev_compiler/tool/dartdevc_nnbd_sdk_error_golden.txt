@@ -15,9 +15,9 @@ ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_dev_runti
 ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_dev_runtime/private/foreign_helper.dart|221|8|37|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
 ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_dev_runtime/private/foreign_helper.dart|224|8|11|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
 ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_dev_runtime/private/foreign_helper.dart|228|6|11|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|1476|39|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|8384|60|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|9311|54|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/collection/collection.dart|1076|46|13|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/developer/developer.dart|332|25|23|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/io/io.dart|9167|16|1|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/_http/http.dart|1476|39|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/_http/http.dart|8384|60|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/_http/http.dart|9311|54|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/collection/collection.dart|1076|46|13|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/developer/developer.dart|332|25|23|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_AWARE_EXPRESSION|lib/io/io.dart|9167|16|1|The left operand can't be null, so the right operand is never executed.

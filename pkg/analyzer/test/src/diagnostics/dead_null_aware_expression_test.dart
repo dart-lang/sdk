@@ -12,12 +12,12 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DeadNullCoalesceTest);
+    defineReflectiveTests(DeadNullAwareExpressionTest);
   });
 }
 
 @reflectiveTest
-class DeadNullCoalesceTest extends DriverResolutionTest {
+class DeadNullAwareExpressionTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.fromEnableFlags(
@@ -58,7 +58,7 @@ f(int x) {
   x ??= 0;
 }
 ''', [
-      error(StaticWarningCode.DEAD_NULL_COALESCE, 19, 1),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 19, 1),
     ]);
   }
 
@@ -91,7 +91,7 @@ f(int x) {
   x ?? 0;
 }
 ''', [
-      error(StaticWarningCode.DEAD_NULL_COALESCE, 18, 1),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 18, 1),
     ]);
   }
 

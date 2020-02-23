@@ -2308,7 +2308,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (_typeSystem.isStrictlyNonNullable(lhsType)) {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.DEAD_NULL_COALESCE,
+        StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION,
         rhs,
       );
     }

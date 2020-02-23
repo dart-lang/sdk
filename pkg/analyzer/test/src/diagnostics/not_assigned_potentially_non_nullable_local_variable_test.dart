@@ -93,7 +93,7 @@ void f() {
 }
 ''', [
       _notAssignedError(22, 1),
-      error(StaticWarningCode.DEAD_NULL_COALESCE, 28, 1),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
     ]);
   }
 
@@ -105,7 +105,7 @@ void f() {
 }
 ''', [
       _notAssignedError(22, 1),
-      error(StaticWarningCode.DEAD_NULL_COALESCE, 28, 1),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
       _notAssignedError(28, 1),
     ]);
   }
@@ -127,7 +127,7 @@ void f() {
   (v = 0) ?? 0;
   v;
 }
-''', [error(StaticWarningCode.DEAD_NULL_COALESCE, 33, 1)]);
+''', [error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1)]);
   }
 
   test_binaryExpression_ifNull_right() async {
@@ -138,7 +138,7 @@ void f(int a) {
   v;
 }
 ''', [
-      error(StaticWarningCode.DEAD_NULL_COALESCE, 32, 7),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 32, 7),
       _notAssignedError(43, 1),
     ]);
   }
