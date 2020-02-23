@@ -19,14 +19,18 @@ main() {
 @reflectiveTest
 class YieldOfInvalidTypeTest extends DriverResolutionTest {
   test_none_asyncStar_dynamic_to_streamInt() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+        '''
 import 'dart:async';
 
 Stream<int> f() async* {
   dynamic a = 0;
   yield a;
 }
-''');
+''',
+        expectedErrorsByNullability(nullable: [
+          error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 72, 1),
+        ], legacy: []));
   }
 
   test_none_asyncStar_int_to_basic() async {
@@ -36,6 +40,7 @@ int f() async* {
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
+      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 25, 1),
     ]);
   }
 
@@ -99,12 +104,16 @@ f() async* {
   }
 
   test_none_syncStar_dynamic_to_iterableInt() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+        '''
 Iterable<int> f() sync* {
   dynamic a = 0;
   yield a;
 }
-''');
+''',
+        expectedErrorsByNullability(nullable: [
+          error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 51, 1),
+        ], legacy: []));
   }
 
   test_none_syncStar_int_to_basic() async {
@@ -114,6 +123,7 @@ int f() sync* {
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
+      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 24, 1),
     ]);
   }
 
@@ -217,23 +227,27 @@ f() async* {
   }
 
   test_star_asyncStar_iterableInt_to_dynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() async* {
   var a = <int>[];
   yield* a;
 }
-''');
+''', [
+      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 41, 1),
+    ]);
   }
 
   test_star_asyncStar_iterableInt_to_streamInt() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 
 Stream<int> f() async* {
   var a = <int>[];
   yield* a;
 }
-''');
+''', [
+      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 75, 1),
+    ]);
   }
 
   test_star_asyncStar_iterableString_to_streamInt() async {
@@ -262,7 +276,8 @@ Stream g() => throw 0;
   }
 
   test_star_asyncStar_streamDynamic_to_streamInt() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+        '''
 import 'dart:async';
 
 Stream<int> f() async* {
@@ -270,7 +285,10 @@ Stream<int> f() async* {
 }
 
 Stream g() => throw 0;
-''');
+''',
+        expectedErrorsByNullability(nullable: [
+          error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 56, 3),
+        ], legacy: []));
   }
 
   test_star_asyncStar_streamInt_to_dynamic() async {
@@ -375,13 +393,17 @@ Iterable g() => throw 0;
   }
 
   test_star_syncStar_iterableDynamic_to_iterableInt() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+        '''
 Iterable<int> f() sync* {
   yield* g();
 }
 
 Iterable g() => throw 0;
-''');
+''',
+        expectedErrorsByNullability(nullable: [
+          error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 3),
+        ], legacy: []));
   }
 
   test_star_syncStar_iterableInt_to_dynamic() async {
@@ -423,4 +445,7 @@ class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest {
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
 }

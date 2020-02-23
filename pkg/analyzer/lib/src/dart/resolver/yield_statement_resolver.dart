@@ -17,11 +17,6 @@ import 'package:meta/meta.dart';
 class YieldStatementResolver {
   final ResolverVisitor _resolver;
 
-  /// The element type required by the declared return type of the enclosing
-  /// function. Note, that for function expressions the declared return type
-  /// can be obtained by means of type inference.
-  DartType _elementType;
-
   YieldStatementResolver({
     @required ResolverVisitor resolver,
   }) : _resolver = resolver;
@@ -75,66 +70,62 @@ class YieldStatementResolver {
   ///
   /// This method should only be called in generator functions.
   void _checkForYieldOfInvalidType(YieldStatement node, bool isYieldEach) {
-    var expressionType = node.expression.staticType;
+    var declaredReturnType = _enclosingFunction.returnType;
 
-    if (node.star == null) {
-      if (!_typeSystem.isAssignableTo2(expressionType, _elementType)) {
-        _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
-          node.expression,
-          [expressionType, _elementType],
-        );
-      }
-      return;
+    var expression = node.expression;
+    var expressionType = expression.staticType;
+
+    DartType impliedReturnType;
+    if (isYieldEach) {
+      impliedReturnType = expressionType;
+    } else if (_enclosingFunction.isSynchronous) {
+      impliedReturnType = _typeProvider.iterableType2(expressionType);
+    } else {
+      impliedReturnType = _typeProvider.streamType2(expressionType);
     }
 
-    DartType yieldElementType;
-    if (expressionType is InterfaceTypeImpl) {
-      var sequenceType = expressionType.asInstanceOf(
-        _typeProvider.iterableElement,
-      );
-      sequenceType ??= expressionType.asInstanceOf(
-        _typeProvider.streamElement,
-      );
-      if (sequenceType != null) {
-        yieldElementType = sequenceType.typeArguments[0];
-      }
-    }
-
-    if (yieldElementType == null) {
-      if (_typeSystem.isTop(expressionType) || expressionType.isDartCoreNull) {
-        yieldElementType = DynamicTypeImpl.instance;
-      } else {
+    if (declaredReturnType != null) {
+      if (!_typeSystem.isAssignableTo2(impliedReturnType, declaredReturnType)) {
         _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
-          node.expression,
-          [expressionType, _elementType],
+          expression,
+          [impliedReturnType, declaredReturnType],
         );
         return;
       }
     }
 
-    if (!_typeSystem.isAssignableTo2(yieldElementType, _elementType)) {
-      _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
-        node.expression,
-        [yieldElementType, _elementType],
-      );
+    if (isYieldEach) {
+      // Since the declared return type might have been "dynamic", we need to
+      // also check that the implied return type is assignable to generic
+      // Iterable/Stream.
+      DartType requiredReturnType;
+      if (_enclosingFunction.isSynchronous) {
+        requiredReturnType = _typeProvider.iterableDynamicType;
+      } else {
+        requiredReturnType = _typeProvider.streamDynamicType;
+      }
+
+      if (!_typeSystem.isAssignableTo2(impliedReturnType, requiredReturnType)) {
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+          expression,
+          [impliedReturnType, requiredReturnType],
+        );
+      }
     }
   }
 
   void _computeElementType(YieldStatement node) {
-    _elementType = _resolver.inferenceContext.returnContext;
-    if (_elementType != null) {
-      var contextType = _elementType;
+    var elementType = _resolver.inferenceContext.returnContext;
+    if (elementType != null) {
+      var contextType = elementType;
       if (node.star != null) {
         contextType = _enclosingFunction.isSynchronous
-            ? _typeProvider.iterableType2(_elementType)
-            : _typeProvider.streamType2(_elementType);
+            ? _typeProvider.iterableType2(elementType)
+            : _typeProvider.streamType2(elementType);
       }
       InferenceContext.setType(node.expression, contextType);
-    } else {
-      _elementType ??= DynamicTypeImpl.instance;
     }
   }
 
