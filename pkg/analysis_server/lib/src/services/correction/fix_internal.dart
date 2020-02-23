@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_map_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
@@ -4697,7 +4698,12 @@ class FixProcessor extends BaseProcessor {
     }
 
     var errorCode = error.errorCode;
-    if (errorCode is LintCode) {
+    if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
+      await compute(
+        RemoveDeadIfNull(),
+        DartFixKind.REMOVE_IF_NULL_OPERATOR,
+      );
+    } else if (errorCode is LintCode) {
       String name = errorCode.name;
       if (name == LintNames.prefer_collection_literals) {
         await compute(
