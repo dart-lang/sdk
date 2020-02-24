@@ -1,0 +1,12 @@
+diff --git a/packages/flutter/test/foundation/covariant_templates_test.dart b/packages/flutter/test/foundation/covariant_templates_test.dart
+index 621ad182e..d522000cb 100644
+--- a/packages/flutter/test/foundation/covariant_templates_test.dart
++++ b/packages/flutter/test/foundation/covariant_templates_test.dart
+@@ -18,6 +18,6 @@ void main() {
+     final A<X> ayAsAx = ay;
+     expect(() {
+       ayAsAx.u = X();
+-    }, throwsAssertionError);
++    }, throwsA(isA<TypeError>()));
+   });
+ }
