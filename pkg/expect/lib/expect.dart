@@ -434,6 +434,22 @@ class Expect {
     _fail("$defaultMessage$diff");
   }
 
+  /// Checks that [actual] contains a given list of [substrings] in order.
+  ///
+  /// For example, this succeeds:
+  ///
+  ///     Expect.stringContainsInOrder("abcdefg", ["a", "c", "e"]);
+  static void stringContainsInOrder(String actual, List<String> substrings) {
+    var start = 0;
+    for (var s in substrings) {
+      start = actual.indexOf(s, start);
+      if (start < 0) {
+        _fail("String '$actual' did not contain '$s' in the expected order: " +
+            substrings.map((s) => "'$s'").join(", "));
+      }
+    }
+  }
+
   /**
    * Checks that every element of [expected] is also in [actual], and that
    * every element of [actual] is also in [expected].
