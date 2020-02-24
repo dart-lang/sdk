@@ -2217,6 +2217,10 @@ void Isolate::LowLevelShutdown() {
   if (FLAG_print_metrics || FLAG_print_benchmarking_metrics) {
     LogBlock lb;
     OS::PrintErr("Printing metrics for %s\n", name());
+#define ISOLATE_GROUP_METRIC_PRINT(type, variable, name, unit)                 \
+  OS::PrintErr("%s\n", isolate_group_->Get##variable##Metric()->ToString());
+    ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_PRINT)
+#undef ISOLATE_GROUP_METRIC_PRINT
 #define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
   OS::PrintErr("%s\n", metric_##variable##_.ToString());
     ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT)
