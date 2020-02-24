@@ -35,21 +35,20 @@ void defineAnalyze() {
     p = project();
     var result = p.runSync('analyze', ['/no/such/dir1/', '/no/such/dir2/']);
 
-    expect(result.exitCode, 1);
+    expect(result.exitCode, 64);
+    expect(result.stdout, isEmpty);
     expect(result.stderr, contains('Only one directory is expected.'));
-    expect(result.stdout, contains(_analyzeDescriptionText));
-    expect(result.stdout, contains(_analyzeUsageText));
+    expect(result.stderr, contains(_analyzeUsageText));
   });
 
   test('no such directory', () {
     p = project();
     var result = p.runSync('analyze', ['/no/such/dir1/']);
 
-    expect(result.exitCode, 1);
-    expect(result.stderr,
-        contains('/no/such/dir1/ is not a directory on this machine.'));
-    expect(result.stdout, contains(_analyzeDescriptionText));
-    expect(result.stdout, contains(_analyzeUsageText));
+    expect(result.exitCode, 64);
+    expect(result.stdout, isEmpty);
+    expect(result.stderr, contains("Directory doesn't exist: /no/such/dir1/"));
+    expect(result.stderr, contains(_analyzeUsageText));
   });
 
   test('current working directory', () {
@@ -77,8 +76,8 @@ void defineAnalyze() {
 
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("error • A value of type 'String"));
-    expect(result.stdout, contains("lib/main.dart:1:16 • "));
+    expect(result.stdout, contains("A value of type 'String'"));
+    expect(result.stdout, contains("lib/main.dart:1:16 "));
     expect(result.stdout, contains("return_of_invalid_type"));
     expect(result.stdout, contains("1 issue found."));
   });
