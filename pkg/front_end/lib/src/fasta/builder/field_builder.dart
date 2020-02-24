@@ -621,6 +621,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Procedure _lateGetter;
   Procedure _lateSetter;
 
+  // If `true`, the is-set field was register before the type was known to be
+  // nullable or non-nullable. In this case we do not try to remove it from
+  // the generated AST to avoid inconsistency between the class hierarchy used
+  // during and after inference.
+  bool _forceIncludeIsSetField = false;
+
   AbstractLateFieldEncoding(
       this.name,
       Uri fileUri,
@@ -660,7 +666,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   void createBodies(CoreTypes coreTypes, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     _field.initializer = new NullLiteral()..parent = _field;
-    if (_type.isPotentiallyNullable) {
+    if (_lateIsSetField != null) {
       _lateIsSetField.initializer = new BoolLiteral(false)
         ..parent = _lateIsSetField;
     }
@@ -764,7 +770,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       if (_lateSetter != null) {
         _lateSetter.function.positionalParameters.single.type = value;
       }
-      if (!_type.isPotentiallyNullable) {
+      if (!_type.isPotentiallyNullable && !_forceIncludeIsSetField) {
         // We only need the is-set field if the field is potentially nullable.
         //  Otherwise we use `null` to signal that the field is uninitialized.
         _lateIsSetField = null;
@@ -885,6 +891,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
             ? BuiltMemberKind.ExtensionField
             : BuiltMemberKind.Field);
     if (_lateIsSetField != null) {
+      _forceIncludeIsSetField = true;
       f(_lateIsSetField, BuiltMemberKind.LateIsSetField);
     }
     f(_lateGetter, BuiltMemberKind.LateGetter);
