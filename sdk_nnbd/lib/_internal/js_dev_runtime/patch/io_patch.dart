@@ -73,7 +73,7 @@ class _AsyncDirectoryListerOps {
 @patch
 class _EventHandler {
   @patch
-  static void _sendData(Object sender, SendPort sendPort, int data) {
+  static void _sendData(Object? sender, SendPort sendPort, int data) {
     throw UnsupportedError("EventHandler._sendData");
   }
 }
