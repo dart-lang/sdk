@@ -1354,9 +1354,13 @@ class SimpleDartTypeSubstitutionVisitor
   @override
   DartType substituteTypeVariableType(
       TypeVariableType type, Null _, bool freshReference) {
-    int index = this.parameters.indexOf(type);
-    if (index != -1) {
-      return this.arguments[index];
+    // We need to manually compare types to explicitly ignore nullability on all
+    // substitutions.
+    for (int i = 0; i < this.parameters.length; i++) {
+      var t = this.parameters[i];
+      if (t is TypeVariableType && t.element == type.element) {
+        return this.arguments[i];
+      }
     }
     // The type variable was not substituted.
     return type;
@@ -1365,11 +1369,15 @@ class SimpleDartTypeSubstitutionVisitor
   @override
   DartType substituteFunctionTypeVariable(
       covariant FunctionTypeVariable type, Null _, bool freshReference) {
-    int index = this.parameters.indexOf(type);
-    if (index != -1) {
-      return this.arguments[index];
+    // We need to manually compare types to explicitly ignore nullability on all
+    // substitutions.
+    for (int i = 0; i < this.parameters.length; i++) {
+      var t = this.parameters[i];
+      if (t is FunctionTypeVariable && t.index == type.index) {
+        return this.arguments[i];
+      }
     }
-    // The function type variable was not substituted.
+    // The type variable was not substituted.
     return type;
   }
 }
