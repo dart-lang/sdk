@@ -21,6 +21,19 @@ abstract class FantasyWorkspace {
   /// version.
   Future<FantasySubPackage> addPackageToWorkspace(
       FantasySubPackageSettings packageSettings, bool allowUpdate);
+
+  /// Force-migrate these packages.
+  ///
+  /// All [subPackages] must be part of this workspace.  Returned future
+  /// completes when all [subPackages] have been migrated.
+  Future<void> forceMigratePackages(
+      Iterable<FantasySubPackage> subPackages,
+      Iterable<FantasySubPackage> subPackagesLibOnly,
+      String sdkPath,
+      List<String> dartfixExec);
+
+  /// Rewrite the package_config.json and/or .packages for this package.
+  Future<void> rewritePackageConfigWith(FantasySubPackage subPackage);
 }
 
 /// Build a "fantasyland"-style repository structure suitable for applying

@@ -109,8 +109,12 @@ class FantasyRepoGitImpl extends FantasyRepo {
       '!**/pubspec.lock\n',
       '!**/.dart_tool/package_config.json\n'
     ].join());
-    await launcher.runStreamed(
-        'git', ['pull', '--depth=1', '--rebase', 'originHTTP'],
+    List<String> args = ['pull'];
+    if (repoSettings.revision == 'master') {
+      args.add('--depth=1');
+    }
+    args.addAll(['--rebase', 'originHTTP', repoSettings.revision]);
+    await launcher.runStreamed('git', args,
         workingDirectory: repoRoot.path, retries: 5);
   }
 

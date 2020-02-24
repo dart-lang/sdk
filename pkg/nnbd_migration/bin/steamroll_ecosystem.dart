@@ -14,12 +14,26 @@ import 'package:args/args.dart';
 final parser = ArgParser()
   ..addMultiOption('extra-packages', abbr: 'e', splitCommas: true)
   ..addOption('package-name', abbr: 'p')
-  ..addFlag('allow-update', defaultsTo: false, negatable: true)
+  ..addFlag('allow-update',
+      defaultsTo: false,
+      negatable: true,
+      help:
+          'Try to update an existing repository in place.  Does not work for unclean repositories.')
   ..addFlag('analysis-options-hack', defaultsTo: true, negatable: true)
-  ..addFlag('strip-sdk-constraint-hack', defaultsTo: true, negatable: true)
-  ..addFlag('force-migrate-deps', defaultsTo: true, negatable: true)
-  ..addFlag('force-migrate-package', defaultsTo: false, negatable: true)
-  ..addFlag('force-migrate-extras', defaultsTo: true, negatable: true)
+  ..addFlag('strip-sdk-constraint-hack', defaultsTo: false, negatable: true)
+  ..addFlag('force-migrate-deps',
+      defaultsTo: false,
+      negatable: true,
+      help: 'Use dartfix to update all dependencies')
+  ..addFlag('force-migrate-package',
+      defaultsTo: false,
+      negatable: true,
+      help: 'Use dartfix to update the base package name')
+  ..addFlag('force-migrate-extras',
+      defaultsTo: false,
+      negatable: true,
+      help: 'Use dartfix to update extra packages')
+  ..addOption('sdk')
   ..addFlag('help', abbr: 'h');
 
 Future<void> main(List<String> args) async {
@@ -59,14 +73,48 @@ Future<void> main(List<String> args) async {
     ]);
   }
 
-  if (results['strip-sdk-constraint-hack'] as bool) {
-    stderr.writeln('warning: sdk constraint hack not implemented');
-  }
+  Set<FantasySubPackage> upgradedSubPackages = {};
+  Set<FantasySubPackage> upgradedSubPackagesLibOnly = {};
 
   if (results['force-migrate-deps'] as bool ||
       results['force-migrate-package'] as bool ||
       results['force-migrate-extras'] as bool) {
-    stderr.writeln('warning: auto-migration not implemented');
+    if (results['force-migrate-package'] as bool) {
+      upgradedSubPackages.addAll(
+          workspace.subPackages.values.where((s) => s.name == packageName));
+    }
+
+    if (results['force-migrate-extras'] as bool) {
+      upgradedSubPackages.addAll(workspace.subPackages.values
+          .where((s) => extraPackages.contains(s.name)));
+    }
+
+    if (results['force-migrate-deps'] as bool) {
+      upgradedSubPackagesLibOnly.addAll(workspace.subPackages.values.where(
+          (s) => s.name != packageName && !extraPackages.contains(s.name)));
+    }
+
+    if (results['sdk'] as String == null) {
+      _showHelp('error: --sdk required with force-migrate options');
+      exit(1);
+    }
+    await workspace.forceMigratePackages(upgradedSubPackages,
+        upgradedSubPackagesLibOnly, results['sdk'] as String, [
+      Platform.resolvedExecutable,
+      path.normalize(path.join(Platform.script.toFilePath(), '..', '..', '..',
+          'dartfix', 'bin', 'dartfix.dart'))
+    ]);
+  }
+
+  if (results['strip-sdk-constraint-hack'] as bool) {
+    await Future.wait([
+      for (FantasySubPackage p
+          in upgradedSubPackages.followedBy(upgradedSubPackagesLibOnly))
+        () async {
+          await p.removeSdkConstraintHack();
+          await workspace.rewritePackageConfigWith(p);
+        }()
+    ]);
   }
 }
 
