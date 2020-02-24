@@ -30,8 +30,8 @@ void help() {
   });
 
   // For each command description, assert that the values are not empty, don't
-  // have trailing white space, and end with a period.
-  test('descriptions formats', () {
+  // have trailing white space and end with a period.
+  test('description formatting', () {
     DartdevRunner([]).commands.forEach((String commandKey, Command command) {
       expect(commandKey, isNotEmpty);
       expect(command.description, isNotEmpty);

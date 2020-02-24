@@ -16,7 +16,7 @@ Directory getDartPrefsDirectory() {
 String getUserHomeDir() {
   String envKey = Platform.operatingSystem == 'windows' ? 'APPDATA' : 'HOME';
   String value = Platform.environment[envKey];
-  return value == null ? '.' : value;
+  return value ?? '.';
 }
 
 /// A typedef to represent a function taking no arguments and with no return
