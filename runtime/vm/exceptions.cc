@@ -499,6 +499,14 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
         if (FLAG_trace_deoptimization) {
           THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
                     frame_pointer);
+
+#if defined(DEBUG)
+          // Ensure the frame references optimized code.
+          RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
+              frame_pointer + runtime_frame_layout.code_from_fp * kWordSize));
+          Code& code = Code::Handle(Code::RawCast(pc_marker));
+          ASSERT(code.is_optimized() && !code.is_force_optimized());
+#endif
         }
         break;
       }
@@ -542,7 +550,7 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
               "fp=%" Pp ", pc=%" Pp "\n",
               (*pending_deopts)[i].fp(), (*pending_deopts)[i].pc());
         }
-        pending_deopts->RemoveAt(i);
+        pending_deopts->RemoveAt(i--);
       }
     }
 
