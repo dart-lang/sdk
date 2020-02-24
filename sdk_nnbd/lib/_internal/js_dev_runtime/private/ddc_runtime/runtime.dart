@@ -201,7 +201,7 @@ void hotRestart() {
   _resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
-  JS('', '#.clear()', _nullComparisonMap);
+  JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constantMaps);
 }
 

@@ -435,11 +435,7 @@ cast(obj, type, @notNull bool isImplicit) {
       return castError(obj, type, isImplicit);
     }
     // Check the null comparison cache to avoid emitting repeated warnings.
-    bool result = JS('', '#.get(#)', _nullComparisonMap, type);
-    if (JS('!', '# === void 0', result)) {
-      JS('', '#.set(#, #)', _nullComparisonMap, type, false);
-      _nullWarn("Null is not a subtype of $type.");
-    }
+    _nullWarnOnType(type);
     return obj;
   }
   var actual = getReifiedType(obj);
@@ -467,13 +463,19 @@ void booleanConversionFailed(obj) {
 }
 
 asInt(obj) {
-  if (obj == null) return null;
-
+  // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    castError(obj, JS('', '#', int), false);
+    if (obj == null && !_strictSubtypeChecks) {
+      _nullWarnOnType(JS('', '#', int));
+      return null;
+    } else {
+      castError(obj, JS('', '#', int), false);
+    }
   }
   return obj;
 }
+
+asNullableInt(obj) => obj == null ? null : asInt(obj);
 
 /// Checks that `x` is not null or undefined.
 //
@@ -485,6 +487,23 @@ asInt(obj) {
 @JSExportName('notNull')
 _notNull(x) {
   if (x == null) throwNullValueError();
+  return x;
+}
+
+/// Checks that `x` is not null or undefined.
+///
+/// Unlike `_notNull`, this throws a `CastError` (under strict checking)
+/// or emits a runtime warning (otherwise).  This is only used by the
+/// compiler when casting from nullable to non-nullable variants of the
+/// same type.
+nullCast(x, type, [@notNull bool isImplicit = false]) {
+  if (x == null) {
+    if (!_strictSubtypeChecks) {
+      _nullWarnOnType(type);
+    } else {
+      castError(x, type, isImplicit);
+    }
+  }
   return x;
 }
 

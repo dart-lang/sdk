@@ -5265,23 +5265,48 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     var isTypeError = node.isTypeError;
     if (!isTypeError &&
-        _types.isSubtypeOf(from, to, SubtypeCheckMode.ignoringNullabilities)) {
+        _types.isSubtypeOf(from, to, SubtypeCheckMode.withNullabilities)) {
       return jsFrom;
     }
 
-    // All Dart number types map to a JS double.
+    if (!isTypeError &&
+        from.withNullability(Nullability.nonNullable) == to &&
+        _mustBeNonNullable(to)) {
+      // If the underlying type is the same, we only need a null check.
+      return runtimeCall('nullCast(#, #, #)',
+          [jsFrom, _emitType(to), js.boolean(isTypeError)]);
+    }
+
+    // All Dart number types map to a JS double.  We can specialize these
+    // cases.
     if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
-      // Make sure to check when converting to int.
-      if (from != _coreTypes.intLegacyRawType &&
-          to == _coreTypes.intLegacyRawType) {
-        // TODO(jmesserly): fuse this with notNull check.
-        // TODO(jmesserly): this does not correctly distinguish user casts from
-        // required-for-soundness casts.
+      // If `to` is some form of `num`, it should have been filtered above.
+
+      // * -> double? | double* : no-op
+      if (to == _coreTypes.doubleLegacyRawType ||
+          to == _coreTypes.doubleNullableRawType) {
+        return jsFrom;
+      }
+
+      // * -> double : null check
+      if (to == _coreTypes.doubleNonNullableRawType) {
+        if (from.nullability == Nullability.nonNullable) {
+          return jsFrom;
+        }
+        return runtimeCall('nullCast(#, #, #)',
+            [jsFrom, _emitType(to), js.boolean(isTypeError)]);
+      }
+
+      // * -> int : asInt check
+      if (to == _coreTypes.intNonNullableRawType) {
         return runtimeCall('asInt(#)', [jsFrom]);
       }
 
-      // A no-op in JavaScript.
-      return jsFrom;
+      // * -> int? | int* : asNullableInt check
+      if (to == _coreTypes.intLegacyRawType ||
+          to == _coreTypes.intNullableRawType) {
+        return runtimeCall('asNullableInt(#)', [jsFrom]);
+      }
     }
 
     return _emitCast(jsFrom, to, implicit: isTypeError);

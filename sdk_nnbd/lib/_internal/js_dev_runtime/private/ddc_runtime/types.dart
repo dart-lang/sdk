@@ -221,10 +221,24 @@ void _nullWarn(arg) {
 }
 
 /// Tracks objects that have been compared against null (i.e., null is Type).
-/// Separating this null map out from _cacheMaps lets us fast-track common
+/// Separating this null set out from _cacheMaps lets us fast-track common
 /// legacy type checks.
-/// TODO: Delete this map when legacy nullability is phased out.
-var _nullComparisonMap = JS<Object>('', 'new Map()');
+/// TODO: Delete this set when legacy nullability is phased out.
+var _nullComparisonSet = JS<Object>('', 'new Set()');
+
+/// Warn on null cast failures when casting to a particular non-nullable
+/// `type`.  Note, we cache by type to avoid excessive warning messages at
+/// runtime.
+/// TODO(vsm): Consider changing all invocations to pass / cache on location
+/// instead.  That gives more useful feedback to the user.
+void _nullWarnOnType(type) {
+  bool result = JS('', '#.has(#)', _nullComparisonSet, type);
+  if (result) {
+    JS('', '#.add(#)', _nullComparisonSet, type);
+    _nullWarn("Null is not a subtype of $type.");
+  }
+}
+
 var _lazyJSTypes = JS<Object>('', 'new Map()');
 var _anonymousJSTypes = JS<Object>('', 'new Map()');
 
