@@ -4443,13 +4443,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * marked with the `late` modifier.
    *
    * Parameters:
-   *
-   * Parameters:
    * 0: the name of the field that is not initialized
    */
   static const CompileTimeErrorCode
       NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
           'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
           "Non-nullable instance field '{0}' must be initialized.",
           correction: "Try adding an initializer expression, "
