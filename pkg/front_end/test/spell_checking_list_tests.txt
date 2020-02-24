@@ -358,6 +358,8 @@ repro
 resource
 respected
 response
+retaining
+retainingpath
 retains
 rev
 risky

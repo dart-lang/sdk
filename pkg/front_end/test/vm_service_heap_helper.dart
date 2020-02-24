@@ -13,8 +13,9 @@ class VMServiceHeapHelperBase {
   VMServiceHeapHelperBase();
 
   Future connect(Uri observatoryUri) async {
-    String wsUriString =
-        'ws://${observatoryUri.authority}${observatoryUri.path}ws';
+    String path = observatoryUri.path;
+    if (!path.endsWith("/")) path += "/";
+    String wsUriString = 'ws://${observatoryUri.authority}${path}ws';
     _serviceClient = await vmService.vmServiceConnectUri(wsUriString,
         log: const StdOutLog());
   }
@@ -154,6 +155,41 @@ class VMServiceHeapHelperBase {
                 "${value} --- ${instance.id}");
           }
         }
+      }
+    }
+    print("Done!");
+  }
+
+  Future<void> printRetainingPaths(String isolateId, String filter) async {
+    await _waitUntilIsolateIsRunnable(isolateId);
+    vmService.AllocationProfile allocationProfile =
+        await _serviceClient.getAllocationProfile(isolateId);
+    for (vmService.ClassHeapStats member in allocationProfile.members) {
+      if (member.classRef.name != filter) continue;
+      vmService.Class c =
+          await _serviceClient.getObject(isolateId, member.classRef.id);
+      print("Found ${c.name} (location: ${c.location})");
+      print("${member.classRef.name}: "
+          "(instancesCurrent: ${member.instancesCurrent})");
+      print("");
+
+      vmService.InstanceSet instances = await _serviceClient.getInstances(
+          isolateId, member.classRef.id, 10000);
+      print(" => Got ${instances.instances.length} instances");
+      print("");
+
+      for (vmService.ObjRef instance in instances.instances) {
+        var receivedObject =
+            await _serviceClient.getObject(isolateId, instance.id);
+        print("Instance: $receivedObject");
+        vmService.RetainingPath retainingPath =
+            await _serviceClient.getRetainingPath(isolateId, instance.id, 1000);
+        print("Retaining path: (length ${retainingPath.length}");
+        for (int i = 0; i < retainingPath.elements.length; i++) {
+          print("  [$i] = ${retainingPath.elements[i]}");
+        }
+
+        print("");
       }
     }
     print("Done!");
