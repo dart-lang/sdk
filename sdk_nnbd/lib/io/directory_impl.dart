@@ -9,11 +9,12 @@ class _Directory extends FileSystemEntity implements Directory {
   final Uint8List _rawPath;
 
   _Directory(String path)
-      : _path = path,
+      : _path = _checkNotNull(path, "path"),
         _rawPath = FileSystemEntity._toUtf8Array(path);
 
   _Directory.fromRawPath(Uint8List rawPath)
-      : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath),
+      : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(
+            _checkNotNull(rawPath, "rawPath")),
         _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
 
   String get path => _path;
@@ -268,6 +269,12 @@ class _Directory extends FileSystemEntity implements Directory {
       default:
         return new Exception("Unknown error");
     }
+  }
+
+  // TODO(40614): Remove once non-nullability is sound.
+  static T _checkNotNull<T>(T t, String name) {
+    ArgumentError.checkNotNull(t, name);
+    return t;
   }
 }
 
