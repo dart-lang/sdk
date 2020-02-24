@@ -7,7 +7,7 @@ library vm.transformations.type_flow.summary;
 
 import 'dart:core' hide Type;
 
-import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
+import 'package:kernel/ast.dart' hide Statement, StatementVisitor, MapEntry;
 
 import 'calls.dart';
 import 'types.dart';
@@ -74,6 +74,9 @@ class Parameter extends Statement {
   Type defaultValue;
   Type _argumentType = const EmptyType();
 
+  // Whether this parameter is passed at all call-sites.
+  bool isAlwaysPassed = true;
+
   Parameter(this.name, this.staticTypeForNarrowing);
 
   @override
@@ -102,6 +105,13 @@ class Parameter extends Statement {
     assertx(argType.isSpecialized);
     _argumentType = _argumentType.union(argType, typeHierarchy);
     assertx(_argumentType.isSpecialized);
+  }
+
+  Type _observeNotPassed(TypeHierarchy typeHierarchy) {
+    isAlwaysPassed = false;
+    final Type argType = defaultValue.specialize(typeHierarchy);
+    _observeArgumentType(argType, typeHierarchy);
+    return argType;
   }
 }
 
@@ -557,6 +567,12 @@ class Summary {
 
     List<Type> types = new List<Type>(_statements.length);
 
+    if (arguments.unknownArity) {
+      for (int i = 0; i < parameterCount; ++i) {
+        (_statements[i] as Parameter).isAlwaysPassed = false;
+      }
+    }
+
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
       if (args[i] is RuntimeType) {
@@ -575,10 +591,7 @@ class Summary {
     }
 
     for (int i = positionalArgCount; i < positionalParameterCount; i++) {
-      final Parameter param = _statements[i] as Parameter;
-      final argType = param.defaultValue.specialize(typeHierarchy);
-      param._observeArgumentType(argType, typeHierarchy);
-      types[i] = argType;
+      types[i] = (_statements[i] as Parameter)._observeNotPassed(typeHierarchy);
     }
 
     final argNames = arguments.names;
@@ -600,9 +613,7 @@ class Summary {
       } else {
         assertx((argIndex == namedArgCount) ||
             (param.name.compareTo(argNames[argIndex]) < 0));
-        final argType = param.defaultValue.specialize(typeHierarchy);
-        param._observeArgumentType(argType, typeHierarchy);
-        types[i] = argType;
+        types[i] = param._observeNotPassed(typeHierarchy);
       }
     }
     assertx(argIndex == namedArgCount);
@@ -644,6 +655,17 @@ class Summary {
           statement.canAlwaysSkip &&
           statement.parameter != null) {
         params.add(statement.parameter);
+      }
+    }
+    return params;
+  }
+
+  Set<String> alwaysPassedOptionalParameters() {
+    final params = Set<String>();
+    for (int i = requiredParameterCount; i < parameterCount; ++i) {
+      final Parameter p = _statements[i] as Parameter;
+      if (p.isAlwaysPassed) {
+        params.add(p.name);
       }
     }
     return params;

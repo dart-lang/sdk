@@ -73,42 +73,42 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   @override
   visitProcedure(Procedure proc) {
     var type = _annotationsDefineRoot(proc.annotations);
-    if (type != null) {
-      void addSelector(CallKind ck) {
-        entryPoints.addRawCall(proc.isInstanceMember
-            ? new InterfaceSelector(proc, callKind: ck)
-            : new DirectSelector(proc, callKind: ck));
-      }
+    if (type == null) return;
 
-      final defaultCallKind = proc.isGetter
-          ? CallKind.PropertyGet
-          : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
-
-      switch (type) {
-        case PragmaEntryPointType.CallOnly:
-          addSelector(defaultCallKind);
-          break;
-        case PragmaEntryPointType.SetterOnly:
-          if (!proc.isSetter) {
-            throw "Error: cannot generate a setter for a method or getter ($proc).";
-          }
-          addSelector(CallKind.PropertySet);
-          break;
-        case PragmaEntryPointType.GetterOnly:
-          if (proc.isSetter) {
-            throw "Error: cannot closurize a setter ($proc).";
-          }
-          addSelector(CallKind.PropertyGet);
-          break;
-        case PragmaEntryPointType.Default:
-          addSelector(defaultCallKind);
-          if (!proc.isSetter && !proc.isGetter) {
-            addSelector(CallKind.PropertyGet);
-          }
-      }
-
-      nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
+    void addSelector(CallKind ck) {
+      entryPoints.addRawCall(proc.isInstanceMember
+          ? new InterfaceSelector(proc, callKind: ck)
+          : new DirectSelector(proc, callKind: ck));
     }
+
+    final defaultCallKind = proc.isGetter
+        ? CallKind.PropertyGet
+        : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
+
+    switch (type) {
+      case PragmaEntryPointType.CallOnly:
+        addSelector(defaultCallKind);
+        break;
+      case PragmaEntryPointType.SetterOnly:
+        if (!proc.isSetter) {
+          throw "Error: cannot generate a setter for a method or getter ($proc).";
+        }
+        addSelector(CallKind.PropertySet);
+        break;
+      case PragmaEntryPointType.GetterOnly:
+        if (proc.isSetter) {
+          throw "Error: cannot closurize a setter ($proc).";
+        }
+        addSelector(CallKind.PropertyGet);
+        break;
+      case PragmaEntryPointType.Default:
+        addSelector(defaultCallKind);
+        if (!proc.isSetter && !proc.isGetter) {
+          addSelector(CallKind.PropertyGet);
+        }
+    }
+
+    nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
   }
 
   @override
