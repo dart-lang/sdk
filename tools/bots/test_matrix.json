@@ -2774,6 +2774,15 @@
           "arguments": [
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
           ]
+        },
+        {
+          "name": "check nnbd sdk (dart2js patch) for static errors",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
+            "--target",
+            "dart2js"
+          ]
         }
       ]
     },
