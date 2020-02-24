@@ -203,6 +203,8 @@ class SharedClassTable {
   static bool ShouldUpdateSizeForClassId(intptr_t cid);
 
 #ifndef PRODUCT
+  // Copy-on-write is used for trace_allocation_table_, with old copies stored
+  // in old_tables_.
   uint8_t* trace_allocation_table_ = nullptr;
 #endif  // !PRODUCT
 
@@ -214,8 +216,8 @@ class SharedClassTable {
   intptr_t capacity_;
 
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
-  intptr_t* table_;  // Maps the cid to the instance size.
-  MallocGrowableArray<intptr_t*>* old_tables_;
+  intptr_t* table_ = nullptr;  // Maps the cid to the instance size.
+  MallocGrowableArray<void*>* old_tables_;
 
   IsolateGroupReloadContext* reload_context_ = nullptr;
 
@@ -224,8 +226,7 @@ class SharedClassTable {
   // the GC has to scan, a 1 indicates that the word is part of e.g. an unboxed
   // double and does not need to be scanned. (see Class::Calculate...() where
   // the bitmap is constructed)
-  UnboxedFieldBitmap* unboxed_fields_map_;
-  MallocGrowableArray<UnboxedFieldBitmap*>* old_unboxed_fields_maps_;
+  UnboxedFieldBitmap* unboxed_fields_map_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(SharedClassTable);
 };
