@@ -4010,3 +4010,6 @@ NonNullableNotAssignedError:
 NonNullableNotAssignedWarning:
   template: "Non-nullable variable '#name' is used before it's assigned."
   severity: WARNING
+
+NonAgnosticConstant:
+  template: "Constant value is not strong/weak mode agnostic."

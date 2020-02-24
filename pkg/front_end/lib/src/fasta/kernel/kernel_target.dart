@@ -983,10 +983,16 @@ class KernelTarget extends TargetImplementation {
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode;
     if (enableNonNullable) {
-      if (loader.nnbdMode == NnbdMode.Weak) {
-        evaluationMode = constants.EvaluationMode.weak;
-      } else {
-        evaluationMode = constants.EvaluationMode.strong;
+      switch (loader.nnbdMode) {
+        case NnbdMode.Weak:
+          evaluationMode = constants.EvaluationMode.weak;
+          break;
+        case NnbdMode.Strong:
+          evaluationMode = constants.EvaluationMode.strong;
+          break;
+        case NnbdMode.Agnostic:
+          evaluationMode = constants.EvaluationMode.agnostic;
+          break;
       }
     } else {
       evaluationMode = constants.EvaluationMode.legacy;

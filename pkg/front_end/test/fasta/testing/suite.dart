@@ -154,14 +154,17 @@ class TestOptions {
   final bool forceLateLowering;
   final bool forceNnbdChecks;
   final bool forceNoExplicitGetterCalls;
+  final bool nnbdAgnosticMode;
 
   TestOptions(this.experimentalFlags,
       {this.forceLateLowering: false,
       this.forceNnbdChecks: false,
-      this.forceNoExplicitGetterCalls: false})
+      this.forceNoExplicitGetterCalls: false,
+      this.nnbdAgnosticMode: false})
       : assert(forceLateLowering != null),
         assert(forceNnbdChecks != null),
-        assert(forceNoExplicitGetterCalls != null);
+        assert(forceNoExplicitGetterCalls != null),
+        assert(nnbdAgnosticMode != null);
 
   Map<ExperimentalFlag, bool> computeExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
@@ -187,7 +190,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool skipVm;
   final bool verify;
-  final NnbdMode nnbdMode;
+  final bool weak;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
@@ -222,7 +225,7 @@ class FastaContext extends ChainContext with MatchContext {
       bool kernelTextSerialization,
       bool fullCompile,
       this.verify,
-      this.nnbdMode)
+      this.weak)
       : steps = <Step>[
           new Outline(fullCompile, updateComments: updateComments),
           const Print(),
@@ -230,7 +233,7 @@ class FastaContext extends ChainContext with MatchContext {
         ] {
     String fullPrefix;
     String outlinePrefix;
-    if (nnbdMode == NnbdMode.Weak) {
+    if (weak) {
       fullPrefix = '.weak';
       outlinePrefix = '.weak.outline';
     } else {
@@ -283,7 +286,8 @@ class FastaContext extends ChainContext with MatchContext {
         testOptions = new TestOptions({},
             forceLateLowering: false,
             forceNnbdChecks: false,
-            forceNoExplicitGetterCalls: false);
+            forceNoExplicitGetterCalls: false,
+            nnbdAgnosticMode: false);
       } else {
         File optionsFile =
             new File.fromUri(directory.uri.resolve('test.options'));
@@ -291,6 +295,7 @@ class FastaContext extends ChainContext with MatchContext {
           bool forceLateLowering = false;
           bool forceNnbdChecks = false;
           bool forceNoExplicitGetterCalls = false;
+          bool nnbdAgnosticMode = false;
           List<String> experimentalFlagsArguments = [];
           for (String line in optionsFile.readAsStringSync().split('\n')) {
             line = line.trim();
@@ -303,6 +308,10 @@ class FastaContext extends ChainContext with MatchContext {
               forceNnbdChecks = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
               forceNoExplicitGetterCalls = true;
+            } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
+              forceNoExplicitGetterCalls = true;
+            } else if (line.startsWith(Flags.nnbdAgnosticMode)) {
+              nnbdAgnosticMode = true;
             } else if (line.isNotEmpty) {
               throw new UnsupportedError("Unsupported test option '$line'");
             }
@@ -316,7 +325,8 @@ class FastaContext extends ChainContext with MatchContext {
                       throw new ArgumentError(message)),
               forceLateLowering: forceLateLowering,
               forceNnbdChecks: forceNnbdChecks,
-              forceNoExplicitGetterCalls: forceNoExplicitGetterCalls);
+              forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+              nnbdAgnosticMode: nnbdAgnosticMode);
         } else {
           testOptions = _computeTestOptionsForDirectory(directory.parent);
         }
@@ -354,7 +364,11 @@ class FastaContext extends ChainContext with MatchContext {
             ..environmentDefines = {}
             ..experimentalFlags =
                 testOptions.computeExperimentalFlags(experimentalFlags)
-            ..nnbdMode = nnbdMode
+            ..nnbdMode = weak
+                ? NnbdMode.Weak
+                : (testOptions.nnbdAgnosticMode
+                    ? NnbdMode.Agnostic
+                    : NnbdMode.Strong)
             ..librariesSpecificationUri = librariesSpecificationUri);
       uriTranslator = await options.getUriTranslator();
       _uriTranslators[librariesSpecificationUri] = uriTranslator;
@@ -460,8 +474,7 @@ class FastaContext extends ChainContext with MatchContext {
     addForcedExperimentalFlag(
         "enableNonNullable", ExperimentalFlag.nonNullable);
 
-    NnbdMode nnbdMode =
-        environment["weak"] == "true" ? NnbdMode.Weak : NnbdMode.Strong;
+    bool weak = environment["weak"] == "true";
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment["updateExpectations"] == "true";
@@ -489,7 +502,7 @@ class FastaContext extends ChainContext with MatchContext {
         kernelTextSerialization,
         environment.containsKey(ENABLE_FULL_COMPILE),
         verify,
-        nnbdMode);
+        weak);
   }
 }
 
@@ -554,7 +567,11 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           ..experimentalFlags =
               testOptions.computeExperimentalFlags(context.experimentalFlags)
           ..performNnbdChecks = testOptions.forceNnbdChecks
-          ..nnbdMode = context.nnbdMode
+          ..nnbdMode = context.weak
+              ? NnbdMode.Weak
+              : (testOptions.nnbdAgnosticMode
+                  ? NnbdMode.Agnostic
+                  : NnbdMode.Strong)
           ..librariesSpecificationUri = librariesSpecificationUri,
         inputs: <Uri>[description.uri]);
 

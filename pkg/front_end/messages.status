@@ -468,6 +468,8 @@ NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
 NoUnnamedConstructorInObject/example: Fail
+NonAgnosticConstant/analyzerCode: Fail
+NonAgnosticConstant/example: Fail
 NonAsciiIdentifier/expression: Fail
 NonAsciiIdentifier/part_wrapped_expression: Fail
 NonConstConstructor/example: Fail

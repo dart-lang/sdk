@@ -1110,6 +1110,7 @@ unpaired
 unparsed
 unpleasant
 unreachable
+unseen
 unshadowed
 unwraps
 unzip
@@ -1152,6 +1153,7 @@ watch
 watcher
 wb
 wc
+weakener
 weird
 weren't
 werror

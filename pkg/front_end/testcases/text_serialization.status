@@ -6,6 +6,9 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+agnostic/identical: TextSerializationFailure
+agnostic/map: TextSerializationFailure
+agnostic/set: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure

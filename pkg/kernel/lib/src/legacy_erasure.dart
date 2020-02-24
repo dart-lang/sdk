@@ -11,7 +11,16 @@ import 'replacement_visitor.dart';
 /// nullabilities have been replaced with legacy nullability, and all required
 /// named parameters are not required.
 DartType legacyErasure(CoreTypes coreTypes, DartType type) {
-  return type.accept(new _LegacyErasure(coreTypes)) ?? type;
+  return rawLegacyErasure(coreTypes, type) ?? type;
+}
+
+/// Returns legacy erasure of [type], that is, the type in which all nnbd
+/// nullabilities have been replaced with legacy nullability, and all required
+/// named parameters are not required.
+///
+/// Returns `null` if the type wasn't changed.
+DartType rawLegacyErasure(CoreTypes coreTypes, DartType type) {
+  return type.accept(new _LegacyErasure(coreTypes));
 }
 
 /// Returns legacy erasure of [supertype], that is, the type in which all nnbd

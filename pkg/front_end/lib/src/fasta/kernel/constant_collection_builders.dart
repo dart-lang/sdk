@@ -104,6 +104,7 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
 
 class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   final Set<Constant> seen = new Set<Constant>.identity();
+  final Set<Constant> weakSeen = new Set<Constant>.identity();
 
   SetConstantBuilder(
       Expression original, DartType elementType, ConstantEvaluator evaluator)
@@ -121,11 +122,20 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
           templateConstEvalElementImplementsEqual.withArguments(
               constant, evaluator.isNonNullableByDefault));
     }
-    if (!seen.add(constant)) {
+    bool unseen = seen.add(constant);
+    if (!unseen) {
       evaluator.report(
           context,
           templateConstEvalDuplicateElement.withArguments(
               constant, evaluator.isNonNullableByDefault));
+    }
+    if (evaluator.evaluationMode == EvaluationMode.agnostic) {
+      Constant weakConstant =
+          evaluator._weakener.visitConstant(constant) ?? constant;
+      bool weakUnseen = weakSeen.add(weakConstant);
+      if (unseen != weakUnseen) {
+        evaluator.report(context, messageNonAgnosticConstant);
+      }
     }
 
     List<Constant> lastPart;
@@ -190,6 +200,7 @@ class MapConstantBuilder {
   List<Object> parts = <Object>[<ConstantMapEntry>[]];
 
   final Set<Constant> seenKeys = new Set<Constant>.identity();
+  final Set<Constant> weakSeenKeys = new Set<Constant>.identity();
 
   MapConstantBuilder(
       this.original, this.keyType, this.valueType, this.evaluator);
@@ -247,11 +258,19 @@ class MapConstantBuilder {
           templateConstEvalKeyImplementsEqual.withArguments(
               key, evaluator.isNonNullableByDefault));
     }
-    if (!seenKeys.add(key)) {
+    bool unseenKey = seenKeys.add(key);
+    if (!unseenKey) {
       evaluator.report(
           keyContext,
           templateConstEvalDuplicateKey.withArguments(
               key, evaluator.isNonNullableByDefault));
+    }
+    if (evaluator.evaluationMode == EvaluationMode.agnostic) {
+      Constant weakKey = evaluator._weakener.visitConstant(key) ?? key;
+      bool weakUnseenKey = weakSeenKeys.add(weakKey);
+      if (unseenKey != weakUnseenKey) {
+        evaluator.report(keyContext, messageNonAgnosticConstant);
+      }
     }
     lastPart.add(new ConstantMapEntry(
         evaluator.ensureIsSubtype(key, keyType, keyContext),
