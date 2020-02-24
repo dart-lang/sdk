@@ -487,31 +487,31 @@
         "builder-tag": "analyzer_use_fasta"
       }
     },
-    "dartk-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-asan-(linux|mac)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "asan",
         "timeout": 240
       }
     },
-    "dartk-lsan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-lsan-(linux|mac)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "lsan",
         "timeout": 240
       }
     },
-    "dartk-msan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-msan-linux-(debug|product|release)-x64": {
       "options": {
         "builder-tag": "msan",
         "timeout": 240
       }
     },
-    "dartk-tsan-(linux|mac|win)-(debug|product|release)-x64": {
+    "dartk-tsan-(linux|mac)-(debug|product|release)-x64": {
       "options": {
         "builder-tag": "tsan",
         "timeout": 240
       }
     },
-    "dartk-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "ubsan",
         "timeout": 240
@@ -1446,7 +1446,6 @@
     },
     {
       "builders": [
-        "vm-kernel-msan-linux-release-ia32",
         "vm-kernel-msan-linux-release-x64"
       ],
       "meta": {

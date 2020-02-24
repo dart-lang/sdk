@@ -47,8 +47,8 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/buildtools/+/master/fuchsia.ensure
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "de39621f0f03f20633bdfa50bde97a3908bf6e98",
-  "gn_revision": "bdb0fd02324b120cacde634a9235405061c8ea06",
+  "clang_revision": "b25fc4123c77097c05ea221e023fa5c6a16e0f41",
+  "gn_revision": "239533d2d91a04b3317ca9101cf7189f4e651e4d",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -426,7 +426,7 @@ deps = {
   Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/clang": {
       "packages": [
           {
-              "package": "fuchsia/clang/${{platform}}",
+              "package": "fuchsia/third_party/clang/${{platform}}",
               "version": "git_revision:" + Var("clang_revision"),
           },
       ],
