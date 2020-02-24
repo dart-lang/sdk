@@ -1088,6 +1088,9 @@ void Scavenger::Scavenge() {
     ProcessWeakReferences();
     page_space->ReleaseDataLock();
 
+    // Restore write-barrier assumptions.
+    isolate_group->RememberLiveTemporaries();
+
     // Scavenge finished. Run accounting.
     int64_t end = OS::GetCurrentMonotonicMicros();
     heap_->RecordTime(kProcessToSpace, process_to_space - iterate_roots);

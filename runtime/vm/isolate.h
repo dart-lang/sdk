@@ -473,6 +473,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   uword FindPendingDeoptAtSafepoint(uword fp);
 
+  void RememberLiveTemporaries();
+  void DeferredMarkLiveTemporaries();
+
  private:
   friend class Heap;
   friend class StackFrame;  // For `[isolates_].First()`.
@@ -1142,6 +1145,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_forward_table_old(WeakTable* table);
 
   static void NotifyLowMemory();
+
+  void RememberLiveTemporaries();
+  void DeferredMarkLiveTemporaries();
 
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.

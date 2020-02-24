@@ -166,6 +166,8 @@ compiler_sources = [
   "stub_code_compiler_arm64.cc",
   "stub_code_compiler_ia32.cc",
   "stub_code_compiler_x64.cc",
+  "write_barrier_elimination.cc",
+  "write_barrier_elimination.h",
 ]
 
 compiler_sources_tests = [

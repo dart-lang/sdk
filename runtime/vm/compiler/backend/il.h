@@ -1031,6 +1031,15 @@ class Instruction : public ZoneAllocated {
   // See StoreInstanceFieldInstr::HasUnknownSideEffects() for rationale.
   virtual bool HasUnknownSideEffects() const = 0;
 
+  // Whether this instruction can call Dart code without going through
+  // the runtime.
+  //
+  // Must be true for any instruction which can call Dart code without
+  // first creating an exit frame to transition into the runtime.
+  //
+  // See also WriteBarrierElimination and Thread::RememberLiveTemporaries().
+  virtual bool CanCallDart() const { return false; }
+
   virtual bool CanTriggerGC() const;
 
   // Get the block entry for this instruction.
@@ -3143,6 +3152,8 @@ class BranchInstr : public Instruction {
     return comparison()->HasUnknownSideEffects();
   }
 
+  virtual bool CanCallDart() const { return comparison()->CanCallDart(); }
+
   ComparisonInstr* comparison() const { return comparison_; }
   void SetComparison(ComparisonInstr* comp);
 
@@ -3625,6 +3636,7 @@ class TemplateDartCall : public Definition {
   }
 
   virtual bool MayThrow() const { return true; }
+  virtual bool CanCallDart() const { return true; }
 
   virtual intptr_t InputCount() const { return inputs_->length(); }
   virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
@@ -4335,6 +4347,7 @@ class IfThenElseInstr : public Definition {
   virtual bool HasUnknownSideEffects() const {
     return comparison()->HasUnknownSideEffects();
   }
+  virtual bool CanCallDart() const { return comparison()->CanCallDart(); }
 
   virtual bool AttributesEqual(Instruction* other) const {
     IfThenElseInstr* other_if_then_else = other->AsIfThenElse();
@@ -4463,6 +4476,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   }
 
   virtual bool HasUnknownSideEffects() const { return true; }
+  virtual bool CanCallDart() const { return true; }
 
   // Initialize result type of this call instruction if target is a recognized
   // method or has pragma annotation.
@@ -4721,6 +4735,9 @@ class NativeCallInstr : public TemplateDartCall<0> {
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
+  // Always creates an exit frame before more Dart code can be called.
+  virtual bool CanCallDart() const { return false; }
+
   void SetupNative();
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -4779,6 +4796,9 @@ class FfiCallInstr : public Definition {
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return true; }
+
+  // Always creates an exit frame before more Dart code can be called.
+  virtual bool CanCallDart() const { return false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
   virtual Representation representation() const;
@@ -5329,6 +5349,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   virtual CompileType ComputeType() const;
   // Issues a static call to Dart code which calls toString on objects.
   virtual bool HasUnknownSideEffects() const { return true; }
+  virtual bool CanCallDart() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   const Function& CallFunction() const;
@@ -7006,6 +7027,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   virtual bool RecomputeType();
 
   virtual bool HasUnknownSideEffects() const { return true; }
+  virtual bool CanCallDart() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -7050,6 +7072,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   bool is_negated() const { return is_negated_; }
 
   virtual bool HasUnknownSideEffects() const { return true; }
+  virtual bool CanCallDart() const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -7684,6 +7707,8 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool CanCallDart() const { return true; }
 
  private:
   InstanceCallInstr* instance_call_;

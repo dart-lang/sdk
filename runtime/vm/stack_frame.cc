@@ -160,7 +160,7 @@ bool StackFrame::IsBareInstructionsStubFrame() const {
   return false;
 }
 
-bool StackFrame::IsStubFrame() const {
+bool StackFrame::IsStubFrame(bool needed_for_gc) const {
   if (is_interpreted()) {
     return false;
   }
@@ -176,7 +176,7 @@ bool StackFrame::IsStubFrame() const {
   NoSafepointScope no_safepoint;
 #endif
 
-  RawCode* code = GetCodeObject();
+  RawCode* code = GetCodeObject(needed_for_gc);
   ASSERT(code != Object::null());
   const intptr_t cid = code->ptr()->owner_->GetClassId();
   ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
@@ -418,9 +418,9 @@ RawCode* StackFrame::LookupDartCode() const {
   return Code::null();
 }
 
-RawCode* StackFrame::GetCodeObject() const {
+RawCode* StackFrame::GetCodeObject(bool needed_for_gc) const {
   ASSERT(!is_interpreted());
-  if (auto isolate = IsolateOfBareInstructionsFrame(/*needed_for_gc=*/false)) {
+  if (auto isolate = IsolateOfBareInstructionsFrame(needed_for_gc)) {
     auto const rct = isolate->reverse_pc_lookup_cache();
     return rct->Lookup(pc(), /*is_return_address=*/true);
   } else {
@@ -546,8 +546,8 @@ TokenPosition StackFrame::GetTokenPos() const {
   return TokenPosition::kNoSource;
 }
 
-bool StackFrame::IsValid() const {
-  if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
+bool StackFrame::IsValid(bool needed_for_gc) const {
+  if (IsEntryFrame() || IsExitFrame() || IsStubFrame(needed_for_gc)) {
     return true;
   }
   if (is_interpreted()) {
