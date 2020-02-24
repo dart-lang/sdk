@@ -1,3 +1,5 @@
+/*analyzer.error: ParserErrorCode.EXPECTED_EXECUTABLE*/
+/*analyzer.library: nnbd=true*/
 {
   "none": {
     "libraries": {

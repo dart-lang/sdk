@@ -9,18 +9,14 @@ import 'package:_fe_analyzer_shared/src/testing/id_generation.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 
 main() {
-  testDir('pkg/_fe_analyzer_shared/test/constants/data', sharedMarkers);
-  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables/data',
-      cfeAnalyzerMarkers);
-  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment/data',
-      cfeAnalyzerMarkers);
-  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/nullability/data',
-      cfeAnalyzerMarkers);
-  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/reachability/data',
-      cfeAnalyzerMarkers);
-  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/data',
-      cfeAnalyzerMarkers);
-  testDir('pkg/_fe_analyzer_shared/test/inheritance/data', cfeAnalyzerMarkers);
+  testDir('pkg/_fe_analyzer_shared/test/constants/data');
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables/data');
+  testDir(
+      'pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment/data');
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/nullability/data');
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/reachability/data');
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/data');
+  testDir('pkg/_fe_analyzer_shared/test/inheritance/data');
 }
 
 void expectStringEquals(String value1, String value2) {
@@ -29,8 +25,10 @@ void expectStringEquals(String value1, String value2) {
   }
 }
 
-void testDir(String dataDirPath, List<String> supportedMarkers) {
+void testDir(String dataDirPath) {
   Directory dataDir = Directory(dataDirPath);
+  MarkerOptions markerOptions =
+      MarkerOptions.fromDataDir(dataDir, shouldFindScript: false);
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
   List<FileSystemEntity> entities =
@@ -39,7 +37,7 @@ void testDir(String dataDirPath, List<String> supportedMarkers) {
     print('----------------------------------------------------------------');
 
     TestData testData = computeTestData(entity,
-        supportedMarkers: supportedMarkers,
+        supportedMarkers: markerOptions.supportedMarkers,
         createTestUri: (Uri uri, String name) => Uri.parse('memory:$name'),
         onFailure: (String message) => throw message);
     print('Test: ${testData.testFileUri}');

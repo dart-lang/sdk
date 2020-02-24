@@ -5,7 +5,7 @@
 /*library: nnbd=true*/
 
 import 'dart:async';
-import 'dart:_internal';
+import /*analyzer.error: CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY*/ 'dart:_internal';
 
 export 'dart:async' show Future;
 
@@ -51,7 +51,7 @@ class List<E> implements Iterable<E> {}
 /*class: Set:Iterable<E>,Object,Set<E>*/
 class Set<E> implements Iterable<E> {}
 
-/*class: Map:Map<K,V>,Object*/
+/*class: Map:Map<K, V>,Object*/
 class Map<K, V> {}
 
 /*class: Stream:Object,Stream<E>*/

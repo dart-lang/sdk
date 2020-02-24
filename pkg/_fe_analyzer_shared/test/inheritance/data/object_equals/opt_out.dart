@@ -11,7 +11,7 @@ class Class1 {
   /*member: Class1.noSuchMethod:dynamic Function(Invocation*)**/
   /*member: Class1.toString:String* Function()**/
 
-  /*member: Class1.==:bool! Function(dynamic)**/
+  /*member: Class1.==:bool Function(dynamic)**/
   operator ==(other) => true;
 }
 
@@ -111,13 +111,7 @@ abstract class ExpressionWithStringConversion {
   String toString();
 }
 
-/*class: _Expression&AbstractExpression&ExpressionWithEval:AbstractExpression,ExpressionWithEval,Object,_Expression&AbstractExpression&ExpressionWithEval*/
-/*member: _Expression&AbstractExpression&ExpressionWithEval.toString:String* Function()**/
-/*member: _Expression&AbstractExpression&ExpressionWithEval.eval:int**/
-/*member: _Expression&AbstractExpression&ExpressionWithEval.noSuchMethod:dynamic Function(Invocation*)**/
-/*member: _Expression&AbstractExpression&ExpressionWithEval.==:bool* Function(Object*)**/
-
-/*class: Expression:AbstractExpression,Expression,ExpressionWithEval,ExpressionWithStringConversion,Object,_Expression&AbstractExpression&ExpressionWithEval*/
+/*class: Expression:AbstractExpression,Expression,ExpressionWithEval,ExpressionWithStringConversion,Object*/
 /*member: Expression.toString:String* Function()**/
 /*member: Expression.eval:int**/
 /*member: Expression.noSuchMethod:dynamic Function(Invocation*)**/
@@ -163,14 +157,7 @@ class S2 {
   /*member: S2.==:bool* Function(Object*)**/
 }
 
-/*class: _C2&S2&M2:A2,B2,M2,Object,S2,_C2&S2&M2*/
-/*member: _C2&S2&M2.b:int**/
-/*member: _C2&S2&M2.a:int**/
-/*member: _C2&S2&M2.toString:String* Function()**/
-/*member: _C2&S2&M2.noSuchMethod:dynamic Function(Invocation*)**/
-/*member: _C2&S2&M2.==:bool* Function(Object*)**/
-
-/*class: C2:A2,B2,C2,M2,Object,S2,_C2&S2&M2*/
+/*class: C2:A2,B2,C2,M2,Object,S2*/
 class /*error: MissingImplementationNotAbstract*/ C2 extends S2 with M2 {
   /*member: C2.b:int**/
   /*member: C2.a:int**/

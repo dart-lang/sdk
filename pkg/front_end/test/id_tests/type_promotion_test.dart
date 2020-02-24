@@ -62,7 +62,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   String getText(DartType actualData) =>
-      typeToText(actualData, TypeRepresentation.nonNullableByDefault);
+      typeToText(actualData, TypeRepresentation.analyzerNonNullableByDefault);
 
   @override
   String isAsExpected(DartType actualData, String expectedData) {

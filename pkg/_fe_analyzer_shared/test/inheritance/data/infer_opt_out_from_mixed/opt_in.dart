@@ -6,8 +6,8 @@
 
 /*class: Nnbd:Nnbd,Object*/
 abstract class Nnbd {
-  /*member: Nnbd.mandatory:void Function(int!)!*/
+  /*member: Nnbd.mandatory:void Function(int)*/
   void mandatory(int param);
-  /*member: Nnbd.optional:void Function(int?)!*/
+  /*member: Nnbd.optional:void Function(int?)*/
   void optional(int? param);
 }

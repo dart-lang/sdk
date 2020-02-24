@@ -633,7 +633,9 @@ class MarkerOptions {
 
   MarkerOptions.internal(this.markers);
 
-  factory MarkerOptions.fromFile(File file, {bool isUsingShards: false}) {
+  factory MarkerOptions.fromDataDir(Directory dataDir,
+      {bool shouldFindScript: true}) {
+    File file = new File.fromUri(dataDir.uri.resolve('marker.options'));
     File script = new File.fromUri(Platform.script);
     if (!file.existsSync()) {
       throw new ArgumentError("Marker option file '$file' doesn't exist.");
@@ -666,7 +668,7 @@ class MarkerOptions {
         isScriptFound = true;
       }
     }
-    if (!isUsingShards && !isScriptFound) {
+    if (shouldFindScript && !isScriptFound) {
       throw new ArgumentError(
           "Script '${script.uri}' not found in ${file.uri}");
     }
@@ -706,10 +708,8 @@ Future<void> runTests<T>(Directory dataDir,
     RunTestFunction<T> runTest,
     List<String> skipList,
     Map<String, List<String>> skipMap}) async {
-  File markerOptionsFile =
-      new File.fromUri(dataDir.uri.resolve('marker.options'));
   MarkerOptions markerOptions =
-      new MarkerOptions.fromFile(markerOptionsFile, isUsingShards: shards != 1);
+      new MarkerOptions.fromDataDir(dataDir, shouldFindScript: shards == 1);
   // TODO(johnniwinther): Support --show to show actual data for an input.
   args = args.toList();
   bool runAll = args.remove('--run-all');

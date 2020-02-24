@@ -31,7 +31,7 @@ class LegacyClass3a<T> extends Class3<T> {}
 class LegacyClass3b<T> extends Class3<T> implements GenericInterface<T> {}
 
 /*cfe.class: LegacyClass4a:Class4a,GenericInterface<num*>,LegacyClass4a,Object*/
-/*cfe:builder.class: LegacyClass4a:Class4a,GenericInterface<num!>,LegacyClass4a,Object*/
+/*cfe:builder|analyzer.class: LegacyClass4a:Class4a,GenericInterface<num>,LegacyClass4a,Object*/
 class LegacyClass4a extends Class4a {}
 
 /*class: LegacyClass4b:GenericInterface<num*>,LegacyClass4b,Object*/
@@ -40,12 +40,15 @@ class LegacyClass4b implements GenericInterface<num> {}
 /*class: LegacyClass4c:Class4a,GenericInterface<num*>,LegacyClass4c,Object*/
 class LegacyClass4c extends Class4a implements GenericInterface<num> {}
 
-/*class: LegacyClass4d:Class4a,Class4b,GenericInterface<num*>,LegacyClass4d,Object*/
+/*cfe|cfe:builder.class: LegacyClass4d:Class4a,Class4b,GenericInterface<num*>,LegacyClass4d,Object*/
+/*analyzer.class: LegacyClass4d:Class4a,Class4b,GenericInterface<num>,LegacyClass4d,Object*/
 class LegacyClass4d implements Class4a, Class4b {}
 
-/*class: LegacyClass5:Class5,GenericInterface<dynamic>,LegacyClass5,Object*/
+/*cfe|cfe:builder.class: LegacyClass5:Class5,GenericInterface<dynamic>,LegacyClass5,Object*/
+/*analyzer.class: LegacyClass5:Class5,GenericInterface<Object*>,LegacyClass5,Object*/
+/*analyzer.error: CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES*/
 class
-/*error: AmbiguousSupertypes*/
+/*cfe|cfe:builder.error: AmbiguousSupertypes*/
     LegacyClass5 extends Class5 implements GenericInterface<Object> {}
 
 /*class: LegacyClass6a:

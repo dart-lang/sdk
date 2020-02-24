@@ -6,12 +6,12 @@
 
 /*class: Class:Class,Object*/
 class Class {
-  /*member: Class.method:int! Function(int?)!*/
+  /*member: Class.method:int Function(int?)*/
   int method(int? i) => i ?? 0;
 }
 
 /*class: Interface:Interface,Object*/
 abstract class Interface {
-  /*member: Interface.method:int? Function(int!)!*/
+  /*member: Interface.method:int? Function(int)*/
   int? method(int i) => i;
 }

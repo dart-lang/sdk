@@ -15,40 +15,40 @@ class LegacyClass {
   /*member: LegacyClass.method2:int* Function()**/
   int method2() => 0;
 
-  /*member: LegacyClass.method3a:int* Function(int*,int*)**/
+  /*member: LegacyClass.method3a:int* Function(int*, int*)**/
   int method3a(int a, int b) => 0;
 
-  /*member: LegacyClass.method3b:int* Function(int*,[int*])**/
+  /*member: LegacyClass.method3b:int* Function(int*, [int*])**/
   int method3b(int a, [int b]) => 0;
 
-  /*member: LegacyClass.method3c:int* Function([int*,int*])**/
+  /*member: LegacyClass.method3c:int* Function([int*, int*])**/
   int method3c([int a, int b]) => 0;
 
-  /*member: LegacyClass.method4a:int* Function(int*,int*)**/
+  /*member: LegacyClass.method4a:int* Function(int*, int*)**/
   int method4a(int a, int b) => 0;
 
-  /*member: LegacyClass.method4b:int* Function(int*,[int*])**/
+  /*member: LegacyClass.method4b:int* Function(int*, [int*])**/
   int method4b(int a, [int b]) => 0;
 
-  /*member: LegacyClass.method4c:int* Function([int*,int*])**/
+  /*member: LegacyClass.method4c:int* Function([int*, int*])**/
   int method4c([int a, int b]) => 0;
 
-  /*member: LegacyClass.method5a:int* Function(int*,{int* b})**/
+  /*member: LegacyClass.method5a:int* Function(int*, {int* b})**/
   int method5a(int a, {int b}) => 0;
 
-  /*member: LegacyClass.method5b:int* Function({int* a,int* b})**/
+  /*member: LegacyClass.method5b:int* Function({int* a, int* b})**/
   int method5b({int a, int b}) => 0;
 
-  /*member: LegacyClass.method5c:int* Function({int* a,int* b})**/
+  /*member: LegacyClass.method5c:int* Function({int* a, int* b})**/
   int method5c({int a, int b}) => 0;
 
-  /*member: LegacyClass.method6a:int* Function(int*,{int* b})**/
+  /*member: LegacyClass.method6a:int* Function(int*, {int* b})**/
   int method6a(int a, {int b}) => 0;
 
-  /*member: LegacyClass.method6b:int* Function({int* a,int* b})**/
+  /*member: LegacyClass.method6b:int* Function({int* a, int* b})**/
   int method6b({int a, int b}) => 0;
 
-  /*member: LegacyClass.method6c:int* Function({int* a,int* b})**/
+  /*member: LegacyClass.method6c:int* Function({int* a, int* b})**/
   int method6c({int a, int b}) => 0;
 
   /*member: LegacyClass.getter1:int**/
@@ -64,21 +64,27 @@ class LegacyClass {
   void set setter2(int value) {}
 
   /*member: LegacyClass.field1:int**/
+  /*member: LegacyClass.field1=:int**/
   int field1;
 
   /*member: LegacyClass.field2:int**/
+  /*member: LegacyClass.field2=:int**/
   int field2;
 
   /*member: LegacyClass.field3:int**/
+  /*member: LegacyClass.field3=:int**/
   int field3;
 
   /*member: LegacyClass.field4:int**/
+  /*member: LegacyClass.field4=:int**/
   int field4;
 
   /*member: LegacyClass.field5:int**/
+  /*member: LegacyClass.field5=:int**/
   var field5 = 0;
 
   /*member: LegacyClass.field6:int**/
+  /*member: LegacyClass.field6=:int**/
   int field6 = 0;
 
   /*member: LegacyClass.property1:int**/

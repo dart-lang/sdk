@@ -95,6 +95,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
   @override
   void computeForClass(Class node) {
     super.computeForClass(node);
+    if (node.isAnonymousMixin) return;
     // TODO(johnniwinther): Also compute member data from builders.
     Set<Name> getters = _hierarchy
         .getInterfaceMembers(node)
@@ -103,12 +104,13 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
     Set<Name> setters = _hierarchy
         .getInterfaceMembers(node, setters: true)
         .where((Member member) =>
-            member is Procedure && member.kind == ProcedureKind.Setter)
+            member is Procedure && member.kind == ProcedureKind.Setter ||
+            member is Field && member.hasSetter)
         .map((Member member) => member.name)
         .toSet();
 
-    void addMember(Name name, {bool setter}) {
-      Member member = _hierarchy.getInterfaceMember(node, name, setter: setter);
+    void addMember(Name name, {bool isSetter}) {
+      Member member = _hierarchy.getInterfaceMember(node, name, setter: isSetter);
       if (member.enclosingClass == _coreTypes.objectClass) {
         return;
       }
@@ -137,7 +139,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       }
 
       String memberName = name.name;
-      if (member is Procedure && member.kind == ProcedureKind.Setter) {
+      if (isSetter) {
         memberName += '=';
       }
       MemberId id = new MemberId.internal(memberName, className: node.name);
@@ -153,29 +155,31 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
           nodeWithOffset?.location?.file,
           nodeWithOffset?.fileOffset,
           id,
-          typeToText(type, TypeRepresentation.implicitUndetermined),
+          typeToText(type, TypeRepresentation.analyzerNonNullableByDefault),
           member);
     }
 
     for (Name name in getters) {
-      addMember(name, setter: false);
+      addMember(name, isSetter: false);
     }
 
     for (Name name in setters) {
-      addMember(name, setter: true);
+      addMember(name, isSetter: true);
     }
   }
 
   @override
   String computeClassValue(Id id, Class node) {
+    if (node.isAnonymousMixin) return null;
     if (_config.marker == cfeMarker) {
       List<String> supertypes = <String>[];
       for (Class superclass in computeAllSuperclasses(node)) {
         Supertype supertype = _hierarchy.getClassAsInstanceOf(node, superclass);
+        if (supertype.classNode.isAnonymousMixin) continue;
         assert(
             supertype != null, "No instance of $superclass found for $node.");
         supertypes.add(supertypeToText(
-            supertype, TypeRepresentation.implicitUndetermined));
+            supertype, TypeRepresentation.analyzerNonNullableByDefault));
       }
       supertypes.sort();
       return supertypes.join(',');
@@ -185,10 +189,11 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       Set<String> supertypes = <String>{};
       void addDartType(DartType type) {
         if (type is InterfaceType) {
+          if (type.classNode.isAnonymousMixin) return;
           Supertype supertype =
               new Supertype(type.classNode, type.typeArguments);
           supertypes.add(supertypeToText(
-              supertype, TypeRepresentation.implicitUndetermined));
+              supertype, TypeRepresentation.analyzerNonNullableByDefault));
         }
       }
 

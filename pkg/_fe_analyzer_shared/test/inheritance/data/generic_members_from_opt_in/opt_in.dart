@@ -4,8 +4,11 @@
 
 /*library: nnbd=true*/
 
-/*class: Map:Map<K,V>,Object*/
+/*class: Map:Map<K, V>,Object*/
 abstract class Map<K, V> {
-  /*member: Map.map:Map<K2,V2>! Function<K2,V2>(MapEntry<K2,V2>! Function(K,V)!)!*/
+  /*member: Map.map:Map<K2, V2> Function<K2, V2>(MapEntry<K2, V2> Function(K, V))*/
   Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) f);
 }
+
+/*class: MapEntry:MapEntry<K, V>,Object*/
+abstract class MapEntry<K, V> {}

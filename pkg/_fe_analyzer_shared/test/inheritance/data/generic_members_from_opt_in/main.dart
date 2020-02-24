@@ -8,14 +8,14 @@
 
 import 'opt_in.dart';
 
-/*class: MapImpl:Map<K*,V*>,MapImpl<K*,V*>,Object*/
+/*class: MapImpl:Map<K*, V*>,MapImpl<K*, V*>,Object*/
 abstract class MapImpl<K, V> implements Map<K, V> {
-  /*member: MapImpl.map:Map<K2*,V2*>* Function<K2,V2>(MapEntry<K2*,V2*>* Function(K*,V*)*)**/
+  /*member: MapImpl.map:Map<K2*, V2*>* Function<K2, V2>(MapEntry<K2*, V2*>* Function(K*, V*)*)**/
   Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) f);
 }
 
-/*class: FixedMapImpl:FixedMapImpl,Map<int*,String*>,Object*/
+/*class: FixedMapImpl:FixedMapImpl,Map<int*, String*>,Object*/
 abstract class FixedMapImpl implements Map<int, String> {
-  /*member: FixedMapImpl.map:Map<K2*,V2*>* Function<K2,V2>(MapEntry<K2*,V2*>* Function(int*,String*)*)**/
+  /*member: FixedMapImpl.map:Map<K2*, V2*>* Function<K2, V2>(MapEntry<K2*, V2*>* Function(int*, String*)*)**/
   Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(int key, String value) f);
 }

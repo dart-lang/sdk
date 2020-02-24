@@ -36,19 +36,7 @@ class LegacyClass4 implements GenericInterface<num> {}
 */
 class LegacyClass5<T> extends LegacyClass3<T> implements GenericInterface<T> {}
 
-/*class: _LegacyClass6&Object&LegacyClass3:
- GenericInterface<T*>,
- LegacyClass3<T*>,
- Object,
- _LegacyClass6&Object&LegacyClass3<T*>
-*/
-/*class: LegacyClass6:
- GenericInterface<T*>,
- LegacyClass3<T*>,
- LegacyClass6<T*>,
- Object,
- _LegacyClass6&Object&LegacyClass3<T*>
-*/
+/*class: LegacyClass6:GenericInterface<T*>,LegacyClass3<T*>,LegacyClass6<T*>,Object*/
 class LegacyClass6<T> extends Object
     with LegacyClass3<T>
     implements GenericInterface<T> {}
@@ -63,20 +51,7 @@ class LegacyClass6<T> extends Object
 class LegacyClass7<T> extends LegacyClass3<T>
     implements GenericSubInterface<T> {}
 
-/*class: _LegacyClass8&Object&LegacyClass3:
- GenericInterface<T*>,
- LegacyClass3<T*>,
- Object,
- _LegacyClass8&Object&LegacyClass3<T*>
-*/
-/*class: LegacyClass8:
- GenericInterface<T*>,
- GenericSubInterface<T*>,
- LegacyClass3<T*>,
- LegacyClass8<T*>,
- Object,
- _LegacyClass8&Object&LegacyClass3<T*>
-*/
+/*class: LegacyClass8:GenericInterface<T*>,GenericSubInterface<T*>,LegacyClass3<T*>,LegacyClass8<T*>,Object*/
 class LegacyClass8<T> extends Object
     with LegacyClass3<T>
     implements GenericSubInterface<T> {}

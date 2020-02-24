@@ -8,11 +8,12 @@ import 'opt_out.dart';
 
 /*class: Interface:Interface,Object*/
 abstract class Interface {
-  /*member: Interface.method:int! Function(int?)!*/
+  /*member: Interface.method:int Function(int?)*/
   int method(int? i) => i ?? 0;
 }
 
 /*class: Class:Class,Interface,LegacyClass,Object*/
 abstract class Class extends LegacyClass implements Interface {
-  /*member: Class.method:int! Function(int?)!*/
+  /*cfe|cfe:builder.member: Class.method:int Function(int?)*/
+  /*analyzer.member: Class.method:int* Function(int*)**/
 }

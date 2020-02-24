@@ -6,6 +6,6 @@
 
 /*class: Class:Class,Object*/
 class Class {
-  /*member: Class.==:bool! Function(Object!)!*/
+  /*member: Class.==:bool Function(Object)*/
   operator ==(other) => true;
 }
