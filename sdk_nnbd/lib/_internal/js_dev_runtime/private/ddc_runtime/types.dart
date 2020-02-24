@@ -233,7 +233,7 @@ var _nullComparisonSet = JS<Object>('', 'new Set()');
 /// instead.  That gives more useful feedback to the user.
 void _nullWarnOnType(type) {
   bool result = JS('', '#.has(#)', _nullComparisonSet, type);
-  if (result) {
+  if (!result) {
     JS('', '#.add(#)', _nullComparisonSet, type);
     _nullWarn("Null is not a subtype of $type.");
   }
