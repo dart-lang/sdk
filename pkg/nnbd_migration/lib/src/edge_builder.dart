@@ -1523,7 +1523,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       final decoratedType = typedefType.substitute(substitutions);
       final origin = TypedefReferenceOrigin(source, typeName);
-      _linkDecoratedTypes(decoratedType, typeNameType, origin, isUnion: true);
+      _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
+          isUnion: true);
+      _linkDecoratedTypes(
+          decoratedType.returnType, typeNameType.returnType, origin,
+          isUnion: true);
     } else if (element is TypeParameterizedElement) {
       if (typeArguments == null) {
         var instantiatedType =

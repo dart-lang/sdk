@@ -6910,6 +6910,16 @@ void f(List<int> x) {}
         hard: true);
   }
 
+  Future<void> test_typedef_rhs_not_linked_to_usage() async {
+    await analyze('''
+typedef F = void Function();
+F f;
+''');
+    var rhs = decoratedGenericFunctionTypeAnnotation('void Function()');
+    var usage = decoratedTypeAnnotation('F f');
+    assertNoEdge(rhs.node, usage.node);
+  }
+
   Future<void> test_typeName_class() async {
     await analyze('''
 class C {}

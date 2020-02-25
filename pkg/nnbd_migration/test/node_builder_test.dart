@@ -1610,6 +1610,14 @@ F f;
         isNot(same(typedefDecoratedType.positionalParameters[0].node)));
   }
 
+  Future<void> test_typedef_rhs_nullability() async {
+    await analyze('''
+typedef F = void Function();
+''');
+    var decorated = decoratedGenericFunctionTypeAnnotation('void Function()');
+    expect(decorated.node, same(never));
+  }
+
   Future<void> test_variableDeclaration_type_simple() async {
     await analyze('''
 main() {

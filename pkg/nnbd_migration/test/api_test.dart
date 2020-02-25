@@ -3740,6 +3740,24 @@ void f() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_nullable_use_of_typedef() async {
+    var content = '''
+typedef F<T> = int Function(T);
+F<String> f = null;
+void main() {
+  f('foo');
+}
+''';
+    var expected = '''
+typedef F<T> = int Function(T);
+F<String>? f = null;
+void main() {
+  f!('foo');
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_operator_eq_with_inferred_parameter_type() async {
     var content = '''
 class C {

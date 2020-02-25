@@ -430,7 +430,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         parent is ImplementsClause ||
         parent is WithClause ||
         parent is OnClause ||
-        parent is ClassTypeAlias) {
+        parent is ClassTypeAlias ||
+        parent is GenericTypeAlias) {
       nullabilityNode = _graph.never;
     } else {
       nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
