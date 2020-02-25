@@ -124,12 +124,7 @@ CompilationUnit parseDirectives(String contents,
   var scanner = Scanner(source, reader, errorCollector)
     ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = Parser(
-    source,
-    errorCollector,
-    languageVersion: scanner.languageVersion,
-    featureSet: featureSet,
-  );
+  var parser = Parser(source, errorCollector, featureSet: featureSet);
   var unit = parser.parseDirectives(token);
   unit.lineInfo = LineInfo(scanner.lineStarts);
 
@@ -152,12 +147,8 @@ CompilationUnit _parseSource(
   var scanner = Scanner(source, reader, errorCollector)
     ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = Parser(
-    source,
-    errorCollector,
-    languageVersion: scanner.languageVersion,
-    featureSet: featureSet,
-  )..parseFunctionBodies = parseFunctionBodies;
+  var parser = Parser(source, errorCollector, featureSet: featureSet)
+    ..parseFunctionBodies = parseFunctionBodies;
   var unit = parser.parseCompilationUnit(token)
     ..lineInfo = LineInfo(scanner.lineStarts);
 

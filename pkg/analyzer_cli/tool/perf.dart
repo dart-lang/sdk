@@ -83,12 +83,9 @@ void collectSources(Source start, Set<Source> files) {
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
-  var parser = Parser(
-    source,
-    AnalysisErrorListener.NULL_LISTENER,
-    languageVersion: null,
-    featureSet: FeatureSet.fromEnableFlags([]),
-  );
+  var featureSet = FeatureSet.fromEnableFlags([]);
+  var parser = Parser(source, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   return parser.parseDirectives(token);
 }
 
@@ -118,12 +115,9 @@ void parseFiles(Set<Source> files) {
 /// Parse the full body of [source] and return it's compilation unit.
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
-  var parser = Parser(
-    source,
-    AnalysisErrorListener.NULL_LISTENER,
-    languageVersion: null,
-    featureSet: FeatureSet.fromEnableFlags([]),
-  );
+  var featureSet = FeatureSet.fromEnableFlags([]);
+  var parser = Parser(source, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   return parser.parseCompilationUnit(token);
 }
 

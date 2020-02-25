@@ -108,12 +108,7 @@ class Spelunker {
 
     errorListener.throwIfErrors();
 
-    var parser = Parser(
-      stringSource,
-      errorListener,
-      languageVersion: scanner.languageVersion,
-      featureSet: featureSet,
-    );
+    var parser = Parser(stringSource, errorListener, featureSet: featureSet);
     var node = parser.parseCompilationUnit(startToken);
 
     errorListener.throwIfErrors();

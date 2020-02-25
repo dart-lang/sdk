@@ -9474,12 +9474,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     ScannerResult result = scanString(content, includeComments: true);
     listener.setLineInfo(source, result.lineStarts);
 
-    parser = Parser(
-      source,
-      listener,
-      languageVersion: null,
-      featureSet: FeatureSet.forTesting(),
-    );
+    parser = Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.allowNativeClause = allowNativeClause;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
@@ -9609,12 +9604,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     ScannerResult result = scanString(content, includeComments: true);
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = Parser(
-      source,
-      listener,
-      languageVersion: null,
-      featureSet: FeatureSet.forTesting(),
-    );
+    Parser parser =
+        Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
     expect(unit, isNotNull);
@@ -9638,12 +9629,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
     ScannerResult result = scanString(content, includeComments: true);
 
-    Parser parser = Parser(
-      source,
-      listener,
-      languageVersion: null,
-      featureSet: FeatureSet.forTesting(),
-    );
+    Parser parser =
+        Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
     unit.lineInfo = LineInfo(result.lineStarts);
@@ -9979,12 +9966,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     ScannerResult result = scanString(content, includeComments: true);
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = Parser(
-      source,
-      listener,
-      languageVersion: null,
-      featureSet: FeatureSet.forTesting(),
-    );
+    Parser parser =
+        Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(result.tokens);
     expect(statement, isNotNull);
@@ -10010,12 +9993,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     ScannerResult result = scanString(content);
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = Parser(
-      source,
-      listener,
-      languageVersion: null,
-      featureSet: FeatureSet.forTesting(),
-    );
+    Parser parser =
+        Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     List<Statement> statements = parser.parseStatements(result.tokens);
     expect(statements, hasLength(expectedCount));
@@ -12411,14 +12390,9 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
 
   void test_Parser() {
     expect(
-      Parser(
-        NonExistingSource.unknown,
-        null,
-        languageVersion: null,
-        featureSet: FeatureSet.forTesting(),
-      ),
-      isNotNull,
-    );
+        Parser(NonExistingSource.unknown, null,
+            featureSet: FeatureSet.forTesting()),
+        isNotNull);
   }
 
   void test_skipPrefixedIdentifier_invalid() {

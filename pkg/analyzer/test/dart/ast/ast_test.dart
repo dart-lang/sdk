@@ -716,13 +716,8 @@ E f() => g;
       var scanner = Scanner.fasta(source, listener)
         ..configureFeatures(featureSet);
       Token tokens = scanner.tokenize();
-      _unit = Parser(
-        source,
-        listener,
-        languageVersion: scanner.languageVersion,
-        featureSet: featureSet,
-        useFasta: true,
-      ).parseCompilationUnit(tokens);
+      _unit = Parser(source, listener, featureSet: featureSet, useFasta: true)
+          .parseCompilationUnit(tokens);
     }
     return _unit;
   }

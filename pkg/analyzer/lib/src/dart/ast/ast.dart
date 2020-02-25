@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -2012,9 +2011,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   LineInfo lineInfo;
 
   @override
-  final LanguageVersion languageVersion;
-
-  @override
   final FeatureSet featureSet;
 
   /// Initialize a newly created compilation unit to have the given directives
@@ -2028,7 +2024,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
       this.endToken,
-      this.languageVersion,
       this.featureSet) {
     _scriptTag = _becomeParentOf(scriptTag);
     _directives = NodeListImpl<Directive>(this, directives);

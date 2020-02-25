@@ -29,12 +29,7 @@ class LocalDeclarationVisitorTest {
       ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     var source = StringSource(content, '/test.dart');
-    Parser parser = Parser(
-      source,
-      listener,
-      languageVersion: scanner.languageVersion,
-      featureSet: featureSet,
-    );
+    Parser parser = Parser(source, listener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     return unit;

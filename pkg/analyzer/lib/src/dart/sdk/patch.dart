@@ -418,12 +418,7 @@ class SdkPatcher {
     Token token = scanner.tokenize();
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    Parser parser = Parser(
-      source,
-      errorListener,
-      languageVersion: scanner.languageVersion,
-      featureSet: featureSet,
-    );
+    Parser parser = Parser(source, errorListener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

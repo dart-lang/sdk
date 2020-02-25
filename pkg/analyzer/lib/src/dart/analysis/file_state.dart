@@ -534,11 +534,8 @@ class FileState {
   CompilationUnit _createEmptyCompilationUnit() {
     var token = Token.eof(0);
     return astFactory.compilationUnit(
-      beginToken: token,
-      endToken: token,
-      languageVersion: null,
-      featureSet: _featureSet,
-    )..lineInfo = LineInfo(const <int>[0]);
+        beginToken: token, endToken: token, featureSet: _featureSet)
+      ..lineInfo = LineInfo(const <int>[0]);
   }
 
   /**
@@ -596,13 +593,8 @@ class FileState {
     // Pass the feature set from the scanner to the parser
     // because the scanner may have detected a language version comment
     // and downgraded the feature set it holds.
-    Parser parser = Parser(
-      source,
-      errorListener,
-      languageVersion: scanner.languageVersion,
-      featureSet: scanner.featureSet,
-      useFasta: useFasta,
-    );
+    Parser parser = Parser(source, errorListener,
+        featureSet: scanner.featureSet, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
