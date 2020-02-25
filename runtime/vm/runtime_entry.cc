@@ -821,7 +821,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   // A null instance is already detected and allowed in inlined code, unless
   // strong checking is enabled.
-  ASSERT(!src_instance.IsNull() || FLAG_strong_non_nullable_type_checks);
+  ASSERT(!src_instance.IsNull() || FLAG_null_safety);
   const bool is_instance_of = src_instance.IsAssignableTo(
       nnbd_mode, dst_type, instantiator_type_arguments,
       function_type_arguments);

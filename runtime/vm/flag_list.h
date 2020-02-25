@@ -189,8 +189,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(strong_non_nullable_type_checks, bool, false,                              \
-    "Enable strong non-nullable type checking mode.")                          \
+  P(null_safety, bool, false,                                                  \
+    "Respect the nullability of types in casts and instance checks.")          \
   P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
   P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \

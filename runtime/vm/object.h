@@ -892,7 +892,7 @@ enum class TypeEquality {
 // tests. The mode reflects the opted-in status of the library performing type
 // reification and/or subtype tests.
 // Note that the weak or strong testing mode is not reflected in NNBDMode, but
-// imposed globally by the value of FLAG_strong_non_nullable_type_checks.
+// imposed globally by the value of FLAG_null_safety.
 enum class NNBDMode {
   // Status of the library:
   kLegacyLib = 0,   // Library is legacy.

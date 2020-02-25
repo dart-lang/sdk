@@ -17484,7 +17484,7 @@ bool Instance::IsAssignableTo(
   // In weak mode type casts, whether in legacy or opted-in libraries, the null
   // instance is detected and handled in inlined code and therefore cannot be
   // encountered here as a Dart null receiver.
-  ASSERT(FLAG_strong_non_nullable_type_checks || !IsNull());
+  ASSERT(FLAG_null_safety || !IsNull());
   // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
   // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
   return RuntimeTypeIsSubtypeOf(mode, other, other_instantiator_type_arguments,
@@ -17543,7 +17543,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return true;
   }
   // In weak testing mode, Null type is a subtype of any type.
-  if (IsNull() && !FLAG_strong_non_nullable_type_checks) {
+  if (IsNull() && !FLAG_null_safety) {
     return true;
   }
   Thread* thread = Thread::Current();
@@ -17609,7 +17609,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return false;
   }
   if (IsNull()) {
-    ASSERT(FLAG_strong_non_nullable_type_checks);
+    ASSERT(FLAG_null_safety);
     if (instantiated_other.IsNullType()) {
       return true;
     }
@@ -18340,7 +18340,7 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
   // Only Never? remains, which maps to Null regardless of weak/strong mode.
   if (IsNullType() || IsNeverType()) {
     // In weak mode, Null is a bottom type.
-    if (!FLAG_strong_non_nullable_type_checks) {
+    if (!FLAG_null_safety) {
       return true;
     }
     const AbstractType& unwrapped_other =
@@ -18420,8 +18420,7 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
     }
     return false;
   }
-  if (FLAG_strong_non_nullable_type_checks && IsNullable() &&
-      other.IsNonNullable()) {
+  if (FLAG_null_safety && IsNullable() && other.IsNonNullable()) {
     return false;
   }
   return Class::IsSubtypeOf(
@@ -18789,8 +18788,7 @@ bool Type::IsEquivalent(const Instance& other,
   Nullability this_type_nullability = nullability();
   Nullability other_type_nullability = other_type.nullability();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (FLAG_strong_non_nullable_type_checks &&
-        this_type_nullability == Nullability::kNullable &&
+    if (FLAG_null_safety && this_type_nullability == Nullability::kNullable &&
         other_type_nullability == Nullability::kNonNullable) {
       return false;
     }
@@ -19509,7 +19507,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
   Nullability this_type_param_nullability = nullability();
   Nullability other_type_param_nullability = other_type_param.nullability();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (FLAG_strong_non_nullable_type_checks &&
+    if (FLAG_null_safety &&
         this_type_param_nullability == Nullability::kNullable &&
         (other_type_param_nullability == Nullability::kNonNullable ||
          other_type_param_nullability == Nullability::kUndetermined)) {

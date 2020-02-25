@@ -80,6 +80,7 @@ abstract class Compiler {
   final Uri platformKernelPath;
   final bool suppressWarnings;
   final bool enableAsserts;
+  final bool nullSafety;
   final List<String> experimentalFlags;
   final bool bytecode;
   final String packageConfig;
@@ -96,6 +97,7 @@ abstract class Compiler {
   Compiler(this.isolateId, this.fileSystem, this.platformKernelPath,
       {this.suppressWarnings: false,
       this.enableAsserts: false,
+      this.nullSafety: false,
       this.experimentalFlags: null,
       this.bytecode: false,
       this.supportCodeCoverage: false,
@@ -135,6 +137,7 @@ abstract class Compiler {
           onError: (msg) => errors.add(msg))
       ..environmentDefines = new EnvironmentMap()
       ..enableAsserts = enableAsserts
+      ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -281,12 +284,14 @@ class IncrementalCompilerWrapper extends Compiler {
       int isolateId, FileSystem fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
       bool enableAsserts: false,
+      bool nullSafety: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
+            nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             supportHotReload: true,
@@ -312,6 +317,7 @@ class IncrementalCompilerWrapper extends Compiler {
         isolateId, fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
+        nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig);
@@ -342,12 +348,14 @@ class SingleShotCompilerWrapper extends Compiler {
       {this.requireMain: false,
       bool suppressWarnings: false,
       bool enableAsserts: false,
+      bool nullSafety: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
+            nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             packageConfig: packageConfig);
@@ -380,6 +388,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool suppressWarnings: false,
     bool enableAsserts: false,
+    bool nullSafety: false,
     List<String> experimentalFlags: null,
     bool bytecode: false,
     String packageConfig: null,
@@ -411,6 +420,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
           isolateId, fileSystem, platformKernelPath,
           suppressWarnings: suppressWarnings,
           enableAsserts: enableAsserts,
+          nullSafety: nullSafety,
           experimentalFlags: experimentalFlags,
           bytecode: bytecode,
           packageConfig: packageConfig);
@@ -613,7 +623,8 @@ Future _processLoadRequest(request) async {
   final String inputFileUri = request[2];
   final Uri script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
-  bool incremental = request[4];
+  final bool incremental = request[4];
+  final bool nullSafety = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
@@ -680,6 +691,7 @@ Future _processLoadRequest(request) async {
         isolateId, sourceFiles, platformKernelPath, platformKernel,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
+        nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig,
@@ -693,6 +705,7 @@ Future _processLoadRequest(request) async {
         requireMain: false,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
+        nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig);
@@ -841,7 +854,7 @@ Future trainInternal(
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    true /* strong */,
+    false /* null safety */,
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,

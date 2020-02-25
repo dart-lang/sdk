@@ -826,7 +826,7 @@ bool CompileType::IsAssignableTo(NNBDMode mode, const AbstractType& other) {
   const AbstractType& compile_type = *ToAbstractType();
 
   if (compile_type.IsNullType()) {
-    if (!FLAG_strong_non_nullable_type_checks) {
+    if (!FLAG_null_safety) {
       // In weak mode, 'null' is assignable to any type.
       return true;
     }

@@ -717,7 +717,7 @@
           "--null-safety"
         ],
         "vm-options": [
-          "--strong-non-nullable-type-checks"
+          "--null-safety"
         ]
       }
     },
@@ -730,7 +730,7 @@
           "--null-safety"
         ],
         "vm-options": [
-          "--strong-non-nullable-type-checks"
+          "--null-safety"
         ]
       }
     },
@@ -744,7 +744,7 @@
           "--null-safety"
         ],
         "vm-options": [
-          "--strong-non-nullable-type-checks"
+          "--null-safety"
         ]
       }
     },

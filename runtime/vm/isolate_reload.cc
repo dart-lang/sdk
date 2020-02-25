@@ -2074,7 +2074,7 @@ class FieldInvalidator {
 
   DART_FORCE_INLINE
   void CheckValueType(const Instance& value, const Field& field) {
-    if (!FLAG_strong_non_nullable_type_checks && value.IsNull()) {
+    if (!FLAG_null_safety && value.IsNull()) {
       return;
     }
     type_ = field.type();
