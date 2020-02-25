@@ -13,8 +13,6 @@ import 'package:args/args.dart';
 import 'package:path/path.dart';
 
 const String analysisOptionsFileOption = 'options';
-const String bazelAnalysisOptionsPath =
-    'package:dart.analysis_options/default.yaml';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 @deprecated

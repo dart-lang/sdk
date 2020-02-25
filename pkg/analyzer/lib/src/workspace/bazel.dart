@@ -148,7 +148,8 @@ class BazelPackageUriResolver extends UriResolver {
 /**
  * Information about a Bazel workspace.
  */
-class BazelWorkspace extends Workspace {
+class BazelWorkspace extends Workspace
+    implements WorkspaceWithDefaultAnalysisOptions {
   static const String _WORKSPACE = 'WORKSPACE';
   static const String _READONLY = 'READONLY';
 

@@ -71,3 +71,15 @@ abstract class WorkspacePackage {
     }
   }
 }
+
+/**
+ * An interface for a workspace that contains a default analysis options file.
+ * Classes that provide information of such a workspace should implement this
+ * interface.
+ */
+class WorkspaceWithDefaultAnalysisOptions {
+  /**
+   * The uri for the analysis options file.
+   */
+  static const String uri = 'package:dart.analysis_options/default.yaml';
+}
