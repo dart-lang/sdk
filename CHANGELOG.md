@@ -1,5 +1,6 @@
-# 0.1.111
+# 0.1.111+1
 
+* new lint: `use_raw_strings`
 * new lint: `unnecessary_raw_strings`
 * new lint: `avoid_escaping_inner_quotes`
 * new lint: `unnecessary_string_escapes`
