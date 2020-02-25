@@ -236,6 +236,7 @@ general/issue39344: TextSerializationFailure
 general/issue39421: TextSerializationFailure
 general/issue39817: TextSerializationFailure
 general/issue40428: TextSerializationFailure
+general/issue40662: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
