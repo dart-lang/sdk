@@ -4367,6 +4367,31 @@ int? f() => null;
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40728')
+  Future<void> test_soft_edge_for_assigned_variable() async {
+    var content = '''
+void f(int i) {
+  print(i + 1);
+  i = null;
+  print(i);
+}
+main() {
+  f(0);
+}
+''';
+    var expected = '''
+void f(int? i) {
+  print(i! + 1);
+  i = null;
+  print(i);
+}
+main() {
+  f(0);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_tearoff_parameter_matching_named() async {
     var content = '''
 void f(int x, void Function({int x}) callback) {
