@@ -272,6 +272,29 @@ class DecoratedType implements DecoratedTypeInfo {
   @override
   DecoratedTypeInfo positionalParameter(int i) => positionalParameters[i];
 
+  /// Updates the [roles] map with information about the nullability nodes
+  /// pointed to by this decorated type.
+  ///
+  /// Each entry stored in [roles] maps the role of the node to the node itself.
+  /// Roles look like pathnames, where each path component is an integer to
+  /// represent a type argument (or a positional parameter type, in the case of
+  /// a function type), an name to represent a named parameter type, or `@r` to
+  /// represent a return type.
+  void recordRoles(Map<String, NullabilityNode> roles,
+      {String rolePrefix = ''}) {
+    roles[rolePrefix] = node;
+    returnType?.recordRoles(roles, rolePrefix: '$rolePrefix/@r');
+    for (int i = 0; i < positionalParameters.length; i++) {
+      positionalParameters[i].recordRoles(roles, rolePrefix: '$rolePrefix/$i');
+    }
+    for (var entry in namedParameters.entries) {
+      entry.value.recordRoles(roles, rolePrefix: '$rolePrefix/${entry.key}');
+    }
+    for (int i = 0; i < typeArguments.length; i++) {
+      typeArguments[i].recordRoles(roles, rolePrefix: '$rolePrefix/$i');
+    }
+  }
+
   /// Apply the given [substitution] to this type.
   ///
   /// [undecoratedResult] is the result of the substitution, as determined by
