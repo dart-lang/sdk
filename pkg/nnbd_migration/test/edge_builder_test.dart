@@ -2657,6 +2657,18 @@ extension E on String {}
     // metadata was visited.
   }
 
+  Future<void> test_field_initialized_in_constructor() async {
+    await analyze('''
+class C {
+  int i;
+  C() : i = 0;
+}
+''');
+    // There is no edge from always to the type of i, because it is initialized
+    // in the constructor.
+    assertNoEdge(always, decoratedTypeAnnotation('int').node);
+  }
+
   Future<void> test_field_metadata() async {
     await analyze('''
 class A {
@@ -2669,6 +2681,15 @@ class C {
 ''');
     // No assertions needed; the AnnotationTracker mixin verifies that the
     // metadata was visited.
+  }
+
+  Future<void> test_field_static_implicitInitializer() async {
+    await analyze('''
+class C {
+  static int i;
+}
+''');
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   Future<void> test_field_type_inferred() async {
@@ -4052,6 +4073,17 @@ main() {
     var xType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
+  }
+
+  Future<void> test_localVariable_unused() async {
+    await analyze('''
+main() {
+  int i;
+}
+''');
+    // There is no edge from always to the type of `i`, because `i` is never
+    // used, so it's ok that it's not initialized.
+    assertNoEdge(always, decoratedTypeAnnotation('int').node);
   }
 
   Future<void> test_method_parameterType_inferred() async {
@@ -6757,6 +6789,11 @@ main() { x = null; }
 ''');
     var setXType = decoratedTypeAnnotation('int value');
     assertEdge(inSet(alwaysPlus), setXType.node, hard: false);
+  }
+
+  Future<void> test_topLevelVar_implicitInitializer() async {
+    await analyze('int i;');
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   Future<void> test_topLevelVar_metadata() async {

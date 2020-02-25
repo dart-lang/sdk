@@ -499,7 +499,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         for (var member in members)
           if (member is FieldDeclaration)
             for (var field in member.fields.variables)
-              if (field.initializer == null)
+              if (!field.declaredElement.isStatic && field.initializer == null)
                 field.declaredElement as FieldElement
       };
       if (_currentClassOrExtension is ClassElement &&
@@ -1584,7 +1584,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         assert(_flowAnalysis != null);
       }
       try {
-        if (initializer != null) {
+        if (initializer == null) {
+          // For top level variables and static fields, we have to generate an
+          // implicit assignment of `null`.  For instance fields, this is done
+          // when processing constructors.  For local variables, this is done
+          // when processing variable reads (only if flow analysis indicates
+          // the variable isn't definitely assigned).
+          if (isTopLevel &&
+              !(declaredElement is FieldElement && !declaredElement.isStatic)) {
+            var type = _variables.decoratedElementType(declaredElement);
+            _graph.makeNullable(
+                type.node, ImplicitNullInitializerOrigin(source, node));
+          }
+        } else {
           if (declaredElement is PromotableElement) {
             _flowAnalysis.initialize(declaredElement);
           }

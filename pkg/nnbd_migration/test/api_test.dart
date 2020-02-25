@@ -1631,7 +1631,7 @@ void main() {
 class C<T> {
   T Function(String)? f;
 }
-int Function(String) f1; // should not have a nullable return
+int Function(String)? f1; // should not have a nullable return
 void main() {
   C<int?> c;
   c.f = f1;
@@ -1655,11 +1655,11 @@ void main() {
 ''';
     var expected = '''
 typedef F<T> = int Function(T);
-F<String?> f1;
+F<String?>? f1;
 
 void main() {
-  f1(null); // induce exact nullability
-  int Function(String) f2 = f1; // shouldn't have a nullable arg
+  f1!(null); // induce exact nullability
+  int Function(String)? f2 = f1; // shouldn't have a nullable arg
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1678,9 +1678,9 @@ void main() {
 ''';
     var expected = '''
 typedef F<T> = T Function(String);
-int Function(String) f1; // should not have a nullable return
+int Function(String)? f1; // should not have a nullable return
 void main() {
-  F<int?> f2 = f1;
+  F<int?>? f2 = f1;
   f2 = (_) => null; // exact nullability induced here
 }
 ''';
@@ -5252,6 +5252,62 @@ class C {
   int j;
   C.one(this.i) : j = i! + 1;
   C.two() : i = null, j = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_uninitialized_instance_field_is_nullable() async {
+    var content = '''
+class C {
+  int i;
+  f() {
+    print(i == null);
+  }
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  f() {
+    print(i == null);
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_uninitialized_static_field_is_nullable() async {
+    var content = '''
+class C {
+  static int i;
+  f() {
+    print(i == null);
+  }
+}
+''';
+    var expected = '''
+class C {
+  static int? i;
+  f() {
+    print(i == null);
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_uninitialized_toplevel_var_is_nullable() async {
+    var content = '''
+int i;
+f() {
+  print(i == null);
+}
+''';
+    var expected = '''
+int? i;
+f() {
+  print(i == null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

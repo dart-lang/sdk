@@ -136,6 +136,7 @@ enum EdgeOriginKind {
   greatestLowerBound,
   ifNull,
   implicitMixinSuperCall,
+  implicitNullInitializer,
   initializerInference,
   instanceCreation,
   instantiateToBounds,
