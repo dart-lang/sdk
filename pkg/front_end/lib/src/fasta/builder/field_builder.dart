@@ -582,7 +582,9 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
-      const <ClassMember>[];
+      fieldBuilder.isAssignable
+          ? <ClassMember>[new SourceFieldMember(fieldBuilder)]
+          : const <ClassMember>[];
 }
 
 class SourceFieldMember extends BuilderClassMember {
@@ -914,9 +916,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) {
-    return _lateSetter == null
-        ? const <ClassMember>[]
-        : <ClassMember>[new _LateFieldClassMember(fieldBuilder, _lateSetter)];
+    List<ClassMember> list = <ClassMember>[];
+    if (_lateIsSetField != null) {
+      list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField));
+    }
+    if (_lateSetter != null) {
+      list.add(new _LateFieldClassMember(fieldBuilder, _lateSetter));
+    }
+    return list;
   }
 }
 
