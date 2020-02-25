@@ -92,7 +92,7 @@ foo4(Tracer tracer) async* {
 }
 
 runTest(test, expectedTrace, expectedError, shouldCancel) {
-  Tracer tracer = new Tracer(expectedTrace, expectedTrace);
+  Tracer tracer = new Tracer(expectedTrace);
   Completer done = new Completer();
   var subscription;
   subscription = test(tracer).listen((event) async {
