@@ -7835,8 +7835,7 @@ bool Function::IsSubtypeOf(NNBDMode mode,
     return false;
   }
   // Check the type parameters and bounds of generic functions.
-  if (!HasSameTypeParametersAndBounds(other,
-                                      TypeEquality::kSubtypeNullability)) {
+  if (!HasSameTypeParametersAndBounds(other, TypeEquality::kInSubtypeTest)) {
     return false;
   }
   Thread* thread = Thread::Current();
@@ -18367,31 +18366,8 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
     if (other.IsTypeParameter()) {
       const TypeParameter& other_type_param = TypeParameter::Cast(other);
       if (type_param.IsEquivalent(other_type_param,
-                                  TypeEquality::kSubtypeNullability)) {
+                                  TypeEquality::kInSubtypeTest)) {
         return true;
-      }
-      if (type_param.IsFunctionTypeParameter() &&
-          other_type_param.IsFunctionTypeParameter() &&
-          type_param.IsFinalized() && other_type_param.IsFinalized()) {
-        // To be compatible, the function type parameters should be declared
-        // at the same position in the generic function. Their index therefore
-        // needs adjustement before comparison.
-        // Example: 'foo<F>(bar<B>(B b)) { }' and 'baz<Z>(Z z) { }', baz can
-        // be assigned to bar, although B has index 1 and Z index 0.
-        const Function& sig_fun =
-            Function::Handle(zone, type_param.parameterized_function());
-        const Function& other_sig_fun =
-            Function::Handle(zone, other_type_param.parameterized_function());
-        const int offset = sig_fun.NumParentTypeParameters();
-        const int other_offset = other_sig_fun.NumParentTypeParameters();
-        if (type_param.index() - offset ==
-            other_type_param.index() - other_offset) {
-          if (FLAG_strong_non_nullable_type_checks && type_param.IsNullable() &&
-              other_type_param.IsNonNullable()) {
-            return false;
-          }
-          return true;
-        }
       }
     }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
@@ -18810,29 +18786,27 @@ bool Type::IsEquivalent(const Instance& other,
   if (type_class_id() != other_type.type_class_id()) {
     return false;
   }
-  if (kind != TypeEquality::kIgnoreNullability) {
-    Nullability this_type_nullability = nullability();
-    Nullability other_type_nullability = other_type.nullability();
-    if (kind == TypeEquality::kSubtypeNullability) {
-      if (FLAG_strong_non_nullable_type_checks &&
-          this_type_nullability == Nullability::kNullable &&
-          other_type_nullability == Nullability::kNonNullable) {
-        return false;
+  Nullability this_type_nullability = nullability();
+  Nullability other_type_nullability = other_type.nullability();
+  if (kind == TypeEquality::kInSubtypeTest) {
+    if (FLAG_strong_non_nullable_type_checks &&
+        this_type_nullability == Nullability::kNullable &&
+        other_type_nullability == Nullability::kNonNullable) {
+      return false;
+    }
+  } else {
+    if (kind == TypeEquality::kSyntactical) {
+      if (this_type_nullability == Nullability::kLegacy) {
+        this_type_nullability = Nullability::kNonNullable;
+      }
+      if (other_type_nullability == Nullability::kLegacy) {
+        other_type_nullability = Nullability::kNonNullable;
       }
     } else {
-      if (kind == TypeEquality::kSyntactical) {
-        if (this_type_nullability == Nullability::kLegacy) {
-          this_type_nullability = Nullability::kNonNullable;
-        }
-        if (other_type_nullability == Nullability::kLegacy) {
-          other_type_nullability = Nullability::kNonNullable;
-        }
-      } else {
-        ASSERT(kind == TypeEquality::kCanonical);
-      }
-      if (this_type_nullability != other_type_nullability) {
-        return false;
-      }
+      ASSERT(kind == TypeEquality::kCanonical);
+    }
+    if (this_type_nullability != other_type_nullability) {
+      return false;
     }
   }
   if (!IsFinalized() || !other_type.IsFinalized()) {
@@ -18936,7 +18910,7 @@ bool Type::IsEquivalent(const Instance& other,
   // Check the result type.
   param_type = sig_fun.result_type();
   other_param_type = other_sig_fun.result_type();
-  if (!param_type.Equals(other_param_type)) {
+  if (!param_type.IsEquivalent(other_param_type, kind)) {
     return false;
   }
   // Check the types of all parameters.
@@ -18945,7 +18919,8 @@ bool Type::IsEquivalent(const Instance& other,
   for (intptr_t i = 0; i < num_params; i++) {
     param_type = sig_fun.ParameterTypeAt(i);
     other_param_type = other_sig_fun.ParameterTypeAt(i);
-    if (!param_type.IsEquivalent(other_param_type, kind)) {
+    // Use contravariant order in case we test for subtyping.
+    if (!other_param_type.IsEquivalent(param_type, kind)) {
       return false;
     }
   }
@@ -19519,42 +19494,66 @@ bool TypeParameter::IsEquivalent(const Instance& other,
     return false;
   }
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
+  // Class type parameters must parameterize the same class to be equivalent.
+  // Note that this check will also reject a class type parameter being compared
+  // to a function type parameter.
   if (parameterized_class_id() != other_type_param.parameterized_class_id()) {
     return false;
   }
-  // The function doesn't matter in type tests, but it does in canonicalization.
-  if (parameterized_function() != other_type_param.parameterized_function()) {
+  // The function does not matter in type tests or when comparing types with
+  // syntactical equality, but it does matter in canonicalization.
+  if (kind == TypeEquality::kCanonical &&
+      parameterized_function() != other_type_param.parameterized_function()) {
     return false;
   }
-  if (kind != TypeEquality::kIgnoreNullability) {
-    Nullability this_type_param_nullability = nullability();
-    Nullability other_type_param_nullability = other_type_param.nullability();
-    if (kind == TypeEquality::kSubtypeNullability) {
-      if (FLAG_strong_non_nullable_type_checks &&
-          this_type_param_nullability == Nullability::kNullable &&
-          other_type_param_nullability == Nullability::kNonNullable) {
-        return false;
+  Nullability this_type_param_nullability = nullability();
+  Nullability other_type_param_nullability = other_type_param.nullability();
+  if (kind == TypeEquality::kInSubtypeTest) {
+    if (FLAG_strong_non_nullable_type_checks &&
+        this_type_param_nullability == Nullability::kNullable &&
+        (other_type_param_nullability == Nullability::kNonNullable ||
+         other_type_param_nullability == Nullability::kUndetermined)) {
+      return false;
+    }
+  } else {
+    if (kind == TypeEquality::kSyntactical) {
+      if (this_type_param_nullability == Nullability::kLegacy ||
+          this_type_param_nullability == Nullability::kUndetermined) {
+        this_type_param_nullability = Nullability::kNonNullable;
+      }
+      if (other_type_param_nullability == Nullability::kLegacy ||
+          other_type_param_nullability == Nullability::kUndetermined) {
+        other_type_param_nullability = Nullability::kNonNullable;
       }
     } else {
-      if (kind == TypeEquality::kSyntactical) {
-        if (this_type_param_nullability == Nullability::kLegacy ||
-            this_type_param_nullability == Nullability::kUndetermined) {
-          this_type_param_nullability = Nullability::kNonNullable;
-        }
-        if (other_type_param_nullability == Nullability::kLegacy ||
-            other_type_param_nullability == Nullability::kUndetermined) {
-          other_type_param_nullability = Nullability::kNonNullable;
-        }
-      } else {
-        ASSERT(kind == TypeEquality::kCanonical);
-      }
-      if (this_type_param_nullability != other_type_param_nullability) {
-        return false;
-      }
+      ASSERT(kind == TypeEquality::kCanonical);
+    }
+    if (this_type_param_nullability != other_type_param_nullability) {
+      return false;
     }
   }
+  if (kind == TypeEquality::kInSubtypeTest) {
+    if (IsFunctionTypeParameter() && IsFinalized() &&
+        other_type_param.IsFinalized()) {
+      ASSERT(other_type_param.IsFunctionTypeParameter());  // Checked above.
+      // To be equivalent, the function type parameters should be declared
+      // at the same position in the generic function. Their index therefore
+      // needs adjustement before comparison.
+      // Example: 'foo<F>(bar<B>(B b)) { }' and 'baz<Z>(Z z) { }', baz can
+      // be assigned to bar, although B has index 1 and Z index 0.
+      const Function& sig_fun = Function::Handle(parameterized_function());
+      const Function& other_sig_fun =
+          Function::Handle(other_type_param.parameterized_function());
+      const int offset = sig_fun.NumParentTypeParameters();
+      const int other_offset = other_sig_fun.NumParentTypeParameters();
+      return index() - offset == other_type_param.index() - other_offset;
+    } else if (IsFinalized() == other_type_param.IsFinalized()) {
+      return index() == other_type_param.index();
+    }
+    return false;
+  }
   if (IsFinalized() == other_type_param.IsFinalized()) {
-    return (index() == other_type_param.index());
+    return index() == other_type_param.index();
   }
   return name() == other_type_param.name();
 }

@@ -381,11 +381,12 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
     if ((pending_type.raw() != type.raw()) && pending_type.IsType() &&
         (pending_type.type_class() == type_cls.raw())) {
       pending_arguments = pending_type.arguments();
-      // By using TypeEquality::kIgnoreNullability, we throw a wider net and
-      // may reject more problematic declarations.
+      // By using TypeEquality::kInSubtypeTest, we throw a wider net than
+      // using canonical or syntactical equality and may reject more
+      // problematic declarations.
       if (!pending_arguments.IsSubvectorEquivalent(
               arguments, first_type_param, num_type_params,
-              TypeEquality::kIgnoreNullability) &&
+              TypeEquality::kInSubtypeTest) &&
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
@@ -399,11 +400,12 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
                           NNBDMode::kLegacyLib, Object::null_type_arguments(),
                           Object::null_type_arguments(), kNoneFree, NULL,
                           Heap::kNew));
-        // By using TypeEquality::kIgnoreNullability, we throw a wider net and
-        // may reject more problematic declarations.
+        // By using TypeEquality::kInSubtypeTest, we throw a wider net than
+        // using canonical or syntactical equality and may reject more
+        // problematic declarations.
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
                 instantiated_arguments, first_type_param, num_type_params,
-                TypeEquality::kIgnoreNullability)) {
+                TypeEquality::kInSubtypeTest)) {
           const String& type_name = String::Handle(zone, type.Name());
           ReportError(cls, type.token_pos(), "illegal recursive type '%s'",
                       type_name.ToCString());

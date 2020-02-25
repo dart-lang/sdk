@@ -885,8 +885,7 @@ enum class Nullability : int8_t {
 enum class TypeEquality {
   kCanonical = 0,
   kSyntactical = 1,
-  kSubtypeNullability = 2,
-  kIgnoreNullability = 3,
+  kInSubtypeTest = 2,
 };
 
 // The NNBDMode is passed to routines performing type reification and/or subtype
