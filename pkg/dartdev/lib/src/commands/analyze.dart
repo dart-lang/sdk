@@ -14,7 +14,15 @@ import 'analyze_impl.dart';
 
 class AnalyzeCommand extends DartdevCommand<int> {
   AnalyzeCommand({bool verbose = false})
-      : super('analyze', "Analyze the project's Dart code.");
+      : super('analyze', "Analyze the project's Dart code.") {
+    argParser
+      ..addFlag('fatal-infos',
+          help: 'Treat infos as fatal.', defaultsTo: false, negatable: false)
+      ..addFlag('fatal-warnings',
+          help: 'Treat non-type warnings as fatal.',
+          defaultsTo: true,
+          negatable: true);
+  }
 
   @override
   String get invocation => '${super.invocation} [<directory>]';
@@ -76,12 +84,16 @@ class AnalyzeCommand extends DartdevCommand<int> {
 
       log.stdout('');
 
+      bool hasErrors = false;
+      bool hasWarnings = false;
+      bool hasInfos = false;
+
       for (final AnalysisError error in errors) {
         // error • Message ... at path.dart:line:col • (code)
 
         var filePath = path.relative(error.file, from: dir.path);
         var severity = error.severity.toLowerCase().padLeft(7);
-        if (error.severity == 'ERROR') {
+        if (error.isError) {
           severity = log.ansi.error(severity);
         }
 
@@ -91,6 +103,10 @@ class AnalyzeCommand extends DartdevCommand<int> {
           'at $filePath:${error.startLine}:${error.startColumn} $bullet '
           '(${error.code})',
         );
+
+        hasErrors |= error.isError;
+        hasWarnings |= error.isWarning;
+        hasInfos |= error.isInfo;
       }
 
       log.stdout('');
@@ -98,9 +114,22 @@ class AnalyzeCommand extends DartdevCommand<int> {
       final errorCount = errors.length;
       log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
 
-      // TODO(jwren) revisit the error code returned here, consider what the
-      //  analyzer_cli does to distinguish return values of [0 .. 3]
-      return 1;
+      // Return an error code in the range [0-3] dependent on the severity of
+      // the issue(s) found.
+      if (hasErrors) {
+        return 3;
+      }
+
+      bool fatalWarnings = argResults['fatal-warnings'];
+      bool fatalInfos = argResults['fatal-infos'];
+
+      if (fatalWarnings && hasWarnings) {
+        return 2;
+      } else if (fatalInfos && hasInfos) {
+        return 1;
+      } else {
+        return 0;
+      }
     } else {
       log.stdout('No issues found!');
       return 0;

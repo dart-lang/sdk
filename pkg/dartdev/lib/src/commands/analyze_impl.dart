@@ -197,6 +197,12 @@ class AnalysisError implements Comparable<AnalysisError> {
   _AnalysisSeverity get _severityLevel =>
       _severityMap[severity] ?? _AnalysisSeverity.none;
 
+  bool get isInfo => _severityLevel == _AnalysisSeverity.info;
+
+  bool get isWarning => _severityLevel == _AnalysisSeverity.warning;
+
+  bool get isError => _severityLevel == _AnalysisSeverity.error;
+
   String get type => json['type'] as String;
 
   String get message => json['message'] as String;

@@ -7,12 +7,23 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('analyze', defineAnalyze);
+  group('analyze', defineAnalyze, timeout: defaultTimeout);
 }
 
-String _analyzeDescriptionText = 'Analyze the project\'s Dart code.';
+const String _analyzeDescriptionText = "Analyze the project's Dart code.";
 
-String _analyzeUsageText = 'Usage: dart analyze [arguments] [<directory>]';
+const String _analyzeUsageText =
+    'Usage: dart analyze [arguments] [<directory>]';
+
+const String _warningDartCodeSnippet = '''
+  enum E { e1, e2 }
+  void f(E e) {
+    switch (e) {
+    case E.e1:
+      break;
+    }
+  }
+  ''';
 
 void defineAnalyze() {
   TestProject p;
@@ -74,9 +85,9 @@ void defineAnalyze() {
     p = project(mainSrc: "int get foo => 'str';\n");
     var result = p.runSync('analyze', [p.dirPath]);
 
-    expect(result.exitCode, 1);
+    expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("A value of type 'String'"));
+    expect(result.stdout, contains("A value of type "));
     expect(result.stdout, contains("lib/main.dart:1:16 "));
     expect(result.stdout, contains("return_of_invalid_type"));
     expect(result.stdout, contains("1 issue found."));
@@ -86,8 +97,59 @@ void defineAnalyze() {
     p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
     var result = p.runSync('analyze', [p.dirPath]);
 
-    expect(result.exitCode, 1);
+    expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains("2 issues found."));
+  });
+
+  test('warning --fatal-warnings', () {
+    p = project(mainSrc: _warningDartCodeSnippet);
+    var result = p.runSync('analyze', ['--fatal-warnings', p.dirPath]);
+
+    //TODO(jwren) Once http://dartbug.com/40768 is resolved, this assertion
+    //  should be exitCode == 2, not greater than 0:
+    expect(result.exitCode, greaterThan(0));
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains("1 issue found."));
+  });
+
+  test('warning implicit --fatal-warnings', () {
+    p = project(mainSrc: _warningDartCodeSnippet);
+    var result = p.runSync('analyze', [p.dirPath]);
+
+    //TODO(jwren) Once http://dartbug.com/40768 is resolved, this assertion
+    //  should be exitCode == 2, not greater than 0:
+    expect(result.exitCode, greaterThan(0));
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains("1 issue found."));
+  });
+
+  test('warning --no-fatal-warnings', () {
+    p = project(mainSrc: _warningDartCodeSnippet);
+    var result = p.runSync('analyze', ['--no-fatal-warnings', p.dirPath]);
+
+    //TODO(jwren) Once http://dartbug.com/40768 is resolved, this assertion
+    //  should be exitCode == 0:
+    // expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains("1 issue found."));
+  });
+
+  test('info implicit no --fatal-infos', () {
+    p = project(mainSrc: "String foo() {}");
+    var result = p.runSync('analyze', [p.dirPath]);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains("1 issue found."));
+  });
+
+  test('info --fatal-infos', () {
+    p = project(mainSrc: "String foo() {}");
+    var result = p.runSync('analyze', ['--fatal-infos', p.dirPath]);
+
+    expect(result.exitCode, 1);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains("1 issue found."));
   });
 }

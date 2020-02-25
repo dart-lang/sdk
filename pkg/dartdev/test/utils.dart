@@ -5,6 +5,9 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
+
+Timeout defaultTimeout = Timeout(Duration(seconds: 15));
 
 TestProject project({String mainSrc}) => TestProject(mainSrc: mainSrc);
 
