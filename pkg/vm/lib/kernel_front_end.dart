@@ -25,6 +25,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         FileSystem,
         FileSystemEntity,
         FileSystemException,
+        NnbdMode,
         ProcessedOptions,
         Severity,
         StandardFileSystem,
@@ -103,6 +104,10 @@ void declareCompilerOptions(ArgParser args) {
       help: 'The values for the environment constants (e.g. -Dkey=value).');
   args.addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false);
+  args.addFlag('null-safety',
+      help:
+          'Respect the nullability of types at runtime in casts and instance checks.',
+      defaultsTo: false);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -161,6 +166,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
+  final bool nullSafety = options['null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final List<String> experimentalFlags = options['enable-experiment'];
@@ -223,6 +229,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
+    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }

@@ -713,8 +713,11 @@
         "enable-experiment": [
           "non-nullable"
         ],
+        "gen-kernel-options": [
+          "--null-safety"
+        ],
         "vm-options": [
-          "--strong-non-nullable-typechecks"
+          "--strong-non-nullable-type-checks"
         ]
       }
     },
@@ -723,8 +726,11 @@
         "enable-experiment": [
           "non-nullable"
         ],
+        "gen-kernel-options": [
+          "--null-safety"
+        ],
         "vm-options": [
-          "--strong-non-nullable-typechecks"
+          "--strong-non-nullable-type-checks"
         ]
       }
     },
@@ -734,8 +740,11 @@
         "enable-experiment": [
           "non-nullable"
         ],
+        "gen-kernel-options": [
+          "--null-safety"
+        ],
         "vm-options": [
-          "--strong-non-nullable-typechecks"
+          "--strong-non-nullable-type-checks"
         ]
       }
     },
