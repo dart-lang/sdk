@@ -1196,11 +1196,21 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_unknown_at_top() {
-    _initialize("class A;");
+    const String testSdk = """
+      class A;
+      class Pair<X, Y>;
+    """;
+    _initialize(testSdk);
 
     expect(
         env.isSubtypeOf(toType("A*"), new UnknownType(),
             SubtypeCheckMode.ignoringNullabilities),
+        isTrue);
+    expect(
+        env.isSubtypeOf(
+            toType("Pair<A*, Null>*"),
+            toType("Pair<unknown, unknown>*"),
+            SubtypeCheckMode.withNullabilities),
         isTrue);
   }
 

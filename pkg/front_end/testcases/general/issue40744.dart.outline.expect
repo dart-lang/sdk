@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::Map<core::String*, dynamic>* generatorConfigDefaultJson = const <core::String*, dynamic>{"a": 1};
+static method helper(core::Map<core::String*, dynamic>* input) → void
+  ;
+static method main() → void
+  ;

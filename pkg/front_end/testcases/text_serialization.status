@@ -237,6 +237,7 @@ general/issue39421: TextSerializationFailure
 general/issue39817: TextSerializationFailure
 general/issue40428: TextSerializationFailure
 general/issue40662: TextSerializationFailure
+general/issue40744: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
@@ -1226,7 +1227,6 @@ late_lowering/override: TextSerializationFailure
 late_lowering/override_getter_setter: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
-nnbd/from_agnostic/from_agnostic: TextSerializationFailure
 nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/bounds_checks: TextSerializationFailure
@@ -1237,6 +1237,7 @@ nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
+nnbd/from_agnostic/from_agnostic: TextSerializationFailure
 nnbd/function_types: TextSerializationFailure
 nnbd/generic_override: TextSerializationFailure
 nnbd/infer_from_opt_in: TextSerializationFailure
