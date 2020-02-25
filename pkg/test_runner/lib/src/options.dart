@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:smith/smith.dart';
 import 'package:test_runner/src/test_configurations.dart';
+import 'package:path/path.dart' as path;
 
 import 'configuration.dart';
 import 'path.dart';
@@ -993,3 +994,23 @@ class OptionParseException implements Exception {
 void _fail(String message) {
   throw OptionParseException(message);
 }
+
+// Returns a map of environment variables to be used with sanitizers.
+final Map<String, String> sanitizerEnvironmentVariables = (() {
+  final environment = <String, String>{};
+  final testMatrixFile = "tools/bots/test_matrix.json";
+  final config = json.decode(File(testMatrixFile).readAsStringSync());
+  config['sanitizer_options'].forEach((String key, dynamic value) {
+    environment[key] = value as String;
+  });
+  var symbolizerPath =
+      config['sanitizer_symbolizer'][Platform.operatingSystem] as String;
+  if (symbolizerPath != null) {
+    symbolizerPath = path.join(Directory.current.path, symbolizerPath);
+    environment['ASAN_SYMBOLIZER_PATH'] = symbolizerPath;
+    environment['MSAN_SYMBOLIZER_PATH'] = symbolizerPath;
+    environment['TSAN_SYMBOLIZER_PATH'] = symbolizerPath;
+  }
+
+  return environment;
+})();

@@ -532,9 +532,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   static RwLock* isolate_groups_rwlock_;
   static IntrusiveDList<IsolateGroup>* isolate_groups_;
+  static Random* isolate_group_random_;
 
-  static Random isolate_group_random_;
-  uint64_t id_ = isolate_group_random_.NextUInt64();
+  uint64_t id_ = 0;
 
   std::unique_ptr<SharedClassTable> shared_class_table_;
   std::unique_ptr<StoreBuffer> store_buffer_;

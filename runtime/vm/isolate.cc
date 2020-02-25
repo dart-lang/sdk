@@ -235,6 +235,10 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       shared_class_table_(new SharedClassTable()),
       store_buffer_(new StoreBuffer()),
       heap_(nullptr) {
+  {
+    WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
+    id_ = isolate_group_random_->NextUInt64();
+  }
 }
 
 IsolateGroup::~IsolateGroup() {
@@ -566,9 +570,12 @@ void IsolateGroup::Init() {
   isolate_groups_rwlock_ = new RwLock();
   ASSERT(isolate_groups_ == nullptr);
   isolate_groups_ = new IntrusiveDList<IsolateGroup>();
+  isolate_group_random_ = new Random();
 }
 
 void IsolateGroup::Cleanup() {
+  delete isolate_group_random_;
+  isolate_group_random_ = nullptr;
   delete isolate_groups_rwlock_;
   isolate_groups_rwlock_ = nullptr;
   ASSERT(isolate_groups_->IsEmpty());
@@ -2365,7 +2372,7 @@ Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
 Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
 
-Random IsolateGroup::isolate_group_random_ = {};
+Random* IsolateGroup::isolate_group_random_ = nullptr;
 Monitor* Isolate::isolate_creation_monitor_ = nullptr;
 intptr_t Isolate::application_isolates_count_ = 0;
 intptr_t Isolate::total_isolates_count_ = 0;

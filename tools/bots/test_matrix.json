@@ -1378,21 +1378,13 @@
           "arguments": [
             "--sanitizer=asan",
             "runtime"
-          ],
-          "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-asan-linux-release-${arch}"
-          ],
-          "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         }
       ]
     },
@@ -1420,21 +1412,13 @@
           "arguments": [
             "--sanitizer=lsan",
             "runtime"
-          ],
-          "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-lsan-linux-release-${arch}"
-          ],
-          "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         }
       ]
     },
@@ -1461,21 +1445,13 @@
           "arguments": [
             "--sanitizer=msan",
             "runtime"
-          ],
-          "environment": {
-            "MSAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "MSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-msan-linux-release-${arch}"
-          ],
-          "environment": {
-            "MSAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "MSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         }
       ]
     },
@@ -1502,21 +1478,13 @@
           "arguments": [
             "--sanitizer=tsan",
             "runtime"
-          ],
-          "environment": {
-            "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
-            "TSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-tsan-linux-release-${arch}"
-          ],
-          "environment": {
-            "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
-            "TSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         }
       ]
     },
@@ -1544,19 +1512,13 @@
           "arguments": [
             "--sanitizer=ubsan",
             "runtime"
-          ],
-          "environment": {
-            "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-ubsan-linux-release-${arch}"
-          ],
-          "environment": {
-            "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
-          }
+          ]
         }
       ]
     },
@@ -3496,5 +3458,15 @@
         }
       ]
     }
-  ]
+  ],
+  "sanitizer_options": {
+    "ASAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
+    "MSAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
+    "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
+    "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
+  },
+  "sanitizer_symbolizer": {
+    "linux": "buildtools/linux-x64/clang/bin/llvm-symbolizer",
+    "macos": "buildtools/mac-x64/clang/bin/llvm-symbolizer"
+  }
 }

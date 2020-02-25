@@ -4,6 +4,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import io
+import json
 import multiprocessing
 import optparse
 import os
@@ -312,10 +314,10 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     return (build_config, command, using_goma)
 
 
-def RunOneBuildCommand(build_config, args):
+def RunOneBuildCommand(build_config, args, env):
     start_time = time.time()
     print(' '.join(args))
-    process = subprocess.Popen(args, stdin=None)
+    process = subprocess.Popen(args, env=env, stdin=None)
     process.wait()
     if process.returncode != 0:
         NotifyBuildDone(build_config, success=False, start=start_time)
@@ -326,15 +328,31 @@ def RunOneBuildCommand(build_config, args):
     return 0
 
 
-def RunOneGomaBuildCommand(args):
+def RunOneGomaBuildCommand(options):
+    (env, args) = options
     try:
         print(' '.join(args))
-        process = subprocess.Popen(args, stdin=None)
+        process = subprocess.Popen(args, env=env, stdin=None)
         process.wait()
         print(' '.join(args) + " done.")
         return process.returncode
     except KeyboardInterrupt:
         return 1
+
+
+def SanitizerEnvironmentVariables():
+    with io.open('tools/bots/test_matrix.json', encoding='utf-8') as fd:
+        config = json.loads(fd.read())
+        env = dict()
+        for k, v in config['sanitizer_options'].items():
+            env[str(k)] = str(v)
+        symbolizer_path = config['sanitizer_symbolizer'].get(HOST_OS, None)
+        if symbolizer_path:
+            symbolizer_path = str(os.path.join(DART_ROOT, symbolizer_path))
+            env['ASAN_SYMBOLIZER_PATH'] = symbolizer_path
+            env['MSAN_SYMBOLIZER_PATH'] = symbolizer_path
+            env['TSAN_SYMBOLIZER_PATH'] = symbolizer_path
+        return env
 
 
 def Main():
@@ -354,6 +372,12 @@ def Main():
     if not GenerateBuildfilesIfNeeded():
         return 1
 
+    # If binaries are built with sanitizers we should use those flags.
+    # If the binaries are not built with sanitizers the flag should have no
+    # effect.
+    env = dict(os.environ)
+    env.update(SanitizerEnvironmentVariables())
+
     # Build all targets for each requested configuration.
     configs = []
     for target_os in options.os:
@@ -370,8 +394,8 @@ def Main():
         if args is None:
             return 1
         if goma:
-            goma_builds.append(args)
-        elif RunOneBuildCommand(build_config, args) != 0:
+            goma_builds.append([env, args])
+        elif RunOneBuildCommand(build_config, args, env=env) != 0:
             return 1
 
     # Run goma builds in parallel.

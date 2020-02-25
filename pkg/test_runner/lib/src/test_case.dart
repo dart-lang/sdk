@@ -12,6 +12,7 @@ import "package:status_file/expectation.dart";
 import 'command.dart';
 import 'command_output.dart';
 import 'configuration.dart';
+import 'options.dart';
 import 'output_log.dart';
 import 'process_queue.dart';
 import 'test_file.dart';
@@ -381,8 +382,8 @@ class RunningProcess {
   }
 
   Map<String, String> _createProcessEnvironment() {
-    var environment = Map<String, String>.from(io.Platform.environment);
-
+    final environment = Map<String, String>.from(io.Platform.environment);
+    environment.addAll(sanitizerEnvironmentVariables);
     if (command.environmentOverrides != null) {
       for (var key in command.environmentOverrides.keys) {
         environment[key] = command.environmentOverrides[key];

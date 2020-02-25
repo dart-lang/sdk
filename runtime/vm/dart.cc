@@ -208,8 +208,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   Timeline::Init();
   TimelineBeginEndScope tbes(Timeline::GetVMStream(), "Dart::Init");
 #endif
-  Isolate::InitVM();
   IsolateGroup::Init();
+  Isolate::InitVM();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
