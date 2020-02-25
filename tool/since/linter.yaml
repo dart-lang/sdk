@@ -14,6 +14,7 @@ avoid_classes_with_only_static_members: 0.1.31
 avoid_double_and_int_checks: 0.1.47
 avoid_empty_else: 0.1.8
 avoid_equals_and_hash_code_on_mutable_classes : 0.1.97
+avoid_escaping_inner_quotes: 0.1.111
 avoid_field_initializers_in_const_classes: 0.1.48
 avoid_function_literals_in_foreach_calls: 0.1.30
 avoid_implementing_value_types: 0.1.62
@@ -146,7 +147,9 @@ unnecessary_null_aware_assignments: 0.1.30
 unnecessary_null_in_if_null_operators: 0.1.30
 unnecessary_overrides: 0.1.31
 unnecessary_parenthesis: 0.1.44
+unnecessary_raw_strings : 0.1.111
 unnecessary_statements: 0.1.36
+unnecessary_string_escapes : 0.1.111
 unnecessary_string_interpolations : 0.1.110
 unnecessary_this: 0.1.30
 unrelated_type_equality_checks: 0.1.16
@@ -154,6 +157,7 @@ unsafe_html : 0.1.90
 use_full_hex_values_for_flutter_colors: 0.1.80
 use_function_type_syntax_for_parameters: 0.1.72
 use_key_in_widget_constructors : 0.1.108
+use_raw_strings : 0.1.111
 use_rethrow_when_possible: 0.1.31
 use_setters_to_change_properties: 0.1.31
 use_string_buffers: 0.1.31
