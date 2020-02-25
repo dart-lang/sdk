@@ -12,15 +12,16 @@ if [ "$LINTER_BOT" = "release" ]; then
   echo "Validating release..."
   dart tool/bot/version_check.dart
 
-elif [ "$LINTER_BOT" = "score" ]; then
-
-  # Scorecard generation is best effort; don't fail the build.
-  set +e
-  echo ""
-  echo ""
-  echo "Generating scorecard..."
-  echo ""
-  dart tool/scorecard.dart
+# https://github.com/dart-lang/linter/issues/2014
+#elif [ "$LINTER_BOT" = "score" ]; then
+#
+#  # Scorecard generation is best effort; don't fail the build.
+#  set +e
+#  echo ""
+#  echo ""
+#  echo "Generating scorecard..."
+#  echo ""
+#  dart tool/scorecard.dart
 
 elif [ "$LINTER_BOT" = "benchmark" ]; then
   echo "Running the linter benchmark..."
