@@ -32,7 +32,13 @@ class RunningIsolate implements MessageRouter {
 
     // If we've received approval to resume from all clients who care, clear
     // approval state and resume.
-    final pauseType = await _isolatePauseType(service, portId.toString());
+    var pauseType;
+    try {
+      pauseType = await _isolatePauseType(service, portId.toString());
+    } catch (_errorResponse) {
+      // ignore errors when attempting to retrieve isolate pause type
+      return;
+    }
     if (pauseType != kInvalidPauseEvent &&
         _shouldResume(service, null, pauseType)) {
       _resumeApprovalsByName.clear();
@@ -74,9 +80,15 @@ class RunningIsolate implements MessageRouter {
       ..params.addAll({
         'isolateId': isolateId,
       });
-    final result =
-        (await routeRequest(service, getIsolateMessage)).decodeJson();
-    final pauseEvent = result['result']['pauseEvent'];
+    final Response result = await routeRequest(service, getIsolateMessage);
+    final resultJson = result.decodeJson();
+    if (resultJson['result'] == null ||
+        resultJson['result']['pauseEvent'] == null) {
+      // Failed to send getIsolate message(due to isolate being de-registered
+      // for example).
+      throw result;
+    }
+    final pauseEvent = resultJson['result']['pauseEvent'];
     const pauseEvents = <String, int>{
       'PauseStart': kPauseOnStartMask,
       'PausePostRequest': kPauseOnReloadMask,
@@ -90,8 +102,12 @@ class RunningIsolate implements MessageRouter {
       VMService service, Message message) async {
     // If we've received approval to resume from all clients who care, clear
     // approval state and resume.
-    final pauseType =
-        await _isolatePauseType(service, message.params['isolateId']);
+    var pauseType;
+    try {
+      pauseType = await _isolatePauseType(service, message.params['isolateId']);
+    } catch (errorResponse) {
+      return errorResponse;
+    }
     if (pauseType == kInvalidPauseEvent ||
         _shouldResume(service, message.client, pauseType)) {
       _resumeApprovalsByName.clear();
