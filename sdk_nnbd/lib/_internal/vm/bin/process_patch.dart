@@ -248,7 +248,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     _arguments = [
       for (int i = 0; i < arguments.length; i++)
         Platform.isWindows
-            ? _windowsArgumentEscape(_arguments[i])
+            ? _windowsArgumentEscape(arguments[i])
             : arguments[i],
     ];
 
