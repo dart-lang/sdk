@@ -807,7 +807,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
     }
 
-    return new Args<Type>(args, names: names, unknownArity: true);
+    return new Args<Type>(args, names: names);
   }
 
   TypeExpr _visit(TreeNode node) => node.accept(this);
