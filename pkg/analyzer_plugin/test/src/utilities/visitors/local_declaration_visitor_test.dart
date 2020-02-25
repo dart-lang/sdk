@@ -2,14 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,16 +17,7 @@ void main() {
 @reflectiveTest
 class LocalDeclarationVisitorTest {
   CompilationUnit parseCompilationUnit(String content) {
-    AnalysisErrorListener listener = AnalysisErrorListener.NULL_LISTENER;
-    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
-    Scanner scanner = Scanner(null, CharSequenceReader(content), listener)
-      ..configureFeatures(featureSet);
-    Token token = scanner.tokenize();
-    var source = StringSource(content, '/test.dart');
-    Parser parser = Parser(source, listener, featureSet: featureSet);
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    expect(unit, isNotNull);
-    return unit;
+    return parseString(content: content).unit;
   }
 
   void test_visitForEachStatement() {
