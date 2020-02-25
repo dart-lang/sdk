@@ -1226,6 +1226,7 @@ late_lowering/override: TextSerializationFailure
 late_lowering/override_getter_setter: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
+nnbd/from_agnostic/from_agnostic: TextSerializationFailure
 nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/bounds_checks: TextSerializationFailure

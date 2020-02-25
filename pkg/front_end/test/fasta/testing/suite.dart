@@ -176,10 +176,13 @@ class TestOptions {
 
 class LinkDependenciesOptions {
   final Set<Uri> content;
+  final bool nnbdAgnosticMode;
   Component component;
   String errors;
 
-  LinkDependenciesOptions(this.content) : assert(content != null);
+  LinkDependenciesOptions(this.content, {this.nnbdAgnosticMode})
+      : assert(content != null),
+        assert(nnbdAgnosticMode != null);
 }
 
 class FastaContext extends ChainContext with MatchContext {
@@ -386,18 +389,24 @@ class FastaContext extends ChainContext with MatchContext {
       File optionsFile =
           new File.fromUri(directory.uri.resolve('link.options'));
       Set<Uri> content = new Set<Uri>();
+      bool nnbdAgnosticMode = false;
       if (optionsFile.existsSync()) {
         for (String line in optionsFile.readAsStringSync().split('\n')) {
           line = line.trim();
           if (line.isEmpty) continue;
-          File f = new File.fromUri(description.uri.resolve(line));
-          if (!f.existsSync()) {
-            throw new UnsupportedError("No file found: $f ($line)");
+          if (line.startsWith(Flags.nnbdAgnosticMode)) {
+            nnbdAgnosticMode = true;
+          } else {
+            File f = new File.fromUri(description.uri.resolve(line));
+            if (!f.existsSync()) {
+              throw new UnsupportedError("No file found: $f ($line)");
+            }
+            content.add(f.uri);
           }
-          content.add(f.uri);
         }
       }
-      linkDependenciesOptions = new LinkDependenciesOptions(content);
+      linkDependenciesOptions = new LinkDependenciesOptions(content,
+          nnbdAgnosticMode: nnbdAgnosticMode);
       _linkDependencies[directory.uri] = linkDependenciesOptions;
     }
     return linkDependenciesOptions;
@@ -555,34 +564,44 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     LinkDependenciesOptions linkDependenciesOptions =
         context.computeLinkDependenciesOptions(description);
     TestOptions testOptions = context.computeTestOptions(description);
-    ProcessedOptions options = new ProcessedOptions(
-        options: new CompilerOptions()
-          ..onDiagnostic = (DiagnosticMessage message) {
-            if (errors.isNotEmpty) {
-              errors.write("\n\n");
+    Map<ExperimentalFlag, bool> experimentalFlags =
+        testOptions.computeExperimentalFlags(context.experimentalFlags);
+    NnbdMode nnbdMode = context.weak
+        ? NnbdMode.Weak
+        : (testOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
+    List<Uri> inputs = <Uri>[description.uri];
+
+    ProcessedOptions createProcessedOptions(NnbdMode nnbdMode) {
+      return new ProcessedOptions(
+          options: new CompilerOptions()
+            ..onDiagnostic = (DiagnosticMessage message) {
+              if (errors.isNotEmpty) {
+                errors.write("\n\n");
+              }
+              errors.writeAll(message.plainTextFormatted, "\n");
             }
-            errors.writeAll(message.plainTextFormatted, "\n");
-          }
-          ..environmentDefines = {}
-          ..experimentalFlags =
-              testOptions.computeExperimentalFlags(context.experimentalFlags)
-          ..performNnbdChecks = testOptions.forceNnbdChecks
-          ..nnbdMode = context.weak
-              ? NnbdMode.Weak
-              : (testOptions.nnbdAgnosticMode
-                  ? NnbdMode.Agnostic
-                  : NnbdMode.Strong)
-          ..librariesSpecificationUri = librariesSpecificationUri,
-        inputs: <Uri>[description.uri]);
+            ..environmentDefines = {}
+            ..experimentalFlags = experimentalFlags
+            ..performNnbdChecks = testOptions.forceNnbdChecks
+            ..nnbdMode = nnbdMode
+            ..librariesSpecificationUri = librariesSpecificationUri,
+          inputs: inputs);
+    }
 
     // Disable colors to ensure that expectation files are the same across
     // platforms and independent of stdin/stderr.
     colors.enableColors = false;
 
+    ProcessedOptions options = createProcessedOptions(nnbdMode);
+
     if (linkDependenciesOptions.content.isNotEmpty &&
         linkDependenciesOptions.component == null) {
       // Compile linked dependency.
-      await CompilerContext.runWithOptions(options, (_) async {
+      ProcessedOptions linkOptions = options;
+      if (linkDependenciesOptions.nnbdAgnosticMode) {
+        linkOptions = createProcessedOptions(NnbdMode.Agnostic);
+      }
+      await CompilerContext.runWithOptions(linkOptions, (_) async {
         KernelTarget sourceTarget = await outlineInitialization(context,
             description, testOptions, linkDependenciesOptions.content.toList());
         if (linkDependenciesOptions.errors != null) {

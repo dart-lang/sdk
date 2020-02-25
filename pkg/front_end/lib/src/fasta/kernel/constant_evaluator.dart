@@ -547,9 +547,12 @@ class ConstantsTransformer extends Transformer {
     final Member target = node.target;
     if (target is Field && target.isConst) {
       // Make sure the initializer is evaluated first.
+      StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+      _staticTypeContext = new StaticTypeContext(target, typeEnvironment);
       target.initializer =
           evaluateAndTransformWithContext(target, target.initializer)
             ..parent = target;
+      _staticTypeContext = oldStaticTypeContext;
       if (shouldInline(target.initializer)) {
         return evaluateAndTransformWithContext(node, node);
       }
@@ -1848,9 +1851,19 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       final Member target = node.target;
       if (target is Field) {
         if (target.isConst) {
-          return runInsideContext(target, () {
-            return _evaluateSubexpression(target.initializer);
+          StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+          _staticTypeContext = new StaticTypeContext(target, typeEnvironment);
+          Constant constant = runInsideContext(target, () {
+            Constant constant = _evaluateSubexpression(target.initializer);
+            if (_staticTypeContext.nonNullableByDefaultCompiledMode ==
+                    NonNullableByDefaultCompiledMode.Agnostic &&
+                evaluationMode == EvaluationMode.weak) {
+              constant = _weakener.visitConstant(constant) ?? constant;
+            }
+            return constant;
           });
+          _staticTypeContext = oldStaticTypeContext;
+          return constant;
         }
         return report(
             node,

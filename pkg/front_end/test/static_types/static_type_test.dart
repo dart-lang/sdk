@@ -24,6 +24,8 @@ main(List<String> args) async {
       skipMap: {
         defaultCfeConfig.marker: [
           // NNBD-only tests.
+          'constant_from_opt_in',
+          'constant_from_opt_out',
           'from_opt_in',
           'from_opt_out',
           'if_null.dart',
