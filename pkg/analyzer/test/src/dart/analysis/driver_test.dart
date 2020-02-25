@@ -2200,7 +2200,7 @@ import 'b.dart';
   }
 
   test_parseFileSync_languageVersion() async {
-    var path = '/test/lib/test.dart';
+    var path = convertPath('/test/lib/test.dart');
 
     newFile(path, content: r'''
 // @dart = 2.7
@@ -2214,7 +2214,7 @@ class A {}
   }
 
   test_parseFileSync_languageVersion_null() async {
-    var path = '/test/lib/test.dart';
+    var path = convertPath('/test/lib/test.dart');
 
     newFile(path, content: r'''
 class A {}
