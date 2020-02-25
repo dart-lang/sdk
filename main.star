@@ -12,6 +12,11 @@
 DART_GIT = "https://dart.googlesource.com/sdk"
 DART_GERRIT = "https://dart-review.googlesource.com/sdk"
 
+GOMA_RBE = {
+    "enable_ats": True,
+    "server_host": "rbe-prod1.endpoints.goma-rbe-non-chromium.cloud.goog"
+}
+
 RELEASE_CHANNELS = ["dev", "stable"]
 CHANNELS = RELEASE_CHANNELS + ["try"]
 ANALYZER_CHANNELS = ["analyzer-stable"] + CHANNELS
@@ -306,6 +311,8 @@ def dart_try_builder(name,
     dimensions.setdefault("host_class", "default")
     dimensions.setdefault("cpu", "x86-64")
     properties.setdefault("clobber", "true")
+    if dimensions["os"] == "Linux":
+        properties.setdefault("$build/goma", GOMA_RBE)
     builder = name + "-try"
 
     luci.builder(
@@ -374,6 +381,8 @@ def dart_builder(name,
     dimensions.setdefault("pool", "luci.dart.try")
     dimensions["cpu"] = cpu
     properties.setdefault("clobber", "true")
+    if dimensions["os"] == "Linux":
+        properties.setdefault("$build/goma", GOMA_RBE)
 
     def builder(channel=None, triggered_by=None):
         if channel == "try":
