@@ -1261,7 +1261,8 @@ class Namer extends ModularNamer {
       return _proposeNameForMember(element.function) + r'$body';
     } else if (element.enclosingClass != null) {
       ClassEntity enclosingClass = element.enclosingClass;
-      return '${enclosingClass.name}_${element.name}';
+      return '${enclosingClass.name}_${element.name}'
+          .replaceAll(_nonIdentifierRE, '_');
     }
     return element.name.replaceAll(_nonIdentifierRE, '_');
   }
