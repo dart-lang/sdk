@@ -1,3 +1,10 @@
+# 0.1.111
+
+* new lint: `unnecessary_raw_strings`
+* new lint: `avoid_escaping_inner_quotes`
+* new lint: `unnecessary_string_escapes`
+* incompatible rule documentation improvements
+
 # 0.1.110
 
 * fixed flutter web plugin detection in `avoid_web_libraries_in_flutter`
