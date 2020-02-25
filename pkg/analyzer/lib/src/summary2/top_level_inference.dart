@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:meta/meta.dart';
 
 DartType _dynamicIfNull(DartType type) {
   if (type == null || type.isBottom || type.isDartCoreNull) {
@@ -399,7 +400,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    _resolveInitializer();
+    _resolveInitializer(forDependencies: true);
 
     var collector = _InferenceDependenciesCollector();
     _node.initializer.accept(collector);
@@ -427,7 +428,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   void evaluate() {
-    _resolveInitializer();
+    _resolveInitializer(forDependencies: false);
 
     if (LazyAst.getType(_node) == null) {
       var initializerType = _node.initializer.staticType;
@@ -458,9 +459,13 @@ class _VariableInferenceNode extends _InferenceNode {
     isEvaluated = true;
   }
 
-  void _resolveInitializer() {
+  void _resolveInitializer({@required bool forDependencies}) {
     var astResolver = AstResolver(_walker._linker, _unitElement, _scope);
-    astResolver.flowAnalysis?.topLevelDeclaration_enter(_node, null, null);
-    astResolver.resolve(_node.initializer, () => _node.initializer);
+    astResolver.resolve(
+      _node.initializer,
+      () => _node.initializer,
+      buildElements: forDependencies,
+      isTopLevelVariableInitializer: true,
+    );
   }
 }

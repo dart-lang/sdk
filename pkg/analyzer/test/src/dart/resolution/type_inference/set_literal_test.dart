@@ -267,7 +267,7 @@ var a = <num>{};
 }
 
 @reflectiveTest
-class SetLiteralWithNnbdTest extends DriverResolutionTest {
+class SetLiteralWithNnbdTest extends SetLiteralTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.fromEnableFlags(
