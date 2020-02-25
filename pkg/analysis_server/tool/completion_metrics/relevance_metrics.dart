@@ -71,9 +71,6 @@ class RelevanceData {
   /// A table mapping element kinds to counts by context.
   Map<String, Map<String, int>> byElementKind = {};
 
-  /// A table mapping AST node classes to counts by context.
-  Map<String, Map<String, int>> byNodeClass = {};
-
   /// A table mapping token types to counts by context.
   Map<String, Map<String, int>> byTokenType = {};
 
@@ -97,7 +94,6 @@ class RelevanceData {
   void addDataFrom(RelevanceData data) {
     _addToMap(byDistance, data.byDistance);
     _addToMap(byElementKind, data.byElementKind);
-    _addToMap(byNodeClass, data.byNodeClass);
     _addToMap(byTokenType, data.byTokenType);
     _addToMap(byTypeMatch, data.byTypeMatch);
   }
@@ -117,17 +113,6 @@ class RelevanceData {
     var contextMap = byElementKind.putIfAbsent(context, () => {});
     var key = kind.name;
     contextMap[key] = (contextMap[key] ?? 0) + 1;
-  }
-
-  /// Record that an element of the given [node] was found in the given
-  /// [context].
-  void recordNodeClass(String context, AstNode node) {
-    var contextMap = byNodeClass.putIfAbsent(context, () => {});
-    var className = node.runtimeType.toString();
-    if (className.endsWith('Impl')) {
-      className = className.substring(0, className.length - 4);
-    }
-    contextMap[className] = (contextMap[className] ?? 0) + 1;
   }
 
   /// Record information about the distance between recurring tokens.
@@ -155,7 +140,6 @@ class RelevanceData {
       'version': currentVersion,
       'byDistance': byDistance,
       'byElementKind': byElementKind,
-      'byNodeClass': byNodeClass,
       'byTokenType': byTokenType,
       'byTypeMatch': byTypeMatch,
     });
@@ -206,7 +190,6 @@ class RelevanceData {
     }
     _decodeMap(byDistance, contentObject['byDistance']);
     _decodeMap(byElementKind, contentObject['byElementKind']);
-    _decodeMap(byNodeClass, contentObject['byNodeClass']);
     _decodeMap(byTokenType, contentObject['byTokenType']);
     _decodeMap(byTypeMatch, contentObject['byTypeMatch']);
   }
@@ -447,7 +430,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitCommentReference(CommentReference node) {
     void recordDataForCommentReference(String context, AstNode node) {
       _recordElementKind(context, node);
-      _recordNodeClass(context, node);
       _recordTokenType(context, node);
     }
 
@@ -663,7 +645,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForElement(ForElement node) {
-    _recordNodeClass('ForElement (parts)', node.forLoopParts);
     _recordTokenType('ForElement (parts)', node.forLoopParts);
     _recordDataForNode('ForElement (body)', node.body);
     super.visitForElement(node);
@@ -702,7 +683,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
-    _recordNodeClass('ForElement (parts)', node.forLoopParts);
     _recordTokenType('ForElement (parts)', node.forLoopParts);
     _recordDataForNode('ForElement (body)', node.body,
         allowedKeywords: statementKeywords);
@@ -1433,7 +1413,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void _recordDataForNode(String context, AstNode node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
-    _recordNodeClass(context, node);
     _recordReferenceDepth(node);
     _recordTokenDistance(node);
     _recordTokenType(context, node, allowedKeywords: allowedKeywords);
@@ -1532,13 +1511,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           }
         }
       }
-    }
-  }
-
-  /// Record the class of the [node] in the given [context].
-  void _recordNodeClass(String context, AstNode node) {
-    if (node != null) {
-      data.recordNodeClass(context, node);
     }
   }
 
@@ -1765,10 +1737,8 @@ class RelevanceMetricsComputer {
   /// Write a report of the metrics that were computed to the [sink].
   void writeMetrics(StringSink sink) {
     sink.writeln('');
-    _writeSideBySide(
-        sink,
-        [data.byTokenType, data.byElementKind, data.byNodeClass],
-        ['Token Types', 'Element Kinds', 'Node Classes']);
+    _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
+        ['Token Types', 'Element Kinds']);
     sink.writeln('');
     sink.writeln('Type relationships');
     _writeContextMap(sink, data.byTypeMatch);
