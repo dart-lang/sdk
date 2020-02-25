@@ -650,9 +650,7 @@
     "dartkp-win-debug-x64": {
       "options": {
         "use-elf": true,
-        "vm-options": [
-          "--no-enable-malloc-hooks"
-        ]
+        "vm-options": []
       }
     },
     "dartkp-(linux|mac)-(product|release)-x64": {},
@@ -666,15 +664,12 @@
     },
     "dartkp-(linux|mac)-debug-x64": {
       "options": {
-        "vm-options": [
-          "--no-enable-malloc-hooks"
-        ]
+        "vm-options": []
       }
     },
     "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "vm-options": [
-          "--no-enable-malloc-hooks",
           "--no-use-bare-instructions"
         ]
       }
@@ -682,7 +677,6 @@
     "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "vm-options": [
-          "--no-enable-malloc-hooks",
           "--no-use-bare-instructions"
         ],
         "use-elf": true
