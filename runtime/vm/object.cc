@@ -7476,7 +7476,7 @@ bool Function::AreValidArguments(NNBDMode mode,
                               num_named_arguments, error_message)) {
     return false;
   }
-  if (mode != NNBDMode::kLegacyLib) {
+  if (FLAG_null_safety) {
     // TODO(regis): Check required named arguments.
   }
   // Verify that all argument names are valid parameter names.
@@ -7844,6 +7844,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other,
     return false;
   }
   if (num_type_params > 0) {
+    const NNBDMode mode = nnbd_mode();  // TODO(regis): Remove unused mode.
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, type_parameters());
     ASSERT(!type_params.IsNull());
@@ -7861,8 +7862,16 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other,
       ASSERT(bound.IsFinalized());
       other_bound = other_type_param.bound();
       ASSERT(other_bound.IsFinalized());
-      if (!bound.IsEquivalent(other_bound, kind)) {
-        return false;
+      if (Dart::non_nullable_flag() && kind == TypeEquality::kInSubtypeTest) {
+        // Bounds that are mutual subtypes are considered equal.
+        if (!bound.IsSubtypeOf(mode, other_bound, Heap::kOld) ||
+            !other_bound.IsSubtypeOf(mode, bound, Heap::kOld)) {
+          return false;
+        }
+      } else {
+        if (!bound.IsEquivalent(other_bound, kind)) {
+          return false;
+        }
       }
     }
   }
@@ -17575,6 +17584,7 @@ bool Instance::NullIsInstanceOf(
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
   // TODO(regis): Verify that the nullability of an instantiated FutureOr
   // always matches the nullability of its type argument. For now, be safe.
+  // Also see issue #40123.
   AbstractType& type = AbstractType::Handle(other.UnwrapFutureOr());
   Nullability nullability = type.nullability();
   if (nullability == Nullability::kNullable) {
@@ -17981,6 +17991,55 @@ RawAbstractType* AbstractType::SetInstantiatedNullability(
   ASSERT(IsTypeRef());
   return AbstractType::Handle(TypeRef::Cast(*this).type())
       .SetInstantiatedNullability(type_param, space);
+}
+
+RawAbstractType* AbstractType::NormalizeInstantiatedType() const {
+  if (Dart::non_nullable_flag()) {
+    // Normalize FutureOr<T>.
+    if (IsFutureOrType()) {
+      const AbstractType& unwrapped_type =
+          AbstractType::Handle(UnwrapFutureOr());
+      const classid_t cid = unwrapped_type.type_class_id();
+      if (cid == kDynamicCid || cid == kVoidCid || cid == kInstanceCid) {
+        return unwrapped_type.raw();
+      }
+      if (cid == kNeverCid && IsNonNullable()) {
+        ObjectStore* object_store = Isolate::Current()->object_store();
+        if (object_store->non_nullable_future_never_type() == Type::null()) {
+          const Class& cls = Class::Handle(object_store->future_class());
+          ASSERT(!cls.IsNull());
+          const TypeArguments& type_args =
+              TypeArguments::Handle(TypeArguments::New(1));
+          type_args.SetTypeAt(0, never_type());
+          Type& type =
+              Type::Handle(Type::New(cls, type_args, TokenPosition::kNoSource,
+                                     Nullability::kNonNullable));
+          type.SetIsFinalized();
+          type ^= type.Canonicalize();
+          object_store->set_non_nullable_future_never_type(type);
+        }
+        return object_store->non_nullable_future_never_type();
+      }
+      if (cid == kNullCid) {
+        ObjectStore* object_store = Isolate::Current()->object_store();
+        if (object_store->nullable_future_null_type() == Type::null()) {
+          const Class& cls = Class::Handle(object_store->future_class());
+          ASSERT(!cls.IsNull());
+          const TypeArguments& type_args =
+              TypeArguments::Handle(TypeArguments::New(1));
+          Type& type = Type::Handle(object_store->null_type());
+          type_args.SetTypeAt(0, type);
+          type = Type::New(cls, type_args, TokenPosition::kNoSource,
+                           Nullability::kNullable);
+          type.SetIsFinalized();
+          type ^= type.Canonicalize();
+          object_store->set_nullable_future_null_type(type);
+        }
+        return object_store->nullable_future_null_type();
+      }
+    }
+  }
+  return raw();
 }
 
 bool AbstractType::IsInstantiated(Genericity genericity,
@@ -18395,20 +18454,29 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
                                Heap::Space space) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
-  // Right top type or left bottom type.
+  // Reflexivity.
+  if (raw() == other.raw()) {
+    return true;
+  }
+  // Right top type.
+  if (other.IsTopType()) {
+    return true;
+  }
+  // Left bottom type.
   // Any form of Never in weak mode maps to Null and Null is a bottom type in
   // weak mode. In strong mode, Never and Never* are bottom types. Therefore,
   // Never and Never* are bottom types regardless of weak/strong mode.
-  if (other.IsTopType() || (IsNeverType() && !IsNullable())) {
+  // Note that we cannot encounter Never?, as it is normalized to Null.
+  if (IsNeverType()) {
+    ASSERT(!IsNullable());
     return true;
   }
+  // Left top type.
   if (IsDynamicType() || IsVoidType()) {
     return false;
   }
-  // Left Null type, including left Never type mapped to Null.
-  // Note that we already handled Never and Never* above.
-  // Only Never? remains, which maps to Null regardless of weak/strong mode.
-  if (IsNullType() || IsNeverType()) {
+  // Left Null type.
+  if (IsNullType()) {
     // In weak mode, Null is a bottom type.
     if (!FLAG_null_safety) {
       return true;
@@ -18679,6 +18747,10 @@ RawType* Type::ToNullability(Nullability value, Heap::Space space) const {
   if (cid == kDynamicCid || cid == kVoidCid || cid == kNullCid) {
     return raw();
   }
+  if (cid == kNeverCid && value == Nullability::kNullable) {
+    // Normalize Never? to Null.
+    return Type::NullType();
+  }
   // Clone type and set new nullability.
   Type& type = Type::Handle();
   // Always cloning in old space and removing space parameter would not satisfy
@@ -18828,7 +18900,7 @@ RawAbstractType* Type::InstantiateFrom(
     }
   }
   // Canonicalization is not part of instantiation.
-  return instantiated_type.raw();
+  return instantiated_type.NormalizeInstantiatedType();
 }
 
 bool Type::IsEquivalent(const Instance& other,
@@ -19694,9 +19766,10 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     if (function_type_arguments.IsNull()) {
       return Type::DynamicType();
     }
-    const AbstractType& result =
+    AbstractType& result =
         AbstractType::Handle(function_type_arguments.TypeAt(index()));
-    return result.SetInstantiatedNullability(*this, space);
+    result = result.SetInstantiatedNullability(*this, space);
+    return result.NormalizeInstantiatedType();
   }
   ASSERT(IsClassTypeParameter());
   if (instantiator_type_arguments.IsNull()) {
@@ -19711,9 +19784,10 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     // (see AssertAssignableInstr::Canonicalize).
     return AbstractType::null();
   }
-  const AbstractType& result =
+  AbstractType& result =
       AbstractType::Handle(instantiator_type_arguments.TypeAt(index()));
-  return result.SetInstantiatedNullability(*this, space);
+  result = result.SetInstantiatedNullability(*this, space);
+  return result.NormalizeInstantiatedType();
   // There is no need to canonicalize the instantiated type parameter, since all
   // type arguments are canonicalized at type finalization time. It would be too
   // early to canonicalize the returned type argument here, since instantiation

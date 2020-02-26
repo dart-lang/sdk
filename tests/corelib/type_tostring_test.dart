@@ -55,10 +55,10 @@ void main() {
 
   // Generic non-class, non-function type.
   expect<FutureOr<int>>("FutureOr<int>");
-  expect<FutureOr<Object>>("FutureOr<Object>");
+  expect<FutureOr<Object>>("Object");
   expect<FutureOr<FutureOr<Future<Object>>>>(
       "FutureOr<FutureOr<Future<Object>>>");
-  expect<FutureOr<Null>>("FutureOr<Null>");
+  expect<FutureOr<Null>>("Future<Null>?");
   // TODO: Add nullable types with NNBD.
 
   // Private names may be mangled.

@@ -96,6 +96,8 @@ class ObjectPointerVisitor;
   RW(Field, pragma_name)                                                       \
   RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
+  RW(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
+  RW(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
   RW(Class, completer_class)                                                   \
   RW(Class, symbol_class)                                                      \
   RW(Class, one_byte_string_class)                                             \
