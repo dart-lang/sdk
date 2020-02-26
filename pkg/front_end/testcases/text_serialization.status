@@ -1293,6 +1293,7 @@ nnbd/nullable_receiver: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
 nnbd/override_checks: TextSerializationFailure
 nnbd/platform_definite_assignment/main: TextSerializationFailure
+nnbd/platform_nonnullable_fields/main: TextSerializationFailure
 nnbd/platform_optional_parameters/main: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
