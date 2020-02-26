@@ -63,7 +63,7 @@ class Heap {
     kExternal,   // Dart_NewWeakPersistentHandle
     kIdle,       // Dart_NotifyIdle
     kLowMemory,  // Dart_NotifyLowMemory
-    kDebugging,  // service request, --gc_at_instance_allocation, etc.
+    kDebugging,  // service request, etc.
   };
 
   // Pattern for unused new space and swept old space.
