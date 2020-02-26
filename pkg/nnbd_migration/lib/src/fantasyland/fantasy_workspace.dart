@@ -22,11 +22,21 @@ abstract class FantasyWorkspace {
   Future<FantasySubPackage> addPackageToWorkspace(
       FantasySubPackageSettings packageSettings, bool allowUpdate);
 
+  /// Run the dart analyzer over these packages.
+  ///
+  /// Assumes they have been migrated.
+  Future<void> analyzePackages(
+      Iterable<FantasySubPackage> subPackages,
+      Iterable<FantasySubPackage> subPackagesLibOnly,
+      String sdkPath,
+      List<String> dartanalyzerExec);
+
   /// Force-migrate these packages.
   ///
   /// All [subPackages] must be part of this workspace.  Returned future
-  /// completes when all [subPackages] have been migrated.
-  Future<void> forceMigratePackages(
+  /// completes when all [subPackages] have been migrated.  Completes with
+  /// `true` if packages needed to be migrated, `false` if skipped.
+  Future<bool> forceMigratePackages(
       Iterable<FantasySubPackage> subPackages,
       Iterable<FantasySubPackage> subPackagesLibOnly,
       String sdkPath,

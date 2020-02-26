@@ -74,7 +74,9 @@ class FantasyRepoGitImpl extends FantasyRepo {
   Future<void> _clone(SubprocessLauncher launcher) async {
     assert(_isInitialized == false);
     repoRoot.parent.create();
-    await launcher.runStreamed('git', ['init', repoRoot.path]);
+    String instance = repoSettings.name;
+    await launcher.runStreamed('git', ['init', repoRoot.path],
+        instance: instance);
     await launcher.runStreamed(
         'git',
         [
@@ -85,20 +87,21 @@ class FantasyRepoGitImpl extends FantasyRepo {
           repoSettings.branch,
           repoSettings.clone
         ],
-        workingDirectory: repoRoot.path);
+        workingDirectory: repoRoot.path,
+        instance: instance);
 
     String cloneHttp =
         repoSettings.clone.replaceFirst('$githubHost:', '$_httpGithub/');
     await launcher.runStreamed('git',
         ['remote', 'add', 'originHTTP', '-t', repoSettings.branch, cloneHttp],
-        workingDirectory: repoRoot.path);
+        workingDirectory: repoRoot.path, instance: instance);
 
     // Do not get the working directory wrong on this command or it could
     // alter a user's repository config based on the CWD, which is bad.  Other
     // commands in [FantasyRepo] will not fail silently with permanent,
     // confusing results, but this one can.
     await launcher.runStreamed('git', ['config', 'core.sparsecheckout', 'true'],
-        workingDirectory: repoRoot.path);
+        workingDirectory: repoRoot.path, instance: instance);
 
     File sparseCheckout = _external.resourceProvider.getFile(_external
         .resourceProvider.pathContext
@@ -115,7 +118,7 @@ class FantasyRepoGitImpl extends FantasyRepo {
     }
     args.addAll(['--rebase', 'originHTTP', repoSettings.revision]);
     await launcher.runStreamed('git', args,
-        workingDirectory: repoRoot.path, retries: 5);
+        workingDirectory: repoRoot.path, retries: 5, instance: instance);
   }
 
   Future<void> _update(SubprocessLauncher launcher) async {
@@ -123,7 +126,9 @@ class FantasyRepoGitImpl extends FantasyRepo {
     try {
       await launcher.runStreamed(
           'git', ['pull', '--rebase', 'originHTTP', repoSettings.revision],
-          workingDirectory: repoRoot.path, retries: 5);
+          workingDirectory: repoRoot.path,
+          retries: 5,
+          instance: repoSettings.name);
     } catch (e) {
       if (e is ProcessException) {
         throw FantasyRepoUpdateException(

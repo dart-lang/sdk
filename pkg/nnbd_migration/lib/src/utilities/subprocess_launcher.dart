@@ -20,7 +20,7 @@ import 'multi_future_tracker.dart';
 /// Maximum number of parallel subprocesses.  Use this to to avoid overloading
 /// your CPU.
 final MultiFutureTracker maxParallel =
-    MultiFutureTracker(Platform.numberOfProcessors * 2);
+    MultiFutureTracker(Platform.numberOfProcessors);
 
 /// Route all executions of pub through this [MultiFutureTracker] to avoid
 /// parallel executions of the pub command.
@@ -35,8 +35,6 @@ final RegExp quotables = RegExp(r'[ "\r\n\$]');
 class SubprocessLauncher {
   final String context;
   final Map<String, String> environmentDefaults;
-
-  String get prefix => context.isNotEmpty ? '$context: ' : '';
 
   /// From flutter:dev/tools/dartdoc.dart, modified.
   static Future<void> _printStream(Stream<List<int>> stream, Stdout output,
@@ -63,18 +61,26 @@ class SubprocessLauncher {
   ///
   /// This essentially implements a 'make -j N' limit for all subcommands.
   Future<Iterable<Map>> runStreamed(String executable, List<String> arguments,
+      // TODO(jcollins-g): Fix primitive obsession: consolidate parameters into
+      // another object.
       {String workingDirectory,
       Map<String, String> environment,
       bool includeParentEnvironment = true,
       void Function(String) perLine,
-      int retries = 0}) async {
+      int retries = 0,
+      String instance,
+      bool allowNonzeroExit = false}) async {
+    // TODO(jcollins-g): The closure wrapping we've done has made it impossible
+    // to catch exceptions when calling runStreamed.  Fix this.
     return maxParallel.runFutureFromClosure(() async {
       return retryClosure(
           () async => await runStreamedImmediate(executable, arguments,
               workingDirectory: workingDirectory,
               environment: environment,
               includeParentEnvironment: includeParentEnvironment,
-              perLine: perLine),
+              perLine: perLine,
+              instance: instance,
+              allowNonzeroExit: allowNonzeroExit),
           retries: retries);
     });
   }
@@ -94,7 +100,17 @@ class SubprocessLauncher {
       {String workingDirectory,
       Map<String, String> environment,
       bool includeParentEnvironment = true,
-      void Function(String) perLine}) async {
+      void Function(String) perLine,
+      // A tag added to [context] to construct the line prefix.
+      // Use this to indicate the process or processes with the tag
+      // share something in common, like a hostname, a package, or a
+      // multi-step procedure.
+      String instance,
+      bool allowNonzeroExit = false}) async {
+    String prefix = context.isNotEmpty
+        ? '$context${instance != null ? "-$instance" : ""}: '
+        : '';
+
     environment ??= {};
     environment.addAll(environmentDefaults);
     List<Map> jsonObjects;
@@ -177,7 +193,7 @@ class SubprocessLauncher {
     await Future.wait([stderrFuture, stdoutFuture, process.exitCode]);
 
     int exitCode = await process.exitCode;
-    if (exitCode != 0) {
+    if (exitCode != 0 && !allowNonzeroExit) {
       throw ProcessException(executable, arguments,
           "SubprocessLauncher got non-zero exitCode: $exitCode", exitCode);
     }

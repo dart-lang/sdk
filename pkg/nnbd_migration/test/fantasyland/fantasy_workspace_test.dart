@@ -22,6 +22,47 @@ class FantasyWorkspaceTest extends FilesystemTestBase {
   setUp() async {
     super.setUp();
   }
+
+  test_fantasyWorkspaceAnalyze() async {
+    FantasyWorkspace testWorkspace =
+        await FantasyWorkspaceTopLevelDevDepsImpl.buildFor(
+            'test_package',
+            ['extra_package_1', 'extra_package_2'],
+            convertPath('/fantasyland'),
+            true,
+            workspaceDependencies: workspaceDependencies);
+    await testWorkspace.analyzePackages(
+        testWorkspace.subPackages.values.where((p) => p.name == 'test_package'),
+        // We are forcing extra_package_1 to be treated as migrated with 'lib_only'
+        // for the purpose of testing.  This would not be the case in normal
+        // steamroll_ecosystem.dart runs.
+        testWorkspace.subPackages.values
+            .where((p) => p.name == 'extra_package_1'),
+        convertPath('/path/to/a/sdk'),
+        ['dart', 'really_the_analyzer.dart']);
+    verify(mockLauncher.runStreamed(
+        'dart',
+        [
+          'really_the_analyzer.dart',
+          '--enable-experiment=non-nullable',
+          '--dart-sdk=${convertPath("/path/to/a/sdk")}',
+          '.'
+        ],
+        workingDirectory: convertPath('/fantasyland/_repo/test_package'),
+        instance: 'test_package',
+        allowNonzeroExit: true));
+    verify(mockLauncher.runStreamed(
+        'dart',
+        [
+          'really_the_analyzer.dart',
+          '--enable-experiment=non-nullable',
+          '--dart-sdk=${convertPath("/path/to/a/sdk")}',
+          'lib'
+        ],
+        workingDirectory: convertPath('/fantasyland/_repo/extra_package_1'),
+        instance: 'extra_package_1',
+        allowNonzeroExit: true));
+  }
 }
 
 @reflectiveTest
@@ -53,7 +94,8 @@ class FantasyWorkspaceIntegrationTest extends FilesystemTestBase {
             'master',
             'git@github.com:dart-lang/$n.git'
           ],
-          workingDirectory: repoPath));
+          workingDirectory: repoPath,
+          instance: n));
     }
   }
 }

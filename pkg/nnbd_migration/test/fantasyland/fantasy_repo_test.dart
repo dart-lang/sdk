@@ -192,7 +192,8 @@ class FantasyRepoTest extends FilesystemTestBase {
           'master',
           'git@github.com:dart-lang/defaultCase.git'
         ],
-        workingDirectory: repoPath));
+        workingDirectory: repoPath,
+        instance: 'defaultCase'));
     verify(mockLauncher.runStreamed(
         'git',
         [
@@ -203,13 +204,14 @@ class FantasyRepoTest extends FilesystemTestBase {
           'master',
           'https://github.com/dart-lang/defaultCase.git'
         ],
-        workingDirectory: repoPath));
+        workingDirectory: repoPath,
+        instance: 'defaultCase'));
   }
 
   test_verifyWorkingDirectoryForGitConfig() async {
     await _setUpNewClone('defaultCase');
     verify(mockLauncher.runStreamed(
         'git', ['config', 'core.sparsecheckout', 'true'],
-        workingDirectory: repoPath));
+        workingDirectory: repoPath, instance: 'defaultCase'));
   }
 }

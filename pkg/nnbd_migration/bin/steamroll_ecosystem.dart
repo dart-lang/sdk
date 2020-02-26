@@ -20,20 +20,32 @@ final parser = ArgParser()
       help:
           'Try to update an existing repository in place.  Does not work for unclean repositories.')
   ..addFlag('analysis-options-hack', defaultsTo: true, negatable: true)
-  ..addFlag('strip-sdk-constraint-hack', defaultsTo: false, negatable: true)
+  ..addFlag('strip-sdk-constraint-hack', defaultsTo: true, negatable: true)
   ..addFlag('force-migrate-deps',
       defaultsTo: false,
       negatable: true,
-      help: 'Use dartfix to update all dependencies')
+      help:
+          'Use dartfix to force-update all dependencies (lib/ directory only).')
   ..addFlag('force-migrate-package',
       defaultsTo: false,
       negatable: true,
-      help: 'Use dartfix to update the base package name')
+      help: 'Use dartfix to force-update the base package (from root).')
   ..addFlag('force-migrate-extras',
       defaultsTo: false,
       negatable: true,
-      help: 'Use dartfix to update extra packages')
-  ..addOption('sdk')
+      help: 'Use dartfix to force-update extra packages (from root).')
+  ..addOption('sdk',
+      help:
+          'Use the given path to a NNBD-compliant sdk.  Required for any --force options.')
+  ..addOption('analyze-results',
+      defaultsTo: 'full',
+      allowed: ['full', 'none', 'all'],
+      allowedHelp: {
+        'full': 'Analyze only fully migrated packages',
+        'none': 'Do not analyze migrated packages',
+        'all': 'Analyze fully and partially migrated packages'
+      },
+      help: 'Use the command line analyzer to analyze migrated packages.')
   ..addFlag('help', abbr: 'h');
 
 Future<void> main(List<String> args) async {
@@ -98,12 +110,14 @@ Future<void> main(List<String> args) async {
       _showHelp('error: --sdk required with force-migrate options');
       exit(1);
     }
-    await workspace.forceMigratePackages(upgradedSubPackages,
+    if (!await workspace.forceMigratePackages(upgradedSubPackages,
         upgradedSubPackagesLibOnly, results['sdk'] as String, [
       Platform.resolvedExecutable,
       path.normalize(path.join(Platform.script.toFilePath(), '..', '..', '..',
           'dartfix', 'bin', 'dartfix.dart'))
-    ]);
+    ])) {
+      stderr.writeln('//// Everything already upgraded.');
+    }
   }
 
   if (results['strip-sdk-constraint-hack'] as bool) {
@@ -114,6 +128,20 @@ Future<void> main(List<String> args) async {
           await p.removeSdkConstraintHack();
           await workspace.rewritePackageConfigWith(p);
         }()
+    ]);
+  }
+
+  if (results['analyze-results'] != 'none') {
+    Iterable<FantasySubPackage> subPackages = upgradedSubPackages;
+    Iterable<FantasySubPackage> subPackagesLibOnly = [];
+    if (results['analyze-results'] == 'all') {
+      subPackagesLibOnly = upgradedSubPackagesLibOnly;
+    }
+    await workspace.analyzePackages(
+        subPackages, subPackagesLibOnly, results['sdk'] as String, [
+      Platform.resolvedExecutable,
+      path.normalize(path.join(Platform.script.toFilePath(), '..', '..', '..',
+          'analyzer_cli', 'bin', 'analyzer.dart'))
     ]);
   }
 }
