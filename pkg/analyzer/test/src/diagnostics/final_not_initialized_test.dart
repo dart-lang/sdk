@@ -20,6 +20,15 @@ main() {
 
 @reflectiveTest
 class FinalNotInitializedTest extends DriverResolutionTest {
+  test_class_instanceField_final_factoryConstructor_only() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int x;
+
+  factory A() => throw 0;
+}''');
+  }
+
   test_instanceField_final() async {
     await assertErrorsInCode('''
 class A {

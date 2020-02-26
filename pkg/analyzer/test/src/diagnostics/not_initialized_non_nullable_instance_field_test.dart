@@ -24,17 +24,7 @@ class NotInitializedNonNullableInstanceFieldTest extends DriverResolutionTest {
       [EnableString.non_nullable],
     );
 
-  test_constructorFieldInitializer() async {
-    await assertNoErrorsInCode('''
-class A {
-  int x;
-
-  A() : x = 0;
-}
-''');
-  }
-
-  test_factoryConstructor() async {
+  test_class_factoryConstructor() async {
     await assertNoErrorsInCode('''
 class A {
   int x = 0;
@@ -42,6 +32,37 @@ class A {
   A(this.x);
 
   factory A.named() => A(0);
+}
+''');
+  }
+
+  test_class_notNullable_factoryConstructor_only() async {
+    await assertErrorsInCode('''
+class A {
+  int x;
+
+  factory A() => throw 0;
+}
+''', [
+      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16, 1),
+    ]);
+  }
+
+  test_class_notNullable_late() async {
+    await assertNoErrorsInCode('''
+class A {
+  late int x;
+}
+''');
+  }
+
+  test_constructorFieldInitializer() async {
+    await assertNoErrorsInCode('''
+class A {
+  int x;
+
+  A() : x = 0;
 }
 ''');
   }
@@ -89,9 +110,20 @@ class B extends A {
     ]);
   }
 
-  test_late() async {
+  test_mixin_notNullable() async {
+    await assertErrorsInCode('''
+mixin M {
+  int x;
+}
+''', [
+      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          16, 1),
+    ]);
+  }
+
+  test_mixin_notNullable_late() async {
     await assertNoErrorsInCode('''
-class A {
+mixin M {
   late int x;
 }
 ''');

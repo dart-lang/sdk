@@ -2794,7 +2794,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForFinalNotInitializedInClass(List<ClassMember> members) {
     for (ClassMember classMember in members) {
       if (classMember is ConstructorDeclaration) {
-        return;
+        if (_isNonNullableByDefault) {
+          if (classMember.factoryKeyword == null) {
+            return;
+          }
+        } else {
+          return;
+        }
       }
     }
     for (ClassMember classMember in members) {
