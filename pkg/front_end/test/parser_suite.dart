@@ -209,7 +209,8 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     StringBuffer afterParserWithTypes =
         tokenStreamToString(firstToken, lineStarts, addTypes: true);
 
-    bool rewritten = beforeParser.toString() != afterParser.toString();
+    bool rewritten =
+        beforeParserWithTypes.toString() != afterParserWithTypes.toString();
     String rewrittenString =
         rewritten ? "NOTICE: Stream was rewritten by parser!\n\n" : "";
 

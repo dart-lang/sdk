@@ -2713,7 +2713,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleIndexedExpression(Token leftBracket, Token rightBracket) {
+  void handleIndexedExpression(
+      Token question, Token leftBracket, Token rightBracket) {
+    // TODO: Handle [question].
     assert(optional('[', leftBracket) ||
         (enableNonNullable && optional('?.[', leftBracket)));
     assert(optional(']', rightBracket));

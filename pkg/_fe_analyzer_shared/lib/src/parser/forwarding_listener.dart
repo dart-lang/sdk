@@ -1214,8 +1214,9 @@ class ForwardingListener implements Listener {
 
   @override
   void handleIndexedExpression(
-      Token openSquareBracket, Token closeSquareBracket) {
-    listener?.handleIndexedExpression(openSquareBracket, closeSquareBracket);
+      Token question, Token openSquareBracket, Token closeSquareBracket) {
+    listener?.handleIndexedExpression(
+        question, openSquareBracket, closeSquareBracket);
   }
 
   @override
@@ -1569,5 +1570,15 @@ class ForwardingListener implements Listener {
   @override
   void reportVarianceModifierNotEnabled(Token variance) {
     listener?.reportVarianceModifierNotEnabled(variance);
+  }
+}
+
+class NullListener extends ForwardingListener {
+  bool hasErrors = false;
+
+  @override
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    hasErrors = true;
   }
 }

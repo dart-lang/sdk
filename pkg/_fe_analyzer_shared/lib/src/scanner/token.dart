@@ -909,7 +909,7 @@ abstract class Token implements SyntacticEntity {
    * the first preceding comment token will have a lexeme of `/* one */` and
    * the next comment token will have a lexeme of `/* two */`.
    */
-  Token get precedingComments;
+  CommentToken get precedingComments;
 
   /**
    * Return the previous token in the token stream.

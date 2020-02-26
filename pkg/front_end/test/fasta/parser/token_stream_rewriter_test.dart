@@ -27,7 +27,7 @@ abstract class TokenStreamRewriterTest {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var eof = _link([a, b]);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
     var openParen = rewriter.insertParens(a, false);
     var closeParen = openParen.next;
 
@@ -48,7 +48,7 @@ abstract class TokenStreamRewriterTest {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var eof = _link([a, b]);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
     var openParen = rewriter.insertParens(a, true);
     var identifier = openParen.next;
     var closeParen = identifier.next;
@@ -74,7 +74,7 @@ abstract class TokenStreamRewriterTest {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var eof = _link([a, b]);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
     var identifier = rewriter.insertSyntheticIdentifier(a);
 
     expect(identifier.lexeme, '');
@@ -92,7 +92,7 @@ abstract class TokenStreamRewriterTest {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var eof = _link([a]);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
     expect(rewriter.insertToken(a, b), same(b));
     expect(a.next, same(b));
     expect(b.next, same(eof));
@@ -105,7 +105,7 @@ abstract class TokenStreamRewriterTest {
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
     _link([a, c]);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
     rewriter.insertToken(a, b);
     expect(a.next, same(b));
     expect(b.next, same(c));
@@ -118,7 +118,7 @@ abstract class TokenStreamRewriterTest {
     var d = _makeToken(3, 'd');
     var e = _makeToken(4, 'e');
     _link([a, c, e]);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
     rewriter.insertToken(c, d);
     expect(c.next, same(d));
     expect(d.next, same(e));
@@ -137,7 +137,7 @@ abstract class TokenStreamRewriterTest {
     Token close = open.endGroup;
     expect(close.isSynthetic, isTrue);
     expect(close.next.isEof, isTrue);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
 
     Token result = rewriter.moveSynthetic(open.next, close);
     expect(result, close);
@@ -155,7 +155,7 @@ abstract class TokenStreamRewriterTest {
     var f = _makeToken(5, 'f');
     _link([a, b, e, f]);
     _link([c, d]);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
     rewriter.replaceTokenFollowing(b, c);
     expect(a.next, same(b));
     expect(b.next, same(c));
@@ -169,7 +169,7 @@ abstract class TokenStreamRewriterTest {
     var c = _makeToken(2, 'c');
     var d = _makeToken(3, 'd');
     _link([a, b, d]);
-    var rewriter = new TokenStreamRewriter();
+    var rewriter = new TokenStreamRewriterImpl();
     rewriter.replaceTokenFollowing(a, c);
     expect(a.next, same(c));
     expect(c.next, same(d));
