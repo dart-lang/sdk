@@ -44,4 +44,36 @@ class C {
 }
 ''');
   }
+
+  Future<void> test_withAnnotation() async {
+    await resolveTestUnit('''
+class C {
+  @ann
+  const int x = 0;
+}
+const ann = 0;
+''');
+    await assertHasFix('''
+class C {
+  @ann
+  static const int x = 0;
+}
+const ann = 0;
+''');
+  }
+
+  Future<void> test_withDocComment() async {
+    await resolveTestUnit('''
+class C {
+  /// Doc comment
+  const int x = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  /// Doc comment
+  static const int x = 0;
+}
+''');
+  }
 }

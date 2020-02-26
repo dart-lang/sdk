@@ -1283,7 +1283,8 @@ class FixProcessor extends BaseProcessor {
         node.thisOrAncestorOfType<FieldDeclaration>();
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(declaration.offset, 'static ');
+      var offset = declaration.firstTokenAfterCommentAndMetadata.offset;
+      builder.addSimpleInsertion(offset, 'static ');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_STATIC);
   }
