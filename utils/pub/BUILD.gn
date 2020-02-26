@@ -7,9 +7,5 @@ import("../application_snapshot.gni")
 application_snapshot("pub") {
   main_dart = "../../third_party/pkg/pub/bin/pub.dart"
 
-  # TODO (40486) : Remove the trace option once this issue is fixed.
-  training_args = [
-    "--trace",
-    "--help",
-  ]
+  training_args = [ "--help" ]
 }
