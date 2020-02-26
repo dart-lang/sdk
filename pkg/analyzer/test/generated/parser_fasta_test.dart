@@ -13,6 +13,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
@@ -1949,7 +1950,9 @@ class FastaParserTestCase
 
   @override
   void createParser(String content,
-      {int expectedEndOffset, FeatureSet featureSet}) {
+      {int expectedEndOffset,
+      LanguageVersion languageVersion,
+      FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
     var result = scanString(content,
         configuration: featureSet.isEnabled(Feature.non_nullable)
@@ -1957,7 +1960,7 @@ class FastaParserTestCase
             : ScannerConfiguration.classic,
         includeComments: true);
     _fastaTokens = result.tokens;
-    _parserProxy = ParserProxy(_fastaTokens, featureSet,
+    _parserProxy = ParserProxy(_fastaTokens, languageVersion, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
   }
@@ -2068,7 +2071,7 @@ class FastaParserTestCase
 
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener,
-      {FeatureSet featureSet}) {
+      {LanguageVersion languageVersion, FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
     var source = StringSource(content, 'parser_test_StringSource.dart');
 
@@ -2094,8 +2097,8 @@ class FastaParserTestCase
       isNonNullableByDefault: false,
     );
     fasta.Parser parser = fasta.Parser(null);
-    AstBuilder astBuilder =
-        AstBuilder(errorReporter, source.uri, true, featureSet);
+    AstBuilder astBuilder = AstBuilder(
+        errorReporter, source.uri, true, languageVersion, featureSet);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -3357,7 +3360,8 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
-  factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
+  factory ParserProxy(analyzer.Token firstToken,
+      LanguageVersion languageVersion, FeatureSet featureSet,
       {bool allowNativeClause = false, int expectedEndOffset}) {
     TestSource source = TestSource();
     var errorListener = GatheringErrorListener(checkRanges: true);
@@ -3366,16 +3370,22 @@ class ParserProxy extends analyzer.ParserAdapter {
       source,
       isNonNullableByDefault: false,
     );
-    return ParserProxy._(
-        firstToken, errorReporter, null, errorListener, featureSet,
+    return ParserProxy._(firstToken, errorReporter, null, errorListener,
+        languageVersion, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
   }
 
-  ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
-      Uri fileUri, this._errorListener, FeatureSet featureSet,
-      {bool allowNativeClause = false, this.expectedEndOffset})
-      : super(firstToken, errorReporter, fileUri, featureSet,
+  ParserProxy._(
+      analyzer.Token firstToken,
+      ErrorReporter errorReporter,
+      Uri fileUri,
+      this._errorListener,
+      LanguageVersion languageVersion,
+      FeatureSet featureSet,
+      {bool allowNativeClause = false,
+      this.expectedEndOffset})
+      : super(firstToken, errorReporter, fileUri, languageVersion, featureSet,
             allowNativeClause: allowNativeClause) {
     _eventListener = ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;

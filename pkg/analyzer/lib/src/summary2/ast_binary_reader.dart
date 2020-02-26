@@ -365,6 +365,7 @@ class AstBinaryReader {
         directives: _readNodeList(data.compilationUnit_directives),
         declarations: _readNodeList(data.compilationUnit_declarations),
         endToken: null,
+        languageVersion: null,
         featureSet: null);
   }
 

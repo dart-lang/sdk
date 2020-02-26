@@ -1184,8 +1184,12 @@ library l;''');
     Scanner scanner = Scanner(null, reader, listener)
       ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
-    Parser parser =
-        Parser(NonExistingSource.unknown, listener, featureSet: featureSet);
+    Parser parser = Parser(
+      NonExistingSource.unknown,
+      listener,
+      languageVersion: scanner.languageVersion,
+      featureSet: featureSet,
+    );
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     listener.assertNoErrors();

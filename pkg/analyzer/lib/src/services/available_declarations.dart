@@ -1881,8 +1881,13 @@ class _File {
       ..configureFeatures(featureSet);
     var token = scanner.tokenize();
 
-    var parser =
-        Parser(source, errorListener, featureSet: featureSet, useFasta: true);
+    var parser = Parser(
+      source,
+      errorListener,
+      languageVersion: scanner.languageVersion,
+      featureSet: featureSet,
+      useFasta: true,
+    );
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);
 

@@ -142,9 +142,13 @@ class _Builder {
       ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
-    Parser parser = Parser(source, errorListener,
-        featureSet: scanner.featureSet,
-        useFasta: context.analysisOptions.useFastaParser);
+    Parser parser = Parser(
+      source,
+      errorListener,
+      languageVersion: scanner.languageVersion,
+      featureSet: scanner.featureSet,
+      useFasta: context.analysisOptions.useFastaParser,
+    );
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;

@@ -24,10 +24,11 @@ abstract class ParserAdapter implements Parser {
   final AstBuilder astBuilder;
 
   ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
-      FeatureSet featureSet,
+      LanguageVersion languageVersion, FeatureSet featureSet,
       {bool allowNativeClause = false})
       : fastaParser = fasta.Parser(null),
-        astBuilder = AstBuilder(errorReporter, fileUri, true, featureSet) {
+        astBuilder = AstBuilder(
+            errorReporter, fileUri, true, languageVersion, featureSet) {
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -378,21 +379,23 @@ class _Parser2 extends ParserAdapter {
   @override
   bool enableUriInPartOf = true;
 
-  factory _Parser2(
-      Source source, AnalysisErrorListener errorListener, FeatureSet featureSet,
+  factory _Parser2(Source source, AnalysisErrorListener errorListener,
+      LanguageVersion languageVersion, FeatureSet featureSet,
       {bool allowNativeClause = false}) {
     var errorReporter = ErrorReporter(
       errorListener,
       source,
       isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
     );
-    return _Parser2._(source, errorReporter, source.uri, featureSet,
+    return _Parser2._(
+        source, errorReporter, source.uri, languageVersion, featureSet,
         allowNativeClause: allowNativeClause);
   }
 
   _Parser2._(this._source, ErrorReporter errorReporter, Uri fileUri,
-      FeatureSet featureSet, {bool allowNativeClause = false})
-      : super(null, errorReporter, fileUri, featureSet,
+      LanguageVersion languageVersion, FeatureSet featureSet,
+      {bool allowNativeClause = false})
+      : super(null, errorReporter, fileUri, languageVersion, featureSet,
             allowNativeClause: allowNativeClause);
 
   @override
