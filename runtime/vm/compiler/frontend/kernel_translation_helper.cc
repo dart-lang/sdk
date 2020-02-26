@@ -2931,11 +2931,15 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     all_count = positional_count;
   }
 
+  const intptr_t all_count_with_receiver = all_count + 1;
   const Array& parameter_types =
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
+      Array::Handle(Z, Array::New(all_count_with_receiver, Heap::kOld));
   signature_function.set_parameter_types(parameter_types);
-  const Array& parameter_names =
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
+  const Array& parameter_names = Array::Handle(
+      Z, Array::New(simple ? all_count_with_receiver
+                           : Function::NameArrayLengthIncludingFlags(
+                                 all_count_with_receiver),
+                    Heap::kOld));
   signature_function.set_parameter_names(parameter_names);
 
   intptr_t pos = 0;
@@ -2960,11 +2964,14 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
-      // TODO(markov): Store 'required' bit.
-      helper_->ReadFlags();  // read flags
+      const uint8_t flags = helper_->ReadFlags();  // read flags
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
+      if ((flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
+        signature_function.SetIsRequiredAt(pos);
+      }
     }
+    signature_function.TruncateUnusedParameterFlags();
   }
 
   if (!simple) {
@@ -3303,10 +3310,13 @@ void TypeTranslator::SetupFunctionParameters(
         positional_parameter_count - required_parameter_count, true);
   }
   intptr_t parameter_count = extra_parameters + total_parameter_count;
+
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.set_parameter_names(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  const Array& parameter_names = Array::Handle(
+      Z, Array::New(Function::NameArrayLengthIncludingFlags(parameter_count),
+                    Heap::kOld));
+  function.set_parameter_names(parameter_names);
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
@@ -3353,7 +3363,11 @@ void TypeTranslator::SetupFunctionParameters(
 
     function.SetParameterTypeAt(pos, type);
     function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
+    if (helper.IsRequired()) {
+      function.SetIsRequiredAt(pos);
+    }
   }
+  function.TruncateUnusedParameterFlags();
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);
 

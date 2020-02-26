@@ -2510,11 +2510,28 @@ class Function : public Object {
   void set_parameter_types(const Array& value) const;
 
   // Parameter names are valid for all valid parameter indices, and are not
-  // limited to named optional parameters.
+  // limited to named optional parameters. If there are parameter flags (eg
+  // required) they're stored at the end of this array, so the size of this
+  // array isn't necessarily NumParameters(), but the first NumParameters()
+  // elements are the names.
   RawString* ParameterNameAt(intptr_t index) const;
   void SetParameterNameAt(intptr_t index, const String& value) const;
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
+
+  // The required flags are stored at the end of the parameter_names. The flags
+  // are packed into SMIs, but omitted if they're 0.
+  bool IsRequiredAt(intptr_t index) const;
+  void SetIsRequiredAt(intptr_t index) const;
+
+  // Truncate the parameter names array to remove any unused flag slots. Make
+  // sure to only do this after calling SetIsRequiredAt as necessary.
+  void TruncateUnusedParameterFlags() const;
+
+  // Returns the length of the parameter names array that is required to store
+  // all the names plus all their flags. This may be an overestimate if some
+  // parameters don't have flags.
+  static intptr_t NameArrayLengthIncludingFlags(intptr_t num_parameters);
 
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
@@ -3505,6 +3522,11 @@ class Function : public Object {
                                 const Function& other,
                                 intptr_t other_parameter_position,
                                 Heap::Space space) const;
+
+  // Returns the index in the parameter names array of the corresponding flag
+  // for the given parametere index. Also returns (via flag_mask) the
+  // corresponding mask within the flag.
+  intptr_t GetRequiredFlagIndex(intptr_t index, intptr_t* flag_mask) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;

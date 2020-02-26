@@ -869,6 +869,7 @@ void ProgramVisitor::DedupLists() {
           if (!function.HasOptionalNamedParameters() &&
               !list_.InVMIsolateHeap()) {
             // Parameter names not needed for resolution.
+            ASSERT(list_.Length() == function.NumParameters());
             for (intptr_t i = 0; i < list_.Length(); i++) {
               list_.SetAt(i, Symbols::OptimizedOut());
             }

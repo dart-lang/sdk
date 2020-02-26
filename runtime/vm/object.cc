@@ -7076,6 +7076,67 @@ void Function::set_parameter_names(const Array& value) const {
   StorePointer(&raw_ptr()->parameter_names_, value.raw());
 }
 
+intptr_t Function::NameArrayLengthIncludingFlags(intptr_t num_parameters) {
+  return num_parameters +
+         (num_parameters + compiler::target::kNumParameterFlagsPerElement - 1) /
+             compiler::target::kNumParameterFlagsPerElement;
+}
+
+intptr_t Function::GetRequiredFlagIndex(intptr_t index,
+                                        intptr_t* flag_mask) const {
+  ASSERT(index >= num_fixed_parameters());
+  index -= num_fixed_parameters();
+  *flag_mask = 1 << (index % compiler::target::kNumParameterFlagsPerElement);
+  return NumParameters() +
+         index / compiler::target::kNumParameterFlagsPerElement;
+}
+
+bool Function::IsRequiredAt(intptr_t index) const {
+  if (index < num_fixed_parameters()) {
+    return false;
+  }
+  intptr_t flag_mask;
+  const intptr_t flag_index = GetRequiredFlagIndex(index, &flag_mask);
+  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
+  if (flag_index >= parameter_names.Length()) {
+    return false;
+  }
+  RawObject* element = parameter_names.At(flag_index);
+  if (element == Object::null()) {
+    return false;
+  }
+  const intptr_t flag = Smi::Value(Smi::RawCast(element));
+  return (flag & flag_mask) != 0;
+}
+
+void Function::SetIsRequiredAt(intptr_t index) const {
+  intptr_t flag_mask;
+  const intptr_t flag_index = GetRequiredFlagIndex(index, &flag_mask);
+  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
+  ASSERT(flag_index < parameter_names.Length());
+  intptr_t flag;
+  RawObject* element = parameter_names.At(flag_index);
+  if (element == Object::null()) {
+    flag = 0;
+  } else {
+    flag = Smi::Value(Smi::RawCast(element));
+  }
+  parameter_names.SetAt(flag_index, Object::Handle(Smi::New(flag | flag_mask)));
+}
+
+void Function::TruncateUnusedParameterFlags() const {
+  // Truncate the parameter names array to remove unused flags from the end.
+  const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
+  const intptr_t num_params = NumParameters();
+  intptr_t last_required_flag = parameter_names.Length() - 1;
+  for (; last_required_flag >= num_params; --last_required_flag) {
+    if (parameter_names.At(last_required_flag) != Object::null()) {
+      break;
+    }
+  }
+  parameter_names.Truncate(last_required_flag + 1);
+}
+
 void Function::set_type_parameters(const TypeArguments& value) const {
   StorePointer(&raw_ptr()->type_parameters_, value.raw());
 }
@@ -7811,9 +7872,6 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other,
 bool Function::IsSubtypeOf(NNBDMode mode,
                            const Function& other,
                            Heap::Space space) const {
-  if (mode != NNBDMode::kLegacyLib) {
-    // TODO(regis): Check required named parameters.
-  }
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
@@ -7876,12 +7934,16 @@ bool Function::IsSubtypeOf(NNBDMode mode,
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     ASSERT(other_param_name.IsSymbol());
+    const bool other_is_required = other.IsRequiredAt(i);
     found_param_name = false;
     for (intptr_t j = num_fixed_params; j < num_params; j++) {
       ASSERT(String::Handle(zone, ParameterNameAt(j)).IsSymbol());
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
         if (!IsContravariantParameter(mode, j, other, i, space)) {
+          return false;
+        }
+        if (FLAG_null_safety && IsRequiredAt(j) && !other_is_required) {
           return false;
         }
         break;
@@ -8132,12 +8194,14 @@ RawFunction* Function::ImplicitClosureFunction() const {
   const int num_opt_params = NumOptionalParameters();
   const bool has_opt_pos_params = HasOptionalPositionalParameters();
   const int num_params = num_fixed_params + num_opt_params;
+  const int num_required_flags =
+      Array::Handle(zone, parameter_names()).Length() - NumParameters();
   closure_function.set_num_fixed_parameters(num_fixed_params);
   closure_function.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
   closure_function.set_parameter_types(
       Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-  closure_function.set_parameter_names(
-      Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+  closure_function.set_parameter_names(Array::Handle(
+      zone, Array::New(num_params + num_required_flags, Heap::kOld)));
   AbstractType& param_type = AbstractType::Handle(zone);
   String& param_name = String::Handle(zone);
   // Add implicit closure object parameter.
@@ -8149,6 +8213,9 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterTypeAt(i, param_type);
     param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
+    if (IsRequiredAt(has_receiver - kClosure + i)) {
+      closure_function.SetIsRequiredAt(i);
+    }
   }
   closure_function.InheritBinaryDeclarationFrom(*this);
 
@@ -8242,6 +8309,9 @@ void Function::PrintSignatureParameters(Thread* thread,
       printer->AddString("{");
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
+      if (IsRequiredAt(i)) {
+        printer->AddString("required ");
+      }
       param_type = ParameterTypeAt(i);
       ASSERT(!param_type.IsNull());
       param_type.PrintName(name_visibility, printer);
@@ -18930,7 +19000,9 @@ bool Type::IsEquivalent(const Instance& other,
     if (sig_fun.ParameterNameAt(i) != other_sig_fun.ParameterNameAt(i)) {
       return false;
     }
-    // TODO(regis): Check 'required' annotation.
+    if (sig_fun.IsRequiredAt(i) != other_sig_fun.IsRequiredAt(i)) {
+      return false;
+    }
   }
   return true;
 }
