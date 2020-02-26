@@ -3359,7 +3359,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (nnbdIssues != null) {
       if (legacyIssues != null) {
-        nnbdIssues = nnbdIssues.where((issue) => !legacyIssues.contains(issue));
+        nnbdIssues =
+            nnbdIssues.where((issue) => !legacyIssues.contains(issue)).toSet();
       }
       reportTypeArgumentIssues(nnbdIssues, fileUri, offset,
           inferred: inferred, areWarnings: loader.nnbdMode == NnbdMode.Weak);

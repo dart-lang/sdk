@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class GenericNever<T extends Never = Never> extends core::Object {
+  synthetic constructor •() → self::GenericNever<self::GenericNever::T>
+    ;
+  method getParamType() → dynamic
+    ;
+}
+static method errors() → dynamic
+  ;
+static method main() → dynamic
+  ;
