@@ -4603,7 +4603,7 @@ void f<T extends num>(T x, T y) {
     // This captures the type `T extends int`.
     var g = () => x;
     g = f;
-    g().isEven;
+    g()./*error:UNDEFINED_GETTER*/isEven;
     q = g();
     int r = x;
   }

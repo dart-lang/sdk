@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -985,7 +986,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         if (type != null && !type.isBottom && !type.isDartCoreNull) {
           VariableElement element = node.declaredElement;
           if (element is LocalVariableElementImpl) {
-            element.type = initializer.staticType;
+            var initializerType = initializer.staticType;
+            var inferredType = demoteType(
+              _resolver.definingLibrary,
+              initializerType,
+            );
+            element.type = inferredType;
           }
         }
       }
