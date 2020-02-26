@@ -31,18 +31,23 @@ main(List<String> args) async {
       ],
       true);
 
-  // heapHelper.start([
-  //   "--enable-asserts",
-  //   Platform.script.resolve("incremental_dart2js_tester.dart").toString(),
-  //   "--addDebugBreaks",
-  //   "--fast",
-  //   "--experimental",
-  // ]);
-  heapHelper.start([
-    "--enable-asserts",
-    Platform.script.resolve("incremental_load_from_dill_suite.dart").toString(),
-    "-DaddDebugBreaks=true",
-    // "--",
-    // "incremental_load_from_dill/no_outline_change_...",
-  ]);
+  if (args.length > 0 && args[0] == "--dart2js") {
+    heapHelper.start([
+      "--enable-asserts",
+      Platform.script.resolve("incremental_dart2js_tester.dart").toString(),
+      "--addDebugBreaks",
+      "--fast",
+      "--experimental",
+    ]);
+  } else {
+    heapHelper.start([
+      "--enable-asserts",
+      Platform.script
+          .resolve("incremental_load_from_dill_suite.dart")
+          .toString(),
+      "-DaddDebugBreaks=true",
+      "--",
+      "incremental_load_from_dill/no_outline_change_38",
+    ]);
+  }
 }

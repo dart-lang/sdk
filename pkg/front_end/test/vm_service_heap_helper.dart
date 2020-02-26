@@ -309,7 +309,7 @@ class VMServiceHeapHelper extends VMServiceHeapHelperBase {
         if (interests != null && interests.isNotEmpty) {
           List<String> fieldsToUse = interests[c.name];
           if (fieldsToUse != null && fieldsToUse.isNotEmpty) {
-            for (HeapGraphElement instance in c.instances) {
+            for (HeapGraphElement instance in c.getInstances(graph)) {
               StringBuffer sb = new StringBuffer();
               sb.writeln("Instance: ${instance}");
               if (instance is HeapGraphElementActual) {
@@ -486,17 +486,19 @@ class StdOutLog implements vmService.Log {
 
 HeapGraph convertHeapGraph(vmService.HeapSnapshotGraph graph) {
   HeapGraphClassSentinel classSentinel = new HeapGraphClassSentinel();
-  List<HeapGraphClassActual> classes = [];
+  List<HeapGraphClassActual> classes =
+      new List<HeapGraphClassActual>(graph.classes.length);
   for (int i = 0; i < graph.classes.length; i++) {
     vmService.HeapSnapshotClass c = graph.classes[i];
-    classes.add(new HeapGraphClassActual(c));
+    classes[i] = new HeapGraphClassActual(c);
   }
 
   HeapGraphElementSentinel elementSentinel = new HeapGraphElementSentinel();
-  List<HeapGraphElementActual> elements = [];
+  List<HeapGraphElementActual> elements =
+      new List<HeapGraphElementActual>(graph.objects.length);
   for (int i = 0; i < graph.objects.length; i++) {
     vmService.HeapSnapshotObject o = graph.objects[i];
-    elements.add(new HeapGraphElementActual(o));
+    elements[i] = new HeapGraphElementActual(o);
   }
 
   for (int i = 0; i < graph.objects.length; i++) {
@@ -507,17 +509,17 @@ HeapGraph convertHeapGraph(vmService.HeapSnapshotGraph graph) {
     } else {
       converted.class_ = classes[o.classId - 1];
     }
-    converted.class_.instances.add(converted);
-    for (int refId in o.references) {
-      HeapGraphElement ref;
-      if (refId == 0) {
-        ref = elementSentinel;
-      } else {
-        ref = elements[refId - 1];
+    converted.referencesFiller = () {
+      for (int refId in o.references) {
+        HeapGraphElement ref;
+        if (refId == 0) {
+          ref = elementSentinel;
+        } else {
+          ref = elements[refId - 1];
+        }
+        converted.references.add(ref);
       }
-      converted.references.add(ref);
-      ref.referenced.add(converted);
-    }
+    };
   }
 
   return new HeapGraph(classSentinel, classes, elementSentinel, elements);
@@ -535,10 +537,15 @@ class HeapGraph {
 
 abstract class HeapGraphElement {
   /// Outbound references, i.e. this element points to elements in this list.
-  List<HeapGraphElement> references = [];
-
-  /// Inbound references, i.e. this element is pointed to by these elements.
-  Set<HeapGraphElement> referenced = {};
+  List<HeapGraphElement> _references;
+  void Function() referencesFiller;
+  List<HeapGraphElement> get references {
+    if (_references == null && referencesFiller != null) {
+      _references = new List<HeapGraphElement>();
+      referencesFiller();
+    }
+    return _references;
+  }
 
   String getPrettyPrint(Map<Uri, Map<String, List<String>>> prettyPrints) {
     if (this is HeapGraphElementActual) {
@@ -563,7 +570,7 @@ abstract class HeapGraphElement {
             return "${c.name}[" +
                 fields.map((field) {
                   return "$field: "
-                      "${me.getField(field).getPrettyPrint(prettyPrints)}";
+                      "${me.getField(field)?.getPrettyPrint(prettyPrints)}";
                 }).join(", ") +
                 "]";
           }
@@ -620,7 +627,19 @@ class HeapGraphElementActual extends HeapGraphElement {
 }
 
 abstract class HeapGraphClass {
-  List<HeapGraphElement> instances = [];
+  List<HeapGraphElement> _instances;
+  List<HeapGraphElement> getInstances(HeapGraph graph) {
+    if (_instances == null) {
+      _instances = new List<HeapGraphElement>();
+      for (int i = 0; i < graph.elements.length; i++) {
+        HeapGraphElementActual converted = graph.elements[i];
+        if (converted.class_ == this) {
+          _instances.add(converted);
+        }
+      }
+    }
+    return _instances;
+  }
 }
 
 class HeapGraphClassSentinel extends HeapGraphClass {

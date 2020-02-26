@@ -138,6 +138,11 @@ class DillClassBuilder extends ClassBuilderImpl {
   void set mixedInType(TypeBuilder mixin) {
     unimplemented("mixedInType=", -1, null);
   }
+
+  void clearCachedValues() {
+    supertype = null;
+    interfaces = null;
+  }
 }
 
 int computeModifiers(Class cls) {

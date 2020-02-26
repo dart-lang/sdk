@@ -358,6 +358,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           if (dillBuilder.isBuilt) {
             dillBuilder.exportScope
                 .patchUpScope(replacementMap, replacementSettersMap);
+
+            // Clear cached calculations that points (potential) to now replaced
+            // things.
+            for (Builder builder in dillBuilder.scope.localMembers) {
+              if (builder is DillClassBuilder) {
+                builder.clearCachedValues();
+              }
+            }
           }
         }
         replacementMap = null;
@@ -366,6 +374,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
     userCode.loader.buildersCreatedWithReferences.clear();
     userCode.loader.builderHierarchy.nodes.clear();
+    userCode.loader.builderHierarchy.overrideChecks.clear();
+    userCode.loader.builderHierarchy.delayedSignatureComputations.clear();
     userCode.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;
@@ -697,8 +707,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // mark things as needed.
             for (Builder builder in builder.scope.localMembers) {
               if (builder is DillClassBuilder) {
-                builder.supertype = null;
-                builder.interfaces = null;
+                builder.clearCachedValues();
               }
             }
             builder.isBuiltAndMarked = false;

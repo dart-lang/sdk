@@ -1,0 +1,36 @@
+main = <No Member>;
+library from "org-dartlang-test:///file1.dart" as fil {
+
+  class D extends dart.core::Object {
+    field fil::D* parent = null;
+    synthetic constructor •() → fil::D*
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///file2.dart" as fil2 {
+
+  import "org-dartlang-test:///file1.dart";
+
+  abstract class C extends dart.core::Object implements fil::D {
+    synthetic constructor •() → fil2::C*
+      : super dart.core::Object::•()
+      ;
+  }
+  class B extends fil::D {
+    field fil::D* parent = null;
+    synthetic constructor •() → fil2::B*
+      : super fil::D::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///file2.dart";
+
+  class A extends fil2::B implements fil2::C {
+    synthetic constructor •() → main::A*
+      : super fil2::B::•()
+      ;
+  }
+}

@@ -88,7 +88,12 @@ String textualOutline(List<int> rawBytes, {bool makeMoreReadable: false}) {
 
 main(List<String> args) {
   File f = new File(args[0]);
-  print(textualOutline(f.readAsBytesSync(), makeMoreReadable: true));
+  String outline = textualOutline(f.readAsBytesSync(), makeMoreReadable: true);
+  if (args.length > 1 && args[1] == "--overwrite") {
+    f.writeAsStringSync(outline);
+  } else {
+    print(outline);
+  }
 }
 
 class EndOffsetListener extends DirectiveListener {
