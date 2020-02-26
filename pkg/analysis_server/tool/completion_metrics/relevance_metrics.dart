@@ -273,13 +273,19 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
+    String context = _argumentListContext(node);
     for (var argument in node.arguments) {
       if (argument is NamedExpression) {
-        _recordDataForNode('ArgumentList (named)', argument.expression,
+        _recordDataForNode('ArgumentList (all, named)', argument.expression,
+            allowedKeywords: expressionKeywords);
+        _recordDataForNode(
+            'ArgumentList ($context, named)', argument.expression,
             allowedKeywords: expressionKeywords);
         _recordTypeMatch(argument.expression);
       } else {
-        _recordDataForNode('ArgumentList (unnamed)', argument,
+        _recordDataForNode('ArgumentList (all, unnamed)', argument,
+            allowedKeywords: expressionKeywords);
+        _recordDataForNode('ArgumentList ($context, unnamed)', argument,
             allowedKeywords: expressionKeywords);
         _recordTypeMatch(argument);
       }
@@ -1227,6 +1233,34 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     super.visitYieldStatement(node);
   }
 
+  /// Return the context in which the [node] occurs. The [node] is expected to
+  /// be the parent of the argument expression.
+  String _argumentListContext(AstNode node) {
+    if (node is ArgumentList) {
+      var parent = node.parent;
+      if (parent is InstanceCreationExpression) {
+        return 'constructor';
+      } else if (parent is MethodInvocation) {
+        return 'method';
+      } else if (parent is FunctionExpressionInvocation) {
+        return 'function';
+      } else if (parent is SuperConstructorInvocation ||
+          parent is RedirectingConstructorInvocation) {
+        return 'constructor redirect';
+      } else if (parent is Annotation) {
+        return 'annotation';
+      }
+    } else if (node is IndexExpression) {
+      return 'index';
+    } else if (node is AssignmentExpression ||
+        node is BinaryExpression ||
+        node is PrefixExpression ||
+        node is PostfixExpression) {
+      return 'binary/unary';
+    }
+    return 'unknown';
+  }
+
   /// Return the depth of the given [element]. For example:
   /// 0: imported
   /// 1: prefix
@@ -1644,9 +1678,13 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (parameterType == null || parameterType.isDynamic) {
       return;
     }
+    var context = _argumentListContext(argument.parent);
     var argumentType = argument.staticType;
     if (argumentType != null) {
-      _recordTypeRelationships('argument (whole)', parameterType, argumentType);
+      _recordTypeRelationships(
+          'argument (all, whole)', parameterType, argumentType);
+      _recordTypeRelationships(
+          'argument ($context, whole)', parameterType, argumentType);
     }
     var identifier = _leftMostIdentifier(argument);
     if (identifier != null) {
@@ -1664,7 +1702,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
       if (firstTokenType != null) {
         _recordTypeRelationships(
-            'argument (first token)', parameterType, firstTokenType);
+            'argument (all, first token)', parameterType, firstTokenType);
+        _recordTypeRelationships(
+            'argument ($context, first token)', parameterType, firstTokenType);
       }
     }
   }
