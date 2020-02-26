@@ -70,6 +70,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
     return null;
   }
 
+  @override
   void computeForClass(Declaration node, Id id) {
     super.computeForClass(node, id);
     if (node is ClassDeclaration) {
@@ -193,7 +194,7 @@ class Name {
 
   Name.internal(this.text, this.isPrivate, this.library);
 
-  factory Name(Element element, {bool isSetter: false}) {
+  factory Name(Element element, {bool isSetter = false}) {
     String name = element.name;
     if (isSetter) {
       if (!name.endsWith('=')) {

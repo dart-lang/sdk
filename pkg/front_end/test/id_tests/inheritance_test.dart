@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
+import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:kernel/ast.dart';
 
 const String cfeFromBuilderMarker = 'cfe:builder';
@@ -83,7 +84,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       : super(_compilerResult, actualMap);
 
   ClassHierarchy get _hierarchy => _compilerResult.classHierarchy;
+
   CoreTypes get _coreTypes => _compilerResult.coreTypes;
+
   ClassHierarchyBuilder get _classHierarchyBuilder =>
       _compilerResult.kernelTargetForTesting.loader.builderHierarchy;
 
@@ -110,7 +113,8 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
         .toSet();
 
     void addMember(Name name, {bool isSetter}) {
-      Member member = _hierarchy.getInterfaceMember(node, name, setter: isSetter);
+      Member member =
+          _hierarchy.getInterfaceMember(node, name, setter: isSetter);
       if (member.enclosingClass == _coreTypes.objectClass) {
         return;
       }
