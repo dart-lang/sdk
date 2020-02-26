@@ -910,6 +910,14 @@
         ]
       }
     },
+    "cfe-strong-(linux|mac|win)": {
+      "options": {
+        "compiler": "fasta",
+        "enable-experiment": [
+          "non-nullable"
+        ]
+      }
+    },
     "analyzer-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
@@ -1021,27 +1029,6 @@
           ]
         },
         {
-          "name": "weak sdk tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib"
-          ],
-          "fileset": "front-end",
-          "shards": 3
-        },
-        {
-          "name": "weak co19 tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
-            "co19/LanguageFeatures/nnbd"
-          ],
-          "fileset": "front-end",
-          "shards": 2
-        },
-        {
           "name": "legacy sdk tests",
           "arguments": [
             "-ncfe-weak-${system}"
@@ -1057,6 +1044,40 @@
           ],
           "fileset": "front-end",
           "shards": 6
+        },
+        {
+          "name": "weak sdk tests",
+          "arguments": [
+            "-ncfe-weak-${system}",
+            "corelib",
+            "ffi",
+            "language",
+            "lib"
+          ]
+        },
+        {
+          "name": "weak co19 tests",
+          "arguments": [
+            "-ncfe-weak-${system}",
+            "co19/LanguageFeatures/nnbd"
+          ]
+        },
+        {
+          "name": "strong sdk tests",
+          "arguments": [
+            "-ncfe-strong-${system}",
+            "corelib",
+            "ffi",
+            "language",
+            "lib"
+          ]
+        },
+        {
+          "name": "strong co19 tests",
+          "arguments": [
+            "-ncfe-strong-${system}",
+            "co19/LanguageFeatures/nnbd"
+          ]
         }
       ]
     },
