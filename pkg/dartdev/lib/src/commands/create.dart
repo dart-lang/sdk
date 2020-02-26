@@ -19,15 +19,18 @@ class CreateCommand extends DartdevCommand {
 
   static List<String> legalTemplateIds = [
     'console-simple',
+    'console-full',
     'package-simple',
     'web-simple'
   ];
 
-  static Iterable<stagehand.Generator> get generators =>
-      stagehand.generators.where((g) => legalTemplateIds.contains(g.id));
+  static Iterable<stagehand.Generator> get generators {
+    return legalTemplateIds.map(retrieveTemplateGenerator);
+  }
 
-  static stagehand.Generator retrieveTemplateGenerator(String templateId) =>
-      stagehand.getGenerator(templateId);
+  static stagehand.Generator retrieveTemplateGenerator(String templateId) {
+    return stagehand.getGenerator(templateId);
+  }
 
   CreateCommand({bool verbose = false})
       : super('create', 'Create a new project.') {
@@ -132,9 +135,10 @@ class CreateCommand extends DartdevCommand {
   @override
   String get usageFooter {
     int width = legalTemplateIds.map((s) => s.length).reduce(math.max);
-    String desc = generators
-        .map((g) => '  ${g.id.padLeft(width)}: ${g.description}')
-        .join('\n');
+    String desc = generators.map((g) {
+      String suffix = g.id == defaultTemplateId ? ' (default)' : '';
+      return '  ${g.id.padLeft(width)}: ${g.description}$suffix';
+    }).join('\n');
     return '\nAvailable templates:\n$desc';
   }
 
