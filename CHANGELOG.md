@@ -132,14 +132,13 @@ additional details see the [announcement].
 
 #### Linter
 
-The Linter was updated to `0.1.110`, which includes:
+The Linter was updated to `0.1.111+1`, which includes:
 
-* fixed flutter web plugin detection in `avoid_web_libraries_in_flutter`
-* new lint: `unnecessary_string_interpolations`
-* new lint: `missing_whitespace_between_adjacent_strings`
-* `avoid_unused_constructor_parameters` updated to ignore deprecated parameters
-* new lint: `no_runtimeType_toString`
-* miscellaneous doc fixes
+* new lint: `use_raw_strings`
+* new lint: `unnecessary_raw_strings`
+* new lint: `avoid_escaping_inner_quotes`
+* new lint: `unnecessary_string_escapes`
+* incompatible rule documentation improvements
 
 #### Pub
 

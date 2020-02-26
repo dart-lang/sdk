@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-abstract class Diagnosticable {}
+abstract class Diagnosticable with DiagnosticableMixin {}
+
+mixin DiagnosticableMixin {}
 
 class DiagnosticPropertiesBuilder {
   void add(DiagnosticsNode property) {}

@@ -35,7 +35,7 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   bool get absorbing => _absorbing;
   bool _absorbing;
   bool ignoringSemantics;
@@ -50,7 +50,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   bool get absorbing => _absorbing;
   bool _absorbing;
   bool ignoringSemantics;
@@ -69,7 +69,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   bool ignoringSemantics;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -80,7 +80,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   bool ignoringSemantics;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -95,7 +95,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   bool ignoringSemantics;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder props) {
@@ -106,7 +106,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   bool ignoringSemantics;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder props) {
@@ -121,7 +121,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   bool get absorbing => _absorbing;
   bool _absorbing;
   @override
@@ -134,7 +134,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   bool get absorbing => _absorbing;
   bool _absorbing;
   @override
@@ -152,7 +152,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Color field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -165,7 +165,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Color field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -181,7 +181,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   double field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -193,7 +193,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   double field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -209,7 +209,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   dynamic field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -221,7 +221,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   dynamic field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -237,7 +237,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Foo field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -250,7 +250,7 @@ enum Foo {bar}
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Foo field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -268,7 +268,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   ValueChanged<double> onChanged;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -282,7 +282,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   ValueChanged<double> onChanged;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -299,7 +299,7 @@ typedef ValueChanged<T> = void Function(T value);
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   int field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -311,7 +311,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   int field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -327,7 +327,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Iterable<String> field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -339,7 +339,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Iterable<String> field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -355,7 +355,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   List<List<String>> field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -367,7 +367,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   List<List<String>> field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -385,7 +385,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Matrix4 field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -398,7 +398,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Matrix4 field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -414,7 +414,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Object field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -426,7 +426,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   Object field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -442,7 +442,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   String field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -454,7 +454,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   String field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -470,7 +470,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   String field;
 }
 ''');
@@ -478,7 +478,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   String field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -494,7 +494,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   ClassNotInScope<bool> onChanged;
 
   @override
@@ -507,7 +507,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   ClassNotInScope<bool> onChanged;
 
   @override
@@ -526,7 +526,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   ClassNotInScope<bool> get onChanged => null;
 
   @override
@@ -539,7 +539,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   ClassNotInScope<bool> get onChanged => null;
 
   @override
@@ -558,7 +558,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   var field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -570,7 +570,7 @@ class C extends Widget implements Diagnosticable {
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class C extends Widget implements Diagnosticable {
+class C extends Widget with DiagnosticableMixin {
   var field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
