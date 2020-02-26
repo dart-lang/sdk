@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Class1 extends core::Object {
+  field asy::FutureOr<dynamic> instanceField1;
+  field asy::FutureOr<core::int?> instanceField2;
+  field asy::FutureOr<asy::FutureOr<dynamic>> instanceField3;
+  static field asy::FutureOr<dynamic> staticField1;
+  static field asy::FutureOr<core::int?> staticField2;
+  static field asy::FutureOr<asy::FutureOr<dynamic>> staticField3;
+  synthetic constructor •() → self::Class1
+    ;
+  method instanceMethod1([asy::FutureOr<dynamic> parameter1, asy::FutureOr<core::int?> parameter2, asy::FutureOr<asy::FutureOr<dynamic>> parameter3]) → void
+    ;
+  method instanceMethod2({asy::FutureOr<dynamic> parameter1, asy::FutureOr<core::int?> parameter2, asy::FutureOr<asy::FutureOr<dynamic>> parameter3}) → void
+    ;
+  static method staticMethod1([asy::FutureOr<dynamic> parameter1, asy::FutureOr<core::int?> parameter2, asy::FutureOr<asy::FutureOr<dynamic>> parameter3]) → void
+    ;
+  static method staticMethod2({asy::FutureOr<dynamic> parameter1, asy::FutureOr<core::int?> parameter2, asy::FutureOr<asy::FutureOr<dynamic>> parameter3}) → void
+    ;
+}
+class Class2 extends core::Object {
+  field asy::FutureOr<dynamic> instanceField1;
+  field asy::FutureOr<core::int?> instanceField2;
+  field asy::FutureOr<asy::FutureOr<dynamic>> instanceField3;
+  constructor constructor1(asy::FutureOr<dynamic> instanceField1, asy::FutureOr<core::int?> instanceField2, asy::FutureOr<asy::FutureOr<dynamic>> instanceField3) → self::Class2
+    ;
+  constructor constructor2() → self::Class2
+    ;
+}
+static field asy::FutureOr<dynamic> topLevelField1;
+static field asy::FutureOr<core::int?> topLevelField2;
+static field asy::FutureOr<asy::FutureOr<dynamic>> topLevelField3;
+static method toplevelMethod1([asy::FutureOr<dynamic> parameter1, asy::FutureOr<core::int?> parameter2, asy::FutureOr<asy::FutureOr<dynamic>> parameter3]) → void
+  ;
+static method toplevelMethod2({asy::FutureOr<dynamic> parameter1, asy::FutureOr<core::int?> parameter2, asy::FutureOr<asy::FutureOr<dynamic>> parameter3}) → void
+  ;
+static method main() → dynamic
+  ;

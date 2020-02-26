@@ -8,6 +8,8 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 
 import 'package:kernel/ast.dart';
 
+import 'package:kernel/src/future_or.dart';
+
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'package:kernel/type_environment.dart';
@@ -5518,7 +5520,8 @@ class InferenceVisitor
         if (variable.name != null &&
             !variable.isLocalFunction &&
             variable.type is! InvalidType &&
-            variable.type.isPotentiallyNonNullable &&
+            isPotentiallyNonNullable(
+                variable.type, inferrer.coreTypes.futureOrClass) &&
             !variable.isLate) {
           if (inferrer.nnbdMode == NnbdMode.Weak) {
             inferrer.library.addProblem(

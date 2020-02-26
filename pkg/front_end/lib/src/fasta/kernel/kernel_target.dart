@@ -45,12 +45,14 @@ import 'package:kernel/core_types.dart';
 
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
+import 'package:kernel/src/future_or.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
+
 import 'package:package_config/package_config.dart';
 
 import '../../api_prototype/file_system.dart' show FileSystem;
@@ -888,7 +890,8 @@ class KernelTarget extends TargetImplementation {
                   field.fileUri);
             }
           } else if (field.type is! InvalidType &&
-              field.type.isPotentiallyNonNullable &&
+              isPotentiallyNonNullable(
+                  field.type, loader.coreTypes.futureOrClass) &&
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault &&
@@ -941,7 +944,8 @@ class KernelTarget extends TargetImplementation {
                           field.name.name.length)
                 ]);
           } else if (field.type is! InvalidType &&
-              field.type.isPotentiallyNonNullable) {
+              isPotentiallyNonNullable(
+                  field.type, loader.coreTypes.futureOrClass)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault &&
                 library.loader.performNnbdChecks) {

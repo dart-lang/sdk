@@ -895,7 +895,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       if (builder is FunctionBuilder &&
           !builder.isAbstract &&
           builder.formals != null) {
-        library.checkInitializersInFormals(builder.formals);
+        library.checkInitializersInFormals(builder.formals, typeEnvironment);
       }
     });
   }

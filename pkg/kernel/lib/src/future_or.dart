@@ -65,3 +65,15 @@ Nullability computeNullability(DartType type, Class futureOrClass) {
   }
   return type.nullability;
 }
+
+bool isPotentiallyNullable(DartType type, Class futureOrClass) {
+  Nullability nullability = computeNullability(type, futureOrClass);
+  return nullability == Nullability.nullable ||
+      nullability == Nullability.undetermined;
+}
+
+bool isPotentiallyNonNullable(DartType type, Class futureOrClass) {
+  Nullability nullability = computeNullability(type, futureOrClass);
+  return nullability == Nullability.nonNullable ||
+      nullability == Nullability.undetermined;
+}

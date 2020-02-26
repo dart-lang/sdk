@@ -65,6 +65,8 @@ import 'package:kernel/src/bounds_checks.dart'
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
 
+import 'package:kernel/src/future_or.dart';
+
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import 'package:kernel/type_environment.dart'
@@ -3158,7 +3160,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!fieldBuilder.isDeclarationInstanceMember &&
           !fieldBuilder.field.isLate &&
           fieldType is! InvalidType &&
-          fieldType.isPotentiallyNonNullable &&
+          isPotentiallyNonNullable(fieldType, typeEnvironment.futureOrClass) &&
           !fieldBuilder.hasInitializer) {
         if (loader.nnbdMode == NnbdMode.Weak) {
           addProblem(
@@ -3183,7 +3185,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void checkInitializersInFormals(List<FormalParameterBuilder> formals) {
+  void checkInitializersInFormals(
+      List<FormalParameterBuilder> formals, TypeEnvironment typeEnvironment) {
     bool performInitializerChecks =
         isNonNullableByDefault && loader.performNnbdChecks;
     if (!performInitializerChecks) return;
@@ -3193,7 +3196,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool isOptionalNamed = !formal.isNamedRequired && formal.isNamed;
       bool isOptional = isOptionalPositional || isOptionalNamed;
       if (isOptional &&
-          formal.variable.type.isPotentiallyNonNullable &&
+          isPotentiallyNonNullable(
+              formal.variable.type, typeEnvironment.futureOrClass) &&
           !formal.hasDeclaredInitializer) {
         if (loader.nnbdMode == NnbdMode.Weak) {
           addProblem(
@@ -3554,7 +3558,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         checkBoundsInFunctionNode(declaration.procedure.function,
             typeEnvironment, declaration.fileUri);
         if (declaration.formals != null) {
-          checkInitializersInFormals(declaration.formals);
+          checkInitializersInFormals(declaration.formals, typeEnvironment);
         }
       } else if (declaration is ClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);

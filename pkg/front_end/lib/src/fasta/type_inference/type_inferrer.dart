@@ -23,6 +23,8 @@ import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
+import 'package:kernel/src/future_or.dart';
+
 import '../../base/instrumentation.dart'
     show
         Instrumentation,
@@ -2561,7 +2563,7 @@ class TypeInferrerImpl implements TypeInferrer {
         bool isOptionalNamed =
             i >= function.positionalParameters.length && !formal.isRequired;
         if ((isOptionalPositional || isOptionalNamed) &&
-            formal.type.isPotentiallyNonNullable &&
+            isPotentiallyNonNullable(formal.type, coreTypes.futureOrClass) &&
             !formal.hasDeclaredInitializer) {
           if (nnbdMode == NnbdMode.Weak) {
             library.addProblem(
