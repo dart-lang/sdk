@@ -620,8 +620,13 @@ dart_vm_extra_builder(
     properties={"shard_timeout": 5400})  # 1.5h
 
 # vm|misc
+LOW = 70
 dart_vm_extra_builder(
-    "vm-kernel-asan-linux-release-x64", category="vm|misc|a64")
+    "vm-kernel-asan-linux-release-x64", category="vm|misc|a64", priority=LOW)
+dart_vm_extra_builder(
+    "vm-kernel-msan-linux-release-x64", category="vm|misc|m64", priority=LOW)
+dart_vm_extra_builder(
+    "vm-kernel-tsan-linux-release-x64", category="vm|misc|t64", priority=LOW)
 dart_vm_extra_builder(
     "vm-kernel-optcounter-threshold-linux-release-ia32", category="vm|misc|o32")
 dart_vm_extra_builder(
