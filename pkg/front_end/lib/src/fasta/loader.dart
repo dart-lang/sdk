@@ -126,7 +126,12 @@ abstract class Loader {
                 new Uri(
                     scheme: untranslatableUriScheme,
                     path: Uri.encodeComponent("$uri"));
-            packageForLanguageVersion = target.uriTranslator.getPackage(uri);
+            if (uri.scheme == "package") {
+              packageForLanguageVersion = target.uriTranslator.getPackage(uri);
+            } else {
+              packageForLanguageVersion =
+                  target.uriTranslator.packages.packageOf(fileUri);
+            }
             break;
 
           default:
