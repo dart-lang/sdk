@@ -82,7 +82,7 @@ class DynamicTypeImpl extends TypeImpl {
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant = true}) {
     if (isCovariant) {
-      return typeProvider.nullType;
+      return NeverTypeImpl.instance;
     } else {
       return this;
     }

@@ -452,4 +452,12 @@ main() {
 }
 ''');
   }
+
+  test_superBounded() async {
+    await assertNoErrorsInCode(r'''
+class A<X extends A<X>> {}
+
+A get foo => throw 0;
+''');
+  }
 }
