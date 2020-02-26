@@ -18384,6 +18384,9 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
   if (other.IsTypeParameter()) {
     return false;
   }
+  if (FLAG_null_safety && IsNullable() && other.IsNonNullable()) {
+    return false;
+  }
   const Class& type_cls = Class::Handle(zone, type_class());
   const Class& other_type_cls = Class::Handle(zone, other.type_class());
   // Function types cannot be handled by Class::IsSubtypeOf().
@@ -18418,9 +18421,6 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
     if (IsSubtypeOfFutureOr(zone, mode, other, space)) {
       return true;
     }
-    return false;
-  }
-  if (FLAG_null_safety && IsNullable() && other.IsNonNullable()) {
     return false;
   }
   return Class::IsSubtypeOf(
