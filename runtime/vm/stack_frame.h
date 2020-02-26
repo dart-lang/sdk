@@ -94,7 +94,7 @@ class StackFrame : public ValueObject {
   const char* ToCString() const;
 
   // Check validity of a frame, used for assertion purposes.
-  virtual bool IsValid(bool needed_for_gc = false) const;
+  virtual bool IsValid() const;
 
   // Returns the isolate containing the bare instructions of the current frame.
   //
@@ -112,12 +112,11 @@ class StackFrame : public ValueObject {
   bool IsBareInstructionsStubFrame() const;
 
   // Frame type.
-  virtual bool IsDartFrame(bool validate = true,
-                           bool needed_for_gc = false) const {
-    ASSERT(!validate || IsValid(needed_for_gc));
-    return !(IsEntryFrame() || IsExitFrame() || IsStubFrame(needed_for_gc));
+  virtual bool IsDartFrame(bool validate = true) const {
+    ASSERT(!validate || IsValid());
+    return !(IsEntryFrame() || IsExitFrame() || IsStubFrame());
   }
-  virtual bool IsStubFrame(bool neede_for_gc = false) const;
+  virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
 
@@ -159,7 +158,7 @@ class StackFrame : public ValueObject {
   Thread* thread() const { return thread_; }
 
  private:
-  RawCode* GetCodeObject(bool needed_for_gc = false) const;
+  RawCode* GetCodeObject() const;
   RawBytecode* GetBytecodeObject() const;
 
 
@@ -200,11 +199,9 @@ class StackFrame : public ValueObject {
 // runtime code.
 class ExitFrame : public StackFrame {
  public:
-  bool IsValid(bool needed_for_gc = false) const { return sp() == 0; }
-  bool IsDartFrame(bool validate = true, bool needed_for_gc = false) const {
-    return false;
-  }
-  bool IsStubFrame(bool needed_for_gc = false) const { return false; }
+  bool IsValid() const { return sp() == 0; }
+  bool IsDartFrame(bool validate = true) const { return false; }
+  bool IsStubFrame() const { return false; }
   bool IsExitFrame() const { return true; }
 
   // Visit objects in the frame.
@@ -224,13 +221,11 @@ class ExitFrame : public StackFrame {
 // dart code.
 class EntryFrame : public StackFrame {
  public:
-  bool IsValid(bool needed_for_gc = false) const {
+  bool IsValid() const {
     return StubCode::InInvocationStub(pc(), is_interpreted());
   }
-  bool IsDartFrame(bool validate = true, bool needed_for_gc = false) const {
-    return false;
-  }
-  bool IsStubFrame(bool needed_for_gc = false) const { return false; }
+  bool IsDartFrame(bool validate = true) const { return false; }
+  bool IsStubFrame() const { return false; }
   bool IsEntryFrame() const { return true; }
 
   // Visit objects in the frame.

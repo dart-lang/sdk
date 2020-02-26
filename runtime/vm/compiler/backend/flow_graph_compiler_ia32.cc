@@ -866,7 +866,6 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs,
                                          Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   __ Call(stub, /*moveable_target=*/false, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
@@ -877,7 +876,6 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                LocationSummary* locs,
                                                const Function& target,
                                                Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   const auto& stub = StubCode::CallStaticFunction();
   __ Call(stub, /*movable_target=*/true, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
@@ -899,7 +897,6 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   LocationSummary* locs,
                                                   const ICData& ic_data,
                                                   Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   const Code& stub =
       StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
   __ LoadObject(ECX, ic_data);
@@ -927,7 +924,6 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
                                                   Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   // Each ICData propagated from unoptimized to optimized code contains the
   // function that corresponds to the Dart function of that IC call. Due
@@ -951,7 +947,6 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
                                             TokenPosition token_pos,
                                             LocationSummary* locs,
                                             Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
@@ -977,7 +972,6 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs,
     intptr_t try_index,
     intptr_t slow_path_argument_count) {
-  ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
@@ -1025,7 +1019,6 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     TokenPosition token_pos,
     LocationSummary* locs,
     Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(EDX, arguments_descriptor);
   } else {
