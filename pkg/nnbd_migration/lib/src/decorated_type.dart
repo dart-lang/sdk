@@ -378,6 +378,15 @@ class DecoratedType implements DecoratedTypeInfo {
       namedParameters: namedParameters,
       typeArguments: typeArguments);
 
+  /// Creates a shallow copy of `this`, replacing the nullability node and the
+  /// type.
+  DecoratedType withNodeAndType(NullabilityNode node, DartType type) =>
+      DecoratedType(type, node,
+          returnType: returnType,
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters,
+          typeArguments: typeArguments);
+
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
       Map<TypeParameterElement, DecoratedType> substitution,
@@ -404,8 +413,8 @@ class DecoratedType implements DecoratedTypeInfo {
           var typeFormal = typeFormals[i];
           var oldDecoratedBound =
               DecoratedTypeParameterBounds.current.get(typeFormal);
-          var newDecoratedBound = oldDecoratedBound._substitute(
-              substitution, typeFormal.bound ?? oldDecoratedBound.type);
+          var newDecoratedBound = oldDecoratedBound._substitute(substitution,
+              undecoratedResult.typeFormals[i].bound ?? oldDecoratedBound.type);
           if (identical(typeFormal, undecoratedResult.typeFormals[i])) {
             assert(oldDecoratedBound == newDecoratedBound);
           } else {
@@ -428,8 +437,9 @@ class DecoratedType implements DecoratedTypeInfo {
       if (inner == null) {
         return this;
       } else {
-        return inner
-            .withNode(NullabilityNode.forSubstitution(inner.node, node));
+        return inner.withNodeAndType(
+            NullabilityNode.forSubstitution(inner.node, node),
+            undecoratedResult);
       }
     } else if (type.isVoid || type.isDynamic) {
       return this;
