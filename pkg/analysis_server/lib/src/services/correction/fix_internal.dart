@@ -448,6 +448,9 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createMixin();
       await _addFix_undefinedClass_useSimilar();
     }
+    if (errorCode == StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE) {
+      await _addFix_importLibrary_withType();
+    }
     if (errorCode ==
         CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
       await _addFix_convertToNamedArgument();
