@@ -5775,23 +5775,22 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
 class IndexExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl
     implements IndexExpression {
+  @override
+  Token period;
+
   /// The expression used to compute the object being indexed, or `null` if this
   /// index expression is part of a cascade expression.
   ExpressionImpl _target;
 
-  /// The period (".." | "?..") before a cascaded index expression,
-  /// or `null` if this index expression is not part of a cascade expression.
   @override
-  Token period;
+  Token question;
 
-  /// The left square bracket.
   @override
   Token leftBracket;
 
   /// The expression used to compute the index.
   ExpressionImpl _index;
 
-  /// The right square bracket.
   @override
   Token rightBracket;
 
@@ -5807,15 +5806,17 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   AuxiliaryElements auxiliaryElements;
 
-  /// Initialize a newly created index expression.
-  IndexExpressionImpl.forCascade(
-      this.period, this.leftBracket, ExpressionImpl index, this.rightBracket) {
+  /// Initialize a newly created index expression that is a child of a cascade
+  /// expression.
+  IndexExpressionImpl.forCascade(this.period, this.question, this.leftBracket,
+      ExpressionImpl index, this.rightBracket) {
     _index = _becomeParentOf(index);
   }
 
-  /// Initialize a newly created index expression.
-  IndexExpressionImpl.forTarget(ExpressionImpl target, this.leftBracket,
-      ExpressionImpl index, this.rightBracket) {
+  /// Initialize a newly created index expression that is not a child of a
+  /// cascade expression.
+  IndexExpressionImpl.forTarget(ExpressionImpl target, this.question,
+      this.leftBracket, ExpressionImpl index, this.rightBracket) {
     _target = _becomeParentOf(target);
     _index = _becomeParentOf(index);
   }

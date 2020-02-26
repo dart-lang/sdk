@@ -3200,13 +3200,17 @@ abstract class IndexExpression
   /// Set the left square bracket to the given [token].
   set leftBracket(Token token);
 
-  /// Return the period ("..") before a cascaded index expression, or `null` if
-  /// this index expression is not part of a cascade expression.
+  /// Return the period (".." | "?..") before a cascaded index expression, or
+  /// `null` if this index expression is not part of a cascade expression.
   Token get period;
 
   /// Set the period ("..") before a cascaded index expression to the given
   /// [token].
   set period(Token token);
+
+  /// Return the question mark before the left bracket, or `null` if there is no
+  /// question mark.
+  Token get question;
 
   /// Return the expression used to compute the object being indexed.
   ///

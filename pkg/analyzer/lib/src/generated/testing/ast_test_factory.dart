@@ -139,11 +139,13 @@ class AstTestFactory {
           identifier3(label), TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static IndexExpression cascadedIndexExpression(Expression index) =>
-      astFactory.indexExpressionForCascade(
-          TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForCascade2(
+          period: TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
+          leftBracket:
+              TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static MethodInvocation cascadedMethodInvocation(String methodName,
           [List<Expression> arguments]) =>
@@ -778,19 +780,21 @@ class AstTestFactory {
 
   static IndexExpression indexExpression(Expression array, Expression index,
           [TokenType leftBracket = TokenType.OPEN_SQUARE_BRACKET]) =>
-      astFactory.indexExpressionForTarget(
-          array,
-          TokenFactory.tokenFromType(leftBracket),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForTarget2(
+          target: array,
+          leftBracket: TokenFactory.tokenFromType(leftBracket),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static IndexExpression indexExpressionForCascade(Expression array,
           Expression index, TokenType period, TokenType leftBracket) =>
-      astFactory.indexExpressionForCascade(
-          TokenFactory.tokenFromType(period),
-          TokenFactory.tokenFromType(leftBracket),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForCascade2(
+          period: TokenFactory.tokenFromType(period),
+          leftBracket: TokenFactory.tokenFromType(leftBracket),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static InstanceCreationExpression instanceCreationExpression(
           Keyword keyword, ConstructorName name,

@@ -44,9 +44,9 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
-import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticStringToken, SyntheticToken;
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
@@ -79,11 +79,6 @@ class AstBuilder extends StackListener {
 
   @override
   final Uri uri;
-
-  @override
-  dynamic internalProblem(Message message, int charOffset, Uri uri) {
-    throw UnsupportedError(message.message);
-  }
 
   /// The parser that uses this listener, used to parse optional parts, e.g.
   /// `native` support.
@@ -2720,7 +2715,6 @@ class AstBuilder extends StackListener {
   @override
   void handleIndexedExpression(
       Token question, Token leftBracket, Token rightBracket) {
-    // TODO: Handle [question].
     assert(optional('[', leftBracket) ||
         (enableNonNullable && optional('?.[', leftBracket)));
     assert(optional(']', rightBracket));
@@ -2732,13 +2726,21 @@ class AstBuilder extends StackListener {
       CascadeExpression receiver = pop();
       Token token = peek();
       push(receiver);
-      IndexExpression expression = ast.indexExpressionForCascade(
-          token, leftBracket, index, rightBracket);
+      IndexExpression expression = ast.indexExpressionForCascade2(
+          period: token,
+          question: question,
+          leftBracket: leftBracket,
+          index: index,
+          rightBracket: rightBracket);
       assert(expression.isCascaded);
       push(expression);
     } else {
-      push(ast.indexExpressionForTarget(
-          target, leftBracket, index, rightBracket));
+      push(ast.indexExpressionForTarget2(
+          target: target,
+          question: question,
+          leftBracket: leftBracket,
+          index: index,
+          rightBracket: rightBracket));
     }
   }
 
@@ -3434,6 +3436,11 @@ class AstBuilder extends StackListener {
     handleType(voidKeyword, null);
   }
 
+  @override
+  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+    throw UnsupportedError(message.message);
+  }
+
   /// Return `true` if [token] is either `null` or is the symbol or keyword
   /// [value].
   bool optionalOrNull(String value, Token token) {
@@ -3541,14 +3548,6 @@ class AstBuilder extends StackListener {
     }
   }
 
-  void reportErrorIfSuper(Expression expression) {
-    if (expression is SuperExpression) {
-      // This error is also reported by the body builder.
-      handleRecoverableError(messageMissingAssignableSelector,
-          expression.beginToken, expression.endToken);
-    }
-  }
-
   void reportErrorIfNullableType(Token questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
@@ -3556,6 +3555,14 @@ class AstBuilder extends StackListener {
           templateExperimentNotEnabled.withArguments('non-nullable'),
           questionMark,
           questionMark);
+    }
+  }
+
+  void reportErrorIfSuper(Expression expression) {
+    if (expression is SuperExpression) {
+      // This error is also reported by the body builder.
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.beginToken, expression.endToken);
     }
   }
 

@@ -49,6 +49,7 @@ class AstBinaryFlags {
     1,
     FieldFormalParameter,
     GenericFunctionType,
+    IndexExpression,
     TypeName,
   );
 

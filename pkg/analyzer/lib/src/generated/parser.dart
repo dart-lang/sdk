@@ -789,8 +789,11 @@ class Parser {
       try {
         Expression index = parseExpression2();
         Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-        return astFactory.indexExpressionForTarget(
-            prefix, leftBracket, index, rightBracket);
+        return astFactory.indexExpressionForTarget2(
+            target: prefix,
+            leftBracket: leftBracket,
+            index: index,
+            rightBracket: rightBracket);
       } finally {
         _inInitializer = wasInInitializer;
       }
@@ -810,8 +813,11 @@ class Parser {
         Token leftBracket = getAndAdvance();
         Expression index = parseSimpleIdentifier();
         Token rightBracket = getAndAdvance();
-        return astFactory.indexExpressionForTarget(
-            prefix, leftBracket, index, rightBracket);
+        return astFactory.indexExpressionForTarget2(
+            target: prefix,
+            leftBracket: leftBracket,
+            index: index,
+            rightBracket: rightBracket);
       } else {
         if (!optional) {
           // Report the missing selector.
@@ -982,8 +988,11 @@ class Parser {
       try {
         Expression index = parseExpression2();
         Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-        expression = astFactory.indexExpressionForCascade(
-            period, leftBracket, index, rightBracket);
+        expression = astFactory.indexExpressionForCascade2(
+            period: period,
+            leftBracket: leftBracket,
+            index: index,
+            rightBracket: rightBracket);
         period;
       } finally {
         _inInitializer = wasInInitializer;

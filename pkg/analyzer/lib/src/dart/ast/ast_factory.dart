@@ -676,14 +676,38 @@ class AstFactoryImpl extends AstFactory {
           semicolon);
 
   @override
+  @Deprecated('Use indexExpressionForCascade2')
   IndexExpression indexExpressionForCascade(Token period, Token leftBracket,
           Expression index, Token rightBracket) =>
-      IndexExpressionImpl.forCascade(period, leftBracket, index, rightBracket);
+      IndexExpressionImpl.forCascade(
+          period, null, leftBracket, index, rightBracket);
 
   @override
+  IndexExpression indexExpressionForCascade2(
+          {@required Token period,
+          Token question,
+          @required Token leftBracket,
+          @required Expression index,
+          @required Token rightBracket}) =>
+      IndexExpressionImpl.forCascade(
+          period, question, leftBracket, index, rightBracket);
+
+  @override
+  @Deprecated('Use indexExpressionForTarget2')
   IndexExpression indexExpressionForTarget(Expression target, Token leftBracket,
           Expression index, Token rightBracket) =>
-      IndexExpressionImpl.forTarget(target, leftBracket, index, rightBracket);
+      IndexExpressionImpl.forTarget(
+          target, null, leftBracket, index, rightBracket);
+
+  @override
+  IndexExpression indexExpressionForTarget2(
+          {@required Expression target,
+          Token question,
+          @required Token leftBracket,
+          @required Expression index,
+          @required Token rightBracket}) =>
+      IndexExpressionImpl.forTarget(
+          target, question, leftBracket, index, rightBracket);
 
   @override
   InstanceCreationExpression instanceCreationExpression(Token keyword,
