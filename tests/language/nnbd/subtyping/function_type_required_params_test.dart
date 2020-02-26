@@ -9,7 +9,7 @@ int f({required int i}) {
   return i + 1;
 }
 
-int g({int i}) {
+int g({int i = 1}) {
   return i + 1;
 }
 
