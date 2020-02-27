@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:args/src/arg_parser.dart';
+import 'package:path/path.dart' as path;
 
 class MigrateOptions {
   static const ignoreErrorsOption = 'ignore-errors';
@@ -18,6 +21,8 @@ class MigrateOptions {
       : applyChanges = argResults[applyChangesOption] as bool,
         ignoreErrors = argResults[ignoreErrorsOption] as bool,
         webPreview = argResults['web-preview'] as bool;
+
+  String get directoryAbsolute => Directory(path.canonicalize(directory)).path;
 
   @override
   String toString() {

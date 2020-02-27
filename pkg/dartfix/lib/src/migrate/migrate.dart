@@ -57,37 +57,42 @@ class MigrateCommand extends Command {
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
-    Progress analyzingProgress =
+    Progress progress =
         logger.progress('${ansi.emphasized('Analyzing project')}');
 
-    Server server = Server(
-      listener: logger.isVerbose ? _ServerListener(logger) : null,
-    );
-
-    await server.start(clientId: 'dart $name', clientVersion: _dartSdkVersion);
-    _ServerNotifications serverNotifications = _ServerNotifications(server);
-    await serverNotifications.listenToServer(server);
+    Server server =
+        Server(listener: logger.isVerbose ? _ServerListener(logger) : null);
 
     Map<String, List<AnalysisError>> fileErrors = {};
 
-    serverNotifications.analysisErrorsEvents
-        .listen((AnalysisErrorsParams event) {
-      List<AnalysisError> errors = event.errors
-          .where((error) => error.severity == AnalysisErrorSeverity.ERROR)
-          .toList();
-      if (errors.isEmpty) {
-        fileErrors.remove(event.file);
-      } else {
-        fileErrors[event.file] = errors;
-      }
-    });
+    try {
+      await server.start(
+          clientId: 'dart $name', clientVersion: _dartSdkVersion);
+      _ServerNotifications serverNotifications = _ServerNotifications(server);
+      await serverNotifications.listenToServer(server);
 
-    await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-        AnalysisSetAnalysisRootsParams([options.directory], []).toJson());
+      serverNotifications.analysisErrorsEvents
+          .listen((AnalysisErrorsParams event) {
+        List<AnalysisError> errors = event.errors
+            .where((error) => error.severity == AnalysisErrorSeverity.ERROR)
+            .toList();
+        if (errors.isEmpty) {
+          fileErrors.remove(event.file);
+        } else {
+          fileErrors[event.file] = errors;
+        }
+      });
 
-    await serverNotifications.onNextAnalysisComplete;
+      var params =
+          AnalysisSetAnalysisRootsParams([options.directoryAbsolute], []);
+      await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS, params.toJson());
 
-    analyzingProgress.finish(showTiming: true);
+      await serverNotifications.onNextAnalysisComplete;
+
+      progress.finish(showTiming: true);
+    } finally {
+      progress.cancel();
+    }
 
     // Handle if there were any errors.
     if (fileErrors.isEmpty) {
@@ -126,14 +131,20 @@ class MigrateCommand extends Command {
 
     // Calculate migration suggestions.
     logger.stdout('');
-    Progress migrationProgress = logger
+    progress = logger
         .progress('${ansi.emphasized('Generating migration suggestions')}');
 
-    final EditDartfixParams params = EditDartfixParams([options.directory]);
-    params.includedFixes = ['non-nullable'];
-    Map<String, dynamic> json =
-        await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
-    migrationProgress.finish(showTiming: true);
+    Map<String, dynamic> json;
+
+    try {
+      final EditDartfixParams params =
+          EditDartfixParams([options.directoryAbsolute]);
+      params.includedFixes = ['non-nullable'];
+      json = await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
+      progress.finish(showTiming: true);
+    } finally {
+      progress.cancel();
+    }
 
     EditDartfixResult migrationResults =
         EditDartfixResult.fromJson(ResponseDecoder(null), 'result', json);
