@@ -670,6 +670,9 @@ SExpression* FlowGraphSerializer::ObjectToSExp(const Object& dartval) {
   if (dartval.IsNull()) {
     return new (zone()) SExpSymbol("null");
   }
+  if (dartval.raw() == Object::sentinel().raw()) {
+    return new (zone()) SExpSymbol("sentinel");
+  }
   if (dartval.IsString()) {
     return new (zone()) SExpString(dartval.ToCString());
   }

@@ -17247,8 +17247,8 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
 }
 
 uint32_t Instance::CanonicalizeHash() const {
-  if (IsNull()) {
-    return 2011;
+  if (GetClassId() == kNullCid) {
+    return 2011;  // Matches null_patch.dart.
   }
   Thread* thread = Thread::Current();
   uint32_t hash = thread->heap()->GetCanonicalHash(raw());
