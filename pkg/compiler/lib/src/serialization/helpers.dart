@@ -89,6 +89,8 @@ class Tag {
 /// Enum used for identifying [DartType] subclasses in serialization.
 enum DartTypeKind {
   none,
+  legacyType,
+  nullableType,
   neverType,
   voidType,
   typeVariable,

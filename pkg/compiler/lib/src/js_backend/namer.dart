@@ -1616,6 +1616,7 @@ class Namer extends ModularNamer {
   }
 
   String getTypeRepresentationForTypeConstant(DartType type) {
+    type = type.withoutNullability;
     if (type is DynamicType) return "dynamic";
     if (type is FutureOrType) {
       return "FutureOr<dynamic>";

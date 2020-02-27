@@ -317,6 +317,7 @@ class TypeSystem {
   /// type.
   TypeInformation narrowType(TypeInformation type, DartType annotation,
       {bool isNullable: true}) {
+    annotation = annotation.withoutNullability;
     AbstractValue otherType;
     if (annotation is VoidType) return type;
     if (_closedWorld.dartTypes.isTopType(annotation)) {

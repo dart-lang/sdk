@@ -570,8 +570,7 @@ class TypeVariableTests {
     void addImplicitCheck(DartType type) {
       if (implicitIsChecks.add(type)) {
         if (type is FutureOrType) {
-          addImplicitCheck(
-              commonElements.futureType(Nullability.none, type.typeArgument));
+          addImplicitCheck(commonElements.futureType(type.typeArgument));
           addImplicitCheck(type.typeArgument);
         }
       }
@@ -583,8 +582,7 @@ class TypeVariableTests {
 
     world.isChecks.forEach((DartType type) {
       if (type is FutureOrType) {
-        addImplicitCheck(
-            commonElements.futureType(Nullability.none, type.typeArgument));
+        addImplicitCheck(commonElements.futureType(type.typeArgument));
         addImplicitCheck(type.typeArgument);
       }
     });
@@ -1142,6 +1140,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     Set<ClassEntity> classesDirectlyNeedingRuntimeType = new Set<ClassEntity>();
 
     Iterable<ClassEntity> impliedClasses(DartType type) {
+      type = type.withoutNullability;
       if (type is InterfaceType) {
         return [type.element];
       } else if (type is DynamicType) {

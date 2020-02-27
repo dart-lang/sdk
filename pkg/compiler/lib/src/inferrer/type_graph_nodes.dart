@@ -2251,6 +2251,7 @@ abstract class TypeInformationVisitor<T> {
 AbstractValue _narrowType(
     JClosedWorld closedWorld, AbstractValue type, DartType annotation,
     {bool isNullable: true}) {
+  annotation = annotation.withoutNullability;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   AbstractValue otherType;
   if (closedWorld.dartTypes.isTopType(annotation)) {

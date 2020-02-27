@@ -204,6 +204,12 @@ class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
   bool visitType(DartType type, _) => false;
 
   @override
+  bool visitLegacyType(LegacyType type, _) => visit(type.baseType, _);
+
+  @override
+  bool visitNullableType(NullableType type, _) => visit(type.baseType, _);
+
+  @override
   bool visitInterfaceType(InterfaceType type, _) {
     if (type.element == entity) return true;
     return visitTypes(type.typeArguments);

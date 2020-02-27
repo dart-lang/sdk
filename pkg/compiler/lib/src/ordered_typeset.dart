@@ -265,7 +265,6 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       InterfaceType existingType = link.head;
       if (existingType == type) return;
       if (existingType.element == type.element) {
-        if (existingType.nullability != type.nullability) return;
         assert(false, failedAt(cls, 'Invalid ordered typeset for $cls'));
         return;
       }

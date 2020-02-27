@@ -694,9 +694,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (_options.useNewRti) {
       typeInfo = HLoadType.type(
           _closedWorld.elementEnvironment.createInterfaceType(
-              commonElements.jsArrayClass,
-              [commonElements.stringType],
-              Nullability.none),
+              commonElements.jsArrayClass, [commonElements.stringType]),
           _abstractValueDomain.dynamicType);
       node.block.addBefore(node, typeInfo);
     } else {

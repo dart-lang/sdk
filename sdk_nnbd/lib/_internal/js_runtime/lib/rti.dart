@@ -1708,11 +1708,7 @@ class _Universe {
       universe, Rti baseType, String key, bool normalize) {
     if (normalize) {
       int baseKind = Rti._getKind(baseType);
-      if (isTopType(baseType) ||
-          isObjectType(baseType) ||
-          // TODO(fishythefish): Directly test for `LEGACY_TYPE_REF<Object>()`.
-          baseKind == Rti.kindStar &&
-              isObjectType(Rti._getStarArgument(baseType))) {
+      if (isTopType(baseType) || isObjectType(baseType)) {
         return baseType;
       } else if (baseKind == Rti.kindNever) {
         return _lookupFutureRti(universe, baseType);

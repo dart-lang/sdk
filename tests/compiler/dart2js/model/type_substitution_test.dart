@@ -226,26 +226,23 @@ testTypeSubstitution() async {
       env.elementEnvironment,
       arguments,
       parameters,
+      types.functionType(intType, [StringType], [], [], [], []),
+      types.functionType(intType, [StringType], [], [], [], []));
+  testSubstitution(
+      types,
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      types.functionType(types.voidType(), [T, S], [], [], [], []),
       types.functionType(
-          intType, [StringType], [], [], [], [], types.defaultNullability),
-      types.functionType(
-          intType, [StringType], [], [], [], [], types.defaultNullability));
+          types.voidType(), [intType, StringType], [], [], [], []));
   testSubstitution(
       types,
       env.elementEnvironment,
       arguments,
       parameters,
       types.functionType(
-          types.voidType(), [T, S], [], [], [], [], types.defaultNullability),
-      types.functionType(types.voidType(), [intType, StringType], [], [], [],
-          [], types.defaultNullability));
-  testSubstitution(
-      types,
-      env.elementEnvironment,
-      arguments,
-      parameters,
-      types.functionType(types.voidType(), [types.dynamicType()], [], [], [],
-          [], types.defaultNullability),
-      types.functionType(types.voidType(), [types.dynamicType()], [], [], [],
-          [], types.defaultNullability));
+          types.voidType(), [types.dynamicType()], [], [], [], []),
+      types.functionType(
+          types.voidType(), [types.dynamicType()], [], [], [], []));
 }

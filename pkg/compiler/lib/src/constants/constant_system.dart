@@ -142,8 +142,8 @@ SetConstantValue createSet(CommonElements commonElements,
     InterfaceType sourceType, List<ConstantValue> values) {
   InterfaceType type = commonElements.getConstantSetTypeFor(sourceType);
   DartType elementType = type.typeArguments.first;
-  InterfaceType mapType = commonElements.mapType(
-      Nullability.none, elementType, commonElements.nullType);
+  InterfaceType mapType =
+      commonElements.mapType(elementType, commonElements.nullType);
   List<NullConstantValue> nulls = new List<NullConstantValue>.filled(
       values.length, const NullConstantValue());
   MapConstantValue entries = createMap(commonElements, mapType, values, nulls);
@@ -174,10 +174,9 @@ MapConstantValue createMap(
   bool hasProtoKey = (protoValue != null);
   InterfaceType keysType;
   if (commonElements.dartTypes.treatAsRawType(sourceType)) {
-    keysType = commonElements.listType(Nullability.none);
+    keysType = commonElements.listType();
   } else {
-    keysType = commonElements.listType(
-        Nullability.none, sourceType.typeArguments.first);
+    keysType = commonElements.listType(sourceType.typeArguments.first);
   }
   ListConstantValue keysList = createList(commonElements, keysType, keys);
   InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,

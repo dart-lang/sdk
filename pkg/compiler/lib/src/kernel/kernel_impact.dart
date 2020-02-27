@@ -285,8 +285,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerListLiteral(ir.DartType elementType,
       {bool isConst, bool isEmpty}) {
     impactBuilder.registerListLiteral(new ListLiteralUse(
-        commonElements.listType(
-            Nullability.none, elementMap.getDartType(elementType)),
+        commonElements.listType(elementMap.getDartType(elementType)),
         isConstant: isConst,
         isEmpty: isEmpty));
   }
@@ -295,8 +294,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerSetLiteral(ir.DartType elementType,
       {bool isConst, bool isEmpty}) {
     impactBuilder.registerSetLiteral(new SetLiteralUse(
-        commonElements.setType(
-            Nullability.none, elementMap.getDartType(elementType)),
+        commonElements.setType(elementMap.getDartType(elementType)),
         isConstant: isConst,
         isEmpty: isEmpty));
   }
@@ -305,7 +303,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
       {bool isConst, bool isEmpty}) {
     impactBuilder.registerMapLiteral(new MapLiteralUse(
-        commonElements.mapType(Nullability.none,
+        commonElements.mapType(
             elementMap.getDartType(keyType), elementMap.getDartType(valueType)),
         isConstant: isConst,
         isEmpty: isEmpty));
@@ -328,9 +326,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     ImportEntity deferredImport = elementMap.getImport(import);
     impactBuilder.registerStaticUse(isConst
         ? new StaticUse.constConstructorInvoke(constructor, callStructure,
-            elementMap.getDartType(type), deferredImport)
+            elementMap.getDartType(type).withoutNullability, deferredImport)
         : new StaticUse.typedConstructorInvoke(constructor, callStructure,
-            elementMap.getDartType(type), deferredImport));
+            elementMap.getDartType(type).withoutNullability, deferredImport));
     if (type.typeArguments.any((ir.DartType type) => type is! ir.DynamicType)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
@@ -352,8 +350,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
       ir.LibraryDependency import) {
     ImportEntity deferredImport = elementMap.getImport(import);
-    InterfaceType type =
-        elementMap.createInterfaceType(cls, typeArguments, Nullability.none);
+    InterfaceType type = elementMap.createInterfaceType(cls, typeArguments);
     impactBuilder
         .registerTypeUse(new TypeUse.constInstantiation(type, deferredImport));
   }

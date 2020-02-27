@@ -1653,6 +1653,16 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   }
 
   @override
+  void visitLegacyType(LegacyType type, Null argument) {
+    visit(type.baseType);
+  }
+
+  @override
+  void visitNullableType(NullableType type, Null argument) {
+    visit(type.baseType);
+  }
+
+  @override
   void visitFutureOrType(FutureOrType type, Null argument) {
     _dependencies.addClass(_commonElements.futureClass);
     visit(type.typeArgument);
