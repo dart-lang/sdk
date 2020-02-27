@@ -1414,15 +1414,9 @@ bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
     // Without type bounds all will instantiate to dynamic. Only need to check
     // further if at least one of the functions has type bounds.
     if ($t1.hasTypeBounds || $t2.hasTypeBounds) {
-      // Check the bounds of the type parameters of g1 and g2.
-      // given a type parameter `T1 extends U1` from g1, and a type parameter
-      // `T2 extends U2` from g2, we must ensure that:
-      //
-      //      U1 == U2
-      //
-      // given a legacy type can be equivalent to nullable or non-nullable
-      // versions of the same type. The language spec recomends testing for
-      // mutual subtypes to allow this behaivor.
+      // Check the bounds of the type parameters of g1 and g2. Given a type
+      // parameter `T1 extends U1` from g1, and a type parameter `T2 extends U2`
+      // from g2, we must ensure that U1 and U2 are mutual subtypes.
       //
       // (Note there is no variance in the type bounds of type parameters of
       // generic functions).

@@ -962,19 +962,20 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     // Without type bounds all will instantiate to dynamic. Only need to check
     // further if at least one of the functions has type bounds.
     if ($t1.hasTypeBounds || $t2.hasTypeBounds) {
-      // Check the bounds of the type parameters of g1 and g2.
-      // given a type parameter `T1 extends U1` from g1, and a type parameter
-      // `T2 extends U2` from g2, we must ensure that:
-      //
-      //      U2 == U1
+      // Check the bounds of the type parameters of g1 and g2. Given a type
+      // parameter `T1 extends U1` from g1, and a type parameter `T2 extends U2`
+      // from g2, we must ensure that U1 and U2 are mutual subtypes.
       //
       // (Note there is no variance in the type bounds of type parameters of
       // generic functions).
       let t1Bounds = $t1.instantiateTypeBounds(fresh);
       let t2Bounds = $t2.instantiateTypeBounds(fresh);
       for (let i = 0; i < formalCount; i++) {
-        if (t2Bounds[i] != t1Bounds[i]) {
-          return false;
+        if (t1Bounds[i] != t2Bounds[i]) {
+          if (!($_isSubtype(t1Bounds[i], t2Bounds[i])
+              && $_isSubtype(t2Bounds[i], t1Bounds[i]))) {
+            return false;
+          }
         }
       }
     }
