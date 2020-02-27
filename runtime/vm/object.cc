@@ -2506,6 +2506,8 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
         cur += kWordSize;
       }
     } else {
+      // Check that MemorySantizer understands this is initialized.
+      MSAN_CHECK_INITIALIZED(reinterpret_cast<void*>(address), size);
 #if defined(DEBUG)
       while (cur < end) {
         ASSERT(*reinterpret_cast<uword*>(cur) == initial_value);
@@ -22779,6 +22781,11 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
   if (len < 0 || len > ExternalTypedData::MaxElements(class_id)) {
     FATAL1("Fatal error in ExternalTypedData::New: invalid len %" Pd "\n", len);
   }
+
+  // Once the TypedData is created, Dart might read this memory. Check for
+  // intialization at construction to make it easier to track the source.
+  MSAN_CHECK_INITIALIZED(data, len);
+
   ExternalTypedData& result = ExternalTypedData::Handle();
   {
     RawObject* raw =

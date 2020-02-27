@@ -64,14 +64,11 @@ class Expect : public DynamicAssertionHelper {
   template <typename E, typename A, typename T>
   void FloatEquals(const E& expected, const A& actual, const T& tol);
 
-  template <typename E, typename A>
-  void StringEquals(const E& expected, const A& actual);
+  void StringEquals(const char* expected, const char* actual);
 
-  template <typename E, typename A>
-  void IsSubstring(const E& needle, const A& haystack);
+  void IsSubstring(const char* needle, const char* haystack);
 
-  template <typename E, typename A>
-  void IsNotSubstring(const E& needle, const A& haystack);
+  void IsNotSubstring(const char* needle, const char* haystack);
 
   template <typename E, typename A>
   void LessThan(const E& left, const A& right);
@@ -141,39 +138,19 @@ void Expect::FloatEquals(const E& expected, const A& actual, const T& tol) {
        tols.c_str());
 }
 
-template <typename E, typename A>
-NO_SANITIZE_MEMORY void Expect::StringEquals(const E& expected,
-                                             const A& actual) {
-  std::ostringstream ess, ass;
-  ess << expected;
-  ass << actual;
-  std::string es = ess.str(), as = ass.str();
-  if (as == es) return;
-  Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", es.c_str(), as.c_str());
+inline void Expect::StringEquals(const char* expected, const char* actual) {
+  if (strcmp(expected, actual) == 0) return;
+  Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", expected, actual);
 }
 
-template <typename E, typename A>
-NO_SANITIZE_MEMORY void Expect::IsSubstring(const E& needle,
-                                            const A& haystack) {
-  std::ostringstream ess, ass;
-  ess << needle;
-  ass << haystack;
-  std::string es = ess.str(), as = ass.str();
-  if (as.find(es) != std::string::npos) return;
-  Fail("expected <\"%s\"> to be a substring of <\"%s\">", es.c_str(),
-       as.c_str());
+inline void Expect::IsSubstring(const char* needle, const char* haystack) {
+  if (strstr(haystack, needle) != nullptr) return;
+  Fail("expected <\"%s\"> to be a substring of <\"%s\">", needle, haystack);
 }
 
-template <typename E, typename A>
-NO_SANITIZE_MEMORY void Expect::IsNotSubstring(const E& needle,
-                                               const A& haystack) {
-  std::ostringstream ess, ass;
-  ess << needle;
-  ass << haystack;
-  std::string es = ess.str(), as = ass.str();
-  if (as.find(es) == std::string::npos) return;
-  Fail("expected <\"%s\"> to not be a substring of <\"%s\">", es.c_str(),
-       as.c_str());
+inline void Expect::IsNotSubstring(const char* needle, const char* haystack) {
+  if (strstr(haystack, needle) == nullptr) return;
+  Fail("expected <\"%s\"> to not be a substring of <\"%s\">", needle, haystack);
 }
 
 template <typename E, typename A>
