@@ -9,8 +9,12 @@
 # Documentation for lucicfg is here:
 # https://chromium.googlesource.com/infra/luci/luci-go/+/master/lucicfg/doc/
 
+load("//defaults.star", "defaults")
+
 DART_GIT = "https://dart.googlesource.com/sdk"
 DART_GERRIT = "https://dart-review.googlesource.com/sdk"
+
+GOMA_RBE = {"enable_ats": True, "server_host": "goma.chromium.org"}
 
 RELEASE_CHANNELS = ["dev", "stable"]
 CHANNELS = RELEASE_CHANNELS + ["try"]
@@ -292,20 +296,20 @@ def dart_recipe(name):
 
 def dart_try_builder(name,
                      recipe="neo",
-                     dimensions={},
+                     dimensions=None,
                      execution_timeout=None,
                      experiment_percentage=None,
+                     goma_rbe=False,
                      location_regexp=None,
-                     properties={},
+                     properties=None,
                      on_cq=False):
     if on_cq and location_regexp:
         fail("Can't be on the default CQ and conditionally on the CQ")
-    dimensions = dict(dimensions)
+    dimensions = defaults.dimensions(dimensions)
     dimensions["pool"] = "luci.dart.try"
-    dimensions.setdefault("os", "Linux")
-    dimensions.setdefault("host_class", "default")
-    dimensions.setdefault("cpu", "x86-64")
-    properties.setdefault("clobber", "true")
+    properties = defaults.properties(properties)
+    if dimensions["os"] == "Linux" and goma_rbe:
+        properties.setdefault("$build/goma", GOMA_RBE)
     builder = name + "-try"
 
     luci.builder(
@@ -354,14 +358,14 @@ def dart_builder(name,
                  enabled=True,
                  category=None,
                  channels=[],
-                 dimensions={},
-                 cpu="x86-64",
+                 dimensions=None,
                  executable=None,
                  execution_timeout=None,
+                 goma_rbe=False,
                  fyi=False,
                  notifies="dart",
                  priority=50,
-                 properties={},
+                 properties=None,
                  schedule="triggered",
                  service_account=TRY_ACCOUNT,
                  triggered_by=None,
@@ -369,11 +373,10 @@ def dart_builder(name,
                  on_cq=False,
                  experiment_percentage=None,
                  location_regexp=None):
-    dimensions.setdefault("os", "Linux")
-    dimensions.setdefault("host_class", "default")
-    dimensions.setdefault("pool", "luci.dart.try")
-    dimensions["cpu"] = cpu
-    properties.setdefault("clobber", "true")
+    dimensions = defaults.dimensions(dimensions)
+    properties = defaults.properties(properties)
+    if dimensions["os"] == "Linux" and goma_rbe:
+        properties.setdefault("$build/goma", GOMA_RBE)
 
     def builder(channel=None, triggered_by=None):
         if channel == "try":
@@ -389,7 +392,6 @@ def dart_builder(name,
         else:
             builder = name + "-" + channel if channel else name
             branch = channel if channel else "master"
-            channel_properties = dict(properties)
             if enabled and schedule == "triggered":
                 if not triggered_by:
                     triggered_by = ["dart-gitiles-trigger-%s"]
@@ -411,7 +413,7 @@ def dart_builder(name,
                 executable=executable or dart_recipe(recipe),
                 execution_timeout=execution_timeout,
                 priority=priority,
-                properties=channel_properties,
+                properties=properties,
                 notifies=[notifies]
                 if notifies and not channel and enabled else None,
                 schedule=schedule if enabled else None,
@@ -485,7 +487,7 @@ def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
 
 # cfe
 dart_ci_sandbox_builder(
-    "front-end-linux-release-x64", category="cfe|l", on_cq=True)
+    "front-end-linux-release-x64", category="cfe|l", goma_rbe=True, on_cq=True)
 dart_ci_sandbox_builder(
     "front-end-mac-release-x64", category="cfe|m", dimensions=mac())
 dart_ci_sandbox_builder(
@@ -535,7 +537,7 @@ dart_vm_extra_builder(
 
 #vm|kernel
 dart_ci_sandbox_builder(
-    "vm-canary-linux-debug", category="vm|kernel|c", on_cq=True)
+    "vm-canary-linux-debug", category="vm|kernel|c", goma_rbe=True, on_cq=True)
 dart_ci_sandbox_builder("vm-kernel-linux-debug-x64", category="vm|kernel|d")
 dart_vm_extra_builder(
     "vm-kernel-linux-release-simarm", category="vm|kernel|a32")
@@ -758,7 +760,8 @@ dart_ci_sandbox_builder(
     channels=ANALYZER_CHANNELS)
 
 # sdk
-dart_ci_builder("dart-sdk-linux", category="sdk|l", channels=CHANNELS)
+dart_ci_builder(
+    "dart-sdk-linux", category="sdk|l", channels=CHANNELS, goma_rbe=True)
 dart_ci_builder(
     "dart-sdk-mac", category="sdk|m", channels=CHANNELS, dimensions=mac())
 dart_ci_builder(
@@ -772,6 +775,7 @@ dart_ci_builder(
 dart_ci_sandbox_builder(
     "ddc-linux-release-chrome",
     category="ddc|l",
+    goma_rbe=True,
     location_regexp=to_location_regexp(DDC_PATHS))
 dart_ci_sandbox_builder(
     "ddc-nnbd-linux-release-chrome",
@@ -827,6 +831,7 @@ dart_ci_builder(
 dart_ci_sandbox_builder(
     "fuzz-linux",
     channels=[],
+    goma_rbe=True,
     notifies="dart-fuzz-testing",
     schedule="0 3,4 * * *")
 
