@@ -7,6 +7,7 @@
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
+#include "vm/heap/become.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/heap/safepoint.h"
 #include "vm/heap/verifier.h"
@@ -919,7 +920,7 @@ void Scavenger::MakeNewSpaceIterable() const {
   Thread* current = heap_->isolate_group()->thread_registry()->active_list();
   while (current != NULL) {
     if (current->HasActiveTLAB()) {
-      heap_->MakeTLABIterable(current);
+      heap_->new_space()->MakeTLABIterable(current);
     }
     current = current->next();
   }
@@ -927,25 +928,25 @@ void Scavenger::MakeNewSpaceIterable() const {
       [&](Isolate* isolate) {
         Thread* mutator_thread = isolate->mutator_thread();
         if (mutator_thread != NULL) {
-          heap_->MakeTLABIterable(mutator_thread);
+          heap_->new_space()->MakeTLABIterable(mutator_thread);
         }
       },
       /*at_safepoint=*/true);
 }
 
-void Scavenger::AbandonTLABs(IsolateGroup* isolate_group) {
+void Scavenger::AbandonTLABsLocked(IsolateGroup* isolate_group) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   MonitorLocker ml(isolate_group->threads_lock(), false);
   Thread* current = isolate_group->thread_registry()->active_list();
   while (current != NULL) {
-    heap_->AbandonRemainingTLAB(current);
+    AbandonRemainingTLABLocked(current);
     current = current->next();
   }
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) {
         Thread* mutator_thread = isolate->mutator_thread();
         if (mutator_thread != NULL) {
-          heap_->AbandonRemainingTLAB(mutator_thread);
+          AbandonRemainingTLABLocked(mutator_thread);
         }
       },
       /*at_safepoint=*/true);
@@ -997,24 +998,21 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   return Object::null();
 }
 
-uword Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t size) {
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+void Scavenger::TryAllocateNewTLAB(Thread* thread) {
   ASSERT(heap_ != Dart::vm_isolate()->heap());
   ASSERT(!scavenging_);
   MutexLocker ml(&space_lock_);
+  AbandonRemainingTLABLocked(thread);
   uword result = top_;
   intptr_t remaining = end_ - top_;
+  intptr_t size = kTLABSize;
   if (remaining < size) {
     // Grab whatever is remaining
-    size = remaining;
-  } else {
-    // Reduce TLAB size so we land at even TLAB size for future TLABs.
-    intptr_t survived_size = UsedInWords() * kWordSize;
-    size -= survived_size % size;
+    size = Utils::RoundDown(remaining, kObjectAlignment);
   }
-  size = Utils::RoundDown(size, kObjectAlignment);
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
   if (size == 0) {
-    return 0;
+    return;
   }
   ASSERT(to_->Contains(result));
   ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
@@ -1023,7 +1021,33 @@ uword Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t size) {
   ASSERT(result < top_);
   thread->set_top(result);
   thread->set_end(top_);
-  return result;
+}
+
+void Scavenger::MakeTLABIterable(Thread* thread) {
+  uword start = thread->top();
+  uword end = thread->end();
+  ASSERT(end >= start);
+  intptr_t size = end - start;
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  if (size >= kObjectAlignment) {
+    // ForwardingCorpse(forwarding to default null) will work as filler.
+    ForwardingCorpse::AsForwarder(start, size);
+    ASSERT(RawObject::FromAddr(start)->HeapSize() == size);
+  }
+}
+
+void Scavenger::AbandonRemainingTLAB(Thread* thread) {
+  MakeTLABIterable(thread);
+  AddAbandonedInBytes(thread->end() - thread->top());
+  thread->set_top(0);
+  thread->set_end(0);
+}
+
+void Scavenger::AbandonRemainingTLABLocked(Thread* thread) {
+  MakeTLABIterable(thread);
+  AddAbandonedInBytesLocked(thread->end() - thread->top());
+  thread->set_top(0);
+  thread->set_end(0);
 }
 
 void Scavenger::Scavenge() {
@@ -1059,7 +1083,7 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
-  AbandonTLABs(isolate_group);
+  AbandonTLABsLocked(isolate_group);
   intptr_t abandoned_bytes = GetAndResetAbandonedInBytes();
 
   SpaceUsage usage_before = GetCurrentUsage();

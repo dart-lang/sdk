@@ -1513,7 +1513,8 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-tsan-linux-release-${arch}"
+            "-ndartk-tsan-linux-release-${arch}",
+            "vm"
           ]
         }
       ]

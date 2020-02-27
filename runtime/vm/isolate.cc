@@ -401,7 +401,7 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   // Clear since GC will not visit the thread once it is unscheduled. Do this
   // under the thread lock to prevent races with the GC visiting thread roots.
   if (!is_mutator) {
-    thread->heap()->AbandonRemainingTLAB(thread);
+    thread->heap()->new_space()->AbandonRemainingTLAB(thread);
     thread->ClearReusableHandles();
   }
 
@@ -2331,7 +2331,8 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // Since the death of this isolate is not the death of the heap, we have to
   // leave the new space iterable (e.g. for old space marking) by abanoning the
   // TLAB.
-  isolate->group()->heap()->AbandonRemainingTLAB(Thread::Current());
+  isolate->group()->heap()->new_space()->AbandonRemainingTLAB(
+      Thread::Current());
 
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.

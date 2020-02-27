@@ -867,7 +867,7 @@ class Thread : public ThreadState {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  uword stack_limit_;
+  RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
   Isolate* isolate_;
   uword* dispatch_table_array_;

@@ -11,7 +11,6 @@
 #include "platform/utils.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
-#include "vm/heap/become.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/safepoint.h"
 #include "vm/heap/scavenger.h"
@@ -80,69 +79,27 @@ Heap::~Heap() {
   }
 }
 
-void Heap::MakeTLABIterable(Thread* thread) {
-  uword start = thread->top();
-  uword end = thread->end();
-  ASSERT(end >= start);
-  intptr_t size = end - start;
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  if (size >= kObjectAlignment) {
-    // ForwardingCorpse(forwarding to default null) will work as filler.
-    ForwardingCorpse::AsForwarder(start, size);
-    ASSERT(RawObject::FromAddr(start)->HeapSize() == size);
-  }
-}
-
-void Heap::AbandonRemainingTLAB(Thread* thread) {
-  MakeTLABIterable(thread);
-  new_space_.AddAbandonedInBytes(thread->end() - thread->top());
-  thread->set_top(0);
-  thread->set_end(0);
-}
-
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   CollectForDebugging();
   Thread* thread = Thread::Current();
-  uword addr = new_space_.TryAllocateInTLAB(thread, size);
-  if (addr != 0) {
+  uword addr = new_space_.TryAllocate(thread, size);
+  if (LIKELY(addr != 0)) {
     return addr;
   }
-
-  intptr_t tlab_size = GetTLABSize();
-  if ((tlab_size > 0) && (size > tlab_size)) {
-    return AllocateOld(size, HeapPage::kData);
-  }
-
-  AbandonRemainingTLAB(thread);
-  if (tlab_size > 0) {
-    uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
-    if (tlab_top != 0) {
-      addr = new_space_.TryAllocateInTLAB(thread, size);
-      if (addr != 0) {  // but "leftover" TLAB could end smaller than tlab_size
-        return addr;
-      }
-      // Abandon "leftover" TLAB as well so we can start from scratch.
-      AbandonRemainingTLAB(thread);
-    }
-  }
-
-  ASSERT(!thread->HasActiveTLAB());
 
   // This call to CollectGarbage might end up "reusing" a collection spawned
   // from a different thread and will be racing to allocate the requested
   // memory with other threads being released after the collection.
   CollectGarbage(kNew);
 
-  uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
-  if (tlab_top != 0) {
-    addr = new_space_.TryAllocateInTLAB(thread, size);
-    // It is possible a GC doesn't clear enough space.
-    // In that case, we must fall through and allocate into old space.
-    if (addr != 0) {
-      return addr;
-    }
+  addr = new_space_.TryAllocate(thread, size);
+  if (LIKELY(addr != 0)) {
+    return addr;
   }
+
+  // It is possible a GC doesn't clear enough space.
+  // In that case, we must fall through and allocate into old space.
   return AllocateOld(size, HeapPage::kData);
 }
 
@@ -731,7 +688,7 @@ void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
 
 void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
   // Prevent generated code from using the TLAB fast path on next allocation.
-  AbandonRemainingTLAB(Thread::Current());
+  new_space_.AbandonRemainingTLAB(Thread::Current());
   gc_on_nth_allocation_ = num_allocations;
 }
 
@@ -759,7 +716,7 @@ void Heap::CollectForDebugging() {
     gc_on_nth_allocation_ = kNoForcedGarbageCollection;
   } else {
     // Prevent generated code from using the TLAB fast path on next allocation.
-    AbandonRemainingTLAB(Thread::Current());
+    new_space_.AbandonRemainingTLAB(Thread::Current());
   }
 }
 

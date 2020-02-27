@@ -444,9 +444,10 @@ void Thread::ScheduleInterruptsLocked(uword interrupt_bits) {
   }
 
   if (stack_limit_ == saved_stack_limit_) {
-    stack_limit_ = kInterruptStackLimit & ~kInterruptsMask;
+    stack_limit_ = (kInterruptStackLimit & ~kInterruptsMask) | interrupt_bits;
+  } else {
+    stack_limit_ = stack_limit_ | interrupt_bits;
   }
-  stack_limit_ |= interrupt_bits;
 }
 
 uword Thread::GetAndClearInterrupts() {
@@ -474,7 +475,7 @@ void Thread::DeferOOBMessageInterrupts() {
     deferred_interrupts_ = stack_limit_ & deferred_interrupts_mask_;
 
     // Clear deferrable interrupts, if present.
-    stack_limit_ &= ~deferred_interrupts_mask_;
+    stack_limit_ = stack_limit_ & ~deferred_interrupts_mask_;
 
     if ((stack_limit_ & kInterruptsMask) == 0) {
       // No other pending interrupts.  Restore normal stack limit.
@@ -502,7 +503,7 @@ void Thread::RestoreOOBMessageInterrupts() {
     if (stack_limit_ == saved_stack_limit_) {
       stack_limit_ = kInterruptStackLimit & ~kInterruptsMask;
     }
-    stack_limit_ |= deferred_interrupts_;
+    stack_limit_ = stack_limit_ | deferred_interrupts_;
     deferred_interrupts_ = 0;
   }
 #if !defined(PRODUCT)

@@ -305,14 +305,6 @@ class Heap {
   static const intptr_t kNewAllocatableSize = 256 * KB;
   static const intptr_t kAllocatablePageSize = 64 * KB;
 
-  intptr_t GetTLABSize() {
-    // Inspired by V8 tlab size. More than threshold for old space allocation,
-    // less then minimal(initial) new semi-space.
-    const intptr_t size = 512 * KB;
-    return Utils::RoundDown(size, kObjectAlignment);
-  }
-  void MakeTLABIterable(Thread* thread);
-  void AbandonRemainingTLAB(Thread* thread);
   Space SpaceForExternal(intptr_t size) const;
 
   void CollectOnNthAllocation(intptr_t num_allocations);
