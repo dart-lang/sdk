@@ -1104,10 +1104,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
       // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
       // In addition, 'null' is an instance of any nullable type.
       // It is also an instance of FutureOr<T> if it is an instance of T.
-      AbstractType& unwrapped_type = AbstractType::Handle(type.raw());
-      if (unwrapped_type.IsFutureOrType()) {
-        unwrapped_type = unwrapped_type.UnwrapFutureOr();
-      }
+      const AbstractType& unwrapped_type =
+          AbstractType::Handle(type.UnwrapFutureOr());
       ASSERT(unwrapped_type.IsInstantiated() &&
              !unwrapped_type.IsUndetermined());
       is_subtype = unwrapped_type.IsTopType() || unwrapped_type.IsNullable() ||
@@ -1206,10 +1204,8 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
   // In addition, 'null' is an instance of any nullable type.
   // It is also an instance of FutureOr<T> if it is an instance of T.
-  AbstractType& unwrapped_type = AbstractType::Handle(type.raw());
-  if (unwrapped_type.IsFutureOrType()) {
-    unwrapped_type = unwrapped_type.UnwrapFutureOr();
-  }
+  const AbstractType& unwrapped_type =
+      AbstractType::Handle(type.UnwrapFutureOr());
   if (unwrapped_type.IsTopType() || !unwrapped_type.IsInstantiated()) {
     return false;  // Always true or cannot tell.
   }

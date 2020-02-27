@@ -17588,30 +17588,24 @@ bool Instance::NullIsInstanceOf(
     // The type will remain nullable after instantiation.
     return true;
   }
-  AbstractType& type = AbstractType::Handle(other.raw());
-  if (type.IsFutureOrType()) {
-    type = type.UnwrapFutureOr();
-  }
-  if (type.IsNullable()) {
-    // The type will remain nullable after instantiation.
-    return true;
+  if (other.IsFutureOrType()) {
+    const auto& type = AbstractType::Handle(other.UnwrapFutureOr());
+    return NullIsInstanceOf(mode, type, other_instantiator_type_arguments,
+                            other_function_type_arguments);
   }
   // No need to instantiate type, unless it is a type parameter.
   // Note that a typeref cannot refer to a type parameter.
-  if (type.IsTypeParameter()) {
-    type = type.InstantiateFrom(mode, other_instantiator_type_arguments,
-                                other_function_type_arguments, kAllFree, NULL,
-                                Heap::kOld);
+  if (other.IsTypeParameter()) {
+    auto& type = AbstractType::Handle(other.InstantiateFrom(
+        mode, other_instantiator_type_arguments, other_function_type_arguments,
+        kAllFree, NULL, Heap::kOld));
     if (type.IsTypeRef()) {
       type = TypeRef::Cast(type).type();
     }
     return Instance::NullIsInstanceOf(mode, type, Object::null_type_arguments(),
                                       Object::null_type_arguments());
   }
-  if (type.IsLegacy()) {
-    return type.IsTopType() || type.IsNeverType();
-  }
-  return type.IsNullable();
+  return other.IsLegacy() && (other.IsTopType() || other.IsNeverType());
 }
 
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
@@ -18460,7 +18454,9 @@ bool AbstractType::IsFfiPointerType() const {
 }
 
 RawAbstractType* AbstractType::UnwrapFutureOr() const {
-  ASSERT(IsFutureOrType());
+  if (!IsFutureOrType()) {
+    return raw();
+  }
   if (arguments() == TypeArguments::null()) {
     return Type::dynamic_type().raw();
   }

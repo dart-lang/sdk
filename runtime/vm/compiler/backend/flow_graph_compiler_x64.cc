@@ -626,10 +626,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
   // In addition, 'null' is an instance of any nullable type.
   // It is also an instance of FutureOr<T> if it is an instance of T.
-  AbstractType& unwrapped_type = AbstractType::Handle(type.raw());
-  if (unwrapped_type.IsFutureOrType()) {
-    unwrapped_type = unwrapped_type.UnwrapFutureOr();
-  }
+  const AbstractType& unwrapped_type =
+      AbstractType::Handle(type.UnwrapFutureOr());
   if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
     // Only nullable type parameter remains nullable after instantiation.
     // See NullIsInstanceOf().
