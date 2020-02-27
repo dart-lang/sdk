@@ -6,6 +6,7 @@ library custom_elements_test;
 
 import 'dart:async';
 import 'dart:html';
+import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 import 'utils.dart';
 
@@ -39,6 +40,8 @@ String get nextTag => 'x-type${nextTagId++}';
 class NotAnElement {}
 
 main() {
+  useHtmlIndividualConfiguration();
+
   setUp(() => customElementsReady);
 
   group('register', () {

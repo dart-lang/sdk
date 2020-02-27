@@ -5,11 +5,14 @@
 library FormDataTest;
 
 import 'package:unittest/unittest.dart';
+import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
 void main() {
   // TODO(efortuna): This is a bad test. Revisit when we have tests that can run
   // both a server and fire up a browser.
+  useHtmlIndividualConfiguration();
+
   group('supported', () {
     test('supported', () {
       expect(FormData.supported, isTrue);

@@ -1,6 +1,7 @@
 library IndexedDB1Test;
 
 import 'package:unittest/unittest.dart';
+import 'package:unittest/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:math' as math;
@@ -153,6 +154,8 @@ void testTypes(testFunction) {
 }
 
 main() {
+  useHtmlIndividualConfiguration();
+
   // Test that indexed_db is properly flagged as supported or not.
   // Note that the rest of the indexed_db tests assume that this has been
   // checked.

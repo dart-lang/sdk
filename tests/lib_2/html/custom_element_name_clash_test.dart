@@ -6,6 +6,7 @@ library custom_elements_name_clash;
 
 import 'dart:async';
 import 'dart:html';
+import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 import 'utils.dart';
 
@@ -19,6 +20,8 @@ class CustomElement extends HtmlElement {
 }
 
 main() {
+  useHtmlIndividualConfiguration();
+
   setUp(() => customElementsReady);
 
   group('test', () {
