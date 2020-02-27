@@ -77,6 +77,10 @@ class RelevanceData {
   /// A table mapping match types to counts by kind of type match.
   Map<String, Map<String, int>> byTypeMatch = {};
 
+  /// A table mapping the depth of a target type to the distance between the
+  /// target type and the member type.
+  Map<int, Map<int, int>> distanceByDepthMap = {};
+
   /// A table mapping distances from an identifier to the nearest previous token
   /// with the same lexeme to the number of times that distance was found.
   Map<int, int> tokenDistances = {};
@@ -96,6 +100,7 @@ class RelevanceData {
     _addToMap(byElementKind, data.byElementKind);
     _addToMap(byTokenType, data.byTokenType);
     _addToMap(byTypeMatch, data.byTypeMatch);
+    _addToMap(distanceByDepthMap, distanceByDepthMap);
   }
 
   /// Record that a reference to an element was found and that the distance
@@ -105,6 +110,13 @@ class RelevanceData {
     var contextMap = byDistance.putIfAbsent(descriptor, () => {});
     var key = distance.toString();
     contextMap[key] = (contextMap[key] ?? 0) + 1;
+  }
+
+  /// Given a member accessed on a target, record the distance between the
+  /// target class and the member class by the depth of the target class.
+  void recordDistanceByDepth(int targetDepth, int memberDistance) {
+    var innerMap = distanceByDepthMap.putIfAbsent(memberDistance, () => {});
+    innerMap[targetDepth] = (innerMap[targetDepth] ?? 0) + 1;
   }
 
   /// Record that an element of the given [kind] was found in the given
@@ -142,12 +154,12 @@ class RelevanceData {
       'byElementKind': byElementKind,
       'byTokenType': byTokenType,
       'byTypeMatch': byTypeMatch,
+      'distanceByDepthMap': _encodeIntIntMap(distanceByDepthMap),
     });
   }
 
   /// Add the data in the [source] map to the [target] map.
-  void _addToMap(Map<String, Map<String, int>> target,
-      Map<String, Map<String, int>> source) {
+  void _addToMap<K>(Map<K, Map<K, int>> target, Map<K, Map<K, int>> source) {
     for (var outerEntry in source.entries) {
       var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
       for (var innerEntry in outerEntry.value.entries) {
@@ -166,6 +178,22 @@ class RelevanceData {
 
   /// Decode the content of the [source] map into the [target] map, using the
   /// [keyMapper] to map the inner keys from a string to a [T].
+  void _decodeIntIntMap(
+      Map<int, Map<int, int>> target, Map<String, dynamic> source) {
+    var outerMap = _convert(source);
+    for (var outerEntry in outerMap.entries) {
+      var outerKey = int.parse(outerEntry.key);
+      var innerMap = _convert(outerEntry.value);
+      for (var innerEntry in innerMap.entries) {
+        var innerKey = int.parse(innerEntry.key);
+        var count = innerEntry.value as int;
+        target.putIfAbsent(outerKey, () => {})[innerKey] = count;
+      }
+    }
+  }
+
+  /// Decode the content of the [source] map into the [target] map, using the
+  /// [keyMapper] to map the inner keys from a string to a [T].
   void _decodeMap(
       Map<String, Map<String, int>> target, Map<String, dynamic> source) {
     var outerMap = _convert(source);
@@ -180,6 +208,18 @@ class RelevanceData {
     }
   }
 
+  Map<String, Map<String, int>> _encodeIntIntMap(Map<int, Map<int, int>> map) {
+    var result = <String, Map<String, int>>{};
+    for (var outerEntry in map.entries) {
+      var convertedInner = <String, int>{};
+      for (var innerEntry in outerEntry.value.entries) {
+        convertedInner[innerEntry.key.toString()] = innerEntry.value;
+      }
+      result[outerEntry.key.toString()] = convertedInner;
+    }
+    return result;
+  }
+
   /// Initialize the state of this object from the given JSON encoded [content].
   void _initializeFromJson(String content) {
     var contentObject = _convert(json.decode(content));
@@ -192,6 +232,7 @@ class RelevanceData {
     _decodeMap(byElementKind, contentObject['byElementKind']);
     _decodeMap(byTokenType, contentObject['byTokenType']);
     _decodeMap(byTypeMatch, contentObject['byTypeMatch']);
+    _decodeIntIntMap(distanceByDepthMap, contentObject['distanceByDepthMap']);
   }
 }
 
@@ -1475,30 +1516,32 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   /// Record the distance between the static type of the target (the
-  /// [targetType]) and the [element] to which the member reference was
-  /// resolved.
-  void _recordMemberDepth(DartType targetType, Element element) {
+  /// [targetType]) and the [member] to which the reference was resolved.
+  void _recordMemberDepth(DartType targetType, Element member) {
     if (targetType is InterfaceType) {
-      var subclass = targetType.element;
-      var extension = element.thisOrAncestorOfType<ExtensionElement>();
+      var targetClass = targetType.element;
+      var extension = member.thisOrAncestorOfType<ExtensionElement>();
       if (extension != null) {
         _recordDistance('member (extension)', 0);
         return;
       }
       // TODO(brianwilkerson) It might be interesting to also know whether the
       //  [element] was found in a class, interface, or mixin.
-      var superclass = element.thisOrAncestorOfType<ClassElement>();
-      if (superclass != null) {
+      var memberClass = member.thisOrAncestorOfType<ClassElement>();
+      if (memberClass != null) {
+        /// Return the distance between the [targetClass] and the [memberClass]
+        /// along the superclass chain. This includes all of the implicit
+        /// superclasses caused by mixins.
         int getSuperclassDepth() {
           var depth = 0;
-          var currentClass = subclass;
+          var currentClass = targetClass;
           while (currentClass != null) {
-            if (currentClass == superclass) {
+            if (currentClass == memberClass) {
               return depth;
             }
             for (var mixin in currentClass.mixins.reversed) {
               depth++;
-              if (mixin.element == superclass) {
+              if (mixin.element == memberClass) {
                 return depth;
               }
             }
@@ -1508,11 +1551,27 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           return -1;
         }
 
-        var notFound = 0xFFFF;
+        /// Return the depth of the [targetClass] in the class hierarchy. This
+        /// includes all of the implicit superclasses caused by mixins.
+        int getTargetDepth() {
+          var depth = 0;
+          var currentClass = targetClass;
+          while (currentClass != null) {
+            depth += currentClass.mixins.length + 1;
+            currentClass = currentClass.supertype?.element;
+          }
+          return depth;
+        }
+
+        const notFound = 0xFFFF;
+
+        /// Return the minimum distance from the [currentClass] to the
+        /// [memberClass] along any inheritance chain (including interfaces).
+        /// This includes paths introduced by mixins.
         int getInterfaceDepth(ClassElement currentClass) {
           if (currentClass == null) {
             return notFound;
-          } else if (currentClass == superclass) {
+          } else if (currentClass == memberClass) {
             return 0;
           }
           var minDepth = getInterfaceDepth(currentClass.supertype?.element);
@@ -1532,12 +1591,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         }
 
         int superclassDepth = getSuperclassDepth();
-        // TODO(brianwilkerson) Consider cross referencing with the depth of the
-        //  class containing the reference.
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
+          data.recordDistanceByDepth(getTargetDepth(), superclassDepth);
         } else {
-          int interfaceDepth = getInterfaceDepth(subclass);
+          int interfaceDepth = getInterfaceDepth(targetClass);
           if (interfaceDepth < notFound) {
             _recordDistance('member (interface)', interfaceDepth);
           } else {
@@ -1785,13 +1843,16 @@ class RelevanceMetricsComputer {
     sink.writeln('');
     sink.writeln('Structural indicators');
     _writeContextMap(sink, data.byDistance);
+    sink.writeln('');
+    sink.writeln('Distance to member (left) by depth of target class (top)');
+    _writeMatrix(sink, data.distanceByDepthMap);
     _writeTokenData(sink, data.tokenDistances);
   }
 
   /// Return the minimum widths for each of the columns in the given [table].
   ///
-  /// The table is represented as a list or rows, where each row is a list of the
-  /// contents of the cells in that row.
+  /// The table is represented as a list or rows, where each row is a list of
+  /// the contents of the cells in that row.
   ///
   /// Throws an [ArgumentError] if the table is empty or if the rows do not
   /// contain the same number of cells.
@@ -1903,6 +1964,44 @@ class RelevanceMetricsComputer {
         sink.writeln('  $line');
       }
     }
+  }
+
+  /// Write the given [matrix] to the [sink]. The keys of the outer map will be
+  /// the row titles; the keys of the inner map will be the column titles.
+  void _writeMatrix(StringSink sink, Map<int, Map<int, int>> matrix) {
+    var maxTargetDepth = 0;
+    var maxValueWidth = 0;
+    for (var innerMap in matrix.values) {
+      for (var entry in innerMap.entries) {
+        maxTargetDepth = math.max(maxTargetDepth, entry.key);
+        maxValueWidth = math.max(maxValueWidth, entry.value.toString().length);
+      }
+    }
+    String intToString(int value, int width) {
+      var digits = value.toString();
+      var padding = ' ' * (width - digits.length);
+      return '$padding$digits';
+    }
+
+    var maxRowHeaderWidth = maxTargetDepth.toString().length;
+    var headerRow = [''];
+    for (int depth = maxTargetDepth; depth > 0; depth--) {
+      headerRow.add(intToString(depth, maxValueWidth));
+    }
+    var zero = intToString(0, maxValueWidth);
+    var table = [headerRow];
+    for (int distance = maxTargetDepth - 1; distance >= 0; distance--) {
+      var innerMap = matrix[distance] ?? {};
+      var row = [intToString(distance, maxRowHeaderWidth)];
+      for (int depth = maxTargetDepth; depth > 0; depth--) {
+        var value = innerMap[depth];
+        row.add(value == null
+            ? (distance < depth ? zero : '')
+            : intToString(value, maxValueWidth));
+      }
+      table.add(row);
+    }
+    _writeTable(sink, table);
   }
 
   /// Write the given [maps] to the given [sink], formatting them as side-by-side
