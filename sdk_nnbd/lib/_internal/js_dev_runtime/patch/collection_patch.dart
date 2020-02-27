@@ -130,8 +130,7 @@ class LinkedHashSet<E> {
           identical(identical, equals)) {
         return _IdentityHashSet<E>();
       }
-      return _CustomHashSet<E>(
-          equals ?? dart.equals, hashCode ?? dart.hashCode);
+      return _CustomHashSet<E>(equals ?? dart.equals, hashCode);
     }
     return _CustomKeyHashSet<E>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
