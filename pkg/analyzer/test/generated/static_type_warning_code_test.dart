@@ -100,17 +100,6 @@ f() async {
     ]);
   }
 
-  test_awaitForIn_dynamicStream() async {
-    await assertErrorsInCode('''
-f() async {
-  dynamic stream;
-  await for (int i in stream) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
-  }
-
   test_awaitForIn_dynamicVariable() async {
     await assertErrorsInCode('''
 import 'dart:async';
@@ -147,17 +136,6 @@ f() async {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
       error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
-    ]);
-  }
-
-  test_awaitForIn_notStream() async {
-    await assertErrorsInCode('''
-f() async {
-  await for (var i in true) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 34, 4),
     ]);
   }
 
@@ -335,17 +313,6 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
-  }
-
-  test_forIn_notIterable() async {
-    await assertErrorsInCode('''
-f() {
-  for (var i in true) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 22, 4),
     ]);
   }
 

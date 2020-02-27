@@ -2402,6 +2402,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
+    // TODO(scheglov) use NullableDereferenceVerifier
+    if (_isNonNullableByDefault) {
+      if (_typeSystem.isNullable(iterableType)) {
+        return false;
+      }
+    }
+
     // The type of the loop variable.
     DartType variableType;
     var variableElement = variable.staticElement;
@@ -2427,37 +2434,46 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
     iterableType = iterableType.resolveToBound(_typeProvider.objectType);
 
-    ClassElement sequenceElement = awaitKeyword != null
-        ? _typeProvider.streamElement
-        : _typeProvider.iterableElement;
+    var requiredSequenceType = awaitKeyword != null
+        ? _typeProvider.streamDynamicType
+        : _typeProvider.iterableDynamicType;
 
-    DartType bestIterableType;
+    if (_typeSystem.isTop(iterableType)) {
+      iterableType = requiredSequenceType;
+    }
+
+    if (!_typeSystem.isAssignableTo2(iterableType, requiredSequenceType)) {
+      _errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+        node.iterable,
+        [iterableType, loopTypeName],
+      );
+      return false;
+    }
+
+    DartType sequenceElementType;
     if (iterableType is InterfaceTypeImpl) {
+      var sequenceElement = awaitKeyword != null
+          ? _typeProvider.streamElement
+          : _typeProvider.iterableElement;
       var sequenceType = iterableType.asInstanceOf(sequenceElement);
       if (sequenceType != null) {
-        bestIterableType = sequenceType.typeArguments[0];
+        sequenceElementType = sequenceType.typeArguments[0];
       }
     }
 
-    // Allow it to be a supertype of Iterable<T> (basically just Object) and do
-    // an implicit downcast to Iterable<dynamic>.
-    if (bestIterableType == null) {
-      if (iterableType == _typeProvider.objectType) {
-        bestIterableType = DynamicTypeImpl.instance;
-      }
+    if (sequenceElementType == null) {
+      return true;
     }
 
-    if (bestIterableType == null) {
+    if (!_typeSystem.isAssignableTo2(sequenceElementType, variableType)) {
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
-          node.iterable,
-          [iterableType, loopTypeName]);
-    } else if (!_typeSystem.isAssignableTo2(bestIterableType, variableType)) {
-      _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
-          node.iterable,
-          [iterableType, loopTypeName, variableType]);
+        StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+        node.iterable,
+        [iterableType, loopTypeName, variableType],
+      );
     }
+
     return true;
   }
 
