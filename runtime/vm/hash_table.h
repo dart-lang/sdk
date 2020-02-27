@@ -62,7 +62,7 @@ namespace dart {
 // Each entry contains a key, followed by zero or more payload components,
 // and has 3 possible states: unused, occupied, or deleted.
 // The header tracks the number of entries in each state.
-// Any object except the backing storage array and Object::transition_sentinel()
+// Any object except Object::sentinel() and Object::transition_sentinel()
 // may be stored as a key. Any object may be stored in a payload.
 //
 // Parameters
@@ -138,7 +138,7 @@ class HashTable : public ValueObject {
 #endif  // !defined(PRODUCT)
 
     for (intptr_t i = kHeaderSize; i < data_->Length(); ++i) {
-      data_->SetAt(i, *data_);
+      data_->SetAt(i, Object::sentinel());
     }
   }
 
@@ -225,9 +225,6 @@ class HashTable : public ValueObject {
   // Sets the key of a previously unoccupied entry. This must not be the last
   // unoccupied entry.
   void InsertKey(intptr_t entry, const Object& key) const {
-    ASSERT(key.raw() != data_->raw());
-    ASSERT(key.raw() != Object::transition_sentinel().raw());
-
     ASSERT(!IsOccupied(entry));
     AdjustSmiValueAt(kOccupiedEntriesIndex, 1);
     if (IsDeleted(entry)) {
@@ -241,7 +238,7 @@ class HashTable : public ValueObject {
   }
 
   bool IsUnused(intptr_t entry) const {
-    return InternalGetKey(entry) == data_->raw();
+    return InternalGetKey(entry) == Object::sentinel().raw();
   }
   bool IsOccupied(intptr_t entry) const {
     return !IsUnused(entry) && !IsDeleted(entry);

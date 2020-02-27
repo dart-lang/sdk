@@ -1432,10 +1432,6 @@ bool FlowGraphDeserializer::ParseDartValue(SExpression* sexp, Object* out) {
     // We'll use the null value in *out as a marker later, so go ahead and exit
     // early if we parse one.
     if (sym->Equals("null")) return true;
-    if (sym->Equals("sentinel")) {
-      *out = Object::sentinel().raw();
-      return true;
-    }
 
     // The only other symbols that should appear in Dart value position are
     // names of constant definitions.
@@ -1666,8 +1662,6 @@ bool FlowGraphDeserializer::ParseInstance(SExpList* list, Object* out) {
     return false;
   }
 
-  ASSERT(cid_sexp->value() != kNullCid);  // Must use canonical instances.
-  ASSERT(cid_sexp->value() != kBoolCid);  // Must use canonical instances.
   instance_class_ = table->At(cid_sexp->value());
   *out = Instance::New(instance_class_, Heap::kOld);
   auto& instance = Instance::Cast(*out);
