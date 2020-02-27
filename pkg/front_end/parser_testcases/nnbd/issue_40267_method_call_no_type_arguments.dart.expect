@@ -1,10 +1,10 @@
 Problems reported:
 
-parser/nnbd/issue_40267_method_call_no_type_arguments%20copy:5:8: Expected ':' before this.
+parser/nnbd/issue_40267_method_call_no_type_arguments:5:8: Expected ':' before this.
   a?(b);
        ^
 
-parser/nnbd/issue_40267_method_call_no_type_arguments%20copy:5:8: Expected an identifier, but got ';'.
+parser/nnbd/issue_40267_method_call_no_type_arguments:5:8: Expected an identifier, but got ';'.
   a?(b);
        ^
 
