@@ -3083,7 +3083,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class A {}
   //
   // class C {
-  //   factory [!A!]() => null;
+  //   factory [!A!]() => throw 0;
   // }
   // ```
   //
@@ -3096,7 +3096,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class A {}
   //
   // class C {
-  //   factory C() => null;
+  //   factory C() => throw 0;
   // }
   // ```
   //
@@ -3105,7 +3105,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // class A {
-  //   factory A() => null;
+  //   factory A() => throw 0;
   // }
   //
   // class C {}
@@ -3119,7 +3119,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class A {}
   //
   // class C {
-  //   static A a() => null;
+  //   static A a() => throw 0;
   // }
   // ```
   static const CompileTimeErrorCode INVALID_FACTORY_NAME_NOT_A_CLASS =
@@ -4903,7 +4903,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `f` is a function:
   //
   // ```dart
-  // C f() => null;
+  // C f() => throw 0;
   //
   // class C {
   //   factory C() = [!f!];
@@ -4922,7 +4922,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // the constructor to return the value from the constructor's body:
   //
   // ```dart
-  // C f() => null;
+  // C f() => throw 0;
   //
   // class C {
   //   factory C() => f();

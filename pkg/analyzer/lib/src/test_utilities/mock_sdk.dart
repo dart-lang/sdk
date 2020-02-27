@@ -47,7 +47,7 @@ abstract class Future<T> {
 
   Future<T> whenComplete(action());
 
-  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => null;
+  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => throw 0;
 }
 
 abstract class FutureOr<T> {}
@@ -81,7 +81,9 @@ part of dart.async;
 
 abstract class Stream<T> {
   Stream();
-  factory Stream.fromIterable(Iterable<T> data) => null;
+  factory Stream.fromIterable(Iterable<T> data) {
+    throw 0;
+  }
 
   Future<T> get first;
 
@@ -395,8 +397,8 @@ class List<E> implements Iterable<E> {
       {bool growable = true});
   external factory List.unmodifiable(Iterable elements);
 
-  E get last => null;
-  E operator [](int index) => null;
+  E get last => throw 0;
+  E operator [](int index) => throw 0;
   void operator []=(int index, E value) {}
 
   void add(E value) {}
@@ -409,7 +411,7 @@ class List<E> implements Iterable<E> {
   noSuchMethod(Invocation invocation) => null;
 }
 
-class Map<K, V> {
+abstract class Map<K, V> {
   external factory Map();
   external factory Map.from();
   external Map.of(Map<K, V> other);
@@ -422,21 +424,23 @@ class Map<K, V> {
   external factory Map.fromIterables(Iterable<K> keys, Iterable<V> values);
   external factory Map.fromEntries(Iterable<MapEntry<K, V>> entries);
 
-  Iterable<K> get keys => null;
+  Iterable<K> get keys;
   bool get isEmpty;
   bool get isNotEmpty;
   int get length => 0;
-  Iterable<V> get values => null;
+  Iterable<V> get values;
 
-  V? operator [](K key) => null;
-  void operator []=(K key, V value) {}
+  V? operator [](K key);
+  void operator []=(K key, V value);
 
-  Map<RK, RV> cast<RK, RV>() => null;
-  bool containsKey(Object? key) => false;
+  Map<RK, RV> cast<RK, RV>();
+  bool containsKey(Object? key);
 }
 
 class Null extends Object {
-  factory Null._uninstantiable() => null;
+  factory Null._uninstantiable() {
+    throw 0;
+  }
 }
 
 class MapEntry<K, V> {
@@ -649,26 +653,26 @@ abstract class ElementStream<T extends Event> implements Stream<T> {}
 
 abstract class Element {
   /// Stream of `cut` events handled by this [Element].
-  ElementStream<Event> get onCut => null;
+  ElementStream<Event> get onCut => throw 0;
 
-  String get id => null;
+  String get id => throw 0;
 
-  set id(String value) => null;
+  set id(String value) => throw 0;
 }
 
 class HtmlElement extends Element {
   int tabIndex;
-  ElementStream<Event> get onChange => null;
-  ElementStream<MouseEvent> get onClick => null;
-  ElementStream<KeyEvent> get onKeyUp => null;
-  ElementStream<KeyEvent> get onKeyDown => null;
+  ElementStream<Event> get onChange => throw 0;
+  ElementStream<MouseEvent> get onClick => throw 0;
+  ElementStream<KeyEvent> get onKeyUp => throw 0;
+  ElementStream<KeyEvent> get onKeyDown => throw 0;
 
-  bool get hidden => null;
-  set hidden(bool value) => null;
+  bool get hidden => throw 0;
+  set hidden(bool value) {}
 
-  void set className(String s){}
-  void set readOnly(bool b){}
-  void set tabIndex(int i){}
+  void set className(String s) {}
+  void set readOnly(bool b) {}
+  void set tabIndex(int i) {}
 
   String _innerHtml;
   String get innerHtml {
@@ -694,7 +698,7 @@ class AnchorElement extends HtmlElement {
 class BodyElement extends HtmlElement {
   factory BodyElement() => document.createElement("body");
 
-  ElementStream<Event> get onUnload => null;
+  ElementStream<Event> get onUnload => throw 0;
 }
 
 class ButtonElement extends HtmlElement {
@@ -753,12 +757,12 @@ class ScriptElement extends HtmlElement {
 
 class TableSectionElement extends HtmlElement {
 
-  List<TableRowElement> get rows => null;
+  List<TableRowElement> get rows => throw 0;
 
   TableRowElement addRow() {
   }
 
-  TableRowElement insertRow(int index) => null;
+  TableRowElement insertRow(int index) => throw 0;
 
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -835,42 +839,46 @@ final MockSdkLibrary _LIB_IO = MockSdkLibrary(
 library dart.io;
 
 abstract class Directory implements FileSystemEntity {
-  factory Directory(String path) => null;
+  factory Directory(String path) {
+    throw 0;
+  }
 
   Future<bool> exists() async => true;
   bool existsSync() => true;
 
-  Future<FileStat> stat() async => null;
-  FileStat statSync() => null;
+  Future<FileStat> stat() async => throw 0;
+  FileStat statSync() => throw 0;
 }
 
 abstract class File implements FileSystemEntity {
-  factory File(String path) => null;
+  factory File(String path) {
+    throw 0;
+  }
 
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
 
-  Future<bool> exists() async => true;
-  bool existsSync() => true;
+  Future<bool> exists();
+  bool existsSync();
 
-  Future<FileStat> stat() async => null;
-  FileStat statSync() => null;
+  Future<FileStat> stat();
+  FileStat statSync();
 }
 
 abstract class FileSystemEntity {
-  static Future<bool> isDirectory(String path) => true;
+  static Future<bool> isDirectory(String path) async => true;
   static bool isDirectorySync(String path) => true;
 
-  static Future<bool> isFile(String path) => true;
+  static Future<bool> isFile(String path) async => true;
   static bool isFileSync(String path) => true;
 
-  static Future<bool> isLink(String path) => true;
+  static Future<bool> isLink(String path) async => true;
   static bool isLinkSync(String path) => true;
 
   static Future<FileSystemEntityType> type(
-    String path, {bool followLinks: true}) async => null;
+    String path, {bool followLinks: true}) => throw 0;
   static FileSystemEntityType typeSync(
-    String path, {bool followLinks: true}) => null;
+    String path, {bool followLinks: true}) => throw 0;
 }
 ''',
     )
@@ -889,8 +897,8 @@ const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
 const double LN10 =  2.302585092994046;
 
-T min<T extends num>(T a, T b) => null;
-T max<T extends num>(T a, T b) => null;
+T min<T extends num>(T a, T b) => throw 0;
+T max<T extends num>(T a, T b) => throw 0;
 
 external double cos(num radians);
 external double sin(num radians);

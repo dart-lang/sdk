@@ -2652,7 +2652,7 @@ constructor (`A`) isn't the same as the surrounding class (`C`):
 class A {}
 
 class C {
-  factory [!A!]() => null;
+  factory [!A!]() => throw 0;
 }
 {% endprettify %}
 
@@ -2665,7 +2665,7 @@ the factory:
 class A {}
 
 class C {
-  factory C() => null;
+  factory C() => throw 0;
 }
 {% endprettify %}
 
@@ -2674,7 +2674,7 @@ factory to that class:
 
 {% prettify dart %}
 class A {
-  factory A() => null;
+  factory A() => throw 0;
 }
 
 class C {}
@@ -2688,7 +2688,7 @@ a static method:
 class A {}
 
 class C {
-  static A a() => null;
+  static A a() => throw 0;
 }
 {% endprettify %}
 
@@ -4540,7 +4540,7 @@ constructor.
 The following code produces this diagnostic because `f` is a function:
 
 {% prettify dart %}
-C f() => null;
+C f() => throw 0;
 
 class C {
   factory C() = [!f!];
@@ -4559,7 +4559,7 @@ If you're trying to return the value returned by a function, then rewrite
 the constructor to return the value from the constructor's body:
 
 {% prettify dart %}
-C f() => null;
+C f() => throw 0;
 
 class C {
   factory C() => f();
