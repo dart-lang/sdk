@@ -624,10 +624,13 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   ASSERT(num_type_params > 0);
 
   intptr_t offset;
+  NNBDMode nnbd_mode;
   if (!parameterized_class.IsNull()) {
     offset = parameterized_class.NumTypeArguments() - num_type_params;
+    nnbd_mode = parameterized_class.nnbd_mode();
   } else {
     offset = parameterized_function.NumParentTypeParameters();
+    nnbd_mode = parameterized_function.nnbd_mode();
   }
 
   // First setup the type parameters, so if any of the following code uses it
@@ -679,8 +682,42 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     // when function subtyping is fixed.
     if (bound.IsDynamicType()) {
       bound = I->object_store()->object_type();
+      if (nnbd_mode == NNBDMode::kOptedInLib) {
+        parameter =
+            parameter.ToNullability(Nullability::kUndetermined, Heap::kOld);
+        type_parameters.SetTypeAt(i, parameter);
+      }
+    } else {
+      if (nnbd_mode == NNBDMode::kOptedInLib) {
+        parameter = parameter.ToNullability(bound.IsNullable()
+                                                ? Nullability::kUndetermined
+                                                : Nullability::kNonNullable,
+                                            Heap::kOld);
+        type_parameters.SetTypeAt(i, parameter);
+      }
     }
     parameter.set_bound(bound);
+  }
+
+  // Fix bounds in all derived type parameters (with different nullabilities).
+  if (active_class_->derived_type_parameters != nullptr) {
+    auto& derived = TypeParameter::Handle(Z);
+    auto& bound = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = active_class_->derived_type_parameters->Length();
+         i < n; ++i) {
+      derived ^= active_class_->derived_type_parameters->At(i);
+      if (derived.bound() == AbstractType::null() &&
+          ((!parameterized_class.IsNull() &&
+            derived.parameterized_class() == parameterized_class.raw()) ||
+           (!parameterized_function.IsNull() &&
+            derived.parameterized_function() ==
+                parameterized_function.raw()))) {
+        ASSERT(derived.IsFinalized());
+        parameter ^= type_parameters.TypeAt(derived.index() - offset);
+        bound = parameter.bound();
+        derived.set_bound(bound);
+      }
+    }
   }
 }
 
@@ -1686,6 +1723,13 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       }
       TypeParameter& type_parameter = TypeParameter::Handle(Z);
       type_parameter ^= type_parameters.TypeAt(index_in_parent);
+      if (type_parameter.bound() == AbstractType::null()) {
+        AbstractType& derived = AbstractType::Handle(
+            Z, type_parameter.ToNullability(nullability, Heap::kOld));
+        active_class_->RecordDerivedTypeParameter(Z, type_parameter,
+                                                  TypeParameter::Cast(derived));
+        return derived.raw();
+      }
       return type_parameter.ToNullability(nullability, Heap::kOld);
     }
     case kGenericType: {
