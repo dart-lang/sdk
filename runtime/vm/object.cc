@@ -17975,18 +17975,12 @@ RawAbstractType* AbstractType::SetInstantiatedNullability(
   Nullability result_nullability;
   const Nullability arg_nullability = nullability();
   const Nullability var_nullability = type_param.nullability();
-  // Adjust nullability of result 'arg' instantiated from 'var' (x throws).
+  // Adjust nullability of result 'arg' instantiated from 'var'.
   // arg/var ! ? * %
   //  !      ! ? * !
-  //  ?      x ? ? ?
+  //  ?      ? ? ? ?
   //  *      * ? * *
-  //  %      x ? * %
-  // If the assert below triggers, file an issue against CFE.
-  // A non-nullable type parameter cannot be instantiated to a nullable type.
-  ASSERT(var_nullability != Nullability::kNonNullable ||
-         (arg_nullability != Nullability::kNullable &&
-          arg_nullability != Nullability::kUndetermined));
-
+  //  %      % ? * %
   if (var_nullability == Nullability::kNullable ||
       arg_nullability == Nullability::kNullable) {
     result_nullability = Nullability::kNullable;
@@ -17994,7 +17988,8 @@ RawAbstractType* AbstractType::SetInstantiatedNullability(
              arg_nullability == Nullability::kLegacy) {
     result_nullability = Nullability::kLegacy;
   } else {
-    result_nullability = arg_nullability;
+    // Keep arg nullability.
+    return raw();
   }
   if (arg_nullability == result_nullability) {
     return raw();
