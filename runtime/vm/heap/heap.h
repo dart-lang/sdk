@@ -148,6 +148,7 @@ class Heap {
   void CheckFinishConcurrentMarking(Thread* thread);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
+  void WaitForSweeperTasksAtSafepoint(Thread* thread);
 
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.

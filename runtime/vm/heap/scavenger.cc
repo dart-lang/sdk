@@ -303,29 +303,6 @@ class ScavengerWeakVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
 
-// Visitor used to verify that all old->new references have been added to the
-// StoreBuffers.
-class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
- public:
-  VerifyStoreBufferPointerVisitor(IsolateGroup* isolate_group,
-                                  const SemiSpace* to)
-      : ObjectPointerVisitor(isolate_group), to_(to) {}
-
-  void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** current = first; current <= last; current++) {
-      RawObject* obj = *current;
-      if (obj->IsHeapObject() && obj->IsNewObject()) {
-        ASSERT(to_->Contains(RawObject::ToAddr(obj)));
-      }
-    }
-  }
-
- private:
-  const SemiSpace* to_;
-
-  DISALLOW_COPY_AND_ASSIGN(VerifyStoreBufferPointerVisitor);
-};
-
 SemiSpace::SemiSpace(VirtualMemory* reserved)
     : reserved_(reserved), region_(NULL, 0) {
   if (reserved != NULL) {
@@ -477,8 +454,104 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   }
 }
 
+class CollectStoreBufferVisitor : public ObjectPointerVisitor {
+ public:
+  explicit CollectStoreBufferVisitor(ObjectSet* in_store_buffer)
+      : ObjectPointerVisitor(IsolateGroup::Current()),
+        in_store_buffer_(in_store_buffer) {}
+
+  void VisitPointers(RawObject** from, RawObject** to) {
+    for (RawObject** ptr = from; ptr <= to; ptr++) {
+      RawObject* raw_obj = *ptr;
+      RELEASE_ASSERT(!raw_obj->IsCardRemembered());
+      RELEASE_ASSERT(raw_obj->IsRemembered());
+      RELEASE_ASSERT(raw_obj->IsOldObject());
+      in_store_buffer_->Add(raw_obj);
+    }
+  }
+
+ private:
+  ObjectSet* const in_store_buffer_;
+};
+
+class CheckStoreBufferVisitor : public ObjectVisitor,
+                                public ObjectPointerVisitor {
+ public:
+  CheckStoreBufferVisitor(ObjectSet* in_store_buffer, const SemiSpace* to)
+      : ObjectVisitor(),
+        ObjectPointerVisitor(IsolateGroup::Current()),
+        in_store_buffer_(in_store_buffer),
+        to_(to) {}
+
+  void VisitObject(RawObject* raw_obj) {
+    if (raw_obj->IsPseudoObject()) return;
+    RELEASE_ASSERT(raw_obj->IsOldObject());
+
+    if (raw_obj->IsCardRemembered()) {
+      RELEASE_ASSERT(!raw_obj->IsRemembered());
+      // TODO(rmacnak): Verify card tables.
+      return;
+    }
+
+    RELEASE_ASSERT(raw_obj->IsRemembered() ==
+                   in_store_buffer_->Contains(raw_obj));
+
+    visiting_ = raw_obj;
+    is_remembered_ = raw_obj->IsRemembered();
+    raw_obj->VisitPointers(this);
+  }
+
+  void VisitPointers(RawObject** from, RawObject** to) {
+    for (RawObject** ptr = from; ptr <= to; ptr++) {
+      RawObject* raw_obj = *ptr;
+      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
+        if (!is_remembered_) {
+          FATAL3(
+              "Old object %p references new object %p, but it is not in any"
+              " store buffer. Consider using rr to watch the slot %p and "
+              "reverse-continue to find the store with a missing barrier.\n",
+              visiting_, raw_obj, ptr);
+        }
+        RELEASE_ASSERT(to_->Contains(RawObject::ToAddr(raw_obj)));
+      }
+    }
+  }
+
+ private:
+  const ObjectSet* const in_store_buffer_;
+  const SemiSpace* const to_;
+  RawObject* visiting_;
+  bool is_remembered_;
+};
+
+void Scavenger::VerifyStoreBuffers() {
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
+
+  ObjectSet* in_store_buffer = new (zone) ObjectSet(zone);
+  heap_->AddRegionsToObjectSet(in_store_buffer);
+
+  {
+    CollectStoreBufferVisitor visitor(in_store_buffer);
+    heap_->isolate_group()->store_buffer()->VisitObjectPointers(&visitor);
+  }
+
+  {
+    CheckStoreBufferVisitor visitor(in_store_buffer, to_);
+    heap_->old_space()->VisitObjects(&visitor);
+  }
+}
+
 SemiSpace* Scavenger::Prologue(IsolateGroup* isolate_group) {
   isolate_group->ReleaseStoreBuffers();
+
+  if (FLAG_verify_store_buffer) {
+    OS::PrintErr("Verifying remembered set before Scavenge...");
+    heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
+    VerifyStoreBuffers();
+    OS::PrintErr(" done.\n");
+  }
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -565,20 +638,22 @@ void Scavenger::Epilogue(IsolateGroup* isolate_group, SemiSpace* from) {
     idle_scavenge_threshold_in_words_ = upper_bound;
   }
 
-#if defined(DEBUG)
-  // We can only safely verify the store buffers from old space if there is no
-  // concurrent old space task. At the same time we prevent new tasks from
-  // being spawned.
-  {
-    PageSpace* page_space = heap_->old_space();
-    MonitorLocker ml(page_space->tasks_lock());
-    if (page_space->tasks() == 0) {
-      VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate_group,
-                                                                  to_);
-      heap_->old_space()->VisitObjectPointers(&verify_store_buffer_visitor);
-    }
+  if (FLAG_verify_store_buffer) {
+    // Scavenging will insert into the store buffer block on the current
+    // thread (later will parallel scavenge, the worker's threads). We need to
+    // flush this thread-local block to the isolate group or we will incorrectly
+    // report some objects as absent from the store buffer. This might cause
+    // a program to hit a store buffer overflow a bit sooner than it might
+    // otherwise, since overflow is measured in blocks. Store buffer overflows
+    // are very rare.
+    isolate_group->ReleaseStoreBuffers();
+
+    OS::PrintErr("Verifying remembered set after Scavenge...");
+    heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
+    VerifyStoreBuffers();
+    OS::PrintErr(" done.\n");
   }
-#endif  // defined(DEBUG)
+
   from->Delete();
   UpdateMaxHeapUsage();
   if (heap_ != NULL) {
@@ -1075,10 +1150,10 @@ void Scavenger::Scavenge() {
   int64_t safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, safe_point - start);
 
-  // TODO(koda): Make verification more compatible with concurrent sweep.
-  if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
+  if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before Scavenge...");
-    heap_->VerifyGC(kForbidMarked);
+    heap_->WaitForSweeperTasksAtSafepoint(thread);
+    heap_->VerifyGC(thread->is_marking() ? kAllowMarked : kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 
@@ -1123,10 +1198,10 @@ void Scavenger::Scavenge() {
   }
   Epilogue(isolate_group, from);
 
-  // TODO(koda): Make verification more compatible with concurrent sweep.
-  if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {
+  if (FLAG_verify_after_gc) {
     OS::PrintErr("Verifying after Scavenge...");
-    heap_->VerifyGC(kForbidMarked);
+    heap_->WaitForSweeperTasksAtSafepoint(thread);
+    heap_->VerifyGC(thread->is_marking() ? kAllowMarked : kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 

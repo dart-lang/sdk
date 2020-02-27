@@ -288,6 +288,8 @@ class Scavenger {
 
   bool IsUnreachable(RawObject** p);
 
+  void VerifyStoreBuffers();
+
   // During a scavenge we need to remember the promoted objects.
   // This is implemented as a stack of objects at the end of the to space. As
   // object sizes are always greater than sizeof(uword) and promoted objects do

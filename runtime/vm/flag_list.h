@@ -237,6 +237,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Enables heap verification after GC.")                                     \
   R(verify_before_gc, false, bool, false,                                      \
     "Enables heap verification before GC.")                                    \
+  R(verify_store_buffer, false, bool, false,                                   \
+    "Enables store buffer verification before and after scavenges.")           \
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
     "TESTING: slow-path triggers a GC.")                                       \

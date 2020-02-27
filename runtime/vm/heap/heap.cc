@@ -624,9 +624,18 @@ void Heap::WaitForMarkerTasks(Thread* thread) {
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
+  ASSERT(!thread->IsAtSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
   while (old_space_.tasks() > 0) {
     ml.WaitWithSafepointCheck(thread);
+  }
+}
+
+void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
+  ASSERT(thread->IsAtSafepoint());
+  MonitorLocker ml(old_space_.tasks_lock());
+  while (old_space_.tasks() > 0) {
+    ml.Wait();
   }
 }
 
@@ -684,6 +693,7 @@ const char* Heap::RegionName(Space space) {
 void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
   new_space_.AddRegionsToObjectSet(set);
   old_space_.AddRegionsToObjectSet(set);
+  set->SortRegions();
 }
 
 void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
@@ -726,6 +736,9 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   ObjectSet* allocated_set = new (zone) ObjectSet(zone);
 
   this->AddRegionsToObjectSet(allocated_set);
+  Isolate* vm_isolate = Dart::vm_isolate();
+  vm_isolate->heap()->AddRegionsToObjectSet(allocated_set);
+
   {
     VerifyObjectVisitor object_visitor(isolate_group(), allocated_set,
                                        mark_expectation);
@@ -736,9 +749,6 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
                                        kRequireMarked);
     this->VisitObjectsImagePages(&object_visitor);
   }
-
-  Isolate* vm_isolate = Dart::vm_isolate();
-  vm_isolate->heap()->AddRegionsToObjectSet(allocated_set);
   {
     // VM isolate heap is premarked.
     VerifyObjectVisitor vm_object_visitor(isolate_group(), allocated_set,
