@@ -777,12 +777,12 @@ class FileTest {
     await openedFile.writeFrom(const [1, 2, 3]);
 
     await openedFile.setPosition(0);
-    var list = [null, null, null];
+    var list = <int>[null, null, null];
     Expect.equals(3, await openedFile.readInto(list));
     Expect.listEquals([1, 2, 3], list);
 
-    read(start, end, length, expected) async {
-      var list = [null, null, null];
+    read(int start, int end, int length, List<int> expected) async {
+      var list = <int>[null, null, null];
       await openedFile.setPosition(0);
       Expect.equals(length, await openedFile.readInto(list, start, end));
       Expect.listEquals(expected, list);
@@ -808,12 +808,12 @@ class FileTest {
     openedFile.writeFromSync(const [1, 2, 3]);
 
     openedFile.setPositionSync(0);
-    var list = [null, null, null];
+    var list = <int>[null, null, null];
     Expect.equals(3, openedFile.readIntoSync(list));
     Expect.listEquals([1, 2, 3], list);
 
     read(start, end, length, expected) {
-      var list = [null, null, null];
+      var list = <int>[null, null, null];
       openedFile.setPositionSync(0);
       Expect.equals(length, openedFile.readIntoSync(list, start, end));
       Expect.listEquals(expected, list);
