@@ -159,7 +159,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('component-name', help: 'Name of the Fuchsia component')
   ..addOption('data-dir',
       help: 'Name of the subdirectory of //data for output files')
-  ..addOption('far-manifest', help: 'Path to output Fuchsia package manifest');
+  ..addOption('far-manifest', help: 'Path to output Fuchsia package manifest')
+  ..addOption('libraries-spec',
+      help: 'A path or uri to the libraries specification JSON file');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -393,6 +395,11 @@ class FrontendCompiler implements CompilerInterface {
           printDiagnosticMessage(message, _outputStream.writeln);
         }
       };
+
+    if (options.wasParsed('libraries-spec')) {
+      compilerOptions.librariesSpecificationUri =
+          resolveInputUri(options['libraries-spec']);
+    }
 
     if (options.wasParsed('filesystem-root')) {
       if (_options['output-dill'] == null) {
