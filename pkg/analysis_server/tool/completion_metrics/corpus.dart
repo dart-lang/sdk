@@ -32,16 +32,32 @@ Future<void> main(List<String> args) async {
   }
 
   print('Cloning repositories...');
+  if (!updateExistingClones) {
+    print('(Skipping git updates.)');
+  }
   for (var repo in repos) {
-    final result = await _clone(_trimName(repo));
-    if (result.processResult.exitCode != 0) {
-      print('Error cloning $repo: ${result.processResult.stderr}');
+    final clone = await _clone(_trimName(repo));
+    if (clone.exitCode != 0) {
+      print('Error cloning $repo: ${clone.msg}');
     } else {
-      print('Updating pub dependencies...');
-      await _runPub(result.directory);
+      await _runPub(clone.directory);
+      if (recurseForDependencies) {
+        for (var dir in Directory(clone.directory).listSync(recursive: true)) {
+          await _runPubGet(dir);
+        }
+      }
     }
   }
 }
+
+/// Whether to force a pub get if a package config is found.
+final forcePubUpdate = false;
+
+/// Whether to recurse into projects when installing dependencies.
+final recurseForDependencies = true;
+
+/// Whether to update existing clones.
+final updateExistingClones = false;
 
 final _appDir =
     path.join(_homeDir, 'completion_metrics', 'third_party', 'apps');
@@ -51,19 +67,24 @@ final _homeDir = Platform.isWindows
     ? Platform.environment['LOCALAPPDATA']
     : Platform.environment['HOME'];
 
+final _package_config = path.join('.dart_tool', 'package_config.json');
+
 Future<CloneResult> _clone(String repo) async {
   final name =
       _trimName(repo.split('https://github.com/').last.replaceAll('/', '_'));
   final cloneDir = path.join(_appDir, name);
   var result;
   if (Directory(cloneDir).existsSync()) {
+    if (!updateExistingClones) {
+      return CloneResult(0, cloneDir);
+    }
     print('Repository "$name" exists -- pulling to update');
     result = await Process.run('git', ['pull'], workingDirectory: cloneDir);
   } else {
     print('Cloning $repo to $cloneDir');
     result = await Process.run('git', ['clone', '$repo.git', cloneDir]);
   }
-  return CloneResult(result, cloneDir);
+  return CloneResult(result.exitCode, cloneDir, msg: result.stderr);
 }
 
 Future<String> _getBody(String url) async => (await _getResponse(url)).body;
@@ -71,8 +92,25 @@ Future<String> _getBody(String url) async => (await _getResponse(url)).body;
 Future<http.Response> _getResponse(String url) async => _client
     .get(url, headers: const {'User-Agent': 'dart.pkg.completion_metrics'});
 
+bool _hasPubspec(FileSystemEntity f) =>
+    f is Directory && File(path.join(f.path, 'pubspec.yaml')).existsSync();
+
 Future<ProcessResult> _runPub(String dir) async =>
     await Process.run('flutter', ['pub', 'get'], workingDirectory: dir);
+
+Future<void> _runPubGet(FileSystemEntity dir) async {
+  if (_hasPubspec(dir)) {
+    final packageFile = path.join(dir.path, _package_config);
+    if (!File(packageFile).existsSync() || forcePubUpdate) {
+      print(
+          'Updating pub dependencies for "${path.relative(dir.path, from: _appDir)}"...');
+      final pubRun = await _runPub(dir.path);
+      if (pubRun.exitCode != 0) {
+        print('Error: ' + pubRun.stderr);
+      }
+    }
+  }
+}
 
 String _trimName(String name) {
   while (name.endsWith('/')) {
@@ -83,8 +121,9 @@ String _trimName(String name) {
 
 class CloneResult {
   final String directory;
-  final ProcessResult processResult;
-  CloneResult(this.processResult, this.directory);
+  final int exitCode;
+  final String msg;
+  CloneResult(this.exitCode, this.directory, {this.msg = ''});
 }
 
 class RepoList {
