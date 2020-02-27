@@ -6856,6 +6856,11 @@ class Instance : public Object {
                       const TypeArguments& other_instantiator_type_arguments,
                       const TypeArguments& other_function_type_arguments) const;
 
+  // Return true if the null instance can be assigned to a variable of [other]
+  // type. Return false if null cannot be assigned or we cannot tell (if
+  // [other] is a type parameter in NNBD strong mode).
+  static bool NullIsAssignableTo(const AbstractType& other);
+
   // Returns true if the type of this instance is a subtype of FutureOr<T>
   // specified by instantiated type 'other'.
   // Returns false if other type is not a FutureOr.
@@ -7431,6 +7436,13 @@ class AbstractType : public Instance {
 
   // Check if this type represents a top type.
   bool IsTopType() const;
+
+  // Check if this type represents a top type with respect to
+  // assignability and 'as' type tests, e.g. returns true if any value can be
+  // assigned to a variable of this type and 'as' type test always succeeds.
+  // Guaranteed to return true for top types according to IsTopType(), but
+  // may also return true for other types (non-nullable Object in weak mode).
+  bool IsTopTypeForAssignability() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }

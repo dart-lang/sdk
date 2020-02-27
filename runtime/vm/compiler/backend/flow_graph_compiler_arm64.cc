@@ -678,8 +678,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
-         !dst_type.IsVoidType());
+  ASSERT(!dst_type.IsTopTypeForAssignability());
+
   const Register kInstantiatorTypeArgumentsReg = R1;
   const Register kFunctionTypeArgumentsReg = R2;
 
@@ -689,9 +689,10 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   } else {
     compiler::Label is_assignable_fast, is_assignable, runtime_call;
 
-    // A null object is always assignable and is returned as result.
-    __ CompareObject(R0, Object::null_object());
-    __ b(&is_assignable_fast, EQ);
+    if (Instance::NullIsAssignableTo(dst_type)) {
+      __ CompareObject(R0, Object::null_object());
+      __ b(&is_assignable_fast, EQ);
+    }
 
     __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
 

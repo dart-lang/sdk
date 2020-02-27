@@ -2292,8 +2292,6 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     compiler::Label* done) {
   TypeUsageInfo* type_usage_info = thread()->type_usage_info();
 
-  // TODO(regis): Take nnbd_mode() into account and pass it in a register.
-
   // If the int type is assignable to [dst_type] we special case it on the
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());
@@ -2311,6 +2309,15 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   // We can handle certain types very efficiently on the call site (with a
   // bailout to the normal stub, which will do a runtime call).
   if (dst_type.IsTypeParameter()) {
+    // In NNBD strong mode we need to handle null instance before calling TTS
+    // if type parameter is nullable or legacy because type parameter can be
+    // instantiated with a non-nullable type which rejects null.
+    // In NNBD weak mode or if type parameter is non-nullable or has
+    // undetermined nullability null instance is correctly handled by TTS.
+    if (FLAG_null_safety && (dst_type.IsNullable() || dst_type.IsLegacy())) {
+      __ CompareObject(instance_reg, Object::null_object());
+      __ BranchIf(EQUAL, done);
+    }
     const TypeParameter& type_param = TypeParameter::Cast(dst_type);
     const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
                                            ? instantiator_type_args_reg
@@ -2338,10 +2345,10 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
       const bool can_use_simple_cid_range_test =
           hi->CanUseSubtypeRangeCheckFor(dst_type);
       if (can_use_simple_cid_range_test) {
-        const CidRangeVector& ranges =
-            hi->SubtypeRangesForClass(type_class,
-                                      /*include_abstract=*/false,
-                                      /*exclude_null=*/false);
+        const CidRangeVector& ranges = hi->SubtypeRangesForClass(
+            type_class,
+            /*include_abstract=*/false,
+            /*exclude_null=*/!Instance::NullIsAssignableTo(dst_type));
         if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
           if (is_non_smi) {
             __ LoadClassId(scratch_reg, instance_reg);

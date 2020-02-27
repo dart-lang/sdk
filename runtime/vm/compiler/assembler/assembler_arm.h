@@ -403,6 +403,11 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    ldrb(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
+    cmp(TMP, Operand(value));
+  }
+
   // Misc. functionality
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;

@@ -17609,6 +17609,23 @@ bool Instance::NullIsInstanceOf(
   return nullability == Nullability::kNullable;
 }
 
+bool Instance::NullIsAssignableTo(const AbstractType& other) {
+  // In weak mode, Null is a bottom type (according to LEGACY_SUBTYPE).
+  if (!FLAG_null_safety) {
+    return true;
+  }
+  // "Left Null" rule: null is assignable when destination type is either
+  // legacy or nullable. Otherwise it is not assignable or we cannot tell
+  // without instantiating type parameter.
+  if (other.IsLegacy() || other.IsNullable()) {
+    return true;
+  }
+  if (other.IsFutureOrType()) {
+    return NullIsAssignableTo(AbstractType::Handle(other.UnwrapFutureOr()));
+  }
+  return false;
+}
+
 bool Instance::RuntimeTypeIsSubtypeOf(
     NNBDMode mode,
     const AbstractType& other,
@@ -18363,7 +18380,6 @@ bool AbstractType::IsNeverType() const {
 
 // Caution: IsTopType() does not return true for non-nullable Object.
 bool AbstractType::IsTopType() const {
-  // FutureOr<T> where T is a top type behaves as a top type.
   const classid_t cid = type_class_id();
   if (cid == kDynamicCid || cid == kVoidCid) {
     return true;
@@ -18372,7 +18388,25 @@ bool AbstractType::IsTopType() const {
     return !IsNonNullable();  // kLegacy or kNullable.
   }
   if (cid == kFutureOrCid) {
+    // FutureOr<T> where T is a top type behaves as a top type.
     return AbstractType::Handle(UnwrapFutureOr()).IsTopType();
+  }
+  return false;
+}
+
+bool AbstractType::IsTopTypeForAssignability() const {
+  const classid_t cid = type_class_id();
+  if (cid == kDynamicCid || cid == kVoidCid) {
+    return true;
+  }
+  if (cid == kInstanceCid) {  // Object type.
+    // NNBD weak mode uses LEGACY_SUBTYPE for assignability / 'as' tests,
+    // and non-nullable Object is a top type according to LEGACY_SUBTYPE.
+    return !FLAG_null_safety || !IsNonNullable();
+  }
+  if (cid == kFutureOrCid) {
+    // FutureOr<T> where T is a top type behaves as a top type.
+    return AbstractType::Handle(UnwrapFutureOr()).IsTopTypeForAssignability();
   }
   return false;
 }
@@ -18477,13 +18511,7 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
   }
   // Left Null type.
   if (IsNullType()) {
-    // In weak mode, Null is a bottom type.
-    if (!FLAG_null_safety) {
-      return true;
-    }
-    const AbstractType& unwrapped_other =
-        AbstractType::Handle(other.UnwrapFutureOr());
-    return unwrapped_other.IsNullable() || unwrapped_other.IsLegacy();
+    return Instance::NullIsAssignableTo(other);
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();

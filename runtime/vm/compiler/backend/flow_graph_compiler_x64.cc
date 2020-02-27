@@ -695,8 +695,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
-         !dst_type.IsVoidType());
+  ASSERT(!dst_type.IsTopTypeForAssignability());
 
   const Register kInstantiatorTypeArgumentsReg = RDX;
   const Register kFunctionTypeArgumentsReg = RCX;
@@ -707,9 +706,10 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   } else {
     compiler::Label is_assignable, runtime_call;
 
-    // A null object is always assignable and is returned as result.
-    __ CompareObject(RAX, Object::null_object());
-    __ j(EQUAL, &is_assignable);
+    if (Instance::NullIsAssignableTo(dst_type)) {
+      __ CompareObject(RAX, Object::null_object());
+      __ j(EQUAL, &is_assignable);
+    }
 
     // Generate inline type check, linking to runtime call if not assignable.
     SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());

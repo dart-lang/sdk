@@ -115,20 +115,16 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
     bool exclude_null) {
   ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
-  CidRangeVector** cid_ranges = nullptr;
+  std::unique_ptr<CidRangeVector[]>* cid_ranges = nullptr;
   if (include_abstract) {
-    ASSERT(!exclude_null);
-    cid_ranges = &cid_subtype_ranges_abstract_nullable_;
-  } else if (exclude_null) {
-    ASSERT(!include_abstract);
-    cid_ranges = &cid_subtype_ranges_nonnullable_;
+    cid_ranges = exclude_null ? &cid_subtype_ranges_abstract_nonnullable_
+                              : &cid_subtype_ranges_abstract_nullable_;
   } else {
-    ASSERT(!include_abstract);
-    ASSERT(!exclude_null);
-    cid_ranges = &cid_subtype_ranges_nullable_;
+    cid_ranges = exclude_null ? &cid_subtype_ranges_nonnullable_
+                              : &cid_subtype_ranges_nullable_;
   }
   if (*cid_ranges == nullptr) {
-    *cid_ranges = new CidRangeVector[cid_count];
+    cid_ranges->reset(new CidRangeVector[cid_count]);
   }
   CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
@@ -147,8 +143,8 @@ const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
     const Class& klass) {
   ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
-  if (cid_subclass_ranges_ == NULL) {
-    cid_subclass_ranges_ = new CidRangeVector[cid_count];
+  if (cid_subclass_ranges_ == nullptr) {
+    cid_subclass_ranges_.reset(new CidRangeVector[cid_count]);
   }
 
   CidRangeVector& ranges = cid_subclass_ranges_[klass.id()];
@@ -270,7 +266,6 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
                    exclude_null);
     return;
   }
-  ASSERT(!exclude_null);
 
   Zone* zone = thread()->zone();
   GrowableArray<intptr_t> cids;
@@ -2957,7 +2952,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     instantiator_type_arguments()->BindTo(flow_graph->constant_null());
     function_type_arguments()->BindTo(flow_graph->constant_null());
 
-    if (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType() ||
+    if (new_dst_type.IsTopTypeForAssignability() ||
         (FLAG_eliminate_type_checks &&
          value()->Type()->IsAssignableTo(nnbd_mode(), new_dst_type))) {
       return value()->definition();

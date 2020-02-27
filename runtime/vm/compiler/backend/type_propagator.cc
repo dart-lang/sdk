@@ -816,7 +816,7 @@ bool CompileType::IsSubtypeOf(NNBDMode mode, const AbstractType& other) {
 }
 
 bool CompileType::IsAssignableTo(NNBDMode mode, const AbstractType& other) {
-  if (other.IsTopType()) {
+  if (other.IsTopTypeForAssignability()) {
     return true;
   }
 
@@ -826,19 +826,8 @@ bool CompileType::IsAssignableTo(NNBDMode mode, const AbstractType& other) {
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
-
   if (compile_type.IsNullType()) {
-    if (!FLAG_null_safety) {
-      // In weak mode, 'null' is assignable to any type.
-      return true;
-    }
-    // In strong mode, 'null' is assignable to any nullable or legacy type.
-    // It is also assignable to FutureOr<T> if it is assignable to T.
-    const AbstractType& unwrapped_other =
-        AbstractType::Handle(other.UnwrapFutureOr());
-    // A nullable or legacy type parameter will still be either nullable or
-    // legacy after instantiation.
-    return unwrapped_other.IsNullable() || unwrapped_other.IsLegacy();
+    return Instance::NullIsAssignableTo(other);
   }
   return compile_type.IsSubtypeOf(mode, other, Heap::kOld);
 }
