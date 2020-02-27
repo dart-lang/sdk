@@ -209,6 +209,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Maps Kernel constants to their JS aliases.
   final constAliasCache = HashMap<Constant, js_ast.Expression>();
 
+  /// Maps uri strings in asserts and elsewhere to hoisted identifiers.
+  final _uriMap = HashMap<String, js_ast.Identifier>();
+
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
   final Class _linkedHashMapImplClass;
@@ -349,6 +352,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       moduleItems.insert(_constTableInsertionIndex, constTableBody);
       _constLazyAccessors.clear();
     }
+
+    // Add assert locations
+    _uriMap.forEach((location, id) {
+      moduleItems
+          .add(js.statement('var # = #;', [id, js.escapedString(location)]));
+    });
 
     moduleItems.addAll(afterClassDefItems);
     afterClassDefItems.clear();
@@ -1300,10 +1309,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     emitSignature('Setter', instanceSetters);
     emitSignature('StaticGetter', staticGetters);
     emitSignature('StaticSetter', staticSetters);
-    body.add(runtimeStatement('setLibraryUri(#, #)', [
-      className,
-      js.escapedString(jsLibraryDebuggerName(c.enclosingLibrary))
-    ]));
+    body.add(runtimeStatement('setLibraryUri(#, #)',
+        [className, _cacheUri(jsLibraryDebuggerName(c.enclosingLibrary))]));
 
     var instanceFields = <js_ast.Property>[];
     var staticFields = <js_ast.Property>[];
@@ -3235,7 +3242,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var check = js.statement(' if (#) #.nullFailed(#, #, #, #);', [
           condition,
           runtimeModule,
-          js.escapedString(location.file.toString()),
+          _cacheUri(location.file.toString()),
           js.number(location.line),
           js.number(location.column),
           js.escapedString('${p.name}'),
@@ -3498,6 +3505,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     throw UnsupportedError('compilation of an assert block');
   }
 
+  // Replace a string `uri` literal with a cached top-level variable containing
+  // the value to reduce overall code size.
+  js_ast.Identifier _cacheUri(String uri) {
+    var id = _uriMap[uri];
+    if (id == null) {
+      var name = 'L${_uriMap.length}';
+      id = js_ast.TemporaryId(name);
+      _uriMap[uri] = id;
+    }
+    return id;
+  }
+
   @override
   js_ast.Statement visitAssertStatement(AssertStatement node) {
     if (!_options.enableAsserts) return js_ast.EmptyStatement();
@@ -3526,7 +3545,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.LiteralNull()
       else
         _visitExpression(node.message),
-      js.escapedString(location.sourceUrl.toString()),
+      _cacheUri(location.sourceUrl.toString()),
       // Lines and columns are typically printed with 1 based indexing.
       js.number(location.line + 1),
       js.number(location.column + 1),
