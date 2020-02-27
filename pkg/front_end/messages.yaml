@@ -3936,10 +3936,18 @@ ValueForRequiredParameterNotProvidedWarning:
 
 OptionalNonNullableWithoutInitializerError:
   template: "Optional parameter '#name' should have a default value because its type '#type' doesn't allow null."
+  configuration: nnbd-strong
+  script:
+    - method1({int a}) {}
+    - method2([int a]) {}
 
 OptionalNonNullableWithoutInitializerWarning:
   template: "Optional parameter '#name' doesn't have a default value and its type '#type' doesn't allow null."
+  configuration: nnbd-weak
   severity: WARNING
+  script:
+    - method1({int a}) {}
+    - method2([int a]) {}
 
 FieldNonNullableWithoutInitializerError:
   template: "Field '#name' should be initialized because its type '#type' doesn't allow null."

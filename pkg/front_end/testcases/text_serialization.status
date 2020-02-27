@@ -1277,6 +1277,7 @@ nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure
 nnbd/non_nullable_field_initialization: TextSerializationFailure
+nnbd/non_nullable_optional: TextSerializationFailure
 nnbd/not_definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/nsm_from_opt_in: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure

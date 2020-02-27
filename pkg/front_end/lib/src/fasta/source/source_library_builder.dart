@@ -2473,7 +2473,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       modifiers |= initializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset, importUri)
+        metadata, modifiers, type, name, this, charOffset, fileUri)
       ..initializerToken = initializerToken
       ..hasDeclaredInitializer = (initializerToken != null);
     return formal;
@@ -3198,14 +3198,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                       isNonNullableByDefault),
               formal.charOffset,
               formal.name.length,
-              fileUri);
+              formal.fileUri);
         } else {
           addProblem(
               templateOptionalNonNullableWithoutInitializerError.withArguments(
                   formal.name, formal.variable.type, isNonNullableByDefault),
               formal.charOffset,
               formal.name.length,
-              fileUri);
+              formal.fileUri);
         }
       }
     }
