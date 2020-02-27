@@ -5,12 +5,9 @@
 library worker_test;
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('supported', () {
     test('supported', () {
       expect(Worker.supported, isTrue);

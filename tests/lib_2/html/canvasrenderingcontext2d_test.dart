@@ -7,7 +7,6 @@ library canvas_rendering_context_2d_test;
 import 'dart:html';
 import 'dart:math';
 
-import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 
 // Some rounding errors in the browsers.
@@ -81,8 +80,6 @@ void expectPixelUnfilled(int x, int y) {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('pixel_manipulation', () {
     setUp(setupFunc);
     tearDown(tearDownFunc);

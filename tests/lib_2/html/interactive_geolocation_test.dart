@@ -7,12 +7,9 @@ library interactive_test;
 import 'dart:async';
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'utils.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   test('getCurrentPosition', () {
     return window.navigator.geolocation.getCurrentPosition().then((position) {
       expect(position.coords.latitude, isNotNull);
