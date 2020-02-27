@@ -413,9 +413,11 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       type = &(instance_of->type());
       left = instance_of->value()->definition();
     }
-    if (!type->IsDynamicType() && !type->IsObjectType()) {
-      const bool is_nullable = type->IsNullType() ? CompileType::kNullable
-                                                  : CompileType::kNonNullable;
+    if (!type->IsTopType()) {
+      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter() ||
+                                (type->IsNeverType() && type->IsLegacy()))
+                                   ? CompileType::kNullable
+                                   : CompileType::kNonNullable;
       EnsureMoreAccurateRedefinition(
           true_successor, left,
           CompileType::FromAbstractType(*type, is_nullable));
