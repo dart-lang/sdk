@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server_client/protocol.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/migrate/apply.dart';
@@ -39,8 +41,9 @@ void defineIssueRenderTests() {
     renderer.render(issue);
 
     expect(
-      logger.stdoutText,
-      contains('error • My message at foo/bar/baz.dart:3:4 • (my_error_code)'),
+      logger.stdoutText.trim(),
+      contains(platformPath(
+          'error • My message at foo/bar/baz.dart:3:4 • (my_error_code)')),
     );
     expect(logger.stderrText, isEmpty);
   });
@@ -56,8 +59,10 @@ void defineIssueRenderTests() {
 
     renderer.render(issue);
 
-    expect(logger.stdoutText,
-        contains('info • todo: My message at foo/bar/qux.dart:3:4 • (todo)'));
+    expect(
+        logger.stdoutText,
+        contains(platformPath(
+            'info • todo: My message at foo/bar/qux.dart:3:4 • (todo)')));
 
     expect(logger.stderrText, isEmpty);
   });
@@ -178,4 +183,8 @@ class TestLogger implements Logger {
   String get stdoutText => stdoutBuffer.toString();
 
   String get stderrText => stderrBuffer.toString();
+}
+
+String platformPath(String path) {
+  return path.replaceAll('/', Platform.pathSeparator);
 }
