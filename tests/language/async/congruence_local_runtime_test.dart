@@ -26,8 +26,6 @@ class A {}
 
 class B extends A {}
 
-class B2 extends A {}
-
 Future quick() async {}
 
 Future<B> futureB() => new Future<B>.value(new B());
@@ -101,14 +99,14 @@ main() {
   void checkStaticTypes() {
     // Check that f_inferred_futureObject's static return type is
     // `Future<Object>`, by verifying that its return value can be assigned to
-    // `Future<int>` but not `int`.
-    Future<int> v1 = f_inferred_futureObject();
+    // `Future<Object>` but not `Future<int>`.
+    Future<Object> v1 = f_inferred_futureObject();
 
 
     // Check that f_inferred_A's static return type is `Future<A>`, by verifying
-    // that its return value can be assigned to `Future<B2>` but not
-    // `Future<int>`.
-    Future<B2> v3 = f_inferred_A();
+    // that its return value can be assigned to `Future<A>` but not
+    // `Future<B>`.
+    Future<A> v3 = f_inferred_A();
 
   }
 

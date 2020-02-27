@@ -1,6 +1,3 @@
-// TODO(multitest): This was automatically migrated from a multitest and may
-// contain strange or dead code.
-
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25,8 +22,6 @@ import 'package:expect/expect.dart';
 class A {}
 
 class B extends A {}
-
-class B2 extends A {}
 
 Future quick() async {}
 
@@ -101,15 +96,23 @@ main() {
   void checkStaticTypes() {
     // Check that f_inferred_futureObject's static return type is
     // `Future<Object>`, by verifying that its return value can be assigned to
-    // `Future<int>` but not `int`.
-    Future<int> v1 = f_inferred_futureObject();
-
+    // `Future<Object>` but not `Future<int>`.
+    Future<Object> v1 = f_inferred_futureObject();
+    Future<int> v2 = f_inferred_futureObject();
+    //               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    //                                      ^
+    // [cfe] A value of type 'Future<Object>' can't be assigned to a variable of type 'Future<int>'.
 
     // Check that f_inferred_A's static return type is `Future<A>`, by verifying
-    // that its return value can be assigned to `Future<B2>` but not
-    // `Future<int>`.
-    Future<B2> v3 = f_inferred_A();
-
+    // that its return value can be assigned to `Future<A>` but not
+    // `Future<B>`.
+    Future<A> v3 = f_inferred_A();
+    Future<B> v4 = f_inferred_A();
+    //             ^^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    //                         ^
+    // [cfe] A value of type 'Future<A>' can't be assigned to a variable of type 'Future<B>'.
   }
 
   checkFutureObject(f_inferred_futureObject);

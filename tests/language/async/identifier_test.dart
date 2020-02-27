@@ -11,7 +11,7 @@ import 'lib.dart' as l; // Minimal library containing "int async;".
 void ignore(argument) {}
 
 class GNamed {
-  void g({Object async = null}) {}
+  void g({Object? async = null}) {}
 }
 
 class AGet {
@@ -147,7 +147,7 @@ main() {
   }
   {
     f() async {
-      int async() => null;
+      int async() => 0;
       async();
     }
 

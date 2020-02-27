@@ -1,11 +1,8 @@
-// TODO(multitest): This was automatically migrated from a multitest and may
-// contain strange or dead code.
-
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This test verifies that for a local async function, the following three
+// This test verifies that for an unnamed async closure, the following three
 // types are all appropriately matched:
 // - The static return type
 // - The return type of reified runtime type of a tearoff of the function or
@@ -26,25 +23,25 @@ class A {}
 
 class B extends A {}
 
-class B2 extends A {}
-
 Future quick() async {}
 
-Future<B> futureB() => new Future<B>.value(new B());
+Future<A> futureA() => new Future<A>.value(new A());
 
-void checkDynamic(dynamic tearoff) {
-  Expect.isTrue(tearoff is dynamic Function());
-  Expect.isFalse(tearoff is Future<dynamic> Function());
-  dynamic f = tearoff();
-  Expect.isTrue(f is Future<dynamic>);
-  Expect.isFalse(f is Future<A>);
-}
+Future<B> futureB() => new Future<B>.value(new B());
 
 void checkFutureObject(dynamic tearoff) {
   Expect.isTrue(tearoff is Future<Object> Function());
   Expect.isFalse(tearoff is Future<A> Function());
   dynamic f = tearoff();
   Expect.isTrue(f is Future<Object>);
+  Expect.isFalse(f is Future<A>);
+}
+
+void checkFutureDynamic(dynamic tearoff) {
+  Expect.isTrue(tearoff is Future<dynamic> Function());
+  Expect.isFalse(tearoff is Future<A> Function());
+  dynamic f = tearoff();
+  Expect.isTrue(f is Future<dynamic>);
   Expect.isFalse(f is Future<A>);
 }
 
@@ -57,64 +54,90 @@ void checkFutureA(dynamic tearoff) {
 }
 
 main() {
-  f_inferred_futureObject() async {
+  var f_inferred_futureObject = () async {
     await quick();
     if (false) {
       return 0;
     } else {
       return new A();
     }
-  }
+  };
 
-  f_inferred_A() async {
+  var f_inferred_A = () async {
     await quick();
     if (false) {
       return new A();
     } else {
       return new B();
     }
-  }
+  };
 
-  dynamic f_dynamic() async {
+  Future<dynamic> Function() f_futureDynamic = () async {
     await quick();
-    return new B();
-  }
+    if (false) {
+      return 0;
+    } else {
+      return new B();
+    }
+  };
 
-  Future<A> f_A() async {
+  Future<A> Function() f_A = () async {
     await quick();
-    return new B();
-  }
+    if (false) {
+      return new A();
+    } else {
+      return new B();
+    }
+  };
 
-  Future<A> f_immediateReturn_B() async {
-    return new B();
-  }
+  Future<A> Function() f_immediateReturn_B = () async {
+    if (false) {
+      return new A();
+    } else {
+      return new B();
+    }
+  };
 
-  Future<A> f_immediateReturn_FutureB() async {
-    return futureB();
-  }
+  Future<A> Function() f_immediateReturn_FutureB = () async {
+    if (false) {
+      return new A();
+    } else {
+      return futureB();
+    }
+  };
 
-  Future<A> f_expressionSyntax_B() async => new B();
+  Future<A> Function() f_expressionSyntax_B =
+      () async => false ? new A() : new B();
 
-  Future<A> f_expressionSyntax_FutureB() async => futureB();
+  Future<A> Function() f_expressionSyntax_FutureB =
+      () async => false ? futureA() : futureB();
 
   // Not executed
   void checkStaticTypes() {
     // Check that f_inferred_futureObject's static return type is
     // `Future<Object>`, by verifying that its return value can be assigned to
-    // `Future<int>` but not `int`.
-    Future<int> v1 = f_inferred_futureObject();
-
+    // `Future<Object>` but not `Future<int>`.
+    Future<Object> v1 = f_inferred_futureObject();
+    Future<int> v2 = f_inferred_futureObject();
+    //               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    //                                      ^
+    // [cfe] A value of type 'Future<Object>' can't be assigned to a variable of type 'Future<int>'.
 
     // Check that f_inferred_A's static return type is `Future<A>`, by verifying
-    // that its return value can be assigned to `Future<B2>` but not
-    // `Future<int>`.
-    Future<B2> v3 = f_inferred_A();
-
+    // that its return value can be assigned to `Future<A>` but not
+    // `Future<B>`.
+    Future<A> v3 = f_inferred_A();
+    Future<B> v4 = f_inferred_A();
+    //             ^^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    //                         ^
+    // [cfe] A value of type 'Future<A>' can't be assigned to a variable of type 'Future<B>'.
   }
 
   checkFutureObject(f_inferred_futureObject);
   checkFutureA(f_inferred_A);
-  checkDynamic(f_dynamic);
+  checkFutureDynamic(f_futureDynamic);
   checkFutureA(f_A);
   checkFutureA(f_immediateReturn_B);
   checkFutureA(f_immediateReturn_FutureB);

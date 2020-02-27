@@ -46,15 +46,19 @@ class B {
 }
 
 main() {
-  Future asyncReturn;
+  Future<Object?> asyncReturn;
 
   asyncReturn = topLevelFunction();
-  Expect.isTrue(asyncReturn is Future);
+  asyncStart();
+  asyncReturn.then((Object? result) {
+    Expect.isNull(result);
+    asyncEnd();
+  });
 
   asyncReturn = topLevelWithParameter(4);
   Expect.isTrue(asyncReturn is Future);
   asyncStart();
-  asyncReturn.then((Object result) {
+  asyncReturn.then((Object? result) {
     Expect.equals(result, 11);
     asyncEnd();
   });
@@ -62,15 +66,15 @@ main() {
   asyncReturn = topLevelGetter;
   Expect.isTrue(asyncReturn is Future);
   asyncStart();
-  asyncReturn.then((Object result) {
-    Expect.stringEquals(result, 'I want to be an async getter');
+  asyncReturn.then((Object? result) {
+    Expect.equals(result, 'I want to be an async getter');
     asyncEnd();
   });
 
   asyncReturn = A.staticMethod(2);
   Expect.isTrue(asyncReturn is Future);
   asyncStart();
-  asyncReturn.then((Object result) {
+  asyncReturn.then((Object? result) {
     Expect.equals(result, 3);
     asyncEnd();
   });
@@ -78,7 +82,7 @@ main() {
   asyncReturn = A.staticGetter;
   Expect.isTrue(asyncReturn is Future);
   asyncStart();
-  asyncReturn.then((Object result) {
+  asyncReturn.then((Object? result) {
     Expect.equals(result, 4);
     asyncEnd();
   });
@@ -89,7 +93,7 @@ main() {
   asyncReturn = a + b;
   Expect.isTrue(asyncReturn is Future);
   asyncStart();
-  asyncReturn.then((Object result) {
+  asyncReturn.then((Object? result) {
     Expect.equals((result as A).value, 22);
     asyncEnd();
   });
@@ -103,7 +107,7 @@ main() {
   asyncReturn = bar(1, 2);
   Expect.isTrue(asyncReturn is Future);
   asyncStart();
-  asyncReturn.then((Object result) {
+  asyncReturn.then((Object? result) {
     Expect.equals(result, 27);
     asyncEnd();
   });
@@ -119,7 +123,7 @@ main() {
   asyncReturn = moreNesting(1, "ignore", 2);
   Expect.isTrue(asyncReturn is Future);
   asyncStart();
-  asyncReturn.then((Object result) {
+  asyncReturn.then((Object? result) {
     Expect.equals(result, 28);
     asyncEnd();
   });

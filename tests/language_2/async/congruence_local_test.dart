@@ -37,11 +37,11 @@ void checkDynamic(dynamic tearoff) {
   Expect.isFalse(f is Future<A>);
 }
 
-void checkFutureDynamic(dynamic tearoff) {
-  Expect.isTrue(tearoff is Future<dynamic> Function());
+void checkFutureObject(dynamic tearoff) {
+  Expect.isTrue(tearoff is Future<Object> Function());
   Expect.isFalse(tearoff is Future<A> Function());
   dynamic f = tearoff();
-  Expect.isTrue(f is Future<dynamic>);
+  Expect.isTrue(f is Future<Object>);
   Expect.isFalse(f is Future<A>);
 }
 
@@ -54,7 +54,7 @@ void checkFutureA(dynamic tearoff) {
 }
 
 main() {
-  f_inferred_futureDynamic() async {
+  f_inferred_futureObject() async {
     await quick();
     if (false) {
       return 0;
@@ -96,14 +96,14 @@ main() {
 
   // Not executed
   void checkStaticTypes() {
-    // Check that f_inferred_futureDynamic's static return type is
-    // `Future<dynamic>`, by verifying that its return value can be assigned to
+    // Check that f_inferred_futureObject's static return type is
+    // `Future<Object>`, by verifying that its return value can be assigned to
     // `Future<int>` but not `int`.
-    Future<int> v1 = f_inferred_futureDynamic();
-    int v2 = f_inferred_futureDynamic();
-    //       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Future<int> v1 = f_inferred_futureObject();
+    int v2 = f_inferred_futureObject();
+    //       ^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
-    //                               ^
+    //                              ^
     // [cfe] A value of type 'Future<Object>' can't be assigned to a variable of type 'int'.
 
     // Check that f_inferred_A's static return type is `Future<A>`, by verifying
@@ -117,7 +117,7 @@ main() {
     // [cfe] A value of type 'Future<A>' can't be assigned to a variable of type 'Future<int>'.
   }
 
-  checkFutureDynamic(f_inferred_futureDynamic);
+  checkFutureObject(f_inferred_futureObject);
   checkFutureA(f_inferred_A);
   checkDynamic(f_dynamic);
   checkFutureA(f_A);
