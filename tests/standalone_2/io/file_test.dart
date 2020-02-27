@@ -140,7 +140,7 @@ class FileTest {
   // Test for file stream buffered handling of large files.
   static void testReadWriteStreamLargeFile() {
     // Create the test data - arbitrary binary data.
-    List<int> buffer = new List<int>.filled(100000, 0);
+    List<int> buffer = new List<int>(100000);
     for (var i = 0; i < buffer.length; ++i) {
       buffer[i] = i % 256;
     }
@@ -233,7 +233,7 @@ class FileTest {
     String filename = getFilename("file_test.txt");
     File file = new File(filename);
     file.open(mode: FileMode.read).then((RandomAccessFile file) {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       file.readInto(buffer, 0, 5).then((bytes_read) {
         Expect.equals(5, bytes_read);
         file.readInto(buffer, 5, 10).then((bytes_read) {
@@ -258,7 +258,7 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("file_test.txt");
     RandomAccessFile raf = (new File(filename)).openSync();
-    List<int> buffer = new List<int>.filled(42, 0);
+    List<int> buffer = new List<int>(42);
     int bytes_read = 0;
     bytes_read = raf.readIntoSync(buffer, 0, 12);
     Expect.equals(12, bytes_read);
@@ -304,7 +304,7 @@ class FileTest {
     String inFilename = getFilename("fixed_length_file");
     final File file = new File(inFilename);
     file.open(mode: FileMode.read).then((openedFile) {
-      List<int> buffer1 = new List<int>.filled(42, 0);
+      List<int> buffer1 = new List<int>(42);
       openedFile.readInto(buffer1, 0, 42).then((bytes_read) {
         Expect.equals(42, bytes_read);
         openedFile.close().then((ignore) {
@@ -320,7 +320,7 @@ class FileTest {
               file2.open(mode: FileMode.write).then((openedFile2) {
                 openedFile2.writeFrom(buffer1, 0, bytes_read).then((ignore) {
                   openedFile2.close().then((ignore) {
-                    List<int> buffer2 = new List<int>.filled(bytes_read, 0);
+                    List<int> buffer2 = new List<int>(bytes_read);
                     final File file3 = new File(outFilename);
                     file3.open(mode: FileMode.read).then((openedFile3) {
                       openedFile3.readInto(buffer2, 0, 42).then((bytes_read) {
@@ -442,7 +442,7 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("fixed_length_file");
     RandomAccessFile file = (new File(inFilename)).openSync();
-    List<int> buffer1 = new List<int>.filled(42, 0);
+    List<int> buffer1 = new List<int>(42);
     int bytes_read = 0;
     int bytes_written = 0;
     bytes_read = file.readIntoSync(buffer1, 0, 42);
@@ -461,7 +461,7 @@ class FileTest {
     openedFile.writeFromSync(buffer1, 0, bytes_read);
     openedFile.closeSync();
     // Now read the contents of the file just written.
-    List<int> buffer2 = new List<int>.filled(bytes_read, 0);
+    List<int> buffer2 = new List<int>(bytes_read);
     openedFile = (new File(outFilename)).openSync();
     bytes_read = openedFile.readIntoSync(buffer2, 0, 42);
     Expect.equals(42, bytes_read);
@@ -480,7 +480,7 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("fixed_length_file");
     RandomAccessFile file = (new File(inFilename)).openSync();
-    List<int> buffer1 = new List<int>.filled(42, 0);
+    List<int> buffer1 = new List<int>(42);
     int bytes_read = 0;
     int bytes_written = 0;
     bytes_read = file.readIntoSync(buffer1);
@@ -499,7 +499,7 @@ class FileTest {
     openedFile.writeFromSync(buffer1);
     openedFile.closeSync();
     // Now read the contents of the file just written.
-    List<int> buffer2 = new List<int>.filled(bytes_read, 0);
+    List<int> buffer2 = new List<int>(bytes_read);
     openedFile = (new File(outFilename)).openSync();
     bytes_read = openedFile.readIntoSync(buffer2, 0);
     Expect.equals(42, bytes_read);
@@ -567,7 +567,7 @@ class FileTest {
             var openedFile2 = file2.openSync();
             var length = openedFile2.lengthSync();
             Expect.equals(8, length);
-            var data = new List<int>.filled(length, 0);
+            var data = new List<int>(length);
             openedFile2.readIntoSync(data, 0, length);
             for (var i = 0; i < data.length; i++) {
               Expect.equals(i, data[i]);
@@ -685,7 +685,7 @@ class FileTest {
     RandomAccessFile input = (new File(filename)).openSync();
     input.position().then((position) {
       Expect.equals(0, position);
-      List<int> buffer = new List<int>.filled(100, 0);
+      List<int> buffer = new List<int>(100);
       input.readInto(buffer, 0, 12).then((bytes_read) {
         input.position().then((position) {
           Expect.equals(12, position);
@@ -709,7 +709,7 @@ class FileTest {
     String filename = getFilename("fixed_length_file");
     RandomAccessFile input = (new File(filename)).openSync();
     Expect.equals(0, input.positionSync());
-    List<int> buffer = new List<int>.filled(100, 0);
+    List<int> buffer = new List<int>(100);
     input.readIntoSync(buffer, 0, 12);
     Expect.equals(12, input.positionSync());
     input.readIntoSync(buffer, 12, 18);
@@ -777,12 +777,12 @@ class FileTest {
     await openedFile.writeFrom(const [1, 2, 3]);
 
     await openedFile.setPosition(0);
-    var list = <int>[null, null, null];
+    var list = [null, null, null];
     Expect.equals(3, await openedFile.readInto(list));
     Expect.listEquals([1, 2, 3], list);
 
     read(start, end, length, expected) async {
-      var list = <int>[null, null, null];
+      var list = [null, null, null];
       await openedFile.setPosition(0);
       Expect.equals(length, await openedFile.readInto(list, start, end));
       Expect.listEquals(expected, list);
@@ -927,7 +927,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(100, 0);
+      List<int> buffer = new List<int>(100);
       openedFile.readIntoSync(buffer, 0, 10);
     } on FileSystemException catch (ex) {
       exceptionCaught = true;
@@ -938,7 +938,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(100, 0);
+      List<int> buffer = new List<int>(100);
       openedFile.writeFromSync(buffer, 0, 10);
     } on FileSystemException catch (ex) {
       exceptionCaught = true;
@@ -983,7 +983,7 @@ class FileTest {
   // Tests stream exception handling after file was closed.
   static void testCloseExceptionStream() {
     asyncTestStarted();
-    List<int> buffer = new List<int>.filled(42, 0);
+    List<int> buffer = new List<int>(42);
     File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
     var output = file.openWrite();
@@ -1004,7 +1004,7 @@ class FileTest {
     File file = new File(tempDirectory.path + "/out_buffer_out_of_bounds");
     RandomAccessFile openedFile = file.openSync(mode: FileMode.write);
     try {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       openedFile.readIntoSync(buffer, 0, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1015,7 +1015,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       openedFile.readIntoSync(buffer, 6, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1026,7 +1026,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       openedFile.readIntoSync(buffer, -1, 1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1037,7 +1037,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       openedFile.readIntoSync(buffer, 0, -1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1048,7 +1048,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       openedFile.writeFromSync(buffer, 0, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1059,7 +1059,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       openedFile.writeFromSync(buffer, 6, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1070,7 +1070,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       openedFile.writeFromSync(buffer, -1, 1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
@@ -1081,7 +1081,7 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     exceptionCaught = false;
     try {
-      List<int> buffer = new List<int>.filled(10, 0);
+      List<int> buffer = new List<int>(10);
       openedFile.writeFromSync(buffer, 0, -1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
