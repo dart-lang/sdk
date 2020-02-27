@@ -17,9 +17,11 @@ class AnalyzeCommand extends DartdevCommand<int> {
       : super('analyze', "Analyze the project's Dart code.") {
     argParser
       ..addFlag('fatal-infos',
-          help: 'Treat infos as fatal.', defaultsTo: false, negatable: false)
+          help: 'Treat info level issues as fatal.',
+          defaultsTo: false,
+          negatable: false)
       ..addFlag('fatal-warnings',
-          help: 'Treat non-type warnings as fatal.',
+          help: 'Treat warning level issues as fatal.',
           defaultsTo: true,
           negatable: true);
   }
