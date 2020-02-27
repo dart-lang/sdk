@@ -1457,9 +1457,13 @@ void ClassFinalizer::SortClasses() {
     }
   }
   ASSERT(next_new_cid == num_cids);
-  RemapClassIds(std::move(old_to_new_cid));
+  RemapClassIds(old_to_new_cid.get());
   RehashTypes();         // Types use cid's as part of their hashes.
   I->RehashConstants();  // Const objects use cid's as part of their hashes.
+
+  // Ensure any newly spawned isolate will apply this permutation map right
+  // after kernel loading.
+  I->group()->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
@@ -1506,7 +1510,7 @@ class CidRewriteVisitor : public ObjectVisitor {
   intptr_t* old_to_new_cids_;
 };
 
-void ClassFinalizer::RemapClassIds(std::unique_ptr<intptr_t[]> old_to_new_cid) {
+void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
   Thread* T = Thread::Current();
   IsolateGroup* IG = T->isolate_group();
 
@@ -1517,21 +1521,21 @@ void ClassFinalizer::RemapClassIds(std::unique_ptr<intptr_t[]> old_to_new_cid) {
     // The [HeapIterationScope] also safepoints all threads.
     HeapIterationScope his(T);
 
-    IG->class_table()->Remap(old_to_new_cid.get());
+    IG->class_table()->Remap(old_to_new_cid);
     IG->ForEachIsolate(
         [&](Isolate* I) {
           I->set_remapping_cids(true);
 
           // Update the class table. Do it before rewriting cids in headers, as
           // the heap walkers load an object's size *after* calling the visitor.
-          I->class_table()->Remap(old_to_new_cid.get());
+          I->class_table()->Remap(old_to_new_cid);
         },
         /*is_at_safepoint=*/true);
 
     // Rewrite cids in headers and cids in Classes, Fields, Types and
     // TypeParameters.
     {
-      CidRewriteVisitor visitor(old_to_new_cid.get());
+      CidRewriteVisitor visitor(old_to_new_cid);
       IG->heap()->VisitObjects(&visitor);
     }
 
@@ -1548,10 +1552,6 @@ void ClassFinalizer::RemapClassIds(std::unique_ptr<intptr_t[]> old_to_new_cid) {
 #if defined(DEBUG)
   IG->heap()->Verify();
 #endif
-
-  // Ensure any newly spawned isolate will apply this permutation map right
-  // after kernel loading.
-  IG->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 // Clears the cached canonicalized hash codes for all instances which directly

@@ -1257,15 +1257,9 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
       TransitionNativeToVM transition(T);
       HANDLESCOPE(T);
 
-      const intptr_t num_cids = group->class_table()->NumCids();
-      std::unique_ptr<intptr_t[]> permutation_map_copy(new intptr_t[num_cids]);
-      for (intptr_t i = 0; i < num_cids; ++i) {
-        permutation_map_copy[i] = permutation_map[i];
-      }
-
       // Remap all class ids loaded atm (e.g. from snapshot) and do appropriate
       // re-hashing of constants and types.
-      ClassFinalizer::RemapClassIds(std::move(permutation_map_copy));
+      ClassFinalizer::RemapClassIds(permutation_map);
       // Types use cid's as part of their hashes.
       ClassFinalizer::RehashTypes();
       // Const objects use cid's as part of their hashes.
