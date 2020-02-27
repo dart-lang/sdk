@@ -7,7 +7,7 @@ description: >
  the expect() function in the unit test library instead for
  test assertions.
 environment:
-  sdk: ">=0.8.10+6 <3.0.0"
+  sdk: ">=2.0.0 <3.0.0"
 
 dependencies:
   meta: any

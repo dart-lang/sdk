@@ -117,6 +117,7 @@ Future<void> main() async {
   // Remove white-listed non-dart files.
   otherNonDartUris.remove(dotPackagesUri);
   otherNonDartUris.remove(repoDir.resolve("sdk/lib/libraries.json"));
+  otherNonDartUris.remove(repoDir.resolve(".dart_tool/package_config.json"));
 
   // Remove white-listed dart files.
   for (String s in whitelistedExternalDartFiles) {
