@@ -5,6 +5,7 @@
 library _foreign_helper;
 
 import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
+import 'dart:_rti' show Rti;
 
 /// Emits a JavaScript code fragment parametrized by arguments.
 ///
@@ -237,7 +238,7 @@ external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
 external bool JS_GET_FLAG(String name);
 
 /// Returns a TypeReference to [T].
-external TYPE_REF<T>();
+external Rti TYPE_REF<T>();
 
 /// Pretend [code] is executed.  Generates no executable code.  This is used to
 /// model effects at some other point in external code.  For example, the
