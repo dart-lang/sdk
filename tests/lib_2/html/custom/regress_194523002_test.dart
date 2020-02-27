@@ -5,7 +5,6 @@
 // Regression test for CL 194523002.
 import 'dart:html';
 
-import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
@@ -17,8 +16,6 @@ class A extends HtmlElement {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   // Adapted from Blink's
   // fast/dom/custom/constructor-calls-created-synchronously test.
 
