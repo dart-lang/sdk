@@ -30,6 +30,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:path/path.dart' as path;
 
 Future<void> main(List<String> args) async {
   var out = io.stdout;
@@ -39,7 +40,8 @@ Future<void> main(List<String> args) async {
     io.exit(1);
   }
 
-  var rootPath = args[0];
+  var corpus = args[0] == '--corpus';
+  var rootPath = corpus ? args[1] : args[0];
   out.writeln('Analyzing root: \"$rootPath\"');
   if (!io.Directory(rootPath).existsSync()) {
     out.writeln('\tError: No such directory exists on this machine.\n');
@@ -49,7 +51,7 @@ Future<void> main(List<String> args) async {
   var computer = RelevanceMetricsComputer();
   var stopwatch = Stopwatch();
   stopwatch.start();
-  await computer.compute(rootPath);
+  await computer.compute(rootPath, corpus: corpus);
   stopwatch.stop();
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
   out.writeln('  Metrics computed in $duration');
@@ -488,6 +490,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     enclosingLibrary = node.declaredElement.library;
     typeSystem = enclosingLibrary.typeSystem;
+    inheritanceManager = InheritanceManager3();
 
     for (var directive in node.directives) {
       _recordTokenType('CompilationUnit (directive)', directive,
@@ -501,6 +504,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
     typeSystem = null;
     enclosingLibrary = null;
+    inheritanceManager = null;
   }
 
   @override
@@ -934,7 +938,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     // There are no completions.
     var element = node.declaredElement;
-    if (!element.isStatic) {
+    if (!element.isStatic && element.enclosingElement is ClassElement) {
       var overriddenMembers = inheritanceManager.getOverridden(
           (element.enclosingElement as ClassElement).thisType,
           Name(element.librarySource.uri, element.name));
@@ -1793,39 +1797,49 @@ class RelevanceMetricsComputer {
   RelevanceMetricsComputer();
 
   /// Compute the metrics for the file(s) in the [rootPath].
-  void compute(String rootPath) async {
-    final collection = AnalysisContextCollection(
-      includedPaths: [rootPath],
-      resourceProvider: PhysicalResourceProvider.INSTANCE,
-    );
+  /// If [corpus] is true, treat rootPath as a container of packages, creating
+  /// a new context collection for each subdirectory.
+  void compute(String rootPath, {bool corpus}) async {
     final collector = RelevanceDataCollector(data);
-
-    for (var context in collection.contexts) {
-      for (var filePath in context.contextRoot.analyzedFiles()) {
-        if (AnalysisEngine.isDartFileName(filePath)) {
-          try {
-            ResolvedUnitResult resolvedUnitResult =
-                await context.currentSession.getResolvedUnit(filePath);
-            //
-            // Check for errors that cause the file to be skipped.
-            //
-            if (resolvedUnitResult.state != ResultState.VALID) {
-              print('File $filePath skipped because it could not be analyzed.');
-              print('');
-              continue;
-            } else if (hasError(resolvedUnitResult)) {
-              print('File $filePath skipped due to errors:');
-              for (var error in resolvedUnitResult.errors) {
-                print('  ${error.toString()}');
+    var roots = _computeRootPaths(rootPath, corpus);
+    for (var root in roots) {
+      final collection = AnalysisContextCollection(
+        includedPaths: [root],
+        resourceProvider: PhysicalResourceProvider.INSTANCE,
+      );
+      for (var context in collection.contexts) {
+        for (var filePath in context.contextRoot.analyzedFiles()) {
+          if (AnalysisEngine.isDartFileName(filePath)) {
+            try {
+              ResolvedUnitResult resolvedUnitResult =
+                  await context.currentSession.getResolvedUnit(filePath);
+              //
+              // Check for errors that cause the file to be skipped.
+              //
+              if (resolvedUnitResult == null) {
+                print('File $filePath skipped because resolved unit was null.');
+                print('');
+                continue;
+              } else if (resolvedUnitResult.state != ResultState.VALID) {
+                print(
+                    'File $filePath skipped because it could not be analyzed.');
+                print('');
+                continue;
+              } else if (hasError(resolvedUnitResult)) {
+                print('File $filePath skipped due to errors:');
+                for (var error in resolvedUnitResult.errors
+                    .where((e) => e.severity == Severity.error)) {
+                  print('  ${error.toString()}');
+                }
+                print('');
+                continue;
               }
-              print('');
-              continue;
-            }
 
-            resolvedUnitResult.unit.accept(collector);
-          } catch (exception) {
-            print('Exception caught analyzing: "$filePath"');
-            print(exception.toString());
+              resolvedUnitResult.unit.accept(collector);
+            } catch (exception, stacktrace) {
+              print('Exception caught analyzing: "$filePath"');
+              print(stacktrace);
+            }
           }
         }
       }
@@ -1879,6 +1893,20 @@ class RelevanceMetricsComputer {
       }
     }
     return columnWidths;
+  }
+
+  List<String> _computeRootPaths(String rootPath, bool corpus) {
+    var roots = <String>[];
+    if (!corpus) {
+      roots.add(rootPath);
+    } else {
+      for (var child in io.Directory(rootPath).listSync()) {
+        if (child is io.Directory) {
+          roots.add(path.join(rootPath, child.path));
+        }
+      }
+    }
+    return roots;
   }
 
   Iterable<List<String>> _convertColumnsToRows(
