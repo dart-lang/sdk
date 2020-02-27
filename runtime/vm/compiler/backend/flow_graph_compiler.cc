@@ -576,7 +576,6 @@ void FlowGraphCompiler::VisitBlocks() {
       }
     }
 
-    entry->set_offset(assembler()->CodeSize());
     BeginCodeSourceRange();
     ASSERT(pending_deoptimization_env_ == NULL);
     pending_deoptimization_env_ = entry->env();

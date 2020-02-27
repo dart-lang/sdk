@@ -1414,9 +1414,6 @@ class BlockEntryInstr : public Instruction {
 
   void set_block_id(intptr_t block_id) { block_id_ = block_id; }
 
-  intptr_t offset() const { return offset_; }
-  void set_offset(intptr_t offset) { offset_ = offset; }
-
   // Stack-based IR bookkeeping.
   intptr_t stack_depth() const { return stack_depth_; }
   void set_stack_depth(intptr_t s) { stack_depth_ = s; }
@@ -1445,7 +1442,6 @@ class BlockEntryInstr : public Instruction {
         dominator_(nullptr),
         dominated_blocks_(1),
         last_instruction_(NULL),
-        offset_(-1),
         parallel_move_(nullptr),
         loop_info_(nullptr) {}
 
@@ -1479,9 +1475,6 @@ class BlockEntryInstr : public Instruction {
   // TODO(fschneider): Optimize the case of one child to save space.
   GrowableArray<BlockEntryInstr*> dominated_blocks_;
   Instruction* last_instruction_;
-
-  // Offset of this block from the start of the emitted code.
-  intptr_t offset_;
 
   // Parallel move that will be used by linear scan register allocator to
   // connect live ranges at the start of the block.
@@ -2982,7 +2975,7 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   Value* offset() const { return inputs_[0]; }
-  void ComputeOffsetTable();
+  void ComputeOffsetTable(FlowGraphCompiler* compiler);
 
   PRINT_TO_SUPPORT
 

@@ -4014,33 +4014,16 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-void IndirectGotoInstr::ComputeOffsetTable() {
-  if (GetBlock()->offset() < 0) {
-    // Don't generate a table when contained in an unreachable block.
-    return;
-  }
+void IndirectGotoInstr::ComputeOffsetTable(FlowGraphCompiler* compiler) {
   ASSERT(SuccessorCount() == offsets_.Length());
   intptr_t element_size = offsets_.ElementSizeInBytes();
   for (intptr_t i = 0; i < SuccessorCount(); i++) {
     TargetEntryInstr* target = SuccessorAt(i);
-    intptr_t offset = target->offset();
-
-    // The intermediate block might be compacted, if so, use the indirect entry.
-    if (offset < 0) {
-      // Optimizations might have modified the immediate target block, but it
-      // must end with a goto to the indirect entry. Also, we can't use
-      // last_instruction because 'target' is compacted/unreachable.
-      Instruction* last = target->next();
-      while (last != nullptr && !last->IsGoto()) {
-        last = last->next();
-      }
-      ASSERT(last);
-      const JoinEntryInstr* entry = last->AsGoto()->successor()->AsJoinEntry();
-      ASSERT(entry != nullptr);
-      offset = entry->offset();
-    }
-
-    ASSERT(offset > 0);
+    auto* label = compiler->GetJumpLabel(target);
+    RELEASE_ASSERT(label != nullptr);
+    RELEASE_ASSERT(label->IsBound());
+    intptr_t offset = label->Position();
+    RELEASE_ASSERT(offset > 0);
     offsets_.SetInt32(i * element_size, offset);
   }
 }

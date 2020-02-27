@@ -937,7 +937,7 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable();
+    indirect_gotos_[i]->ComputeOffsetTable(this);
   }
 }
 
