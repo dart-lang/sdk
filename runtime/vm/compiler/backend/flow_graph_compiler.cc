@@ -2270,7 +2270,9 @@ FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
   // never have a value of a function type, then we can safely do a 4-type
   // test instead of a 6-type test.
   AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
-  bound = bound.UnwrapFutureOr();
+  if (bound.IsFutureOrType()) {
+    bound = bound.UnwrapFutureOr();
+  }
   return !bound.IsTopType() && !bound.IsObjectType() &&
                  !bound.IsFunctionType() && !bound.IsDartFunctionType() &&
                  bound.IsType()

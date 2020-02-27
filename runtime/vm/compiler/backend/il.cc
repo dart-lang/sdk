@@ -3235,8 +3235,11 @@ static bool MayBeNumber(CompileType* type) {
   if (type->IsNone()) {
     return false;
   }
-  const AbstractType& unwrapped_type =
-      AbstractType::Handle(type->ToAbstractType()->UnwrapFutureOr());
+  AbstractType& unwrapped_type =
+      AbstractType::Handle(type->ToAbstractType()->raw());
+  if (unwrapped_type.IsFutureOrType()) {
+    unwrapped_type = unwrapped_type.UnwrapFutureOr();
+  }
   // Note that type 'Number' is a subtype of itself.
   return unwrapped_type.IsTopType() || unwrapped_type.IsObjectType() ||
          unwrapped_type.IsTypeParameter() ||

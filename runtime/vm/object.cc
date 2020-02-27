@@ -17584,12 +17584,15 @@ bool Instance::NullIsInstanceOf(
     const TypeArguments& other_function_type_arguments) {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
-  // TODO(regis): Verify that the nullability of an instantiated FutureOr
-  // always matches the nullability of its type argument. For now, be safe.
-  // Also see issue #40123.
-  AbstractType& type = AbstractType::Handle(other.UnwrapFutureOr());
-  Nullability nullability = type.nullability();
-  if (nullability == Nullability::kNullable) {
+  if (other.IsNullable()) {
+    // The type will remain nullable after instantiation.
+    return true;
+  }
+  AbstractType& type = AbstractType::Handle(other.raw());
+  if (type.IsFutureOrType()) {
+    type = type.UnwrapFutureOr();
+  }
+  if (type.IsNullable()) {
     // The type will remain nullable after instantiation.
     return true;
   }
@@ -17602,13 +17605,13 @@ bool Instance::NullIsInstanceOf(
     if (type.IsTypeRef()) {
       type = TypeRef::Cast(type).type();
     }
-    type = type.UnwrapFutureOr();
+    return Instance::NullIsInstanceOf(mode, type, Object::null_type_arguments(),
+                                      Object::null_type_arguments());
   }
-  nullability = type.nullability();
-  if (nullability == Nullability::kLegacy) {
-    return type.IsNullType() || type.IsTopType() || type.IsNeverType();
+  if (type.IsLegacy()) {
+    return type.IsTopType() || type.IsNeverType();
   }
-  return nullability == Nullability::kNullable;
+  return type.IsNullable();
 }
 
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
@@ -17726,7 +17729,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
                                     NNBDMode mode,
                                     const AbstractType& other) const {
-  if (other.IsType() && other.IsFutureOrType()) {
+  if (other.IsFutureOrType()) {
     const TypeArguments& other_type_arguments =
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
@@ -18457,9 +18460,7 @@ bool AbstractType::IsFfiPointerType() const {
 }
 
 RawAbstractType* AbstractType::UnwrapFutureOr() const {
-  if (!IsType() || !IsFutureOrType()) {
-    return raw();
-  }
+  ASSERT(IsFutureOrType());
   if (arguments() == TypeArguments::null()) {
     return Type::dynamic_type().raw();
   }
@@ -18470,7 +18471,7 @@ RawAbstractType* AbstractType::UnwrapFutureOr() const {
   REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(thread);
   AbstractType& type_arg = thread->AbstractTypeHandle();
   type_arg = type_args.TypeAt(0);
-  while (type_arg.IsType() && type_arg.IsFutureOrType()) {
+  while (type_arg.IsFutureOrType()) {
     if (type_arg.arguments() == TypeArguments::null()) {
       return Type::dynamic_type().raw();
     }
@@ -18594,7 +18595,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
                                        NNBDMode mode,
                                        const AbstractType& other,
                                        Heap::Space space) const {
-  if (other.IsType() && other.IsFutureOrType()) {
+  if (other.IsFutureOrType()) {
     // This function is only called with a receiver that is either a function
     // type or an uninstantiated type parameter, therefore, it cannot be of
     // class Future and we can spare the check.

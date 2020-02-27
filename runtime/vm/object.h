@@ -7484,7 +7484,6 @@ class AbstractType : public Instance {
   bool IsFutureOrType() const { return type_class_id() == kFutureOrCid; }
 
   // Returns the type argument of this (possibly nested) 'FutureOr' type.
-  // Returns unmodified type if this type is not a 'FutureOr' type.
   RawAbstractType* UnwrapFutureOr() const;
 
   // Check the subtype relationship.
