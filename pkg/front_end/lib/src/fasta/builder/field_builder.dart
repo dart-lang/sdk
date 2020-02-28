@@ -540,8 +540,10 @@ class RegularFieldEncoding implements FieldEncoding {
           FieldNameType.Field);
       _field
         ..hasImplicitGetter = isInstanceMember
-        ..hasImplicitSetter =
-            isInstanceMember && !fieldBuilder.isConst && !fieldBuilder.isFinal
+        ..hasImplicitSetter = isInstanceMember &&
+            !fieldBuilder.isConst &&
+            (!fieldBuilder.isFinal ||
+                (fieldBuilder.isLate && !fieldBuilder.hasInitializer))
         ..isStatic = !isInstanceMember
         ..isExtensionMember = false;
     }
