@@ -3767,7 +3767,7 @@ class FixProcessor extends BaseProcessor {
           if (parent.variables.length == 1) {
             sourceRange = utils.getLinesRange(range.node(parent.parent));
           } else {
-            sourceRange = range.nodeInList(parent.variables, node);
+            sourceRange = range.nodeInList(parent.variables, referencedNode);
           }
         } else {
           sourceRange = utils.getLinesRange(range.node(referencedNode));

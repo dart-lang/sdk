@@ -111,7 +111,7 @@ class A {
 ''');
   }
 
-  Future<void> test_unusedField_notUsed_declarationList() async {
+  Future<void> test_unusedField_notUsed_declarationList_first() async {
     await resolveTestUnit(r'''
 class A {
   int _f, x;
@@ -130,7 +130,7 @@ class A {
 ''');
   }
 
-  Future<void> test_unusedField_notUsed_declarationList2() async {
+  Future<void> test_unusedField_notUsed_declarationList_last() async {
     await resolveTestUnit(r'''
 class A {
   int x, _f;

@@ -194,15 +194,31 @@ main() {
     await assertNoFix();
   }
 
-  Future<void> test_topLevelVariable_notUsed_noReference() async {
+  Future<void> test_topLevelVariable_notUsed_noReference_first() async {
     await resolveTestUnit(r'''
-int _a = 1;
-main() {
-}
+int _a = 1, b = 2;
 ''');
     await assertHasFix(r'''
-main() {
-}
+int b = 2;
+''');
+  }
+
+  Future<void> test_topLevelVariable_notUsed_noReference_last() async {
+    await resolveTestUnit(r'''
+int a = 1, _b = 2;
+''');
+    await assertHasFix(r'''
+int a = 1;
+''');
+  }
+
+  Future<void> test_topLevelVariable_notUsed_noReference_only() async {
+    await resolveTestUnit(r'''
+int _a = 1;
+main() {}
+''');
+    await assertHasFix(r'''
+main() {}
 ''');
   }
 }
