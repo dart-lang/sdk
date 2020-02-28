@@ -271,7 +271,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   Flags.nnbdStrongMode: false,
   Flags.nnbdAgnosticMode: false,
   "--supermixin": true,
-  "--target": String,
+  Flags.target: String,
   "--enable-asserts": false,
   "--verbose": false,
   "--verify": false,

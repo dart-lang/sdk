@@ -12,4 +12,6 @@ class Flags {
   static const String forceNnbdChecks = "--force-nnbd-checks";
   static const String forceNoExplicitGetterCalls =
       "--force-no-explicit-getter-calls";
+
+  static const String target = "--target";
 }
