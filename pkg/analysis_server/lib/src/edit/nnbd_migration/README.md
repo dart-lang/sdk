@@ -1,13 +1,9 @@
 # Null Safety Migration Tooling
 
-Note: the null safety migration tooling and workflow is in a very early state;
+Note: the null safety migration tooling and workflow is in an early state;
 this doc will be updated as the steps and workflow are simplified.
 
-## Background
-
-TODO:
-
-## Building the nnbd sdk
+## Building the NNBD sdk
 
 In order to run the tool currently you have to be able to build your own copy
 of the Dart SDK.
@@ -42,12 +38,12 @@ analyzer:
 Then, run the migration tool from the top-level of the package directory:
 
 ```
-<sdk-repo>/xcodebuild/ReleaseX64/dart <sdk-repo>/pkg/dartfix/bin/dartfix.dart upgrade sdk --sdk=<sdk-repo>/xcodebuild/ReleaseX64NNBD/dart-sdk/ .
+<sdk-repo>/xcodebuild/ReleaseX64NNBD/dart <sdk-repo>/pkg/dartdev/bin/dartdev.dart migrate .
 ```
 
-The migration tool will run, print the proposed changes to the console,
-and display a url for the preview tool. Open that url from a browser to
-see a rich preview of the proposed null safety changes.
+The migration tool will run, print the proposed changes to the console, and
+display a url for the preview tool. Open that url from a browser to see a rich
+preview of the proposed null safety changes.
 
 ## Using the tool
 
