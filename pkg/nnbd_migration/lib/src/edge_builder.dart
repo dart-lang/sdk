@@ -2304,7 +2304,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   offset: node.offset))
               .toList();
           instrumentation?.implicitTypeArguments(source, node, argumentTypes);
-          calleeType = _handleInstantiation(calleeType, argumentTypes, null);
+          calleeType = _handleInstantiation(
+              calleeType,
+              argumentTypes,
+              List.filled(argumentTypes.length,
+                  InferredTypeParameterInstantiationOrigin(source, node)));
         } else if (constructorTypeParameters != null) {
           // No need to instantiate; caller has already substituted in the
           // correct type arguments.

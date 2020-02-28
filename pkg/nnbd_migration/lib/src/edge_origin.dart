@@ -434,6 +434,16 @@ class TypeParameterInstantiationOrigin extends EdgeOrigin {
   TypeAnnotation get node => super.node as TypeAnnotation;
 }
 
+/// Edge origin resulting from the inference of a type parameter, which
+/// can affects the nullability of that type parameter's bound.
+class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
+  InferredTypeParameterInstantiationOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.inferredTypeParameterInstantiation;
+}
+
 /// Edge origin resulting from the read of a variable that has not been
 /// definitely assigned a value.
 class UninitializedReadOrigin extends EdgeOrigin {

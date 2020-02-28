@@ -182,6 +182,10 @@ class InfoBuilder {
     if (origin.kind == EdgeOriginKind.typeParameterInstantiation) {
       return 'This type parameter is instantiated with a nullable type';
     }
+    if (origin.kind == EdgeOriginKind.inferredTypeParameterInstantiation) {
+      return 'This type parameter is instantiated with an inferred nullable '
+          'type';
+    }
 
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
