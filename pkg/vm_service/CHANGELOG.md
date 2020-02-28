@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.0
+**breaking**: RPCs which have an isolateId parameter now return
+  `Future<dynamic>` as a `Sentinel` can be returned if the target isolate no
+  longer exists.
+
 ## 2.3.3
 - Classes now implement their corresponding reference types to handle cases
   where the service returns a more specific type than promised.

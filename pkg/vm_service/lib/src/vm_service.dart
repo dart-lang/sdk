@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.29.0';
+const String vmServiceVersion = '3.30.0';
 
 /// @optional
 const String optional = 'optional';
@@ -187,47 +187,47 @@ Map<String, Function> _typeFactories = {
 };
 
 Map<String, List<String>> _methodReturnTypes = {
-  'addBreakpoint': const ['Breakpoint'],
-  'addBreakpointWithScriptUri': const ['Breakpoint'],
-  'addBreakpointAtEntry': const ['Breakpoint'],
-  'clearCpuSamples': const ['Success'],
+  'addBreakpoint': const ['Breakpoint', 'Sentinel'],
+  'addBreakpointWithScriptUri': const ['Breakpoint', 'Sentinel'],
+  'addBreakpointAtEntry': const ['Breakpoint', 'Sentinel'],
+  'clearCpuSamples': const ['Success', 'Sentinel'],
   'clearVMTimeline': const ['Success'],
   'invoke': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'evaluate': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
-  'getAllocationProfile': const ['AllocationProfile'],
+  'getAllocationProfile': const ['AllocationProfile', 'Sentinel'],
   'getClientName': const ['ClientName'],
-  'getCpuSamples': const ['CpuSamples'],
+  'getCpuSamples': const ['CpuSamples', 'Sentinel'],
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences', 'Sentinel'],
-  'getInstances': const ['InstanceSet'],
+  'getInstances': const ['InstanceSet', 'Sentinel'],
   'getIsolate': const ['Isolate', 'Sentinel'],
   'getIsolateGroup': const ['IsolateGroup', 'Sentinel'],
   'getMemoryUsage': const ['MemoryUsage', 'Sentinel'],
   'getIsolateGroupMemoryUsage': const ['MemoryUsage', 'Sentinel'],
-  'getScripts': const ['ScriptList'],
+  'getScripts': const ['ScriptList', 'Sentinel'],
   'getObject': const ['Obj', 'Sentinel'],
-  'getRetainingPath': const ['RetainingPath'],
-  'getStack': const ['Stack'],
-  'getSourceReport': const ['SourceReport'],
+  'getRetainingPath': const ['RetainingPath', 'Sentinel'],
+  'getStack': const ['Stack', 'Sentinel'],
+  'getSourceReport': const ['SourceReport', 'Sentinel'],
   'getVersion': const ['Version'],
   'getVM': const ['VM'],
   'getVMTimeline': const ['Timeline'],
   'getVMTimelineFlags': const ['TimelineFlags'],
   'getVMTimelineMicros': const ['Timestamp'],
-  'pause': const ['Success'],
-  'kill': const ['Success'],
+  'pause': const ['Success', 'Sentinel'],
+  'kill': const ['Success', 'Sentinel'],
   'registerService': const ['Success'],
-  'reloadSources': const ['ReloadReport'],
-  'removeBreakpoint': const ['Success'],
-  'requestHeapSnapshot': const ['Success'],
+  'reloadSources': const ['ReloadReport', 'Sentinel'],
+  'removeBreakpoint': const ['Success', 'Sentinel'],
+  'requestHeapSnapshot': const ['Success', 'Sentinel'],
   'requirePermissionToResume': const ['Success'],
-  'resume': const ['Success'],
+  'resume': const ['Success', 'Sentinel'],
   'setClientName': const ['Success'],
-  'setExceptionPauseMode': const ['Success'],
+  'setExceptionPauseMode': const ['Success', 'Sentinel'],
   'setFlag': const ['Success', 'Error'],
-  'setLibraryDebuggable': const ['Success'],
-  'setName': const ['Success'],
+  'setLibraryDebuggable': const ['Success', 'Sentinel'],
+  'setName': const ['Success', 'Sentinel'],
   'setVMName': const ['Success'],
   'setVMTimelineFlags': const ['Success'],
   'streamCancel': const ['Success'],
@@ -265,12 +265,17 @@ abstract class VmServiceInterface {
   /// breakpoints.
   ///
   /// If no breakpoint is possible at that line, the `102` (Cannot add
-  /// breakpoint) error code is returned.
+  /// breakpoint) [RPC error] code is returned.
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Breakpoint].
-  Future<Breakpoint> addBreakpoint(
+  ///
+  /// The return value can be one of [Breakpoint] or [Sentinel].
+  Future<dynamic> addBreakpoint(
     String isolateId,
     String scriptId,
     int line, {
@@ -296,12 +301,17 @@ abstract class VmServiceInterface {
   /// breakpoints.
   ///
   /// If no breakpoint is possible at that line, the `102` (Cannot add
-  /// breakpoint) error code is returned.
+  /// breakpoint) [RPC error] code is returned.
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Breakpoint].
-  Future<Breakpoint> addBreakpointWithScriptUri(
+  ///
+  /// The return value can be one of [Breakpoint] or [Sentinel].
+  Future<dynamic> addBreakpointWithScriptUri(
     String isolateId,
     String scriptUri,
     int line, {
@@ -312,17 +322,27 @@ abstract class VmServiceInterface {
   /// entrypoint of some function.
   ///
   /// If no breakpoint is possible at the function entry, the `102` (Cannot add
-  /// breakpoint) error code is returned.
+  /// breakpoint) [RPC error] code is returned.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
   ///
   /// See [Breakpoint].
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
-  Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId);
+  ///
+  /// The return value can be one of [Breakpoint] or [Sentinel].
+  Future<dynamic> addBreakpointAtEntry(String isolateId, String functionId);
 
   /// Clears all CPU profiling samples.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success].
-  Future<Success> clearCpuSamples(String isolateId);
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> clearCpuSamples(String isolateId);
 
   /// Clears all VM timeline events.
   ///
@@ -349,10 +369,13 @@ abstract class VmServiceInterface {
   /// has been collected by the VM's garbage collector, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// If invocation triggers a failed compilation then [rpc error] 113
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// If invocation triggers a failed compilation then [RPC error] 113
   /// "Expression compilation error" is returned.
   ///
-  /// If an runtime error occurs while evaluating the invocation, an [ErrorRef]
+  /// If a runtime error occurs while evaluating the invocation, an [ErrorRef]
   /// reference will be returned.
   ///
   /// If the invocation is evaluated successfully, an [InstanceRef] reference
@@ -378,6 +401,9 @@ abstract class VmServiceInterface {
   /// If `targetId` refers to an object which has been collected by the VM's
   /// garbage collector, then the `Collected` [Sentinel] is returned.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// If `scope` is provided, it should be a map from identifiers to object ids.
   /// These bindings will be added to the scope in which the expression is
   /// evaluated, which is a child scope of the class or library for
@@ -389,7 +415,7 @@ abstract class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
-  /// If the expression fails to parse and compile, then [rpc error] 113
+  /// If the expression fails to parse and compile, then [RPC error] 113
   /// "Expression compilation error" is returned.
   ///
   /// If an error occurs while evaluating the expression, an [ErrorRef]
@@ -421,7 +447,7 @@ abstract class VmServiceInterface {
   /// as a result of this evaluation are ignored. Defaults to false if not
   /// provided.
   ///
-  /// If the expression fails to parse and compile, then [rpc error] 113
+  /// If the expression fails to parse and compile, then [RPC error] 113
   /// "Expression compilation error" is returned.
   ///
   /// If an error occurs while evaluating the expression, an [ErrorRef]
@@ -429,6 +455,9 @@ abstract class VmServiceInterface {
   ///
   /// If the expression is evaluated successfully, an [InstanceRef] reference
   /// will be returned.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
   ///
   /// The return value can be one of [InstanceRef], [ErrorRef] or [Sentinel].
   Future<dynamic> evaluateInFrame(
@@ -448,8 +477,12 @@ abstract class VmServiceInterface {
   /// If `gc` is provided and is set to true, a garbage collection will be
   /// attempted before collecting allocation information. There is no guarantee
   /// that a garbage collection will be actually be performed.
-  Future<AllocationProfile> getAllocationProfile(String isolateId,
-      {bool reset, bool gc});
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// The return value can be one of [AllocationProfile] or [Sentinel].
+  Future<dynamic> getAllocationProfile(String isolateId, {bool reset, bool gc});
 
   /// The `getClientName` RPC is used to retrieve the name associated with the
   /// currently connected VM service client. If no name was previously set
@@ -462,10 +495,15 @@ abstract class VmServiceInterface {
   /// profiler. Only samples collected in the time range `[timeOriginMicros,
   /// timeOriginMicros + timeExtentMicros]` will be reported.
   ///
-  /// If the profiler is disabled, an error response will be returned.
+  /// If the profiler is disabled, an [RPC error] response will be returned.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
   ///
   /// See [CpuSamples].
-  Future<CpuSamples> getCpuSamples(
+  ///
+  /// The return value can be one of [CpuSamples] or [Sentinel].
+  Future<dynamic> getCpuSamples(
       String isolateId, int timeOriginMicros, int timeExtentMicros);
 
   /// The `getFlagList` RPC returns a list of all command line flags in the VM
@@ -494,6 +532,9 @@ abstract class VmServiceInterface {
   /// If `targetId` refers to an object which has been collected by the VM's
   /// garbage collector, then the `Collected` [Sentinel] is returned.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [InboundReferences].
   ///
   /// The return value can be one of [InboundReferences] or [Sentinel].
@@ -513,13 +554,17 @@ abstract class VmServiceInterface {
   /// yet been garbage collected.
   ///
   /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
-  /// must be the ID of a `Class`, otherwise an error is returned.
+  /// must be the ID of a `Class`, otherwise an [RPC error] is returned.
   ///
   /// `limit` is the maximum number of instances to be returned.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [InstanceSet].
-  Future<InstanceSet> getInstances(
-      String isolateId, String objectId, int limit);
+  ///
+  /// The return value can be one of [InstanceSet] or [Sentinel].
+  Future<dynamic> getInstances(String isolateId, String objectId, int limit);
 
   /// The `getIsolate` RPC is used to lookup an `Isolate` object by its `id`.
   ///
@@ -571,13 +616,21 @@ abstract class VmServiceInterface {
   /// The `getScripts` RPC is used to retrieve a `ScriptList` containing all
   /// scripts for an isolate based on the isolate's `isolateId`.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [ScriptList].
-  Future<ScriptList> getScripts(String isolateId);
+  ///
+  /// The return value can be one of [ScriptList] or [Sentinel].
+  Future<dynamic> getScripts(String isolateId);
 
   /// The `getObject` RPC is used to lookup an `object` from some isolate by its
   /// `id`.
   ///
   /// If `objectId` is a temporary id which has expired, then the `Expired`
+  /// [Sentinel] is returned.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
   /// If `objectId` refers to a heap object which has been collected by the VM's
@@ -607,6 +660,9 @@ abstract class VmServiceInterface {
   /// specified by `targetId` to a GC root (i.e., the object which is preventing
   /// this object from being garbage collected).
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// If `targetId` refers to a heap object which has been collected by the VM's
   /// garbage collector, then the `Collected` [Sentinel] is returned.
   ///
@@ -621,14 +677,21 @@ abstract class VmServiceInterface {
   /// truncated at the root end of the path.
   ///
   /// See [RetainingPath].
-  Future<RetainingPath> getRetainingPath(
+  ///
+  /// The return value can be one of [RetainingPath] or [Sentinel].
+  Future<dynamic> getRetainingPath(
       String isolateId, String targetId, int limit);
 
   /// The `getStack` RPC is used to retrieve the current execution stack and
   /// message queue for an isolate. The isolate does not need to be paused.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Stack].
-  Future<Stack> getStack(String isolateId);
+  ///
+  /// The return value can be one of [Stack] or [Sentinel].
+  Future<dynamic> getStack(String isolateId);
 
   /// The `getSourceReport` RPC is used to generate a set of reports tied to
   /// source locations in an isolate.
@@ -662,8 +725,13 @@ abstract class VmServiceInterface {
   /// compilation error, which could terminate the running Dart program. If this
   /// parameter is not provided, it is considered to have the value `false`.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [SourceReport].
-  Future<SourceReport> getSourceReport(
+  ///
+  /// The return value can be one of [SourceReport] or [Sentinel].
+  Future<dynamic> getSourceReport(
     String isolateId,
     /*List<SourceReportKind>*/
     List<String> reports, {
@@ -701,8 +769,9 @@ abstract class VmServiceInterface {
   /// `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is one of Fuchsia
-  /// or Macos or Systrace, the `114` error code, invalid timeline request, will
-  /// be returned as timeline events are handled by the OS in these modes.
+  /// or Macos or Systrace, an [RPC error] with error code `114`, `invalid
+  /// timeline request`, will be returned as timeline events are handled by the
+  /// OS in these modes.
   Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros});
 
   /// The `getVMTimelineFlags` RPC returns information about the current VM
@@ -727,16 +796,26 @@ abstract class VmServiceInterface {
   ///
   /// When the isolate is paused an event will be sent on the `Debug` stream.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success].
-  Future<Success> pause(String isolateId);
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> pause(String isolateId);
 
   /// The `kill` RPC is used to kill an isolate as if by dart:isolate's
   /// `Isolate.kill(IMMEDIATE)`.
   ///
   /// The isolate is killed regardless of whether it is paused or running.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success].
-  Future<Success> kill(String isolateId);
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> kill(String isolateId);
 
   /// Registers a service that can be invoked by other VM service clients, where
   /// `service` is the name of the service to advertise and `alias` is an
@@ -762,7 +841,12 @@ abstract class VmServiceInterface {
   ///
   /// if the `packagesUri` parameter is provided, it indicates the new uri to
   /// the Isolate's package map (.packages) file.
-  Future<ReloadReport> reloadSources(
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// The return value can be one of [ReloadReport] or [Sentinel].
+  Future<dynamic> reloadSources(
     String isolateId, {
     bool force,
     bool pause,
@@ -774,8 +858,13 @@ abstract class VmServiceInterface {
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success].
-  Future<Success> removeBreakpoint(String isolateId, String breakpointId);
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> removeBreakpoint(String isolateId, String breakpointId);
 
   /// Requests a dump of the Dart heap of the given isolate.
   ///
@@ -784,7 +873,12 @@ abstract class VmServiceInterface {
   /// events, when concatenated together, conforms to the [SnapshotGraph] type.
   /// The splitting of the SnapshotGraph into events can happen at any byte
   /// offset.
-  Future<Success> requestHeapSnapshot(String isolateId);
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> requestHeapSnapshot(String isolateId);
 
   /// The `requirePermissionToResume` RPC is used to change the pause/resume
   /// behavior of isolates by providing a way for the VM service to wait for
@@ -833,8 +927,13 @@ abstract class VmServiceInterface {
   ///
   /// If the `frameIndex` parameter is not provided, it defaults to 1.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success], [StepOption].
-  Future<Success> resume(String isolateId,
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> resume(String isolateId,
       {/*StepOption*/ String step, int frameIndex});
 
   /// The `setClientName` RPC is used to set a name to be associated with the
@@ -854,7 +953,12 @@ abstract class VmServiceInterface {
   /// None | Do not pause isolate on thrown exceptions
   /// Unhandled | Pause isolate on unhandled exceptions
   /// All  | Pause isolate on all thrown exceptions
-  Future<Success> setExceptionPauseMode(
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> setExceptionPauseMode(
       String isolateId, /*ExceptionPauseMode*/ String mode);
 
   /// The `setFlag` RPC is used to set a VM flag at runtime. Returns an error if
@@ -869,14 +973,24 @@ abstract class VmServiceInterface {
   /// The `setLibraryDebuggable` RPC is used to enable or disable whether
   /// breakpoints and stepping work for a given library.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success].
-  Future<Success> setLibraryDebuggable(
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> setLibraryDebuggable(
       String isolateId, String libraryId, bool isDebuggable);
 
   /// The `setName` RPC is used to change the debugging name for an isolate.
   ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
   /// See [Success].
-  Future<Success> setName(String isolateId, String name);
+  ///
+  /// The return value can be one of [Success] or [Sentinel].
+  Future<dynamic> setName(String isolateId, String name);
 
   /// The `setVMName` RPC is used to change the debugging name for the vm.
   ///
@@ -899,7 +1013,7 @@ abstract class VmServiceInterface {
   /// The `streamCancel` RPC cancels a stream subscription in the VM.
   ///
   /// If the client is not subscribed to the stream, the `104` (Stream not
-  /// subscribed) error code is returned.
+  /// subscribed) [RPC error] code is returned.
   ///
   /// See [Success].
   Future<Success> streamCancel(String streamId);
@@ -908,7 +1022,7 @@ abstract class VmServiceInterface {
   /// the client will begin receiving events from the stream.
   ///
   /// If the client is already subscribed to the stream, the `103` (Stream
-  /// already subscribed) error code is returned.
+  /// already subscribed) [RPC error] code is returned.
   ///
   /// The `streamId` parameter may have the following published values:
   ///
@@ -1428,7 +1542,7 @@ class VmService implements VmServiceInterface {
   Stream<Event> get onStderrEvent => _getEventController('Stderr').stream;
 
   @override
-  Future<Breakpoint> addBreakpoint(
+  Future<dynamic> addBreakpoint(
     String isolateId,
     String scriptId,
     int line, {
@@ -1442,7 +1556,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Breakpoint> addBreakpointWithScriptUri(
+  Future<dynamic> addBreakpointWithScriptUri(
     String isolateId,
     String scriptUri,
     int line, {
@@ -1456,13 +1570,13 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId) {
+  Future<dynamic> addBreakpointAtEntry(String isolateId, String functionId) {
     return _call('addBreakpointAtEntry',
         {'isolateId': isolateId, 'functionId': functionId});
   }
 
   @override
-  Future<Success> clearCpuSamples(String isolateId) {
+  Future<dynamic> clearCpuSamples(String isolateId) {
     return _call('clearCpuSamples', {'isolateId': isolateId});
   }
 
@@ -1534,7 +1648,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<AllocationProfile> getAllocationProfile(String isolateId,
+  Future<dynamic> getAllocationProfile(String isolateId,
       {bool reset, bool gc}) {
     Map m = {'isolateId': isolateId};
     if (reset != null && reset) {
@@ -1550,7 +1664,7 @@ class VmService implements VmServiceInterface {
   Future<ClientName> getClientName() => _call('getClientName');
 
   @override
-  Future<CpuSamples> getCpuSamples(
+  Future<dynamic> getCpuSamples(
       String isolateId, int timeOriginMicros, int timeExtentMicros) {
     return _call('getCpuSamples', {
       'isolateId': isolateId,
@@ -1570,8 +1684,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<InstanceSet> getInstances(
-      String isolateId, String objectId, int limit) {
+  Future<dynamic> getInstances(String isolateId, String objectId, int limit) {
     return _call('getInstances',
         {'isolateId': isolateId, 'objectId': objectId, 'limit': limit});
   }
@@ -1598,7 +1711,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<ScriptList> getScripts(String isolateId) {
+  Future<dynamic> getScripts(String isolateId) {
     return _call('getScripts', {'isolateId': isolateId});
   }
 
@@ -1620,19 +1733,19 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<RetainingPath> getRetainingPath(
+  Future<dynamic> getRetainingPath(
       String isolateId, String targetId, int limit) {
     return _call('getRetainingPath',
         {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
   }
 
   @override
-  Future<Stack> getStack(String isolateId) {
+  Future<dynamic> getStack(String isolateId) {
     return _call('getStack', {'isolateId': isolateId});
   }
 
   @override
-  Future<SourceReport> getSourceReport(
+  Future<dynamic> getSourceReport(
     String isolateId,
     /*List<SourceReportKind>*/
     List<String> reports, {
@@ -1682,12 +1795,12 @@ class VmService implements VmServiceInterface {
   Future<Timestamp> getVMTimelineMicros() => _call('getVMTimelineMicros');
 
   @override
-  Future<Success> pause(String isolateId) {
+  Future<dynamic> pause(String isolateId) {
     return _call('pause', {'isolateId': isolateId});
   }
 
   @override
-  Future<Success> kill(String isolateId) {
+  Future<dynamic> kill(String isolateId) {
     return _call('kill', {'isolateId': isolateId});
   }
 
@@ -1697,7 +1810,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<ReloadReport> reloadSources(
+  Future<dynamic> reloadSources(
     String isolateId, {
     bool force,
     bool pause,
@@ -1721,13 +1834,13 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> removeBreakpoint(String isolateId, String breakpointId) {
+  Future<dynamic> removeBreakpoint(String isolateId, String breakpointId) {
     return _call('removeBreakpoint',
         {'isolateId': isolateId, 'breakpointId': breakpointId});
   }
 
   @override
-  Future<Success> requestHeapSnapshot(String isolateId) {
+  Future<dynamic> requestHeapSnapshot(String isolateId) {
     return _call('requestHeapSnapshot', {'isolateId': isolateId});
   }
 
@@ -1748,7 +1861,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> resume(String isolateId,
+  Future<dynamic> resume(String isolateId,
       {/*StepOption*/ String step, int frameIndex}) {
     Map m = {'isolateId': isolateId};
     if (step != null) {
@@ -1766,7 +1879,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> setExceptionPauseMode(
+  Future<dynamic> setExceptionPauseMode(
       String isolateId, /*ExceptionPauseMode*/ String mode) {
     return _call(
         'setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
@@ -1778,7 +1891,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> setLibraryDebuggable(
+  Future<dynamic> setLibraryDebuggable(
       String isolateId, String libraryId, bool isDebuggable) {
     return _call('setLibraryDebuggable', {
       'isolateId': isolateId,
@@ -1788,7 +1901,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> setName(String isolateId, String name) {
+  Future<dynamic> setName(String isolateId, String name) {
     return _call('setName', {'isolateId': isolateId, 'name': name});
   }
 
@@ -3208,7 +3321,7 @@ class ErrorRef extends ObjRef {
 }
 
 /// An `Error` represents a Dart language level error. This is distinct from an
-/// [rpc error].
+/// [RPC error].
 class Error extends Obj implements ErrorRef {
   static Error parse(Map<String, dynamic> json) =>
       json == null ? null : Error._fromJson(json);
