@@ -320,6 +320,31 @@ void main() {
         details: ['This type parameter is instantiated with a nullable type']);
   }
 
+  Future<void> test_bound_instantiation_implicit() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C<T extends Object> {
+  C(T/*!*/ t);
+}
+
+void main() {
+  C(null);
+}
+''', migratedContent: '''
+class C<T extends Object?> {
+  C(T/*!*/ t);
+}
+
+void main() {
+  C(null);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 24, details: [
+      'This type parameter is instantiated with an inferred nullable type'
+    ]);
+  }
+
   Future<void> test_bound_method_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 f<T extends Object> {}

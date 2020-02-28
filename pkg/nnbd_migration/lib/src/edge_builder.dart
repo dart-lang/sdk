@@ -909,6 +909,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             .toList();
         instrumentation?.implicitTypeArguments(
             source, node, decoratedTypeArguments);
+        parameterEdgeOrigins = List.filled(typeArgumentTypes.length,
+            InferredTypeParameterInstantiationOrigin(source, node));
       } else {
         // Note: this could happen if the code being migrated has errors.
         typeArgumentTypes = const [];
