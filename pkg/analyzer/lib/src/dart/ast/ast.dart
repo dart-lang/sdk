@@ -4088,10 +4088,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get endToken {
-    if (_parameters != null) {
-      return _parameters.endToken;
-    }
-    return identifier.endToken;
+    return question ?? _parameters?.endToken ?? identifier.endToken;
   }
 
   @override
@@ -5180,7 +5177,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       super._childEntities..add(_returnType)..add(identifier)..add(parameters);
 
   @override
-  Token get endToken => _parameters.endToken;
+  Token get endToken => question ?? _parameters.endToken;
 
   @override
   bool get isConst => false;

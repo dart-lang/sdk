@@ -2443,6 +2443,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
     expect(functionParameter.question, isNotNull);
+    expect(functionParameter.endToken, functionParameter.question);
   }
 
   void test_functionTyped_named_nullable() {
@@ -2667,6 +2668,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
     expect(functionParameter.question, isNotNull);
+    expect(functionParameter.endToken, functionParameter.question);
   }
 }
 
