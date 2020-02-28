@@ -473,10 +473,7 @@ import 'unnecessary_non_null_assertion_test.dart'
 import 'unnecessary_null_aware_call_test.dart' as unnecessary_null_aware_call;
 import 'unnecessary_null_aware_spread_test.dart'
     as unnecessary_null_aware_spread;
-import 'unnecessary_null_comparison_false_test.dart'
-    as unnecessary_null_comparison_false;
-import 'unnecessary_null_comparison_true_test.dart'
-    as unnecessary_null_comparison_true;
+import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
 import 'unnecessary_type_check_false_test.dart' as unnecessary_type_check_false;
 import 'unnecessary_type_check_true_test.dart' as unnecessary_type_check_true;
 import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
@@ -826,8 +823,7 @@ main() {
     unnecessary_non_null_assertion.main();
     unnecessary_null_aware_call.main();
     unnecessary_null_aware_spread.main();
-    unnecessary_null_comparison_false.main();
-    unnecessary_null_comparison_true.main();
+    unnecessary_null_comparison.main();
     unnecessary_type_check_false.main();
     unnecessary_type_check_true.main();
     unqualified_reference_to_static_member_of_extended_type.main();

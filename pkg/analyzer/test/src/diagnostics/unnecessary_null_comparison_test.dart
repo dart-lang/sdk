@@ -12,8 +12,76 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(UnnecessaryNullComparisonFalseTest);
     defineReflectiveTests(UnnecessaryNullComparisonTrueTest);
   });
+}
+
+@reflectiveTest
+class UnnecessaryNullComparisonFalseTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
+
+  test_equal_intLiteral() async {
+    await assertNoErrorsInCode('''
+f(int a, int? b) {
+  a == 0;
+  0 == a;
+  b == 0;
+  0 == b;
+}
+''');
+  }
+
+  test_equal_legacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.5
+var a = 0;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+f() {
+  a == null;
+  null == a;
+}
+''');
+  }
+
+  test_equal_legacyLibrary() async {
+    await assertNoErrorsInCode('''
+// @dart = 2.5
+f(int a) {
+  a == null;
+  null == a;
+}
+''');
+  }
+
+  test_equal_notNullable() async {
+    await assertErrorsInCode('''
+f(int a) {
+  a == null;
+  null == a;
+}
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 15, 7),
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE, 26, 7),
+    ]);
+  }
+
+  test_equal_nullable() async {
+    await assertNoErrorsInCode('''
+f(int? a) {
+  a == null;
+  null == a;
+}
+''');
+  }
 }
 
 @reflectiveTest

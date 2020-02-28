@@ -875,21 +875,6 @@ class HintCode extends AnalyzerErrorCode {
           "meaningful on declarations of public members.",
       hasPublishedDocs: true);
 
-  static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE =
-      HintCodeWithUniqueName(
-          'UNNECESSARY_NULL_COMPARISON',
-          'UNNECESSARY_NULL_COMPARISON_FALSE',
-          "The operand can't be null, so the condition is always false.",
-          correction: "Try removing the condition, an enclosing condition, "
-              "or the whole conditional statement.");
-
-  static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE =
-      HintCodeWithUniqueName(
-          'UNNECESSARY_NULL_COMPARISON',
-          'UNNECESSARY_NULL_COMPARISON_TRUE',
-          "The operand can't be null, so the condition is always true.",
-          correction: "Remove the condition.");
-
   /**
    * Hint for the `x is double` type checks.
    */
@@ -2214,6 +2199,27 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = HintCode(
       'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration.",
       correction: "Try removing the declaration of 'noSuchMethod'.");
+
+  /**
+   * No parameters.
+   */
+  static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE =
+      HintCodeWithUniqueName(
+          'UNNECESSARY_NULL_COMPARISON',
+          'UNNECESSARY_NULL_COMPARISON_FALSE',
+          "The operand can't be null, so the condition is always false.",
+          correction: "Try removing the condition, an enclosing condition, "
+              "or the whole conditional statement.");
+
+  /**
+   * No parameters.
+   */
+  static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE =
+      HintCodeWithUniqueName(
+          'UNNECESSARY_NULL_COMPARISON',
+          'UNNECESSARY_NULL_COMPARISON_TRUE',
+          "The operand can't be null, so the condition is always true.",
+          correction: "Remove the condition.");
 
   /**
    * Unnecessary type checks, the result is always false.
