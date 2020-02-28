@@ -390,6 +390,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   bool isOptOutPackage(Uri uri) {
     if (!uri.isScheme('package')) return false;
+    if (uri.pathSegments.isEmpty) return false;
     String packageName = uri.pathSegments.first;
     return optOutPackages.contains(packageName);
   }
