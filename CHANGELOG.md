@@ -132,7 +132,7 @@ additional details see the [announcement].
 
 #### Linter
 
-The Linter was updated to `0.1.111+1`, which includes:
+The Linter was updated to `0.1.112`, which includes:
 
 * new lint: `use_raw_strings`
 * new lint: `unnecessary_raw_strings`
