@@ -1,3 +1,7 @@
+# 0.1.112
+
+* marked `prefer_typing_uninitialized_variables` and `omit_local_variable_types` as compatible
+
 # 0.1.111+1
 
 * new lint: `use_raw_strings`
