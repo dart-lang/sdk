@@ -2804,13 +2804,13 @@ SwitchDispatch:
 
   {
     BYTECODE(NullCheck, D);
-    SP -= 1;
 
     if (UNLIKELY(SP[0] == null_value)) {
       // Load selector.
       SP[0] = LOAD_CONSTANT(rD);
       goto ThrowNullError;
     }
+    SP -= 1;
 
     DISPATCH();
   }
