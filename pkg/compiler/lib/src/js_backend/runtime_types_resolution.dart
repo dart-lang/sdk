@@ -1055,6 +1055,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
 
     void processChecks(Set<DartType> checks) {
       checks.forEach((DartType type) {
+        type = type.withoutNullability;
         if (type is InterfaceType) {
           InterfaceType itf = type;
           if (!closedWorld.dartTypes.treatAsRawType(itf)) {
