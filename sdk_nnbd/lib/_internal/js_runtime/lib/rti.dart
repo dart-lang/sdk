@@ -15,7 +15,8 @@ import 'dart:_foreign_helper'
         JS_GET_FLAG,
         JS_GET_NAME,
         RAW_DART_FUNCTION_REF,
-        TYPE_REF;
+        TYPE_REF,
+        LEGACY_TYPE_REF;
 
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSUnmodifiableArray;
@@ -1672,15 +1673,13 @@ class _Universe {
           baseKind == Rti.kindFutureOr &&
               isNullable(Rti._getFutureOrArgument(baseType))) {
         return baseType;
-      } else if (baseKind == Rti.kindNever) {
+      } else if (baseKind == Rti.kindNever ||
+          _Utils.isIdentical(baseType, LEGACY_TYPE_REF<Never>())) {
         return TYPE_REF<Null>();
       } else if (baseKind == Rti.kindStar) {
         Rti starArgument = Rti._getStarArgument(baseType);
         int starArgumentKind = Rti._getKind(starArgument);
-        // TODO(fishythefish): Directly test for `LEGACY_TYPE_REF<Never>()`.
-        if (starArgumentKind == Rti.kindNever) {
-          return TYPE_REF<Null>();
-        } else if (starArgumentKind == Rti.kindFutureOr &&
+        if (starArgumentKind == Rti.kindFutureOr &&
             isNullable(Rti._getFutureOrArgument(starArgument))) {
           return starArgument;
         } else {
@@ -1713,9 +1712,8 @@ class _Universe {
       } else if (baseKind == Rti.kindNever) {
         return _lookupFutureRti(universe, baseType);
       } else if (isNullType(baseType)) {
-        // TODO(fishythefish): Use `TYPE_REF<Future<Null>?>()`.
         return JS_GET_FLAG('NNBD')
-            ? _lookupQuestionRti(universe, TYPE_REF<Future<Null>>(), false)
+            ? TYPE_REF<Future<Null>?>()
             : TYPE_REF<Future<Null>>();
       }
     }
@@ -2823,13 +2821,9 @@ bool isStrongTopType(Rti t) {
 }
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
-// TODO(fishythefish): Use `LEGACY_TYPE_REF<Object>()`.
 bool isLegacyObjectType(Rti t) =>
-    Rti._getKind(t) == Rti.kindStar && isObjectType(Rti._getStarArgument(t));
-// TODO(fishythefish): Use `TYPE_REF<Object?>()`.
-bool isNullableObjectType(Rti t) =>
-    Rti._getKind(t) == Rti.kindQuestion &&
-    isObjectType(Rti._getQuestionArgument(t));
+    _Utils.isIdentical(t, LEGACY_TYPE_REF<Object>());
+bool isNullableObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object?>());
 bool isNullType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Null>());
 bool isFunctionType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Function>());
 bool isJsFunctionType(Rti t) =>

@@ -240,6 +240,9 @@ external bool JS_GET_FLAG(String name);
 /// Returns a TypeReference to [T].
 external Rti TYPE_REF<T>();
 
+/// Returns a TypeReference to [T]*.
+external Rti LEGACY_TYPE_REF<T>();
+
 /// Pretend [code] is executed.  Generates no executable code.  This is used to
 /// model effects at some other point in external code.  For example, the
 /// following models an assignment to foo with an unknown value.

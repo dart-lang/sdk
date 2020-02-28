@@ -4140,6 +4140,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _handleCreateInvocationMirror(invocation);
     } else if (name == 'TYPE_REF') {
       _handleForeignTypeRef(invocation);
+    } else if (name == 'LEGACY_TYPE_REF') {
+      _handleForeignLegacyTypeRef(invocation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
@@ -4819,6 +4821,22 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
     DartType type = _elementMap.getDartType(invocation.arguments.types.single);
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildCall(invocation, invocation);
+    push(HLoadType.type(type, _abstractValueDomain.dynamicType)
+      ..sourceInformation = sourceInformation);
+  }
+
+  void _handleForeignLegacyTypeRef(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 0, maxPositional: 0, typeArgumentCount: 1)) {
+      stack.add(
+          // Result expected on stack.
+          graph.addConstantNull(closedWorld));
+      return;
+    }
+    DartType type = closedWorld.dartTypes
+        .legacyType(_elementMap.getDartType(invocation.arguments.types.single));
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     push(HLoadType.type(type, _abstractValueDomain.dynamicType)
