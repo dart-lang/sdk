@@ -100,31 +100,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       _featureSet.isEnabled(Feature.non_nullable);
 
   /**
-   * Given an iterable expression from a foreach loop, attempt to infer
-   * a type for the elements being iterated over.  Inference is based
-   * on the type of the iterator or stream over which the foreach loop
-   * is defined.
-   */
-  DartType computeForEachElementType(Expression iterable, bool isAsync) {
-    DartType iterableType = iterable.staticType;
-    if (iterableType == null) return null;
-    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
-
-    ClassElement iteratedElement =
-        isAsync ? _typeProvider.streamElement : _typeProvider.iterableElement;
-
-    InterfaceType iteratedType = iterableType is InterfaceTypeImpl
-        ? iterableType.asInstanceOf(iteratedElement)
-        : null;
-
-    if (iteratedType != null) {
-      return iteratedType.typeArguments.single;
-    } else {
-      return null;
-    }
-  }
-
-  /**
    * Given a constructor for a generic type, returns the equivalent generic
    * function type that we could use to forward to the constructor, or for a
    * non-generic type simply returns the constructor type.
