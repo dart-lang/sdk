@@ -452,3 +452,27 @@ extension NativePort on SendPort {
   @patch
   int get nativePort native "SendPortImpl_get_id";
 }
+
+int _nativeApiFunctionPointer(String symbol) native "NativeApiFunctionPointer";
+
+@patch
+class NativeApi {
+  @patch
+  static Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+      get nativeApiPostCObject =>
+          Pointer.fromAddress(_nativeApiFunctionPointer("Dart_PostCObject"));
+
+  @patch
+  static Pointer<
+      NativeFunction<
+          Int64 Function(
+              Pointer<Uint8>,
+              Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+              Int8)>> get nativeApiNewNativePort =>
+      Pointer.fromAddress(_nativeApiFunctionPointer("Dart_NewNativePort"));
+
+  @patch
+  static Pointer<NativeFunction<Int8 Function(Int64)>>
+      get nativeApiCloseNativePort => Pointer.fromAddress(
+          _nativeApiFunctionPointer("Dart_CloseNativePort"));
+}

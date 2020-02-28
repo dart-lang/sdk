@@ -270,6 +270,34 @@ DART_EXPORT intptr_t TestCallbackWrongIsolate(void (*fn)()) {
 #endif  // defined(TARGET_OS_LINUX)
 
 ////////////////////////////////////////////////////////////////////////////////
+// Dynamic linking of dart_native_api.h for the next two samples.
+typedef bool (*Dart_PostCObjectType)(Dart_Port port_id, Dart_CObject* message);
+Dart_PostCObjectType Dart_PostCObject_ = nullptr;
+
+DART_EXPORT void RegisterDart_PostCObject(
+    Dart_PostCObjectType function_pointer) {
+  Dart_PostCObject_ = function_pointer;
+}
+
+typedef Dart_Port (*Dart_NewNativePortType)(const char* name,
+                                            Dart_NativeMessageHandler handler,
+                                            bool handle_concurrently);
+Dart_NewNativePortType Dart_NewNativePort_ = nullptr;
+
+DART_EXPORT void RegisterDart_NewNativePort(
+    Dart_NewNativePortType function_pointer) {
+  Dart_NewNativePort_ = function_pointer;
+}
+
+typedef bool (*Dart_CloseNativePortType)(Dart_Port native_port_id);
+Dart_CloseNativePortType Dart_CloseNativePort_ = nullptr;
+
+DART_EXPORT void RegisterDart_CloseNativePort(
+    Dart_CloseNativePortType function_pointer) {
+  Dart_CloseNativePort_ = function_pointer;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Functions for async callbacks example.
 //
 // sample_async_callback.dart
@@ -314,7 +342,7 @@ void NotifyDart(Dart_Port send_port, const Work* work) {
   dart_object.type = Dart_CObject_kInt64;
   dart_object.value.as_int64 = work_addr;
 
-  const bool result = Dart_PostCObject(send_port, &dart_object);
+  const bool result = Dart_PostCObject_(send_port, &dart_object);
   if (!result) {
     FATAL("C   :  Posting message to port failed.");
   }
@@ -476,16 +504,16 @@ class PendingCall {
   PendingCall(void** buffer, size_t* length)
       : response_buffer_(buffer), response_length_(length) {
     receive_port_ =
-        Dart_NewNativePort("cpp-response", &PendingCall::HandleResponse,
-                           /*handle_concurrently=*/false);
+        Dart_NewNativePort_("cpp-response", &PendingCall::HandleResponse,
+                            /*handle_concurrently=*/false);
   }
-  ~PendingCall() { Dart_CloseNativePort(receive_port_); }
+  ~PendingCall() { Dart_CloseNativePort_(receive_port_); }
 
   Dart_Port port() const { return receive_port_; }
 
   void PostAndWait(Dart_Port port, Dart_CObject* object) {
     std::unique_lock<std::mutex> lock(mutex);
-    const bool success = Dart_PostCObject(send_port_, object);
+    const bool success = Dart_PostCObject_(send_port_, object);
     if (!success) FATAL("Failed to send message, invalid port or isolate died");
 
     printf("C   :  Waiting for result.\n");
@@ -589,7 +617,7 @@ uint8_t MyCallback1(uint8_t a) {
   c_request.value.as_array.length =
       sizeof(c_request_arr) / sizeof(c_request_arr[0]);
 
-  printf("C   :  Dart_PostCObject(request: %" Px ", call: %" Px ").\n",
+  printf("C   :  Dart_PostCObject_(request: %" Px ", call: %" Px ").\n",
          reinterpret_cast<intptr_t>(&c_request),
          reinterpret_cast<intptr_t>(&c_pending_call));
   pending_call.PostAndWait(send_port_, &c_request);
@@ -637,10 +665,10 @@ void MyCallback2(uint8_t a) {
   c_request.value.as_array.length =
       sizeof(c_request_arr) / sizeof(c_request_arr[0]);
 
-  printf("C   :  Dart_PostCObject(request: %" Px ", call: %" Px ").\n",
+  printf("C   :  Dart_PostCObject_(request: %" Px ", call: %" Px ").\n",
          reinterpret_cast<intptr_t>(&c_request),
          reinterpret_cast<intptr_t>(&c_pending_call));
-  Dart_PostCObject(send_port_, &c_request);
+  Dart_PostCObject_(send_port_, &c_request);
 }
 
 // Simulated work for Thread #1.

@@ -7,8 +7,6 @@
 // main Dart thread.
 //
 // TODO(dartbug.com/37022): Update this when we get real async callbacks.
-// TODO(dartbug.com/40564): On Windows DLL is wrongly linked against dart.exe
-// instead of dart_precompiled_runtime.exe
 
 import 'dart:ffi';
 import 'dart:isolate';
@@ -28,8 +26,9 @@ main() async {
   print("C T2 = Some C thread executing C.");
   print("C    = C T1 or C T2.");
   print("Dart: Setup.");
-  final interactiveCppRequests = ReceivePort()..listen(requestExecuteCallback);
+  registerDart_PostCObject(NativeApi.nativeApiPostCObject);
 
+  final interactiveCppRequests = ReceivePort()..listen(requestExecuteCallback);
   final int nativePort = interactiveCppRequests.sendPort.nativePort;
   registerCallback1(nativePort, callback1FP);
   registerCallback2(nativePort, callback2FP);
@@ -101,6 +100,14 @@ final stopWorkSimulator =
 
 final executeCallback = dl.lookupFunction<Void Function(Pointer<Work>),
     void Function(Pointer<Work>)>('ExecuteCallback');
+
+final registerDart_PostCObject = dl.lookupFunction<
+    Void Function(
+        Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+            functionPointer),
+    void Function(
+        Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+            functionPointer)>('RegisterDart_PostCObject');
 
 class Work extends Struct {}
 
