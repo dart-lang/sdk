@@ -192,6 +192,9 @@ class InfoBuilder {
 
     if (origin.kind == EdgeOriginKind.uninitializedRead) {
       return 'Used on line $lineNumber, when it is possibly uninitialized';
+    } else if (origin.kind == EdgeOriginKind.implicitNullReturn) {
+      return 'This function contains a return statement with no value on line '
+          '$lineNumber, which implicitly returns null.';
     }
 
     /// If the [node] is inside the return expression for a function body,

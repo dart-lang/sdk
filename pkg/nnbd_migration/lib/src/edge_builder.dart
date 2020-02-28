@@ -1234,7 +1234,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           offset: node.offset);
       _graph.makeNullable(
           implicitNullType.node, AlwaysNullableTypeOrigin(source, node));
-      _checkAssignment(null,
+      _checkAssignment(ImplicitNullReturnOrigin(source, node),
           source: isAsync
               ? _futureOf(implicitNullType, offset: node.offset)
               : implicitNullType,

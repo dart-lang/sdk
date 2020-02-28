@@ -202,6 +202,29 @@ class ImplicitNullInitializerOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.implicitNullInitializer;
 }
 
+/// Edge origin resulting from a `return;` statement which implicitly returns
+/// `null`.
+class ImplicitNullReturnOrigin extends EdgeOrigin {
+  ImplicitNullReturnOrigin(Source source, ReturnStatement node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.implicitNullReturn;
+
+  @override
+  ReturnStatement get node => super.node as ReturnStatement;
+}
+
+/// Edge origin resulting from the inference of a type parameter, which
+/// can affects the nullability of that type parameter's bound.
+class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
+  InferredTypeParameterInstantiationOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.inferredTypeParameterInstantiation;
+}
+
 /// Edge origin resulting from a type that is inferred from its initializer.
 class InitializerInferenceOrigin extends EdgeOrigin {
   InitializerInferenceOrigin(Source source, VariableDeclaration node)
@@ -432,16 +455,6 @@ class TypeParameterInstantiationOrigin extends EdgeOrigin {
 
   @override
   TypeAnnotation get node => super.node as TypeAnnotation;
-}
-
-/// Edge origin resulting from the inference of a type parameter, which
-/// can affects the nullability of that type parameter's bound.
-class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
-  InferredTypeParameterInstantiationOrigin(Source source, AstNode node)
-      : super(source, node);
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.inferredTypeParameterInstantiation;
 }
 
 /// Edge origin resulting from the read of a variable that has not been

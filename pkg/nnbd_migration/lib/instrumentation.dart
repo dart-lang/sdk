@@ -137,6 +137,7 @@ enum EdgeOriginKind {
   ifNull,
   implicitMixinSuperCall,
   implicitNullInitializer,
+  implicitNullReturn,
   inferredTypeParameterInstantiation,
   initializerInference,
   instanceCreation,

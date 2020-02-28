@@ -1568,6 +1568,24 @@ String? g() {
     assertDetail(detail: regions[0].details[0], offset: 15, length: 6);
   }
 
+  Future<void> test_returnNoValue() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+int f() {
+  return;
+}
+''', migratedContent: '''
+int? f() {
+  return;
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 3, details: [
+      'This function contains a return statement with no value on line 2,'
+          ' which implicitly returns null.'
+    ]);
+  }
+
   Future<void> test_returnType_function_expression() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 int _f = null;
