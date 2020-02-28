@@ -32,6 +32,12 @@ class WidgetDescriptions {
   /// The mapping of identifiers of previously returned properties.
   final Map<int, PropertyDescription> _properties = {};
 
+  /// Flush all data, because there was a change to a file.
+  void flush() {
+    _classRegistry.flush();
+    _properties.clear();
+  }
+
   /// Return the description of the widget with [InstanceCreationExpression] in
   /// the [resolvedUnit] at the [offset], or `null` if the location does not
   /// correspond to a widget.

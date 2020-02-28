@@ -295,6 +295,10 @@ abstract class AbstractAnalysisServer {
     analysisDriverScheduler.notify(null);
   }
 
+  /// Notify the flutter widget properties support that the file with the
+  /// given [path] was changed - added, updated, or removed.
+  void notifyFlutterWidgetDescriptions(String path) {}
+
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,
