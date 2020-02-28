@@ -2246,10 +2246,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   /// Instantiate [type] with [argumentTypes], assigning [argumentTypes] to
   /// [bounds].
-  DecoratedType _handleInstantiation(
-      DecoratedType type, List<DecoratedType> argumentTypes) {
+  DecoratedType _handleInstantiation(DecoratedType type,
+      List<DecoratedType> argumentTypes, List<EdgeOrigin> edgeOrigins) {
     for (var i = 0; i < argumentTypes.length; ++i) {
-      _checkAssignment(null,
+      _checkAssignment(edgeOrigins?.elementAt(i),
           source: argumentTypes[i],
           destination: DecoratedTypeParameterBounds.current
               .get((type.type as FunctionType).typeFormals[i]),
@@ -2281,12 +2281,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var argumentTypes = typeArguments.arguments
             .map((t) => _variables.decoratedTypeAnnotation(source, t))
             .toList();
+        var origins = typeArguments.arguments
+            .map((typeAnnotation) =>
+                TypeParameterInstantiationOrigin(source, typeAnnotation))
+            .toList();
         if (constructorTypeParameters != null) {
           calleeType = calleeType.substitute(
               Map<TypeParameterElement, DecoratedType>.fromIterables(
                   constructorTypeParameters, argumentTypes));
         } else {
-          calleeType = _handleInstantiation(calleeType, argumentTypes);
+          calleeType = _handleInstantiation(calleeType, argumentTypes, origins);
         }
       } else {
         if (invokeType is FunctionType) {
@@ -2296,7 +2300,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   offset: node.offset))
               .toList();
           instrumentation?.implicitTypeArguments(source, node, argumentTypes);
-          calleeType = _handleInstantiation(calleeType, argumentTypes);
+          calleeType = _handleInstantiation(calleeType, argumentTypes, null);
         } else if (constructorTypeParameters != null) {
           // No need to instantiate; caller has already substituted in the
           // correct type arguments.
