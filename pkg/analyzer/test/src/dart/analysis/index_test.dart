@@ -906,6 +906,34 @@ main() {
     assertThat(element)..isReferencedAt('p: 1', true);
   }
 
+  test_isReferencedBy_ParameterElement_named_ofMethod_genericClass() async {
+    await _indexTestUnit('''
+class A<T> {
+  void foo({T test}) {}
+}
+
+main(A<int> a) {
+  a.foo(test: 0);
+}
+''');
+    Element element = findElement('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
+  }
+
+  test_isReferencedBy_ParameterElement_named_ofConstructor_genericClass() async {
+    await _indexTestUnit('''
+class A<T> {
+  A({T test});
+}
+
+main() {
+  A(test: 0);
+}
+''');
+    Element element = findElement('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
+  }
+
   test_isReferencedBy_ParameterElement_genericFunctionType() async {
     await _indexTestUnit('''
 typedef F = void Function({int p});
