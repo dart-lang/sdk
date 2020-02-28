@@ -6,49 +6,28 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:linter/src/analyzer.dart';
 
-Annotation extractAnnotation(String line) {
-  final index = line.indexOf(RegExp(r'(//|#)[ ]?LINT'));
+Annotation extractAnnotation(int lineNumber, String line) {
+  final regexp =
+      RegExp(r'(//|#) ?LINT( \[([\-+]\d+)?(,?(\d+):(\d+))?\])?( (.*))?$');
+  final match = regexp.firstMatch(line);
+  if (match == null) return null;
 
-  if (index == -1) {
-    return null;
-  }
+  // ignore lints on commented out lines
+  final index = match.start;
+  final comment = match[1];
+  if (line.indexOf(comment) != index) return null;
 
-  // Grab the first comment to see if there's one preceding the annotation.
-  // Check for '#' first to allow for lints on dartdocs.
-  var comment = line.indexOf('#');
-  if (comment == -1) {
-    comment = line.indexOf('//');
-  }
+  final relativeLine = match[3].toInt() ?? 0;
+  final column = match[5].toInt();
+  final length = match[6].toInt();
+  final message = match[8].toNullIfBlank();
+  return Annotation.forLint(message, column, length)
+    ..lineNumber = lineNumber + relativeLine;
+}
 
-  // If the offset of the comment is not the offset of the annotation (for
-  // example, `"My phone #" # LINT`), do not proceed.
-  if (comment != index) {
-    return null;
-  }
-
-  int column;
-  int length;
-  var annotation = line.substring(index);
-  var leftBrace = annotation.indexOf('[');
-  if (leftBrace != -1) {
-    var sep = annotation.indexOf(':');
-    column = int.parse(annotation.substring(leftBrace + 1, sep));
-    var rightBrace = annotation.indexOf(']');
-    length = int.parse(annotation.substring(sep + 1, rightBrace));
-  }
-
-  var msgIndex = annotation.indexOf(']') + 1;
-  if (msgIndex < 1) {
-    msgIndex = annotation.indexOf('T') + 1;
-  }
-  String msg;
-  if (msgIndex < line.length) {
-    msg = line.substring(index + msgIndex).trim();
-    if (msg.isEmpty) {
-      msg = null;
-    }
-  }
-  return Annotation.forLint(msg, column, length);
+extension on String {
+  int toInt() => this == null ? null : int.parse(this);
+  String toNullIfBlank() => this == null || trim().isEmpty ? null : this;
 }
 
 /// Information about a 'LINT' annotation/comment.
