@@ -1031,6 +1031,9 @@ class Thread : public ThreadState {
   friend class CompilerState;
   friend class compiler::target::Thread;
   friend class FieldTable;
+  friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
+                                                   const char*,
+                                                   char**);
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

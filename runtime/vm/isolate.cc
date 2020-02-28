@@ -433,7 +433,8 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   // All other threads are not allowed to unschedule themselves and schedule
   // again later on.
   if (!is_mutator) {
-    thread->isolate_ = nullptr;
+    ASSERT(thread->isolate_ == nullptr);
+    thread->isolate_group_ = nullptr;
   }
   thread->heap_ = nullptr;
   thread->set_os_thread(nullptr);
@@ -3415,6 +3416,11 @@ void Isolate::UnscheduleThread(Thread* thread,
     ASSERT(mutator_thread_ == thread);
     ASSERT(mutator_thread_ == scheduled_mutator_thread_);
     scheduled_mutator_thread_ = nullptr;
+  } else {
+    // We only reset the isolate pointer for non-mutator threads, since mutator
+    // threads can still be visited during GC even if unscheduled.
+    // See also IsolateGroup::UnscheduleThreadLocked`
+    thread->isolate_ = nullptr;
   }
   thread->field_table_values_ = nullptr;
   group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);

@@ -1319,6 +1319,16 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
         group->RegisterIsolateLocked(isolate);
         isolate->class_table()->shared_class_table_ = group->class_table();
 
+        // Even though the mutator thread was descheduled, it will still
+        // retain its [Thread] structure with valid isolate/isolate_group
+        // pointers.
+        // If GC happens before the mutator gets scheduled again, we have to
+        // ensure the isolate group change is reflected in the threads
+        // structure.
+        ASSERT(isolate->mutator_thread() != nullptr);
+        ASSERT(isolate->mutator_thread()->isolate_group() == spawning_group);
+        isolate->mutator_thread()->isolate_group_ = group;
+
         // Allow other old space GC tasks to run again.
         {
           auto old_space = group->heap()->old_space();
