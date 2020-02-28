@@ -2634,6 +2634,7 @@ mixin _AssignmentChecker {
       @required bool hard,
       bool checkable = true,
       bool sourceIsFunctionLiteral = false}) {
+    assert(origin != null);
     var sourceType = source.type;
     var destinationType = destination.type;
     if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {
