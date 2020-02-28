@@ -179,6 +179,9 @@ class InfoBuilder {
       return 'A length is specified in the "List()" constructor and the list '
           'items are initialized to null';
     }
+    if (origin.kind == EdgeOriginKind.typeParameterInstantiation) {
+      return 'This type parameter is instantiated with a nullable type';
+    }
 
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;

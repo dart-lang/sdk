@@ -280,6 +280,24 @@ int? f([num? a]) {
         details: ['The value of the expression is nullable']);
   }
 
+  Future<void> test_bound() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C<T extends Object> {}
+
+C<int/*?*/> c;
+''', migratedContent: '''
+class C<T extends Object?> {}
+
+C<int?/*?*/>? c;
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    assertRegion(
+        region: regions[0],
+        offset: 24,
+        details: ['This type parameter is instantiated with a nullable type']);
+  }
+
   Future<void> test_discardCondition() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void g(int i) {
