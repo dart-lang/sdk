@@ -15,6 +15,7 @@
 #include "bin/builtin.h"
 #include "bin/console.h"
 #include "bin/crashpad.h"
+#include "bin/dartdev_utils.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
@@ -1090,6 +1091,15 @@ void main(int argc, char** argv) {
         Options::PrintUsage();
         Platform::Exit(kErrorExitCode);
       }
+    }
+
+    // Try to parse a DartDev command if script_name doesn't point to a valid
+    // file. If the command isn't valid we fall through to handle the
+    // possibility that the script_name points to a HTTP resource. If the
+    // relevant snapshot can't be found we abort execution.
+    if (DartDevUtils::ShouldParseCommand(script_name) &&
+        !DartDevUtils::TryParseCommandFromScriptName(&script_name)) {
+      Platform::Exit(kErrorExitCode);
     }
   }
 

@@ -9,8 +9,6 @@
 #include <string.h>
 
 #include "bin/abi_version.h"
-#include "bin/dartdev_utils.h"
-#include "bin/error_exit.h"
 #include "bin/options.h"
 #include "bin/platform.h"
 #include "platform/syslog.h"
@@ -442,18 +440,8 @@ int Options::ParseArguments(int argc,
 
   // Get the script name.
   if (i < argc) {
-    // If the script name isn't a valid file or a URL, this might be a DartDev
-    // command. Try to find the DartDev snapshot so we can forward the command
-    // and its arguments.
-    if (!DartDevUtils::ShouldParseCommand(argv[i])) {
-      *script_name = strdup(argv[i]);
-      i++;
-    } else if (!DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
-      Syslog::PrintErr(
-          "Could not find DartDev snapshot and '%s' is not a valid script.",
-          argv[i]);
-      Platform::Exit(kErrorExitCode);
-    }
+    *script_name = strdup(argv[i]);
+    i++;
   } else {
     return -1;
   }

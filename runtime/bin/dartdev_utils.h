@@ -12,14 +12,13 @@ namespace bin {
 
 class DartDevUtils {
  public:
-  // Returns true if there does not exist a file at |script_uri| or the URI is
-  // not an HTTP resource.
+  // Returns true if there does not exist a file at |script_uri|.
   static bool ShouldParseCommand(const char* script_uri);
 
-  // Returns true if we were successfully able to find the DartDev snapshot.
-  // Returns false if we were unable to find the snapshot, in which case the
-  // VM should exit.
-  static bool TryResolveDartDevSnapshotPath(char** script_name);
+  // Returns true if we were successfully able to parse a DartDev command.
+  // Returns false if we were unable to find a matching command or a matching
+  // snapshot does not exist, in which case the VM should exit.
+  static bool TryParseCommandFromScriptName(char** script_name);
 
  private:
   DISALLOW_ALLOCATION();
