@@ -11,9 +11,70 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(UnnecessaryTypeCheckFalseTest);
+    defineReflectiveTests(UnnecessaryTypeCheckFalseWithNnbdTest);
     defineReflectiveTests(UnnecessaryTypeCheckTrueTest);
     defineReflectiveTests(UnnecessaryTypeCheckTrueWithNnbdTest);
   });
+}
+
+@reflectiveTest
+class UnnecessaryTypeCheckFalseTest extends DriverResolutionTest {
+  test_null_not_Null() async {
+    await assertErrorsInCode(r'''
+var b = null is! Null;
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 8, 13),
+    ]);
+  }
+
+  test_type_not_dynamic() async {
+    await assertErrorsInCode(r'''
+void f<T>(T a) {
+  a is! dynamic;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
+    ]);
+  }
+
+  test_type_not_object() async {
+    await assertErrorsInCode(r'''
+void f<T>(T a) {
+  a is! Object;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 12),
+    ]);
+  }
+}
+
+@reflectiveTest
+class UnnecessaryTypeCheckFalseWithNnbdTest
+    extends UnnecessaryTypeCheckFalseTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  test_type_not_object() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T a) {
+  a is! Object;
+}
+''');
+  }
+
+  test_type_not_objectQuestion() async {
+    await assertErrorsInCode(r'''
+void f<T>(T a) {
+  a is! Object?;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
+    ]);
+  }
 }
 
 @reflectiveTest

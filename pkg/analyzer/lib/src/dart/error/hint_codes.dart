@@ -2223,16 +2223,22 @@ class HintCode extends AnalyzerErrorCode {
 
   /**
    * Unnecessary type checks, the result is always false.
+   *
+   * No parameters.
    */
-  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCode(
+  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCodeWithUniqueName(
+      'UNNECESSARY_TYPE_CHECK',
       'UNNECESSARY_TYPE_CHECK_FALSE',
       "Unnecessary type check, the result is always false.",
       correction: "Try correcting the type check, or removing the type check.");
 
   /**
    * Unnecessary type checks, the result is always true.
+   *
+   * No parameters.
    */
-  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCode(
+  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCodeWithUniqueName(
+      'UNNECESSARY_TYPE_CHECK',
       'UNNECESSARY_TYPE_CHECK_TRUE',
       "Unnecessary type check, the result is always true.",
       correction: "Try correcting the type check, or removing the type check.");
