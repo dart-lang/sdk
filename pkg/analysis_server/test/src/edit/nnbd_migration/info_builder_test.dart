@@ -298,6 +298,28 @@ C<int?/*?*/>? c;
         details: ['This type parameter is instantiated with a nullable type']);
   }
 
+  Future<void> test_bound_instantiation_explicit() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C<T extends Object> {}
+
+void main() {
+  C<int/*?*/>();
+}
+''', migratedContent: '''
+class C<T extends Object?> {}
+
+void main() {
+  C<int?/*?*/>();
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 24,
+        details: ['This type parameter is instantiated with a nullable type']);
+  }
+
   Future<void> test_bound_method_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 f<T extends Object> {}

@@ -889,11 +889,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Iterable<DartType> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;
     var typeArguments = node.constructorName.type.typeArguments;
+    List<EdgeOrigin> parameterEdgeOrigins;
     if (typeArguments != null) {
       typeArguments.accept(this);
       typeArgumentTypes = typeArguments.arguments.map((t) => t.type);
       decoratedTypeArguments = typeArguments.arguments
           .map((t) => _variables.decoratedTypeAnnotation(source, t))
+          .toList();
+      parameterEdgeOrigins = typeArguments.arguments
+          .map((typeAnn) => TypeParameterInstantiationOrigin(source, typeAnn))
           .toList();
     } else {
       var staticType = node.staticType;
@@ -926,7 +930,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         typeArguments: decoratedTypeArguments);
     var calleeType = getOrComputeElementType(callee, targetType: createdType);
     for (var i = 0; i < decoratedTypeArguments.length; ++i) {
-      _checkAssignment(null,
+      _checkAssignment(parameterEdgeOrigins?.elementAt(i),
           source: decoratedTypeArguments[i],
           destination:
               _variables.decoratedTypeParameterBound(typeParameters[i]),
