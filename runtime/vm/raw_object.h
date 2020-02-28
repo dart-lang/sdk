@@ -1304,10 +1304,12 @@ class RawLibrary : public RawObject {
 
   enum LibraryFlags {
     kDartSchemeBit = 0,
-    kDebuggableBit,      // True if debugger can stop in library.
-    kInFullSnapshotBit,  // True if library is in a full snapshot.
-    kNnbdBit,            // True if library is non nullable by default.
-    kNumFlagBits,
+    kDebuggableBit,        // True if debugger can stop in library.
+    kInFullSnapshotBit,    // True if library is in a full snapshot.
+    kNnbdBit,              // True if library is non nullable by default.
+    kNnbdCompiledModePos,  // Encodes nnbd compiled mode of constants in lib.
+    kNnbdCompiledModeSize = 2,
+    kNumFlagBits = kNnbdCompiledModePos + kNnbdCompiledModeSize,
   };
   COMPILE_ASSERT(kNumFlagBits <= (sizeof(uint8_t) * kBitsPerByte));
   class DartSchemeBit : public BitField<uint8_t, bool, kDartSchemeBit, 1> {};
@@ -1315,6 +1317,10 @@ class RawLibrary : public RawObject {
   class InFullSnapshotBit
       : public BitField<uint8_t, bool, kInFullSnapshotBit, 1> {};
   class NnbdBit : public BitField<uint8_t, bool, kNnbdBit, 1> {};
+  class NnbdCompiledModeBits : public BitField<uint8_t,
+                                               uint8_t,
+                                               kNnbdCompiledModePos,
+                                               kNnbdCompiledModeSize> {};
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 

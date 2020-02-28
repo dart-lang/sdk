@@ -899,6 +899,15 @@ enum class NNBDMode {
   kOptedInLib = 1,  // Library is opted-in.
 };
 
+// The NNBDCompiledMode reflects the mode in which constants of the library were
+// compiled by CFE.
+enum class NNBDCompiledMode {
+  kDisabled = 0,
+  kWeak = 1,
+  kStrong = 2,
+  kAgnostic = 3,
+};
+
 class Class : public Object {
  public:
   enum InvocationDispatcherEntry {
@@ -4573,6 +4582,15 @@ class Library : public Object {
 
   NNBDMode nnbd_mode() const {
     return is_nnbd() ? NNBDMode::kOptedInLib : NNBDMode::kLegacyLib;
+  }
+
+  NNBDCompiledMode nnbd_compiled_mode() const {
+    return static_cast<NNBDCompiledMode>(
+        RawLibrary::NnbdCompiledModeBits::decode(raw_ptr()->flags_));
+  }
+  void set_nnbd_compiled_mode(NNBDCompiledMode value) const {
+    set_flags(RawLibrary::NnbdCompiledModeBits::update(
+        static_cast<uint8_t>(value), raw_ptr()->flags_));
   }
 
   RawString* PrivateName(const String& name) const;

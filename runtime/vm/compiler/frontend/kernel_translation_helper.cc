@@ -2778,14 +2778,16 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 
 TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
                                ActiveClass* active_class,
-                               bool finalize)
+                               bool finalize,
+                               bool apply_legacy_erasure)
     : helper_(helper),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       type_parameter_scope_(NULL),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
-      finalize_(finalize) {}
+      finalize_(finalize),
+      apply_legacy_erasure_(apply_legacy_erasure) {}
 
 AbstractType& TypeTranslator::BuildType() {
   BuildTypeInternal();
@@ -2819,6 +2821,9 @@ void TypeTranslator::BuildTypeInternal() {
     case kNeverType: {
       const Nullability nullability = helper_->ReadNullability();
       result_ = Object::never_type().ToNullability(nullability, Heap::kOld);
+      if (apply_legacy_erasure_ && result_.IsNeverType()) {
+        result_ = I->object_store()->null_type();
+      }
       break;
     }
     case kBottomType:
@@ -2852,7 +2857,10 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
 
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
@@ -2897,7 +2905,10 @@ void TypeTranslator::BuildFunctionType(bool simple) {
                                             : Function::Handle(Z),
                                         TokenPosition::kNoSource));
 
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -2967,7 +2978,8 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       const uint8_t flags = helper_->ReadFlags();  // read flags
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
-      if ((flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
+      if (!apply_legacy_erasure_ &&
+          (flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
         signature_function.SetIsRequiredAt(pos);
       }
     }
@@ -2998,7 +3010,11 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void TypeTranslator::BuildTypeParameterType() {
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
+
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 

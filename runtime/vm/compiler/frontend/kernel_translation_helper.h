@@ -767,13 +767,6 @@ class LibraryHelper {
     kNonNullableByDefaultCompiledModeBit2Strong = 1 << 4,
   };
 
-  enum NonNullableByDefaultCompiledMode {
-    kDisabled,
-    kWeak,
-    kStrong,
-    kAgnostic
-  };
-
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
       : helper_(helper), binary_version_(binary_version), next_read_(kFlags) {}
 
@@ -791,13 +784,13 @@ class LibraryHelper {
   bool IsNonNullableByDefault() const {
     return (flags_ & kIsNonNullableByDefault) != 0;
   }
-  NonNullableByDefaultCompiledMode GetNonNullableByDefaultCompiledMode() const {
+  NNBDCompiledMode GetNonNullableByDefaultCompiledMode() const {
     bool weak = (flags_ & kNonNullableByDefaultCompiledModeBit1Weak) != 0;
     bool strong = (flags_ & kNonNullableByDefaultCompiledModeBit2Strong) != 0;
-    if (weak && strong) return kAgnostic;
-    if (strong) return kStrong;
-    if (weak) return kWeak;
-    return kDisabled;
+    if (weak && strong) return NNBDCompiledMode::kAgnostic;
+    if (strong) return NNBDCompiledMode::kStrong;
+    if (weak) return NNBDCompiledMode::kWeak;
+    return NNBDCompiledMode::kDisabled;
   }
 
   uint8_t flags_ = 0;
@@ -1253,6 +1246,12 @@ class ActiveClass {
     return member->IsFactory();
   }
 
+  bool RequireLegacyErasure() const {
+    return klass != nullptr && !FLAG_null_safety &&
+           Library::Handle(klass->library()).nnbd_compiled_mode() ==
+               NNBDCompiledMode::kAgnostic;
+  }
+
   intptr_t MemberTypeParameterCount(Zone* zone);
 
   intptr_t ClassNumTypeArguments() {
@@ -1373,7 +1372,8 @@ class TypeTranslator {
  public:
   TypeTranslator(KernelReaderHelper* helper,
                  ActiveClass* active_class,
-                 bool finalize = false);
+                 bool finalize = false,
+                 bool apply_legacy_erasure = false);
 
   AbstractType& BuildType();
   AbstractType& BuildTypeWithoutFinalization();
@@ -1436,6 +1436,7 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
+  const bool apply_legacy_erasure_;
 
   friend class ScopeBuilder;
   friend class KernelLoader;

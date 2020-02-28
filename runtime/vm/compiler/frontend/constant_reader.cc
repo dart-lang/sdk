@@ -182,7 +182,8 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       const auto& list_class =
           Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(&reader, active_class_, true);
+      TypeTranslator type_translator(&reader, active_class_, true,
+                                     active_class_->RequireLegacyErasure());
       auto& type_arguments =
           TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
@@ -223,7 +224,8 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       ASSERT(klass.is_const());
       instance = Instance::New(klass, Heap::kOld);
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(&reader, active_class_, true);
+      TypeTranslator type_translator(&reader, active_class_, true,
+                                     active_class_->RequireLegacyErasure());
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       if (klass.NumTypeArguments() > 0) {
         auto& type_arguments = TypeArguments::Handle(
@@ -265,7 +267,8 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       ASSERT(!constant.IsNull());
 
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(&reader, active_class_, true);
+      TypeTranslator type_translator(&reader, active_class_, true,
+                                     active_class_->RequireLegacyErasure());
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       ASSERT(number_of_type_arguments > 0);
       auto& type_arguments = TypeArguments::Handle(
@@ -298,7 +301,8 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
     }
     case kTypeLiteralConstant: {
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(&reader, active_class_, true);
+      TypeTranslator type_translator(&reader, active_class_, true,
+                                     active_class_->RequireLegacyErasure());
       instance = type_translator.BuildType().raw();
       break;
     }

@@ -78,9 +78,8 @@ library_for_all_configs("libdart_vm") {
       extra_deps += [
         # TODO(US-399): Remove time_service specific code when it is no longer
         # necessary.
-        "//sdk/lib/sys/cpp",
         "//sdk/fidl/fuchsia.deprecatedtimezone",
-
+        "//sdk/lib/sys/cpp",
         "//zircon/public/lib/fbl",
         "//zircon/public/lib/trace-engine",
       ]
@@ -153,6 +152,7 @@ template("gen_vm_platform") {
     ]
     if (use_nnbd) {
       args += [ "--enable-experiment=non-nullable" ]
+      args += [ "--nnbd-agnostic" ]
     }
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
@@ -194,9 +194,7 @@ executable("offsets_extractor") {
     "..:dart_maybe_product_config",
     ":libdart_vm_config",
   ]
-  sources = [
-    "compiler/offsets_extractor.cc",
-  ]
+  sources = [ "compiler/offsets_extractor.cc" ]
   include_dirs = [ ".." ]
 }
 
@@ -208,8 +206,6 @@ executable("offsets_extractor_precompiled_runtime") {
     "..:dart_maybe_product_config",
     ":libdart_vm_config",
   ]
-  sources = [
-    "compiler/offsets_extractor.cc",
-  ]
+  sources = [ "compiler/offsets_extractor.cc" ]
   include_dirs = [ ".." ]
 }

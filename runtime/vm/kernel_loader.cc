@@ -1021,6 +1021,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (library.Loaded()) return library.raw();
 
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
+  library.set_nnbd_compiled_mode(
+      library_helper.GetNonNullableByDefaultCompiledMode());
 
   library_kernel_data_ = helper_.reader_.ExternalDataFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
