@@ -896,8 +896,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (node.typeParameters.isNotEmpty) {
       List<DartType> typeParameters = <DartType>[];
       for (ir.TypeParameter typeParameter in node.typeParameters) {
-        typeParameters.add(getDartType(new ir.TypeParameterType(typeParameter,
-            ir.TypeParameterType.computeNullabilityFromBound(typeParameter))));
+        typeParameters.add(getDartType(new ir.TypeParameterType(
+            typeParameter, ir.Nullability.nonNullable)));
       }
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,
