@@ -58,7 +58,9 @@ Future<bool> analyzeTests(String nnbdTestDir) async {
 
   plural(int count, String name) => "$count $name${count == 1 ? '' : 's'}";
 
-  for (var file in files.values) {
+  var fileNames = files.keys.toList()..sort();
+  for (var fileName in fileNames) {
+    var file = files[fileName];
     if (!file.isTest) continue;
 
     // Only insert errors that are not already present when the file is
