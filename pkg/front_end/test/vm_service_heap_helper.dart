@@ -9,6 +9,7 @@ import "dijkstras_sssp_algorithm.dart";
 
 class VMServiceHeapHelperBase {
   vmService.VmService _serviceClient;
+  vmService.VmService get serviceClient => _serviceClient;
 
   VMServiceHeapHelperBase();
 
@@ -24,7 +25,7 @@ class VMServiceHeapHelperBase {
     await _serviceClient.dispose();
   }
 
-  Future<void> _waitUntilPaused(String isolateId) async {
+  Future<bool> waitUntilPaused(String isolateId) async {
     int nulls = 0;
     while (true) {
       bool result = await _isPaused(isolateId);
@@ -33,10 +34,10 @@ class VMServiceHeapHelperBase {
         if (nulls > 5) {
           // We've now asked for the isolate 5 times and in all cases gotten
           // `Sentinel`. Most likely things aren't working for whatever reason.
-          return;
+          return false;
         }
       } else if (result) {
-        return;
+        return true;
       } else {
         await Future.delayed(const Duration(milliseconds: 100));
       }
@@ -62,20 +63,26 @@ class VMServiceHeapHelperBase {
     return false;
   }
 
-  Future<void> _forceGC(String isolateId) async {
-    await _waitUntilIsolateIsRunnable(isolateId);
+  Future<vmService.AllocationProfile> forceGC(String isolateId) async {
+    await waitUntilIsolateIsRunnable(isolateId);
     int expectGcAfter = new DateTime.now().millisecondsSinceEpoch;
     while (true) {
-      vmService.AllocationProfile allocationProfile =
-          await _serviceClient.getAllocationProfile(isolateId, gc: true);
+      vmService.AllocationProfile allocationProfile;
+      try {
+        allocationProfile =
+            await _serviceClient.getAllocationProfile(isolateId, gc: true);
+      } catch (e) {
+        print(e.runtimeType);
+        rethrow;
+      }
       if (allocationProfile.dateLastServiceGC != null &&
           allocationProfile.dateLastServiceGC >= expectGcAfter) {
-        return;
+        return allocationProfile;
       }
     }
   }
 
-  Future<bool> _isIsolateRunnable(String isolateId) async {
+  Future<bool> isIsolateRunnable(String isolateId) async {
     dynamic tmp = await _serviceClient.getIsolate(isolateId);
     if (tmp is vmService.Isolate) {
       vmService.Isolate isolate = tmp;
@@ -84,10 +91,10 @@ class VMServiceHeapHelperBase {
     return null;
   }
 
-  Future<void> _waitUntilIsolateIsRunnable(String isolateId) async {
+  Future<void> waitUntilIsolateIsRunnable(String isolateId) async {
     int nulls = 0;
     while (true) {
-      bool result = await _isIsolateRunnable(isolateId);
+      bool result = await isIsolateRunnable(isolateId);
       if (result == null) {
         nulls++;
         if (nulls > 5) {
@@ -104,7 +111,7 @@ class VMServiceHeapHelperBase {
   }
 
   Future<void> printAllocationProfile(String isolateId, {String filter}) async {
-    await _waitUntilIsolateIsRunnable(isolateId);
+    await waitUntilIsolateIsRunnable(isolateId);
     vmService.AllocationProfile allocationProfile =
         await _serviceClient.getAllocationProfile(isolateId);
     for (vmService.ClassHeapStats member in allocationProfile.members) {
@@ -123,7 +130,7 @@ class VMServiceHeapHelperBase {
 
   Future<void> filterAndPrintInstances(String isolateId, String filter,
       String fieldName, Set<String> fieldValues) async {
-    await _waitUntilIsolateIsRunnable(isolateId);
+    await waitUntilIsolateIsRunnable(isolateId);
     vmService.AllocationProfile allocationProfile =
         await _serviceClient.getAllocationProfile(isolateId);
     for (vmService.ClassHeapStats member in allocationProfile.members) {
@@ -161,7 +168,7 @@ class VMServiceHeapHelperBase {
   }
 
   Future<void> printRetainingPaths(String isolateId, String filter) async {
-    await _waitUntilIsolateIsRunnable(isolateId);
+    await waitUntilIsolateIsRunnable(isolateId);
     vmService.AllocationProfile allocationProfile =
         await _serviceClient.getAllocationProfile(isolateId);
     for (vmService.ClassHeapStats member in allocationProfile.members) {
@@ -205,18 +212,66 @@ class VMServiceHeapHelperBase {
   }
 }
 
-class VMServiceHeapHelper extends VMServiceHeapHelperBase {
+abstract class LaunchingVMServiceHeapHelper extends VMServiceHeapHelperBase {
   Process _process;
 
   bool _started = false;
+
+  void start(List<String> scriptAndArgs) async {
+    if (_started) throw "Already started";
+    _started = true;
+    _process = await Process.start(
+        Platform.resolvedExecutable,
+        ["--pause_isolates_on_start", "--enable-vm-service=0"]
+          ..addAll(scriptAndArgs));
+    _process.stdout
+        .transform(utf8.decoder)
+        .transform(new LineSplitter())
+        .listen((line) {
+      const kObservatoryListening = 'Observatory listening on ';
+      if (line.startsWith(kObservatoryListening)) {
+        Uri observatoryUri =
+            Uri.parse(line.substring(kObservatoryListening.length));
+        _setupAndRun(observatoryUri);
+      }
+      stdout.writeln("> $line");
+    });
+    _process.stderr
+        .transform(utf8.decoder)
+        .transform(new LineSplitter())
+        .listen((line) {
+      stderr.writeln("> $line");
+    });
+    // ignore: unawaited_futures
+    _process.exitCode.then((value) {
+      processExited(value);
+    });
+  }
+
+  void processExited(int exitCode) {}
+
+  void killProcess() {
+    _process.kill();
+  }
+
+  void _setupAndRun(Uri observatoryUri) async {
+    await connect(observatoryUri);
+    await run();
+  }
+
+  Future<void> run();
+}
+
+class VMServiceHeapHelperSpecificExactLeakFinder
+    extends LaunchingVMServiceHeapHelper {
   final Map<Uri, Map<String, List<String>>> _interests =
       new Map<Uri, Map<String, List<String>>>();
   final Map<Uri, Map<String, List<String>>> _prettyPrints =
       new Map<Uri, Map<String, List<String>>>();
   final bool throwOnPossibleLeak;
 
-  VMServiceHeapHelper(List<Interest> interests, List<Interest> prettyPrints,
-      this.throwOnPossibleLeak) {
+  VMServiceHeapHelperSpecificExactLeakFinder(List<Interest> interests,
+      List<Interest> prettyPrints, this.throwOnPossibleLeak) {
     if (interests.isEmpty) throw "Empty list of interests given";
     for (Interest interest in interests) {
       Map<String, List<String>> classToFields = _interests[interest.uri];
@@ -246,55 +301,24 @@ class VMServiceHeapHelper extends VMServiceHeapHelperBase {
     }
   }
 
-  void start(List<String> scriptAndArgs) async {
-    if (_started) throw "Already started";
-    _started = true;
-    _process = await Process.start(
-        Platform.resolvedExecutable,
-        ["--pause_isolates_on_start", "--enable-vm-service=0"]
-          ..addAll(scriptAndArgs));
-    _process.stdout
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((line) {
-      const kObservatoryListening = 'Observatory listening on ';
-      if (line.startsWith(kObservatoryListening)) {
-        Uri observatoryUri =
-            Uri.parse(line.substring(kObservatoryListening.length));
-        _setupAndRun(observatoryUri);
-      }
-      stdout.writeln("> $line");
-    });
-    _process.stderr
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((line) {
-      stderr.writeln("> $line");
-    });
-  }
-
-  void _setupAndRun(Uri observatoryUri) async {
-    await connect(observatoryUri);
-    await _run();
-  }
-
-  void _run() async {
+  @override
+  Future<void> run() async {
     vmService.VM vm = await _serviceClient.getVM();
     if (vm.isolates.length != 1) {
       throw "Expected 1 isolate, got ${vm.isolates.length}";
     }
     vmService.IsolateRef isolateRef = vm.isolates.single;
-    await _forceGC(isolateRef.id);
+    await forceGC(isolateRef.id);
 
     assert(await _isPausedAtStart(isolateRef.id));
     await _serviceClient.resume(isolateRef.id);
 
     int iterationNumber = 1;
     while (true) {
-      await _waitUntilPaused(isolateRef.id);
+      await waitUntilPaused(isolateRef.id);
       print("Iteration: #$iterationNumber");
       iterationNumber++;
-      await _forceGC(isolateRef.id);
+      await forceGC(isolateRef.id);
 
       vmService.HeapSnapshotGraph heapSnapshotGraph =
           await vmService.HeapSnapshotGraph.getSnapshot(

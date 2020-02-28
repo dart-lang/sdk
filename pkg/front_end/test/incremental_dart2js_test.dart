@@ -8,8 +8,9 @@ main(List<String> args) async {
   bool fast = true;
   bool useExperimentalInvalidation = true;
   bool addDebugBreaks = false;
+  int limit = -1;
 
-  Dart2jsTester dart2jsTester =
-      new Dart2jsTester(useExperimentalInvalidation, fast, addDebugBreaks);
+  Dart2jsTester dart2jsTester = new Dart2jsTester(
+      useExperimentalInvalidation, fast, addDebugBreaks, limit);
   await dart2jsTester.test();
 }

@@ -40,6 +40,7 @@ b2x
 ba
 baba
 backed
+bail
 bailout
 bash
 bat
@@ -86,6 +87,7 @@ cnn
 coded
 codepath
 collisions
+commented
 commit
 companion
 comparator
@@ -95,6 +97,7 @@ compilations
 compiler's
 complement
 completers
+confidence
 confirm
 consecutive
 considering
@@ -123,11 +126,13 @@ deleting
 depended
 depfile
 desc
+descriptors
 detector
 deviation
 dfast
 dictionaries
 dictionary
+differences
 differs
 dijkstra
 dijkstras
@@ -189,6 +194,7 @@ finder
 fisk
 five
 floor
+fluctuate
 foos
 forbidden
 forces
@@ -206,6 +212,7 @@ gen
 generators
 git
 goo
+google
 greeting
 gtgt
 gulp
@@ -249,9 +256,11 @@ iter
 joo
 jumped
 kernels
+kill
 ko
 koo
 la
+launching
 lc
 ld
 le
@@ -279,6 +288,7 @@ metric
 metrics
 mf
 micro
+minutes
 mismatched
 miss
 misspelled
@@ -288,6 +298,7 @@ month
 moo
 mx
 mysdk
+naturally
 negatable
 newest
 newworld
@@ -307,6 +318,7 @@ overlay
 party
 pause
 paused
+pc
 periodic
 periodically
 person
@@ -315,6 +327,8 @@ pink
 places
 pointed
 policy
+pooled
+population
 portions
 pp
 preliminary
@@ -326,6 +340,7 @@ profiler
 promotes
 propagated
 protected
+proved
 provider
 pseudocode
 pubspec
@@ -373,6 +388,7 @@ sdks
 secondary
 segment
 severe
+sheets
 shipped
 shortest
 shot
@@ -389,7 +405,9 @@ spent
 splay
 splitting
 sqrt
+squared
 sssp
+stat
 stats
 std
 stdio
@@ -408,6 +426,8 @@ superinterface
 supermixin
 supplement
 suspension
+tails
+talk
 templates
 thereof
 thing
@@ -416,6 +436,7 @@ timeout
 timer
 timing
 timings
+tinv
 title
 tpt
 transitively
@@ -429,6 +450,7 @@ tripping
 trivially
 truncated
 tt
+ttest
 txt
 typeargs
 typeparam
