@@ -2138,6 +2138,8 @@ void Precompiler::BindStaticCalls() {
   }
 }
 
+DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
+
 void Precompiler::DedupUnlinkedCalls() {
   class UnlinkedCallDeduper {
    public:
@@ -2207,7 +2209,16 @@ void Precompiler::DedupUnlinkedCalls() {
   ASSERT(gop.IsNull() != FLAG_use_bare_instructions);
   if (FLAG_use_bare_instructions) {
     deduper.DedupPool(gop);
-  } else {
+  }
+
+  // Note: in bare instructions mode we can still have object pools attached
+  // to code objects and these pools need to be deduplicated.
+  // We use these pools to carry information about references between code
+  // objects and other objects in the snapshots (these references are otherwise
+  // implicit and go through global object pool). This information is needed
+  // to produce more informative snapshot profile.
+  if (!FLAG_use_bare_instructions ||
+      FLAG_write_v8_snapshot_profile_to != nullptr) {
     DedupUnlinkedCallsVisitor visitor(&deduper, Z);
 
     // We need both iterations to ensure we visit all the functions that might

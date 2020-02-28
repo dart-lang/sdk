@@ -296,6 +296,23 @@ class Serializer : public ThreadStackResource {
     }
   }
 
+  // Record a reference from the currently written object to the given object
+  // without actually writing the reference into the snapshot.
+  // Used to create artificial connection between objects which are not
+  // explicitly connected in the heap, for example an object referenced
+  // by the global object pool is in reality referenced by the code which
+  // caused this reference to be added to the global object pool.
+  void AttributeElementRef(RawObject* object, intptr_t index) {
+    intptr_t id = WriteRefId(object);
+    if (profile_writer_ != nullptr) {
+      profile_writer_->AttributeReferenceTo(
+          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
+          {{V8SnapshotProfileWriter::kSnapshot, id},
+           V8SnapshotProfileWriter::Reference::kElement,
+           index});
+    }
+  }
+
   void WritePropertyRef(RawObject* object, const char* property) {
     intptr_t id = WriteRefId(object);
     WriteUnsigned(id);

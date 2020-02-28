@@ -163,10 +163,20 @@ class ObjectPoolBuilder : public ValueObject {
       const ExternalLabel* label,
       ObjectPoolBuilderEntry::Patchability patchable);
 
-  intptr_t CurrentLength() const { return object_pool_.length(); }
-  ObjectPoolBuilderEntry& EntryAt(intptr_t i) { return object_pool_[i]; }
+  intptr_t CurrentLength() const {
+    return object_pool_.length() + used_from_parent_.length();
+  }
+  ObjectPoolBuilderEntry& EntryAt(intptr_t i) {
+    if (i < used_from_parent_.length()) {
+      return parent_->EntryAt(used_from_parent_[i]);
+    }
+    return object_pool_[i - used_from_parent_.length()];
+  }
   const ObjectPoolBuilderEntry& EntryAt(intptr_t i) const {
-    return object_pool_[i];
+    if (i < used_from_parent_.length()) {
+      return parent_->EntryAt(used_from_parent_[i]);
+    }
+    return object_pool_[i - used_from_parent_.length()];
   }
 
   intptr_t AddObject(ObjectPoolBuilderEntry entry);
@@ -175,6 +185,8 @@ class ObjectPoolBuilder : public ValueObject {
   // This might fail if parent pool was modified invalidating indices which
   // we produced. In this case this function will return false.
   bool TryCommitToParent();
+
+  bool HasParent() const { return parent_ != nullptr; }
 
  private:
   intptr_t FindObject(ObjectPoolBuilderEntry entry);
@@ -187,6 +199,8 @@ class ObjectPoolBuilder : public ValueObject {
   // Should be equal to parent_->CurrentLength() - but is cached here
   // to detect cases when parent pool grows due to nested code generations.
   const intptr_t base_index_;
+
+  GrowableArray<intptr_t> used_from_parent_;
 
   // Objects and jump targets.
   GrowableArray<ObjectPoolBuilderEntry> object_pool_;

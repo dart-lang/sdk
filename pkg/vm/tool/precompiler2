@@ -42,6 +42,9 @@ for arg in "$@"; do
     --build-assembly)
     BUILD_ASM=1
     ;;
+    -v*)
+    set -x
+    ;;
     --*)
     OPTIONS+=("$arg")
     ;;

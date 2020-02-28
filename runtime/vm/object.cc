@@ -15585,6 +15585,10 @@ RawCode* Code::FinalizeCodeAndNotify(const char* name,
   return code.raw();
 }
 
+#if defined(DART_PRECOMPILER)
+DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
+#endif  // defined(DART_PRECOMPILER)
+
 RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
                             compiler::Assembler* assembler,
                             PoolAttachment pool_attachment,
@@ -15593,13 +15597,28 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
 
   ASSERT(assembler != NULL);
-  const auto object_pool =
-      pool_attachment == PoolAttachment::kAttachPool
-          ? &ObjectPool::Handle(assembler->HasObjectPoolBuilder()
-                                    ? ObjectPool::NewFromBuilder(
-                                          assembler->object_pool_builder())
-                                    : ObjectPool::empty_object_pool().raw())
-          : nullptr;
+  ObjectPool& object_pool = ObjectPool::Handle();
+
+  if (pool_attachment == PoolAttachment::kAttachPool) {
+    if (assembler->HasObjectPoolBuilder()) {
+      object_pool =
+          ObjectPool::NewFromBuilder(assembler->object_pool_builder());
+    } else {
+      object_pool = ObjectPool::empty_object_pool().raw();
+    }
+  } else {
+#if defined(DART_PRECOMPILER)
+    if (FLAG_write_v8_snapshot_profile_to != nullptr &&
+        assembler->HasObjectPoolBuilder() &&
+        assembler->object_pool_builder().HasParent()) {
+      // We are not going to write this pool into snapshot, but we will use
+      // it to emit references from code object to other objects in the
+      // snapshot that it caused to be added to the pool.
+      object_pool =
+          ObjectPool::NewFromBuilder(assembler->object_pool_builder());
+    }
+#endif  // defined(DART_PRECOMPILER)
+  }
 
   // Allocate the Code and Instructions objects.  Code is allocated first
   // because a GC during allocation of the code will leave the instruction
@@ -15679,8 +15698,8 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    if (pool_attachment == PoolAttachment::kAttachPool) {
-      code.set_object_pool(object_pool->raw());
+    if (!object_pool.IsNull()) {
+      code.set_object_pool(object_pool.raw());
     }
 
 #if defined(DART_PRECOMPILER)

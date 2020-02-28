@@ -31,6 +31,13 @@
 
 namespace dart {
 
+#if defined(DART_PRECOMPILER)
+DEFINE_FLAG(charp,
+            write_v8_snapshot_profile_to,
+            NULL,
+            "Write a snapshot profile in V8 format to a file.");
+#endif  // defined(DART_PRECOMPILER)
+
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 static void RelocateCodeObjects(
@@ -1460,7 +1467,9 @@ class CodeSerializationCluster : public SerializationCluster {
     RawCode* code = Code::RawCast(object);
     objects_.Add(code);
 
-    s->Push(code->ptr()->object_pool_);
+    if (!(s->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+      s->Push(code->ptr()->object_pool_);
+    }
     s->Push(code->ptr()->owner_);
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
@@ -1521,7 +1530,26 @@ class CodeSerializationCluster : public SerializationCluster {
                              active_unchecked_offset, code, i);
       }
 
-      WriteField(code, object_pool_);
+      // No need to write object pool out if we are producing full AOT
+      // snapshot with bare instructions.
+      if (!(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+        WriteField(code, object_pool_);
+#if defined(DART_PRECOMPILER)
+      } else if (FLAG_write_v8_snapshot_profile_to != nullptr &&
+                 code->ptr()->object_pool_ != ObjectPool::null()) {
+        // If we are writing V8 snapshot profile then attribute references
+        // going through the object pool to the code object itself.
+        RawObjectPool* pool = code->ptr()->object_pool_;
+
+        for (intptr_t i = 0; i < pool->ptr()->length_; i++) {
+          uint8_t bits = pool->ptr()->entry_bits()[i];
+          if (ObjectPool::TypeBits::decode(bits) ==
+              ObjectPool::EntryType::kTaggedObject) {
+            s->AttributeElementRef(pool->ptr()->data()[i].raw_obj_, i);
+          }
+        }
+#endif  // defined(DART_PRECOMPILER)
+      }
       WriteField(code, owner_);
       WriteField(code, exception_handlers_);
       WriteField(code, pc_descriptors_);
@@ -1604,8 +1632,14 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
       d->ReadInstructions(code, id, start_index_);
 
-      code->ptr()->object_pool_ =
-          reinterpret_cast<RawObjectPool*>(d->ReadRef());
+      // There would be a single global pool if this is a full AOT snapshot
+      // with bare instructions.
+      if (!(d->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+        code->ptr()->object_pool_ =
+            reinterpret_cast<RawObjectPool*>(d->ReadRef());
+      } else {
+        code->ptr()->object_pool_ = ObjectPool::null();
+      }
       code->ptr()->owner_ = d->ReadRef();
       code->ptr()->exception_handlers_ =
           reinterpret_cast<RawExceptionHandlers*>(d->ReadRef());
@@ -5115,7 +5149,8 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   WriteRootRef(symbols.raw(), "symbol-table");
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      WriteRootRef(StubCode::EntryAt(i).raw(), StubCode::NameAt(i));
+      WriteRootRef(StubCode::EntryAt(i).raw(),
+                   zone_->PrintToString("Stub:%s", StubCode::NameAt(i)));
     }
   }
 
@@ -5772,12 +5807,6 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   Bootstrap::SetupNativeResolver();
 }
 
-#if defined(DART_PRECOMPILER)
-DEFINE_FLAG(charp,
-            write_v8_snapshot_profile_to,
-            NULL,
-            "Write a snapshot profile in V8 format to a file.");
-#endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,

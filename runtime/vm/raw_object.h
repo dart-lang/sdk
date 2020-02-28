@@ -1574,6 +1574,7 @@ class RawObjectPool : public RawObject {
   }
 
   friend class Object;
+  friend class CodeSerializationCluster;
 };
 
 class RawInstructions : public RawObject {
