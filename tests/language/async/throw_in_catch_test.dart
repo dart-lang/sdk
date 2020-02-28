@@ -11,7 +11,7 @@ class Tracer {
   final String name;
   int counter = 0;
 
-  Tracer(this.expected, [this.name]);
+  Tracer(this.expected, this.name);
 
   void trace(msg) {
     Expect.equals(expected[counter], msg);

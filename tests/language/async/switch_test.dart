@@ -64,7 +64,7 @@ foo4(value) async {
   return k;
 }
 
-Future<int> futureOf(a) async => await a;
+Future<int> futureOf(int a) async => await a;
 
 test() async {
   Expect.equals(1, await foo1(1));
