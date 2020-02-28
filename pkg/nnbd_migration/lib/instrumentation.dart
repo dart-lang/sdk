@@ -157,6 +157,7 @@ enum EdgeOriginKind {
   thisOrSuper,
   throw_,
   typedefReference,
+  typeParameterInstantiation,
   uninitializedRead,
 }
 

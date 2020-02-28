@@ -421,6 +421,19 @@ class TypedefReferenceOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.typedefReference;
 }
 
+/// Edge origin resulting from the instantiation of a type parameter, which
+/// affects the nullability of that type parameter's bound.
+class TypeParameterInstantiationOrigin extends EdgeOrigin {
+  TypeParameterInstantiationOrigin(Source source, TypeAnnotation node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.typeParameterInstantiation;
+
+  @override
+  TypeAnnotation get node => super.node as TypeAnnotation;
+}
+
 /// Edge origin resulting from the read of a variable that has not been
 /// definitely assigned a value.
 class UninitializedReadOrigin extends EdgeOrigin {

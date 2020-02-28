@@ -1556,8 +1556,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             _unimplemented(typeName,
                 'No decorated type for type argument ${typeArguments[i]} ($i)');
           }
-          _checkAssignment(null,
-              source: argumentType, destination: bound, hard: true);
+          _checkAssignment(
+              TypeParameterInstantiationOrigin(source, typeArguments[i]),
+              source: argumentType,
+              destination: bound,
+              hard: true);
         }
       }
     }
