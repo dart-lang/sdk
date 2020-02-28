@@ -23,6 +23,17 @@ class RemoveEmptyCatchTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.empty_catches;
 
+  Future<void> test_incompleteCatch() async {
+    await resolveTestUnit('''
+void foo() {
+  try {
+    1;
+  } catch 2;
+}
+''');
+    assertNoExceptions();
+  }
+
   Future<void> test_singleCatch_finally_newLine() async {
     await resolveTestUnit('''
 void foo() {
