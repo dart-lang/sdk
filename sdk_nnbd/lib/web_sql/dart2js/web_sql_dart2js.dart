@@ -79,7 +79,7 @@ class SqlDatabase extends Interceptor {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
 
-  String get version => JS("String", "#.version", this);
+  String get version native;
 
   @JSName('changeVersion')
   /**
@@ -185,9 +185,9 @@ class SqlError extends Interceptor {
 
   static const int VERSION_ERR = 2;
 
-  int get code => JS("int", "#.code", this);
+  int get code native;
 
-  String get message => JS("String", "#.message", this);
+  String get message native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -200,11 +200,11 @@ class SqlResultSet extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get insertId => JS("int", "#.insertId", this);
+  int get insertId native;
 
-  SqlResultSetRowList get rows => JS("SqlResultSetRowList", "#.rows", this);
+  SqlResultSetRowList get rows native;
 
-  int get rowsAffected => JS("int", "#.rowsAffected", this);
+  int get rowsAffected native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

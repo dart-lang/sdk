@@ -54,11 +54,11 @@ class AElement extends GraphicsElement implements UriReference {
    */
   AElement.created() : super.created();
 
-  AnimatedString get target => JS("AnimatedString", "#.target", this);
+  AnimatedString get target native;
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -82,25 +82,19 @@ class Angle extends Interceptor {
 
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
-  int get unitType => JS("int", "#.unitType", this);
+  int get unitType native;
 
-  num get value => JS("num", "#.value", this);
+  num get value native;
 
-  set value(num value) {
-    JS("void", "#.value = #", this, value);
-  }
+  set value(num value) native;
 
-  String get valueAsString => JS("String", "#.valueAsString", this);
+  String get valueAsString native;
 
-  set valueAsString(String value) {
-    JS("void", "#.valueAsString = #", this, value);
-  }
+  set valueAsString(String value) native;
 
-  num get valueInSpecifiedUnits => JS("num", "#.valueInSpecifiedUnits", this);
+  num get valueInSpecifiedUnits native;
 
-  set valueInSpecifiedUnits(num value) {
-    JS("void", "#.valueInSpecifiedUnits = #", this, value);
-  }
+  set valueInSpecifiedUnits(num value) native;
 
   void convertToSpecifiedUnits(int unitType) native;
 
@@ -208,9 +202,9 @@ class AnimatedAngle extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Angle get animVal => JS("Angle", "#.animVal", this);
+  Angle get animVal native;
 
-  Angle get baseVal => JS("Angle", "#.baseVal", this);
+  Angle get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -224,13 +218,11 @@ class AnimatedBoolean extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get animVal => JS("bool", "#.animVal", this);
+  bool get animVal native;
 
-  bool get baseVal => JS("bool", "#.baseVal", this);
+  bool get baseVal native;
 
-  set baseVal(bool value) {
-    JS("void", "#.baseVal = #", this, value);
-  }
+  set baseVal(bool value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -244,13 +236,11 @@ class AnimatedEnumeration extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get animVal => JS("int", "#.animVal", this);
+  int get animVal native;
 
-  int get baseVal => JS("int", "#.baseVal", this);
+  int get baseVal native;
 
-  set baseVal(int value) {
-    JS("void", "#.baseVal = #", this, value);
-  }
+  set baseVal(int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -264,13 +254,11 @@ class AnimatedInteger extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get animVal => JS("int", "#.animVal", this);
+  int get animVal native;
 
-  int get baseVal => JS("int", "#.baseVal", this);
+  int get baseVal native;
 
-  set baseVal(int value) {
-    JS("void", "#.baseVal = #", this, value);
-  }
+  set baseVal(int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -284,9 +272,9 @@ class AnimatedLength extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Length get animVal => JS("Length", "#.animVal", this);
+  Length get animVal native;
 
-  Length get baseVal => JS("Length", "#.baseVal", this);
+  Length get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -300,9 +288,9 @@ class AnimatedLengthList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  LengthList get animVal => JS("LengthList", "#.animVal", this);
+  LengthList get animVal native;
 
-  LengthList get baseVal => JS("LengthList", "#.baseVal", this);
+  LengthList get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -316,13 +304,11 @@ class AnimatedNumber extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get animVal => JS("num", "#.animVal", this);
+  num get animVal native;
 
-  num get baseVal => JS("num", "#.baseVal", this);
+  num get baseVal native;
 
-  set baseVal(num value) {
-    JS("void", "#.baseVal = #", this, value);
-  }
+  set baseVal(num value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -336,9 +322,9 @@ class AnimatedNumberList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  NumberList get animVal => JS("NumberList", "#.animVal", this);
+  NumberList get animVal native;
 
-  NumberList get baseVal => JS("NumberList", "#.baseVal", this);
+  NumberList get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -352,11 +338,9 @@ class AnimatedPreserveAspectRatio extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  PreserveAspectRatio get animVal =>
-      JS("PreserveAspectRatio", "#.animVal", this);
+  PreserveAspectRatio get animVal native;
 
-  PreserveAspectRatio get baseVal =>
-      JS("PreserveAspectRatio", "#.baseVal", this);
+  PreserveAspectRatio get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -370,9 +354,9 @@ class AnimatedRect extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Rect get animVal => JS("Rect", "#.animVal", this);
+  Rect get animVal native;
 
-  Rect get baseVal => JS("Rect", "#.baseVal", this);
+  Rect get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -386,13 +370,11 @@ class AnimatedString extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get animVal => JS("String", "#.animVal", this);
+  String get animVal native;
 
-  String get baseVal => JS("String", "#.baseVal", this);
+  String get baseVal native;
 
-  set baseVal(String value) {
-    JS("void", "#.baseVal = #", this, value);
-  }
+  set baseVal(String value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -406,9 +388,9 @@ class AnimatedTransformList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  TransformList get animVal => JS("TransformList", "#.animVal", this);
+  TransformList get animVal native;
 
-  TransformList get baseVal => JS("TransformList", "#.baseVal", this);
+  TransformList get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -432,7 +414,7 @@ class AnimationElement extends SvgElement implements Tests {
    */
   AnimationElement.created() : super.created();
 
-  SvgElement get targetElement => JS("SvgElement", "#.targetElement", this);
+  SvgElement get targetElement native;
 
   void beginElement() native;
 
@@ -450,10 +432,9 @@ class AnimationElement extends SvgElement implements Tests {
 
   // From SVGTests
 
-  StringList get requiredExtensions =>
-      JS("StringList", "#.requiredExtensions", this);
+  StringList get requiredExtensions native;
 
-  StringList get systemLanguage => JS("StringList", "#.systemLanguage", this);
+  StringList get systemLanguage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -477,11 +458,11 @@ class CircleElement extends GeometryElement {
    */
   CircleElement.created() : super.created();
 
-  AnimatedLength get cx => JS("AnimatedLength", "#.cx", this);
+  AnimatedLength get cx native;
 
-  AnimatedLength get cy => JS("AnimatedLength", "#.cy", this);
+  AnimatedLength get cy native;
 
-  AnimatedLength get r => JS("AnimatedLength", "#.r", this);
+  AnimatedLength get r native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -505,8 +486,7 @@ class ClipPathElement extends GraphicsElement {
    */
   ClipPathElement.created() : super.created();
 
-  AnimatedEnumeration get clipPathUnits =>
-      JS("AnimatedEnumeration", "#.clipPathUnits", this);
+  AnimatedEnumeration get clipPathUnits native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -589,13 +569,13 @@ class EllipseElement extends GeometryElement {
    */
   EllipseElement.created() : super.created();
 
-  AnimatedLength get cx => JS("AnimatedLength", "#.cx", this);
+  AnimatedLength get cx native;
 
-  AnimatedLength get cy => JS("AnimatedLength", "#.cy", this);
+  AnimatedLength get cy native;
 
-  AnimatedLength get rx => JS("AnimatedLength", "#.rx", this);
+  AnimatedLength get rx native;
 
-  AnimatedLength get ry => JS("AnimatedLength", "#.ry", this);
+  AnimatedLength get ry native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -641,23 +621,23 @@ class FEBlendElement extends SvgElement
 
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedString get in2 => JS("AnimatedString", "#.in2", this);
+  AnimatedString get in2 native;
 
-  AnimatedEnumeration get mode => JS("AnimatedEnumeration", "#.mode", this);
+  AnimatedEnumeration get mode native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -701,23 +681,23 @@ class FEColorMatrixElement extends SvgElement
 
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedEnumeration get type => JS("AnimatedEnumeration", "#.type", this);
+  AnimatedEnumeration get type native;
 
-  AnimatedNumberList get values => JS("AnimatedNumberList", "#.values", this);
+  AnimatedNumberList get values native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -751,19 +731,19 @@ class FEComponentTransferElement extends SvgElement
       SvgElement.isTagSupported('feComponentTransfer') &&
       (new SvgElement.tag('feComponentTransfer') is FEComponentTransferElement);
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -798,32 +778,31 @@ class FECompositeElement extends SvgElement
 
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedString get in2 => JS("AnimatedString", "#.in2", this);
+  AnimatedString get in2 native;
 
-  AnimatedNumber get k1 => JS("AnimatedNumber", "#.k1", this);
+  AnimatedNumber get k1 native;
 
-  AnimatedNumber get k2 => JS("AnimatedNumber", "#.k2", this);
+  AnimatedNumber get k2 native;
 
-  AnimatedNumber get k3 => JS("AnimatedNumber", "#.k3", this);
+  AnimatedNumber get k3 native;
 
-  AnimatedNumber get k4 => JS("AnimatedNumber", "#.k4", this);
+  AnimatedNumber get k4 native;
 
-  AnimatedEnumeration get operator =>
-      JS("AnimatedEnumeration", "#.operator", this);
+  AnimatedEnumeration get operator native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -865,46 +844,41 @@ class FEConvolveMatrixElement extends SvgElement
 
   static const int SVG_EDGEMODE_WRAP = 2;
 
-  AnimatedNumber get bias => JS("AnimatedNumber", "#.bias", this);
+  AnimatedNumber get bias native;
 
-  AnimatedNumber get divisor => JS("AnimatedNumber", "#.divisor", this);
+  AnimatedNumber get divisor native;
 
-  AnimatedEnumeration get edgeMode =>
-      JS("AnimatedEnumeration", "#.edgeMode", this);
+  AnimatedEnumeration get edgeMode native;
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedNumberList get kernelMatrix =>
-      JS("AnimatedNumberList", "#.kernelMatrix", this);
+  AnimatedNumberList get kernelMatrix native;
 
-  AnimatedNumber get kernelUnitLengthX =>
-      JS("AnimatedNumber", "#.kernelUnitLengthX", this);
+  AnimatedNumber get kernelUnitLengthX native;
 
-  AnimatedNumber get kernelUnitLengthY =>
-      JS("AnimatedNumber", "#.kernelUnitLengthY", this);
+  AnimatedNumber get kernelUnitLengthY native;
 
-  AnimatedInteger get orderX => JS("AnimatedInteger", "#.orderX", this);
+  AnimatedInteger get orderX native;
 
-  AnimatedInteger get orderY => JS("AnimatedInteger", "#.orderY", this);
+  AnimatedInteger get orderY native;
 
-  AnimatedBoolean get preserveAlpha =>
-      JS("AnimatedBoolean", "#.preserveAlpha", this);
+  AnimatedBoolean get preserveAlpha native;
 
-  AnimatedInteger get targetX => JS("AnimatedInteger", "#.targetX", this);
+  AnimatedInteger get targetX native;
 
-  AnimatedInteger get targetY => JS("AnimatedInteger", "#.targetY", this);
+  AnimatedInteger get targetY native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -938,31 +912,27 @@ class FEDiffuseLightingElement extends SvgElement
       SvgElement.isTagSupported('feDiffuseLighting') &&
       (new SvgElement.tag('feDiffuseLighting') is FEDiffuseLightingElement);
 
-  AnimatedNumber get diffuseConstant =>
-      JS("AnimatedNumber", "#.diffuseConstant", this);
+  AnimatedNumber get diffuseConstant native;
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedNumber get kernelUnitLengthX =>
-      JS("AnimatedNumber", "#.kernelUnitLengthX", this);
+  AnimatedNumber get kernelUnitLengthX native;
 
-  AnimatedNumber get kernelUnitLengthY =>
-      JS("AnimatedNumber", "#.kernelUnitLengthY", this);
+  AnimatedNumber get kernelUnitLengthY native;
 
-  AnimatedNumber get surfaceScale =>
-      JS("AnimatedNumber", "#.surfaceScale", this);
+  AnimatedNumber get surfaceScale native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1006,29 +976,27 @@ class FEDisplacementMapElement extends SvgElement
 
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedString get in2 => JS("AnimatedString", "#.in2", this);
+  AnimatedString get in2 native;
 
-  AnimatedNumber get scale => JS("AnimatedNumber", "#.scale", this);
+  AnimatedNumber get scale native;
 
-  AnimatedEnumeration get xChannelSelector =>
-      JS("AnimatedEnumeration", "#.xChannelSelector", this);
+  AnimatedEnumeration get xChannelSelector native;
 
-  AnimatedEnumeration get yChannelSelector =>
-      JS("AnimatedEnumeration", "#.yChannelSelector", this);
+  AnimatedEnumeration get yChannelSelector native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1061,9 +1029,9 @@ class FEDistantLightElement extends SvgElement {
       SvgElement.isTagSupported('feDistantLight') &&
       (new SvgElement.tag('feDistantLight') is FEDistantLightElement);
 
-  AnimatedNumber get azimuth => JS("AnimatedNumber", "#.azimuth", this);
+  AnimatedNumber get azimuth native;
 
-  AnimatedNumber get elevation => JS("AnimatedNumber", "#.elevation", this);
+  AnimatedNumber get elevation native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1099,15 +1067,15 @@ class FEFloodElement extends SvgElement
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1265,27 +1233,25 @@ class FEGaussianBlurElement extends SvgElement
       SvgElement.isTagSupported('feGaussianBlur') &&
       (new SvgElement.tag('feGaussianBlur') is FEGaussianBlurElement);
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedNumber get stdDeviationX =>
-      JS("AnimatedNumber", "#.stdDeviationX", this);
+  AnimatedNumber get stdDeviationX native;
 
-  AnimatedNumber get stdDeviationY =>
-      JS("AnimatedNumber", "#.stdDeviationY", this);
+  AnimatedNumber get stdDeviationY native;
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1319,24 +1285,23 @@ class FEImageElement extends SvgElement
       SvgElement.isTagSupported('feImage') &&
       (new SvgElement.tag('feImage') is FEImageElement);
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio =>
-      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1372,15 +1337,15 @@ class FEMergeElement extends SvgElement
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1413,7 +1378,7 @@ class FEMergeNodeElement extends SvgElement {
       SvgElement.isTagSupported('feMergeNode') &&
       (new SvgElement.tag('feMergeNode') is FEMergeNodeElement);
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1444,26 +1409,25 @@ class FEMorphologyElement extends SvgElement
 
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedEnumeration get operator =>
-      JS("AnimatedEnumeration", "#.operator", this);
+  AnimatedEnumeration get operator native;
 
-  AnimatedNumber get radiusX => JS("AnimatedNumber", "#.radiusX", this);
+  AnimatedNumber get radiusX native;
 
-  AnimatedNumber get radiusY => JS("AnimatedNumber", "#.radiusY", this);
+  AnimatedNumber get radiusY native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1497,23 +1461,23 @@ class FEOffsetElement extends SvgElement
       SvgElement.isTagSupported('feOffset') &&
       (new SvgElement.tag('feOffset') is FEOffsetElement);
 
-  AnimatedNumber get dx => JS("AnimatedNumber", "#.dx", this);
+  AnimatedNumber get dx native;
 
-  AnimatedNumber get dy => JS("AnimatedNumber", "#.dy", this);
+  AnimatedNumber get dy native;
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1546,11 +1510,11 @@ class FEPointLightElement extends SvgElement {
       SvgElement.isTagSupported('fePointLight') &&
       (new SvgElement.tag('fePointLight') is FEPointLightElement);
 
-  AnimatedNumber get x => JS("AnimatedNumber", "#.x", this);
+  AnimatedNumber get x native;
 
-  AnimatedNumber get y => JS("AnimatedNumber", "#.y", this);
+  AnimatedNumber get y native;
 
-  AnimatedNumber get z => JS("AnimatedNumber", "#.z", this);
+  AnimatedNumber get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1584,34 +1548,29 @@ class FESpecularLightingElement extends SvgElement
       SvgElement.isTagSupported('feSpecularLighting') &&
       (new SvgElement.tag('feSpecularLighting') is FESpecularLightingElement);
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
-  AnimatedNumber get kernelUnitLengthX =>
-      JS("AnimatedNumber", "#.kernelUnitLengthX", this);
+  AnimatedNumber get kernelUnitLengthX native;
 
-  AnimatedNumber get kernelUnitLengthY =>
-      JS("AnimatedNumber", "#.kernelUnitLengthY", this);
+  AnimatedNumber get kernelUnitLengthY native;
 
-  AnimatedNumber get specularConstant =>
-      JS("AnimatedNumber", "#.specularConstant", this);
+  AnimatedNumber get specularConstant native;
 
-  AnimatedNumber get specularExponent =>
-      JS("AnimatedNumber", "#.specularExponent", this);
+  AnimatedNumber get specularExponent native;
 
-  AnimatedNumber get surfaceScale =>
-      JS("AnimatedNumber", "#.surfaceScale", this);
+  AnimatedNumber get surfaceScale native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1644,23 +1603,21 @@ class FESpotLightElement extends SvgElement {
       SvgElement.isTagSupported('feSpotLight') &&
       (new SvgElement.tag('feSpotLight') is FESpotLightElement);
 
-  AnimatedNumber get limitingConeAngle =>
-      JS("AnimatedNumber", "#.limitingConeAngle", this);
+  AnimatedNumber get limitingConeAngle native;
 
-  AnimatedNumber get pointsAtX => JS("AnimatedNumber", "#.pointsAtX", this);
+  AnimatedNumber get pointsAtX native;
 
-  AnimatedNumber get pointsAtY => JS("AnimatedNumber", "#.pointsAtY", this);
+  AnimatedNumber get pointsAtY native;
 
-  AnimatedNumber get pointsAtZ => JS("AnimatedNumber", "#.pointsAtZ", this);
+  AnimatedNumber get pointsAtZ native;
 
-  AnimatedNumber get specularExponent =>
-      JS("AnimatedNumber", "#.specularExponent", this);
+  AnimatedNumber get specularExponent native;
 
-  AnimatedNumber get x => JS("AnimatedNumber", "#.x", this);
+  AnimatedNumber get x native;
 
-  AnimatedNumber get y => JS("AnimatedNumber", "#.y", this);
+  AnimatedNumber get y native;
 
-  AnimatedNumber get z => JS("AnimatedNumber", "#.z", this);
+  AnimatedNumber get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1694,19 +1651,19 @@ class FETileElement extends SvgElement
       SvgElement.isTagSupported('feTile') &&
       (new SvgElement.tag('feTile') is FETileElement);
 
-  AnimatedString get in1 => JS("AnimatedString", "#.in1", this);
+  AnimatedString get in1 native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1752,32 +1709,29 @@ class FETurbulenceElement extends SvgElement
 
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  AnimatedNumber get baseFrequencyX =>
-      JS("AnimatedNumber", "#.baseFrequencyX", this);
+  AnimatedNumber get baseFrequencyX native;
 
-  AnimatedNumber get baseFrequencyY =>
-      JS("AnimatedNumber", "#.baseFrequencyY", this);
+  AnimatedNumber get baseFrequencyY native;
 
-  AnimatedInteger get numOctaves => JS("AnimatedInteger", "#.numOctaves", this);
+  AnimatedInteger get numOctaves native;
 
-  AnimatedNumber get seed => JS("AnimatedNumber", "#.seed", this);
+  AnimatedNumber get seed native;
 
-  AnimatedEnumeration get stitchTiles =>
-      JS("AnimatedEnumeration", "#.stitchTiles", this);
+  AnimatedEnumeration get stitchTiles native;
 
-  AnimatedEnumeration get type => JS("AnimatedEnumeration", "#.type", this);
+  AnimatedEnumeration get type native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1810,23 +1764,21 @@ class FilterElement extends SvgElement implements UriReference {
       SvgElement.isTagSupported('filter') &&
       (new SvgElement.tag('filter') is FilterElement);
 
-  AnimatedEnumeration get filterUnits =>
-      JS("AnimatedEnumeration", "#.filterUnits", this);
+  AnimatedEnumeration get filterUnits native;
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedEnumeration get primitiveUnits =>
-      JS("AnimatedEnumeration", "#.primitiveUnits", this);
+  AnimatedEnumeration get primitiveUnits native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1839,15 +1791,15 @@ abstract class FilterPrimitiveStandardAttributes extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedString get result => JS("AnimatedString", "#.result", this);
+  AnimatedString get result native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1860,10 +1812,9 @@ abstract class FitToViewBox extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio =>
-      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio native;
 
-  AnimatedRect get viewBox => JS("AnimatedRect", "#.viewBox", this);
+  AnimatedRect get viewBox native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1895,13 +1846,13 @@ class ForeignObjectElement extends GraphicsElement {
       SvgElement.isTagSupported('foreignObject') &&
       (new SvgElement.tag('foreignObject') is ForeignObjectElement);
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1941,7 +1892,7 @@ class GeometryElement extends GraphicsElement {
    */
   GeometryElement.created() : super.created();
 
-  AnimatedNumber get pathLength => JS("AnimatedNumber", "#.pathLength", this);
+  AnimatedNumber get pathLength native;
 
   Point getPointAtLength(num distance) native;
 
@@ -1968,14 +1919,11 @@ class GraphicsElement extends SvgElement implements Tests {
    */
   GraphicsElement.created() : super.created();
 
-  SvgElement get farthestViewportElement =>
-      JS("SvgElement", "#.farthestViewportElement", this);
+  SvgElement get farthestViewportElement native;
 
-  SvgElement get nearestViewportElement =>
-      JS("SvgElement", "#.nearestViewportElement", this);
+  SvgElement get nearestViewportElement native;
 
-  AnimatedTransformList get transform =>
-      JS("AnimatedTransformList", "#.transform", this);
+  AnimatedTransformList get transform native;
 
   Rect getBBox() native;
 
@@ -1987,10 +1935,9 @@ class GraphicsElement extends SvgElement implements Tests {
 
   // From SVGTests
 
-  StringList get requiredExtensions =>
-      JS("StringList", "#.requiredExtensions", this);
+  StringList get requiredExtensions native;
 
-  StringList get systemLanguage => JS("StringList", "#.systemLanguage", this);
+  StringList get systemLanguage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2013,28 +1960,25 @@ class ImageElement extends GraphicsElement implements UriReference {
    */
   ImageElement.created() : super.created();
 
-  String get async => JS("String", "#.async", this);
+  String get async native;
 
-  set async(String value) {
-    JS("void", "#.async = #", this, value);
-  }
+  set async(String value) native;
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio =>
-      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 
   Future decode() => promiseToFuture(JS("", "#.decode()", this));
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2070,25 +2014,19 @@ class Length extends Interceptor {
 
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
-  int get unitType => JS("int", "#.unitType", this);
+  int get unitType native;
 
-  num get value => JS("num", "#.value", this);
+  num get value native;
 
-  set value(num value) {
-    JS("void", "#.value = #", this, value);
-  }
+  set value(num value) native;
 
-  String get valueAsString => JS("String", "#.valueAsString", this);
+  String get valueAsString native;
 
-  set valueAsString(String value) {
-    JS("void", "#.valueAsString = #", this, value);
-  }
+  set valueAsString(String value) native;
 
-  num get valueInSpecifiedUnits => JS("num", "#.valueInSpecifiedUnits", this);
+  num get valueInSpecifiedUnits native;
 
-  set valueInSpecifiedUnits(num value) {
-    JS("void", "#.valueInSpecifiedUnits = #", this, value);
-  }
+  set valueInSpecifiedUnits(num value) native;
 
   void convertToSpecifiedUnits(int unitType) native;
 
@@ -2110,7 +2048,7 @@ class LengthList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  int get numberOfItems => JS("int", "#.numberOfItems", this);
+  int get numberOfItems native;
 
   Length operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
@@ -2192,13 +2130,13 @@ class LineElement extends GeometryElement {
    */
   LineElement.created() : super.created();
 
-  AnimatedLength get x1 => JS("AnimatedLength", "#.x1", this);
+  AnimatedLength get x1 native;
 
-  AnimatedLength get x2 => JS("AnimatedLength", "#.x2", this);
+  AnimatedLength get x2 native;
 
-  AnimatedLength get y1 => JS("AnimatedLength", "#.y1", this);
+  AnimatedLength get y1 native;
 
-  AnimatedLength get y2 => JS("AnimatedLength", "#.y2", this);
+  AnimatedLength get y2 native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2222,13 +2160,13 @@ class LinearGradientElement extends _GradientElement {
    */
   LinearGradientElement.created() : super.created();
 
-  AnimatedLength get x1 => JS("AnimatedLength", "#.x1", this);
+  AnimatedLength get x1 native;
 
-  AnimatedLength get x2 => JS("AnimatedLength", "#.x2", this);
+  AnimatedLength get x2 native;
 
-  AnimatedLength get y1 => JS("AnimatedLength", "#.y1", this);
+  AnimatedLength get y1 native;
 
-  AnimatedLength get y2 => JS("AnimatedLength", "#.y2", this);
+  AnimatedLength get y2 native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2264,22 +2202,19 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  AnimatedLength get markerHeight =>
-      JS("AnimatedLength", "#.markerHeight", this);
+  AnimatedLength get markerHeight native;
 
-  AnimatedEnumeration get markerUnits =>
-      JS("AnimatedEnumeration", "#.markerUnits", this);
+  AnimatedEnumeration get markerUnits native;
 
-  AnimatedLength get markerWidth => JS("AnimatedLength", "#.markerWidth", this);
+  AnimatedLength get markerWidth native;
 
-  AnimatedAngle get orientAngle => JS("AnimatedAngle", "#.orientAngle", this);
+  AnimatedAngle get orientAngle native;
 
-  AnimatedEnumeration get orientType =>
-      JS("AnimatedEnumeration", "#.orientType", this);
+  AnimatedEnumeration get orientType native;
 
-  AnimatedLength get refX => JS("AnimatedLength", "#.refX", this);
+  AnimatedLength get refX native;
 
-  AnimatedLength get refY => JS("AnimatedLength", "#.refY", this);
+  AnimatedLength get refY native;
 
   void setOrientToAngle(Angle angle) native;
 
@@ -2287,10 +2222,9 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio =>
-      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio native;
 
-  AnimatedRect get viewBox => JS("AnimatedRect", "#.viewBox", this);
+  AnimatedRect get viewBox native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2313,26 +2247,23 @@ class MaskElement extends SvgElement implements Tests {
    */
   MaskElement.created() : super.created();
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedEnumeration get maskContentUnits =>
-      JS("AnimatedEnumeration", "#.maskContentUnits", this);
+  AnimatedEnumeration get maskContentUnits native;
 
-  AnimatedEnumeration get maskUnits =>
-      JS("AnimatedEnumeration", "#.maskUnits", this);
+  AnimatedEnumeration get maskUnits native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 
   // From SVGTests
 
-  StringList get requiredExtensions =>
-      JS("StringList", "#.requiredExtensions", this);
+  StringList get requiredExtensions native;
 
-  StringList get systemLanguage => JS("StringList", "#.systemLanguage", this);
+  StringList get systemLanguage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2346,41 +2277,29 @@ class Matrix extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get a => JS("num", "#.a", this);
+  num get a native;
 
-  set a(num value) {
-    JS("void", "#.a = #", this, value);
-  }
+  set a(num value) native;
 
-  num get b => JS("num", "#.b", this);
+  num get b native;
 
-  set b(num value) {
-    JS("void", "#.b = #", this, value);
-  }
+  set b(num value) native;
 
-  num get c => JS("num", "#.c", this);
+  num get c native;
 
-  set c(num value) {
-    JS("void", "#.c = #", this, value);
-  }
+  set c(num value) native;
 
-  num get d => JS("num", "#.d", this);
+  num get d native;
 
-  set d(num value) {
-    JS("void", "#.d = #", this, value);
-  }
+  set d(num value) native;
 
-  num get e => JS("num", "#.e", this);
+  num get e native;
 
-  set e(num value) {
-    JS("void", "#.e = #", this, value);
-  }
+  set e(num value) native;
 
-  num get f => JS("num", "#.f", this);
+  num get f native;
 
-  set f(num value) {
-    JS("void", "#.f = #", this, value);
-  }
+  set f(num value) native;
 
   Matrix flipX() native;
 
@@ -2434,11 +2353,9 @@ class Number extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get value => JS("num", "#.value", this);
+  num get value native;
 
-  set value(num value) {
-    JS("void", "#.value = #", this, value);
-  }
+  set value(num value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2456,7 +2373,7 @@ class NumberList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  int get numberOfItems => JS("int", "#.numberOfItems", this);
+  int get numberOfItems native;
 
   Number operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
@@ -2561,40 +2478,35 @@ class PatternElement extends SvgElement
    */
   PatternElement.created() : super.created();
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedEnumeration get patternContentUnits =>
-      JS("AnimatedEnumeration", "#.patternContentUnits", this);
+  AnimatedEnumeration get patternContentUnits native;
 
-  AnimatedTransformList get patternTransform =>
-      JS("AnimatedTransformList", "#.patternTransform", this);
+  AnimatedTransformList get patternTransform native;
 
-  AnimatedEnumeration get patternUnits =>
-      JS("AnimatedEnumeration", "#.patternUnits", this);
+  AnimatedEnumeration get patternUnits native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio =>
-      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio native;
 
-  AnimatedRect get viewBox => JS("AnimatedRect", "#.viewBox", this);
+  AnimatedRect get viewBox native;
 
   // From SVGTests
 
-  StringList get requiredExtensions =>
-      JS("StringList", "#.requiredExtensions", this);
+  StringList get requiredExtensions native;
 
-  StringList get systemLanguage => JS("StringList", "#.systemLanguage", this);
+  StringList get systemLanguage native;
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2608,17 +2520,13 @@ class Point extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get x => JS("num", "#.x", this);
+  num get x native;
 
-  set x(num value) {
-    JS("void", "#.x = #", this, value);
-  }
+  set x(num value) native;
 
-  num get y => JS("num", "#.y", this);
+  num get y native;
 
-  set y(num value) {
-    JS("void", "#.y = #", this, value);
-  }
+  set y(num value) native;
 
   Point matrixTransform(Matrix matrix) native;
 }
@@ -2634,9 +2542,9 @@ class PointList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get length => JS("int", "#.length", this);
+  int get length native;
 
-  int get numberOfItems => JS("int", "#.numberOfItems", this);
+  int get numberOfItems native;
 
   void __setter__(int index, Point newItem) native;
 
@@ -2676,9 +2584,9 @@ class PolygonElement extends GeometryElement {
    */
   PolygonElement.created() : super.created();
 
-  PointList get animatedPoints => JS("PointList", "#.animatedPoints", this);
+  PointList get animatedPoints native;
 
-  PointList get points => JS("PointList", "#.points", this);
+  PointList get points native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2702,9 +2610,9 @@ class PolylineElement extends GeometryElement {
    */
   PolylineElement.created() : super.created();
 
-  PointList get animatedPoints => JS("PointList", "#.animatedPoints", this);
+  PointList get animatedPoints native;
 
-  PointList get points => JS("PointList", "#.points", this);
+  PointList get points native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2746,17 +2654,13 @@ class PreserveAspectRatio extends Interceptor {
 
   static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-  int get align => JS("int", "#.align", this);
+  int get align native;
 
-  set align(int value) {
-    JS("void", "#.align = #", this, value);
-  }
+  set align(int value) native;
 
-  int get meetOrSlice => JS("int", "#.meetOrSlice", this);
+  int get meetOrSlice native;
 
-  set meetOrSlice(int value) {
-    JS("void", "#.meetOrSlice = #", this, value);
-  }
+  set meetOrSlice(int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2780,17 +2684,17 @@ class RadialGradientElement extends _GradientElement {
    */
   RadialGradientElement.created() : super.created();
 
-  AnimatedLength get cx => JS("AnimatedLength", "#.cx", this);
+  AnimatedLength get cx native;
 
-  AnimatedLength get cy => JS("AnimatedLength", "#.cy", this);
+  AnimatedLength get cy native;
 
-  AnimatedLength get fr => JS("AnimatedLength", "#.fr", this);
+  AnimatedLength get fr native;
 
-  AnimatedLength get fx => JS("AnimatedLength", "#.fx", this);
+  AnimatedLength get fx native;
 
-  AnimatedLength get fy => JS("AnimatedLength", "#.fy", this);
+  AnimatedLength get fy native;
 
-  AnimatedLength get r => JS("AnimatedLength", "#.r", this);
+  AnimatedLength get r native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2804,29 +2708,21 @@ class Rect extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get height => JS("num", "#.height", this);
+  num get height native;
 
-  set height(num value) {
-    JS("void", "#.height = #", this, value);
-  }
+  set height(num value) native;
 
-  num get width => JS("num", "#.width", this);
+  num get width native;
 
-  set width(num value) {
-    JS("void", "#.width = #", this, value);
-  }
+  set width(num value) native;
 
-  num get x => JS("num", "#.x", this);
+  num get x native;
 
-  set x(num value) {
-    JS("void", "#.x = #", this, value);
-  }
+  set x(num value) native;
 
-  num get y => JS("num", "#.y", this);
+  num get y native;
 
-  set y(num value) {
-    JS("void", "#.y = #", this, value);
-  }
+  set y(num value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2849,17 +2745,17 @@ class RectElement extends GeometryElement {
    */
   RectElement.created() : super.created();
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedLength get rx => JS("AnimatedLength", "#.rx", this);
+  AnimatedLength get rx native;
 
-  AnimatedLength get ry => JS("AnimatedLength", "#.ry", this);
+  AnimatedLength get ry native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2883,15 +2779,13 @@ class ScriptElement extends SvgElement implements UriReference {
    */
   ScriptElement.created() : super.created();
 
-  String get type => JS("String", "#.type", this);
+  String get type native;
 
-  set type(String value) {
-    JS("void", "#.type = #", this, value);
-  }
+  set type(String value) native;
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2944,7 +2838,7 @@ class StopElement extends SvgElement {
   StopElement.created() : super.created();
 
   @JSName('offset')
-  AnimatedNumber get gradientOffset => JS("AnimatedNumber", "#.offset", this);
+  AnimatedNumber get gradientOffset native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2962,7 +2856,7 @@ class StringList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  int get numberOfItems => JS("int", "#.numberOfItems", this);
+  int get numberOfItems native;
 
   String operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
@@ -3043,28 +2937,22 @@ class StyleElement extends SvgElement {
    */
   StyleElement.created() : super.created();
 
-  bool get disabled => JS("bool", "#.disabled", this);
+  bool get disabled native;
 
-  set disabled(bool value) {
-    JS("void", "#.disabled = #", this, value);
-  }
+  set disabled(bool value) native;
 
-  String get media => JS("String", "#.media", this);
+  String get media native;
 
-  set media(String value) {
-    JS("void", "#.media = #", this, value);
-  }
+  set media(String value) native;
 
-  StyleSheet? get sheet => JS("StyleSheet", "#.sheet", this);
+  StyleSheet? get sheet native;
 
   // Use implementation from Element.
   // final String title;
 
-  String get type => JS("String", "#.type", this);
+  String get type native;
 
-  set type(String value) {
-    JS("void", "#.type = #", this, value);
-  }
+  set type(String value) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3397,8 +3285,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   AnimatedString get _svgClassName => JS("AnimatedString", "#.className", this);
 
   @JSName('ownerSVGElement')
-  SvgSvgElement? get ownerSvgElement =>
-      JS("SvgSvgElement", "#.ownerSVGElement", this);
+  SvgSvgElement? get ownerSvgElement native;
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
@@ -3406,8 +3293,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   // Use implementation from Element.
   // final int tabIndex;
 
-  SvgElement? get viewportElement =>
-      JS("SvgElement", "#.viewportElement", this);
+  SvgElement? get viewportElement native;
 
   void blur() native;
 
@@ -3415,11 +3301,9 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   // From NoncedElement
 
-  String get nonce => JS("String", "#.nonce", this);
+  String get nonce native;
 
-  set nonce(String value) {
-    JS("void", "#.nonce = #", this, value);
-  }
+  set nonce(String value) native;
 
   ElementStream<Event> get onAbort => abortEvent.forElement(this);
 
@@ -3571,21 +3455,19 @@ class SvgSvgElement extends GraphicsElement
    */
   SvgSvgElement.created() : super.created();
 
-  num get currentScale => JS("num", "#.currentScale", this);
+  num get currentScale native;
 
-  set currentScale(num value) {
-    JS("void", "#.currentScale = #", this, value);
-  }
+  set currentScale(num value) native;
 
-  Point get currentTranslate => JS("Point", "#.currentTranslate", this);
+  Point get currentTranslate native;
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 
   bool animationsPaused() native;
 
@@ -3648,18 +3530,15 @@ class SvgSvgElement extends GraphicsElement
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio =>
-      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio native;
 
-  AnimatedRect get viewBox => JS("AnimatedRect", "#.viewBox", this);
+  AnimatedRect get viewBox native;
 
   // From SVGZoomAndPan
 
-  int get zoomAndPan => JS("int", "#.zoomAndPan", this);
+  int get zoomAndPan native;
 
-  set zoomAndPan(int value) {
-    JS("void", "#.zoomAndPan = #", this, value);
-  }
+  set zoomAndPan(int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3707,10 +3586,9 @@ class SymbolElement extends SvgElement implements FitToViewBox {
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio =>
-      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio native;
 
-  AnimatedRect get viewBox => JS("AnimatedRect", "#.viewBox", this);
+  AnimatedRect get viewBox native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3744,10 +3622,9 @@ abstract class Tests extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  StringList get requiredExtensions =>
-      JS("StringList", "#.requiredExtensions", this);
+  StringList get requiredExtensions native;
 
-  StringList get systemLanguage => JS("StringList", "#.systemLanguage", this);
+  StringList get systemLanguage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3773,10 +3650,9 @@ class TextContentElement extends GraphicsElement {
 
   static const int LENGTHADJUST_UNKNOWN = 0;
 
-  AnimatedEnumeration get lengthAdjust =>
-      JS("AnimatedEnumeration", "#.lengthAdjust", this);
+  AnimatedEnumeration get lengthAdjust native;
 
-  AnimatedLength get textLength => JS("AnimatedLength", "#.textLength", this);
+  AnimatedLength get textLength native;
 
   int getCharNumAtPosition(Point point) native;
 
@@ -3847,16 +3723,15 @@ class TextPathElement extends TextContentElement implements UriReference {
 
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  AnimatedEnumeration get method => JS("AnimatedEnumeration", "#.method", this);
+  AnimatedEnumeration get method native;
 
-  AnimatedEnumeration get spacing =>
-      JS("AnimatedEnumeration", "#.spacing", this);
+  AnimatedEnumeration get spacing native;
 
-  AnimatedLength get startOffset => JS("AnimatedLength", "#.startOffset", this);
+  AnimatedLength get startOffset native;
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3876,15 +3751,15 @@ class TextPositioningElement extends TextContentElement {
    */
   TextPositioningElement.created() : super.created();
 
-  AnimatedLengthList get dx => JS("AnimatedLengthList", "#.dx", this);
+  AnimatedLengthList get dx native;
 
-  AnimatedLengthList get dy => JS("AnimatedLengthList", "#.dy", this);
+  AnimatedLengthList get dy native;
 
-  AnimatedNumberList get rotate => JS("AnimatedNumberList", "#.rotate", this);
+  AnimatedNumberList get rotate native;
 
-  AnimatedLengthList get x => JS("AnimatedLengthList", "#.x", this);
+  AnimatedLengthList get x native;
 
-  AnimatedLengthList get y => JS("AnimatedLengthList", "#.y", this);
+  AnimatedLengthList get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3933,11 +3808,11 @@ class Transform extends Interceptor {
 
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
-  num get angle => JS("num", "#.angle", this);
+  num get angle native;
 
-  Matrix get matrix => JS("Matrix", "#.matrix", this);
+  Matrix get matrix native;
 
-  int get type => JS("int", "#.type", this);
+  int get type native;
 
   void setMatrix(Matrix matrix) native;
 
@@ -3967,7 +3842,7 @@ class TransformList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  int get numberOfItems => JS("int", "#.numberOfItems", this);
+  int get numberOfItems native;
 
   Transform operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
@@ -4062,7 +3937,7 @@ abstract class UriReference extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4085,17 +3960,17 @@ class UseElement extends GraphicsElement implements UriReference {
    */
   UseElement.created() : super.created();
 
-  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
+  AnimatedLength get height native;
 
-  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
+  AnimatedLength get width native;
 
-  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
+  AnimatedLength get x native;
 
-  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
+  AnimatedLength get y native;
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4120,18 +3995,15 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio =>
-      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio native;
 
-  AnimatedRect get viewBox => JS("AnimatedRect", "#.viewBox", this);
+  AnimatedRect get viewBox native;
 
   // From SVGZoomAndPan
 
-  int get zoomAndPan => JS("int", "#.zoomAndPan", this);
+  int get zoomAndPan native;
 
-  set zoomAndPan(int value) {
-    JS("void", "#.zoomAndPan = #", this, value);
-  }
+  set zoomAndPan(int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4178,18 +4050,15 @@ class _GradientElement extends SvgElement implements UriReference {
 
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  AnimatedTransformList get gradientTransform =>
-      JS("AnimatedTransformList", "#.gradientTransform", this);
+  AnimatedTransformList get gradientTransform native;
 
-  AnimatedEnumeration get gradientUnits =>
-      JS("AnimatedEnumeration", "#.gradientUnits", this);
+  AnimatedEnumeration get gradientUnits native;
 
-  AnimatedEnumeration get spreadMethod =>
-      JS("AnimatedEnumeration", "#.spreadMethod", this);
+  AnimatedEnumeration get spreadMethod native;
 
   // From SVGURIReference
 
-  AnimatedString get href => JS("AnimatedString", "#.href", this);
+  AnimatedString get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
