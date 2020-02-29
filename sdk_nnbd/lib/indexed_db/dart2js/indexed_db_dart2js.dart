@@ -1295,5 +1295,5 @@ class VersionChangeEvent extends Event {
   int get oldVersion native;
 
   @JSName('target')
-  final OpenDBRequest target;
+  OpenDBRequest get target native;
 }

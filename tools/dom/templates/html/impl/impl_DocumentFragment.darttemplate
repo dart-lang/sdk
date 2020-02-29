@@ -11,7 +11,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
-    return document.body.createFragment(html,
+    return document.body$NULLASSERT.createFragment(html,
       validator: validator, treeSanitizer: treeSanitizer);
   }
 
@@ -75,7 +75,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
     this.nodes.clear();
-    append(document.body.createFragment(
+    append(document.body$NULLASSERT.createFragment(
         html, validator: validator, treeSanitizer: treeSanitizer));
   }
 

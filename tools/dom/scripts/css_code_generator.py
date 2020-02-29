@@ -203,7 +203,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions {
-    return document.body.style.supportsProperty('transition');
+    return document.body$NULLASSERT.style.supportsProperty('transition');
   }
 $!MEMBERS
 """)
@@ -220,9 +220,12 @@ $!MEMBERS
   }
   @Returns('String')
   @JSName('%s')
-  String _%s;
+  String get _%s native;
+
+  @JSName('%s')
+  set _%s(String value) native;
     """ % (property, camelName, camelName, property, camelName, camelName,
-           camelName, camelName))
+           camelName, camelName, camelName, camelName))
 
     class_file.write("""
 }

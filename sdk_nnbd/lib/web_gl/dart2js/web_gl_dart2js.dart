@@ -86,10 +86,10 @@ class Canvas extends Interceptor {
   }
 
   @JSName('canvas')
-  final CanvasElement canvas;
+  CanvasElement get canvas native;
 
   @JSName('canvas')
-  final OffscreenCanvas offscreenCanvas;
+  OffscreenCanvas get offscreenCanvas native;
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

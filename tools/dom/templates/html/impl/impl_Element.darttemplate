@@ -348,8 +348,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory Element.html(String html,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
-    var fragment = document.body.createFragment(html, validator: validator,
-        treeSanitizer: treeSanitizer);
+    var fragment = document.body$NULLASSERT.createFragment(html,
+        validator: validator, treeSanitizer: treeSanitizer);
 
     return fragment.nodes.where((e) => e is Element).single $#NULLSAFECAST(as Element);
   }
@@ -1336,10 +1336,10 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
     var contextElement;
     if (this is BodyElement) {
-      contextElement = _parseDocument$NULLASSERT.body;
+      contextElement = _parseDocument$NULLASSERT.body$NULLASSERT;
     } else {
       contextElement = _parseDocument$NULLASSERT.createElement(tagName);
-      _parseDocument$NULLASSERT.body.append(contextElement);
+      _parseDocument$NULLASSERT.body$NULLASSERT.append(contextElement);
     }
     var fragment;
     if (Range.supportsCreateContextualFragment &&

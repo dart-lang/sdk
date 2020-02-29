@@ -3053,7 +3053,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     // We create a fragment which will parse in the HTML parser
     var html = '<svg version="1.1">$svg</svg>';
     var fragment =
-        document.body.createFragment(html, treeSanitizer: treeSanitizer);
+        document.body!.createFragment(html, treeSanitizer: treeSanitizer);
 
     var svgFragment = new DocumentFragment();
     // The root is the <svg/> element, need to pull out the contents.

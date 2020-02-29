@@ -4067,7 +4067,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('background')
-  String _background;
+  String get _background native;
+
+  @JSName('background')
+  set _background(String value) native;
 
   /** Gets the value of "background-attachment" */
   String get backgroundAttachment => this._backgroundAttachment;
@@ -4079,7 +4082,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('backgroundAttachment')
-  String _backgroundAttachment;
+  String get _backgroundAttachment native;
+
+  @JSName('backgroundAttachment')
+  set _backgroundAttachment(String value) native;
 
   /** Gets the value of "background-color" */
   String get backgroundColor => this._backgroundColor;
@@ -4091,7 +4097,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('backgroundColor')
-  String _backgroundColor;
+  String get _backgroundColor native;
+
+  @JSName('backgroundColor')
+  set _backgroundColor(String value) native;
 
   /** Gets the value of "background-image" */
   String get backgroundImage => this._backgroundImage;
@@ -4103,7 +4112,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('backgroundImage')
-  String _backgroundImage;
+  String get _backgroundImage native;
+
+  @JSName('backgroundImage')
+  set _backgroundImage(String value) native;
 
   /** Gets the value of "background-position" */
   String get backgroundPosition => this._backgroundPosition;
@@ -4115,7 +4127,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('backgroundPosition')
-  String _backgroundPosition;
+  String get _backgroundPosition native;
+
+  @JSName('backgroundPosition')
+  set _backgroundPosition(String value) native;
 
   /** Gets the value of "background-repeat" */
   String get backgroundRepeat => this._backgroundRepeat;
@@ -4127,7 +4142,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('backgroundRepeat')
-  String _backgroundRepeat;
+  String get _backgroundRepeat native;
+
+  @JSName('backgroundRepeat')
+  set _backgroundRepeat(String value) native;
 
   /** Gets the value of "border" */
   String get border => this._border;
@@ -4139,7 +4157,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('border')
-  String _border;
+  String get _border native;
+
+  @JSName('border')
+  set _border(String value) native;
 
   /** Gets the value of "border-bottom" */
   String get borderBottom => this._borderBottom;
@@ -4151,7 +4172,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderBottom')
-  String _borderBottom;
+  String get _borderBottom native;
+
+  @JSName('borderBottom')
+  set _borderBottom(String value) native;
 
   /** Gets the value of "border-bottom-color" */
   String get borderBottomColor => this._borderBottomColor;
@@ -4163,7 +4187,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderBottomColor')
-  String _borderBottomColor;
+  String get _borderBottomColor native;
+
+  @JSName('borderBottomColor')
+  set _borderBottomColor(String value) native;
 
   /** Gets the value of "border-bottom-style" */
   String get borderBottomStyle => this._borderBottomStyle;
@@ -4175,7 +4202,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderBottomStyle')
-  String _borderBottomStyle;
+  String get _borderBottomStyle native;
+
+  @JSName('borderBottomStyle')
+  set _borderBottomStyle(String value) native;
 
   /** Gets the value of "border-bottom-width" */
   String get borderBottomWidth => this._borderBottomWidth;
@@ -4187,7 +4217,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderBottomWidth')
-  String _borderBottomWidth;
+  String get _borderBottomWidth native;
+
+  @JSName('borderBottomWidth')
+  set _borderBottomWidth(String value) native;
 
   /** Gets the value of "border-collapse" */
   String get borderCollapse => this._borderCollapse;
@@ -4199,7 +4232,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderCollapse')
-  String _borderCollapse;
+  String get _borderCollapse native;
+
+  @JSName('borderCollapse')
+  set _borderCollapse(String value) native;
 
   /** Gets the value of "border-color" */
   String get borderColor => this._borderColor;
@@ -4211,7 +4247,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderColor')
-  String _borderColor;
+  String get _borderColor native;
+
+  @JSName('borderColor')
+  set _borderColor(String value) native;
 
   /** Gets the value of "border-left" */
   String get borderLeft => this._borderLeft;
@@ -4223,7 +4262,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderLeft')
-  String _borderLeft;
+  String get _borderLeft native;
+
+  @JSName('borderLeft')
+  set _borderLeft(String value) native;
 
   /** Gets the value of "border-left-color" */
   String get borderLeftColor => this._borderLeftColor;
@@ -4235,7 +4277,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderLeftColor')
-  String _borderLeftColor;
+  String get _borderLeftColor native;
+
+  @JSName('borderLeftColor')
+  set _borderLeftColor(String value) native;
 
   /** Gets the value of "border-left-style" */
   String get borderLeftStyle => this._borderLeftStyle;
@@ -4247,7 +4292,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderLeftStyle')
-  String _borderLeftStyle;
+  String get _borderLeftStyle native;
+
+  @JSName('borderLeftStyle')
+  set _borderLeftStyle(String value) native;
 
   /** Gets the value of "border-left-width" */
   String get borderLeftWidth => this._borderLeftWidth;
@@ -4259,7 +4307,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderLeftWidth')
-  String _borderLeftWidth;
+  String get _borderLeftWidth native;
+
+  @JSName('borderLeftWidth')
+  set _borderLeftWidth(String value) native;
 
   /** Gets the value of "border-right" */
   String get borderRight => this._borderRight;
@@ -4271,7 +4322,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderRight')
-  String _borderRight;
+  String get _borderRight native;
+
+  @JSName('borderRight')
+  set _borderRight(String value) native;
 
   /** Gets the value of "border-right-color" */
   String get borderRightColor => this._borderRightColor;
@@ -4283,7 +4337,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderRightColor')
-  String _borderRightColor;
+  String get _borderRightColor native;
+
+  @JSName('borderRightColor')
+  set _borderRightColor(String value) native;
 
   /** Gets the value of "border-right-style" */
   String get borderRightStyle => this._borderRightStyle;
@@ -4295,7 +4352,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderRightStyle')
-  String _borderRightStyle;
+  String get _borderRightStyle native;
+
+  @JSName('borderRightStyle')
+  set _borderRightStyle(String value) native;
 
   /** Gets the value of "border-right-width" */
   String get borderRightWidth => this._borderRightWidth;
@@ -4307,7 +4367,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderRightWidth')
-  String _borderRightWidth;
+  String get _borderRightWidth native;
+
+  @JSName('borderRightWidth')
+  set _borderRightWidth(String value) native;
 
   /** Gets the value of "border-spacing" */
   String get borderSpacing => this._borderSpacing;
@@ -4319,7 +4382,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderSpacing')
-  String _borderSpacing;
+  String get _borderSpacing native;
+
+  @JSName('borderSpacing')
+  set _borderSpacing(String value) native;
 
   /** Gets the value of "border-style" */
   String get borderStyle => this._borderStyle;
@@ -4331,7 +4397,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderStyle')
-  String _borderStyle;
+  String get _borderStyle native;
+
+  @JSName('borderStyle')
+  set _borderStyle(String value) native;
 
   /** Gets the value of "border-top" */
   String get borderTop => this._borderTop;
@@ -4343,7 +4412,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderTop')
-  String _borderTop;
+  String get _borderTop native;
+
+  @JSName('borderTop')
+  set _borderTop(String value) native;
 
   /** Gets the value of "border-top-color" */
   String get borderTopColor => this._borderTopColor;
@@ -4355,7 +4427,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderTopColor')
-  String _borderTopColor;
+  String get _borderTopColor native;
+
+  @JSName('borderTopColor')
+  set _borderTopColor(String value) native;
 
   /** Gets the value of "border-top-style" */
   String get borderTopStyle => this._borderTopStyle;
@@ -4367,7 +4442,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderTopStyle')
-  String _borderTopStyle;
+  String get _borderTopStyle native;
+
+  @JSName('borderTopStyle')
+  set _borderTopStyle(String value) native;
 
   /** Gets the value of "border-top-width" */
   String get borderTopWidth => this._borderTopWidth;
@@ -4379,7 +4457,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderTopWidth')
-  String _borderTopWidth;
+  String get _borderTopWidth native;
+
+  @JSName('borderTopWidth')
+  set _borderTopWidth(String value) native;
 
   /** Gets the value of "border-width" */
   String get borderWidth => this._borderWidth;
@@ -4391,7 +4472,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('borderWidth')
-  String _borderWidth;
+  String get _borderWidth native;
+
+  @JSName('borderWidth')
+  set _borderWidth(String value) native;
 
   /** Gets the value of "bottom" */
   String get bottom => this._bottom;
@@ -4403,7 +4487,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('bottom')
-  String _bottom;
+  String get _bottom native;
+
+  @JSName('bottom')
+  set _bottom(String value) native;
 
   /** Gets the value of "caption-side" */
   String get captionSide => this._captionSide;
@@ -4415,7 +4502,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('captionSide')
-  String _captionSide;
+  String get _captionSide native;
+
+  @JSName('captionSide')
+  set _captionSide(String value) native;
 
   /** Gets the value of "clear" */
   String get clear => this._clear;
@@ -4427,7 +4517,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('clear')
-  String _clear;
+  String get _clear native;
+
+  @JSName('clear')
+  set _clear(String value) native;
 
   /** Gets the value of "clip" */
   String get clip => this._clip;
@@ -4439,7 +4532,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('clip')
-  String _clip;
+  String get _clip native;
+
+  @JSName('clip')
+  set _clip(String value) native;
 
   /** Gets the value of "color" */
   String get color => this._color;
@@ -4451,7 +4547,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('color')
-  String _color;
+  String get _color native;
+
+  @JSName('color')
+  set _color(String value) native;
 
   /** Gets the value of "content" */
   String get content => this._content;
@@ -4463,7 +4562,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('content')
-  String _content;
+  String get _content native;
+
+  @JSName('content')
+  set _content(String value) native;
 
   /** Gets the value of "cursor" */
   String get cursor => this._cursor;
@@ -4475,7 +4577,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('cursor')
-  String _cursor;
+  String get _cursor native;
+
+  @JSName('cursor')
+  set _cursor(String value) native;
 
   /** Gets the value of "direction" */
   String get direction => this._direction;
@@ -4487,7 +4592,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('direction')
-  String _direction;
+  String get _direction native;
+
+  @JSName('direction')
+  set _direction(String value) native;
 
   /** Gets the value of "display" */
   String get display => this._display;
@@ -4499,7 +4607,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('display')
-  String _display;
+  String get _display native;
+
+  @JSName('display')
+  set _display(String value) native;
 
   /** Gets the value of "empty-cells" */
   String get emptyCells => this._emptyCells;
@@ -4511,7 +4622,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('emptyCells')
-  String _emptyCells;
+  String get _emptyCells native;
+
+  @JSName('emptyCells')
+  set _emptyCells(String value) native;
 
   /** Gets the value of "font" */
   String get font => this._font;
@@ -4523,7 +4637,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('font')
-  String _font;
+  String get _font native;
+
+  @JSName('font')
+  set _font(String value) native;
 
   /** Gets the value of "font-family" */
   String get fontFamily => this._fontFamily;
@@ -4535,7 +4652,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('fontFamily')
-  String _fontFamily;
+  String get _fontFamily native;
+
+  @JSName('fontFamily')
+  set _fontFamily(String value) native;
 
   /** Gets the value of "font-size" */
   String get fontSize => this._fontSize;
@@ -4547,7 +4667,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('fontSize')
-  String _fontSize;
+  String get _fontSize native;
+
+  @JSName('fontSize')
+  set _fontSize(String value) native;
 
   /** Gets the value of "font-style" */
   String get fontStyle => this._fontStyle;
@@ -4559,7 +4682,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('fontStyle')
-  String _fontStyle;
+  String get _fontStyle native;
+
+  @JSName('fontStyle')
+  set _fontStyle(String value) native;
 
   /** Gets the value of "font-variant" */
   String get fontVariant => this._fontVariant;
@@ -4571,7 +4697,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('fontVariant')
-  String _fontVariant;
+  String get _fontVariant native;
+
+  @JSName('fontVariant')
+  set _fontVariant(String value) native;
 
   /** Gets the value of "font-weight" */
   String get fontWeight => this._fontWeight;
@@ -4583,7 +4712,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('fontWeight')
-  String _fontWeight;
+  String get _fontWeight native;
+
+  @JSName('fontWeight')
+  set _fontWeight(String value) native;
 
   /** Gets the value of "height" */
   String get height => this._height;
@@ -4595,7 +4727,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('height')
-  String _height;
+  String get _height native;
+
+  @JSName('height')
+  set _height(String value) native;
 
   /** Gets the value of "left" */
   String get left => this._left;
@@ -4607,7 +4742,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('left')
-  String _left;
+  String get _left native;
+
+  @JSName('left')
+  set _left(String value) native;
 
   /** Gets the value of "letter-spacing" */
   String get letterSpacing => this._letterSpacing;
@@ -4619,7 +4757,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('letterSpacing')
-  String _letterSpacing;
+  String get _letterSpacing native;
+
+  @JSName('letterSpacing')
+  set _letterSpacing(String value) native;
 
   /** Gets the value of "line-height" */
   String get lineHeight => this._lineHeight;
@@ -4631,7 +4772,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('lineHeight')
-  String _lineHeight;
+  String get _lineHeight native;
+
+  @JSName('lineHeight')
+  set _lineHeight(String value) native;
 
   /** Gets the value of "list-style" */
   String get listStyle => this._listStyle;
@@ -4643,7 +4787,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('listStyle')
-  String _listStyle;
+  String get _listStyle native;
+
+  @JSName('listStyle')
+  set _listStyle(String value) native;
 
   /** Gets the value of "list-style-image" */
   String get listStyleImage => this._listStyleImage;
@@ -4655,7 +4802,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('listStyleImage')
-  String _listStyleImage;
+  String get _listStyleImage native;
+
+  @JSName('listStyleImage')
+  set _listStyleImage(String value) native;
 
   /** Gets the value of "list-style-position" */
   String get listStylePosition => this._listStylePosition;
@@ -4667,7 +4817,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('listStylePosition')
-  String _listStylePosition;
+  String get _listStylePosition native;
+
+  @JSName('listStylePosition')
+  set _listStylePosition(String value) native;
 
   /** Gets the value of "list-style-type" */
   String get listStyleType => this._listStyleType;
@@ -4679,7 +4832,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('listStyleType')
-  String _listStyleType;
+  String get _listStyleType native;
+
+  @JSName('listStyleType')
+  set _listStyleType(String value) native;
 
   /** Gets the value of "margin" */
   String get margin => this._margin;
@@ -4691,7 +4847,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('margin')
-  String _margin;
+  String get _margin native;
+
+  @JSName('margin')
+  set _margin(String value) native;
 
   /** Gets the value of "margin-bottom" */
   String get marginBottom => this._marginBottom;
@@ -4703,7 +4862,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('marginBottom')
-  String _marginBottom;
+  String get _marginBottom native;
+
+  @JSName('marginBottom')
+  set _marginBottom(String value) native;
 
   /** Gets the value of "margin-left" */
   String get marginLeft => this._marginLeft;
@@ -4715,7 +4877,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('marginLeft')
-  String _marginLeft;
+  String get _marginLeft native;
+
+  @JSName('marginLeft')
+  set _marginLeft(String value) native;
 
   /** Gets the value of "margin-right" */
   String get marginRight => this._marginRight;
@@ -4727,7 +4892,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('marginRight')
-  String _marginRight;
+  String get _marginRight native;
+
+  @JSName('marginRight')
+  set _marginRight(String value) native;
 
   /** Gets the value of "margin-top" */
   String get marginTop => this._marginTop;
@@ -4739,7 +4907,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('marginTop')
-  String _marginTop;
+  String get _marginTop native;
+
+  @JSName('marginTop')
+  set _marginTop(String value) native;
 
   /** Gets the value of "max-height" */
   String get maxHeight => this._maxHeight;
@@ -4751,7 +4922,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('maxHeight')
-  String _maxHeight;
+  String get _maxHeight native;
+
+  @JSName('maxHeight')
+  set _maxHeight(String value) native;
 
   /** Gets the value of "max-width" */
   String get maxWidth => this._maxWidth;
@@ -4763,7 +4937,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('maxWidth')
-  String _maxWidth;
+  String get _maxWidth native;
+
+  @JSName('maxWidth')
+  set _maxWidth(String value) native;
 
   /** Gets the value of "min-height" */
   String get minHeight => this._minHeight;
@@ -4775,7 +4952,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('minHeight')
-  String _minHeight;
+  String get _minHeight native;
+
+  @JSName('minHeight')
+  set _minHeight(String value) native;
 
   /** Gets the value of "min-width" */
   String get minWidth => this._minWidth;
@@ -4787,7 +4967,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('minWidth')
-  String _minWidth;
+  String get _minWidth native;
+
+  @JSName('minWidth')
+  set _minWidth(String value) native;
 
   /** Gets the value of "outline" */
   String get outline => this._outline;
@@ -4799,7 +4982,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('outline')
-  String _outline;
+  String get _outline native;
+
+  @JSName('outline')
+  set _outline(String value) native;
 
   /** Gets the value of "outline-color" */
   String get outlineColor => this._outlineColor;
@@ -4811,7 +4997,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('outlineColor')
-  String _outlineColor;
+  String get _outlineColor native;
+
+  @JSName('outlineColor')
+  set _outlineColor(String value) native;
 
   /** Gets the value of "outline-style" */
   String get outlineStyle => this._outlineStyle;
@@ -4823,7 +5012,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('outlineStyle')
-  String _outlineStyle;
+  String get _outlineStyle native;
+
+  @JSName('outlineStyle')
+  set _outlineStyle(String value) native;
 
   /** Gets the value of "outline-width" */
   String get outlineWidth => this._outlineWidth;
@@ -4835,7 +5027,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('outlineWidth')
-  String _outlineWidth;
+  String get _outlineWidth native;
+
+  @JSName('outlineWidth')
+  set _outlineWidth(String value) native;
 
   /** Gets the value of "overflow" */
   String get overflow => this._overflow;
@@ -4847,7 +5042,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('overflow')
-  String _overflow;
+  String get _overflow native;
+
+  @JSName('overflow')
+  set _overflow(String value) native;
 
   /** Gets the value of "padding" */
   String get padding => this._padding;
@@ -4859,7 +5057,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('padding')
-  String _padding;
+  String get _padding native;
+
+  @JSName('padding')
+  set _padding(String value) native;
 
   /** Gets the value of "padding-bottom" */
   String get paddingBottom => this._paddingBottom;
@@ -4871,7 +5072,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('paddingBottom')
-  String _paddingBottom;
+  String get _paddingBottom native;
+
+  @JSName('paddingBottom')
+  set _paddingBottom(String value) native;
 
   /** Gets the value of "padding-left" */
   String get paddingLeft => this._paddingLeft;
@@ -4883,7 +5087,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('paddingLeft')
-  String _paddingLeft;
+  String get _paddingLeft native;
+
+  @JSName('paddingLeft')
+  set _paddingLeft(String value) native;
 
   /** Gets the value of "padding-right" */
   String get paddingRight => this._paddingRight;
@@ -4895,7 +5102,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('paddingRight')
-  String _paddingRight;
+  String get _paddingRight native;
+
+  @JSName('paddingRight')
+  set _paddingRight(String value) native;
 
   /** Gets the value of "padding-top" */
   String get paddingTop => this._paddingTop;
@@ -4907,7 +5117,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('paddingTop')
-  String _paddingTop;
+  String get _paddingTop native;
+
+  @JSName('paddingTop')
+  set _paddingTop(String value) native;
 
   /** Gets the value of "page-break-after" */
   String get pageBreakAfter => this._pageBreakAfter;
@@ -4919,7 +5132,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('pageBreakAfter')
-  String _pageBreakAfter;
+  String get _pageBreakAfter native;
+
+  @JSName('pageBreakAfter')
+  set _pageBreakAfter(String value) native;
 
   /** Gets the value of "page-break-before" */
   String get pageBreakBefore => this._pageBreakBefore;
@@ -4931,7 +5147,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('pageBreakBefore')
-  String _pageBreakBefore;
+  String get _pageBreakBefore native;
+
+  @JSName('pageBreakBefore')
+  set _pageBreakBefore(String value) native;
 
   /** Gets the value of "page-break-inside" */
   String get pageBreakInside => this._pageBreakInside;
@@ -4943,7 +5162,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('pageBreakInside')
-  String _pageBreakInside;
+  String get _pageBreakInside native;
+
+  @JSName('pageBreakInside')
+  set _pageBreakInside(String value) native;
 
   /** Gets the value of "position" */
   String get position => this._position;
@@ -4955,7 +5177,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('position')
-  String _position;
+  String get _position native;
+
+  @JSName('position')
+  set _position(String value) native;
 
   /** Gets the value of "quotes" */
   String get quotes => this._quotes;
@@ -4967,7 +5192,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('quotes')
-  String _quotes;
+  String get _quotes native;
+
+  @JSName('quotes')
+  set _quotes(String value) native;
 
   /** Gets the value of "right" */
   String get right => this._right;
@@ -4979,7 +5207,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('right')
-  String _right;
+  String get _right native;
+
+  @JSName('right')
+  set _right(String value) native;
 
   /** Gets the value of "table-layout" */
   String get tableLayout => this._tableLayout;
@@ -4991,7 +5222,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('tableLayout')
-  String _tableLayout;
+  String get _tableLayout native;
+
+  @JSName('tableLayout')
+  set _tableLayout(String value) native;
 
   /** Gets the value of "text-align" */
   String get textAlign => this._textAlign;
@@ -5003,7 +5237,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('textAlign')
-  String _textAlign;
+  String get _textAlign native;
+
+  @JSName('textAlign')
+  set _textAlign(String value) native;
 
   /** Gets the value of "text-decoration" */
   String get textDecoration => this._textDecoration;
@@ -5015,7 +5252,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('textDecoration')
-  String _textDecoration;
+  String get _textDecoration native;
+
+  @JSName('textDecoration')
+  set _textDecoration(String value) native;
 
   /** Gets the value of "text-indent" */
   String get textIndent => this._textIndent;
@@ -5027,7 +5267,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('textIndent')
-  String _textIndent;
+  String get _textIndent native;
+
+  @JSName('textIndent')
+  set _textIndent(String value) native;
 
   /** Gets the value of "text-transform" */
   String get textTransform => this._textTransform;
@@ -5039,7 +5282,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('textTransform')
-  String _textTransform;
+  String get _textTransform native;
+
+  @JSName('textTransform')
+  set _textTransform(String value) native;
 
   /** Gets the value of "top" */
   String get top => this._top;
@@ -5051,7 +5297,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('top')
-  String _top;
+  String get _top native;
+
+  @JSName('top')
+  set _top(String value) native;
 
   /** Gets the value of "unicode-bidi" */
   String get unicodeBidi => this._unicodeBidi;
@@ -5063,7 +5312,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('unicodeBidi')
-  String _unicodeBidi;
+  String get _unicodeBidi native;
+
+  @JSName('unicodeBidi')
+  set _unicodeBidi(String value) native;
 
   /** Gets the value of "vertical-align" */
   String get verticalAlign => this._verticalAlign;
@@ -5075,7 +5327,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('verticalAlign')
-  String _verticalAlign;
+  String get _verticalAlign native;
+
+  @JSName('verticalAlign')
+  set _verticalAlign(String value) native;
 
   /** Gets the value of "visibility" */
   String get visibility => this._visibility;
@@ -5087,7 +5342,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('visibility')
-  String _visibility;
+  String get _visibility native;
+
+  @JSName('visibility')
+  set _visibility(String value) native;
 
   /** Gets the value of "white-space" */
   String get whiteSpace => this._whiteSpace;
@@ -5099,7 +5357,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('whiteSpace')
-  String _whiteSpace;
+  String get _whiteSpace native;
+
+  @JSName('whiteSpace')
+  set _whiteSpace(String value) native;
 
   /** Gets the value of "width" */
   String get width => this._width;
@@ -5111,7 +5372,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('width')
-  String _width;
+  String get _width native;
+
+  @JSName('width')
+  set _width(String value) native;
 
   /** Gets the value of "word-spacing" */
   String get wordSpacing => this._wordSpacing;
@@ -5123,7 +5387,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('wordSpacing')
-  String _wordSpacing;
+  String get _wordSpacing native;
+
+  @JSName('wordSpacing')
+  set _wordSpacing(String value) native;
 
   /** Gets the value of "z-index" */
   String get zIndex => this._zIndex;
@@ -5135,7 +5402,10 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   @Returns('String')
   @JSName('zIndex')
-  String _zIndex;
+  String get _zIndex native;
+
+  @JSName('zIndex')
+  set _zIndex(String value) native;
 }
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
@@ -17310,7 +17580,8 @@ class HtmlDocument extends Document {
     throw new UnsupportedError("Not supported");
   }
 
-  BodyElement body;
+  BodyElement get body native;
+  set body(BodyElement value) native;
 
   /// UNSTABLE: Chrome-only - create a Range from the given point.
   @Unstable()
@@ -19017,7 +19288,8 @@ abstract class TextInputElementBase implements InputElementBase {
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
-  String dirName;
+  String get dirName;
+  set dirName(String value);
 
   Element get list;
 
@@ -19033,7 +19305,8 @@ abstract class SearchInputElement implements TextInputElementBase {
 abstract class TextInputElement implements TextInputElementBase {
   factory TextInputElement() => new InputElement(type: 'text');
 
-  String dirName;
+  String get dirName;
+  set dirName(String value);
 
   Element get list;
 }
@@ -19093,25 +19366,34 @@ abstract class TelephoneInputElement implements TextInputElementBase {
 abstract class EmailInputElement implements TextInputElementBase {
   factory EmailInputElement() => new InputElement(type: 'email');
 
-  String autocomplete;
+  String get autocomplete;
+  set autocomplete(String value);
 
-  bool autofocus;
+  bool get autofocus;
+  set autofocus(bool value);
 
   Element get list;
 
-  int maxLength;
+  int get maxLength;
+  set maxLength(int value);
 
-  bool multiple;
+  bool get multiple;
+  set multiple(bool value);
 
-  String pattern;
+  String get pattern;
+  set pattern(String value);
 
-  String placeholder;
+  String get placeholder;
+  set placeholder(String value);
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
-  int size;
+  int get size;
+  set size(int value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19154,11 +19436,14 @@ abstract class RangeInputElementBase implements InputElementBase {
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
-  DateTime valueAsDate;
+  DateTime get valueAsDate;
+  set valueAsDate(DateTime value);
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19175,11 +19460,14 @@ abstract class DateInputElement implements RangeInputElementBase {
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
-  DateTime valueAsDate;
+  DateTime get valueAsDate;
+  set valueAsDate(DateTime value);
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19196,11 +19484,14 @@ abstract class MonthInputElement implements RangeInputElementBase {
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
-  DateTime valueAsDate;
+  DateTime get valueAsDate;
+  set valueAsDate(DateTime value);
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19217,11 +19508,14 @@ abstract class WeekInputElement implements RangeInputElementBase {
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
-  DateTime valueAsDate;
+  DateTime get valueAsDate;
+  set valueAsDate(DateTime value);
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19240,9 +19534,11 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19259,11 +19555,14 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
-  String placeholder;
+  String get placeholder;
+  set placeholder(String value);
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19297,9 +19596,11 @@ abstract class RangeInputElement implements RangeInputElementBase {
 abstract class CheckboxInputElement implements InputElementBase {
   factory CheckboxInputElement() => new InputElement(type: 'checkbox');
 
-  bool checked;
+  bool get checked;
+  set checked(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 }
 
 /**
@@ -19316,9 +19617,11 @@ abstract class CheckboxInputElement implements InputElementBase {
 abstract class RadioButtonInputElement implements InputElementBase {
   factory RadioButtonInputElement() => new InputElement(type: 'radio');
 
-  bool checked;
+  bool get checked;
+  set checked(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 }
 
 /**
@@ -19327,11 +19630,14 @@ abstract class RadioButtonInputElement implements InputElementBase {
 abstract class FileUploadInputElement implements InputElementBase {
   factory FileUploadInputElement() => new InputElement(type: 'file');
 
-  String accept;
+  String get accept;
+  set accept(String value);
 
-  bool multiple;
+  bool get multiple;
+  set multiple(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
   List<File> files;
 }
@@ -19342,15 +19648,20 @@ abstract class FileUploadInputElement implements InputElementBase {
 abstract class SubmitButtonInputElement implements InputElementBase {
   factory SubmitButtonInputElement() => new InputElement(type: 'submit');
 
-  String formAction;
+  String get formAction;
+  set formAction(String value);
 
-  String formEnctype;
+  String get formEnctype;
+  set formEnctype(String value);
 
-  String formMethod;
+  String get formMethod;
+  set formMethod(String value);
 
-  bool formNoValidate;
+  bool get formNoValidate;
+  set formNoValidate(bool value);
 
-  String formTarget;
+  String get formTarget;
+  set formTarget(String value);
 }
 
 /**
@@ -19360,23 +19671,32 @@ abstract class SubmitButtonInputElement implements InputElementBase {
 abstract class ImageButtonInputElement implements InputElementBase {
   factory ImageButtonInputElement() => new InputElement(type: 'image');
 
-  String alt;
+  String get alt;
+  set alt(String value);
 
-  String formAction;
+  String get formAction;
+  set formAction(String value);
 
-  String formEnctype;
+  String get formEnctype;
+  set formEnctype(String value);
 
-  String formMethod;
+  String get formMethod;
+  set formMethod(String value);
 
-  bool formNoValidate;
+  bool get formNoValidate;
+  set formNoValidate(bool value);
 
-  String formTarget;
+  String get formTarget;
+  set formTarget(String value);
 
-  int height;
+  int get height;
+  set height(int value);
 
-  String src;
+  String get src;
+  set src(String value);
 
-  int width;
+  int get width;
+  set width(int value);
 }
 
 /**
@@ -19599,9 +19919,9 @@ class KeyboardEvent extends UIEvent {
     }
   }
 
-  final int keyCode;
+  int get keyCode native;
 
-  final int charCode;
+  int get charCode native;
 
   int get which => _which;
 
@@ -21083,7 +21403,7 @@ class MessageEvent extends Event {
   @JSName('data')
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _get_data;
+  dynamic get _get_data native;
 
   factory MessageEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
