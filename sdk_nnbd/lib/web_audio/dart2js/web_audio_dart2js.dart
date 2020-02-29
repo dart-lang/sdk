@@ -138,7 +138,9 @@ class AudioBufferSourceNode extends AudioScheduledSourceNode {
   static AudioBufferSourceNode _create_2(context) =>
       JS('AudioBufferSourceNode', 'new AudioBufferSourceNode(#)', context);
 
-  AudioBuffer? buffer;
+  AudioBuffer? get buffer native;
+
+  set buffer(AudioBuffer? value) native;
 
   AudioParam get detune native;
 
@@ -817,7 +819,9 @@ class ConvolverNode extends AudioNode {
   static ConvolverNode _create_2(context) =>
       JS('ConvolverNode', 'new ConvolverNode(#)', context);
 
-  AudioBuffer? buffer;
+  AudioBuffer? get buffer native;
+
+  set buffer(AudioBuffer? value) native;
 
   bool get normalize native;
 
@@ -1288,7 +1292,9 @@ class WaveShaperNode extends AudioNode {
   static WaveShaperNode _create_2(context) =>
       JS('WaveShaperNode', 'new WaveShaperNode(#)', context);
 
-  Float32List? curve;
+  Float32List? get curve native;
+
+  set curve(Float32List? value) native;
 
   String get oversample native;
 

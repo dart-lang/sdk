@@ -20,16 +20,6 @@ HTML_LIBRARY_NAMES = [
     'html', 'indexed_db', 'svg', 'web_audio', 'web_gl', 'web_sql'
 ]
 
-# The following two sets let us avoid shadowing fields with properties.
-# This information could be derived from the IDL files but would require
-# a significant refactor to compute accurately. Instead we manually compute
-# these sets based on manual triage of strong mode errors.
-_force_property_members = monitored.Set('systemhtml._force_property_members', [
-    'Element.outerHtml',
-    'Element.isContentEditable',
-    'AudioContext.createGain',
-    'AudioContext.createScriptProcessor',
-])
 _safe_to_ignore_shadowing_members = monitored.Set(
     'systemhtml._safe_to_ignore_shadowing_members', [
         'SVGElement.tabIndex',
@@ -1401,32 +1391,30 @@ class Dart2JSBackend(HtmlDartGenerator):
             return
 
         if IsPureInterface(self._interface.id, self._database):
-            self._AddInterfaceAttribute(attribute, html_name, read_only)
+            self._AddAttributeUsingProperties(attribute, html_name, read_only)
             return
 
         # If the attribute is shadowing, we can't generate a shadowing
-        # field (Issue 1633).
+        # getter or setter (Issue 1633).
         # TODO(sra): _FindShadowedAttribute does not take into account the html
-        #  renaming.  we should be looking for another attribute that has the same
-        #  html_name.  Two attributes with the same IDL name might not match if one
-        #  is renamed.
+        # renaming. We should be looking for another attribute that has the
+        # same html_name. Two attributes with the same IDL name might not match
+        # if one is renamed.
+        # TODO(srujzs): Determine if logic behind shadowing is still true here
+        # and below with the transition to natives.
         (super_attribute,
          super_attribute_interface) = self._FindShadowedAttribute(attribute)
-        if self._ForcePropertyMember(html_name):
-            self._members_emitter.Emit(
-                '\n  // Using property as subclass shadows.')
-            self._AddAttributeUsingProperties(attribute, html_name, read_only)
-            return
 
         if super_attribute:
             if read_only or self._SafeToIgnoreShadowingMember(html_name):
                 if attribute.type.id == super_attribute.type.id:
-                    # Compatible attribute, use the superclass property.  This works
-                    # because JavaScript will do its own dynamic dispatch.
+                    # Compatible attribute, use the superclass property.  This
+                    # works because JavaScript will do its own dynamic dispatch.
                     self._members_emitter.Emit(
                         '\n'
                         '  // Use implementation from $SUPER.\n'
-                        '  // final $TYPE $NAME;\n',
+                        '  // $TYPE get $NAME native;\n'
+                        '  // void set $NAME($TYPE value) native;\n',
                         SUPER=super_attribute_interface,
                         NAME=html_name,
                         TYPE=self.SecureOutputType(attribute.type.id,
@@ -1438,9 +1426,10 @@ class Dart2JSBackend(HtmlDartGenerator):
             return
 
         # If the attribute is shadowed incompatibly in a subclass then we also
-        # can't just generate it as a field. In particular, this happens with
-        # DomMatrixReadOnly and its subclass DomMatrix. Force the superclass
-        # to generate getters. Hardcoding the known problem classes for now.
+        # can't just generate it as a getter/setter. In particular, this happens
+        # with DomMatrixReadOnly and its subclass DomMatrix. Force the
+        # superclass to generate getters. Hardcoding the known problem classes
+        # for now.
         # TODO(alanknight): Fix this more generally.
         if (self._interface.id == 'DOMMatrixReadOnly' or
                 self._interface.id == 'DOMPointReadOnly' or
@@ -1465,24 +1454,12 @@ class Dart2JSBackend(HtmlDartGenerator):
         input_type = self._NarrowInputType(attribute.type.id)
         if self._nnbd and attribute.type.nullable:
             input_type += '?'
-        static_attribute = 'static' if attribute.is_static else ''
         if not read_only:
-            if self._nnbd and not attribute.type.nullable:
-              self._AddAttributeUsingProperties(attribute, html_name, read_only,
-                                                rename, metadata,
-                                                use_native=True)
-              return
             if attribute.type.id == 'Promise':
                 _logger.warn('R/W member is a Promise: %s.%s' %
                              (self._interface.id, html_name))
-            template = '\n  $RENAME$METADATA$STATIC $TYPE $NAME;\n'
-            self._members_emitter.Emit(
-                template,
-                RENAME=rename,
-                METADATA=metadata,
-                STATIC=static_attribute,
-                NAME=html_name,
-                TYPE=output_type)
+            self._AddAttributeUsingProperties(attribute, html_name, read_only,
+                                              rename, metadata)
         else:
             if attribute.type.id == 'Promise':
                 lookupOp = "%s.%s" % (self._interface.id, html_name)
@@ -1529,71 +1506,48 @@ class Dart2JSBackend(HtmlDartGenerator):
                     template = (
                         '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
                         'JS("$TYPE", "#.$NAME", this);\n')
-                elif self._nnbd:
-                    # Finals need to be transformed to getters/setters.
+                    self._members_emitter.Emit(
+                        template,
+                        RENAME=rename,
+                        ANNOTATIONS=metadata,
+                        NAME=html_name,
+                        TYPE=input_type
+                        if output_type == 'double' else output_type)
+                else:
+                    # Transform to native getters/setters.
+                    # TODO(srujzs): Should the logic for types and doubles from
+                    # above and before stay the same here?
                     self._AddAttributeUsingProperties(attribute, html_name,
-                        read_only, rename, metadata, use_native=True)
-                    return
-                self._members_emitter.Emit(
-                    template,
-                    RENAME=rename,
-                    ANNOTATIONS=metadata,
-                    STATIC=static_attribute,
-                    NAME=html_name,
-                    TYPE=input_type
-                    if output_type == 'double' else output_type)
+                        read_only, rename, metadata)
 
     def _AddAttributeUsingProperties(self, attribute, html_name, read_only,
-                                     rename=None, metadata=None,
-                                     use_native=False):
-        self._AddRenamingGetter(attribute, html_name, rename, metadata,
-                                use_native)
+                                     rename=None, metadata=None):
+        self._AddRenamingGetter(attribute, html_name, rename, metadata)
         if not read_only:
             # No metadata for setters.
-            self._AddRenamingSetter(attribute, html_name, rename, use_native)
+            self._AddRenamingSetter(attribute, html_name, rename)
 
-    def _AddInterfaceAttribute(self, attribute, html_name, read_only):
-        if read_only and self._nnbd:
-            self._AddAttributeUsingProperties(attribute, html_name, read_only,
-                                              use_native=True)
-        else:
-            self._members_emitter.Emit(
-                '\n  $QUALIFIER$TYPE $NAME;'
-                '\n',
-                QUALIFIER='final ' if read_only else '',
-                NAME=html_name,
-                TYPE=self.SecureOutputType(attribute.type.id,
-                    nullable=attribute.type.nullable))
-
-    def _AddRenamingGetter(self, attr, html_name, rename, metadata, use_native):
+    def _AddRenamingGetter(self, attr, html_name, rename, metadata):
         conversion = self._OutputConversion(attr.type.id, attr.id)
         if conversion:
-            return self._AddConvertingGetter(attr, html_name, conversion,
-                                             use_native)
+            return self._AddConvertingGetter(attr, html_name, conversion)
         return_type = self.SecureOutputType(attr.type.id,
             nullable=attr.type.nullable)
         native_type = self._NarrowToImplementationType(attr.type.id)
-        if use_native:
-            getter = '\n  $TYPE get $HTML_NAME native;'
-        else:
-            getter = '\n  $TYPE get $HTML_NAME => JS("$NATIVE_TYPE", "#.$NAME", this);'
         self._members_emitter.Emit(
             '\n  $RENAME'
-            '\n  $METADATA' +
-            getter +
+            '\n  $METADATA'
+            '\n  $TYPE get $HTML_NAME native;'
             '\n',
             RENAME=rename if rename else '',
             METADATA=metadata if metadata else '',
             HTML_NAME=html_name,
-            NAME=attr.id,
-            TYPE=return_type,
-            NATIVE_TYPE=native_type)
+            TYPE=return_type)
 
-    def _AddRenamingSetter(self, attr, html_name, rename, use_native):
+    def _AddRenamingSetter(self, attr, html_name, rename):
         conversion = self._InputConversion(attr.type.id, attr.id)
         if conversion:
-            return self._AddConvertingSetter(attr, html_name, conversion,
-                                             use_native)
+            return self._AddConvertingSetter(attr, html_name, conversion)
         nullable_type = attr.type.nullable
         # If this attr has an output conversion, it is possible that there is a
         # converting getter. We need to make sure the setter type matches the
@@ -1601,27 +1555,15 @@ class Dart2JSBackend(HtmlDartGenerator):
         conversion = self._OutputConversion(attr.type.id, attr.id)
         if conversion and conversion.nullable_output:
             nullable_type = True
-        if use_native:
-            setter = '\n  set $HTML_NAME($TYPE value) native;'
-        else:
-            setter = '\n  set $HTML_NAME($TYPE value) {' \
-                     '\n    JS("void", "#.$NAME = #", this, value);' \
-                     '\n  }'
         self._members_emitter.Emit(
-            '\n  $RENAME' +
-            setter +
+            '\n  $RENAME'
+            '\n  set $HTML_NAME($TYPE value) native;'
             '\n',
             RENAME=rename if rename else '',
             HTML_NAME=html_name,
-            NAME=attr.id,
             TYPE=self.SecureOutputType(attr.type.id, nullable=nullable_type))
 
-    def _AddConvertingGetter(self, attr, html_name, conversion, use_native):
-        # If using nnbd, we can't use finals, so opt for natives.
-        if use_native or self._nnbd:
-            getter = '\n  $(JS_METADATA)$NATIVE_TYPE$NULLABLE_IN get _get_$HTML_NAME native;'
-        else:
-            getter = '\n  $(JS_METADATA)final $NATIVE_TYPE _get_$HTML_NAME;'
+    def _AddConvertingGetter(self, attr, html_name, conversion):
         nullable_out = conversion.nullable_output and \
             not conversion.output_type == 'dynamic'
         # If the attribute is nullable, the getter should be nullable.
@@ -1630,8 +1572,8 @@ class Dart2JSBackend(HtmlDartGenerator):
         self._members_emitter.Emit(
             '\n  $(METADATA)$RETURN_TYPE$NULLABLE_OUT get $HTML_NAME => '
             '$CONVERT(this._get_$(HTML_NAME)$NULLASSERT);'
-            "\n  @JSName('$NAME')" +
-            getter +
+            "\n  @JSName('$NAME')"
+            '\n  $(JS_METADATA)$NATIVE_TYPE$NULLABLE_IN get _get_$HTML_NAME native;'
             '\n',
             METADATA=self._metadata.GetFormattedMetadata(
                 self._library_name, self._interface, html_name, '  '),
@@ -1648,23 +1590,20 @@ class Dart2JSBackend(HtmlDartGenerator):
             NULLASSERT='!' if nullable_in and \
                 not conversion.nullable_input and self._nnbd else '')
 
-    def _AddConvertingSetter(self, attr, html_name, conversion, use_native):
+    def _AddConvertingSetter(self, attr, html_name, conversion):
         # If the attribute is nullable, the setter should be nullable.
         nullable_in = attr.type.nullable and \
             not conversion.input_type == 'dynamic'
         nullable_out = conversion.nullable_output and \
             not conversion.output_type == 'dynamic'
-        if use_native:
-            setter = '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE$NULLABLE_OUT*/ value) native;'
-        else:
-            setter = '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE$NULLABLE_OUT*/ value) {' \
-                     '\n    JS("void", "#.$NAME = #", this, value);' \
-                     '\n  }'
         self._members_emitter.Emit(
+            # TODO(sra): Use metadata to provide native name.
             '\n  set $HTML_NAME($INPUT_TYPE$NULLABLE_IN value) {'
             '\n    this._set_$HTML_NAME = $CONVERT(value$NULLASSERT);'
-            '\n  }' +
-            setter +
+            '\n  }'
+            '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE$NULLABLE_OUT*/ value) {'
+            '\n    JS("void", "#.$NAME = #", this, value);'
+            '\n  }'
             '\n',
             CONVERT=conversion.function_name,
             HTML_NAME=html_name,
@@ -2002,10 +1941,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     def _HasCustomImplementation(self, member_name):
         member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
         return member_name in _js_custom_members
-
-    def _ForcePropertyMember(self, member_name):
-        member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
-        return member_name in _force_property_members
 
     def _SafeToIgnoreShadowingMember(self, member_name):
         member_name = '%s.%s' % (self._interface.doc_js_name, member_name)

@@ -261,99 +261,193 @@ class AccessibleNode extends EventTarget {
   static AccessibleNode _create_1() =>
       JS('AccessibleNode', 'new AccessibleNode()');
 
-  AccessibleNode? activeDescendant;
+  AccessibleNode? get activeDescendant native;
 
-  bool? atomic;
+  set activeDescendant(AccessibleNode? value) native;
 
-  String? autocomplete;
+  bool? get atomic native;
 
-  bool? busy;
+  set atomic(bool? value) native;
 
-  String? checked;
+  String? get autocomplete native;
 
-  int? colCount;
+  set autocomplete(String? value) native;
 
-  int? colIndex;
+  bool? get busy native;
 
-  int? colSpan;
+  set busy(bool? value) native;
 
-  AccessibleNodeList? controls;
+  String? get checked native;
 
-  String? current;
+  set checked(String? value) native;
 
-  AccessibleNodeList? describedBy;
+  int? get colCount native;
 
-  AccessibleNode? details;
+  set colCount(int? value) native;
 
-  bool? disabled;
+  int? get colIndex native;
 
-  AccessibleNode? errorMessage;
+  set colIndex(int? value) native;
 
-  bool? expanded;
+  int? get colSpan native;
 
-  AccessibleNodeList? flowTo;
+  set colSpan(int? value) native;
 
-  String? hasPopUp;
+  AccessibleNodeList? get controls native;
 
-  bool? hidden;
+  set controls(AccessibleNodeList? value) native;
 
-  String? invalid;
+  String? get current native;
 
-  String? keyShortcuts;
+  set current(String? value) native;
 
-  String? label;
+  AccessibleNodeList? get describedBy native;
 
-  AccessibleNodeList? labeledBy;
+  set describedBy(AccessibleNodeList? value) native;
 
-  int? level;
+  AccessibleNode? get details native;
 
-  String? live;
+  set details(AccessibleNode? value) native;
 
-  bool? modal;
+  bool? get disabled native;
 
-  bool? multiline;
+  set disabled(bool? value) native;
 
-  bool? multiselectable;
+  AccessibleNode? get errorMessage native;
 
-  String? orientation;
+  set errorMessage(AccessibleNode? value) native;
 
-  AccessibleNodeList? owns;
+  bool? get expanded native;
 
-  String? placeholder;
+  set expanded(bool? value) native;
 
-  int? posInSet;
+  AccessibleNodeList? get flowTo native;
 
-  String? pressed;
+  set flowTo(AccessibleNodeList? value) native;
 
-  bool? readOnly;
+  String? get hasPopUp native;
 
-  String? relevant;
+  set hasPopUp(String? value) native;
 
-  bool? required;
+  bool? get hidden native;
 
-  String? role;
+  set hidden(bool? value) native;
 
-  String? roleDescription;
+  String? get invalid native;
 
-  int? rowCount;
+  set invalid(String? value) native;
 
-  int? rowIndex;
+  String? get keyShortcuts native;
 
-  int? rowSpan;
+  set keyShortcuts(String? value) native;
 
-  bool? selected;
+  String? get label native;
 
-  int? setSize;
+  set label(String? value) native;
 
-  String? sort;
+  AccessibleNodeList? get labeledBy native;
 
-  num? valueMax;
+  set labeledBy(AccessibleNodeList? value) native;
 
-  num? valueMin;
+  int? get level native;
 
-  num? valueNow;
+  set level(int? value) native;
 
-  String? valueText;
+  String? get live native;
+
+  set live(String? value) native;
+
+  bool? get modal native;
+
+  set modal(bool? value) native;
+
+  bool? get multiline native;
+
+  set multiline(bool? value) native;
+
+  bool? get multiselectable native;
+
+  set multiselectable(bool? value) native;
+
+  String? get orientation native;
+
+  set orientation(String? value) native;
+
+  AccessibleNodeList? get owns native;
+
+  set owns(AccessibleNodeList? value) native;
+
+  String? get placeholder native;
+
+  set placeholder(String? value) native;
+
+  int? get posInSet native;
+
+  set posInSet(int? value) native;
+
+  String? get pressed native;
+
+  set pressed(String? value) native;
+
+  bool? get readOnly native;
+
+  set readOnly(bool? value) native;
+
+  String? get relevant native;
+
+  set relevant(String? value) native;
+
+  bool? get required native;
+
+  set required(bool? value) native;
+
+  String? get role native;
+
+  set role(String? value) native;
+
+  String? get roleDescription native;
+
+  set roleDescription(String? value) native;
+
+  int? get rowCount native;
+
+  set rowCount(int? value) native;
+
+  int? get rowIndex native;
+
+  set rowIndex(int? value) native;
+
+  int? get rowSpan native;
+
+  set rowSpan(int? value) native;
+
+  bool? get selected native;
+
+  set selected(bool? value) native;
+
+  int? get setSize native;
+
+  set setSize(int? value) native;
+
+  String? get sort native;
+
+  set sort(String? value) native;
+
+  num? get valueMax native;
+
+  set valueMax(num? value) native;
+
+  num? get valueMin native;
+
+  set valueMin(num? value) native;
+
+  num? get valueNow native;
+
+  set valueNow(num? value) native;
+
+  String? get valueText native;
+
+  set valueText(String? value) native;
 
   void appendChild(AccessibleNode child) native;
 
@@ -565,9 +659,13 @@ class Animation extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(document.body.animate)');
 
-  num? currentTime;
+  num? get currentTime native;
 
-  AnimationEffectReadOnly? effect;
+  set currentTime(num? value) native;
+
+  AnimationEffectReadOnly? get effect native;
+
+  set effect(AnimationEffectReadOnly? value) native;
 
   Future<Animation> get finished =>
       promiseToFuture<Animation>(JS("", "#.finished", this));
@@ -585,7 +683,9 @@ class Animation extends EventTarget {
   Future<Animation> get ready =>
       promiseToFuture<Animation>(JS("", "#.ready", this));
 
-  num? startTime;
+  num? get startTime native;
+
+  set startTime(num? value) native;
 
   AnimationTimeline? get timeline native;
 
@@ -636,67 +736,51 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
 
   // Shadowing definition.
 
-  num get delay => JS("num", "#.delay", this);
+  num get delay native;
 
-  set delay(num value) {
-    JS("void", "#.delay = #", this, value);
-  }
+  set delay(num value) native;
 
   // Shadowing definition.
 
-  String get direction => JS("String", "#.direction", this);
+  String get direction native;
 
-  set direction(String value) {
-    JS("void", "#.direction = #", this, value);
-  }
+  set direction(String value) native;
 
   // Shadowing definition.
 
-  Object? get duration => JS("Object", "#.duration", this);
+  Object? get duration native;
 
-  set duration(Object? value) {
-    JS("void", "#.duration = #", this, value);
-  }
+  set duration(Object? value) native;
 
   // Shadowing definition.
 
-  String get easing => JS("String", "#.easing", this);
+  String get easing native;
 
-  set easing(String value) {
-    JS("void", "#.easing = #", this, value);
-  }
+  set easing(String value) native;
 
   // Shadowing definition.
 
-  num get endDelay => JS("num", "#.endDelay", this);
+  num get endDelay native;
 
-  set endDelay(num value) {
-    JS("void", "#.endDelay = #", this, value);
-  }
+  set endDelay(num value) native;
 
   // Shadowing definition.
 
-  String get fill => JS("String", "#.fill", this);
+  String get fill native;
 
-  set fill(String value) {
-    JS("void", "#.fill = #", this, value);
-  }
+  set fill(String value) native;
 
   // Shadowing definition.
 
-  num get iterationStart => JS("num", "#.iterationStart", this);
+  num get iterationStart native;
 
-  set iterationStart(num value) {
-    JS("void", "#.iterationStart = #", this, value);
-  }
+  set iterationStart(num value) native;
 
   // Shadowing definition.
 
-  num get iterations => JS("num", "#.iterations", this);
+  num get iterations native;
 
-  set iterations(num value) {
-    JS("void", "#.iterations = #", this, value);
-  }
+  set iterations(num value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1486,11 +1570,9 @@ class BeforeUnloadEvent extends Event {
 
   // Shadowing definition.
 
-  String get returnValue => JS("String", "#.returnValue", this);
+  String get returnValue native;
 
-  set returnValue(String value) {
-    JS("void", "#.returnValue = #", this, value);
-  }
+  set returnValue(String value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2297,7 +2379,9 @@ class CanvasRenderingContext2D extends Interceptor
 
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
-  Object? fillStyle;
+  Object? get fillStyle native;
+
+  set fillStyle(Object? value) native;
 
   String get filter native;
 
@@ -2368,7 +2452,9 @@ class CanvasRenderingContext2D extends Interceptor
 
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
-  Object? strokeStyle;
+  Object? get strokeStyle native;
+
+  set strokeStyle(Object? value) native;
 
   String get textAlign native;
 
@@ -9520,7 +9606,10 @@ class Document extends Node {
   String get addressSpace native;
 
   @JSName('body')
-  HtmlElement? _body;
+  HtmlElement? get _body native;
+
+  @JSName('body')
+  set _body(HtmlElement? value) native;
 
   String get contentType native;
 
@@ -9566,12 +9655,17 @@ class Document extends Node {
 
   SvgSvgElement get rootElement native;
 
-  Element? rootScroller;
+  Element? get rootScroller native;
+
+  set rootScroller(Element? value) native;
 
   Element? get scrollingElement native;
 
   @JSName('selectedStylesheetSet')
-  String? _selectedStylesheetSet;
+  String? get _selectedStylesheetSet native;
+
+  @JSName('selectedStylesheetSet')
+  set _selectedStylesheetSet(String? value) native;
 
   String get suborigin native;
 
@@ -10402,179 +10496,135 @@ class DomMatrix extends DomMatrixReadOnly {
 
   // Shadowing definition.
 
-  num get a => JS("num", "#.a", this);
+  num get a native;
 
-  set a(num value) {
-    JS("void", "#.a = #", this, value);
-  }
+  set a(num value) native;
 
   // Shadowing definition.
 
-  num get b => JS("num", "#.b", this);
+  num get b native;
 
-  set b(num value) {
-    JS("void", "#.b = #", this, value);
-  }
+  set b(num value) native;
 
   // Shadowing definition.
 
-  num get c => JS("num", "#.c", this);
+  num get c native;
 
-  set c(num value) {
-    JS("void", "#.c = #", this, value);
-  }
+  set c(num value) native;
 
   // Shadowing definition.
 
-  num get d => JS("num", "#.d", this);
+  num get d native;
 
-  set d(num value) {
-    JS("void", "#.d = #", this, value);
-  }
+  set d(num value) native;
 
   // Shadowing definition.
 
-  num get e => JS("num", "#.e", this);
+  num get e native;
 
-  set e(num value) {
-    JS("void", "#.e = #", this, value);
-  }
+  set e(num value) native;
 
   // Shadowing definition.
 
-  num get f => JS("num", "#.f", this);
+  num get f native;
 
-  set f(num value) {
-    JS("void", "#.f = #", this, value);
-  }
+  set f(num value) native;
 
   // Shadowing definition.
 
-  num get m11 => JS("num", "#.m11", this);
+  num get m11 native;
 
-  set m11(num value) {
-    JS("void", "#.m11 = #", this, value);
-  }
+  set m11(num value) native;
 
   // Shadowing definition.
 
-  num get m12 => JS("num", "#.m12", this);
+  num get m12 native;
 
-  set m12(num value) {
-    JS("void", "#.m12 = #", this, value);
-  }
+  set m12(num value) native;
 
   // Shadowing definition.
 
-  num get m13 => JS("num", "#.m13", this);
+  num get m13 native;
 
-  set m13(num value) {
-    JS("void", "#.m13 = #", this, value);
-  }
+  set m13(num value) native;
 
   // Shadowing definition.
 
-  num get m14 => JS("num", "#.m14", this);
+  num get m14 native;
 
-  set m14(num value) {
-    JS("void", "#.m14 = #", this, value);
-  }
+  set m14(num value) native;
 
   // Shadowing definition.
 
-  num get m21 => JS("num", "#.m21", this);
+  num get m21 native;
 
-  set m21(num value) {
-    JS("void", "#.m21 = #", this, value);
-  }
+  set m21(num value) native;
 
   // Shadowing definition.
 
-  num get m22 => JS("num", "#.m22", this);
+  num get m22 native;
 
-  set m22(num value) {
-    JS("void", "#.m22 = #", this, value);
-  }
+  set m22(num value) native;
 
   // Shadowing definition.
 
-  num get m23 => JS("num", "#.m23", this);
+  num get m23 native;
 
-  set m23(num value) {
-    JS("void", "#.m23 = #", this, value);
-  }
+  set m23(num value) native;
 
   // Shadowing definition.
 
-  num get m24 => JS("num", "#.m24", this);
+  num get m24 native;
 
-  set m24(num value) {
-    JS("void", "#.m24 = #", this, value);
-  }
+  set m24(num value) native;
 
   // Shadowing definition.
 
-  num get m31 => JS("num", "#.m31", this);
+  num get m31 native;
 
-  set m31(num value) {
-    JS("void", "#.m31 = #", this, value);
-  }
+  set m31(num value) native;
 
   // Shadowing definition.
 
-  num get m32 => JS("num", "#.m32", this);
+  num get m32 native;
 
-  set m32(num value) {
-    JS("void", "#.m32 = #", this, value);
-  }
+  set m32(num value) native;
 
   // Shadowing definition.
 
-  num get m33 => JS("num", "#.m33", this);
+  num get m33 native;
 
-  set m33(num value) {
-    JS("void", "#.m33 = #", this, value);
-  }
+  set m33(num value) native;
 
   // Shadowing definition.
 
-  num get m34 => JS("num", "#.m34", this);
+  num get m34 native;
 
-  set m34(num value) {
-    JS("void", "#.m34 = #", this, value);
-  }
+  set m34(num value) native;
 
   // Shadowing definition.
 
-  num get m41 => JS("num", "#.m41", this);
+  num get m41 native;
 
-  set m41(num value) {
-    JS("void", "#.m41 = #", this, value);
-  }
+  set m41(num value) native;
 
   // Shadowing definition.
 
-  num get m42 => JS("num", "#.m42", this);
+  num get m42 native;
 
-  set m42(num value) {
-    JS("void", "#.m42 = #", this, value);
-  }
+  set m42(num value) native;
 
   // Shadowing definition.
 
-  num get m43 => JS("num", "#.m43", this);
+  num get m43 native;
 
-  set m43(num value) {
-    JS("void", "#.m43 = #", this, value);
-  }
+  set m43(num value) native;
 
   // Shadowing definition.
 
-  num get m44 => JS("num", "#.m44", this);
+  num get m44 native;
 
-  set m44(num value) {
-    JS("void", "#.m44 = #", this, value);
-  }
+  set m44(num value) native;
 
   static DomMatrix fromFloat32Array(Float32List array32) native;
 
@@ -10668,53 +10718,53 @@ class DomMatrixReadOnly extends Interceptor {
   static DomMatrixReadOnly _create_2() =>
       JS('DomMatrixReadOnly', 'new DOMMatrixReadOnly()');
 
-  num get a => JS("num", "#.a", this);
+  num get a native;
 
-  num get b => JS("num", "#.b", this);
+  num get b native;
 
-  num get c => JS("num", "#.c", this);
+  num get c native;
 
-  num get d => JS("num", "#.d", this);
+  num get d native;
 
-  num get e => JS("num", "#.e", this);
+  num get e native;
 
-  num get f => JS("num", "#.f", this);
+  num get f native;
 
-  bool get is2D => JS("bool", "#.is2D", this);
+  bool get is2D native;
 
-  bool get isIdentity => JS("bool", "#.isIdentity", this);
+  bool get isIdentity native;
 
-  num get m11 => JS("num", "#.m11", this);
+  num get m11 native;
 
-  num get m12 => JS("num", "#.m12", this);
+  num get m12 native;
 
-  num get m13 => JS("num", "#.m13", this);
+  num get m13 native;
 
-  num get m14 => JS("num", "#.m14", this);
+  num get m14 native;
 
-  num get m21 => JS("num", "#.m21", this);
+  num get m21 native;
 
-  num get m22 => JS("num", "#.m22", this);
+  num get m22 native;
 
-  num get m23 => JS("num", "#.m23", this);
+  num get m23 native;
 
-  num get m24 => JS("num", "#.m24", this);
+  num get m24 native;
 
-  num get m31 => JS("num", "#.m31", this);
+  num get m31 native;
 
-  num get m32 => JS("num", "#.m32", this);
+  num get m32 native;
 
-  num get m33 => JS("num", "#.m33", this);
+  num get m33 native;
 
-  num get m34 => JS("num", "#.m34", this);
+  num get m34 native;
 
-  num get m41 => JS("num", "#.m41", this);
+  num get m41 native;
 
-  num get m42 => JS("num", "#.m42", this);
+  num get m42 native;
 
-  num get m43 => JS("num", "#.m43", this);
+  num get m43 native;
 
-  num get m44 => JS("num", "#.m44", this);
+  num get m44 native;
 
   DomMatrix flipX() native;
 
@@ -10850,35 +10900,27 @@ class DomPoint extends DomPointReadOnly {
 
   // Shadowing definition.
 
-  num get w => JS("num", "#.w", this);
+  num get w native;
 
-  set w(num value) {
-    JS("void", "#.w = #", this, value);
-  }
+  set w(num value) native;
 
   // Shadowing definition.
 
-  num get x => JS("num", "#.x", this);
+  num get x native;
 
-  set x(num value) {
-    JS("void", "#.x = #", this, value);
-  }
+  set x(num value) native;
 
   // Shadowing definition.
 
-  num get y => JS("num", "#.y", this);
+  num get y native;
 
-  set y(num value) {
-    JS("void", "#.y = #", this, value);
-  }
+  set y(num value) native;
 
   // Shadowing definition.
 
-  num get z => JS("num", "#.z", this);
+  num get z native;
 
-  set z(num value) {
-    JS("void", "#.z = #", this, value);
-  }
+  set z(num value) native;
 
   static DomPoint fromPoint([Map? other]) {
     if (other != null) {
@@ -10930,13 +10972,13 @@ class DomPointReadOnly extends Interceptor {
   static DomPointReadOnly _create_5() =>
       JS('DomPointReadOnly', 'new DOMPointReadOnly()');
 
-  num get w => JS("num", "#.w", this);
+  num get w native;
 
-  num get x => JS("num", "#.x", this);
+  num get x native;
 
-  num get y => JS("num", "#.y", this);
+  num get y native;
 
-  num get z => JS("num", "#.z", this);
+  num get z native;
 
   static DomPointReadOnly fromPoint([Map? other]) {
     if (other != null) {
@@ -11229,21 +11271,21 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
   static DomRectReadOnly _create_5() =>
       JS('DomRectReadOnly', 'new DOMRectReadOnly()');
 
-  num get bottom => JS("num", "#.bottom", this);
+  num get bottom native;
 
-  num get height => JS("num", "#.height", this);
+  num get height native;
 
-  num get left => JS("num", "#.left", this);
+  num get left native;
 
-  num get right => JS("num", "#.right", this);
+  num get right native;
 
-  num get top => JS("num", "#.top", this);
+  num get top native;
 
-  num get width => JS("num", "#.width", this);
+  num get width native;
 
-  num get x => JS("num", "#.x", this);
+  num get x native;
 
-  num get y => JS("num", "#.y", this);
+  num get y native;
 
   static DomRectReadOnly fromRect([Map? other]) {
     if (other != null) {
@@ -14163,9 +14205,7 @@ class Element extends Node
 
   set inputMode(String value) native;
 
-  // Using property as subclass shadows.
-
-  bool get isContentEditable => JS("bool", "#.isContentEditable", this);
+  bool get isContentEditable native;
 
   String get lang native;
 
@@ -14245,9 +14285,8 @@ class Element extends Node
   @JSName('namespaceURI')
   String? get _namespaceUri native;
 
-  // Using property as subclass shadows.
-
-  String get outerHtml => JS("String", "#.outerHTML", this);
+  @JSName('outerHTML')
+  String get outerHtml native;
 
   @JSName('scrollHeight')
   int get _scrollHeight native;
@@ -18585,7 +18624,9 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 
   bool get complete native;
 
-  String? crossOrigin;
+  String? get crossOrigin native;
+
+  set crossOrigin(String? value) native;
 
   String get currentSrc native;
 
@@ -18750,7 +18791,9 @@ class InputElement extends HtmlElement
 
   @Returns('FileList|Null')
   @Creates('FileList')
-  List<File>? files;
+  List<File>? get files native;
+
+  set files(List<File>? value) native;
 
   FormElement? get form native;
 
@@ -18832,11 +18875,17 @@ class InputElement extends HtmlElement
 
   set required(bool value) native;
 
-  String? selectionDirection;
+  String? get selectionDirection native;
 
-  int? selectionEnd;
+  set selectionDirection(String? value) native;
 
-  int? selectionStart;
+  int? get selectionEnd native;
+
+  set selectionEnd(int? value) native;
+
+  int? get selectionStart native;
+
+  set selectionStart(int? value) native;
 
   int get size native;
 
@@ -19839,7 +19888,9 @@ class LinkElement extends HtmlElement {
 
   set as(String value) native;
 
-  String? crossOrigin;
+  String? get crossOrigin native;
+
+  set crossOrigin(String? value) native;
 
   bool get disabled native;
 
@@ -20145,7 +20196,9 @@ class MediaElement extends HtmlElement {
 
   DomTokenList get controlsList native;
 
-  String? crossOrigin;
+  String? get crossOrigin native;
+
+  set crossOrigin(String? value) native;
 
   String get currentSrc native;
 
@@ -20462,7 +20515,9 @@ class MediaList extends Interceptor {
 
   int get length native;
 
-  String? mediaText;
+  String? get mediaText native;
+
+  set mediaText(String? value) native;
 
   void appendMedium(String medium) native;
 
@@ -20630,7 +20685,9 @@ class MediaSession extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  MediaMetadata? metadata;
+  MediaMetadata? get metadata native;
+
+  set metadata(MediaMetadata? value) native;
 
   String get playbackState native;
 
@@ -22961,6 +23018,7 @@ class Node extends EventTarget {
   Node? get previousNode native;
 
   @JSName('textContent')
+
   /**
    * All text within this node and its descendents.
    *
@@ -22969,7 +23027,11 @@ class Node extends EventTarget {
    * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)
    *   from MDN.
    */
-  String? text;
+
+  String? get text native;
+
+  @JSName('textContent')
+  set text(String? value) native;
 
   @JSName('appendChild')
   /**
@@ -23557,7 +23619,9 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   set direction(String value) native;
 
-  Object? fillStyle;
+  Object? get fillStyle native;
+
+  set fillStyle(Object? value) native;
 
   String get filter native;
 
@@ -23619,7 +23683,9 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   set shadowOffsetY(num value) native;
 
-  Object? strokeStyle;
+  Object? get strokeStyle native;
+
+  set strokeStyle(Object? value) native;
 
   String get textAlign native;
 
@@ -24048,7 +24114,9 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
 
   set currentTransform(Matrix value) native;
 
-  Object? fillStyle;
+  Object? get fillStyle native;
+
+  set fillStyle(Object? value) native;
 
   String get filter native;
 
@@ -24106,7 +24174,9 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
 
   set shadowOffsetY(num value) native;
 
-  Object? strokeStyle;
+  Object? get strokeStyle native;
+
+  set strokeStyle(Object? value) native;
 
   void beginPath() native;
 
@@ -24319,7 +24389,9 @@ class PasswordCredential extends Credential implements CredentialUserData {
   static PasswordCredential _create_2(data_OR_form) =>
       JS('PasswordCredential', 'new PasswordCredential(#)', data_OR_form);
 
-  Object? additionalData;
+  Object? get additionalData native;
+
+  set additionalData(Object? value) native;
 
   String get idName native;
 
@@ -25299,7 +25371,9 @@ class Presentation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  PresentationRequest? defaultRequest;
+  PresentationRequest? get defaultRequest native;
+
+  set defaultRequest(PresentationRequest? value) native;
 
   PresentationReceiver? get receiver native;
 }
@@ -26635,9 +26709,13 @@ class RtcSessionDescription extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String? sdp;
+  String? get sdp native;
 
-  String? type;
+  set sdp(String? value) native;
+
+  String? get type native;
+
+  set type(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26841,7 +26919,9 @@ class ScriptElement extends HtmlElement {
 
   set charset(String value) native;
 
-  String? crossOrigin;
+  String? get crossOrigin native;
+
+  set crossOrigin(String? value) native;
 
   bool get defer native;
 
@@ -28035,7 +28115,9 @@ class SpeechRecognition extends EventTarget {
   static bool get supported => JS(
       'bool', '!!(window.SpeechRecognition || window.webkitSpeechRecognition)');
 
-  MediaStreamTrack? audioTrack;
+  MediaStreamTrack? get audioTrack native;
+
+  set audioTrack(MediaStreamTrack? value) native;
 
   bool get continuous native;
 
@@ -28357,7 +28439,9 @@ class SpeechSynthesisUtterance extends EventTarget {
 
   set text(String value) native;
 
-  SpeechSynthesisVoice? voice;
+  SpeechSynthesisVoice? get voice native;
+
+  set voice(SpeechSynthesisVoice? value) native;
 
   num get volume native;
 
@@ -28944,7 +29028,9 @@ class TableElement extends HtmlElement {
    */
   TableElement.created() : super.created();
 
-  TableCaptionElement? caption;
+  TableCaptionElement? get caption native;
+
+  set caption(TableCaptionElement? value) native;
 
   @JSName('rows')
   @Returns('HtmlCollection')
@@ -28956,9 +29042,13 @@ class TableElement extends HtmlElement {
   @Creates('HtmlCollection')
   List<Node> get _tBodies native;
 
-  TableSectionElement? tFoot;
+  TableSectionElement? get tFoot native;
 
-  TableSectionElement? tHead;
+  set tFoot(TableSectionElement? value) native;
+
+  TableSectionElement? get tHead native;
+
+  set tHead(TableSectionElement? value) native;
 
   @JSName('createCaption')
   TableCaptionElement _createCaption() native;
@@ -31012,13 +31102,19 @@ class VttCue extends TextTrackCue {
 
   @Creates('Null')
   @Returns('num|String')
-  Object? line;
+  Object? get line native;
+
+  set line(Object? value) native;
 
   @Creates('Null')
   @Returns('num|String')
-  Object? position;
+  Object? get position native;
 
-  VttRegion? region;
+  set position(Object? value) native;
+
+  VttRegion? get region native;
+
+  set region(VttRegion? value) native;
 
   num get size native;
 
@@ -32029,9 +32125,7 @@ class Window extends EventTarget
   @Returns('Window|=Object')
   dynamic get _get_opener native;
 
-  set opener(WindowBase? value) {
-    JS("void", "#.opener = #", this, value);
-  }
+  set opener(WindowBase? value) native;
 
   int get orientation native;
 
@@ -34124,35 +34218,27 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
 
   // Shadowing definition.
 
-  num get height => JS("num", "#.height", this);
+  num get height native;
 
-  set height(num value) {
-    JS("void", "#.height = #", this, value);
-  }
+  set height(num value) native;
 
   // Shadowing definition.
 
-  num get width => JS("num", "#.width", this);
+  num get width native;
 
-  set width(num value) {
-    JS("void", "#.width = #", this, value);
-  }
+  set width(num value) native;
 
   // Shadowing definition.
 
-  num get x => JS("num", "#.x", this);
+  num get x native;
 
-  set x(num value) {
-    JS("void", "#.x = #", this, value);
-  }
+  set x(num value) native;
 
   // Shadowing definition.
 
-  num get y => JS("num", "#.y", this);
+  num get y native;
 
-  set y(num value) {
-    JS("void", "#.y = #", this, value);
-  }
+  set y(num value) native;
 }
 
 /**

@@ -2948,7 +2948,8 @@ class StyleElement extends SvgElement {
   StyleSheet? get sheet native;
 
   // Use implementation from Element.
-  // final String title;
+  // String get title native;
+  // void set title(String value) native;
 
   String get type native;
 
@@ -3282,16 +3283,18 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   // Shadowing definition.
 
-  AnimatedString get _svgClassName => JS("AnimatedString", "#.className", this);
+  AnimatedString get _svgClassName native;
 
   @JSName('ownerSVGElement')
   SvgSvgElement? get ownerSvgElement native;
 
   // Use implementation from Element.
-  // final CssStyleDeclaration style;
+  // CssStyleDeclaration get style native;
+  // void set style(CssStyleDeclaration value) native;
 
   // Use implementation from Element.
-  // final int tabIndex;
+  // int get tabIndex native;
+  // void set tabIndex(int value) native;
 
   SvgElement? get viewportElement native;
 
@@ -4022,7 +4025,9 @@ abstract class ZoomAndPan extends Interceptor {
 
   static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
-  int zoomAndPan;
+  int get zoomAndPan native;
+
+  set zoomAndPan(int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

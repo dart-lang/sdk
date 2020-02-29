@@ -246,19 +246,19 @@ class Cursor extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String direction;
+  String get direction native;
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
-  final Object key;
+  Object get key native;
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
-  final Object primaryKey;
+  Object get primaryKey native;
 
   @Creates('Null')
   @Returns('ObjectStore|Index|Null')
-  final Object source;
+  Object get source native;
 
   void advance(int count) native;
 
@@ -291,7 +291,7 @@ class CursorWithValue extends Cursor {
   @JSName('value')
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _get_value;
+  dynamic get _get_value native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -402,15 +402,15 @@ class Database extends EventTarget {
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent =
       const EventStreamProvider<VersionChangeEvent>('versionchange');
 
-  final String name;
+  String get name native;
 
   @Returns('DomStringList|Null')
   @Creates('DomStringList')
-  final List<String> objectStoreNames;
+  List<String> get objectStoreNames native;
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final int version;
+  int get version native;
 
   void close() native;
 
@@ -656,15 +656,17 @@ class Index extends Interceptor {
   }
 
   @annotation_Creates_SerializedScriptValue
-  final Object keyPath;
+  Object get keyPath native;
 
-  final bool multiEntry;
+  bool get multiEntry native;
 
-  String name;
+  String get name native;
 
-  final ObjectStore objectStore;
+  set name(String value) native;
 
-  final bool unique;
+  ObjectStore get objectStore native;
+
+  bool get unique native;
 
   @JSName('count')
   Request _count(Object key) native;
@@ -725,14 +727,14 @@ class KeyRange extends Interceptor {
   }
 
   @annotation_Creates_SerializedScriptValue
-  final Object lower;
+  Object get lower native;
 
-  final bool lowerOpen;
+  bool get lowerOpen native;
 
   @annotation_Creates_SerializedScriptValue
-  final Object upper;
+  Object get upper native;
 
-  final bool upperOpen;
+  bool get upperOpen native;
 
   @JSName('bound')
   static KeyRange bound_(Object lower, Object upper,
@@ -879,18 +881,20 @@ class ObjectStore extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool autoIncrement;
+  bool get autoIncrement native;
 
   @Returns('DomStringList|Null')
   @Creates('DomStringList')
-  final List<String> indexNames;
+  List<String> get indexNames native;
 
   @annotation_Creates_SerializedScriptValue
-  final Object keyPath;
+  Object get keyPath native;
 
-  String name;
+  String get name native;
 
-  final Transaction transaction;
+  set name(String value) native;
+
+  Transaction get transaction native;
 
   @Returns('Request')
   @Creates('Request')
@@ -1024,11 +1028,11 @@ class Observation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Object key;
+  Object get key native;
 
-  final String type;
+  String get type native;
 
-  final Object value;
+  Object get value native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1070,11 +1074,11 @@ class ObserverChanges extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Database database;
+  Database get database native;
 
-  final Object records;
+  Object get records native;
 
-  final Transaction transaction;
+  Transaction get transaction native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1143,19 +1147,19 @@ class Request extends EventTarget {
   static const EventStreamProvider<Event> successEvent =
       const EventStreamProvider<Event>('success');
 
-  final DomException error;
+  DomException get error native;
 
-  final String readyState;
+  String get readyState native;
 
   dynamic get result => _convertNativeToDart_IDBAny(this._get_result);
   @JSName('result')
   @Creates('Null')
-  final dynamic _get_result;
+  dynamic get _get_result native;
 
   @Creates('Null')
-  final Object source;
+  Object get source native;
 
-  final Transaction transaction;
+  Transaction get transaction native;
 
   /// Stream of `error` events handled by this [Request].
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -1230,15 +1234,15 @@ class Transaction extends EventTarget {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  final Database db;
+  Database get db native;
 
-  final DomException error;
+  DomException get error native;
 
-  final String mode;
+  String get mode native;
 
   @Returns('DomStringList|Null')
   @Creates('DomStringList')
-  final List<String> objectStoreNames;
+  List<String> get objectStoreNames native;
 
   void abort() native;
 
@@ -1280,17 +1284,17 @@ class VersionChangeEvent extends Event {
   static VersionChangeEvent _create_2(type) =>
       JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#)', type);
 
-  final String dataLoss;
+  String get dataLoss native;
 
-  final String dataLossMessage;
-
-  @Creates('int|String|Null')
-  @Returns('int|String|Null')
-  final int newVersion;
+  String get dataLossMessage native;
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final int oldVersion;
+  int get newVersion native;
+
+  @Creates('int|String|Null')
+  @Returns('int|String|Null')
+  int get oldVersion native;
 
   @JSName('target')
   final OpenDBRequest target;
