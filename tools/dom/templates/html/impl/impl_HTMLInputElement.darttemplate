@@ -50,9 +50,6 @@ $!MEMBERS
  * Exposes the functionality common between all InputElement types.
  */
 abstract class InputElementBase implements Element {
-$if NNBD
-  // These fields here and below are overridden by generated code and therefore
-  // can't be nullable. Opted to translate these fields to getters/setters.
   bool get autofocus;
   set autofocus(bool value);
 
@@ -70,19 +67,6 @@ $if NNBD
 
   String get value;
   set value(String value);
-$else
-  bool autofocus;
-
-  bool disabled;
-
-  bool incremental;
-
-  bool indeterminate;
-
-  String name;
-
-  String value;
-$endif
 
   List<Node> get labels;
 
@@ -109,7 +93,6 @@ abstract class HiddenInputElement implements InputElementBase {
  * Base interface for all inputs which involve text editing.
  */
 abstract class TextInputElementBase implements InputElementBase {
-$if NNBD
   String get autocomplete;
   set autocomplete(String value);
 
@@ -130,29 +113,17 @@ $if NNBD
 
   int get size;
   set size(int value);
-$else
-  String autocomplete;
-
-  int maxLength;
-
-  String pattern;
-
-  String placeholder;
-
-  bool readOnly;
-
-  bool required;
-
-  int size;
-$endif
 
   void select();
 
-  String$NULLABLE selectionDirection;
+  String$NULLABLE get selectionDirection;
+  set selectionDirection(String$NULLABLE value);
 
-  int$NULLABLE selectionEnd;
+  int$NULLABLE get selectionEnd;
+  set selectionEnd(int$NULLABLE value);
 
-  int$NULLABLE selectionStart;
+  int$NULLABLE get selectionStart;
+  set selectionStart(int$NULLABLE value);
 
   void setSelectionRange(int start, int end, [String$NULLABLE direction]);
 }
@@ -297,7 +268,6 @@ abstract class RangeInputElementBase implements InputElementBase {
 
   Element$NULLABLE get list;
 
-$if NNBD
   String get max;
   set max(String value);
 
@@ -309,15 +279,6 @@ $if NNBD
 
   num get valueAsNumber;
   set valueAsNumber(num value);
-$else
-  String max;
-
-  String min;
-
-  String step;
-
-  num valueAsNumber;
-$endif
 
   void stepDown([int$NULLABLE n]);
 

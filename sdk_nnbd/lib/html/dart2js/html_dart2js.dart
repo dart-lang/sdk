@@ -115,11 +115,8 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
-  String get nonce => JS("String", "#.nonce", this);
-
-  set nonce(String value) {
-    JS("void", "#.nonce = #", this, value);
-  }
+  String get nonce native;
+  set nonce(String value) native;
 }
 
 /**
@@ -13768,10 +13765,8 @@ class Element extends Node
   String get innerHtml => _innerHtml;
 
   @JSName('innerText')
-  String get innerText => JS<String>("String", "#.innerText", this);
-  set innerText(String value) {
-    JS("void", "#.innerText = #", this, value);
-  }
+  String get innerText native;
+  set innerText(String value) native;
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -13842,7 +13837,7 @@ class Element extends Node
     return result;
   }
 
-  Element get offsetParent => JS("Element", "#.offsetParent", this);
+  Element get offsetParent native;
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
@@ -15424,7 +15419,8 @@ class Event extends Interceptor {
   }
 
   /** The CSS selector involved with event delegation. */
-  String? _selector;
+  String? get _selector native;
+  set _selector(String? value) native;
 
   /**
    * A pointer to the element whose CSS selector matched within which an event
@@ -19245,8 +19241,6 @@ class InputElement extends HtmlElement
  * Exposes the functionality common between all InputElement types.
  */
 abstract class InputElementBase implements Element {
-  // These fields here and below are overridden by generated code and therefore
-  // can't be nullable. Opted to translate these fields to getters/setters.
   bool get autofocus;
   set autofocus(bool value);
 
@@ -19312,11 +19306,14 @@ abstract class TextInputElementBase implements InputElementBase {
 
   void select();
 
-  String? selectionDirection;
+  String? get selectionDirection;
+  set selectionDirection(String? value);
 
-  int? selectionEnd;
+  int? get selectionEnd;
+  set selectionEnd(int? value);
 
-  int? selectionStart;
+  int? get selectionStart;
+  set selectionStart(int? value);
 
   void setSelectionRange(int start, int end, [String? direction]);
 }
@@ -23159,7 +23156,7 @@ class Node extends EventTarget {
    */
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get childNodes => JS("NodeList", "#.childNodes", this);
+  List<Node> get childNodes native;
 
   // To suppress missing implicit constructor warnings.
   factory Node._() {

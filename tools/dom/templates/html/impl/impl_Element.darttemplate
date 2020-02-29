@@ -1428,14 +1428,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   String get innerHtml => _innerHtml;
 
   @JSName('innerText')
-$if NNBD
-  String get innerText => JS<String>("String", "#.innerText", this);
-  set innerText(String value) {
-    JS("void", "#.innerText = #", this, value);
-  }
-$else
-  String innerText;
-$endif
+  String get innerText native;
+  set innerText(String value) native;
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -1503,11 +1497,7 @@ $endif
     return result;
   }
 
-$if NNBD
-  Element get offsetParent => JS("Element", "#.offsetParent", this);
-$else
-  final Element offsetParent;
-$endif
+  Element get offsetParent native;
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 

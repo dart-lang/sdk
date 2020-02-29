@@ -268,11 +268,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    */
   @Returns('NodeList')
   @Creates('NodeList')
-$if NNBD
-  List<Node> get childNodes => JS("NodeList", "#.childNodes", this);
-$else
-  final List<Node> childNodes;
-$endif
+  List<Node> get childNodes native;
 
 $!MEMBERS
 }

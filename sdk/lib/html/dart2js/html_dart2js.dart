@@ -117,7 +117,8 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
-  String nonce;
+  String get nonce native;
+  set nonce(String value) native;
 }
 
 /**
@@ -13746,7 +13747,8 @@ class Element extends Node
   String get innerHtml => _innerHtml;
 
   @JSName('innerText')
-  String innerText;
+  String get innerText native;
+  set innerText(String value) native;
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -13817,7 +13819,7 @@ class Element extends Node
     return result;
   }
 
-  final Element offsetParent;
+  Element get offsetParent native;
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
@@ -15399,7 +15401,8 @@ class Event extends Interceptor {
   }
 
   /** The CSS selector involved with event delegation. */
-  String _selector;
+  String get _selector native;
+  set _selector(String value) native;
 
   /**
    * A pointer to the element whose CSS selector matched within which an event
@@ -19214,17 +19217,23 @@ class InputElement extends HtmlElement
  * Exposes the functionality common between all InputElement types.
  */
 abstract class InputElementBase implements Element {
-  bool autofocus;
+  bool get autofocus;
+  set autofocus(bool value);
 
-  bool disabled;
+  bool get disabled;
+  set disabled(bool value);
 
-  bool incremental;
+  bool get incremental;
+  set incremental(bool value);
 
-  bool indeterminate;
+  bool get indeterminate;
+  set indeterminate(bool value);
 
-  String name;
+  String get name;
+  set name(String value);
 
-  String value;
+  String get value;
+  set value(String value);
 
   List<Node> get labels;
 
@@ -19250,27 +19259,37 @@ abstract class HiddenInputElement implements InputElementBase {
  * Base interface for all inputs which involve text editing.
  */
 abstract class TextInputElementBase implements InputElementBase {
-  String autocomplete;
+  String get autocomplete;
+  set autocomplete(String value);
 
-  int maxLength;
+  int get maxLength;
+  set maxLength(int value);
 
-  String pattern;
+  String get pattern;
+  set pattern(String value);
 
-  String placeholder;
+  String get placeholder;
+  set placeholder(String value);
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
-  int size;
+  int get size;
+  set size(int value);
 
   void select();
 
-  String selectionDirection;
+  String get selectionDirection;
+  set selectionDirection(String value);
 
-  int selectionEnd;
+  int get selectionEnd;
+  set selectionEnd(int value);
 
-  int selectionStart;
+  int get selectionStart;
+  set selectionStart(int value);
 
   void setSelectionRange(int start, int end, [String direction]);
 }
@@ -19414,13 +19433,17 @@ abstract class PasswordInputElement implements TextInputElementBase {
 abstract class RangeInputElementBase implements InputElementBase {
   Element get list;
 
-  String max;
+  String get max;
+  set max(String value);
 
-  String min;
+  String get min;
+  set min(String value);
 
-  String step;
+  String get step;
+  set step(String value);
 
-  num valueAsNumber;
+  num get valueAsNumber;
+  set valueAsNumber(num value);
 
   void stepDown([int n]);
 
@@ -23103,7 +23126,7 @@ class Node extends EventTarget {
    */
   @Returns('NodeList')
   @Creates('NodeList')
-  final List<Node> childNodes;
+  List<Node> get childNodes native;
 
   // To suppress missing implicit constructor warnings.
   factory Node._() {
