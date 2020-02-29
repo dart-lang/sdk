@@ -460,7 +460,8 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 }
 
 void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
-  NoActiveIsolateScope no_active_isolate_scope;
+  // TODO(40836) : Uncomment this line once the issue is fixed.
+  // NoActiveIsolateScope no_active_isolate_scope;
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
   if (thread->isolate_group() == Dart::vm_isolate()->group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
@@ -494,7 +495,8 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   GCType type,
                                   GCReason reason) {
-  NoActiveIsolateScope no_active_isolate_scope;
+  // TODO(40836) : Uncomment this line once the issue is fixed.
+  // NoActiveIsolateScope no_active_isolate_scope;
 
   ASSERT(reason != kNewSpace);
   ASSERT(type != kScavenge);
