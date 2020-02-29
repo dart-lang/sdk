@@ -232,6 +232,9 @@ class LegacyType extends DartType {
   bool _isTop(bool useNullSafety) => baseType.isObject;
 
   @override
+  bool _treatAsRaw(bool useNullSafety) => baseType._treatAsRaw(useNullSafety);
+
+  @override
   bool get containsTypeVariables => baseType.containsTypeVariables;
 
   @override
@@ -288,6 +291,9 @@ class NullableType extends DartType {
 
   @override
   bool _isStrongTop(bool isLegacy) => baseType.isObject;
+
+  @override
+  bool _treatAsRaw(bool useNullSafety) => baseType._treatAsRaw(useNullSafety);
 
   @override
   bool get containsTypeVariables => baseType.containsTypeVariables;
