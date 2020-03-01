@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -4186,8 +4187,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               parameter.identifier);
         }
       }
-      _checkForRedirectToNonConstConstructor(declaration.declaredElement,
-          redirectedConstructor.staticElement, redirectedConstructor);
+      _checkForRedirectToNonConstConstructor(
+        declaration.declaredElement,
+        redirectedConstructor.staticElement,
+        redirectedConstructor,
+      );
     }
     // check if there are redirected invocations
     int numRedirections = 0;
@@ -4222,8 +4226,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
         // [declaration] is a redirecting constructor via a redirecting
         // initializer.
-        _checkForRedirectToNonConstConstructor(declaration.declaredElement,
-            initializer.staticElement, initializer.constructorName);
+        _checkForRedirectToNonConstConstructor(
+          declaration.declaredElement,
+          initializer.staticElement,
+          initializer.constructorName ?? initializer.thisKeyword,
+        );
         numRedirections++;
       }
     }
@@ -4255,15 +4262,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
    */
-  void _checkForRedirectToNonConstConstructor(ConstructorElement element,
-      ConstructorElement redirectedElement, AstNode reportingNode) {
+  void _checkForRedirectToNonConstConstructor(
+    ConstructorElement element,
+    ConstructorElement redirectedElement,
+    SyntacticEntity errorEntity,
+  ) {
     // This constructor is const, but it redirects to a non-const constructor.
     if (redirectedElement != null &&
         element.isConst &&
         !redirectedElement.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
-          reportingNode);
+      _errorReporter.reportErrorForOffset(
+        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+        errorEntity.offset,
+        errorEntity.end - errorEntity.offset,
+      );
     }
   }
 
