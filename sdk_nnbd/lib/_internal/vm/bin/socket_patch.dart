@@ -710,71 +710,73 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       throw ArgumentError("Illegal length $count");
     }
     if (isClosing || isClosed) return null;
-    var length = count == null ? available : min(available, count);
-    if (length == 0) return null;
-    var result = nativeRead(length);
-    if (result is OSError) {
-      reportError(result, StackTrace.current, "Read failed");
+    try {
+      var length = count == null ? available : min(available, count);
+      if (length == 0) return null;
+      Uint8List? list = nativeRead(length);
+      final resourceInformation = resourceInfo;
+      assert(resourceInformation != null ||
+          isPipe ||
+          isInternal ||
+          isInternalSignal);
+      if (list != null) {
+        if (count == null) {
+          // If count is not specified, read as many bytes as possible.
+          // This checks remaining bytes, if available > 0, issue() in
+          // issueReadEvent() will keep reading.
+          available = nativeAvailable();
+        } else {
+          available -= list.length;
+        }
+        if (resourceInformation != null) {
+          resourceInformation.totalRead += list.length;
+        }
+      }
+      if (resourceInformation != null) {
+        resourceInformation.didRead();
+      }
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectStatistic(
+            nativeGetSocketId(), _SocketProfileType.readBytes, list?.length);
+      }
+      return list;
+    } catch (e) {
+      reportError(e, StackTrace.current, "Read failed");
       return null;
     }
-    final list = result as Uint8List?;
-    if (list != null) {
-      if (count == null) {
-        // If count is not specified, read as many bytes as possible.
-        // This checks remaining bytes, if available > 0, issue() in
-        // issueReadEvent() will keep reading.
-        available = nativeAvailable();
-      } else {
-        available -= list.length;
-      }
-      // TODO(ricow): Remove when we track internal and pipe uses.
-      assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-      if (resourceInfo != null) {
-        resourceInfo!.totalRead += list.length;
-      }
-    }
-    // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-    if (resourceInfo != null) {
-      resourceInfo!.didRead();
-    }
-    if (!const bool.fromEnvironment("dart.vm.product")) {
-      _SocketProfile.collectStatistic(
-          nativeGetSocketId(), _SocketProfileType.readBytes, list?.length);
-    }
-    return list;
   }
 
   Datagram? receive() {
     if (isClosing || isClosed) return null;
-    var result = nativeRecvFrom();
-    if (result is OSError) {
-      reportError(result, StackTrace.current, "Receive failed");
+    try {
+      Datagram? datagram = nativeRecvFrom();
+      final resourceInformation = resourceInfo;
+      assert(resourceInformation != null ||
+          isPipe ||
+          isInternal ||
+          isInternalSignal);
+      if (datagram != null) {
+        // Read the next available. Available is only for the next datagram, not
+        // the sum of all datagrams pending, so we need to call after each
+        // receive. If available becomes > 0, the _NativeSocket will continue to
+        // emit read events.
+        available = nativeAvailable();
+        if (resourceInformation != null) {
+          resourceInformation.totalRead += datagram.data.length;
+        }
+      }
+      if (resourceInformation != null) {
+        resourceInformation.didRead();
+      }
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectStatistic(nativeGetSocketId(),
+            _SocketProfileType.readBytes, datagram?.data.length);
+      }
+      return datagram;
+    } catch (e) {
+      reportError(e, StackTrace.current, "Receive failed");
       return null;
     }
-    final datagram = result as Datagram?;
-    if (datagram != null) {
-      // Read the next available. Available is only for the next datagram, not
-      // the sum of all datagrams pending, so we need to call after each
-      // receive. If available becomes > 0, the _NativeSocket will continue to
-      // emit read events.
-      available = nativeAvailable();
-      // TODO(ricow): Remove when we track internal and pipe uses.
-      assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-      if (resourceInfo != null) {
-        resourceInfo!.totalRead += datagram.data.length;
-      }
-    }
-    // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-    if (resourceInfo != null) {
-      resourceInfo!.didRead();
-    }
-    if (!const bool.fromEnvironment("dart.vm.product")) {
-      _SocketProfile.collectStatistic(nativeGetSocketId(),
-          _SocketProfileType.readBytes, datagram?.data.length);
-    }
-    return datagram;
   }
 
   static int _fixOffset(int? offset) => offset ?? 0;
@@ -795,64 +797,70 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
     if (isClosing || isClosed) return 0;
     if (bytes == 0) return 0;
-    _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableByteData(buffer, offset, offset + bytes);
-    if (!const bool.fromEnvironment("dart.vm.product")) {
-      _SocketProfile.collectStatistic(
-          nativeGetSocketId(),
-          _SocketProfileType.writeBytes,
-          bufferAndStart.buffer.length - bufferAndStart.start);
-    }
-    var result =
-        nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
-    if (result is OSError) {
-      OSError osError = result;
+    try {
+      _BufferAndStart bufferAndStart =
+          _ensureFastAndSerializableByteData(buffer, offset, offset + bytes);
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectStatistic(
+            nativeGetSocketId(),
+            _SocketProfileType.writeBytes,
+            bufferAndStart.buffer.length - bufferAndStart.start);
+      }
+      int result =
+          nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
+      // The result may be negative, if we forced a short write for testing
+      // purpose. In such case, don't mark writeAvailable as false, as we don't
+      // know if we'll receive an event. It's better to just retry.
+      if (result >= 0 && result < bytes) {
+        writeAvailable = false;
+      }
+      // Negate the result, as stated above.
+      if (result < 0) result = -result;
+      final resourceInformation = resourceInfo;
+      assert(resourceInformation != null ||
+          isPipe ||
+          isInternal ||
+          isInternalSignal);
+      if (resourceInformation != null) {
+        resourceInformation.addWrite(result);
+      }
+      return result;
+    } catch (e) {
       StackTrace st = StackTrace.current;
-      scheduleMicrotask(() => reportError(osError, st, "Write failed"));
-      result = 0;
+      scheduleMicrotask(() => reportError(e, st, "Write failed"));
+      return 0;
     }
-    // The result may be negative, if we forced a short write for testing
-    // purpose. In such case, don't mark writeAvailable as false, as we don't
-    // know if we'll receive an event. It's better to just retry.
-    if (result >= 0 && result < bytes) {
-      writeAvailable = false;
-    }
-    // Negate the result, as stated above.
-    if (result < 0) result = -result;
-    // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-    if (resourceInfo != null) {
-      resourceInfo!.addWrite(result);
-    }
-    return result;
   }
 
   int send(List<int> buffer, int offset, int bytes, InternetAddress address,
       int port) {
     _throwOnBadPort(port);
     if (isClosing || isClosed) return 0;
-    _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableByteData(buffer, offset, bytes);
-    if (!const bool.fromEnvironment("dart.vm.product")) {
-      _SocketProfile.collectStatistic(
-          nativeGetSocketId(),
-          _SocketProfileType.writeBytes,
-          bufferAndStart.buffer.length - bufferAndStart.start);
-    }
-    var result = nativeSendTo(bufferAndStart.buffer, bufferAndStart.start,
-        bytes, (address as _InternetAddress)._in_addr, port);
-    if (result is OSError) {
-      OSError osError = result;
+    try {
+      _BufferAndStart bufferAndStart =
+          _ensureFastAndSerializableByteData(buffer, offset, bytes);
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectStatistic(
+            nativeGetSocketId(),
+            _SocketProfileType.writeBytes,
+            bufferAndStart.buffer.length - bufferAndStart.start);
+      }
+      int result = nativeSendTo(bufferAndStart.buffer, bufferAndStart.start,
+          bytes, (address as _InternetAddress)._in_addr, port);
+      final resourceInformation = resourceInfo;
+      assert(resourceInformation != null ||
+          isPipe ||
+          isInternal ||
+          isInternalSignal);
+      if (resourceInformation != null) {
+        resourceInformation.addWrite(result);
+      }
+      return result;
+    } catch (e) {
       StackTrace st = StackTrace.current;
-      scheduleMicrotask(() => reportError(osError, st, "Send failed"));
-      result = 0;
+      scheduleMicrotask(() => reportError(e, st, "Send failed"));
+      return 0;
     }
-    // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-    if (resourceInfo != null) {
-      resourceInfo!.addWrite(result);
-    }
-    return result;
   }
 
   _NativeSocket? accept() {
@@ -867,11 +875,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     socket.localPort = localPort;
     socket.localAddress = address;
     setupResourceInfo(socket);
-    // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-    if (resourceInfo != null) {
+    final resourceInformation = resourceInfo;
+    assert(resourceInformation != null ||
+        isPipe ||
+        isInternal ||
+        isInternalSignal);
+    if (resourceInformation != null) {
       // We track this as read one byte.
-      resourceInfo!.addRead(1);
+      resourceInformation.addRead(1);
     }
     return socket;
   }
@@ -879,16 +890,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   int get port {
     if (localPort != 0) return localPort;
     if (isClosing || isClosed) throw const SocketException.closed();
-    var result = nativeGetPort();
-    if (result is OSError) throw result;
-    return localPort = result;
+    return localPort = nativeGetPort();
   }
 
   int get remotePort {
     if (isClosing || isClosed) throw const SocketException.closed();
-    var result = nativeGetRemotePeer();
-    if (result is OSError) throw result;
-    return result[1];
+    return nativeGetRemotePeer()[1];
   }
 
   InternetAddress get address => localAddress;
@@ -896,7 +903,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   InternetAddress get remoteAddress {
     if (isClosing || isClosed) throw const SocketException.closed();
     var result = nativeGetRemotePeer();
-    if (result is OSError) throw result;
     var addr = result[0];
     var type = new InternetAddressType._from(addr[0]);
     return new _InternetAddress(addr[1], null, addr[2]);
@@ -987,11 +993,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         if (i == destroyedEvent) {
           assert(isClosing);
           assert(!isClosed);
-          // TODO(ricow): Remove/update when we track internal and pipe uses.
-          assert(
-              resourceInfo != null || isPipe || isInternal || isInternalSignal);
-          if (resourceInfo != null) {
-            _SocketResourceInfo.SocketClosed(resourceInfo!);
+          final resourceInformation = resourceInfo;
+          assert(resourceInformation != null ||
+              isPipe ||
+              isInternal ||
+              isInternalSignal);
+          if (resourceInformation != null) {
+            _SocketResourceInfo.SocketClosed(resourceInformation!);
           }
           isClosed = true;
           closeCompleter.complete();
@@ -1180,8 +1188,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool setOption(SocketOption option, value) {
     // TODO: Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
-    var result = nativeSetOption(option._value, address.type._value, value);
-    if (result != null) throw result;
+    nativeSetOption(option._value, address.type._value, value);
     return true;
   }
 
@@ -1189,8 +1196,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO: Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
     ArgumentError.checkNotNull(option.value, "option.value");
-    var result = nativeGetRawOption(option.level, option.option, option.value);
-    if (result != null) throw result;
+    nativeGetRawOption(option.level, option.option, option.value);
     return option.value;
   }
 
@@ -1198,8 +1204,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO: Remove once non-nullability is sound.
     ArgumentError.checkNotNull(option, "option");
     ArgumentError.checkNotNull(option.value, "option.value");
-    var result = nativeSetRawOption(option.level, option.option, option.value);
-    if (result != null) throw result;
+    nativeSetRawOption(option.level, option.option, option.value);
   }
 
   InternetAddress? multicastAddress(
@@ -1230,27 +1235,25 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     final interfaceAddr =
         multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
-    var result = nativeJoinMulticast((addr as _InternetAddress)._in_addr,
+    nativeJoinMulticast((addr as _InternetAddress)._in_addr,
         interfaceAddr?._in_addr, interfaceIndex);
-    if (result is OSError) throw result;
   }
 
   void leaveMulticast(InternetAddress addr, NetworkInterface? interface) {
     final interfaceAddr =
         multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
-    var result = nativeLeaveMulticast((addr as _InternetAddress)._in_addr,
+    nativeLeaveMulticast((addr as _InternetAddress)._in_addr,
         interfaceAddr?._in_addr, interfaceIndex);
-    if (result is OSError) throw result;
   }
 
   void nativeSetSocketId(int id, int typeFlags) native "Socket_SetSocketId";
-  nativeAvailable() native "Socket_Available";
-  nativeRead(int len) native "Socket_Read";
-  nativeRecvFrom() native "Socket_RecvFrom";
-  nativeWrite(List<int> buffer, int offset, int bytes)
+  int nativeAvailable() native "Socket_Available";
+  Uint8List? nativeRead(int len) native "Socket_Read";
+  Datagram? nativeRecvFrom() native "Socket_RecvFrom";
+  int nativeWrite(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
-  nativeSendTo(List<int> buffer, int offset, int bytes, Uint8List address,
+  int nativeSendTo(List<int> buffer, int offset, int bytes, Uint8List address,
       int port) native "Socket_SendTo";
   nativeCreateConnect(Uint8List addr, int port, int scope_id)
       native "Socket_CreateConnect";
@@ -1261,21 +1264,21 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       bool shared, int scope_id) native "ServerSocket_CreateBindListen";
   nativeCreateBindDatagram(Uint8List addr, int port, bool reuseAddress,
       bool reusePort, int ttl) native "Socket_CreateBindDatagram";
-  nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
+  bool nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
   int nativeGetPort() native "Socket_GetPort";
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
   int nativeGetSocketId() native "Socket_GetSocketId";
   OSError nativeGetError() native "Socket_GetError";
   nativeGetOption(int option, int protocol) native "Socket_GetOption";
-  OSError nativeGetRawOption(int level, int option, Uint8List data)
+  void nativeGetRawOption(int level, int option, Uint8List data)
       native "Socket_GetRawOption";
-  OSError nativeSetOption(int option, int protocol, value)
+  void nativeSetOption(int option, int protocol, value)
       native "Socket_SetOption";
-  OSError nativeSetRawOption(int level, int option, Uint8List data)
+  void nativeSetRawOption(int level, int option, Uint8List data)
       native "Socket_SetRawOption";
-  OSError nativeJoinMulticast(Uint8List addr, Uint8List? interfaceAddr,
+  void nativeJoinMulticast(Uint8List addr, Uint8List? interfaceAddr,
       int interfaceIndex) native "Socket_JoinMulticast";
-  bool nativeLeaveMulticast(Uint8List addr, Uint8List? interfaceAddr,
+  void nativeLeaveMulticast(Uint8List addr, Uint8List? interfaceAddr,
       int interfaceIndex) native "Socket_LeaveMulticast";
 }
 

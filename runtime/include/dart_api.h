@@ -164,7 +164,7 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  * 2      intptr_t* length = 0;
  * 3      result = Dart_StringLength(arg, &length);
  * 4      if (Dart_IsError(result)) {
- * 5        return result
+ * 5        return result;
  * 6      }
  * 7      return Dart_NewBoolean(length > 100);
  * 8    }

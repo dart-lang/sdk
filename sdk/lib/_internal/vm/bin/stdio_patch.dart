@@ -163,5 +163,6 @@ class Stdout {
   static _getAnsiSupported(int fd) native "Stdout_AnsiSupported";
 }
 
-_getStdioHandle(_NativeSocket socket, int num) native "Socket_GetStdioHandle";
+bool _getStdioHandle(_NativeSocket socket, int num)
+    native "Socket_GetStdioHandle";
 _getSocketType(_NativeSocket nativeSocket) native "Socket_GetType";
