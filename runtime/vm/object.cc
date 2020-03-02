@@ -7426,45 +7426,10 @@ bool Function::AreValidArguments(NNBDMode mode,
                                  intptr_t num_arguments,
                                  const Array& argument_names,
                                  String* error_message) const {
-  const intptr_t num_named_arguments =
-      argument_names.IsNull() ? 0 : argument_names.Length();
-  if (!AreValidArgumentCounts(num_type_arguments, num_arguments,
-                              num_named_arguments, error_message)) {
-    return false;
-  }
-  // Verify that all argument names are valid parameter names.
-  Zone* zone = Thread::Current()->zone();
-  String& argument_name = String::Handle(zone);
-  String& parameter_name = String::Handle(zone);
-  for (intptr_t i = 0; i < num_named_arguments; i++) {
-    argument_name ^= argument_names.At(i);
-    ASSERT(argument_name.IsSymbol());
-    bool found = false;
-    const intptr_t num_positional_args = num_arguments - num_named_arguments;
-    const intptr_t num_parameters = NumParameters();
-    for (intptr_t j = num_positional_args; !found && (j < num_parameters);
-         j++) {
-      parameter_name = ParameterNameAt(j);
-      ASSERT(argument_name.IsSymbol());
-      if (argument_name.Equals(parameter_name)) {
-        found = true;
-      }
-    }
-    if (!found) {
-      if (error_message != NULL) {
-        const intptr_t kMessageBufferSize = 64;
-        char message_buffer[kMessageBufferSize];
-        Utils::SNPrint(message_buffer, kMessageBufferSize,
-                       "no optional formal parameter named '%s'",
-                       argument_name.ToCString());
-        // Allocate in old space because it can be invoked in background
-        // optimizing compilation.
-        *error_message = String::New(message_buffer, Heap::kOld);
-      }
-      return false;
-    }
-  }
-  return true;
+  const Array& args_desc_array = Array::Handle(ArgumentsDescriptor::New(
+      num_type_arguments, num_arguments, argument_names, Heap::kNew));
+  ArgumentsDescriptor args_desc(args_desc_array);
+  return AreValidArguments(mode, args_desc, error_message);
 }
 
 bool Function::AreValidArguments(NNBDMode mode,
@@ -7478,39 +7443,63 @@ bool Function::AreValidArguments(NNBDMode mode,
                               num_named_arguments, error_message)) {
     return false;
   }
-  if (FLAG_null_safety) {
-    // TODO(regis): Check required named arguments.
-  }
   // Verify that all argument names are valid parameter names.
   Zone* zone = Thread::Current()->zone();
   String& argument_name = String::Handle(zone);
   String& parameter_name = String::Handle(zone);
+  const intptr_t num_positional_args = num_arguments - num_named_arguments;
+  const intptr_t num_parameters = NumParameters();
   for (intptr_t i = 0; i < num_named_arguments; i++) {
     argument_name = args_desc.NameAt(i);
     ASSERT(argument_name.IsSymbol());
     bool found = false;
-    const intptr_t num_positional_args = num_arguments - num_named_arguments;
-    const int num_parameters = NumParameters();
-    for (intptr_t j = num_positional_args; !found && (j < num_parameters);
-         j++) {
+    for (intptr_t j = num_positional_args; j < num_parameters; j++) {
       parameter_name = ParameterNameAt(j);
-      ASSERT(argument_name.IsSymbol());
+      ASSERT(parameter_name.IsSymbol());
       if (argument_name.Equals(parameter_name)) {
         found = true;
+        break;
       }
     }
     if (!found) {
-      if (error_message != NULL) {
+      if (error_message != nullptr) {
         const intptr_t kMessageBufferSize = 64;
         char message_buffer[kMessageBufferSize];
         Utils::SNPrint(message_buffer, kMessageBufferSize,
                        "no optional formal parameter named '%s'",
                        argument_name.ToCString());
-        // Allocate in old space because it can be invoked in background
-        // optimizing compilation.
-        *error_message = String::New(message_buffer, Heap::kOld);
+        *error_message = String::New(message_buffer);
       }
       return false;
+    }
+  }
+  if (FLAG_null_safety) {
+    // Verify that all required named parameters are filled.
+    for (intptr_t j = num_positional_args; j < num_parameters; j++) {
+      if (IsRequiredAt(j)) {
+        parameter_name = ParameterNameAt(j);
+        ASSERT(parameter_name.IsSymbol());
+        bool found = false;
+        for (intptr_t i = 0; i < num_named_arguments; i++) {
+          argument_name = args_desc.NameAt(i);
+          ASSERT(argument_name.IsSymbol());
+          if (argument_name.Equals(parameter_name)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          if (error_message != nullptr) {
+            const intptr_t kMessageBufferSize = 64;
+            char message_buffer[kMessageBufferSize];
+            Utils::SNPrint(message_buffer, kMessageBufferSize,
+                           "missing required named parameter '%s'",
+                           parameter_name.ToCString());
+            *error_message = String::New(message_buffer);
+          }
+          return false;
+        }
+      }
     }
   }
   return true;
