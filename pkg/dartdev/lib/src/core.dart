@@ -7,6 +7,9 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:path/path.dart' as path;
+
+import 'utils.dart';
 
 Logger log;
 bool isVerbose = false;
@@ -15,6 +18,8 @@ abstract class DartdevCommand<int> extends Command {
   final String _name;
   final String _description;
 
+  Project _project;
+
   DartdevCommand(this._name, this._description);
 
   @override
@@ -22,8 +27,12 @@ abstract class DartdevCommand<int> extends Command {
 
   @override
   String get description => _description;
+
+  Project get project => (_project ??= Project());
 }
 
+/// A utility method to start the given executable as a process, optionally
+/// providing a current working directory.
 Future<Process> startProcess(
   String executable,
   List<String> arguments, {
@@ -31,15 +40,6 @@ Future<Process> startProcess(
 }) {
   log.trace('$executable ${arguments.join(' ')}');
   return Process.start(executable, arguments, workingDirectory: cwd);
-}
-
-ProcessResult runSync(
-  String executable,
-  List<String> arguments, {
-  String cwd,
-}) {
-  log.trace('$executable ${arguments.join(' ')}');
-  return Process.runSync(executable, arguments, workingDirectory: cwd);
 }
 
 void routeToStdout(
@@ -69,22 +69,54 @@ void routeToStdout(
   }
 }
 
-void routeToStdoutStreaming(Process process) {
-  if (isVerbose) {
-    _streamLineTransform(
-        process.stdout, (line) => log.stdout(line.trimRight()));
-    _streamLineTransform(
-        process.stderr, (line) => log.stderr(line.trimRight()));
-  } else {
-    process.stdout.listen((List<int> data) => stdout.add(data));
-    _streamLineTransform(
-        process.stderr, (line) => log.stderr(line.trimRight()));
-  }
-}
-
 void _streamLineTransform(Stream<List<int>> stream, handler(String line)) {
   stream
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen(handler);
+}
+
+/// A representation of a project on disk.
+class Project {
+  final Directory dir;
+
+  PackageConfig _packageConfig;
+
+  Project() : dir = Directory.current;
+
+  Project.fromDirectory(this.dir);
+
+  bool get hasPackageConfigFile => packageConfig != null;
+
+  PackageConfig get packageConfig {
+    if (_packageConfig == null) {
+      File file =
+          File(path.join(dir.path, '.dart_tool', 'package_config.json'));
+
+      if (file.existsSync()) {
+        try {
+          dynamic contents = json.decode(file.readAsStringSync());
+          _packageConfig = PackageConfig(contents);
+        } catch (_) {}
+      }
+    }
+
+    return _packageConfig;
+  }
+}
+
+/// A simple representation of a `package_config.json` file.
+class PackageConfig {
+  final Map<String, dynamic> contents;
+
+  PackageConfig(this.contents);
+
+  List<Map<String, dynamic>> get packages {
+    List<dynamic> _packages = contents['packages'];
+    return _packages.map<Map<String, dynamic>>(castStringKeyedMap).toList();
+  }
+
+  bool hasDependency(String packageName) {
+    return packages.any((element) => element['name'] == packageName);
+  }
 }

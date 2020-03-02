@@ -104,17 +104,17 @@ class AnalysisServer {
 
         if (params is Map<String, dynamic>) {
           if (event == 'server.status') {
-            _handleStatus(_castStringKeyedMap(response['params']));
+            _handleStatus(castStringKeyedMap(response['params']));
           } else if (event == 'analysis.errors') {
-            _handleAnalysisIssues(_castStringKeyedMap(response['params']));
+            _handleAnalysisIssues(castStringKeyedMap(response['params']));
           } else if (event == 'server.error') {
-            _handleServerError(_castStringKeyedMap(response['params']));
+            _handleServerError(castStringKeyedMap(response['params']));
           }
         }
       } else if (response['error'] != null) {
         // Fields are 'code', 'message', and 'stackTrace'.
         final Map<String, dynamic> error =
-            _castStringKeyedMap(response['error']);
+            castStringKeyedMap(response['error']);
         log.stderr(
             'Error response from the server: ${error['code']} ${error['message']}');
         if (error['stackTrace'] != null) {
@@ -148,7 +148,7 @@ class AnalysisServer {
     final String file = issueInfo['file'] as String;
     final List<dynamic> errorsList = issueInfo['errors'] as List<dynamic>;
     final List<AnalysisError> errors = errorsList
-        .map<Map<String, dynamic>>(_castStringKeyedMap)
+        .map<Map<String, dynamic>>(castStringKeyedMap)
         .map<AnalysisError>((Map<String, dynamic> json) => AnalysisError(json))
         .toList();
     if (!_errorsController.isClosed) {
@@ -161,13 +161,6 @@ class AnalysisServer {
     await _errorsController.close();
     return _process?.kill();
   }
-}
-
-/// Given a data structure which is a Map of String to dynamic values, return
-/// the same structure (`Map<String, dynamic>`) with the correct runtime types.
-Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
-  final Map<dynamic, dynamic> map = untyped as Map<dynamic, dynamic>;
-  return map?.cast<String, dynamic>();
 }
 
 enum _AnalysisSeverity {

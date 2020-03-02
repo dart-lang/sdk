@@ -10,6 +10,8 @@ import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
 import 'commands/migrate_test.dart' as migrate;
 import 'commands/pub_test.dart' as pub;
+import 'core_test.dart' as core;
+import 'sdk_test.dart' as sdk;
 import 'utils_test.dart' as utils;
 
 main() {
@@ -20,6 +22,8 @@ main() {
     format.main();
     migrate.main();
     pub.main();
+    core.main();
+    sdk.main();
     utils.main();
   });
 }
