@@ -463,12 +463,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
   // We don't need to check nullability of LHS for nullable and legacy RHS
   // ("Right Legacy", "Right Nullable" rules).
   if (FLAG_null_safety && !type_arg.IsNullable() && !type_arg.IsLegacy()) {
-    ASSERT((type_arg.IsTypeParameter() && type_arg.IsUndetermined()) ||
-           type_arg.IsNonNullable());
-
     compiler::Label skip_nullable_check;
-    if (type_arg.IsUndetermined()) {
-      ASSERT(type_arg.IsTypeParameter());
+    if (type_arg.IsTypeParameter()) {
       // Skip the nullability check if actual RHS is nullable or legacy.
       // TODO(dartbug.com/40736): Allocate register for own_type_arg_reg
       //  which is not clobbered and avoid reloading own_type_arg_reg.
@@ -501,7 +497,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
                                   compiler::target::Nullability::kNullable);
     __ BranchIf(EQUAL, check_failed);
 
-    if (type_arg.IsUndetermined()) {
+    if (type_arg.IsTypeParameter()) {
       __ Bind(&skip_nullable_check);
     }
   }

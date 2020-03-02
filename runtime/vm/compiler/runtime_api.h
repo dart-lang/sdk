@@ -608,7 +608,6 @@ class TypeRef : public AllStatic {
 
 class Nullability : public AllStatic {
  public:
-  static const int8_t kUndetermined;
   static const int8_t kNullable;
   static const int8_t kNonNullable;
   static const int8_t kLegacy;

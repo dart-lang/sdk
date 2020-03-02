@@ -163,6 +163,14 @@ enum ConstantTag {
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
+enum class KernelNullability : int8_t {
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
+  kLegacy = 3,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
 enum Variance {
   kUnrelated = 0,
   kCovariant = 1,
@@ -346,9 +354,22 @@ class Reader : public ValueObject {
     }
   }
 
+  static Nullability ConvertNullability(KernelNullability kernel_nullability) {
+    switch (kernel_nullability) {
+      case KernelNullability::kNullable:
+        return Nullability::kNullable;
+      case KernelNullability::kLegacy:
+        return Nullability::kLegacy;
+      case KernelNullability::kNonNullable:
+      case KernelNullability::kUndetermined:
+        return Nullability::kNonNullable;
+    }
+    UNREACHABLE();
+  }
+
   Nullability ReadNullability() {
-    uint8_t byte = ReadByte();
-    return static_cast<Nullability>(byte);
+    const uint8_t byte = ReadByte();
+    return ConvertNullability(static_cast<KernelNullability>(byte));
   }
 
   Variance ReadVariance() {

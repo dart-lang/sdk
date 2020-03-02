@@ -7754,11 +7754,11 @@ RawFunction* Function::InstantiateSignatureFrom(
           }
           cls = type_param.parameterized_class();
           param_name = type_param.name();
-          const bool is_generic_covariant = type_param.IsGenericCovariantImpl();
           ASSERT(type_param.IsFinalized());
-          type_param =
-              TypeParameter::New(cls, sig, type_param.index(), param_name, type,
-                                 is_generic_covariant, type_param.token_pos());
+          type_param = TypeParameter::New(
+              cls, sig, type_param.index(), param_name, type,
+              type_param.IsGenericCovariantImpl(), type_param.nullability(),
+              type_param.token_pos());
           type_param.SetIsFinalized();
           if (instantiated_type_params.IsNull()) {
             instantiated_type_params = TypeArguments::New(type_params.Length());
@@ -18262,10 +18262,6 @@ const char* AbstractType::NullabilitySuffix(
   }
   // Keep in sync with Nullability enum in runtime/vm/object.h.
   switch (nullability()) {
-    case Nullability::kUndetermined:
-      return (FLAG_show_internal_names || name_visibility == kInternalName)
-                 ? "%"
-                 : "";
     case Nullability::kNullable:
       return "?";
     case Nullability::kNonNullable:
@@ -19693,19 +19689,16 @@ bool TypeParameter::IsEquivalent(const Instance& other,
   Nullability other_type_param_nullability = other_type_param.nullability();
   if (kind == TypeEquality::kInSubtypeTest) {
     if (FLAG_null_safety &&
-        this_type_param_nullability == Nullability::kNullable &&
-        (other_type_param_nullability == Nullability::kNonNullable ||
-         other_type_param_nullability == Nullability::kUndetermined)) {
+        (this_type_param_nullability == Nullability::kNullable) &&
+        (other_type_param_nullability == Nullability::kNonNullable)) {
       return false;
     }
   } else {
     if (kind == TypeEquality::kSyntactical) {
-      if (this_type_param_nullability == Nullability::kLegacy ||
-          this_type_param_nullability == Nullability::kUndetermined) {
+      if (this_type_param_nullability == Nullability::kLegacy) {
         this_type_param_nullability = Nullability::kNonNullable;
       }
-      if (other_type_param_nullability == Nullability::kLegacy ||
-          other_type_param_nullability == Nullability::kUndetermined) {
+      if (other_type_param_nullability == Nullability::kLegacy) {
         other_type_param_nullability = Nullability::kNonNullable;
       }
     } else {
@@ -19894,6 +19887,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
                                      const String& name,
                                      const AbstractType& bound,
                                      bool is_generic_covariant_impl,
+                                     Nullability nullability,
                                      TokenPosition token_pos) {
   ASSERT(parameterized_class.IsNull() != parameterized_function.IsNull());
   Zone* Z = Thread::Current()->zone();
@@ -19904,7 +19898,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_name(name);
   result.set_bound(bound);
   result.set_flags(0);
-  result.set_nullability(Nullability::kLegacy);
+  result.set_nullability(nullability);
   result.SetGenericCovariantImpl(is_generic_covariant_impl);
   result.SetHash(0);
   result.set_token_pos(token_pos);

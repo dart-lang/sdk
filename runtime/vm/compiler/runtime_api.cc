@@ -638,8 +638,6 @@ const word Symbols::kNullCharCodeSymbolOffset =
 
 const word String::kHashBits = dart::String::kHashBits;
 
-const int8_t Nullability::kUndetermined =
-    static_cast<int8_t>(dart::Nullability::kUndetermined);
 const int8_t Nullability::kNullable =
     static_cast<int8_t>(dart::Nullability::kNullable);
 const int8_t Nullability::kNonNullable =

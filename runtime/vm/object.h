@@ -873,12 +873,10 @@ typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 // The third string in the triplet is "print" if the triplet should be printed.
 typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
-// Keep in sync with package:kernel/lib/ast.dart
 enum class Nullability : int8_t {
-  kUndetermined = 0,
-  kNullable = 1,
-  kNonNullable = 2,
-  kLegacy = 3,
+  kNullable = 0,
+  kNonNullable = 1,
+  kLegacy = 2,
 };
 
 // Equality kind between types.
@@ -7307,15 +7305,20 @@ class AbstractType : public Instance {
   virtual void SetIsBeingFinalized() const;
 
   virtual Nullability nullability() const;
-  virtual bool IsUndetermined() const {
-    return nullability() == Nullability::kUndetermined;
-  }
+  // Returns true if type has '?' nullability suffix, or it is a
+  // built-in type which is always nullable (Null, dynamic or void).
   virtual bool IsNullable() const {
     return nullability() == Nullability::kNullable;
   }
+  // Returns true if type does not have any nullability suffix.
+  // This function also returns true for type parameters without
+  // nullability suffix ("T") which can be instantiated with
+  // nullable or legacy types.
   virtual bool IsNonNullable() const {
     return nullability() == Nullability::kNonNullable;
   }
+  // Returns true if type has '*' nullability suffix, i.e.
+  // it is from a legacy (opted-out) library.
   virtual bool IsLegacy() const {
     return nullability() == Nullability::kLegacy;
   }
@@ -7702,7 +7705,6 @@ class Type : public AbstractType {
   void set_type_state(int8_t state) const;
   void set_nullability(Nullability value) const {
     ASSERT(!IsCanonical());
-    ASSERT(value != Nullability::kUndetermined);
     StoreNonPointer(&raw_ptr()->nullability_, static_cast<int8_t>(value));
   }
 
@@ -7881,6 +7883,7 @@ class TypeParameter : public AbstractType {
                                const String& name,
                                const AbstractType& bound,
                                bool is_generic_covariant_impl,
+                               Nullability nullability,
                                TokenPosition token_pos);
 
  private:

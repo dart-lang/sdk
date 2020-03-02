@@ -1106,8 +1106,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
       // It is also an instance of FutureOr<T> if it is an instance of T.
       const AbstractType& unwrapped_type =
           AbstractType::Handle(type.UnwrapFutureOr());
-      ASSERT(unwrapped_type.IsInstantiated() &&
-             !unwrapped_type.IsUndetermined());
+      ASSERT(unwrapped_type.IsInstantiated());
       is_subtype = unwrapped_type.IsTopType() || unwrapped_type.IsNullable() ||
                    (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType());
     } else {
