@@ -454,6 +454,8 @@ const char* CatchEntryMove::ToCString() const {
 }
 
 void CatchEntryMovesMapReader::PrintEntries() {
+  NoSafepointScope no_safepoint;
+
   using Reader = ReadStream::Raw<sizeof(intptr_t), intptr_t>;
 
   ReadStream stream(static_cast<uint8_t*>(bytes_.DataAddr(0)), bytes_.Length());
