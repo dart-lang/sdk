@@ -294,7 +294,7 @@ def dart_recipe(name):
     return luci.recipe(
         name="dart/" + name,
         cipd_package=
-        "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
+        "dart/recipe_bundles/dart.googlesource.com/recipes",
     )
 
 
