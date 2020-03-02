@@ -185,8 +185,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case TypeUseKind.TYPE_LITERAL:
           _customElementsResolutionAnalysis.registerTypeLiteral(type);
-          if (type is TypeVariableType) {
-            TypeVariableType typeVariable = type;
+          var typeWithoutNullability = type.withoutNullability;
+          if (typeWithoutNullability is TypeVariableType) {
+            TypeVariableType typeVariable = typeWithoutNullability;
             Entity typeDeclaration = typeVariable.element.typeDeclaration;
             if (typeDeclaration is ClassEntity) {
               _rtiNeedBuilder
@@ -331,21 +332,23 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     registerImpact(_impacts.typeCheck);
 
-    if (!_dartTypes.treatAsRawType(type) ||
-        type.containsTypeVariables ||
-        type is FunctionType) {
+    var typeWithoutNullability = type.withoutNullability;
+    if (!_dartTypes.treatAsRawType(typeWithoutNullability) ||
+        typeWithoutNullability.containsTypeVariables ||
+        typeWithoutNullability is FunctionType) {
       registerImpact(_impacts.genericTypeCheck);
-      if (type is TypeVariableType) {
+      if (typeWithoutNullability is TypeVariableType) {
         registerImpact(_impacts.typeVariableTypeCheck);
       }
     }
-    if (type is FunctionType) {
+    if (typeWithoutNullability is FunctionType) {
       registerImpact(_impacts.functionTypeCheck);
     }
-    if (type is InterfaceType && _nativeBasicData.isNativeClass(type.element)) {
+    if (typeWithoutNullability is InterfaceType &&
+        _nativeBasicData.isNativeClass(typeWithoutNullability.element)) {
       registerImpact(_impacts.nativeTypeCheck);
     }
-    if (type is FutureOrType) {
+    if (typeWithoutNullability is FutureOrType) {
       registerImpact(_impacts.futureOrTypeCheck);
     }
   }
@@ -377,16 +380,20 @@ class CodegenImpactTransformer {
       this._rtiChecksBuilder,
       this._nativeEmitter);
 
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
+
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
-    if (type is DynamicType) return;
-    if (type is VoidType) return;
+    if (_dartTypes.isTopType(type)) return;
+
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
 
-    if (!_closedWorld.dartTypes.treatAsRawType(type) ||
-        type.containsTypeVariables) {
+    var typeWithoutNullability = type.withoutNullability;
+    if (!_dartTypes.treatAsRawType(typeWithoutNullability) ||
+        typeWithoutNullability.containsTypeVariables) {
       _impacts.genericIsCheck.registerImpact(transformed, _elementEnvironment);
     }
-    if (type is InterfaceType && _nativeData.isNativeClass(type.element)) {
+    if (typeWithoutNullability is InterfaceType &&
+        _nativeData.isNativeClass(typeWithoutNullability.element)) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
