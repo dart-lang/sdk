@@ -230,7 +230,7 @@ class NullabilityGraph {
             node.nonNullIntent.isPresent ? ', non-null intent' : '';
         String label = '$node (${node._nullability}$intentSuffix)';
         print('  $name [label="$label"$styleSuffix]');
-        if (node is _NullabilityNodeCompound) {
+        if (node is NullabilityNodeCompound) {
           for (var component in node._components) {
             print('  ${nameNode(component)} -> $name [style=dashed]');
           }
@@ -381,7 +381,7 @@ class NullabilityGraph {
 
   void _connectDownstream(NullabilityNode upstreamNode, NullabilityEdge edge) {
     upstreamNode._downstreamEdges.add(edge);
-    if (upstreamNode is _NullabilityNodeCompound) {
+    if (upstreamNode is NullabilityNodeCompound) {
       for (var component in upstreamNode._components) {
         _connectDownstream(component, edge);
       }
@@ -585,8 +585,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   final _upstreamEdges = <NullabilityEdge>[];
 
   /// List of compound nodes wrapping this node.
-  final List<_NullabilityNodeCompound> outerCompoundNodes =
-      <_NullabilityNodeCompound>[];
+  final List<NullabilityNodeCompound> outerCompoundNodes =
+      <NullabilityNodeCompound>[];
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type comes from an already-migrated library.
@@ -648,7 +648,7 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
       }
       for (var id in json['outerCompoundNodes'] ?? []) {
         outerCompoundNodes
-            .add(deserializer.nodeForId(id as int) as _NullabilityNodeCompound);
+            .add(deserializer.nodeForId(id as int) as NullabilityNodeCompound);
       }
     });
   }
@@ -758,9 +758,31 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   }
 }
 
+/// Base class for nullability nodes that are nullable if at least one of a set
+/// of other nodes is nullable, and non-nullable otherwise; the set of other
+/// nodes are called "components".
+abstract class NullabilityNodeCompound extends NullabilityNodeMutable {
+  NullabilityNodeCompound() : super._();
+
+  NullabilityNodeCompound.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : super.fromJson(json, deserializer);
+
+  /// A map describing each of the node's components by name.
+  Map<String, NullabilityNode> get componentsByName;
+
+  @override
+  bool get isExactNullable => _components.any((c) => c.isExactNullable);
+
+  @override
+  bool get isNullable => _components.any((c) => c.isNullable);
+
+  Iterable<NullabilityNode> get _components;
+}
+
 /// Derived class for nullability nodes that arise from the least-upper-bound
 /// implied by a conditional expression.
-class NullabilityNodeForLUB extends _NullabilityNodeCompound {
+class NullabilityNodeForLUB extends NullabilityNodeCompound {
   final NullabilityNode left;
 
   final NullabilityNode right;
@@ -775,6 +797,10 @@ class NullabilityNodeForLUB extends _NullabilityNodeCompound {
     left.outerCompoundNodes.add(this);
     right.outerCompoundNodes.add(this);
   }
+
+  @override
+  Map<String, NullabilityNode> get componentsByName =>
+      {'left': left, 'right': right};
 
   @override
   Iterable<NullabilityNode> get _components => [left, right];
@@ -804,7 +830,7 @@ class NullabilityNodeForLUB extends _NullabilityNodeCompound {
 
 /// Derived class for nullability nodes that arise from type variable
 /// substitution.
-class NullabilityNodeForSubstitution extends _NullabilityNodeCompound
+class NullabilityNodeForSubstitution extends NullabilityNodeCompound
     implements SubstitutionNodeInfo {
   @override
   final NullabilityNode innerNode;
@@ -822,6 +848,10 @@ class NullabilityNodeForSubstitution extends _NullabilityNodeCompound
     innerNode.outerCompoundNodes.add(this);
     outerNode.outerCompoundNodes.add(this);
   }
+
+  @override
+  Map<String, NullabilityNode> get componentsByName =>
+      {'inner': innerNode, 'outer': outerNode};
 
   @override
   Iterable<NullabilityNode> get _components => [innerNode, outerNode];
@@ -934,22 +964,6 @@ enum _NullabilityEdgeKind {
   /// Union edge.  Indicates that two nodes should have exactly the same
   /// nullability.
   union,
-}
-
-abstract class _NullabilityNodeCompound extends NullabilityNodeMutable {
-  _NullabilityNodeCompound() : super._();
-
-  _NullabilityNodeCompound.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : super.fromJson(json, deserializer);
-
-  @override
-  bool get isExactNullable => _components.any((c) => c.isExactNullable);
-
-  @override
-  bool get isNullable => _components.any((c) => c.isNullable);
-
-  Iterable<NullabilityNode> get _components;
 }
 
 class _NullabilityNodeImmutable extends NullabilityNode {

@@ -132,6 +132,14 @@ main(List<String> args) {
             (edge as NullabilityEdge).toString(idMapper: reader.idMapper);
         print('  $description');
       }
+      if (node is NullabilityNodeCompound) {
+        var componentsByName = node.componentsByName;
+        print('Components:');
+        for (var entry in componentsByName.entries) {
+          var description = entry.value.toString(idMapper: reader.idMapper);
+          print('  ${entry.key}: $description');
+        }
+      }
       break;
     default:
       throw StateError('Unrecognized command: $command');
