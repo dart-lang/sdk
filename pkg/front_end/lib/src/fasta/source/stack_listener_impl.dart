@@ -78,7 +78,6 @@ abstract class StackListenerImpl extends StackListener {
                   libraryBuilder.languageVersion.charCount)
             ]);
       } else {
-        print(libraryBuilder.languageVersion);
         addProblem(messageNonNullableOptOut, token.charOffset, token.charCount);
       }
     } else {
