@@ -1659,6 +1659,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endInvalidYieldStatement(Token yieldKeyword, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    debugEvent("InvalidYieldStatement");
+    endYieldStatement(yieldKeyword, starToken, endToken);
+  }
+
+  @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
 

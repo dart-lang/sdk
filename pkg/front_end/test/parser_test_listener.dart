@@ -89,6 +89,16 @@ class ParserTestListener implements Listener {
         '$errorCode)');
   }
 
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    indent--;
+    doPrint('endInvalidYieldStatement('
+        '$beginToken, '
+        '$starToken, '
+        '$endToken, '
+        '$errorCode)');
+  }
+
   void beginBlock(Token token, BlockKind blockKind) {
     doPrint('beginBlock(' '$token, ' '$blockKind)');
     indent++;

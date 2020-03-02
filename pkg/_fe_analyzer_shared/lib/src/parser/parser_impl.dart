@@ -4043,6 +4043,12 @@ class Parser {
           if (optional(':', token.next.next)) {
             return parseLabeledStatement(token);
           }
+          if (looksLikeYieldStatement(token)) {
+            // Recovery: looks like an expression preceded by `yield` but not
+            // inside an Async or AsyncStar context. parseYieldStatement will
+            // report the error.
+            return parseYieldStatement(token);
+          }
           return parseExpressionStatementOrDeclaration(token);
 
         case AsyncModifier.SyncStar:
@@ -4097,7 +4103,13 @@ class Parser {
     }
     token = parseExpression(token);
     token = ensureSemicolon(token);
-    listener.endYieldStatement(begin, starToken, token);
+    if (inPlainSync) {
+      codes.MessageCode errorCode = codes.messageYieldNotGenerator;
+      reportRecoverableError(begin, errorCode);
+      listener.endInvalidYieldStatement(begin, starToken, token, errorCode);
+    } else {
+      listener.endYieldStatement(begin, starToken, token);
+    }
     return token;
   }
 
@@ -6142,7 +6154,47 @@ class Parser {
       } else if (isOneOf(token, ['.', ')', ']'])) {
         return true;
       }
+      // TODO(srawlins): Also consider when `token` is `;`. There is still not
+      // good error recovery on `await x;`.
     }
+    // TODO(srawlins): Consider whether the token following `yield` is `null`
+    //  (`token` would be `Keyword.NULL`) or is `<` as part of a type argument
+    //  list. There is still not good error recovery on `await null` and on
+    //  `await <int>[]`.
+    return false;
+  }
+
+  /// Determine if the following tokens look like a 'yield' expression and not a
+  /// local variable or local function declaration.
+  bool looksLikeYieldStatement(Token token) {
+    token = token.next;
+    assert(optional('yield', token));
+    token = token.next;
+
+    // TODO(srawlins): Consider parsing the potential expression following
+    // the `yield` token once doing so does not modify the token stream.
+    // For now, use simple look ahead and ensure no false positives.
+
+    if (token.isIdentifier) {
+      token = token.next;
+      if (optional('(', token)) {
+        token = token.endGroup.next;
+        if (isOneOf(token, [';', '.', '..', '?', '?.'])) {
+          return true;
+        }
+      } else if (isOneOf(token, ['.', ')', ']'])) {
+        // TODO(srawlins): Also consider when `token` is `;`. There is still not
+        // good error recovery on `yield x;`. This would also require
+        // modification to analyzer's
+        // test_parseCompilationUnit_pseudo_asTypeName.
+        return true;
+      }
+    } else if (token == Keyword.NULL) {
+      return true;
+    }
+    // TODO(srawlins): Consider whether the token following `yield` is `<` as
+    //  part of a type argument list. There is still not good error recovery on
+    //  `yield <int>[]`.
     return false;
   }
 

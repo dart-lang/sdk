@@ -2771,6 +2771,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void endInvalidYieldStatement(Token keyword, Token starToken, Token endToken,
+      fasta.MessageCode errorCode) {
+    debugEvent("YieldStatement");
+    popForValue();
+    push(buildProblemStatement(errorCode, keyword.offset));
+  }
+
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
     push(asyncMarkerFromTokens(asyncToken, starToken));
