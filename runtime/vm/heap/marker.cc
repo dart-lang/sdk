@@ -465,9 +465,12 @@ void GCMarker::IterateWeakRoots(Thread* thread) {
 
 void GCMarker::ProcessWeakHandles(Thread* thread) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
+
   MarkingWeakVisitor visitor(thread);
   ApiState* state = isolate_group_->api_state();
   ASSERT(state != NULL);
+
+  RunFinalizersScope tcis(thread);
   isolate_group_->VisitWeakPersistentHandles(&visitor);
 }
 

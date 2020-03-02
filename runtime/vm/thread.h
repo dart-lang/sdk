@@ -1034,6 +1034,7 @@ class Thread : public ThreadState {
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
                                                    const char*,
                                                    char**);
+  friend class RunFinalizersScope;
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
