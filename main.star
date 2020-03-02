@@ -14,7 +14,11 @@ load("//defaults.star", "defaults")
 DART_GIT = "https://dart.googlesource.com/sdk"
 DART_GERRIT = "https://dart-review.googlesource.com/sdk"
 
-GOMA_RBE = {"enable_ats": True, "server_host": "goma.chromium.org"}
+GOMA_RBE = {
+    "enable_ats": True,
+    "server_host": "goma.chromium.org",
+    "use_luci_auth": True
+}
 
 RELEASE_CHANNELS = ["dev", "stable"]
 CHANNELS = RELEASE_CHANNELS + ["try"]
