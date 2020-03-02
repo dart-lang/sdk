@@ -4332,6 +4332,13 @@ class Parser {
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
             listener.endBinaryExpression(operator);
+
+            typeArg = computeMethodTypeArguments(token);
+            if (typeArg != noTypeParamOrArg) {
+              // For example e.f<T>(c), where token is before '<'.
+              token = typeArg.parseArguments(token, this);
+              assert(optional('(', token.next));
+            }
           } else if (identical(type, TokenType.OPEN_PAREN) ||
               identical(type, TokenType.OPEN_SQUARE_BRACKET) ||
               identical(type, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
