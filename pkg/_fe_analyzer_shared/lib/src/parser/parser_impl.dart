@@ -424,6 +424,7 @@ class Parser {
           token = parsePartOrPartOf(keyword, directiveState);
         } else if (identical(value, ';')) {
           token = start;
+          listener.handleDirectivesOnly();
         } else {
           listener.handleDirectivesOnly();
           break;
