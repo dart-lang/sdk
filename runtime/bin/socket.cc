@@ -659,10 +659,8 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
     Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 1), new_socket,
                                    Socket::kFinalizerNormal);
     Dart_SetReturnValue(args, Dart_True());
-  } else if (new_socket == ServerSocket::kTemporaryFailure) {
-    Dart_SetReturnValue(args, Dart_False());
   } else {
-    Dart_ThrowException(DartUtils::NewDartOSError());
+    Dart_SetReturnValue(args, Dart_False());
   }
 }
 
