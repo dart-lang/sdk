@@ -853,31 +853,28 @@ class C {
         edit: edits[0], offset: 42, length: 0, replacement: '@required ');
   }
 
-  @FailingTest(issue: 'https://dartbug.com/40773')
   Future<void> test_insertedRequired_parameter() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
-  int level;
+  int level = 0;
   bool f({int lvl}) => lvl >= level;
 }
 ''', migratedContent: '''
 class C {
-  int? level;
-  bool f({required int lvl}) => lvl >= level!;
+  int level = 0;
+  bool f({required int lvl}) => lvl >= level;
 }
 ''');
     List<RegionInfo> regions = unit.fixRegions;
-    expect(regions, hasLength(3));
-    // regions[0] is the `int? s` fix.
-    var region = regions[1];
+    expect(regions, hasLength(1));
+    var region = regions[0];
     var edits = region.edits;
-    assertRegion(region: region, offset: 34, length: 9, details: [
+    assertRegion(region: region, offset: 37, length: 9, details: [
       'This parameter is non-nullable, so cannot have an implicit default '
           "value of 'null'"
     ]);
     assertEdit(
-        edit: edits[0], offset: 33, length: 0, replacement: '@required ');
-    // regions[2] is the `level!` fix.
+        edit: edits[0], offset: 37, length: 0, replacement: '@required ');
   }
 
   Future<void> test_insertParens() async {
@@ -1748,6 +1745,26 @@ class C {
     assertDetail(detail: region.details[0], offset: 25, length: 1);
     assertDetail(detail: region.details[1], offset: 34, length: 3);
     assertDetail(detail: region.details[2], offset: 70, length: 3);
+  }
+
+  @FailingTest(issue: 'https://dartbug.com/40773')
+  Future<void> test_uninitializedMember() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int level;
+}
+''', migratedContent: '''
+class C {
+  int? level;
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    expect(regions[0].details, isNotEmpty);
+    // disabled so that it won't interfere with @FailingTest annotation.
+    //assertRegion(region: regions[0], offset: 15, length: 1, details: [
+    //  'This field is not initialized and is therefore made nullable'
+    //]);
   }
 
   Future<void> test_uninitializedVariable_notLate_uninitializedUse() async {

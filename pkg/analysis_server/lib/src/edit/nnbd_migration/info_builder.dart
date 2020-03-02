@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
+import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
@@ -41,6 +42,12 @@ class InfoBuilder {
   /// The listener used to gather the changes to be applied.
   final DartFixListener listener;
 
+  /// The dartfix adapter, which can be used to report exceptions that occur.
+  final NullabilityMigrationAdapter adapter;
+
+  /// The [NullabilityMigration] instance for this migration.
+  final NullabilityMigration migration;
+
   /// A flag indicating whether types that were not changed (because they should
   /// be non-nullable) should be explained.
   final bool explainNonNullableTypes;
@@ -51,6 +58,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
+      this.adapter, this.migration,
       // TODO(srawlins): Re-enable once
       //  https://github.com/dart-lang/sdk/issues/40253 is fixed.
       {this.explainNonNullableTypes = false});
@@ -613,25 +621,31 @@ class InfoBuilder {
         }
         var info = edit.info;
         String explanation = info?.description?.appliedMessage;
+        List<EditDetail> edits =
+            info != null ? _computeEdits(info, sourceOffset) : [];
+        List<RegionDetail> details;
         try {
-          List<EditDetail> edits =
-              info != null ? _computeEdits(info, sourceOffset) : [];
-          List<RegionDetail> details = _computeDetails(edit);
-          var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
-          if (explanation != null) {
-            if (length > 0) {
-              regions.add(RegionInfo(RegionType.remove, offset, length,
-                  lineNumber, explanation, details,
-                  edits: edits));
-            } else {
-              regions.add(RegionInfo(RegionType.add, offset, replacement.length,
-                  lineNumber, explanation, details,
-                  edits: edits));
-            }
+          details = _computeDetails(edit);
+        } catch (e, st) {
+          // TODO(mfairhurst): get the correct Source, and an AstNode.
+          if (migration.isPermissive) {
+            adapter.reportException(result.libraryElement.source, null, e, st);
+            details = [];
+          } else {
+            rethrow;
           }
-        } catch (e) {
-          // TODO(mfairhurst): collect and recover instead of rethrowing.
-          throw '$e $sourceOffset ${result.path}';
+        }
+        var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
+        if (explanation != null) {
+          if (length > 0) {
+            regions.add(RegionInfo(RegionType.remove, offset, length,
+                lineNumber, explanation, details,
+                edits: edits));
+          } else {
+            regions.add(RegionInfo(RegionType.add, offset, replacement.length,
+                lineNumber, explanation, details,
+                edits: edits));
+          }
         }
         offset += replacement.length;
       }

@@ -46,6 +46,8 @@ class NonNullableFix extends FixCodeTask {
 
   InstrumentationListener instrumentationListener;
 
+  NullabilityMigrationAdapter adapter;
+
   NullabilityMigration migration;
 
   /// If this flag has a value of `false`, then something happened to prevent
@@ -57,7 +59,8 @@ class NonNullableFix extends FixCodeTask {
       : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     instrumentationListener = InstrumentationListener();
-    migration = NullabilityMigration(NullabilityMigrationAdapter(listener),
+    adapter = NullabilityMigrationAdapter(listener);
+    migration = NullabilityMigration(adapter,
         permissive: _usePermissiveMode,
         instrumentation: instrumentationListener);
   }
@@ -76,7 +79,7 @@ class NonNullableFix extends FixCodeTask {
     migration.finish();
 
     var state = MigrationState(
-        migration, includedRoot, listener, instrumentationListener);
+        migration, includedRoot, listener, instrumentationListener, adapter);
     await state.refresh();
 
     server = HttpPreviewServer(state);

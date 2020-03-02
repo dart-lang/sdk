@@ -143,6 +143,9 @@ abstract class NullabilityMigration {
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments}) = NullabilityMigrationImpl;
 
+  /// Check if this migration is being run permissively.
+  bool get isPermissive;
+
   void finalizeInput(ResolvedUnitResult result);
 
   void finish();

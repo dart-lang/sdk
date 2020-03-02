@@ -75,6 +75,9 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   @override
+  bool get isPermissive => _permissive;
+
+  @override
   void finalizeInput(ResolvedUnitResult result) {
     if (!_propagated) {
       _propagated = true;
