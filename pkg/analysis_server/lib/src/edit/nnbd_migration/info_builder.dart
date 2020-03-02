@@ -272,6 +272,7 @@ class InfoBuilder {
       return capitalize(
           '$nullableValue is assigned in $enclosingMemberDescription');
     } else {
+      assert(false, 'no enclosing member description');
       return capitalize('$nullableValue is assigned');
     }
   }
@@ -395,9 +396,10 @@ class InfoBuilder {
                   _proximateTargetForNode(
                       nodeInfo.filePath, nodeInfo.astNode)));
             } else {
-              details.add(RegionDetail(
-                  'exact nullable node with no info ($exactNullableDownstream)',
-                  null));
+              final description =
+                  'exact nullable node with no info ($exactNullableDownstream)';
+              assert(false, description);
+              details.add(RegionDetail(description, null));
             }
           }
         }
@@ -408,23 +410,29 @@ class InfoBuilder {
             details.add(
                 _buildDetailForOrigin(origin, edge, fixInfo.description.kind));
           } else {
-            details.add(
-                RegionDetail('upstream edge with no origin ($edge)', null));
+            final description = 'upstream edge with no origin ($edge)';
+            assert(false, description);
+            details.add(RegionDetail(description, null));
           }
         }
       } else if (reason is EdgeInfo) {
         NullabilityNodeInfo destination = reason.destinationNode;
         NodeInformation nodeInfo = info.nodeInfoFor(destination);
-        if (nodeInfo != null && nodeInfo.astNode != null) {
+        EdgeOriginInfo edge = info.edgeOrigin[reason];
+        if (destination == info.never) {
+          details.add(RegionDetail(_describeNonNullEdge(edge), null));
+        } else if (nodeInfo != null && nodeInfo.astNode != null) {
           NavigationTarget target;
-          if (destination != info.never && destination != info.always) {
+          if (destination != info.always) {
             target =
                 _proximateTargetForNode(nodeInfo.filePath, nodeInfo.astNode);
           }
-          EdgeOriginInfo edge = info.edgeOrigin[reason];
           details.add(RegionDetail(_describeNonNullEdge(edge), target));
         } else {
-          details.add(RegionDetail('node with no info ($destination)', null));
+          // Likely an assignment to a migrated type.
+          final description = 'node with no info ($destination)';
+          assert(false, description);
+          details.add(RegionDetail(description, null));
         }
       } else {
         throw UnimplementedError(
@@ -504,6 +512,7 @@ class InfoBuilder {
       if (origin == null) {
         // TODO(srawlins): I think this shouldn't happen? But it does on the
         //  collection and path packages.
+        assert(false, 'edge with no origin $edge');
         continue;
       }
       NavigationTarget target =
@@ -604,20 +613,25 @@ class InfoBuilder {
         }
         var info = edit.info;
         String explanation = info?.description?.appliedMessage;
-        List<EditDetail> edits =
-            info != null ? _computeEdits(info, sourceOffset) : [];
-        List<RegionDetail> details = _computeDetails(edit);
-        var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
-        if (explanation != null) {
-          if (length > 0) {
-            regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, details,
-                edits: edits));
-          } else {
-            regions.add(RegionInfo(RegionType.add, offset, replacement.length,
-                lineNumber, explanation, details,
-                edits: edits));
+        try {
+          List<EditDetail> edits =
+              info != null ? _computeEdits(info, sourceOffset) : [];
+          List<RegionDetail> details = _computeDetails(edit);
+          var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
+          if (explanation != null) {
+            if (length > 0) {
+              regions.add(RegionInfo(RegionType.remove, offset, length,
+                  lineNumber, explanation, details,
+                  edits: edits));
+            } else {
+              regions.add(RegionInfo(RegionType.add, offset, replacement.length,
+                  lineNumber, explanation, details,
+                  edits: edits));
+            }
           }
+        } catch (e) {
+          // TODO(mfairhurst): collect and recover instead of rethrowing.
+          throw '$e $sourceOffset ${result.path}';
         }
         offset += replacement.length;
       }

@@ -284,11 +284,15 @@ int? f([num? a]) {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C<T extends Object> {}
 
-C<int/*?*/> c;
+void f() {
+  C<int/*?*/> c = null;
+}
 ''', migratedContent: '''
 class C<T extends Object?> {}
 
-C<int?/*?*/>? c;
+void f() {
+  C<int?/*?*/>? c = null;
+}
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(3));
@@ -490,6 +494,7 @@ void g() {
         details: ['This is later required to accept null.']);
   }
 
+  @FailingTest(issue: 'https://dartbug.com/40587')
   Future<void> test_exactNullable_exactNullable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void g(List<int> list1, List<int> list2) {
@@ -507,8 +512,6 @@ void g(List<int?> list1, List<int?> list2) {
     // regions[0] is the hard edge that list1 is unconditionally indexed
     assertRegion(region: regions[1], offset: 15, details: [
       "An explicit 'null' is assigned in the function 'g'",
-      // TODO(mfairhurst): Fix this bug.
-      'exact nullable node with no info (Substituted(type(32), migrated))'
     ]);
     // regions[2] is the hard edge that list2 is unconditionally indexed
     assertRegion(
@@ -850,6 +853,7 @@ class C {
         edit: edits[0], offset: 42, length: 0, replacement: '@required ');
   }
 
+  @FailingTest(issue: 'https://dartbug.com/40773')
   Future<void> test_insertedRequired_parameter() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
@@ -1334,6 +1338,7 @@ class B extends A {
         details: ['A nullable value is assigned']);
   }
 
+  @FailingTest(issue: 'https://dartbug.com/40773')
   Future<void> test_parameter_fromOverriddenField_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
@@ -1355,8 +1360,8 @@ void f(A a) => a.m = null;
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(region: regions[0], offset: 15, details: [
-      // TODO(srawlins): I suspect this should be removed...
-      'A nullable value is assigned',
+      // TODO(mfairhurst): Implement something similar to this error message
+      'No initializer is given',
       "An explicit 'null' is assigned in the function 'f'",
     ]);
     assertRegion(region: regions[1], offset: 61, details: [
@@ -1496,7 +1501,7 @@ void f(num n, int?/*?*/ i) {
     assertRegion(
         region: regions[2],
         offset: migratedContent.indexOf('! + 1'),
-        details: ['node with no info (never)']);
+        details: ['This value must be null-checked before use here.']);
   }
 
   Future<void> test_return_fromOverriden() async {
