@@ -14,7 +14,7 @@ class ReplaceWithEightDigitHex extends CorrectionProducer {
   String replacement;
 
   @override
-  List<dynamic> get fixArguments => [replacement];
+  List<Object> get fixArguments => [replacement];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;

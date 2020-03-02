@@ -23,7 +23,7 @@ abstract class CorrectionProducer {
   /// Return the arguments that should be used when composing the message for an
   /// assist, or `null` if the assist message has no parameters or if this
   /// producer doesn't support assists.
-  List<dynamic> get assistArguments => null;
+  List<Object> get assistArguments => null;
 
   /// Return the assist kind that should be used to build an assist, or `null`
   /// if this producer doesn't support assists.
@@ -37,7 +37,7 @@ abstract class CorrectionProducer {
   /// Return the arguments that should be used when composing the message for a
   /// fix, or `null` if the fix message has no parameters or if this producer
   /// doesn't support fixes.
-  List<dynamic> get fixArguments => null;
+  List<Object> get fixArguments => null;
 
   /// Return the fix kind that should be used to build a fix, or `null` if this
   /// producer doesn't support fixes.

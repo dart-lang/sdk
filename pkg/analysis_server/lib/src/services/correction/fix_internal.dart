@@ -4675,7 +4675,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args, bool importsOnly = false}) {
+      {List<Object> args, bool importsOnly = false}) {
     if (builder == null) return;
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty && !importsOnly) {
