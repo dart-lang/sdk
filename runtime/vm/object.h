@@ -9674,10 +9674,12 @@ class ExternalTypedData : public TypedDataBase {
     return (kSmiMax / ElementSizeInBytes(class_id));
   }
 
-  static RawExternalTypedData* New(intptr_t class_id,
-                                   uint8_t* data,
-                                   intptr_t len,
-                                   Heap::Space space = Heap::kNew);
+  static RawExternalTypedData* New(
+      intptr_t class_id,
+      uint8_t* data,
+      intptr_t len,
+      Heap::Space space = Heap::kNew,
+      bool perform_eager_msan_initialization_check = true);
 
   static RawExternalTypedData* NewFinalizeWithFree(uint8_t* data, intptr_t len);
 

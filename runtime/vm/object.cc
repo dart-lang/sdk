@@ -22785,17 +22785,21 @@ FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
   return dart::AddFinalizer(*this, peer, callback, external_size);
 }
 
-RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
-                                             uint8_t* data,
-                                             intptr_t len,
-                                             Heap::Space space) {
+RawExternalTypedData* ExternalTypedData::New(
+    intptr_t class_id,
+    uint8_t* data,
+    intptr_t len,
+    Heap::Space space,
+    bool perform_eager_msan_initialization_check) {
   if (len < 0 || len > ExternalTypedData::MaxElements(class_id)) {
     FATAL1("Fatal error in ExternalTypedData::New: invalid len %" Pd "\n", len);
   }
 
-  // Once the TypedData is created, Dart might read this memory. Check for
-  // intialization at construction to make it easier to track the source.
-  MSAN_CHECK_INITIALIZED(data, len);
+  if (perform_eager_msan_initialization_check) {
+    // Once the TypedData is created, Dart might read this memory. Check for
+    // intialization at construction to make it easier to track the source.
+    MSAN_CHECK_INITIALIZED(data, len);
+  }
 
   ExternalTypedData& result = ExternalTypedData::Handle();
   {

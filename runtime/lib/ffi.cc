@@ -414,9 +414,11 @@ DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
     Exceptions::PropagateError(error);
   }
 
+  // We disable msan initialization check because the memory may not be
+  // initialized yet - dart code might do that later on.
   return ExternalTypedData::New(
       cid, reinterpret_cast<uint8_t*>(pointer.NativeAddress()), element_count,
-      Heap::kNew);
+      Heap::kNew, /*perform_eager_msan_initialization_check=*/false);
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
