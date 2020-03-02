@@ -65,25 +65,28 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (node.declaredElement.isPrivate) {
-      _countAndReport(node.name.name, node);
-    }
+    _countAndReport(node.name);
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (node.declaredElement.isPrivate) {
-      _countAndReport(node.name.name, node);
+    if (node.typeParameters != null) {
+      return;
     }
+    _countAndReport(node.name);
   }
 
-  void _countAndReport(String name, AstNode node) {
+  void _countAndReport(SimpleIdentifier identifier) {
+    var name = identifier.name;
+    if (!Identifier.isPrivateName(name)) {
+      return;
+    }
     final visitor = _CountVisitor(name);
     for (final unit in context.allUnits) {
-      unit.unit.visitChildren(visitor);
+      unit.unit.accept(visitor);
     }
     if (visitor.count <= 1) {
-      rule.reportLint(node);
+      rule.reportLint(identifier);
     }
   }
 }

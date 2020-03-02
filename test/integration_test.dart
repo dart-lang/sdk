@@ -808,8 +808,8 @@ void defineTests() {
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
-              'lib.dart 9:1 [lint] Avoid private typedef functions.',
-              'part.dart 9:1 [lint] Avoid private typedef functions.',
+              'lib.dart 9:14 [lint] Avoid private typedef functions.',
+              'part.dart 9:14 [lint] Avoid private typedef functions.',
               '2 files analyzed, 2 issues found',
             ]));
         expect(exitCode, 1);
