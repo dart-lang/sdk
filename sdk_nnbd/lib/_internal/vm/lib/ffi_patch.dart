@@ -29,7 +29,7 @@ int sizeOf<T extends NativeType>() {
   // This is not super fast, but it is faster than a runtime entry.
   // Hot loops with elementAt().load() do not use this sizeOf, elementAt is
   // optimized per NativeType statically to prevent use of sizeOf at runtime.
-  final int knownSize = _knownSizes[T];
+  final int? knownSize = _knownSizes[T];
   if (knownSize != null) return knownSize;
   if (T == IntPtr) return _intPtrSize;
   if (T == Pointer) return _intPtrSize;
@@ -84,7 +84,7 @@ class Pointer<T extends NativeType> {
   @patch
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]) {
+      [Object? exceptionalReturn]) {
     throw UnsupportedError(
         "Pointer.fromFunction cannot be called dynamically.");
   }

@@ -424,7 +424,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return _qualifiedName = _computeQualifiedName(owner, simpleName);
   }
 
-  DeclarationMirror get owner {
+  DeclarationMirror? get owner {
     var o = _owner;
     if (o != null) return o;
 
@@ -927,7 +927,7 @@ class _TypedefMirror extends _DeclarationMirror
   bool get isTopLevel => true;
 
   DeclarationMirror? _owner;
-  DeclarationMirror get owner {
+  DeclarationMirror? get owner {
     var o = _owner;
     if (o != null) return o;
     var uri = _ClassMirror._libraryUri(_reflectee);

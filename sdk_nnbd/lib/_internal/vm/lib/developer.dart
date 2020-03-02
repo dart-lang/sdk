@@ -18,20 +18,20 @@ import "dart:isolate" show SendPort;
 // part "timeline.dart"
 
 @patch
-bool debugger({bool when: true, String message}) native "Developer_debugger";
+bool debugger({bool when: true, String? message}) native "Developer_debugger";
 
 @patch
 Object inspect(Object object) native "Developer_inspect";
 
 @patch
 void log(String message,
-    {DateTime time,
-    int sequenceNumber,
+    {DateTime? time,
+    int? sequenceNumber,
     int level: 0,
     String name: '',
-    Zone zone,
-    Object error,
-    StackTrace stackTrace}) {
+    Zone? zone,
+    Object? error,
+    StackTrace? stackTrace}) {
   if (message is! String) {
     throw new ArgumentError.value(message, "message", "Must be a String");
   }
@@ -51,7 +51,7 @@ void log(String message,
 int _nextSequenceNumber = 0;
 
 _log(String message, int timestamp, int sequenceNumber, int level, String name,
-    Zone zone, Object error, StackTrace stackTrace) native "Developer_log";
+    Zone? zone, Object? error, StackTrace? stackTrace) native "Developer_log";
 
 @patch
 void _postEvent(String eventKind, String eventData)

@@ -63,7 +63,7 @@ class Gauge extends Metric {
   }
 
   Gauge(String name, String description, this.min, this.max)
-      : _value = min ?? double.negativeInfinity,
+      : _value = min,
         super(name, description) {
     // TODO: When NNBD is complete, delete the following two lines.
     ArgumentError.checkNotNull(min, 'min');

@@ -45,7 +45,7 @@ Future<Server>? serverFuture;
 Server _lazyServerBoot() {
   var localServer = server;
   if (localServer != null) {
-    return server;
+    return localServer;
   }
   // Lazily create service.
   final service = VMService();

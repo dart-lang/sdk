@@ -333,7 +333,7 @@ class Isolate {
   }
 
   @patch
-  static Future<Uri> resolvePackageUri(Uri packageUri) {
+  static Future<Uri?> resolvePackageUri(Uri packageUri) {
     var hook = VMLibraryHooks.resolvePackageUriFuture;
     if (hook == null) {
       throw new UnsupportedError("Isolate.resolvePackageUri");

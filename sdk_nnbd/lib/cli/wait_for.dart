@@ -57,10 +57,11 @@ void Function(int)? _waitForEventClosure;
 
 class _WaitForUtils {
   static void waitForEvent({Duration? timeout}) {
-    if (_waitForEventClosure == null) {
+    final closure = _waitForEventClosure;
+    if (closure == null) {
       throw new UnsupportedError("waitFor is not supported by this embedder");
     }
-    _waitForEventClosure(timeout == null ? 0 : max(1, timeout.inMilliseconds));
+    closure(timeout == null ? 0 : max(1, timeout.inMilliseconds));
   }
 }
 
@@ -145,7 +146,7 @@ T waitFor<T>(Future<T> future, {Duration? timeout}) {
   Timer.run(() {}); // Ensure that previous calls to waitFor are woken up.
 
   if (error != null) {
-    throw new AsyncError(error, stacktrace);
+    throw new AsyncError(error!, stacktrace);
   }
 
   return result;
