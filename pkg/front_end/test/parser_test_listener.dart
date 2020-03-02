@@ -1286,11 +1286,9 @@ class ParserTestListener implements Listener {
 
   void beginBinaryExpression(Token token) {
     doPrint('beginBinaryExpression(' '$token)');
-    indent++;
   }
 
   void endBinaryExpression(Token token) {
-    indent--;
     doPrint('endBinaryExpression(' '$token)');
   }
 
