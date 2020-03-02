@@ -1,0 +1,76 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  abstract method method(dynamic a) → void;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  abstract method method(covariant core::num a) → void;
+}
+abstract class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  abstract method method(covariant core::int a) → void;
+}
+abstract class D1 extends core::Object implements self::A, self::B, self::C {
+  synthetic constructor •() → self::D1
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub method method(covariant dynamic a) → void;
+}
+abstract class D2 extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::D2
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub method method(covariant dynamic a) → void;
+}
+abstract class D3 extends core::Object implements self::B, self::C {
+  synthetic constructor •() → self::D3
+    : super core::Object::•()
+    ;
+}
+abstract class D4 extends core::Object implements self::C, self::B {
+  synthetic constructor •() → self::D4
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub method method(covariant core::num a) → void;
+}
+abstract class D5 extends core::Object implements self::A, self::C {
+  synthetic constructor •() → self::D5
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub method method(covariant dynamic a) → void;
+}
+abstract class E extends core::Object {
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+  abstract method method(core::num a) → void;
+}
+abstract class F extends core::Object {
+  synthetic constructor •() → self::F
+    : super core::Object::•()
+    ;
+  abstract method method(covariant core::int a) → void;
+}
+abstract class G1 extends core::Object implements self::E, self::F {
+  synthetic constructor •() → self::G1
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub method method(covariant core::num a) → void;
+}
+abstract class G2 extends core::Object implements self::F, self::E {
+  synthetic constructor •() → self::G2
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub method method(covariant core::num a) → void;
+}
+static method main() → dynamic {}

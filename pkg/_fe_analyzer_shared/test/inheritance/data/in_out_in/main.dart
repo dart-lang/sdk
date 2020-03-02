@@ -9,7 +9,9 @@ import 'opt_out.dart';
 
 /*class: SubClass1:Class,Interface,LegacyClass1,Object,SubClass1*/
 class SubClass1 extends LegacyClass1 {
-  /*member: SubClass1.method:int* Function(int*)**/
+  // TODO(johnniwinther): Compute the correct signature.
+  /*cfe|cfe:builder.member: SubClass1.method:int Function(int?)*/
+  /*analyzer.member: SubClass1.method:int* Function(int*)**/
 }
 
 /*class: SubClass2:Class,Interface,LegacyClass2,Object,SubClass2*/

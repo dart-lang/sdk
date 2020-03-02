@@ -2608,23 +2608,48 @@ class InterfaceConflict extends DelayedMember {
       return combinedMemberSignatureResult =
           declarations.first.getMember(hierarchy);
     }
+    bool isNonNullableByDefault = classBuilder.library.isNonNullableByDefault;
     DartType thisType = hierarchy.coreTypes
         .thisInterfaceType(classBuilder.cls, classBuilder.library.nonNullable);
+    List<DartType> candidateTypes = new List<DartType>(declarations.length);
     ClassMember bestSoFar;
+    int bestSoFarIndex;
     DartType bestTypeSoFar;
-    for (int i = declarations.length - 1; i >= 0; i--) {
-      ClassMember candidate = declarations[i];
+    Map<DartType, int> mutualSubtypes;
+    for (int candidateIndex = declarations.length - 1;
+        candidateIndex >= 0;
+        candidateIndex--) {
+      ClassMember candidate = declarations[candidateIndex];
       Member target = candidate.getMember(hierarchy);
       assert(target != null,
           "No member computed for ${candidate} (${candidate.runtimeType})");
       DartType candidateType = computeMemberType(hierarchy, thisType, target);
+      if (!isNonNullableByDefault) {
+        candidateType = legacyErasure(hierarchy.coreTypes, candidateType);
+      }
+      candidateTypes[candidateIndex] = candidateType;
       if (bestSoFar == null) {
         bestSoFar = candidate;
         bestTypeSoFar = candidateType;
+        bestSoFarIndex = candidateIndex;
       } else {
         if (isMoreSpecific(hierarchy, candidateType, bestTypeSoFar)) {
           debug?.log("Combined Member Signature: ${candidate.fullName} "
               "${candidateType} <: ${bestSoFar.fullName} ${bestTypeSoFar}");
+          if (isNonNullableByDefault &&
+              isMoreSpecific(hierarchy, bestTypeSoFar, candidateType)) {
+            if (mutualSubtypes == null) {
+              mutualSubtypes = {
+                bestTypeSoFar: bestSoFarIndex,
+                candidateType: candidateIndex
+              };
+            } else {
+              mutualSubtypes[candidateType] = candidateIndex;
+            }
+          } else {
+            mutualSubtypes = null;
+          }
+          bestSoFarIndex = candidateIndex;
           bestSoFar = candidate;
           bestTypeSoFar = candidateType;
         } else {
@@ -2635,10 +2660,11 @@ class InterfaceConflict extends DelayedMember {
     }
     if (bestSoFar != null) {
       debug?.log("Combined Member Signature bestSoFar: ${bestSoFar.fullName}");
-      for (int i = 0; i < declarations.length; i++) {
-        ClassMember candidate = declarations[i];
-        Member target = candidate.getMember(hierarchy);
-        DartType candidateType = computeMemberType(hierarchy, thisType, target);
+      for (int candidateIndex = 0;
+          candidateIndex < declarations.length;
+          candidateIndex++) {
+        ClassMember candidate = declarations[candidateIndex];
+        DartType candidateType = candidateTypes[candidateIndex];
         if (!isMoreSpecific(hierarchy, bestTypeSoFar, candidateType)) {
           debug?.log("Combined Member Signature: "
               "${bestSoFar.fullName} !<: ${candidate.fullName}");
@@ -2653,6 +2679,7 @@ class InterfaceConflict extends DelayedMember {
           } else {
             bestSoFar = null;
             bestTypeSoFar = null;
+            mutualSubtypes = null;
           }
           break;
         }
@@ -2694,7 +2721,13 @@ class InterfaceConflict extends DelayedMember {
       debug?.log("Combined Member Signature of ${fullNameForErrors}: new "
           "ForwardingNode($classBuilder, $bestSoFar, $declarations, $kind)");
       Member stub = new ForwardingNode(
-              hierarchy, classBuilder, bestSoFar, declarations, kind)
+              hierarchy,
+              classBuilder,
+              bestSoFar,
+              bestSoFarIndex,
+              declarations,
+              kind,
+              mutualSubtypes?.values?.toSet())
           .finalize();
       if (classBuilder.cls == stub.enclosingClass) {
         classBuilder.cls.addMember(stub);
@@ -2797,8 +2830,8 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
     if (modifyKernel) {
       // This call will add a body to the abstract method if needed for
       // isGenericCovariantImpl checks.
-      new ForwardingNode(
-              hierarchy, classBuilder, abstractMember, declarations, kind)
+      new ForwardingNode(hierarchy, classBuilder, abstractMember, 1,
+              declarations, kind, null)
           .finalize();
     }
     return abstractMember.getMember(hierarchy);
