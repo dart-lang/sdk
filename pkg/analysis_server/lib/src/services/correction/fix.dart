@@ -368,6 +368,8 @@ class DartFixKind {
       "Return 'Future' from 'async' function");
   static const REPLACE_VAR_WITH_DYNAMIC =
       FixKind('REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
+  static const REPLACE_WITH_EIGHT_DIGIT_HEX =
+      FixKind('REPLACE_WITH_EIGHT_DIGIT_HEX', 50, "Replace with '{0}'");
   static const REPLACE_WITH_BRACKETS =
       FixKind('REPLACE_WITH_BRACKETS', 50, 'Replace with { }');
   static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT =

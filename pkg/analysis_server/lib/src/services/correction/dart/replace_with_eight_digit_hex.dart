@@ -5,33 +5,35 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveIfNullOperator extends CorrectionProducer {
+class ReplaceWithEightDigitHex extends CorrectionProducer {
+  /// The replacement text, used as an argument to the fix message.
+  String replacement;
+
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+  List<dynamic> get fixArguments => [replacement];
+
+  @override
+  FixKind get fixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    var expression = node.thisOrAncestorOfType<BinaryExpression>();
-    if (expression == null) {
+    //
+    // Extract the information needed to build the edit.
+    //
+    if (node is! IntegerLiteral) {
       return;
     }
-    SourceRange sourceRange;
-    if (expression.leftOperand.unParenthesized is NullLiteral) {
-      sourceRange =
-          range.startStart(expression.leftOperand, expression.rightOperand);
-    } else if (expression.rightOperand.unParenthesized is NullLiteral) {
-      sourceRange =
-          range.endEnd(expression.leftOperand, expression.rightOperand);
-    } else {
-      return;
-    }
+    var value = (node as IntegerLiteral).value;
+    replacement = '0x' + value.toRadixString(16).padLeft(8, '0');
+    //
+    // Build the edit.
+    //
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(sourceRange);
+      builder.addSimpleReplacement(range.node(node), replacement);
     });
   }
 }

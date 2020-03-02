@@ -3,13 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToNullAware extends CorrectionProducer {
+  @override
+  FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE;
+
   @override
   Future<void> compute(DartChangeBuilder builder) async {
     AstNode node = this.node;
