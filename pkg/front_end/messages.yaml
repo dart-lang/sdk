@@ -813,6 +813,15 @@ FinalAndCovariant:
     - "class C { covariant final f = 5; }"
     - "class C { final covariant f = 5; }"
 
+FinalAndCovariantLateWithInitializer:
+  template: "Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'."
+  tip: "Try removing either the 'final' or 'covariant' keyword, or removing the initializer."
+  analyzerCode: ParserErrorCode.FINAL_AND_COVARIANT
+  # Weak and strong doesn't matter in this instance.
+  configuration: nnbd-strong
+  script:
+    - "class C { covariant late final f = 5; }"
+
 FinalAndVar:
   index: 81
   template: "Members can't be declared to be both 'final' and 'var'."

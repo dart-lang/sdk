@@ -2413,7 +2413,11 @@ class Parser {
     if (externalToken != null) {
       reportRecoverableError(externalToken, codes.messageExternalField);
     }
-    if (covariantToken != null) {
+    // Covariant affects only the setter and final fields do not have a setter,
+    // unless it's a late field (dartbug.com/40805).
+    // Field that are covariant late final with initializers are checked further
+    // down.
+    if (covariantToken != null && lateToken == null) {
       if (varFinalOrConst != null && optional('final', varFinalOrConst)) {
         reportRecoverableError(covariantToken, codes.messageFinalAndCovariant);
         covariantToken = null;
@@ -2436,6 +2440,18 @@ class Parser {
         ? IdentifierContext.topLevelVariableDeclaration
         : IdentifierContext.fieldDeclaration;
     Token firstName = name = ensureIdentifier(token, context);
+
+    // Check for covariant late final with initializer.
+    if (covariantToken != null && lateToken != null) {
+      if (varFinalOrConst != null && optional('final', varFinalOrConst)) {
+        Token next = name.next;
+        if (optional('=', next)) {
+          reportRecoverableError(covariantToken,
+              codes.messageFinalAndCovariantLateWithInitializer);
+          covariantToken = null;
+        }
+      }
+    }
 
     int fieldCount = 1;
     token =

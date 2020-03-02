@@ -3559,6 +3559,19 @@ const MessageCode messageFinalAndCovariant = const MessageCode(
     tip: r"""Try removing either the 'final' or 'covariant' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFinalAndCovariantLateWithInitializer =
+    messageFinalAndCovariantLateWithInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFinalAndCovariantLateWithInitializer = const MessageCode(
+    "FinalAndCovariantLateWithInitializer",
+    analyzerCodes: <String>["ParserErrorCode.FINAL_AND_COVARIANT"],
+    message:
+        r"""Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'.""",
+    tip:
+        r"""Try removing either the 'final' or 'covariant' keyword, or removing the initializer.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFinalAndVar = messageFinalAndVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
