@@ -187,8 +187,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           _customElementsResolutionAnalysis.registerTypeLiteral(type);
           var typeWithoutNullability = type.withoutNullability;
           if (typeWithoutNullability is TypeVariableType) {
-            TypeVariableType typeVariable = typeWithoutNullability;
-            Entity typeDeclaration = typeVariable.element.typeDeclaration;
+            Entity typeDeclaration =
+                typeWithoutNullability.element.typeDeclaration;
             if (typeDeclaration is ClassEntity) {
               _rtiNeedBuilder
                   .registerClassUsingTypeVariableLiteral(typeDeclaration);
