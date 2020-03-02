@@ -1,0 +1,7 @@
+void f(dynamic e) {
+e!.f!()!<int>()!;
+}
+
+void[KeywordToken] f[StringToken]([BeginToken]dynamic[KeywordToken] e[StringToken])[SimpleToken] {[BeginToken]
+e[StringToken]![SimpleToken].[SimpleToken]f[StringToken]![SimpleToken]([BeginToken])[SimpleToken]![SimpleToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken])[SimpleToken]![SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

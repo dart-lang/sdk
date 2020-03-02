@@ -1,0 +1,13 @@
+void f(dynamic sample) {
+if (sample.value! < 10) {
+print('thing!');
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]dynamic[KeywordToken] sample[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]sample[StringToken].[SimpleToken]value[StringToken]![SimpleToken] <[BeginToken] 10[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]'thing!'[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

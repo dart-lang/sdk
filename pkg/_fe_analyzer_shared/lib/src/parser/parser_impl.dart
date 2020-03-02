@@ -4281,10 +4281,17 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
-    TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
+    Token bangToken = token;
+    if (optional('!', token.next)) {
+      bangToken = token.next;
+    }
+    TypeParamOrArgInfo typeArg = computeMethodTypeArguments(bangToken);
     if (typeArg != noTypeParamOrArg) {
       // For example a(b)<T>(c), where token is before '<'.
-      token = typeArg.parseArguments(token, this);
+      if (optional('!', bangToken)) {
+        listener.handleNonNullAssertExpression(bangToken);
+      }
+      token = typeArg.parseArguments(bangToken, this);
       assert(optional('(', token.next));
     }
     Token next = token.next;
@@ -4333,10 +4340,17 @@ class Parser {
                 token.next, IdentifierContext.expressionContinuation);
             listener.endBinaryExpression(operator);
 
-            typeArg = computeMethodTypeArguments(token);
+            Token bangToken = token;
+            if (optional('!', token.next)) {
+              bangToken = token.next;
+            }
+            typeArg = computeMethodTypeArguments(bangToken);
             if (typeArg != noTypeParamOrArg) {
               // For example e.f<T>(c), where token is before '<'.
-              token = typeArg.parseArguments(token, this);
+              if (optional('!', bangToken)) {
+                listener.handleNonNullAssertExpression(bangToken);
+              }
+              token = typeArg.parseArguments(bangToken, this);
               assert(optional('(', token.next));
             }
           } else if (identical(type, TokenType.OPEN_PAREN) ||
@@ -4567,10 +4581,17 @@ class Parser {
         }
         listener.handleIndexedExpression(question, openSquareBracket, next);
         token = next;
-        typeArg = computeMethodTypeArguments(token);
+        Token bangToken = token;
+        if (optional('!', token.next)) {
+          bangToken = token.next;
+        }
+        typeArg = computeMethodTypeArguments(bangToken);
         if (typeArg != noTypeParamOrArg) {
           // For example a[b]<T>(c), where token is before '<'.
-          token = typeArg.parseArguments(token, this);
+          if (optional('!', bangToken)) {
+            listener.handleNonNullAssertExpression(bangToken);
+          }
+          token = typeArg.parseArguments(bangToken, this);
           assert(optional('(', token.next));
         }
         next = token.next;
@@ -4580,10 +4601,17 @@ class Parser {
         }
         token = parseArguments(token);
         listener.handleSend(beginToken, token);
-        typeArg = computeMethodTypeArguments(token);
+        Token bangToken = token;
+        if (optional('!', token.next)) {
+          bangToken = token.next;
+        }
+        typeArg = computeMethodTypeArguments(bangToken);
         if (typeArg != noTypeParamOrArg) {
           // For example a(b)<T>(c), where token is before '<'.
-          token = typeArg.parseArguments(token, this);
+          if (optional('!', bangToken)) {
+            listener.handleNonNullAssertExpression(bangToken);
+          }
+          token = typeArg.parseArguments(bangToken, this);
           assert(optional('(', token.next));
         }
         next = token.next;
@@ -5286,20 +5314,15 @@ class Parser {
     return token;
   }
 
-  /// Calls handleNonNullAssertExpression when the token points to `!<`.
-  /// Returns the input token if it doesn't point to `!<`, or the next token
-  /// (ready for parsing by e.g. computeMethodTypeArguments) if it does.
-  Token parseBangBeforeTypeArguments(Token token) {
-    if (optional('!', token.next) && optional('<', token.next.next)) {
-      token = token.next;
-      listener.handleNonNullAssertExpression(token);
-    }
-    return token;
-  }
-
   Token parseSend(Token token, IdentifierContext context) {
     Token beginToken = token = ensureIdentifier(token, context);
-    token = parseBangBeforeTypeArguments(token);
+    // Notice that we don't parse the bang (!) here as we do in many other
+    // instances where we call computeMethodTypeArguments.
+    // The reason is, that on a method call like "e.f!<int>()" we need the
+    // "e.f" to become a "single unit" before processing the bang (!),
+    // the type arguments and the arguments.
+    // By not handling bang here we don't parse any of it, and the parser will
+    // parse it correctly in a different recursion step.
     TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);
