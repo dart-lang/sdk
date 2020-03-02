@@ -17,8 +17,8 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 // If the client does not provide capabilities.completion.completionItemKind.valueSet
 // then we must never send a kind that's not in this list.
@@ -134,7 +134,8 @@ class CompletionHandler
     performance.setContentsAndOffset(unit.content, offset);
     server.performanceStats.completion.add(performance);
 
-    final completionRequest = CompletionRequestImpl(unit, offset, performance);
+    final completionRequest = CompletionRequestImpl(
+        unit, offset, server.options.useNewRelevance, performance);
 
     Set<ElementKind> includedElementKinds;
     Set<String> includedElementNames;

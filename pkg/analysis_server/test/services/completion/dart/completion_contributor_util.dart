@@ -72,8 +72,8 @@ class DartCompletionManagerTest extends _BaseDartCompletionContributorTest {
   @override
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
-    final baseRequest = CompletionRequestImpl(
-        request.result, completionOffset, CompletionPerformance());
+    final baseRequest = CompletionRequestImpl(request.result, completionOffset,
+        useNewRelevance, CompletionPerformance());
     return completionManager.computeSuggestions(baseRequest);
   }
 
@@ -114,6 +114,10 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   /// Return `true` if contributors should suggest constructors in contexts
   /// where there is no `new` or `const` keyword.
   bool get suggestConstructorsWithoutNew => true;
+
+  /// Return `true` if the new relevance computations should be used when
+  /// computing code completion suggestions.
+  bool get useNewRelevance => false;
 
   bool get usingFastaParser => analyzer.Parser.useFasta;
 
@@ -539,8 +543,8 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
 
   Future computeSuggestions({int times = 200}) async {
     var resolveResult = await session.getResolvedUnit(testFile);
-    CompletionRequestImpl baseRequest = CompletionRequestImpl(
-        resolveResult, completionOffset, CompletionPerformance());
+    CompletionRequestImpl baseRequest = CompletionRequestImpl(resolveResult,
+        completionOffset, useNewRelevance, CompletionPerformance());
 
     // Build the request
     var request = await DartCompletionRequestImpl.from(baseRequest);

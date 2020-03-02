@@ -48,6 +48,10 @@ abstract class CompletionRequest {
   /// requested, or `null` if the content could not be accessed.
   String get sourceContents;
 
+  /// Return `true` if the new relevance computations should be used when
+  /// computing code completion suggestions.
+  bool get useNewRelevance;
+
   /// Throw [AbortCompletion] if the completion request has been aborted.
   void checkAborted();
 }

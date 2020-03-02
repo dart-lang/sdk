@@ -144,6 +144,7 @@ abstract class AbstractCompletionMetricsComputer {
     var completionRequestImpl = CompletionRequestImpl(
       resolvedUnitResult,
       offset,
+      false,
       CompletionPerformance(),
     );
 
