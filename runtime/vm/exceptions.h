@@ -201,6 +201,10 @@ class CatchEntryMove {
   void WriteTo(WriteStream* stream);
 #endif
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+  const char* ToCString() const;
+#endif
+
  private:
   CatchEntryMove(int32_t src, int32_t dest_and_kind)
       : src_(src), dest_and_kind_(dest_and_kind) {}
@@ -261,6 +265,10 @@ class CatchEntryMovesMapReader : public ValueObject {
 
   // The returned [CatchEntryMoves] must be freed by the caller via [free].
   CatchEntryMoves* ReadMovesForPcOffset(intptr_t pc_offset);
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+  void PrintEntries();
+#endif
 
  private:
   // Given the [pc_offset] this function will find the [position] at which to
