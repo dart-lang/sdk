@@ -765,7 +765,7 @@ dart_ci_sandbox_builder(
 
 # sdk
 dart_ci_builder(
-    "dart-sdk-linux", category="sdk|l", channels=CHANNELS)
+    "dart-sdk-linux", category="sdk|l", channels=CHANNELS, goma_rbe=True)
 dart_ci_builder(
     "dart-sdk-mac", category="sdk|m", channels=CHANNELS, dimensions=mac())
 dart_ci_builder(
