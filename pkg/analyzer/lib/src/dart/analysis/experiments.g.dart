@@ -6,6 +6,10 @@
 
 part of 'experiments.dart';
 
+/// The current version of the Dart language (or, for non-stable releases, the
+/// version of the language currently in the process of being developed).
+const _currentVersion = '2.8.0';
+
 /// A map containing information about all known experimental flags.
 const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.constant_update_2018: ExperimentalFeatures.constant_update_2018,

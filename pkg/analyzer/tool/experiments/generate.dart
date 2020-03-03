@@ -66,6 +66,7 @@ part of 'experiments.dart';
 
   void generateFormatCode() {
     keysSorted = features.keys.cast<String>().toList()..sort();
+    generateSection_CurrentVersion();
     generateSection_KnownFeatures();
     generateSection_BuildExperimentalFlagsArray();
     generateSection_EnableString();
@@ -125,6 +126,16 @@ mixin _CurrentState {
 }''');
   }
 
+  void generateSection_CurrentVersion() {
+    var version = _versionNumberAsString(experimentsYaml['current-version']);
+    out.write('''
+
+/// The current version of the Dart language (or, for non-stable releases, the
+/// version of the language currently in the process of being developed).
+const _currentVersion = '$version';
+    ''');
+  }
+
   void generateSection_EnableString() {
     out.write('''
 
@@ -171,9 +182,7 @@ class ExperimentalFeatures {
       '$help'
     ''');
       if (enabledIn != null) {
-        if (enabledIn is double) {
-          enabledIn = '$enabledIn.0';
-        }
+        enabledIn = _versionNumberAsString(enabledIn);
         out.write(",firstSupportedVersion: '$enabledIn'");
       }
       out.writeln(');');
@@ -283,5 +292,13 @@ const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.bogus_enabled: ExperimentalFeatures.bogus_enabled,
 };
 ''');
+  }
+
+  String _versionNumberAsString(dynamic enabledIn) {
+    if (enabledIn is double) {
+      return '$enabledIn.0';
+    } else {
+      return enabledIn.toString();
+    }
   }
 }
