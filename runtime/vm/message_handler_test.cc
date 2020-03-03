@@ -333,10 +333,12 @@ struct ThreadStartInfo {
   MessageHandler* handler;
   Dart_Port* ports;
   int count;
+  ThreadJoinId join_id;
 };
 
 static void SendMessages(uword param) {
   ThreadStartInfo* info = reinterpret_cast<ThreadStartInfo*>(param);
+  info->join_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
   MessageHandler* handler = info->handler;
   MessageHandlerTestPeer handler_peer(handler);
   for (int i = 0; i < info->count; i++) {
@@ -380,6 +382,7 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   info.handler = &handler;
   info.ports = ports;
   info.count = 10;
+  info.join_id = OSThread::kInvalidThreadJoinId;
   OSThread::Start("SendMessages", SendMessages, reinterpret_cast<uword>(&info));
 
   // Wait for the messages to be handled.
@@ -399,6 +402,11 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
     handler_peer.decrement_live_ports();
     EXPECT(!handler.HasLivePorts());
   }
+
+  // Must join the thread or the VM shutdown is racing with any VM state the
+  // thread touched.
+  ASSERT(info.join_id != OSThread::kInvalidThreadJoinId);
+  OSThread::Join(info.join_id);
 }
 
 }  // namespace dart
