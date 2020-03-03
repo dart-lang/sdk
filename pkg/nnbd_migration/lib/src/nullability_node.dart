@@ -10,6 +10,79 @@ import 'package:nnbd_migration/src/postmortem_file.dart';
 
 import 'edge_origin.dart';
 
+/// Data structure used by the nullability migration engine to refer to a
+/// specific location in source code.
+class CodeReference {
+  final String path;
+
+  final int line;
+
+  final int column;
+
+  CodeReference(this.path, this.line, this.column);
+
+  CodeReference.fromJson(dynamic json)
+      : path = json['path'] as String,
+        line = json['line'] as int,
+        column = json['col'] as int;
+
+  Map<String, Object> toJson() {
+    return {'path': path, 'line': line, 'col': column};
+  }
+
+  @override
+  String toString() {
+    var pathAsUri = Uri.file(path);
+    return 'unknown ($pathAsUri:$line:$column)';
+  }
+}
+
+/// Base class for steps that occur as part of downstream propagation, where the
+/// nullability of a node is changed to a new state.
+abstract class DownstreamPropagationStep extends PropagationStep {
+  /// The node whose nullability was changed.
+  ///
+  /// Any propagation step that took effect should have a non-null value here.
+  /// Propagation steps that are pending but have not taken effect yet, or that
+  /// never had an effect (e.g. because an edge was not triggered) will have a
+  /// `null` value for this field.
+  NullabilityNodeMutable targetNode;
+
+  /// The state that the node's nullability was changed to.
+  ///
+  /// Any propagation step that took effect should have a non-null value here.
+  /// Propagation steps that are pending but have not taken effect yet, or that
+  /// never had an effect (e.g. because an edge was not triggered) will have a
+  /// `null` value for this field.
+  Nullability newState;
+
+  DownstreamPropagationStep();
+
+  DownstreamPropagationStep.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : targetNode = deserializer.nodeForId(json['target'] as int)
+            as NullabilityNodeMutable,
+        newState = Nullability.fromJson(json['newState']);
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    return {
+      'target': serializer.idForNode(targetNode),
+      'newState': newState.toJson()
+    };
+  }
+}
+
+/// Base class for steps that occur as part of propagating exact nullability
+/// upstream through the nullability graph.
+abstract class ExactNullablePropagationStep extends DownstreamPropagationStep {
+  ExactNullablePropagationStep();
+
+  ExactNullablePropagationStep.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : super.fromJson(json, deserializer);
+}
+
 /// Abstract interface for assigning ids numbers to nodes.  This allows us to
 /// annotate nodes with their ids when analyzing postmortem output.
 abstract class NodeToIdMapper {
@@ -32,11 +105,16 @@ class NullabilityEdge implements EdgeInfo {
 
   final _NullabilityEdgeKind _kind;
 
+  /// The location in the source code that caused this edge to be built.
+  final CodeReference codeReference;
+
   NullabilityEdge.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
       : destinationNode = deserializer.nodeForId(json['dest'] as int),
         upstreamNodes = [],
-        _kind = _deserializeKind(json['kind']) {
+        _kind = _deserializeKind(json['kind']),
+        codeReference =
+            json['code'] == null ? null : CodeReference.fromJson(json['code']) {
     deserializer.defer(() {
       for (var id in json['us'] as List<dynamic>) {
         upstreamNodes.add(deserializer.nodeForId(id as int));
@@ -44,7 +122,8 @@ class NullabilityEdge implements EdgeInfo {
     });
   }
 
-  NullabilityEdge._(this.destinationNode, this.upstreamNodes, this._kind);
+  NullabilityEdge._(this.destinationNode, this.upstreamNodes, this._kind,
+      {this.codeReference});
 
   @override
   Iterable<NullabilityNode> get guards => upstreamNodes.skip(1);
@@ -100,6 +179,7 @@ class NullabilityEdge implements EdgeInfo {
         json['kind'] = 'union';
         break;
     }
+    if (codeReference != null) json['code'] = codeReference.toJson();
     serializer.defer(() {
       json['dest'] = serializer.idForNode(destinationNode);
       json['us'] = [for (var n in upstreamNodes) serializer.idForNode(n)];
@@ -317,7 +397,7 @@ class NullabilityGraph {
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
   PropagationResult propagate(PostmortemFileWriter postmortemFileWriter) {
-    postmortemFileWriter?.downstreamPropagationSteps?.clear();
+    postmortemFileWriter?.clearPropagationSteps();
     if (_debugBeforePropagation) debugDump();
     var propagationState =
         _PropagationState(always, never, postmortemFileWriter).result;
@@ -368,7 +448,8 @@ class NullabilityGraph {
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
-    var edge = NullabilityEdge._(destinationNode, upstreamNodes, kind);
+    var edge = NullabilityEdge._(destinationNode, upstreamNodes, kind,
+        codeReference: origin?.codeReference);
     instrumentation?.graphEdge(edge, origin);
     for (var upstreamNode in upstreamNodes) {
       _connectDownstream(upstreamNode, edge);
@@ -404,7 +485,12 @@ class NullabilityGraphDeserializer implements NodeToIdMapper {
 
   final Map<NullabilityNode, int> _nodeToIdMap = {};
 
-  NullabilityGraphDeserializer(this._serializedNodes, this._serializedEdges);
+  final Map<PropagationStep, int> _stepToIdMap = {};
+
+  final List<PropagationStep> _propagationSteps;
+
+  NullabilityGraphDeserializer(
+      this._serializedNodes, this._serializedEdges, this._propagationSteps);
 
   /// Defers a deserialization action until later.  The nullability node
   /// `fromJson` constructors use this method to defer populating edge lists
@@ -445,6 +531,16 @@ class NullabilityGraphDeserializer implements NodeToIdMapper {
     }
     return node;
   }
+
+  /// Records that the given [step] was stored in the postmortem file with the
+  /// given [id] number.
+  void recordStepId(PropagationStep step, int id) {
+    _stepToIdMap[step] = id;
+  }
+
+  /// Gets the propagation step having the given [id].
+  PropagationStep stepForId(int id) =>
+      id == null ? null : _propagationSteps[id];
 
   NullabilityNode _deserializeNode(int id) {
     var json = _serializedNodes[id];
@@ -512,6 +608,8 @@ class NullabilityGraphSerializer {
 
   bool _serializingNodeOrEdge = false;
 
+  final Map<PropagationStep, int> _stepToIdMap = {};
+
   /// Defers a serialization action until later.  The nullability node
   /// `toJson` methods use this method to defer serializing edge lists
   /// until all nodes have been serialized.
@@ -559,6 +657,12 @@ class NullabilityGraphSerializer {
       _serializingNodeOrEdge = false;
     }
     return result;
+  }
+
+  int idForStep(PropagationStep step) => _stepToIdMap[step];
+
+  void recordStepId(PropagationStep step, int id) {
+    _stepToIdMap[step] = id;
   }
 }
 
@@ -947,6 +1051,181 @@ class PropagationResult {
   PropagationResult._();
 }
 
+/// Class representing a step taken by the nullability propagation algorithm.
+abstract class PropagationStep {
+  PropagationStep();
+
+  factory PropagationStep.fromJson(
+      json, NullabilityGraphDeserializer deserializer) {
+    var kind = json['kind'] as String;
+    switch (kind) {
+      case 'downstream':
+        return SimpleDownstreamPropagationStep.fromJson(json, deserializer);
+      case 'exact':
+        return SimpleExactNullablePropagationStep.fromJson(json, deserializer);
+      case 'resolveSubstitution':
+        return ResolveSubstitutionPropagationStep.fromJson(json, deserializer);
+      case 'upstream':
+        return UpstreamPropagationStep.fromJson(json, deserializer);
+      default:
+        throw StateError('Unrecognized propagation step kind: $kind');
+    }
+  }
+
+  /// The location in the source code that caused this step to be necessary,
+  /// or `null` if not known.
+  CodeReference get codeReference => null;
+
+  /// The previous propagation step that led to this one, or `null` if there was
+  /// no previous step.
+  PropagationStep get principalCause;
+
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer);
+
+  @override
+  String toString({NodeToIdMapper idMapper});
+}
+
+/// Propagation step where we consider mark one of the components of a
+/// substitution node as nullable because the substitution node itself is
+/// nullable.
+class ResolveSubstitutionPropagationStep extends ExactNullablePropagationStep {
+  @override
+  final DownstreamPropagationStep principalCause;
+
+  /// The substitution node that needed resolution.
+  final NullabilityNodeForSubstitution node;
+
+  ResolveSubstitutionPropagationStep(this.principalCause, this.node);
+
+  ResolveSubstitutionPropagationStep.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : principalCause = deserializer.stepForId(json['cause'] as int)
+            as DownstreamPropagationStep,
+        node = deserializer.nodeForId(json['node'] as int)
+            as NullabilityNodeForSubstitution,
+        super.fromJson(json, deserializer);
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = super.toJson(serializer);
+    json['kind'] = 'resolveSubstitution';
+    json['cause'] = serializer.idForStep(principalCause);
+    json['node'] = serializer.idForNode(node);
+    return json;
+  }
+
+  @override
+  String toString({NodeToIdMapper idMapper}) =>
+      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+      '${node.toString(idMapper: idMapper)}';
+}
+
+/// Propagation step where we mark the destination of an edge as nullable, due
+/// to its sources becoming nullable.
+class SimpleDownstreamPropagationStep extends DownstreamPropagationStep {
+  @override
+  final DownstreamPropagationStep principalCause;
+
+  /// The nullability edge whose sources are nullable.
+  final NullabilityEdge edge;
+
+  SimpleDownstreamPropagationStep(this.principalCause, this.edge);
+
+  SimpleDownstreamPropagationStep.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : principalCause = deserializer.stepForId(json['cause'] as int)
+            as DownstreamPropagationStep,
+        edge = deserializer.edgeForId(json['edge'] as int),
+        super.fromJson(json, deserializer);
+
+  @override
+  CodeReference get codeReference => edge.codeReference;
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = super.toJson(serializer);
+    json['kind'] = 'downstream';
+    json['cause'] = serializer.idForStep(principalCause);
+    json['edge'] = serializer.idForEdge(edge);
+    return json;
+  }
+
+  @override
+  String toString({NodeToIdMapper idMapper}) =>
+      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+      '${edge.toString(idMapper: idMapper)}';
+}
+
+/// Propagation step where we mark the source of an edge as exactx nullable, due
+/// to its destination becoming exact nullable.
+class SimpleExactNullablePropagationStep extends ExactNullablePropagationStep {
+  @override
+  final ExactNullablePropagationStep principalCause;
+
+  final NullabilityEdge edge;
+
+  SimpleExactNullablePropagationStep(this.principalCause, this.edge);
+
+  SimpleExactNullablePropagationStep.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : principalCause = deserializer.stepForId(json['cause'] as int)
+            as ExactNullablePropagationStep,
+        edge = deserializer.edgeForId(json['edge'] as int),
+        super.fromJson(json, deserializer);
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    var json = super.toJson(serializer);
+    json['kind'] = 'exact';
+    json['cause'] = serializer.idForStep(principalCause);
+    json['edge'] = serializer.idForEdge(edge);
+    return json;
+  }
+
+  @override
+  String toString({NodeToIdMapper idMapper}) =>
+      '${targetNode.toString(idMapper: idMapper)} becomes $newState due to '
+      '${edge.toString(idMapper: idMapper)}';
+}
+
+/// Propagation step where we mark a node as having non-null intent due to it
+/// being upstream from another node with non-null intent.
+class UpstreamPropagationStep extends PropagationStep {
+  @override
+  final UpstreamPropagationStep principalCause;
+
+  /// The node being marked as having non-null intent.
+  final NullabilityNode node;
+
+  /// The new state of the node's non-null intent.
+  final NonNullIntent newNonNullIntent;
+
+  UpstreamPropagationStep(
+      this.principalCause, this.node, this.newNonNullIntent);
+
+  UpstreamPropagationStep.fromJson(
+      dynamic json, NullabilityGraphDeserializer deserializer)
+      : principalCause = deserializer.stepForId(json['cause'] as int)
+            as UpstreamPropagationStep,
+        node = deserializer.nodeForId(json['node'] as int),
+        newNonNullIntent = NonNullIntent.fromJson(json['newState']);
+
+  @override
+  Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
+    return {
+      'kind': 'upstream',
+      'cause': serializer.idForStep(principalCause),
+      'node': serializer.idForNode(node),
+      'newState': newNonNullIntent.toJson()
+    };
+  }
+
+  @override
+  String toString({NodeToIdMapper idMapper}) =>
+      '${node.toString(idMapper: idMapper)} becomes $newNonNullIntent';
+}
+
 /// Kinds of nullability edges
 enum _NullabilityEdgeKind {
   /// Soft edge.  Propagates nullability downstream only.  May be overridden by
@@ -1058,13 +1337,13 @@ class _PropagationState {
 
   /// During any given stage of nullability propagation, a list of all the edges
   /// that need to be examined before the stage is complete.
-  final List<NullabilityEdge> _pendingEdges = [];
+  final List<SimpleDownstreamPropagationStep> _pendingDownstreamSteps = [];
 
   final PostmortemFileWriter _postmortemFileWriter;
 
   /// During execution of [_propagateDownstream], a list of all the substitution
   /// nodes that have not yet been resolved.
-  List<NullabilityNodeForSubstitution> _pendingSubstitutions = [];
+  List<ResolveSubstitutionPropagationStep> _pendingSubstitutions = [];
 
   _PropagationState(this._always, this._never, this._postmortemFileWriter) {
     _propagateUpstream();
@@ -1073,11 +1352,14 @@ class _PropagationState {
 
   /// Propagates nullability downstream.
   void _propagateDownstream() {
-    assert(_pendingEdges.isEmpty);
-    _pendingEdges.addAll(_always._downstreamEdges);
+    assert(_pendingDownstreamSteps.isEmpty);
+    for (var edge in _always._downstreamEdges) {
+      _pendingDownstreamSteps.add(SimpleDownstreamPropagationStep(null, edge));
+    }
     while (true) {
-      while (_pendingEdges.isNotEmpty) {
-        var edge = _pendingEdges.removeLast();
+      while (_pendingDownstreamSteps.isNotEmpty) {
+        var step = _pendingDownstreamSteps.removeLast();
+        var edge = step.edge;
         if (!edge.isTriggered) continue;
         var node = edge.destinationNode;
         var nonNullIntent = node.nonNullIntent;
@@ -1097,14 +1379,17 @@ class _PropagationState {
           }
         }
         if (node is NullabilityNodeMutable && !node.isNullable) {
-          _setNullable(node, Nullability.ordinaryNullable, causeEdge: edge);
+          assert(step.targetNode == null);
+          step.targetNode = node;
+          step.newState = Nullability.ordinaryNullable;
+          _setNullable(step);
         }
       }
       if (_pendingSubstitutions.isEmpty) break;
       var oldPendingSubstitutions = _pendingSubstitutions;
       _pendingSubstitutions = [];
-      for (var node in oldPendingSubstitutions) {
-        _resolvePendingSubstitution(node);
+      for (var step in oldPendingSubstitutions) {
+        _resolvePendingSubstitution(step);
       }
     }
   }
@@ -1112,9 +1397,12 @@ class _PropagationState {
   /// Propagates non-null intent upstream along unconditional control flow
   /// lines.
   void _propagateUpstream() {
-    var pendingNodes = <NullabilityNode>[_never];
-    while (pendingNodes.isNotEmpty) {
-      var pendingNode = pendingNodes.removeLast();
+    var pendingSteps = <UpstreamPropagationStep>[
+      UpstreamPropagationStep(null, _never, NonNullIntent.direct)
+    ];
+    while (pendingSteps.isNotEmpty) {
+      var cause = pendingSteps.removeLast();
+      var pendingNode = cause.node;
       for (var edge in pendingNode._upstreamEdges) {
         // We only propagate for nodes that are "upstream triggered".  At this
         // point of propagation, a node is upstream triggered if it is hard.
@@ -1123,18 +1411,20 @@ class _PropagationState {
         var node = edge.sourceNode;
         if (node is NullabilityNodeMutable) {
           var oldNonNullIntent = node._nonNullIntent;
+          NonNullIntent newNonNullIntent;
           if (edge.isUnion && edge.destinationNode == _never) {
             // If a node is unioned with "never" then it's considered to have
             // direct non-null intent.
-            _setNonNullIntent(node, NonNullIntent.direct, causeEdge: edge);
+            newNonNullIntent = NonNullIntent.direct;
           } else {
-            _setNonNullIntent(node, oldNonNullIntent.addIndirect(),
-                causeEdge: edge);
+            newNonNullIntent = oldNonNullIntent.addIndirect();
           }
+          var step = UpstreamPropagationStep(cause, node, newNonNullIntent);
+          _setNonNullIntent(step);
           if (!oldNonNullIntent.isPresent) {
             // We did not previously have non-null intent, so we need to
             // propagate.
-            pendingNodes.add(node);
+            pendingSteps.add(step);
           }
         }
       }
@@ -1146,19 +1436,20 @@ class _PropagationState {
           continue;
         }
         var oldNonNullIntent = node._nonNullIntent;
-        _setNonNullIntent(node, oldNonNullIntent.addIndirect(),
-            causeNode: pendingNode);
+        var newNonNullIntent = oldNonNullIntent.addIndirect();
+        var step = UpstreamPropagationStep(cause, node, newNonNullIntent);
+        _setNonNullIntent(step);
         if (!oldNonNullIntent.isPresent) {
           // We did not previously have non-null intent, so we need to
           // propagate.
-          pendingNodes.add(node);
+          pendingSteps.add(step);
         }
       }
     }
   }
 
-  void _resolvePendingSubstitution(
-      NullabilityNodeForSubstitution substitutionNode) {
+  void _resolvePendingSubstitution(ResolveSubstitutionPropagationStep step) {
+    NullabilityNodeForSubstitution substitutionNode = step.node;
     assert(substitutionNode._nullability.isNullable);
     // If both nodes pointed to by the substitution node have non-null intent,
     // then no resolution is needed; the substitution node can’t be satisfied.
@@ -1177,9 +1468,10 @@ class _PropagationState {
     // Otherwise, if the inner node has non-null intent, then we set the outer
     // node to the ordinary nullable state.
     if (substitutionNode.innerNode.nonNullIntent.isPresent) {
-      _setNullable(substitutionNode.outerNode as NullabilityNodeMutable,
-          Nullability.ordinaryNullable,
-          causeNode: substitutionNode);
+      assert(step.targetNode == null);
+      step.targetNode = substitutionNode.outerNode as NullabilityNodeMutable;
+      step.newState = Nullability.ordinaryNullable;
+      _setNullable(step);
       return;
     }
 
@@ -1188,60 +1480,68 @@ class _PropagationState {
     // rule: if there is an edge A → B, where A is in the undetermined or
     // ordinary nullable state, and B is in the exact nullable state, then A’s
     // state is changed to exact nullable.
-    var pendingEdges = <NullabilityEdge>[];
+    var pendingExactNullableSteps = <SimpleExactNullablePropagationStep>[];
     var node = substitutionNode.innerNode;
     if (node is NullabilityNodeMutable) {
-      var oldNullability = _setNullable(node, Nullability.exactNullable,
-          causeNode: substitutionNode);
+      assert(step.targetNode == null);
+      step.targetNode = node;
+      step.newState = Nullability.exactNullable;
+      var oldNullability = _setNullable(step);
       if (!oldNullability.isExactNullable) {
         // Was not previously in the "exact nullable" state.  Need to
         // propagate.
         for (var edge in node._upstreamEdges) {
-          pendingEdges.add(edge);
+          pendingExactNullableSteps
+              .add(SimpleExactNullablePropagationStep(step, edge));
         }
 
         // TODO(mfairhurst): should this propagate back up outerContainerNodes?
       }
     }
 
-    while (pendingEdges.isNotEmpty) {
-      var edge = pendingEdges.removeLast();
+    while (pendingExactNullableSteps.isNotEmpty) {
+      var step = pendingExactNullableSteps.removeLast();
+      var edge = step.edge;
       var node = edge.sourceNode;
       if (node is NullabilityNodeMutable && !edge.isCheckable) {
-        var oldNullability =
-            _setNullable(node, Nullability.exactNullable, causeEdge: edge);
+        assert(step.targetNode == null);
+        step.targetNode = node;
+        step.newState = Nullability.exactNullable;
+        var oldNullability = _setNullable(step);
         if (!oldNullability.isExactNullable) {
           // Was not previously in the "exact nullable" state.  Need to
           // propagate.
           for (var edge in node._upstreamEdges) {
-            pendingEdges.add(edge);
+            pendingExactNullableSteps
+                .add(SimpleExactNullablePropagationStep(step, edge));
           }
         }
       }
     }
   }
 
-  void _setNonNullIntent(
-      NullabilityNodeMutable node, NonNullIntent newNonNullIntent,
-      {NullabilityNode causeNode, NullabilityEdge causeEdge}) {
+  void _setNonNullIntent(UpstreamPropagationStep step) {
+    var node = step.node as NullabilityNodeMutable;
+    var newNonNullIntent = step.newNonNullIntent;
     node._nonNullIntent = newNonNullIntent;
-    _postmortemFileWriter?.upstreamPropagationSteps?.add(
-        UpstreamPropagationStep(node, newNonNullIntent,
-            causeNode: causeNode, causeEdge: causeEdge));
+    _postmortemFileWriter?.addPropagationStep(step);
   }
 
-  Nullability _setNullable(NullabilityNodeMutable node, Nullability newState,
-      {NullabilityNode causeNode, NullabilityEdge causeEdge}) {
+  Nullability _setNullable(DownstreamPropagationStep step) {
+    var node = step.targetNode;
+    var newState = step.newState;
     var oldState = node._nullability;
     node._nullability = newState;
-    _postmortemFileWriter?.downstreamPropagationSteps?.add(
-        DownstreamPropagationStep(node, newState,
-            causeNode: causeNode, causeEdge: causeEdge));
+    _postmortemFileWriter?.addPropagationStep(step);
     if (!oldState.isNullable) {
       // Was not previously nullable, so we need to propagate.
-      _pendingEdges.addAll(node._downstreamEdges);
+      for (var edge in node._downstreamEdges) {
+        _pendingDownstreamSteps
+            .add(SimpleDownstreamPropagationStep(step, edge));
+      }
       if (node is NullabilityNodeForSubstitution) {
-        _pendingSubstitutions.add(node);
+        _pendingSubstitutions
+            .add(ResolveSubstitutionPropagationStep(step, node));
       }
     }
     return oldState;

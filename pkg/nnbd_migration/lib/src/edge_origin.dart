@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
 
 /// Edge origin resulting from a type in already-migrated code.
 ///
@@ -97,6 +98,20 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
   EdgeOrigin.forElement(this.element)
       : source = null,
         node = null;
+
+  /// Retrieves the location in the source code that caused this edge to be
+  /// created, or `null` if unknown.
+  CodeReference get codeReference {
+    if (node != null) {
+      var location = node
+          .thisOrAncestorOfType<CompilationUnit>()
+          .lineInfo
+          .getLocation(node.offset);
+      return CodeReference(
+          source.fullName, location.lineNumber, location.columnNumber);
+    }
+    return null;
+  }
 }
 
 /// An edge origin used for edges that originated because of a reference to an

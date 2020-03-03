@@ -671,5 +671,8 @@ class NullabilityNodeTest {
 }
 
 class _TestEdgeOrigin implements EdgeOrigin {
+  @override
+  CodeReference get codeReference => null;
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
