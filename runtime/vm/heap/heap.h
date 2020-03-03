@@ -23,6 +23,7 @@ namespace dart {
 
 // Forward declarations.
 class Isolate;
+class IsolateGroup;
 class ObjectPointerVisitor;
 class ObjectSet;
 class ServiceEvent;
@@ -62,7 +63,7 @@ class Heap {
     kExternal,   // Dart_NewWeakPersistentHandle
     kIdle,       // Dart_NotifyIdle
     kLowMemory,  // Dart_NotifyLowMemory
-    kDebugging,  // service request, --gc_at_instance_allocation, etc.
+    kDebugging,  // service request, etc.
   };
 
   // Pattern for unused new space and swept old space.
@@ -147,11 +148,11 @@ class Heap {
   void CheckFinishConcurrentMarking(Thread* thread);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
+  void WaitForSweeperTasksAtSafepoint(Thread* thread);
 
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
   void InitGrowthControl();
-  void EnableGrowthControl() { SetGrowthControlState(true); }
   void DisableGrowthControl() { SetGrowthControlState(false); }
   void SetGrowthControlState(bool state);
   bool GrowthControlState();
@@ -164,7 +165,7 @@ class Heap {
   }
 
   // Initialize the heap and register it with the isolate.
-  static void Init(Isolate* isolate,
+  static void Init(IsolateGroup* isolate_group,
                    intptr_t max_new_gen_words,
                    intptr_t max_old_gen_words);
 
@@ -293,7 +294,7 @@ class Heap {
   }
 #endif  // PRODUCT
 
-  Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
 
   Monitor* barrier() const { return &barrier_; }
   Monitor* barrier_done() const { return &barrier_done_; }
@@ -305,17 +306,11 @@ class Heap {
   static const intptr_t kNewAllocatableSize = 256 * KB;
   static const intptr_t kAllocatablePageSize = 64 * KB;
 
-  intptr_t GetTLABSize() {
-    // Inspired by V8 tlab size. More than threshold for old space allocation,
-    // less then minimal(initial) new semi-space.
-    const intptr_t size = 512 * KB;
-    return Utils::RoundDown(size, kObjectAlignment);
-  }
-  void MakeTLABIterable(Thread* thread);
-  void AbandonRemainingTLAB(Thread* thread);
   Space SpaceForExternal(intptr_t size) const;
 
   void CollectOnNthAllocation(intptr_t num_allocations);
+
+  void MergeOtherHeap(Heap* other);
 
  private:
   class GCStats : public ValueObject {
@@ -348,7 +343,7 @@ class Heap {
     DISALLOW_COPY_AND_ASSIGN(GCStats);
   };
 
-  Heap(Isolate* isolate,
+  Heap(IsolateGroup* isolate_group,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
@@ -391,7 +386,7 @@ class Heap {
   // Trigger major GC if 'gc_on_nth_allocation_' is set.
   void CollectForDebugging();
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;

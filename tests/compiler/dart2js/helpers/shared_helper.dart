@@ -23,23 +23,27 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
     return comma;
   }
 
-  void _writeNullability(Nullability nullability, StringBuffer sb) {
-    switch (nullability) {
-      case Nullability.none:
-        return;
-      case Nullability.question:
-        sb.write('?');
-        return;
-      case Nullability.star:
-        sb.write('*');
-        return;
-    }
+  @override
+  void visitLegacyType(LegacyType type, StringBuffer sb) {
+    bool wrapFunction = type.baseType is FunctionType;
+    if (wrapFunction) sb.write('(');
+    visit(type.baseType, sb);
+    if (wrapFunction) sb.write(')');
+    sb.write('*');
+  }
+
+  @override
+  void visitNullableType(NullableType type, StringBuffer sb) {
+    bool wrapFunction = type.baseType is FunctionType;
+    if (wrapFunction) sb.write('(');
+    visit(type.baseType, sb);
+    if (wrapFunction) sb.write(')');
+    sb.write('?');
   }
 
   @override
   void visitNeverType(NeverType type, StringBuffer sb) {
     sb.write('Never');
-    _writeNullability(type.nullability, sb);
   }
 
   @override
@@ -65,18 +69,15 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
   @override
   void visitTypeVariableType(TypeVariableType type, StringBuffer sb) {
     sb.write(type.element.name);
-    _writeNullability(type.nullability, sb);
   }
 
   @override
   void visitFunctionTypeVariable(FunctionTypeVariable type, StringBuffer sb) {
     sb.write(type.index);
-    _writeNullability(type.nullability, sb);
   }
 
   @override
   void visitFunctionType(FunctionType type, StringBuffer sb) {
-    if (!type.nullability.isNone) sb.write('(');
     sb.write('(');
     String comma = visitList(type.parameterTypes, sb);
     if (type.optionalParameterTypes.isNotEmpty) {
@@ -101,8 +102,6 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
     }
     sb.write(')->');
     visit(type.returnType, sb);
-    if (!type.nullability.isNone) sb.write(')');
-    _writeNullability(type.nullability, sb);
   }
 
   @override
@@ -113,7 +112,6 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
       visitList(type.typeArguments, sb);
       sb.write('>');
     }
-    _writeNullability(type.nullability, sb);
   }
 
   @override
@@ -121,7 +119,6 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
     sb.write('FutureOr<');
     visit(type.typeArgument, sb);
     sb.write('>');
-    _writeNullability(type.nullability, sb);
   }
 }
 

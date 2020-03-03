@@ -12,10 +12,10 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('create', defineCreate);
+  group('create', defineCreateTests);
 }
 
-void defineCreate() {
+void defineCreateTests() {
   TestProject p;
 
   setUp(() => p = null);
@@ -50,7 +50,7 @@ void defineCreate() {
   test('no directory given', () {
     p = project();
 
-    ProcessResult result = p.runSync('create');
+    ProcessResult result = p.runSync('create', []);
     expect(result.exitCode, 1);
   });
 

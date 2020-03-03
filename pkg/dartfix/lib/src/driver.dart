@@ -235,7 +235,7 @@ These fixes can be enabled using --$includeFixOption:''');
     context = testContext ?? options.context;
     logger = testLogger ?? options.logger;
     server = Server(listener: _Listener(logger));
-    handler = _Handler(this);
+    handler = _Handler(this, context);
 
     // Start showing progress before we start the analysis server.
     Progress progress;
@@ -404,12 +404,13 @@ class _Handler
     with NotificationHandler, ConnectionHandler, AnalysisCompleteHandler {
   final Driver driver;
   final Logger logger;
+  final Context context;
 
   @override
   final Server server;
   Version serverProtocolVersion;
 
-  _Handler(this.driver)
+  _Handler(this.driver, this.context)
       : logger = driver.logger,
         server = driver.server;
 
@@ -434,11 +435,15 @@ class _Handler
             ' • ${loc.startLine}:${loc.startColumn}');
       }
     }
+    super.onAnalysisErrors(params);
+    // Analysis errors are non-fatal; no need to exit.
   }
 
   @override
   void onFailedToConnect() {
     logger.stderr('Failed to connect to server');
+    super.onFailedToConnect();
+    // Exiting on connection failure is already handled by [Driver.start].
   }
 
   @override
@@ -462,6 +467,8 @@ or installing an older version of dartfix using
     pub global activate dartfix <version>
 ''');
     }
+    super.onProtocolNotSupported(version);
+    // This is handled by the connection failure case; no need to exit here.
   }
 
   @override
@@ -475,6 +482,8 @@ or installing an older version of dartfix using
       logger.stderr(params.stackTrace);
     }
     super.onServerError(params);
+    // Server is stopped by super method, so we can safely exit here.
+    context.exit(16);
   }
 }
 

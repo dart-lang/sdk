@@ -89,6 +89,8 @@ class Tag {
 /// Enum used for identifying [DartType] subclasses in serialization.
 enum DartTypeKind {
   none,
+  legacyType,
+  nullableType,
   neverType,
   voidType,
   typeVariable,
@@ -116,6 +118,7 @@ enum DartTypeNodeKind {
   thisInterfaceType,
   exactInterfaceType,
   doesNotComplete,
+  neverType,
 }
 
 const String functionTypeNodeTag = 'function-type-node';
@@ -167,6 +170,13 @@ class DartTypeNodeWriter
     } else {
       _sink.writeEnum(DartTypeNodeKind.bottomType);
     }
+  }
+
+  @override
+  void visitNeverType(
+      ir.NeverType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.neverType);
+    _sink.writeEnum(node.nullability);
   }
 
   @override

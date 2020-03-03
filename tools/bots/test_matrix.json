@@ -11,6 +11,7 @@
     "analyzer_unit_tests": [
       ".packages",
       "pkg/",
+      "tests/compiler/dart2js/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "tools/",
@@ -486,31 +487,31 @@
         "builder-tag": "analyzer_use_fasta"
       }
     },
-    "dartk-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-asan-(linux|mac)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "asan",
         "timeout": 240
       }
     },
-    "dartk-lsan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-lsan-(linux|mac)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "lsan",
         "timeout": 240
       }
     },
-    "dartk-msan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-msan-linux-(debug|product|release)-x64": {
       "options": {
         "builder-tag": "msan",
         "timeout": 240
       }
     },
-    "dartk-tsan-(linux|mac|win)-(debug|product|release)-x64": {
+    "dartk-tsan-(linux|mac)-(debug|product|release)-x64": {
       "options": {
         "builder-tag": "tsan",
         "timeout": 240
       }
     },
-    "dartk-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "ubsan",
         "timeout": 240
@@ -649,9 +650,7 @@
     "dartkp-win-debug-x64": {
       "options": {
         "use-elf": true,
-        "vm-options": [
-          "--no-enable-malloc-hooks"
-        ]
+        "vm-options": []
       }
     },
     "dartkp-(linux|mac)-(product|release)-x64": {},
@@ -665,15 +664,12 @@
     },
     "dartkp-(linux|mac)-debug-x64": {
       "options": {
-        "vm-options": [
-          "--no-enable-malloc-hooks"
-        ]
+        "vm-options": []
       }
     },
     "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "vm-options": [
-          "--no-enable-malloc-hooks",
           "--no-use-bare-instructions"
         ]
       }
@@ -681,19 +677,75 @@
     "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "vm-options": [
-          "--no-enable-malloc-hooks",
           "--no-use-bare-instructions"
         ],
         "use-elf": true
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "enable-asserts": true
+      }
+    },
+    "dartkp-weak-asserts-win-(debug|product|release)-x64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "enable-asserts": true,
+        "use-elf": true
+      }
+    },
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "enable-experiment": [
           "non-nullable"
         ],
         "enable-asserts": true
+      }
+    },
+    "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "gen-kernel-options": [
+          "--null-safety"
+        ],
+        "vm-options": [
+          "--null-safety"
+        ]
+      }
+    },
+    "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "gen-kernel-options": [
+          "--null-safety"
+        ],
+        "vm-options": [
+          "--null-safety"
+        ]
+      }
+    },
+    "dartkp-strong-win-(debug|product|release)-x64": {
+      "options": {
+        "use-elf": true,
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "gen-kernel-options": [
+          "--null-safety"
+        ],
+        "vm-options": [
+          "--null-safety"
+        ]
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
@@ -858,6 +910,14 @@
         ]
       }
     },
+    "cfe-strong-(linux|mac|win)": {
+      "options": {
+        "compiler": "fasta",
+        "enable-experiment": [
+          "non-nullable"
+        ]
+      }
+    },
     "analyzer-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
@@ -969,27 +1029,6 @@
           ]
         },
         {
-          "name": "weak sdk tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib"
-          ],
-          "fileset": "front-end",
-          "shards": 3
-        },
-        {
-          "name": "weak co19 tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
-            "co19/LanguageFeatures/nnbd"
-          ],
-          "fileset": "front-end",
-          "shards": 2
-        },
-        {
           "name": "legacy sdk tests",
           "arguments": [
             "-ncfe-weak-${system}"
@@ -1005,6 +1044,40 @@
           ],
           "fileset": "front-end",
           "shards": 6
+        },
+        {
+          "name": "weak sdk tests",
+          "arguments": [
+            "-ncfe-weak-${system}",
+            "corelib",
+            "ffi",
+            "language",
+            "lib"
+          ]
+        },
+        {
+          "name": "weak co19 tests",
+          "arguments": [
+            "-ncfe-weak-${system}",
+            "co19/LanguageFeatures/nnbd"
+          ]
+        },
+        {
+          "name": "strong sdk tests",
+          "arguments": [
+            "-ncfe-strong-${system}",
+            "corelib",
+            "ffi",
+            "language",
+            "lib"
+          ]
+        },
+        {
+          "name": "strong co19 tests",
+          "arguments": [
+            "-ncfe-strong-${system}",
+            "co19/LanguageFeatures/nnbd"
+          ]
         }
       ]
     },
@@ -1165,6 +1238,43 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-nnbd-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM AOT nnbd builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--nnbd",
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm weak legacy tests with asserts",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel-nnbd",
+          "shards": 6
+        },
+        {
+          "name": "vm weak tests with asserts",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
+            "language",
+            "lib/mirrors",
+            "standalone/io"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-linux-product-x64",
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
@@ -1298,21 +1408,13 @@
           "arguments": [
             "--sanitizer=asan",
             "runtime"
-          ],
-          "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-asan-linux-release-${arch}"
-          ],
-          "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         }
       ]
     },
@@ -1340,27 +1442,18 @@
           "arguments": [
             "--sanitizer=lsan",
             "runtime"
-          ],
-          "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-lsan-linux-release-${arch}"
-          ],
-          "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         }
       ]
     },
     {
       "builders": [
-        "vm-kernel-msan-linux-release-ia32",
         "vm-kernel-msan-linux-release-x64"
       ],
       "meta": {
@@ -1382,21 +1475,13 @@
           "arguments": [
             "--sanitizer=msan",
             "runtime"
-          ],
-          "environment": {
-            "MSAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "MSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-msan-linux-release-${arch}"
-          ],
-          "environment": {
-            "MSAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
-            "MSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         }
       ]
     },
@@ -1423,21 +1508,14 @@
           "arguments": [
             "--sanitizer=tsan",
             "runtime"
-          ],
-          "environment": {
-            "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
-            "TSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-tsan-linux-release-${arch}"
-          ],
-          "environment": {
-            "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
-            "TSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
-          }
+            "-ndartk-tsan-linux-release-${arch}",
+            "vm"
+          ]
         }
       ]
     },
@@ -1465,19 +1543,13 @@
           "arguments": [
             "--sanitizer=ubsan",
             "runtime"
-          ],
-          "environment": {
-            "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
-          }
+          ]
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-ubsan-linux-release-${arch}"
-          ],
-          "environment": {
-            "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
-          }
+          ]
         }
       ]
     },
@@ -1532,16 +1604,6 @@
           ]
         },
         {
-          "name": "vm weak tests with asserts",
-          "arguments": [
-            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
-            "ffi",
-            "language",
-            "lib/mirrors",
-            "standalone/io"
-          ]
-        },
-	{
           "name": "vm weak legacy tests with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}"
@@ -1552,11 +1614,21 @@
         {
           "name": "vm weak legacy tests(co19_2) with asserts",
           "arguments": [
-	    "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
             "co19_2"
           ],
           "fileset": "vm-kernel-nnbd",
           "shards": 6
+        },
+        {
+          "name": "vm weak tests with asserts",
+          "arguments": [
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
+            "language",
+            "lib/mirrors",
+            "standalone/io"
+          ]
         }
       ]
     },
@@ -2392,15 +2464,13 @@
             "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
             "--target",
-            "dart2js",
-            "--libraries",
-            "sdk_nnbd/lib/dart2js_migration_libraries.json"
+            "dart2js"
           ]
         },
         {
           "name": "dart2js nnbd weak tests",
           "arguments": [
-            "-ndart2js-weak-linux-x64-d8",
+            "-ndart2js-hostasserts-weak-linux-x64-d8",
             "--dart2js-batch",
             "language_2",
             "corelib_2",
@@ -2408,7 +2478,7 @@
             "dart2js_native"
           ],
           "shards": 6,
-          "fileset": "dart2js_nnbd"
+          "fileset": "dart2js_hostasserts_nnbd"
         }
       ]
     },
@@ -2690,6 +2760,15 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
+          ]
+        },
+        {
+          "name": "check nnbd sdk (dart2js patch) for static errors",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
+            "--target",
+            "dart2js"
           ]
         }
       ]
@@ -3410,5 +3489,15 @@
         }
       ]
     }
-  ]
+  ],
+  "sanitizer_options": {
+    "ASAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
+    "MSAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
+    "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
+    "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
+  },
+  "sanitizer_symbolizer": {
+    "linux": "buildtools/linux-x64/clang/bin/llvm-symbolizer",
+    "macos": "buildtools/mac-x64/clang/bin/llvm-symbolizer"
+  }
 }

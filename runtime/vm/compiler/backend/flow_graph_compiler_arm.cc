@@ -368,8 +368,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
   if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, smi_class,
-                         Object::null_type_arguments(), type_class,
-                         Object::null_type_arguments(), Heap::kOld)) {
+                         Object::null_type_arguments(), type, Heap::kOld)) {
     // Fast case for type = int/num/top-type.
     __ b(is_instance_lbl, EQ);
   } else {
@@ -702,8 +701,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
-         !dst_type.IsVoidType());
+  ASSERT(!dst_type.IsTopTypeForAssignability());
+
   const Register kInstantiatorTypeArgumentsReg = R2;
   const Register kFunctionTypeArgumentsReg = R1;
 
@@ -713,9 +712,10 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   } else {
     compiler::Label is_assignable_fast, is_assignable, runtime_call;
 
-    // A null object is always assignable and is returned as result.
-    __ CompareObject(R0, Object::null_object());
-    __ b(&is_assignable_fast, EQ);
+    if (Instance::NullIsAssignableTo(dst_type)) {
+      __ CompareObject(R0, Object::null_object());
+      __ b(&is_assignable_fast, EQ);
+    }
 
     __ PushList((1 << kInstantiatorTypeArgumentsReg) |
                 (1 << kFunctionTypeArgumentsReg));
@@ -966,7 +966,7 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable();
+    indirect_gotos_[i]->ComputeOffsetTable(this);
   }
 }
 
@@ -1241,27 +1241,24 @@ void FlowGraphCompiler::EmitDispatchTableCall(
     Register cid_reg,
     int32_t selector_offset,
     const Array& arguments_descriptor) {
-  const Register table_reg = LR;
-  ASSERT(cid_reg != table_reg);
   ASSERT(cid_reg != ARGS_DESC_REG);
   if (!arguments_descriptor.IsNull()) {
     __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   }
   intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
                     compiler::target::kWordSize;
-  __ LoadDispatchTable(table_reg);
   if (offset == 0) {
-    __ ldr(LR, compiler::Address(table_reg, cid_reg, LSL,
+    __ ldr(LR, compiler::Address(DISPATCH_TABLE_REG, cid_reg, LSL,
                                  compiler::target::kWordSizeLog2));
   } else {
-    __ add(table_reg, table_reg,
+    __ add(LR, DISPATCH_TABLE_REG,
            compiler::Operand(cid_reg, LSL, compiler::target::kWordSizeLog2));
     if (!Utils::IsAbsoluteUint(12, offset)) {
       const intptr_t adjust = offset & -(1 << 12);
-      __ AddImmediate(table_reg, table_reg, adjust);
+      __ AddImmediate(LR, LR, adjust);
       offset -= adjust;
     }
-    __ ldr(LR, compiler::Address(table_reg, offset));
+    __ ldr(LR, compiler::Address(LR, offset));
   }
   __ blx(LR);
 }

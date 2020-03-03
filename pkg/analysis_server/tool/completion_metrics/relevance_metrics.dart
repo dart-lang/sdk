@@ -30,6 +30,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:path/path.dart' as path;
 
 Future<void> main(List<String> args) async {
   var out = io.stdout;
@@ -39,7 +40,8 @@ Future<void> main(List<String> args) async {
     io.exit(1);
   }
 
-  var rootPath = args[0];
+  var corpus = args[0] == '--corpus';
+  var rootPath = corpus ? args[1] : args[0];
   out.writeln('Analyzing root: \"$rootPath\"');
   if (!io.Directory(rootPath).existsSync()) {
     out.writeln('\tError: No such directory exists on this machine.\n');
@@ -49,7 +51,7 @@ Future<void> main(List<String> args) async {
   var computer = RelevanceMetricsComputer();
   var stopwatch = Stopwatch();
   stopwatch.start();
-  await computer.compute(rootPath);
+  await computer.compute(rootPath, corpus: corpus);
   stopwatch.stop();
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
   out.writeln('  Metrics computed in $duration');
@@ -71,14 +73,15 @@ class RelevanceData {
   /// A table mapping element kinds to counts by context.
   Map<String, Map<String, int>> byElementKind = {};
 
-  /// A table mapping AST node classes to counts by context.
-  Map<String, Map<String, int>> byNodeClass = {};
-
   /// A table mapping token types to counts by context.
   Map<String, Map<String, int>> byTokenType = {};
 
   /// A table mapping match types to counts by kind of type match.
   Map<String, Map<String, int>> byTypeMatch = {};
+
+  /// A table mapping the depth of a target type to the distance between the
+  /// target type and the member type.
+  Map<int, Map<int, int>> distanceByDepthMap = {};
 
   /// A table mapping distances from an identifier to the nearest previous token
   /// with the same lexeme to the number of times that distance was found.
@@ -97,9 +100,9 @@ class RelevanceData {
   void addDataFrom(RelevanceData data) {
     _addToMap(byDistance, data.byDistance);
     _addToMap(byElementKind, data.byElementKind);
-    _addToMap(byNodeClass, data.byNodeClass);
     _addToMap(byTokenType, data.byTokenType);
     _addToMap(byTypeMatch, data.byTypeMatch);
+    _addToMap(distanceByDepthMap, distanceByDepthMap);
   }
 
   /// Record that a reference to an element was found and that the distance
@@ -111,23 +114,19 @@ class RelevanceData {
     contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
+  /// Given a member accessed on a target, record the distance between the
+  /// target class and the member class by the depth of the target class.
+  void recordDistanceByDepth(int targetDepth, int memberDistance) {
+    var innerMap = distanceByDepthMap.putIfAbsent(memberDistance, () => {});
+    innerMap[targetDepth] = (innerMap[targetDepth] ?? 0) + 1;
+  }
+
   /// Record that an element of the given [kind] was found in the given
   /// [context].
   void recordElementKind(String context, ElementKind kind) {
     var contextMap = byElementKind.putIfAbsent(context, () => {});
     var key = kind.name;
     contextMap[key] = (contextMap[key] ?? 0) + 1;
-  }
-
-  /// Record that an element of the given [node] was found in the given
-  /// [context].
-  void recordNodeClass(String context, AstNode node) {
-    var contextMap = byNodeClass.putIfAbsent(context, () => {});
-    var className = node.runtimeType.toString();
-    if (className.endsWith('Impl')) {
-      className = className.substring(0, className.length - 4);
-    }
-    contextMap[className] = (contextMap[className] ?? 0) + 1;
   }
 
   /// Record information about the distance between recurring tokens.
@@ -155,15 +154,14 @@ class RelevanceData {
       'version': currentVersion,
       'byDistance': byDistance,
       'byElementKind': byElementKind,
-      'byNodeClass': byNodeClass,
       'byTokenType': byTokenType,
       'byTypeMatch': byTypeMatch,
+      'distanceByDepthMap': _encodeIntIntMap(distanceByDepthMap),
     });
   }
 
   /// Add the data in the [source] map to the [target] map.
-  void _addToMap(Map<String, Map<String, int>> target,
-      Map<String, Map<String, int>> source) {
+  void _addToMap<K>(Map<K, Map<K, int>> target, Map<K, Map<K, int>> source) {
     for (var outerEntry in source.entries) {
       var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
       for (var innerEntry in outerEntry.value.entries) {
@@ -182,6 +180,22 @@ class RelevanceData {
 
   /// Decode the content of the [source] map into the [target] map, using the
   /// [keyMapper] to map the inner keys from a string to a [T].
+  void _decodeIntIntMap(
+      Map<int, Map<int, int>> target, Map<String, dynamic> source) {
+    var outerMap = _convert(source);
+    for (var outerEntry in outerMap.entries) {
+      var outerKey = int.parse(outerEntry.key);
+      var innerMap = _convert(outerEntry.value);
+      for (var innerEntry in innerMap.entries) {
+        var innerKey = int.parse(innerEntry.key);
+        var count = innerEntry.value as int;
+        target.putIfAbsent(outerKey, () => {})[innerKey] = count;
+      }
+    }
+  }
+
+  /// Decode the content of the [source] map into the [target] map, using the
+  /// [keyMapper] to map the inner keys from a string to a [T].
   void _decodeMap(
       Map<String, Map<String, int>> target, Map<String, dynamic> source) {
     var outerMap = _convert(source);
@@ -196,6 +210,18 @@ class RelevanceData {
     }
   }
 
+  Map<String, Map<String, int>> _encodeIntIntMap(Map<int, Map<int, int>> map) {
+    var result = <String, Map<String, int>>{};
+    for (var outerEntry in map.entries) {
+      var convertedInner = <String, int>{};
+      for (var innerEntry in outerEntry.value.entries) {
+        convertedInner[innerEntry.key.toString()] = innerEntry.value;
+      }
+      result[outerEntry.key.toString()] = convertedInner;
+    }
+    return result;
+  }
+
   /// Initialize the state of this object from the given JSON encoded [content].
   void _initializeFromJson(String content) {
     var contentObject = _convert(json.decode(content));
@@ -206,9 +232,9 @@ class RelevanceData {
     }
     _decodeMap(byDistance, contentObject['byDistance']);
     _decodeMap(byElementKind, contentObject['byElementKind']);
-    _decodeMap(byNodeClass, contentObject['byNodeClass']);
     _decodeMap(byTokenType, contentObject['byTokenType']);
     _decodeMap(byTypeMatch, contentObject['byTypeMatch']);
+    _decodeIntIntMap(distanceByDepthMap, contentObject['distanceByDepthMap']);
   }
 }
 
@@ -290,13 +316,19 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
+    String context = _argumentListContext(node);
     for (var argument in node.arguments) {
       if (argument is NamedExpression) {
-        _recordDataForNode('ArgumentList (named)', argument.expression,
+        _recordDataForNode('ArgumentList (all, named)', argument.expression,
+            allowedKeywords: expressionKeywords);
+        _recordDataForNode(
+            'ArgumentList ($context, named)', argument.expression,
             allowedKeywords: expressionKeywords);
         _recordTypeMatch(argument.expression);
       } else {
-        _recordDataForNode('ArgumentList (unnamed)', argument,
+        _recordDataForNode('ArgumentList (all, unnamed)', argument,
+            allowedKeywords: expressionKeywords);
+        _recordDataForNode('ArgumentList ($context, unnamed)', argument,
             allowedKeywords: expressionKeywords);
         _recordTypeMatch(argument);
       }
@@ -447,7 +479,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitCommentReference(CommentReference node) {
     void recordDataForCommentReference(String context, AstNode node) {
       _recordElementKind(context, node);
-      _recordNodeClass(context, node);
       _recordTokenType(context, node);
     }
 
@@ -459,6 +490,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     enclosingLibrary = node.declaredElement.library;
     typeSystem = enclosingLibrary.typeSystem;
+    inheritanceManager = InheritanceManager3();
 
     for (var directive in node.directives) {
       _recordTokenType('CompilationUnit (directive)', directive,
@@ -472,6 +504,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
     typeSystem = null;
     enclosingLibrary = null;
+    inheritanceManager = null;
   }
 
   @override
@@ -663,7 +696,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForElement(ForElement node) {
-    _recordNodeClass('ForElement (parts)', node.forLoopParts);
     _recordTokenType('ForElement (parts)', node.forLoopParts);
     _recordDataForNode('ForElement (body)', node.body);
     super.visitForElement(node);
@@ -702,7 +734,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
-    _recordNodeClass('ForElement (parts)', node.forLoopParts);
     _recordTokenType('ForElement (parts)', node.forLoopParts);
     _recordDataForNode('ForElement (body)', node.body,
         allowedKeywords: statementKeywords);
@@ -907,7 +938,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     // There are no completions.
     var element = node.declaredElement;
-    if (!element.isStatic) {
+    if (!element.isStatic && element.enclosingElement is ClassElement) {
       var overriddenMembers = inheritanceManager.getOverridden(
           (element.enclosingElement as ClassElement).thisType,
           Name(element.librarySource.uri, element.name));
@@ -1247,6 +1278,34 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     super.visitYieldStatement(node);
   }
 
+  /// Return the context in which the [node] occurs. The [node] is expected to
+  /// be the parent of the argument expression.
+  String _argumentListContext(AstNode node) {
+    if (node is ArgumentList) {
+      var parent = node.parent;
+      if (parent is InstanceCreationExpression) {
+        return 'constructor';
+      } else if (parent is MethodInvocation) {
+        return 'method';
+      } else if (parent is FunctionExpressionInvocation) {
+        return 'function';
+      } else if (parent is SuperConstructorInvocation ||
+          parent is RedirectingConstructorInvocation) {
+        return 'constructor redirect';
+      } else if (parent is Annotation) {
+        return 'annotation';
+      }
+    } else if (node is IndexExpression) {
+      return 'index';
+    } else if (node is AssignmentExpression ||
+        node is BinaryExpression ||
+        node is PrefixExpression ||
+        node is PostfixExpression) {
+      return 'binary/unary';
+    }
+    return 'unknown';
+  }
+
   /// Return the depth of the given [element]. For example:
   /// 0: imported
   /// 1: prefix
@@ -1433,7 +1492,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void _recordDataForNode(String context, AstNode node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
-    _recordNodeClass(context, node);
     _recordReferenceDepth(node);
     _recordTokenDistance(node);
     _recordTokenType(context, node, allowedKeywords: allowedKeywords);
@@ -1462,30 +1520,32 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   /// Record the distance between the static type of the target (the
-  /// [targetType]) and the [element] to which the member reference was
-  /// resolved.
-  void _recordMemberDepth(DartType targetType, Element element) {
+  /// [targetType]) and the [member] to which the reference was resolved.
+  void _recordMemberDepth(DartType targetType, Element member) {
     if (targetType is InterfaceType) {
-      var subclass = targetType.element;
-      var extension = element.thisOrAncestorOfType<ExtensionElement>();
+      var targetClass = targetType.element;
+      var extension = member.thisOrAncestorOfType<ExtensionElement>();
       if (extension != null) {
         _recordDistance('member (extension)', 0);
         return;
       }
       // TODO(brianwilkerson) It might be interesting to also know whether the
       //  [element] was found in a class, interface, or mixin.
-      var superclass = element.thisOrAncestorOfType<ClassElement>();
-      if (superclass != null) {
+      var memberClass = member.thisOrAncestorOfType<ClassElement>();
+      if (memberClass != null) {
+        /// Return the distance between the [targetClass] and the [memberClass]
+        /// along the superclass chain. This includes all of the implicit
+        /// superclasses caused by mixins.
         int getSuperclassDepth() {
           var depth = 0;
-          var currentClass = subclass;
+          var currentClass = targetClass;
           while (currentClass != null) {
-            if (currentClass == superclass) {
+            if (currentClass == memberClass) {
               return depth;
             }
             for (var mixin in currentClass.mixins.reversed) {
               depth++;
-              if (mixin.element == superclass) {
+              if (mixin.element == memberClass) {
                 return depth;
               }
             }
@@ -1495,11 +1555,27 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           return -1;
         }
 
-        var notFound = 0xFFFF;
+        /// Return the depth of the [targetClass] in the class hierarchy. This
+        /// includes all of the implicit superclasses caused by mixins.
+        int getTargetDepth() {
+          var depth = 0;
+          var currentClass = targetClass;
+          while (currentClass != null) {
+            depth += currentClass.mixins.length + 1;
+            currentClass = currentClass.supertype?.element;
+          }
+          return depth;
+        }
+
+        const notFound = 0xFFFF;
+
+        /// Return the minimum distance from the [currentClass] to the
+        /// [memberClass] along any inheritance chain (including interfaces).
+        /// This includes paths introduced by mixins.
         int getInterfaceDepth(ClassElement currentClass) {
           if (currentClass == null) {
             return notFound;
-          } else if (currentClass == superclass) {
+          } else if (currentClass == memberClass) {
             return 0;
           }
           var minDepth = getInterfaceDepth(currentClass.supertype?.element);
@@ -1519,12 +1595,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         }
 
         int superclassDepth = getSuperclassDepth();
-        // TODO(brianwilkerson) Consider cross referencing with the depth of the
-        //  class containing the reference.
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
+          data.recordDistanceByDepth(getTargetDepth(), superclassDepth);
         } else {
-          int interfaceDepth = getInterfaceDepth(subclass);
+          int interfaceDepth = getInterfaceDepth(targetClass);
           if (interfaceDepth < notFound) {
             _recordDistance('member (interface)', interfaceDepth);
           } else {
@@ -1532,13 +1607,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           }
         }
       }
-    }
-  }
-
-  /// Record the class of the [node] in the given [context].
-  void _recordNodeClass(String context, AstNode node) {
-    if (node != null) {
-      data.recordNodeClass(context, node);
     }
   }
 
@@ -1672,9 +1740,13 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (parameterType == null || parameterType.isDynamic) {
       return;
     }
+    var context = _argumentListContext(argument.parent);
     var argumentType = argument.staticType;
     if (argumentType != null) {
-      _recordTypeRelationships('argument (whole)', parameterType, argumentType);
+      _recordTypeRelationships(
+          'argument (all, whole)', parameterType, argumentType);
+      _recordTypeRelationships(
+          'argument ($context, whole)', parameterType, argumentType);
     }
     var identifier = _leftMostIdentifier(argument);
     if (identifier != null) {
@@ -1692,7 +1764,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
       if (firstTokenType != null) {
         _recordTypeRelationships(
-            'argument (first token)', parameterType, firstTokenType);
+            'argument (all, first token)', parameterType, firstTokenType);
+        _recordTypeRelationships(
+            'argument ($context, first token)', parameterType, firstTokenType);
       }
     }
   }
@@ -1723,39 +1797,49 @@ class RelevanceMetricsComputer {
   RelevanceMetricsComputer();
 
   /// Compute the metrics for the file(s) in the [rootPath].
-  void compute(String rootPath) async {
-    final collection = AnalysisContextCollection(
-      includedPaths: [rootPath],
-      resourceProvider: PhysicalResourceProvider.INSTANCE,
-    );
+  /// If [corpus] is true, treat rootPath as a container of packages, creating
+  /// a new context collection for each subdirectory.
+  void compute(String rootPath, {bool corpus}) async {
     final collector = RelevanceDataCollector(data);
-
-    for (var context in collection.contexts) {
-      for (var filePath in context.contextRoot.analyzedFiles()) {
-        if (AnalysisEngine.isDartFileName(filePath)) {
-          try {
-            ResolvedUnitResult resolvedUnitResult =
-                await context.currentSession.getResolvedUnit(filePath);
-            //
-            // Check for errors that cause the file to be skipped.
-            //
-            if (resolvedUnitResult.state != ResultState.VALID) {
-              print('File $filePath skipped because it could not be analyzed.');
-              print('');
-              continue;
-            } else if (hasError(resolvedUnitResult)) {
-              print('File $filePath skipped due to errors:');
-              for (var error in resolvedUnitResult.errors) {
-                print('  ${error.toString()}');
+    var roots = _computeRootPaths(rootPath, corpus);
+    for (var root in roots) {
+      final collection = AnalysisContextCollection(
+        includedPaths: [root],
+        resourceProvider: PhysicalResourceProvider.INSTANCE,
+      );
+      for (var context in collection.contexts) {
+        for (var filePath in context.contextRoot.analyzedFiles()) {
+          if (AnalysisEngine.isDartFileName(filePath)) {
+            try {
+              ResolvedUnitResult resolvedUnitResult =
+                  await context.currentSession.getResolvedUnit(filePath);
+              //
+              // Check for errors that cause the file to be skipped.
+              //
+              if (resolvedUnitResult == null) {
+                print('File $filePath skipped because resolved unit was null.');
+                print('');
+                continue;
+              } else if (resolvedUnitResult.state != ResultState.VALID) {
+                print(
+                    'File $filePath skipped because it could not be analyzed.');
+                print('');
+                continue;
+              } else if (hasError(resolvedUnitResult)) {
+                print('File $filePath skipped due to errors:');
+                for (var error in resolvedUnitResult.errors
+                    .where((e) => e.severity == Severity.error)) {
+                  print('  ${error.toString()}');
+                }
+                print('');
+                continue;
               }
-              print('');
-              continue;
-            }
 
-            resolvedUnitResult.unit.accept(collector);
-          } catch (exception) {
-            print('Exception caught analyzing: "$filePath"');
-            print(exception.toString());
+              resolvedUnitResult.unit.accept(collector);
+            } catch (exception, stacktrace) {
+              print('Exception caught analyzing: "$filePath"');
+              print(stacktrace);
+            }
           }
         }
       }
@@ -1765,23 +1849,24 @@ class RelevanceMetricsComputer {
   /// Write a report of the metrics that were computed to the [sink].
   void writeMetrics(StringSink sink) {
     sink.writeln('');
-    _writeSideBySide(
-        sink,
-        [data.byTokenType, data.byElementKind, data.byNodeClass],
-        ['Token Types', 'Element Kinds', 'Node Classes']);
+    _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
+        ['Token Types', 'Element Kinds']);
     sink.writeln('');
     sink.writeln('Type relationships');
     _writeContextMap(sink, data.byTypeMatch);
     sink.writeln('');
     sink.writeln('Structural indicators');
     _writeContextMap(sink, data.byDistance);
+    sink.writeln('');
+    sink.writeln('Distance to member (left) by depth of target class (top)');
+    _writeMatrix(sink, data.distanceByDepthMap);
     _writeTokenData(sink, data.tokenDistances);
   }
 
   /// Return the minimum widths for each of the columns in the given [table].
   ///
-  /// The table is represented as a list or rows, where each row is a list of the
-  /// contents of the cells in that row.
+  /// The table is represented as a list or rows, where each row is a list of
+  /// the contents of the cells in that row.
   ///
   /// Throws an [ArgumentError] if the table is empty or if the rows do not
   /// contain the same number of cells.
@@ -1808,6 +1893,20 @@ class RelevanceMetricsComputer {
       }
     }
     return columnWidths;
+  }
+
+  List<String> _computeRootPaths(String rootPath, bool corpus) {
+    var roots = <String>[];
+    if (!corpus) {
+      roots.add(rootPath);
+    } else {
+      for (var child in io.Directory(rootPath).listSync()) {
+        if (child is io.Directory) {
+          roots.add(path.join(rootPath, child.path));
+        }
+      }
+    }
+    return roots;
   }
 
   Iterable<List<String>> _convertColumnsToRows(
@@ -1893,6 +1992,44 @@ class RelevanceMetricsComputer {
         sink.writeln('  $line');
       }
     }
+  }
+
+  /// Write the given [matrix] to the [sink]. The keys of the outer map will be
+  /// the row titles; the keys of the inner map will be the column titles.
+  void _writeMatrix(StringSink sink, Map<int, Map<int, int>> matrix) {
+    var maxTargetDepth = 0;
+    var maxValueWidth = 0;
+    for (var innerMap in matrix.values) {
+      for (var entry in innerMap.entries) {
+        maxTargetDepth = math.max(maxTargetDepth, entry.key);
+        maxValueWidth = math.max(maxValueWidth, entry.value.toString().length);
+      }
+    }
+    String intToString(int value, int width) {
+      var digits = value.toString();
+      var padding = ' ' * (width - digits.length);
+      return '$padding$digits';
+    }
+
+    var maxRowHeaderWidth = maxTargetDepth.toString().length;
+    var headerRow = [''];
+    for (int depth = maxTargetDepth; depth > 0; depth--) {
+      headerRow.add(intToString(depth, maxValueWidth));
+    }
+    var zero = intToString(0, maxValueWidth);
+    var table = [headerRow];
+    for (int distance = maxTargetDepth - 1; distance >= 0; distance--) {
+      var innerMap = matrix[distance] ?? {};
+      var row = [intToString(distance, maxRowHeaderWidth)];
+      for (int depth = maxTargetDepth; depth > 0; depth--) {
+        var value = innerMap[depth];
+        row.add(value == null
+            ? (distance < depth ? zero : '')
+            : intToString(value, maxValueWidth));
+      }
+      table.add(row);
+    }
+    _writeTable(sink, table);
   }
 
   /// Write the given [maps] to the given [sink], formatting them as side-by-side

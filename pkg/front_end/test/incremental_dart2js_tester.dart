@@ -19,6 +19,7 @@ main(List<String> args) async {
   bool fast = false;
   bool useExperimentalInvalidation = false;
   bool addDebugBreaks = false;
+  int limit = -1;
   for (String arg in args) {
     if (arg == "--fast") {
       fast = true;
@@ -26,13 +27,15 @@ main(List<String> args) async {
       useExperimentalInvalidation = true;
     } else if (arg == "--addDebugBreaks") {
       addDebugBreaks = true;
+    } else if (arg.startsWith("--limit=")) {
+      limit = int.parse(arg.substring("--limit=".length));
     } else {
       throw "Unsupported argument: $arg";
     }
   }
 
-  Dart2jsTester dart2jsTester =
-      new Dart2jsTester(useExperimentalInvalidation, fast, addDebugBreaks);
+  Dart2jsTester dart2jsTester = new Dart2jsTester(
+      useExperimentalInvalidation, fast, addDebugBreaks, limit);
   await dart2jsTester.test();
 }
 
@@ -40,6 +43,7 @@ class Dart2jsTester {
   final bool useExperimentalInvalidation;
   final bool fast;
   final bool addDebugBreaks;
+  final int limit;
 
   Stopwatch stopwatch = new Stopwatch();
   List<int> firstCompileData;
@@ -49,17 +53,23 @@ class Dart2jsTester {
   List<Uri> diffs = new List<Uri>();
   Set<Uri> componentUris = new Set<Uri>();
 
-  Dart2jsTester(
-      this.useExperimentalInvalidation, this.fast, this.addDebugBreaks);
+  Dart2jsTester(this.useExperimentalInvalidation, this.fast,
+      this.addDebugBreaks, this.limit);
 
   void test() async {
     helper.TestIncrementalCompiler compiler = await setup();
+    if (addDebugBreaks) {
+      debugger();
+    }
 
     diffs = new List<Uri>();
     componentUris = new Set<Uri>();
 
     Stopwatch localStopwatch = new Stopwatch()..start();
+    int recompiles = 0;
     for (int i = 0; i < uris.length; i++) {
+      if (limit >= 0 && limit < i) break;
+      recompiles++;
       Uri uri = uris[i];
       await step(uri, i, compiler, localStopwatch);
     }
@@ -69,7 +79,7 @@ class Dart2jsTester {
       print(" - $uri");
     }
 
-    print("Done after ${uris.length} recompiles in "
+    print("Done after ${recompiles} recompiles in "
         "${stopwatch.elapsedMilliseconds} ms");
   }
 

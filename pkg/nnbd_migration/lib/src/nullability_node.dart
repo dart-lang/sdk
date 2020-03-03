@@ -1112,9 +1112,10 @@ class _PropagationState {
           if (edge.isUnion && edge.destinationNode == _never) {
             // If a node is unioned with "never" then it's considered to have
             // direct non-null intent.
-            node._nonNullIntent = NonNullIntent.direct;
+            _setNonNullIntent(node, NonNullIntent.direct, causeEdge: edge);
           } else {
-            node._nonNullIntent = oldNonNullIntent.addIndirect();
+            _setNonNullIntent(node, oldNonNullIntent.addIndirect(),
+                causeEdge: edge);
           }
           if (!oldNonNullIntent.isPresent) {
             // We did not previously have non-null intent, so we need to
@@ -1131,7 +1132,8 @@ class _PropagationState {
           continue;
         }
         var oldNonNullIntent = node._nonNullIntent;
-        node._nonNullIntent = oldNonNullIntent.addIndirect();
+        _setNonNullIntent(node, oldNonNullIntent.addIndirect(),
+            causeNode: pendingNode);
         if (!oldNonNullIntent.isPresent) {
           // We did not previously have non-null intent, so we need to
           // propagate.
@@ -1203,6 +1205,15 @@ class _PropagationState {
         }
       }
     }
+  }
+
+  void _setNonNullIntent(
+      NullabilityNodeMutable node, NonNullIntent newNonNullIntent,
+      {NullabilityNode causeNode, NullabilityEdge causeEdge}) {
+    node._nonNullIntent = newNonNullIntent;
+    _postmortemFileWriter?.upstreamPropagationSteps?.add(
+        UpstreamPropagationStep(node, newNonNullIntent,
+            causeNode: causeNode, causeEdge: causeEdge));
   }
 
   Nullability _setNullable(NullabilityNodeMutable node, Nullability newState,

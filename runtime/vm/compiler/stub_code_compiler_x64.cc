@@ -2945,6 +2945,13 @@ void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
 // Note of warning: The caller will not populate CODE_REG and we have therefore
 // no access to the pool.
 void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
+  __ movq(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
+  __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+}
+
+// Used instead of DefaultTypeTestStub when null is assignable.
+void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
+    Assembler* assembler) {
   Label done;
 
   const Register kInstanceReg = RAX;
@@ -3000,6 +3007,18 @@ static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
 
 void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
     Assembler* assembler) {
+  __ movq(
+      CODE_REG,
+      Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
+  __ EnterStubFrame();
+  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+// Used instead of LazySpecializeTypeTestStub when null is assignable.
+void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
+    Assembler* assembler) {
   const Register kInstanceReg = RAX;
 
   Label done;
@@ -3027,19 +3046,6 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   const Register kSubtypeTestCacheReg = R9;
 
   __ EnterStubFrame();
-
-#ifdef DEBUG
-  // Guaranteed by caller.
-  // TODO(regis): This will change when supporting NNBD, because the caller may
-  // not always determine the test result for a null instance, as for example
-  // in the case of a still uninstantiated test type, which may become nullable
-  // or non-nullable after instantiation in the runtime.
-  Label no_error;
-  __ CompareObject(kInstanceReg, NullObject());
-  __ BranchIf(NOT_EQUAL, &no_error);
-  __ Breakpoint();
-  __ Bind(&no_error);
-#endif
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(kSubtypeTestCacheReg, NullObject());

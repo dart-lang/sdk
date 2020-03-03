@@ -45,6 +45,7 @@ main(List<String> args) async {
   parser.addOption('result_file',
       abbr: 'f', help: 'File containing the results to send');
   parser.addOption('id', abbr: 'i', help: 'Buildbucket ID of this build');
+  parser.addOption('base_revision', help: 'A try build\'s patch base');
 
   final options = parser.parse(args);
   if (options['help']) {
@@ -56,6 +57,7 @@ main(List<String> args) async {
   final lines = await File(options['result_file']).readAsLines();
   final token = await File(options['auth_token']).readAsString();
   final buildbucketID = options['id'];
+  final baseRevision = options['base_revision'];
   if (lines.isEmpty) {
     print('No results in input file');
     return;
@@ -116,7 +118,8 @@ main(List<String> args) async {
     final base64data = base64Encode(utf8.encode(message.toString()));
     final attributes = {
       if (chunk == chunks.last) 'num_chunks': chunks.length.toString(),
-      if (buildbucketID != null) 'buildbucket_id': buildbucketID
+      if (buildbucketID != null) 'buildbucket_id': buildbucketID,
+      if (baseRevision != null) 'base_revision': baseRevision,
     };
     final jsonMessage = jsonEncode({
       'messages': [

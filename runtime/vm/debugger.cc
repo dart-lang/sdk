@@ -1542,7 +1542,7 @@ RawTypeArguments* ActivationFrame::BuildParameters(
       mapping_offset -= size;
       for (intptr_t j = 0; j < size; ++j) {
         type_param = TypeParameter::RawCast(type_params.TypeAt(j));
-        name = type_param.Name();
+        name = type_param.name();
         // Write the names in backwards in terms of chain of functions.
         // But keep the order of names within the same function. so they
         // match up with the order of the types in 'type_arguments'.

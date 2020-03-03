@@ -537,6 +537,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     driverMap.values.forEach((driver) => driver.changeFile(path));
 
     notifyDeclarationsTracker(path);
+    notifyFlutterWidgetDescriptions(path);
   }
 
   void _updateDriversPriorityFiles() {
@@ -676,6 +677,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
+    analysisServer.notifyFlutterWidgetDescriptions(event.path);
     // TODO: implement plugin broadcastWatchEvent
   }
 

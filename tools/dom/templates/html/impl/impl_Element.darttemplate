@@ -348,8 +348,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory Element.html(String html,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
-    var fragment = document.body.createFragment(html, validator: validator,
-        treeSanitizer: treeSanitizer);
+    var fragment = document.body$NULLASSERT.createFragment(html,
+        validator: validator, treeSanitizer: treeSanitizer);
 
     return fragment.nodes.where((e) => e is Element).single $#NULLSAFECAST(as Element);
   }
@@ -567,10 +567,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @pragma('dart2js:tryInline')
   String$NULLABLE getAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     return _getAttribute(name);
   }
 
@@ -578,20 +575,14 @@ $endif
   String$NULLABLE getAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     return _getAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     return _hasAttribute(name);
   }
 
@@ -599,52 +590,37 @@ $endif
   bool hasAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     return _hasAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     _removeAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
   void removeAttributeNS(String$NULLABLE namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
-$endif
     _removeAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
-$endif
     _setAttribute(name, value);
   }
 
   @pragma('dart2js:tryInline')
   void setAttributeNS(String$NULLABLE namespaceURI, String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
-$if NNBD
-$else
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
-$endif
     _setAttributeNS(namespaceURI, name, value);
   }
 
@@ -1360,10 +1336,10 @@ $endif
 
     var contextElement;
     if (this is BodyElement) {
-      contextElement = _parseDocument$NULLASSERT.body;
+      contextElement = _parseDocument$NULLASSERT.body$NULLASSERT;
     } else {
       contextElement = _parseDocument$NULLASSERT.createElement(tagName);
-      _parseDocument$NULLASSERT.body.append(contextElement);
+      _parseDocument$NULLASSERT.body$NULLASSERT.append(contextElement);
     }
     var fragment;
     if (Range.supportsCreateContextualFragment &&
@@ -1452,14 +1428,8 @@ $endif
   String get innerHtml => _innerHtml;
 
   @JSName('innerText')
-$if NNBD
-  String get innerText => JS<String>("String", "#.innerText", this);
-  set innerText(String value) {
-    JS("void", "#.innerText = #", this, value);
-  }
-$else
-  String innerText;
-$endif
+  String get innerText native;
+  set innerText(String value) native;
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -1527,11 +1497,7 @@ $endif
     return result;
   }
 
-$if NNBD
-  Element get offsetParent => JS("Element", "#.offsetParent", this);
-$else
-  final Element offsetParent;
-$endif
+  Element get offsetParent native;
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 

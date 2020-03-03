@@ -192,6 +192,39 @@ class ImplicitMixinSuperCallOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.implicitMixinSuperCall;
 }
 
+/// Edge origin resulting from the implicit assignment of `null` to a top level
+/// variable or field that lacks an initializer.
+class ImplicitNullInitializerOrigin extends EdgeOrigin {
+  ImplicitNullInitializerOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.implicitNullInitializer;
+}
+
+/// Edge origin resulting from a `return;` statement which implicitly returns
+/// `null`.
+class ImplicitNullReturnOrigin extends EdgeOrigin {
+  ImplicitNullReturnOrigin(Source source, ReturnStatement node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.implicitNullReturn;
+
+  @override
+  ReturnStatement get node => super.node as ReturnStatement;
+}
+
+/// Edge origin resulting from the inference of a type parameter, which
+/// can affects the nullability of that type parameter's bound.
+class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
+  InferredTypeParameterInstantiationOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.inferredTypeParameterInstantiation;
+}
+
 /// Edge origin resulting from a type that is inferred from its initializer.
 class InitializerInferenceOrigin extends EdgeOrigin {
   InitializerInferenceOrigin(Source source, VariableDeclaration node)
@@ -223,19 +256,6 @@ class InstantiateToBoundsOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.instantiateToBounds;
-}
-
-/// Edge origin resulting from a usage of a typedef.
-///
-/// Since typedefs require multiple phases to resolve, they are represented by
-/// a set of inferred nodes. In the secondary phases of graph build, those get
-/// unioned with references to the nodes referring to source code. The origin of
-/// those union edges will be [TypedefReferenceOrigin].
-class TypedefReferenceOrigin extends EdgeOrigin {
-  TypedefReferenceOrigin(Source source, TypeName node) : super(source, node);
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.typedefReference;
 }
 
 /// Edge origin resulting from the use of a type as the main type in an 'is'
@@ -409,6 +429,32 @@ class ThrowOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.throw_;
+}
+
+/// Edge origin resulting from a usage of a typedef.
+///
+/// Since typedefs require multiple phases to resolve, they are represented by
+/// a set of inferred nodes. In the secondary phases of graph build, those get
+/// unioned with references to the nodes referring to source code. The origin of
+/// those union edges will be [TypedefReferenceOrigin].
+class TypedefReferenceOrigin extends EdgeOrigin {
+  TypedefReferenceOrigin(Source source, TypeName node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.typedefReference;
+}
+
+/// Edge origin resulting from the instantiation of a type parameter, which
+/// affects the nullability of that type parameter's bound.
+class TypeParameterInstantiationOrigin extends EdgeOrigin {
+  TypeParameterInstantiationOrigin(Source source, TypeAnnotation node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.typeParameterInstantiation;
+
+  @override
+  TypeAnnotation get node => super.node as TypeAnnotation;
 }
 
 /// Edge origin resulting from the read of a variable that has not been

@@ -857,6 +857,11 @@ class Assembler : public AssemblerBase {
     cmpq(value, address);
   }
 
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
+         Immediate(value));
+  }
+
   void RestoreCodePointer();
   void LoadPoolPointer(Register pp = PP);
 

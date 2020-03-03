@@ -6,7 +6,7 @@ class C extends core::Object {
   field core::num pi;
   field core::num? _#C#p1;
   field core::num? _#C#p2;
-  field dynamic _#C#p2#isSet;
+  field core::bool _#C#p2#isSet;
   synthetic constructor •() → self::C
     ;
   get p1() → core::num;

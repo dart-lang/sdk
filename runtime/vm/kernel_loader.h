@@ -460,8 +460,6 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
                                             Zone* zone,
                                             const Field& field);
 
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
-
 }  // namespace kernel
 }  // namespace dart
 

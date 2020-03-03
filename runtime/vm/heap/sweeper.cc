@@ -106,21 +106,21 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
 
 class ConcurrentSweeperTask : public ThreadPool::Task {
  public:
-  ConcurrentSweeperTask(Isolate* isolate,
+  ConcurrentSweeperTask(IsolateGroup* isolate_group,
                         PageSpace* old_space,
                         HeapPage* first,
                         HeapPage* last,
                         HeapPage* large_first,
                         HeapPage* large_last,
                         FreeList* freelist)
-      : task_isolate_(isolate),
+      : task_isolate_group_(isolate_group),
         old_space_(old_space),
         first_(first),
         last_(last),
         large_first_(large_first),
         large_last_(large_last),
         freelist_(freelist) {
-    ASSERT(task_isolate_ != NULL);
+    ASSERT(task_isolate_group_ != NULL);
     ASSERT(first_ != NULL);
     ASSERT(old_space_ != NULL);
     ASSERT(last_ != NULL);
@@ -131,8 +131,8 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result =
-        Thread::EnterIsolateAsHelper(task_isolate_, Thread::kSweeperTask, true);
+    bool result = Thread::EnterIsolateGroupAsHelper(
+        task_isolate_group_, Thread::kSweeperTask, /*bypass_safepoint=*/true);
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
@@ -197,7 +197,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
       }
     }
     // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
-    Thread::ExitIsolateAsHelper(true);
+    Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
     // This sweeper task is done. Notify the original isolate.
     {
       MonitorLocker ml(old_space_->tasks_lock());
@@ -209,7 +209,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
   }
 
  private:
-  Isolate* task_isolate_;
+  IsolateGroup* task_isolate_group_;
   PageSpace* old_space_;
   HeapPage* first_;
   HeapPage* last_;
@@ -218,15 +218,15 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
   FreeList* freelist_;
 };
 
-void GCSweeper::SweepConcurrent(Isolate* isolate,
+void GCSweeper::SweepConcurrent(IsolateGroup* isolate_group,
                                 HeapPage* first,
                                 HeapPage* last,
                                 HeapPage* large_first,
                                 HeapPage* large_last,
                                 FreeList* freelist) {
   bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(
-      isolate, isolate->heap()->old_space(), first, last, large_first,
-      large_last, freelist);
+      isolate_group, isolate_group->heap()->old_space(), first, last,
+      large_first, large_last, freelist);
   ASSERT(result);
 }
 

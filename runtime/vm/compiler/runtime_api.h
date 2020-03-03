@@ -290,6 +290,9 @@ extern const word kPageSizeInWords;
 extern const word kPageMask;
 
 static constexpr intptr_t kObjectAlignment = ObjectAlignment::kObjectAlignment;
+static constexpr intptr_t kNumParameterFlagsPerElement = kBitsPerWord / 2;
+static_assert(kNumParameterFlagsPerElement <= kSmiBits,
+              "kNumParameterFlagsPerElement should fit inside a Smi");
 
 inline intptr_t RoundedAllocationSize(intptr_t size) {
   return Utils::RoundUp(size, kObjectAlignment);

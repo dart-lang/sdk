@@ -35,7 +35,10 @@ config("internal_config") {
     "-faligned-new",
   ]
   if (is_clang) {
-    cflags += [ "-Wno-unused-const-variable" ]
+    cflags += [
+      "-Wno-unused-const-variable",
+      "-Wno-implicit-int-float-conversion",
+    ]
   }
   if (current_cpu == "arm" && !is_clang) {
     cflags += [ "-Wno-psabi" ]
@@ -80,9 +83,7 @@ source_set("tcmalloc") {
 
   public_configs = [ ":link_config" ]
 
-  deps = [
-    ":dynamic_annotations",
-  ]
+  deps = [ ":dynamic_annotations" ]
 
   include_dirs = [
     "include",

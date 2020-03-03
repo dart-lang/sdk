@@ -59,6 +59,11 @@ Future<void> main(List<String> args) async {
   parser.addFlag("update-cfe",
       help: "Replace CFE error expectations.", negatable: false);
 
+  parser.addSeparator("Other flags:");
+  parser.addFlag("nnbd",
+      help: "Analyze with the 'non-nullable' experiment enabled.",
+      negatable: false);
+
   var results = parser.parse(args);
 
   if (results["help"] as bool) {
@@ -91,6 +96,8 @@ Future<void> main(List<String> args) async {
       results["update-cfe"] as bool ||
       results["update"] as bool;
 
+  var nnbd = results["nnbd"] as bool;
+
   if (!removeAnalyzer && !removeCfe && !insertAnalyzer && !insertCfe) {
     _usageError(
         parser, "Must provide at least one flag for an operation to perform.");
@@ -120,7 +127,8 @@ Future<void> main(List<String> args) async {
           removeAnalyzer: removeAnalyzer,
           removeCfe: removeCfe,
           insertAnalyzer: insertAnalyzer,
-          insertCfe: insertCfe);
+          insertCfe: insertCfe,
+          nnbd: nnbd);
     }
   }
 }
@@ -138,15 +146,21 @@ Future<void> _processFile(File file,
     bool removeAnalyzer,
     bool removeCfe,
     bool insertAnalyzer,
-    bool insertCfe}) async {
+    bool insertCfe,
+    bool nnbd}) async {
   stdout.write("${file.path}...");
   var source = file.readAsStringSync();
   var testFile = TestFile.parse(Path("."), file.absolute.path, source);
 
-  var options = testFile.sharedOptions.toList();
-  if (testFile.experiments.isNotEmpty) {
-    options.add("--enable-experiment=${testFile.experiments.join(',')}");
-  }
+  var experiments = [
+    if (nnbd) "non-nullable",
+    if (testFile.experiments.isNotEmpty) ...testFile.experiments
+  ];
+
+  var options = [
+    ...testFile.sharedOptions,
+    if (experiments.isNotEmpty) "--enable-experiment=${experiments.join(',')}"
+  ];
 
   var errors = <StaticError>[];
   if (insertAnalyzer) {

@@ -5,7 +5,6 @@
 library XHRCrossOriginTest;
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 import "dart:convert";
 
@@ -26,8 +25,6 @@ int get crossOriginPort {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('supported', () {
     test('supported', () {
       expect(HttpRequest.supportsCrossOrigin, isTrue);

@@ -100,17 +100,6 @@ f() async {
     ]);
   }
 
-  test_awaitForIn_dynamicStream() async {
-    await assertErrorsInCode('''
-f() async {
-  dynamic stream;
-  await for (int i in stream) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
-  }
-
   test_awaitForIn_dynamicVariable() async {
     await assertErrorsInCode('''
 import 'dart:async';
@@ -147,17 +136,6 @@ f() async {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
       error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
-    ]);
-  }
-
-  test_awaitForIn_notStream() async {
-    await assertErrorsInCode('''
-f() async {
-  await for (var i in true) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 34, 4),
     ]);
   }
 
@@ -335,17 +313,6 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
-  }
-
-  test_forIn_notIterable() async {
-    await assertErrorsInCode('''
-f() {
-  for (var i in true) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 22, 4),
     ]);
   }
 
@@ -1241,115 +1208,6 @@ main(A<NoSuchType> a) {
 }
 ''', [
       error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 35, 10),
-    ]);
-  }
-
-  test_yield_async_to_basic_type() async {
-    await assertErrorsInCode('''
-int f() async* {
-  yield 3;
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 25, 1),
-    ]);
-  }
-
-  test_yield_async_to_iterable() async {
-    await assertErrorsInCode('''
-Iterable<int> f() async* {
-  yield 3;
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 13),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 1),
-    ]);
-  }
-
-  test_yield_async_to_mistyped_stream() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-Stream<int> f() async* {
-  yield "foo";
-}
-''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 54, 5),
-    ]);
-  }
-
-  test_yield_each_async_non_stream() async {
-    await assertErrorsInCode('''
-f() async* {
-  yield* 0;
-}
-''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 22, 1),
-    ]);
-  }
-
-  test_yield_each_async_to_mistyped_stream() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-Stream<int> f() async* {
-  yield* g();
-}
-Stream<String> g() => null;
-''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 55, 3),
-    ]);
-  }
-
-  test_yield_each_sync_non_iterable() async {
-    await assertErrorsInCode('''
-f() sync* {
-  yield* 0;
-}
-''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 21, 1),
-    ]);
-  }
-
-  test_yield_each_sync_to_mistyped_iterable() async {
-    await assertErrorsInCode('''
-Iterable<int> f() sync* {
-  yield* g();
-}
-Iterable<String> g() => null;
-''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 3),
-    ]);
-  }
-
-  test_yield_sync_to_basic_type() async {
-    await assertErrorsInCode('''
-int f() sync* {
-  yield 3;
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 24, 1),
-    ]);
-  }
-
-  test_yield_sync_to_mistyped_iterable() async {
-    await assertErrorsInCode('''
-Iterable<int> f() sync* {
-  yield "foo";
-}
-''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 34, 5),
-    ]);
-  }
-
-  test_yield_sync_to_stream() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-Stream<int> f() sync* {
-  yield 3;
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 21, 11),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 53, 1),
     ]);
   }
 }

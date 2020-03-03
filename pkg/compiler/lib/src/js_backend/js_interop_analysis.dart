@@ -50,6 +50,5 @@ FunctionType buildJsFunctionType(DartTypes dartTypes) {
       new List<DartType>.filled(16, dartTypes.dynamicType()),
       const <String>[],
       const <DartType>[],
-      const <FunctionTypeVariable>[],
-      dartTypes.defaultNullability);
+      const <FunctionTypeVariable>[]);
 }

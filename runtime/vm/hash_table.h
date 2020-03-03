@@ -62,7 +62,7 @@ namespace dart {
 // Each entry contains a key, followed by zero or more payload components,
 // and has 3 possible states: unused, occupied, or deleted.
 // The header tracks the number of entries in each state.
-// Any object except Object::sentinel() and Object::transition_sentinel()
+// Any object except the backing storage array and Object::transition_sentinel()
 // may be stored as a key. Any object may be stored in a payload.
 //
 // Parameters
@@ -138,7 +138,7 @@ class HashTable : public ValueObject {
 #endif  // !defined(PRODUCT)
 
     for (intptr_t i = kHeaderSize; i < data_->Length(); ++i) {
-      data_->SetAt(i, Object::sentinel());
+      data_->SetAt(i, UnusedMarker());
     }
   }
 
@@ -225,6 +225,8 @@ class HashTable : public ValueObject {
   // Sets the key of a previously unoccupied entry. This must not be the last
   // unoccupied entry.
   void InsertKey(intptr_t entry, const Object& key) const {
+    ASSERT(key.raw() != UnusedMarker().raw());
+    ASSERT(key.raw() != DeletedMarker().raw());
     ASSERT(!IsOccupied(entry));
     AdjustSmiValueAt(kOccupiedEntriesIndex, 1);
     if (IsDeleted(entry)) {
@@ -237,14 +239,17 @@ class HashTable : public ValueObject {
     ASSERT(NumOccupied() < NumEntries());
   }
 
+  const Object& UnusedMarker() const { return Object::transition_sentinel(); }
+  const Object& DeletedMarker() const { return *data_; }
+
   bool IsUnused(intptr_t entry) const {
-    return InternalGetKey(entry) == Object::sentinel().raw();
+    return InternalGetKey(entry) == UnusedMarker().raw();
   }
   bool IsOccupied(intptr_t entry) const {
     return !IsUnused(entry) && !IsDeleted(entry);
   }
   bool IsDeleted(intptr_t entry) const {
-    return InternalGetKey(entry) == Object::transition_sentinel().raw();
+    return InternalGetKey(entry) == DeletedMarker().raw();
   }
 
   RawObject* GetKey(intptr_t entry) const {
@@ -266,9 +271,9 @@ class HashTable : public ValueObject {
   void DeleteEntry(intptr_t entry) const {
     ASSERT(IsOccupied(entry));
     for (intptr_t i = 0; i < kPayloadSize; ++i) {
-      UpdatePayload(entry, i, Object::transition_sentinel());
+      UpdatePayload(entry, i, DeletedMarker());
     }
-    InternalSetKey(entry, Object::transition_sentinel());
+    InternalSetKey(entry, DeletedMarker());
     AdjustSmiValueAt(kOccupiedEntriesIndex, -1);
     AdjustSmiValueAt(kDeletedEntriesIndex, 1);
   }
@@ -720,8 +725,8 @@ class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
     Object& entry = Object::Handle();
     for (intptr_t i = 0; i < this->data_->Length(); i++) {
       entry = this->data_->At(i);
-      if (entry.raw() == Object::sentinel().raw() ||
-          entry.raw() == Object::transition_sentinel().raw() || entry.IsSmi()) {
+      if (entry.raw() == BaseSet::UnusedMarker().raw() ||
+          entry.raw() == BaseSet::DeletedMarker().raw() || entry.IsSmi()) {
         // empty, deleted, num_used/num_deleted
         OS::PrintErr("%" Pd ": %s\n", i, entry.ToCString());
       } else {

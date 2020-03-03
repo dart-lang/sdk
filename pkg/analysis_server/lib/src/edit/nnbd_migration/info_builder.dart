@@ -71,8 +71,19 @@ class InfoBuilder {
       if (!session.getFile(filePath).isPart) {
         ResolvedLibraryResult result =
             await session.getResolvedLibrary(filePath);
-        SourceInformation sourceInfo = sourceInfoMap[source];
         for (ResolvedUnitResult unitResult in result.units) {
+          SourceInformation sourceInfo =
+              sourceInfoMap[unitResult.unit.declaredElement.source];
+          // Note: there might have been no information for this unit in
+          // sourceInfoMap.  That can happen if there's an already-migrated
+          // library being referenced by the code being migrated, but not all
+          // parts of that library are referenced.  To avoid exceptions later
+          // on, we just create an empty SourceInformation object.
+          // TODO(paulberry): we don't do a good job of the case where the
+          // already-migrated library's defining compilation unit isn't
+          // referenced (we'll just skip the entire library because we'll only
+          // ever see its parts).
+          sourceInfo ??= SourceInformation();
           SourceFileEdit edit =
               listener.sourceChange.getFileEdit(unitResult.path);
           UnitInfo unit = _explainUnit(sourceInfo, unitResult, edit);
@@ -168,12 +179,22 @@ class InfoBuilder {
       return 'A length is specified in the "List()" constructor and the list '
           'items are initialized to null';
     }
+    if (origin.kind == EdgeOriginKind.typeParameterInstantiation) {
+      return 'This type parameter is instantiated with a nullable type';
+    }
+    if (origin.kind == EdgeOriginKind.inferredTypeParameterInstantiation) {
+      return 'This type parameter is instantiated with an inferred nullable '
+          'type';
+    }
 
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
 
     if (origin.kind == EdgeOriginKind.uninitializedRead) {
       return 'Used on line $lineNumber, when it is possibly uninitialized';
+    } else if (origin.kind == EdgeOriginKind.implicitNullReturn) {
+      return 'This function contains a return statement with no value on line '
+          '$lineNumber, which implicitly returns null.';
     }
 
     /// If the [node] is inside the return expression for a function body,

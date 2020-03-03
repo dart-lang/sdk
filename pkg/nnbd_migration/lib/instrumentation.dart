@@ -136,6 +136,9 @@ enum EdgeOriginKind {
   greatestLowerBound,
   ifNull,
   implicitMixinSuperCall,
+  implicitNullInitializer,
+  implicitNullReturn,
+  inferredTypeParameterInstantiation,
   initializerInference,
   instanceCreation,
   instantiateToBounds,
@@ -156,6 +159,7 @@ enum EdgeOriginKind {
   thisOrSuper,
   throw_,
   typedefReference,
+  typeParameterInstantiation,
   uninitializedRead,
 }
 

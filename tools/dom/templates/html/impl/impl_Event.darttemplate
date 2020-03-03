@@ -35,7 +35,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   /** The CSS selector involved with event delegation. */
-  String$NULLABLE _selector;
+  String$NULLABLE get _selector native;
+  set _selector(String$NULLABLE value) native;
 
   /**
    * A pointer to the element whose CSS selector matched within which an event

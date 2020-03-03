@@ -781,6 +781,10 @@ class StaticTypeContext {
   /// Return `true` if the current library is opted in to non-nullable by
   /// default.
   bool get isNonNullableByDefault => _library.isNonNullableByDefault;
+
+  /// Returns the mode under which the current library was compiled.
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
+      _library.nonNullableByDefaultCompiledMode;
 }
 
 /// Implementation of [StaticTypeContext] that update its state when entering
@@ -861,6 +865,10 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   bool get isNonNullableByDefault => _library.isNonNullableByDefault;
+
+  @override
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
+      _library.nonNullableByDefaultCompiledMode;
 
   /// Updates the [nonNullable] and [thisType] to match static type context for
   /// the member [node].
@@ -948,6 +956,10 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   bool get isNonNullableByDefault => _library?.isNonNullableByDefault;
+
+  @override
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
+      _library.nonNullableByDefaultCompiledMode;
 
   /// Updates the [library] and [thisType] to match static type context for
   /// the member [node].

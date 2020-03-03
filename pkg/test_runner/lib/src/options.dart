@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:smith/smith.dart';
 import 'package:test_runner/src/test_configurations.dart';
+import 'package:path/path.dart' as path;
 
 import 'configuration.dart';
 import 'path.dart';
@@ -92,26 +93,27 @@ enum _OptionValueType { bool, int, string }
 class OptionsParser {
   static final List<_Option> _options = [
     _Option('mode', 'Mode in which to run the tests.',
-        abbr: 'm', values: ['all']..addAll(Mode.names)),
-    _Option('sanitizer', 'Sanitizer in which to run the tests.',
-        defaultsTo: Sanitizer.none.name,
-        values: ['all']..addAll(Sanitizer.names)),
+        abbr: 'm', values: ['all', ...Mode.names]),
     _Option(
         'compiler',
         '''How the Dart code should be compiled or statically processed.
+none:                 Do not compile the Dart code.
+dart2js:              Compile to JavaScript using dart2js.
+dart2analyzer:        Perform static analysis on Dart code using the analyzer.
+compare_analyzer_cfe: Compare analyzer and common front end representations.
+dartdevc:             Compile to JavaScript using dart2js.
+dartdevk:             Compile to JavaScript using dartdevk.
+app_jitk:             Compile the Dart code into Kernel and then into an app
+                      snapshot.
+dartk:                Compile the Dart code into Kernel before running test.
+dartkb:               Compile the Dart code into Kernel with bytecode before
+                      running test.
+dartkp:               Compile the Dart code into Kernel and then Kernel into
+                      AOT snapshot before running the test.
+spec_parser:          Parse Dart code using the specification parser.
 
-none:          Do not compile the Dart code.
-precompiler:   Compile into AOT snapshot before running the test.
-dart2js:       Compile to JavaScript using dart2js.
-dart2analyzer: Perform static analysis on Dart code using the analyzer.
-compareAnalyzerCfe: Compare analyzer and common front end representations.
-app_jit:       Compile the Dart code into an app snapshot.
-app_jitk:      Compile the Dart code into Kernel and then into an app snapshot.
-dartk:         Compile the Dart code into Kernel before running test.
-dartkb:        Compile the Dart code into Kernel with bytecode before running test.
-dartkp:        Compile the Dart code into Kernel and then Kernel into AOT
-               snapshot before running the test.
-spec_parser:   Parse Dart code using the specification parser.''',
+fasta:                Compile using CFE for errors, but do not run.
+''',
         abbr: 'c',
         values: Compiler.names),
     _Option(
@@ -148,7 +150,7 @@ ia32, x64
 arm, armv6, arm64,
 simarm, simarmv6, simarm64, arm_x64''',
         abbr: 'a',
-        values: ['all']..addAll(Architecture.names),
+        values: ['all', ...Architecture.names],
         defaultsTo: Architecture.x64.name,
         hide: true),
     _Option('system', 'The operating system to run tests on.',
@@ -156,6 +158,8 @@ simarm, simarmv6, simarm64, arm_x64''',
         values: System.names,
         defaultsTo: Platform.operatingSystem,
         hide: true),
+    _Option('sanitizer', 'Sanitizer in which to run the tests.',
+        defaultsTo: Sanitizer.none.name, values: ['all', ...Sanitizer.names]),
     _Option(
         'named_configuration',
         '''The named test configuration that supplies the values for all
@@ -674,16 +678,14 @@ compiler.''',
     }
 
     var runtimeNames = data["runtime"] as String;
-    var runtimes = <Runtime>[];
-    if (runtimeNames != null) {
-      runtimes.addAll(runtimeNames.split(",").map(Runtime.find));
-    }
+    var runtimes = [
+      if (runtimeNames != null) ...runtimeNames.split(",").map(Runtime.find)
+    ];
 
     var compilerNames = data["compiler"] as String;
-    var compilers = <Compiler>[];
-    if (compilerNames != null) {
-      compilers.addAll(compilerNames.split(",").map(Compiler.find));
-    }
+    var compilers = [
+      if (compilerNames != null) ...compilerNames.split(",").map(Compiler.find)
+    ];
 
     // Pick default compilers or runtimes if only one or the other is provided.
     if (runtimes.isEmpty) {
@@ -993,3 +995,23 @@ class OptionParseException implements Exception {
 void _fail(String message) {
   throw OptionParseException(message);
 }
+
+// Returns a map of environment variables to be used with sanitizers.
+final Map<String, String> sanitizerEnvironmentVariables = (() {
+  final environment = <String, String>{};
+  final testMatrixFile = "tools/bots/test_matrix.json";
+  final config = json.decode(File(testMatrixFile).readAsStringSync());
+  config['sanitizer_options'].forEach((String key, dynamic value) {
+    environment[key] = value as String;
+  });
+  var symbolizerPath =
+      config['sanitizer_symbolizer'][Platform.operatingSystem] as String;
+  if (symbolizerPath != null) {
+    symbolizerPath = path.join(Directory.current.path, symbolizerPath);
+    environment['ASAN_SYMBOLIZER_PATH'] = symbolizerPath;
+    environment['MSAN_SYMBOLIZER_PATH'] = symbolizerPath;
+    environment['TSAN_SYMBOLIZER_PATH'] = symbolizerPath;
+  }
+
+  return environment;
+})();

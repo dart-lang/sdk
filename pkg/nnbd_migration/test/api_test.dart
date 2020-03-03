@@ -52,15 +52,27 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     var migration = NullabilityMigration(listener,
         permissive: _usePermissiveMode, removeViaComments: removeViaComments);
     for (var path in input.keys) {
-      migration.prepareInput(await session.getResolvedUnit(path));
+      if (!(await session.getFile(path)).isPart) {
+        for (var unit in (await session.getResolvedLibrary(path)).units) {
+          migration.prepareInput(unit);
+        }
+      }
     }
     _betweenStages();
     for (var path in input.keys) {
-      migration.processInput(await session.getResolvedUnit(path));
+      if (!(await session.getFile(path)).isPart) {
+        for (var unit in (await session.getResolvedLibrary(path)).units) {
+          migration.processInput(unit);
+        }
+      }
     }
     _betweenStages();
     for (var path in input.keys) {
-      migration.finalizeInput(await session.getResolvedUnit(path));
+      if (!(await session.getFile(path)).isPart) {
+        for (var unit in (await session.getResolvedLibrary(path)).units) {
+          migration.finalizeInput(unit);
+        }
+      }
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
@@ -1619,7 +1631,7 @@ void main() {
 class C<T> {
   T Function(String)? f;
 }
-int Function(String) f1; // should not have a nullable return
+int Function(String)? f1; // should not have a nullable return
 void main() {
   C<int?> c;
   c.f = f1;
@@ -1643,11 +1655,11 @@ void main() {
 ''';
     var expected = '''
 typedef F<T> = int Function(T);
-F<String?> f1;
+F<String?>? f1;
 
 void main() {
-  f1(null); // induce exact nullability
-  int Function(String) f2 = f1; // shouldn't have a nullable arg
+  f1!(null); // induce exact nullability
+  int Function(String)? f2 = f1; // shouldn't have a nullable arg
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1666,9 +1678,9 @@ void main() {
 ''';
     var expected = '''
 typedef F<T> = T Function(String);
-int Function(String) f1; // should not have a nullable return
+int Function(String)? f1; // should not have a nullable return
 void main() {
-  F<int?> f2 = f1;
+  F<int?>? f2 = f1;
   f2 = (_) => null; // exact nullability induced here
 }
 ''';
@@ -2948,6 +2960,34 @@ class C {
         {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
   }
 
+  Future<void> test_libraryWithParts_add_questions() async {
+    var root = '/home/test/lib';
+    var path1 = convertPath('$root/lib.dart');
+    var file1 = '''
+part 'src/foo/part.dart';
+
+int f() => null;
+''';
+    var expected1 = '''
+part 'src/foo/part.dart';
+
+int? f() => null;
+''';
+    var path2 = convertPath('$root/src/foo/part.dart');
+    var file2 = '''
+part of '../../lib.dart';
+
+int g() => null;
+''';
+    var expected2 = '''
+part of '../../lib.dart';
+
+int? g() => null;
+''';
+    await _checkMultipleFileChanges(
+        {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
+  }
+
   Future<void> test_literals_maintain_nullability() async {
     // See #40590. Without exact nullability, this would migrate to
     // `List<int?> list = <int>[1, 2]`. While the function of exact nullability
@@ -3700,6 +3740,24 @@ void f() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_nullable_use_of_typedef() async {
+    var content = '''
+typedef F<T> = int Function(T);
+F<String> f = null;
+void main() {
+  f('foo');
+}
+''';
+    var expected = '''
+typedef F<T> = int Function(T);
+F<String>? f = null;
+void main() {
+  f!('foo');
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_operator_eq_with_inferred_parameter_type() async {
     var content = '''
 class C {
@@ -4323,6 +4381,31 @@ int f() => null;
 ''';
     var expected = '''
 int? f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40728')
+  Future<void> test_soft_edge_for_assigned_variable() async {
+    var content = '''
+void f(int i) {
+  print(i + 1);
+  i = null;
+  print(i);
+}
+main() {
+  f(0);
+}
+''';
+    var expected = '''
+void f(int? i) {
+  print(i! + 1);
+  i = null;
+  print(i);
+}
+main() {
+  f(0);
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -5169,6 +5252,62 @@ class C {
   int j;
   C.one(this.i) : j = i! + 1;
   C.two() : i = null, j = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_uninitialized_instance_field_is_nullable() async {
+    var content = '''
+class C {
+  int i;
+  f() {
+    print(i == null);
+  }
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  f() {
+    print(i == null);
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_uninitialized_static_field_is_nullable() async {
+    var content = '''
+class C {
+  static int i;
+  f() {
+    print(i == null);
+  }
+}
+''';
+    var expected = '''
+class C {
+  static int? i;
+  f() {
+    print(i == null);
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_uninitialized_toplevel_var_is_nullable() async {
+    var content = '''
+int i;
+f() {
+  print(i == null);
+}
+''';
+    var expected = '''
+int? i;
+f() {
+  print(i == null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

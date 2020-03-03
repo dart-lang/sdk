@@ -47,8 +47,8 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/buildtools/+/master/fuchsia.ensure
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "de39621f0f03f20633bdfa50bde97a3908bf6e98",
-  "gn_revision": "bdb0fd02324b120cacde634a9235405061c8ea06",
+  "clang_revision": "b25fc4123c77097c05ea221e023fa5c6a16e0f41",
+  "gn_revision": "239533d2d91a04b3317ca9101cf7189f4e651e4d",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -56,7 +56,7 @@ vars = {
   "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
 
   # Revisions of /third_party/* dependencies.
-  "args_tag": "1.5.2",
+  "args_tag": "1.5.3",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
@@ -102,7 +102,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.110",
+  "linter_tag": "0.1.112",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
@@ -112,7 +112,7 @@ vars = {
   "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
-  "package_config_tag": "3401e2897b3cf46e64966e2ba19ed7032501cf41", # should be 1.9.0
+  "package_config_tag": "87a8b5184020ebcc13b34ee95dde58f851b68ca3", # should be 1.9.0
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
   "pedantic_tag": "v1.8.0",
@@ -134,7 +134,7 @@ vars = {
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
   "source_span_tag": "1.5.5",
   "stack_trace_tag": "1.9.3",
-  "stagehand_tag": "v3.3.6",
+  "stagehand_tag": "v3.3.7",
   "stream_channel_tag": "2.0.0",
   "string_scanner_tag": "1.0.3",
   "test_descriptor_tag": "1.1.1",
@@ -426,7 +426,7 @@ deps = {
   Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/clang": {
       "packages": [
           {
-              "package": "fuchsia/clang/${{platform}}",
+              "package": "fuchsia/third_party/clang/${{platform}}",
               "version": "git_revision:" + Var("clang_revision"),
           },
       ],

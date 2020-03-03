@@ -22,7 +22,6 @@ main(List<String> args) async {
   await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
     return runTests<Set<_ReachabilityAssertion>>(dataDir,
         args: args,
-        supportedMarkers: cfeAnalyzerMarkers,
         createUriForFileName: createUriForFileName,
         onFailure: onFailure,
         runTest: runTestFor(

@@ -81,8 +81,8 @@ class TypeNameResolver {
     TypeArgumentList argumentList = node.typeArguments;
     Element element = nameScope.lookup(typeName, definingLibrary);
     if (element == null) {
+      node.type = dynamicType;
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        node.type = dynamicType;
         return;
       }
       //
@@ -102,7 +102,6 @@ class TypeNameResolver {
           element = nameScope.lookup(prefix, definingLibrary);
           if (element is PrefixElement) {
             if (nameScope.shouldIgnoreUndefined(typeName)) {
-              node.type = dynamicType;
               return;
             }
             AstNode grandParent = parent.parent;
@@ -143,7 +142,6 @@ class TypeNameResolver {
         }
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        node.type = dynamicType;
         return;
       }
     }

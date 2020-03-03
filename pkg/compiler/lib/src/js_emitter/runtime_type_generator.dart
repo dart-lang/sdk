@@ -324,6 +324,14 @@ class _TypeContainedInOutputUnitVisitor
   }
 
   @override
+  bool visitLegacyType(LegacyType type, OutputUnit argument) =>
+      visit(type.baseType, argument);
+
+  @override
+  bool visitNullableType(NullableType type, OutputUnit argument) =>
+      visit(type.baseType, argument);
+
+  @override
   bool visitNeverType(NeverType type, OutputUnit argument) => true;
 
   @override

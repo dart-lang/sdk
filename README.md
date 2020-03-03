@@ -23,7 +23,7 @@ depending on your target platform and goals:
   * **Dart Web**: For programs targeting the web, Dart Web includes both a development time
   compiler (dartdevc) and a production time compiler (dart2js).  
 
-![Dart platforms illustration](https://dart.dev/assets/platforms-7f4d540acf9fe801b456ad74f9f855230a385014d05d9f5997c878b889a67a0f.svg)
+![Dart platforms illustration](docs/assets/Dart-platforms.svg)
 
 ## License & patents
 

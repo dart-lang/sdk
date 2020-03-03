@@ -73,7 +73,6 @@ application_snapshot("dart2js") {
   if (use_nnbd) {
     training_args += [ "--enable-experiment=non-nullable" ]
   }
-
   training_args += [ rebase_path("$target_gen_dir/dart2js.dart") ]
 }
 

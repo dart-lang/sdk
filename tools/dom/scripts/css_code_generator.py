@@ -125,8 +125,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   ///
   /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
-    var propValue = _getPropertyValueHelper(propertyName);
-    return propValue ?? '';
+    return _getPropertyValueHelper(propertyName);
   }
 
   String _getPropertyValueHelper(String propertyName) {
@@ -151,7 +150,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
 
-  void setProperty(String propertyName, String value,
+  void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
       value, priority);
@@ -204,7 +203,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions {
-    return document.body.style.supportsProperty('transition');
+    return document.body$NULLASSERT.style.supportsProperty('transition');
   }
 $!MEMBERS
 """)
@@ -221,9 +220,12 @@ $!MEMBERS
   }
   @Returns('String')
   @JSName('%s')
-  String _%s;
+  String get _%s native;
+
+  @JSName('%s')
+  set _%s(String value) native;
     """ % (property, camelName, camelName, property, camelName, camelName,
-           camelName, camelName))
+           camelName, camelName, camelName, camelName))
 
     class_file.write("""
 }
@@ -241,7 +243,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
       _elementCssStyleDeclarationSetIterable$NULLASSERT.first.getPropertyValue(
           propertyName);
 
-  void setProperty(String propertyName, String value,
+  void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]) {
     _elementCssStyleDeclarationSetIterable$NULLASSERT.forEach((e) =>
         e.setProperty(propertyName, value, priority));
@@ -278,7 +280,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value,
+  void setProperty(String propertyName, String$NULLABLE value,
       [String$NULLABLE priority]);
 """)
 

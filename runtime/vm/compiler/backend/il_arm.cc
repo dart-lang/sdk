@@ -1167,16 +1167,17 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                THR, compiler::target::Thread::
                         call_native_through_safepoint_entry_point_offset()));
 
-    // Calls R8 in a safepoint and clobbers NOTFP and R4.
-    ASSERT(branch == R8 && temp == NOTFP && locs()->temp(2).reg() == R4);
+    // Calls R8 in a safepoint and clobbers R4 and NOTFP.
+    ASSERT(branch == R8 && temp == R4);
+    static_assert((kReservedCpuRegisters & (1 << NOTFP)) != 0,
+                  "NOTFP should be a reserved register");
     __ blx(TMP);
   }
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(
-                   THR, compiler::target::Thread::global_object_pool_offset()));
+    __ SetupGlobalPoolAndDispatchTable();
   }
 
   EmitReturnMoves(compiler);
@@ -1382,8 +1383,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ StoreToOffset(kWord, CODE_REG, FPREG,
                    kPcMarkerSlotFromFp * compiler::target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(
-                   THR, compiler::target::Thread::global_object_pool_offset()));
+    __ SetupGlobalPoolAndDispatchTable();
   } else {
     __ LoadImmediate(PP, 0);  // GC safe value into PP.
   }

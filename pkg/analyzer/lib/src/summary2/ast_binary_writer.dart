@@ -823,6 +823,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     builder.flags = AstBinaryFlags.encode(
       hasPeriod: node.period != null,
+      hasQuestion: node.question != null,
     );
     return builder;
   }
@@ -1484,6 +1485,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return _ElementComponents(elementIndex, null);
   }
 
+  UnlinkedTokenType _getVarianceToken(TypeParameter parameter) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    var parameterImpl = parameter as TypeParameterImpl;
+    return parameterImpl.varianceKeyword != null
+        ? TokensWriter.astToBinaryTokenType(parameterImpl.varianceKeyword.type)
+        : null;
+  }
+
   int _indexOfElement(Element element) {
     return _linkingContext.indexOfElement(element);
   }
@@ -1677,15 +1687,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   LinkedNodeTypeBuilder _writeType(DartType type) {
     return _linkingContext.writeType(type);
-  }
-
-  UnlinkedTokenType _getVarianceToken(TypeParameter parameter) {
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
-    // added to the interface.
-    var parameterImpl = parameter as TypeParameterImpl;
-    return parameterImpl.varianceKeyword != null
-        ? TokensWriter.astToBinaryTokenType(parameterImpl.varianceKeyword.type)
-        : null;
   }
 
   /// Return `true` if the expression might be successfully serialized.

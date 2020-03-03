@@ -82,7 +82,7 @@ class B extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class C extends core::Object {
-  late final field core::int x;
+  late final [setter] field core::int x;
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;

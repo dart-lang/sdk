@@ -1071,6 +1071,21 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return narrow;
   }
 
+  // Narrow type of [arg] after successful 'is' test against [type].
+  TypeExpr _makeNarrowAfterSuccessfulIsCheck(TypeExpr arg, DartType type) {
+    // 'x is type' can succeed for null if type is
+    //  - a top type (dynamic, void, Object? or Object*)
+    //  - nullable (including Null)
+    //  - a type parameter (it can be instantiated with Null)
+    //  - legacy Never
+    final nullability = type.nullability;
+    final bool canBeNull = _environment.isTop(type) ||
+        nullability == Nullability.nullable ||
+        type is TypeParameterType ||
+        (type is NeverType && nullability == Nullability.legacy);
+    return _makeNarrow(arg, _typesBuilder.fromStaticType(type, canBeNull));
+  }
+
   // Add an artificial use of given expression in order to make it possible to
   // infer its type even if it is not used in a summary.
   void _addUse(TypeExpr arg) {
@@ -1303,8 +1318,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       _addUse(_visit(operand));
       final int varIndex = _variablesInfo.varIndex[operand.variable];
       if (_variableCells[varIndex] == null) {
-        trueState[varIndex] = _makeNarrow(
-            _visit(operand), _typesBuilder.fromStaticType(node.type, false));
+        trueState[varIndex] =
+            _makeNarrowAfterSuccessfulIsCheck(_visit(operand), node.type);
       }
       _variableValues = null;
       return;
@@ -1805,8 +1820,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     if ((node.promotedType != null) &&
         (node.promotedType != const DynamicType())) {
-      return _makeNarrow(
-          v, _typesBuilder.fromStaticType(node.promotedType, false));
+      return _makeNarrowAfterSuccessfulIsCheck(v, node.promotedType);
     }
 
     return v;

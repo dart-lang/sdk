@@ -403,6 +403,11 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    ldrb(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
+    cmp(TMP, Operand(value));
+  }
+
   // Misc. functionality
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
@@ -799,9 +804,9 @@ class Assembler : public AssemblerBase {
 
   void RestoreCodePointer();
   void LoadPoolPointer(Register reg = PP);
+  void SetupGlobalPoolAndDispatchTable();
 
   void LoadIsolate(Register rd);
-  void LoadDispatchTable(Register dst);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.

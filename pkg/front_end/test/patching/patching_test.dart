@@ -22,7 +22,6 @@ main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<Features>(dataDir,
       args: args,
-      supportedMarkers: [cfeMarker, cfeWithNnbdMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const PatchingDataComputer(), [

@@ -1479,7 +1479,7 @@ expression, rather than a map entry, in what appears to be a map literal.
 
 #### Examples
 
-The following code generates this diagnostic:
+The following code produces this diagnostic:
 
 {% prettify dart %}
 var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
@@ -2652,7 +2652,7 @@ constructor (`A`) isn't the same as the surrounding class (`C`):
 class A {}
 
 class C {
-  factory [!A!]() => null;
+  factory [!A!]() => throw 0;
 }
 {% endprettify %}
 
@@ -2665,7 +2665,7 @@ the factory:
 class A {}
 
 class C {
-  factory C() => null;
+  factory C() => throw 0;
 }
 {% endprettify %}
 
@@ -2674,7 +2674,7 @@ factory to that class:
 
 {% prettify dart %}
 class A {
-  factory A() => null;
+  factory A() => throw 0;
 }
 
 class C {}
@@ -2688,7 +2688,7 @@ a static method:
 class A {}
 
 class C {
-  static A a() => null;
+  static A a() => throw 0;
 }
 {% endprettify %}
 
@@ -4226,7 +4226,7 @@ set literal doesn't implement the type `Iterable`.
 
 #### Examples
 
-The following code generates this diagnostic:
+The following code produces this diagnostic:
 
 {% prettify dart %}
 var m = <String, int>{'a': 0, 'b': 1};
@@ -4540,7 +4540,7 @@ constructor.
 The following code produces this diagnostic because `f` is a function:
 
 {% prettify dart %}
-C f() => null;
+C f() => throw 0;
 
 class C {
   factory C() = [!f!];
@@ -4559,7 +4559,7 @@ If you're trying to return the value returned by a function, then rewrite
 the constructor to return the value from the constructor's body:
 
 {% prettify dart %}
-C f() => null;
+C f() => throw 0;
 
 class C {
   factory C() => f();
@@ -4785,7 +4785,7 @@ environment:
   sdk: '>=2.1.0 <2.4.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}
@@ -4943,7 +4943,7 @@ environment:
  sdk: '>=2.4.0 <2.7.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}
@@ -4999,7 +4999,7 @@ environment:
   sdk: '>=2.1.0 <2.4.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}
@@ -5096,7 +5096,7 @@ environment:
   sdk: '>=2.2.0 <2.4.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}
@@ -5152,7 +5152,7 @@ environment:
   sdk: '>=2.4.0 <2.6.0'
 ```
 
-In the package that has that pubspec, code like the following generates
+In the package that has that pubspec, code like the following produces
 this diagnostic:
 
 {% prettify dart %}

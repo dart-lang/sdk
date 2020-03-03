@@ -130,6 +130,8 @@ class WeakTable {
 
   void Reset();
 
+  void MergeOtherWeakTable(WeakTable* other);
+
  private:
   enum {
     kObjectOffset = 0,

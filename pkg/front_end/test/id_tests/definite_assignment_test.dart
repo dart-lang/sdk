@@ -20,7 +20,6 @@ main(List<String> args) async {
       'data'));
   await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+#include <utility>
+
 #include "vm/class_finalizer.h"
 
 #include "vm/compiler/jit/compiler.h"
@@ -378,11 +381,12 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
     if ((pending_type.raw() != type.raw()) && pending_type.IsType() &&
         (pending_type.type_class() == type_cls.raw())) {
       pending_arguments = pending_type.arguments();
-      // By using TypeEquality::kIgnoreNullability, we throw a wider net and
-      // may reject more problematic declarations.
+      // By using TypeEquality::kInSubtypeTest, we throw a wider net than
+      // using canonical or syntactical equality and may reject more
+      // problematic declarations.
       if (!pending_arguments.IsSubvectorEquivalent(
               arguments, first_type_param, num_type_params,
-              TypeEquality::kIgnoreNullability) &&
+              TypeEquality::kInSubtypeTest) &&
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
@@ -396,11 +400,12 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
                           NNBDMode::kLegacyLib, Object::null_type_arguments(),
                           Object::null_type_arguments(), kNoneFree, NULL,
                           Heap::kNew));
-        // By using TypeEquality::kIgnoreNullability, we throw a wider net and
-        // may reject more problematic declarations.
+        // By using TypeEquality::kInSubtypeTest, we throw a wider net than
+        // using canonical or syntactical equality and may reject more
+        // problematic declarations.
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
                 instantiated_arguments, first_type_param, num_type_params,
-                TypeEquality::kIgnoreNullability)) {
+                TypeEquality::kInSubtypeTest)) {
           const String& type_name = String::Handle(zone, type.Name());
           ReportError(cls, type.token_pos(), "illegal recursive type '%s'",
                       type_name.ToCString());
@@ -1389,7 +1394,9 @@ void ClassFinalizer::SortClasses() {
 
   ClassTable* table = I->class_table();
   intptr_t num_cids = table->NumCids();
-  intptr_t* old_to_new_cid = new intptr_t[num_cids];
+
+  std::unique_ptr<intptr_t[]> old_to_new_cid(new intptr_t[num_cids]);
+
   for (intptr_t cid = 0; cid < kNumPredefinedCids; cid++) {
     old_to_new_cid[cid] = cid;  // The predefined classes cannot change cids.
   }
@@ -1450,11 +1457,13 @@ void ClassFinalizer::SortClasses() {
     }
   }
   ASSERT(next_new_cid == num_cids);
-
-  RemapClassIds(old_to_new_cid);
-  delete[] old_to_new_cid;
+  RemapClassIds(old_to_new_cid.get());
   RehashTypes();         // Types use cid's as part of their hashes.
   I->RehashConstants();  // Const objects use cid's as part of their hashes.
+
+  // Ensure any newly spawned isolate will apply this permutation map right
+  // after kernel loading.
+  I->group()->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
@@ -1503,31 +1512,45 @@ class CidRewriteVisitor : public ObjectVisitor {
 
 void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
   Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
+  IsolateGroup* IG = T->isolate_group();
 
   // Code, ICData, allocation stubs have now-invalid cids.
   ClearAllCode();
 
   {
+    // The [HeapIterationScope] also safepoints all threads.
     HeapIterationScope his(T);
-    I->set_remapping_cids(true);
 
-    // Update the class table. Do it before rewriting cids in headers, as the
-    // heap walkers load an object's size *after* calling the visitor.
-    I->class_table()->Remap(old_to_new_cid);
+    IG->class_table()->Remap(old_to_new_cid);
+    IG->ForEachIsolate(
+        [&](Isolate* I) {
+          I->set_remapping_cids(true);
+
+          // Update the class table. Do it before rewriting cids in headers, as
+          // the heap walkers load an object's size *after* calling the visitor.
+          I->class_table()->Remap(old_to_new_cid);
+        },
+        /*is_at_safepoint=*/true);
 
     // Rewrite cids in headers and cids in Classes, Fields, Types and
     // TypeParameters.
     {
       CidRewriteVisitor visitor(old_to_new_cid);
-      I->heap()->VisitObjects(&visitor);
+      IG->heap()->VisitObjects(&visitor);
     }
-    I->set_remapping_cids(false);
+
+    IG->ForEachIsolate(
+        [&](Isolate* I) {
+          I->set_remapping_cids(false);
+#if defined(DEBUG)
+          I->class_table()->Validate();
+#endif
+        },
+        /*is_at_safepoint=*/true);
   }
 
 #if defined(DEBUG)
-  I->class_table()->Validate();
-  I->heap()->Verify();
+  IG->heap()->Verify();
 #endif
 }
 

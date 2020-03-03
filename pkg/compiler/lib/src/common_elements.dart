@@ -178,38 +178,37 @@ abstract class CommonElements {
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType listType(Nullability nullability, [DartType elementType]);
+  InterfaceType listType([DartType elementType]);
 
   /// Returns an instance of the `Set` type defined in 'dart:core' with
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType setType(Nullability nullability, [DartType elementType]);
+  InterfaceType setType([DartType elementType]);
 
   /// Returns an instance of the `Map` type defined in 'dart:core' with
   /// [keyType] and [valueType] as its type arguments.
   ///
   /// If no type arguments are provided, the canonical raw type is returned.
-  InterfaceType mapType(Nullability nullability,
-      [DartType keyType, DartType valueType]);
+  InterfaceType mapType([DartType keyType, DartType valueType]);
 
   /// Returns an instance of the `Iterable` type defined in 'dart:core' with
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType iterableType(Nullability nullability, [DartType elementType]);
+  InterfaceType iterableType([DartType elementType]);
 
   /// Returns an instance of the `Future` type defined in 'dart:async' with
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType futureType(Nullability nullability, [DartType elementType]);
+  InterfaceType futureType([DartType elementType]);
 
   /// Returns an instance of the `Stream` type defined in 'dart:async' with
   /// [elementType] as its type argument.
   ///
   /// If no type argument is provided, the canonical raw type is returned.
-  InterfaceType streamType(Nullability nullability, [DartType elementType]);
+  InterfaceType streamType([DartType elementType]);
 
   /// Returns `true` if [element] is a superclass of `String` or `num`.
   bool isNumberOrStringSupertype(ClassEntity element);
@@ -929,24 +928,23 @@ class CommonElementsImpl
   InterfaceType get stackTraceType => _getRawType(stackTraceClass);
 
   @override
-  InterfaceType listType(Nullability nullability, [DartType elementType]) {
+  InterfaceType listType([DartType elementType]) {
     if (elementType == null) {
       return _getRawType(listClass);
     }
-    return _createInterfaceType(listClass, [elementType], nullability);
+    return _createInterfaceType(listClass, [elementType]);
   }
 
   @override
-  InterfaceType setType(Nullability nullability, [DartType elementType]) {
+  InterfaceType setType([DartType elementType]) {
     if (elementType == null) {
       return _getRawType(setClass);
     }
-    return _createInterfaceType(setClass, [elementType], nullability);
+    return _createInterfaceType(setClass, [elementType]);
   }
 
   @override
-  InterfaceType mapType(Nullability nullability,
-      [DartType keyType, DartType valueType]) {
+  InterfaceType mapType([DartType keyType, DartType valueType]) {
     if (keyType == null && valueType == null) {
       return _getRawType(mapClass);
     } else if (keyType == null) {
@@ -954,31 +952,31 @@ class CommonElementsImpl
     } else if (valueType == null) {
       valueType = dynamicType;
     }
-    return _createInterfaceType(mapClass, [keyType, valueType], nullability);
+    return _createInterfaceType(mapClass, [keyType, valueType]);
   }
 
   @override
-  InterfaceType iterableType(Nullability nullability, [DartType elementType]) {
+  InterfaceType iterableType([DartType elementType]) {
     if (elementType == null) {
       return _getRawType(iterableClass);
     }
-    return _createInterfaceType(iterableClass, [elementType], nullability);
+    return _createInterfaceType(iterableClass, [elementType]);
   }
 
   @override
-  InterfaceType futureType(Nullability nullability, [DartType elementType]) {
+  InterfaceType futureType([DartType elementType]) {
     if (elementType == null) {
       return _getRawType(futureClass);
     }
-    return _createInterfaceType(futureClass, [elementType], nullability);
+    return _createInterfaceType(futureClass, [elementType]);
   }
 
   @override
-  InterfaceType streamType(Nullability nullability, [DartType elementType]) {
+  InterfaceType streamType([DartType elementType]) {
     if (elementType == null) {
       return _getRawType(streamClass);
     }
-    return _createInterfaceType(streamClass, [elementType], nullability);
+    return _createInterfaceType(streamClass, [elementType]);
   }
 
   @override
@@ -1026,16 +1024,15 @@ class CommonElementsImpl
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType _createInterfaceType(
-      ClassEntity cls, List<DartType> typeArguments, Nullability nullability) {
-    return _env.createInterfaceType(cls, typeArguments, nullability);
+      ClassEntity cls, List<DartType> typeArguments) {
+    return _env.createInterfaceType(cls, typeArguments);
   }
 
   @override
   InterfaceType getConstantListTypeFor(InterfaceType sourceType) =>
       dartTypes.treatAsRawType(sourceType)
           ? _env.getRawType(jsArrayClass)
-          : _env.createInterfaceType(
-              jsArrayClass, sourceType.typeArguments, sourceType.nullability);
+          : _env.createInterfaceType(jsArrayClass, sourceType.typeArguments);
 
   @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
@@ -1046,8 +1043,7 @@ class CommonElementsImpl
     if (dartTypes.treatAsRawType(sourceType)) {
       return _env.getRawType(classElement);
     } else {
-      return _env.createInterfaceType(
-          classElement, sourceType.typeArguments, sourceType.nullability);
+      return _env.createInterfaceType(classElement, sourceType.typeArguments);
     }
   }
 
@@ -1055,8 +1051,8 @@ class CommonElementsImpl
   InterfaceType getConstantSetTypeFor(InterfaceType sourceType) =>
       dartTypes.treatAsRawType(sourceType)
           ? _env.getRawType(constSetLiteralClass)
-          : _env.createInterfaceType(constSetLiteralClass,
-              sourceType.typeArguments, sourceType.nullability);
+          : _env.createInterfaceType(
+              constSetLiteralClass, sourceType.typeArguments);
 
   @override
   FieldEntity get symbolField => symbolImplementationField;
@@ -2292,7 +2288,7 @@ abstract class ElementEnvironment {
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType createInterfaceType(
-      ClassEntity cls, List<DartType> typeArguments, Nullability nullability);
+      ClassEntity cls, List<DartType> typeArguments);
 
   /// Returns the `dynamic` type.
   DartType get dynamicType;

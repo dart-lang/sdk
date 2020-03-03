@@ -344,6 +344,8 @@ class TimelineEvent {
 
   Dart_Port isolate_id() const { return isolate_id_; }
 
+  uint64_t isolate_group_id() const { return isolate_group_id_; }
+
   const char* label() const { return label_; }
 
   // Does this duration end before |micros| ?
@@ -460,6 +462,7 @@ class TimelineEvent {
   TimelineStream* stream_;
   ThreadId thread_;
   Dart_Port isolate_id_;
+  uint64_t isolate_group_id_;
 
   friend class TimelineEventRecorder;
   friend class TimelineEventEndlessRecorder;

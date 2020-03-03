@@ -237,7 +237,7 @@ abstract class _FileSystemWatcher {
           if (event[3]) {
             add(event[4], new FileSystemCreateEvent._(getPath(event), isDir));
           } else {
-            add(event[4], new FileSystemDeleteEvent._(getPath(event), isDir));
+            add(event[4], new FileSystemDeleteEvent._(getPath(event), false));
           }
         }
 
@@ -281,10 +281,10 @@ abstract class _FileSystemWatcher {
               }
             }
             if ((event[0] & FileSystemEvent.delete) != 0) {
-              add(event[4], new FileSystemDeleteEvent._(path, isDir));
+              add(event[4], new FileSystemDeleteEvent._(path, false));
             }
             if ((event[0] & FileSystemEvent._deleteSelf) != 0) {
-              add(event[4], new FileSystemDeleteEvent._(path, isDir));
+              add(event[4], new FileSystemDeleteEvent._(path, false));
               // Signal done event.
               stops.add([event[4], null]);
             }

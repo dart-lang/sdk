@@ -87,6 +87,36 @@ Message _withArgumentsArgumentTypeNotAssignable(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
+    templateConstEvalCaseImplementsEqual = const Template<
+            Message Function(Constant _constant, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Case expression '#constant' does not have a primitive operator '=='.""",
+        withArguments: _withArgumentsConstEvalCaseImplementsEqual);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant, bool isNonNullableByDefault)>
+    codeConstEvalCaseImplementsEqual = const Code<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>(
+  "ConstEvalCaseImplementsEqual",
+  templateConstEvalCaseImplementsEqual,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalCaseImplementsEqual(
+    Constant _constant, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalCaseImplementsEqual,
+      message:
+          """Case expression '${constant}' does not have a primitive operator '=='.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalDuplicateElement = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
         messageTemplate:

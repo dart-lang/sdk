@@ -186,8 +186,8 @@ f() {}
   @failingTest
   Future<void> test_sendNoticesAfterNopChange() async {
     // The errors are empty on the last line.
-    createProject();
     addTestFile('');
+    createProject();
     await server.onAnalysisComplete;
     // add an overlay
     server.updateContent(
@@ -206,8 +206,8 @@ f() {}
   @failingTest
   Future<void> test_sendNoticesAfterNopChange_flushedUnit() async {
     // The list of errors is empty on the last line.
-    createProject();
     addTestFile('');
+    createProject();
     await server.onAnalysisComplete;
     // add an overlay
     server.updateContent(

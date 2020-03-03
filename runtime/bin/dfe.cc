@@ -331,7 +331,7 @@ static bool TryReadFile(const char* script_uri, uint8_t** buffer,
   }
   DartUtils::ReadFile(buffer, size, script_file);
   DartUtils::CloseFile(script_file);
-  if (*size <= 0 || buffer == nullptr) {
+  if (buffer == nullptr) {
     return false;
   }
   return true;

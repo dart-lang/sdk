@@ -68,7 +68,7 @@ main() {
 
   check(fn('dynamic', ''), main); //        Top-level tear-off.
   check(fn('void', ''), Xyzzy.foo); //      Class static member tear-off.
-  check(fn('void', 'Object'), [].add); //  Instance tear-off.
+  check(fn('void', 'Object'), new MyList().add); //  Instance tear-off.
   check(fn('int', ''), () => 1); //       closure.
 
   var s = new Xyzzy().runtimeType.toString();
@@ -83,8 +83,8 @@ main() {
   check(fn('String', 'String', {'a': 'String', 'b': 'dynamic'}), Xyzzy.nam);
 
   // Instance method tear-offs.
-  check(fn('void', 'Object'), <String>[].add);
-  check(fn('void', 'Object'), <int>[].add);
+  check(fn('void', 'Object'), new MyList<String>().add);
+  check(fn('void', 'Object'), new MyList<int>().add);
   check(fn('void', 'int'), new Xyzzy().intAdd);
 
   check(fn('String', 'Object'), new G<String, int>().foo);
@@ -120,6 +120,12 @@ class Xyzzy {
   static String opt(String x, [String a, b]) {}
   static String nam(String x, {String a, b}) {}
   void intAdd(int x) {}
+}
+
+// Using 'MyList' instead of core lib 'List' keeps covariant parameter type of
+// tear-offs 'Object' (legacy lib) instead of 'Object?' (opted-in lib).
+class MyList<E> {
+  void add(E value) {}
 }
 
 class G<U, V> {

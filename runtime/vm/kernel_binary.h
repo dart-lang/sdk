@@ -184,6 +184,11 @@ enum IsExpressionFlags {
   kIsExpressionFlagForNonNullableByDefault = 1 << 0,
 };
 
+// Keep in sync with package:kernel/lib/ast.dart
+enum class NamedTypeFlags : uint8_t {
+  kIsRequired = 1 << 0,
+};
+
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
 static const int SourceTableFieldCountFromFirstLibraryOffset = 6;

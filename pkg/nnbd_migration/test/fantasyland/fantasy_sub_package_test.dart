@@ -90,6 +90,23 @@ class FantasySubPackageTest extends FilesystemTestBase {
         join(repoRootPath, 'unreal_package_dir', 'analysis_options.yaml'));
   }
 
+  test_removeSdkConstraintHack() async {
+    pubspecYaml.writeAsStringSync('''
+      name: unreal_package
+      version: 1.2.3
+      environment:
+         sdk: '>=2.2.0 <3.0.0'
+    ''');
+    expect(fantasySubPackage.languageVersion, equals('2.2'));
+    await fantasySubPackage.removeSdkConstraintHack();
+    expect(fantasySubPackage.languageVersion, isNull);
+    expect(pubspecYaml.readAsStringSync(), equals('''
+      name: unreal_package
+      version: 1.2.3
+      environment:
+    '''));
+  }
+
   test_recognizeAllDependencies() async {
     pubspecYaml.writeAsStringSync('''
       name: unreal_package

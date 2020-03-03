@@ -142,7 +142,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    __ SetupGlobalPoolAndDispatchTable();
   }
 
   __ LeaveStubFrame();
@@ -619,7 +619,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    __ SetupGlobalPoolAndDispatchTable();
   }
 
   __ LeaveStubFrame();
@@ -1082,25 +1082,25 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // R9: Allocation size.
   // Potential new object start.
   __ ldr(R0, Address(THR, target::Thread::top_offset()));
-  __ adds(NOTFP, R0, Operand(R9));  // Potential next object start.
+  __ adds(R3, R0, Operand(R9));     // Potential next object start.
   __ b(&slow_case, CS);             // Branch if unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // R0: potential new object start.
-  // NOTFP: potential next object start.
+  // R3: potential next object start.
   // R9: allocation size.
-  __ ldr(R3, Address(THR, target::Thread::end_offset()));
-  __ cmp(NOTFP, Operand(R3));
+  __ ldr(TMP, Address(THR, target::Thread::end_offset()));
+  __ cmp(R3, Operand(TMP));
   __ b(&slow_case, CS);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ str(NOTFP, Address(THR, target::Thread::top_offset()));
+  __ str(R3, Address(THR, target::Thread::top_offset()));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
-  // NOTFP: new object end address.
+  // R3: new object end address.
   // R9: allocation size.
   {
     const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
@@ -1120,7 +1120,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   }
 
   // R0: new object start as a tagged pointer.
-  // NOTFP: new object end address.
+  // R3: new object end address.
   // Store the type argument field.
   __ StoreIntoObjectNoBarrier(
       R0, FieldAddress(R0, target::Array::type_arguments_offset()), R1);
@@ -1134,13 +1134,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // R8, R9: null
   // R4: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // NOTFP: new object end address.
+  // R3: new object end address.
   // R9: allocation size.
 
   __ LoadObject(R8, NullObject());
   __ mov(R9, Operand(R8));
   __ AddImmediate(R4, R0, target::Array::header_size() - kHeapObjectTag);
-  __ InitializeFieldsNoBarrier(R0, R4, NOTFP, R8, R9);
+  __ InitializeFieldsNoBarrier(R0, R4, R3, R8, R9);
   __ Ret();  // Returns the newly allocated object in R0.
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
@@ -1149,7 +1149,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ LoadImmediate(IP, 0);
+  __ LoadImmediate(TMP, 0);
   // Setup space on stack for return value.
   // Push array length as Smi and element type.
   __ PushList((1 << R1) | (1 << R2) | (1 << IP));
@@ -1295,7 +1295,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Call the Dart code entrypoint.
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    __ SetupGlobalPoolAndDispatchTable();
   } else {
     __ LoadImmediate(PP, 0);  // GC safe value into PP.
   }
@@ -1557,7 +1557,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Setup the parent field.
     // R0: new object.
-    // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
     __ LoadObject(R8, NullObject());
@@ -1567,14 +1566,13 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Initialize the context variables.
     // R0: new object.
-    // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
     // R8, R9: raw null.
     Label loop;
-    __ AddImmediate(NOTFP, R0,
+    __ AddImmediate(R1, R0,
                     target::Context::variable_offset(0) - kHeapObjectTag);
-    __ InitializeFieldsNoBarrier(R0, NOTFP, R3, R8, R9);
+    __ InitializeFieldsNoBarrier(R0, R1, R3, R8, R9);
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1967,11 +1965,9 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
     __ PopList((1 << R9) | (1 << R8));  // Restore.
     __ LeaveStubFrame();
   }
-  __ ldr(NOTFP,
-         FieldAddress(func_reg, target::Function::usage_counter_offset()));
-  __ add(NOTFP, NOTFP, Operand(1));
-  __ str(NOTFP,
-         FieldAddress(func_reg, target::Function::usage_counter_offset()));
+  __ ldr(TMP, FieldAddress(func_reg, target::Function::usage_counter_offset()));
+  __ add(TMP, TMP, Operand(1));
+  __ str(TMP, FieldAddress(func_reg, target::Function::usage_counter_offset()));
 }
 
 // Loads function into 'temp_reg'.
@@ -1983,10 +1979,10 @@ void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
     ASSERT(temp_reg == R8);
     __ Comment("Increment function counter");
     __ ldr(func_reg, FieldAddress(ic_reg, target::ICData::owner_offset()));
-    __ ldr(NOTFP,
+    __ ldr(TMP,
            FieldAddress(func_reg, target::Function::usage_counter_offset()));
-    __ add(NOTFP, NOTFP, Operand(1));
-    __ str(NOTFP,
+    __ add(TMP, TMP, Operand(1));
+    __ str(TMP,
            FieldAddress(func_reg, target::Function::usage_counter_offset()));
   }
 }
@@ -2149,9 +2145,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ LoadTaggedClassIdMayBeSmi(R0, R0);
     __ ldr(R4, FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
     if (num_args == 2) {
-      __ ldr(NOTFP,
-             FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
-      __ sub(R1, NOTFP, Operand(target::ToRawSmi(2)));
+      __ ldr(R1, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
+      __ sub(R1, R1, Operand(target::ToRawSmi(2)));
       __ ldr(R1, Address(SP, R1, LSL, 1));  // R1 (argument_count - 2) is Smi.
       __ LoadTaggedClassIdMayBeSmi(R1, R1);
     }
@@ -2161,17 +2156,15 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
 
     // Get the receiver's class ID (first read number of arguments from
     // arguments descriptor array and then access the receiver from the stack).
-    __ ldr(NOTFP,
-           FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
-    __ sub(NOTFP, NOTFP, Operand(target::ToRawSmi(1)));
-    // NOTFP: argument_count - 1 (smi).
+    __ ldr(R1, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
+    __ sub(R1, R1, Operand(target::ToRawSmi(1)));
+    // R1: argument_count - 1 (smi).
 
-    __ ldr(R0,
-           Address(SP, NOTFP, LSL, 1));  // NOTFP (argument_count - 1) is Smi.
+    __ ldr(R0, Address(SP, R1, LSL, 1));  // R1 (argument_count - 1) is Smi.
     __ LoadTaggedClassIdMayBeSmi(R0, R0);
 
     if (num_args == 2) {
-      __ sub(R1, NOTFP, Operand(target::ToRawSmi(1)));
+      __ sub(R1, R1, Operand(target::ToRawSmi(1)));
       __ ldr(R1, Address(SP, R1, LSL, 1));  // R1 (argument_count - 2) is Smi.
       __ LoadTaggedClassIdMayBeSmi(R1, R1);
     }
@@ -2218,11 +2211,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&miss);
   __ Comment("IC miss");
   // Compute address of arguments.
-  __ ldr(NOTFP, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
-  __ sub(NOTFP, NOTFP, Operand(target::ToRawSmi(1)));
-  // NOTFP: argument_count - 1 (smi).
-  __ add(NOTFP, SP, Operand(NOTFP, LSL, 1));  // NOTFP is Smi.
-  // NOTFP: address of receiver.
+  __ ldr(R1, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
+  __ sub(R1, R1, Operand(target::ToRawSmi(1)));
+  // R1: argument_count - 1 (smi).
+  __ add(R1, SP, Operand(R1, LSL, 1));  // R1 is Smi.
+  // R1: address of receiver.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
@@ -2237,8 +2230,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ PushList(regs);
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
-    __ LoadFromOffset(kWord, IP, NOTFP, -i * target::kWordSize);
-    __ Push(IP);
+    __ LoadFromOffset(kWord, TMP, R1, -i * target::kWordSize);
+    __ Push(TMP);
   }
   // Pass IC data object.
   __ Push(R9);
@@ -2662,7 +2655,8 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // R1: function type arguments (only if n >= 4, can be raw_null).
 // R3: target::SubtypeTestCache.
 //
-// Preserves R0/R2
+// Preserves R0/R2.
+// Preserves NOTFP with bare instructions and CODE_REG without.
 //
 // Result in R1: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
@@ -2675,10 +2669,19 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   const Register kInstanceCidOrFunction = R8;
   const Register kInstanceInstantiatorTypeArgumentsReg = R4;
-  const Register kInstanceParentFunctionTypeArgumentsReg = CODE_REG;
   const Register kInstanceDelayedFunctionTypeArgumentsReg = PP;
 
-  const Register kNullReg = NOTFP;
+  Register kInstanceParentFunctionTypeArgumentsReg;
+  Register kNullReg;
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    // NOTFP must be preserved, but CODE_REG can be freely used.
+    kInstanceParentFunctionTypeArgumentsReg = NOTFP;
+    kNullReg = CODE_REG;
+  } else {
+    // CODE_REG must be preserved, but NOTFP can be freely used.
+    kInstanceParentFunctionTypeArgumentsReg = CODE_REG;
+    kNullReg = NOTFP;
+  }
 
   __ LoadObject(kNullReg, NullObject());
 
@@ -2865,6 +2868,13 @@ void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
 // Note of warning: The caller will not populate CODE_REG and we have therefore
 // no access to the pool.
 void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
+  __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
+  __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+}
+
+// Used instead of DefaultTypeTestStub when null is assignable.
+void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
+    Assembler* assembler) {
   Label done;
 
   const Register kInstanceReg = R0;
@@ -2919,6 +2929,17 @@ static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
 
 void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
     Assembler* assembler) {
+  __ ldr(CODE_REG,
+         Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
+  __ EnterStubFrame();
+  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+// Used instead of LazySpecializeTypeTestStub when null is assignable.
+void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
+    Assembler* assembler) {
   const Register kInstanceReg = R0;
   Label done;
 
@@ -2945,20 +2966,11 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-#ifdef DEBUG
-  // Guaranteed by caller.
-  Label no_error;
-  __ CompareObject(kInstanceReg, NullObject());
-  __ BranchIf(NOT_EQUAL, &no_error);
-  __ Breakpoint();
-  __ Bind(&no_error);
-#endif
-
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(kSubtypeTestCacheReg, NullObject());
   __ BranchIf(EQUAL, &call_runtime);
 
-  const Register kTmp = NOTFP;
+  const Register kTmp = R9;
 
   // If this is not a [Type] object, we'll go to the runtime.
   Label is_simple_case, is_complex_case;
@@ -3049,7 +3061,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   // Restore the pool pointer.
   __ RestoreCodePointer();
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    __ SetupGlobalPoolAndDispatchTable();
     __ set_constant_pool_allowed(true);
   } else {
     __ LoadPoolPointer();

@@ -238,25 +238,25 @@ static void PrintSuccess(JSONStream* js) {
 }
 
 static bool CheckDebuggerDisabled(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
-    return true;
-  }
-  if (isolate->debugger() == NULL) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
+  return true;
+#else
+  if (thread->isolate()->debugger() == NULL) {
     js->PrintError(kFeatureDisabled, "Debugger is disabled.");
     return true;
   }
   return false;
+#endif
 }
 
 static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
-    return true;
-  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
+  return true;
+#else
   return false;
+#endif
 }
 
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
@@ -3440,26 +3440,41 @@ static bool HandleNativeMetricsList(Thread* thread, JSONStream* js) {
   obj.AddProperty("type", "MetricList");
   {
     JSONArray metrics(&obj, "metrics");
-    Metric* current = thread->isolate()->metrics_list_head();
-    while (current != NULL) {
-      metrics.AddValue(current);
-      current = current->next();
-    }
+
+    auto isolate = thread->isolate();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  metrics.AddValue(isolate->Get##variable##Metric());
+    ISOLATE_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
+    auto isolate_group = thread->isolate_group();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  metrics.AddValue(isolate_group->Get##variable##Metric());
+    ISOLATE_GROUP_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
   }
   return true;
 }
 
 static bool HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
-  Metric* current = thread->isolate()->metrics_list_head();
-  while (current != NULL) {
-    const char* name = current->name();
-    ASSERT(name != NULL);
-    if (strcmp(name, id) == 0) {
-      current->PrintJSON(js);
-      return true;
-    }
-    current = current->next();
+  auto isolate = thread->isolate();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  if (strcmp(id, name) == 0) {                                                 \
+    isolate->Get##variable##Metric()->PrintJSON(js);                           \
+    return true;                                                               \
   }
+  ISOLATE_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
+  auto isolate_group = thread->isolate_group();
+#define ADD_METRIC(type, variable, name, unit)                                 \
+  if (strcmp(id, name) == 0) {                                                 \
+    isolate_group->Get##variable##Metric()->PrintJSON(js);                     \
+    return true;                                                               \
+  }
+  ISOLATE_GROUP_METRIC_LIST(ADD_METRIC);
+#undef ADD_METRIC
+
   PrintInvalidParamError(js, "metricId");
   return true;
 }
@@ -3965,13 +3980,14 @@ static bool GetAllocationProfileImpl(Thread* thread,
       return true;
     }
   }
-  Isolate* isolate = thread->isolate();
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   if (should_reset_accumulator) {
-    isolate->UpdateLastAllocationProfileAccumulatorResetTimestamp();
+    isolate_group->UpdateLastAllocationProfileAccumulatorResetTimestamp();
   }
   if (should_collect) {
-    isolate->UpdateLastAllocationProfileGCTimestamp();
-    isolate->heap()->CollectAllGarbage();
+    isolate_group->UpdateLastAllocationProfileGCTimestamp();
+    isolate_group->heap()->CollectAllGarbage();
   }
   isolate->class_table()->AllocationProfilePrintJSON(js, internal);
   return true;
@@ -4161,7 +4177,7 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
 
-  ApiState* api_state = isolate->api_state();
+  ApiState* api_state = isolate->group()->api_state();
   ASSERT(api_state != NULL);
 
   {
@@ -4435,7 +4451,15 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   {
     JSONArray jsarr_isolate_groups(&jsobj, "isolateGroups");
     IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
-      jsarr_isolate_groups.AddValue(isolate_group);
+      bool has_internal = false;
+      isolate_group->ForEachIsolate([&has_internal](Isolate* isolate) {
+        if (Isolate::IsVMInternalIsolate(isolate)) {
+          has_internal = true;
+        }
+      });
+      if (FLAG_show_invisible_isolates || !has_internal) {
+        jsarr_isolate_groups.AddValue(isolate_group);
+      }
     });
   }
 }

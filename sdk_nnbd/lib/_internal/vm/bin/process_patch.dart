@@ -125,7 +125,7 @@ class _SignalController {
   }
 
   static _setSignalHandler(int signal) native "Process_SetSignalHandler";
-  static int _clearSignalHandler(int signal)
+  static void _clearSignalHandler(int signal)
       native "Process_ClearSignalHandler";
 }
 
@@ -248,7 +248,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     _arguments = [
       for (int i = 0; i < arguments.length; i++)
         Platform.isWindows
-            ? _windowsArgumentEscape(_arguments[i])
+            ? _windowsArgumentEscape(arguments[i])
             : arguments[i],
     ];
 

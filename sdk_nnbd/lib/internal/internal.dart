@@ -204,6 +204,31 @@ class Since {
   const Since(this.version);
 }
 
+/// A null-check function for function parameters in Null Safety enabled code.
+///
+/// Because Dart does not have full null safety
+/// until all legacy code has been removed from a program,
+/// a non-nullable parameter can still end up with a `null` value.
+/// This function can be used to guard those functions against null arguments.
+/// It throws a [TypeError] because we are really seeing the failure to
+/// assign `null` to a non-nullable type.
+///
+/// See http://dartbug.com/40614 for context.
+T checkNotNullable<T extends Object>(T value, String name) {
+  if ((value as dynamic) == null) {
+    throw NotNullableError<T>(name);
+  }
+  return value;
+}
+
+/// A [TypeError] thrown by [checkNotNullable].
+class NotNullableError<T> extends Error implements TypeError {
+  final String _name;
+  NotNullableError(this._name);
+  String toString() =>
+      "Null is not a valid value for the parameter '$_name' of type '$T'";
+}
+
 /**
  * HTTP status codes.  Exported in dart:io and dart:html.
  */

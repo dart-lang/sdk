@@ -63,15 +63,13 @@ abstract class B extends A {
   void foo([x]);
 }
 ''',
-        typeToStringWithNullability
-            ? []
-            : [
-                error(
-                    StaticWarningCode
-                        .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-                    86,
-                    1),
-              ]);
+        expectedErrorsByNullability(nullable: [], legacy: [
+          error(
+              StaticWarningCode
+                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+              86,
+              1),
+        ]));
   }
 
   test_abstract_noDefault_multipleBase_differentValue() async {
@@ -89,20 +87,18 @@ abstract class C extends A implements B {
   void foo([x]);
 }
 ''',
-        typeToStringWithNullability
-            ? []
-            : [
-                error(
-                    StaticWarningCode
-                        .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-                    142,
-                    1),
-                error(
-                    StaticWarningCode
-                        .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-                    142,
-                    1),
-              ]);
+        expectedErrorsByNullability(nullable: [], legacy: [
+          error(
+              StaticWarningCode
+                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+              142,
+              1),
+          error(
+              StaticWarningCode
+                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+              142,
+              1),
+        ]));
   }
 
   test_abstract_noDefault_multipleBase_sameValue() async {
@@ -120,20 +116,18 @@ abstract class C extends A implements B {
   void foo([x]);
 }
 ''',
-        typeToStringWithNullability
-            ? []
-            : [
-                error(
-                    StaticWarningCode
-                        .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-                    140,
-                    1),
-                error(
-                    StaticWarningCode
-                        .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-                    140,
-                    1),
-              ]);
+        expectedErrorsByNullability(nullable: [], legacy: [
+          error(
+              StaticWarningCode
+                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+              140,
+              1),
+          error(
+              StaticWarningCode
+                  .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+              140,
+              1),
+        ]));
   }
 
   test_abstract_value_base_noDefault() async {

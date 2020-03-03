@@ -19,7 +19,7 @@ class Class2<T> {}
 /*class: Class3:Class3<T>,GenericInterface<T>,Object*/
 class Class3<T> implements GenericInterface<T> {}
 
-/*class: Class4a:Class4a,GenericInterface<num!>,Object*/
+/*class: Class4a:Class4a,GenericInterface<num>,Object*/
 class Class4a implements GenericInterface<num> {}
 
 /*class: Class4b:Class4b,GenericInterface<num?>,Object*/

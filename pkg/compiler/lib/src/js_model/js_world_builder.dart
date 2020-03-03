@@ -428,8 +428,7 @@ class JsClosedWorldBuilder {
         boxedVariables,
         info,
         localsMap,
-        _dartTypes.interfaceType(
-            superclass, const [], _elementMap.types.defaultNullability),
+        _dartTypes.interfaceType(superclass, const []),
         createSignatureMethod: createSignatureMethod);
 
     // Tell the hierarchy that this is the super class. then we can use
@@ -761,40 +760,44 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   }
 
   @override
-  DartType visitNeverType(NeverType type, _EntityConverter converter) =>
-      _dartTypes.neverType(type.nullability);
+  DartType visitLegacyType(LegacyType type, _EntityConverter converter) =>
+      _dartTypes.legacyType(visit(type.baseType, converter));
+
+  @override
+  DartType visitNullableType(NullableType type, _EntityConverter converter) =>
+      _dartTypes.nullableType(visit(type.baseType, converter));
+
+  @override
+  DartType visitNeverType(NeverType type, _EntityConverter converter) => type;
 
   @override
   DartType visitDynamicType(DynamicType type, _EntityConverter converter) =>
-      _dartTypes.dynamicType();
+      type;
 
   @override
-  DartType visitErasedType(ErasedType type, _EntityConverter converter) =>
-      _dartTypes.erasedType();
+  DartType visitErasedType(ErasedType type, _EntityConverter converter) => type;
 
   @override
-  DartType visitAnyType(AnyType type, _EntityConverter converter) =>
-      _dartTypes.anyType();
+  DartType visitAnyType(AnyType type, _EntityConverter converter) => type;
 
   @override
   DartType visitInterfaceType(InterfaceType type, _EntityConverter converter) {
-    return _dartTypes.interfaceType(converter(type.element),
-        visitList(type.typeArguments, converter), type.nullability);
+    return _dartTypes.interfaceType(
+        converter(type.element), visitList(type.typeArguments, converter));
   }
 
   @override
   DartType visitTypeVariableType(
       TypeVariableType type, _EntityConverter converter) {
-    return _dartTypes.typeVariableType(
-        converter(type.element), type.nullability);
+    return _dartTypes.typeVariableType(converter(type.element));
   }
 
   @override
   DartType visitFunctionType(FunctionType type, _EntityConverter converter) {
     List<FunctionTypeVariable> typeVariables = <FunctionTypeVariable>[];
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      typeVariables.add(_functionTypeVariables[typeVariable] = _dartTypes
-          .functionTypeVariable(typeVariable.index, typeVariable.nullability));
+      typeVariables.add(_functionTypeVariables[typeVariable] =
+          _dartTypes.functionTypeVariable(typeVariable.index));
     }
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       _functionTypeVariables[typeVariable].bound = typeVariable.bound != null
@@ -816,8 +819,7 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
         optionalParameterTypes,
         type.namedParameters,
         namedParameterTypes,
-        typeVariables,
-        type.nullability);
+        typeVariables);
   }
 
   @override
@@ -838,8 +840,7 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
 
   @override
   DartType visitFutureOrType(FutureOrType type, _EntityConverter converter) =>
-      _dartTypes.futureOrType(
-          visit(type.typeArgument, converter), type.nullability);
+      _dartTypes.futureOrType(visit(type.typeArgument, converter));
 }
 
 class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {

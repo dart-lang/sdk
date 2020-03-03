@@ -39,6 +39,8 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/base/command_line_options.dart';
 
+import 'package:front_end/src/base/nnbd_mode.dart';
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
@@ -71,7 +73,7 @@ import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 
 import 'package:kernel/target/targets.dart'
-    show TargetFlags, DiagnosticReporter;
+    show NoneTarget, Target, TargetFlags, DiagnosticReporter;
 
 import 'package:testing/testing.dart'
     show
@@ -152,14 +154,20 @@ class TestOptions {
   final bool forceLateLowering;
   final bool forceNnbdChecks;
   final bool forceNoExplicitGetterCalls;
+  final bool nnbdAgnosticMode;
+  final String target;
 
   TestOptions(this.experimentalFlags,
       {this.forceLateLowering: false,
       this.forceNnbdChecks: false,
-      this.forceNoExplicitGetterCalls: false})
+      this.forceNoExplicitGetterCalls: false,
+      this.nnbdAgnosticMode: false,
+      this.target: "vm"})
       : assert(forceLateLowering != null),
         assert(forceNnbdChecks != null),
-        assert(forceNoExplicitGetterCalls != null);
+        assert(forceNoExplicitGetterCalls != null),
+        assert(nnbdAgnosticMode != null),
+        assert(target != null);
 
   Map<ExperimentalFlag, bool> computeExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
@@ -171,10 +179,13 @@ class TestOptions {
 
 class LinkDependenciesOptions {
   final Set<Uri> content;
+  final bool nnbdAgnosticMode;
   Component component;
   String errors;
 
-  LinkDependenciesOptions(this.content) : assert(content != null);
+  LinkDependenciesOptions(this.content, {this.nnbdAgnosticMode})
+      : assert(content != null),
+        assert(nnbdAgnosticMode != null);
 }
 
 class FastaContext extends ChainContext with MatchContext {
@@ -277,18 +288,22 @@ class FastaContext extends ChainContext with MatchContext {
   TestOptions _computeTestOptionsForDirectory(Directory directory) {
     TestOptions testOptions = _testOptions[directory.uri];
     if (testOptions == null) {
+      bool forceLateLowering = false;
+      bool forceNnbdChecks = false;
+      bool forceNoExplicitGetterCalls = false;
+      bool nnbdAgnosticMode = false;
+      String target = "vm";
       if (directory.uri == baseUri) {
         testOptions = new TestOptions({},
-            forceLateLowering: false,
-            forceNnbdChecks: false,
-            forceNoExplicitGetterCalls: false);
+            forceLateLowering: forceLateLowering,
+            forceNnbdChecks: forceNnbdChecks,
+            forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+            nnbdAgnosticMode: nnbdAgnosticMode,
+            target: target);
       } else {
         File optionsFile =
             new File.fromUri(directory.uri.resolve('test.options'));
         if (optionsFile.existsSync()) {
-          bool forceLateLowering = false;
-          bool forceNnbdChecks = false;
-          bool forceNoExplicitGetterCalls = false;
           List<String> experimentalFlagsArguments = [];
           for (String line in optionsFile.readAsStringSync().split('\n')) {
             line = line.trim();
@@ -301,6 +316,13 @@ class FastaContext extends ChainContext with MatchContext {
               forceNnbdChecks = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
               forceNoExplicitGetterCalls = true;
+            } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
+              forceNoExplicitGetterCalls = true;
+            } else if (line.startsWith(Flags.nnbdAgnosticMode)) {
+              nnbdAgnosticMode = true;
+            } else if (line.startsWith(Flags.target) &&
+                line.indexOf('=') == Flags.target.length) {
+              target = line.substring(Flags.target.length + 1);
             } else if (line.isNotEmpty) {
               throw new UnsupportedError("Unsupported test option '$line'");
             }
@@ -314,7 +336,9 @@ class FastaContext extends ChainContext with MatchContext {
                       throw new ArgumentError(message)),
               forceLateLowering: forceLateLowering,
               forceNnbdChecks: forceNnbdChecks,
-              forceNoExplicitGetterCalls: forceNoExplicitGetterCalls);
+              forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+              nnbdAgnosticMode: nnbdAgnosticMode,
+              target: target);
         } else {
           testOptions = _computeTestOptionsForDirectory(directory.parent);
         }
@@ -352,7 +376,11 @@ class FastaContext extends ChainContext with MatchContext {
             ..environmentDefines = {}
             ..experimentalFlags =
                 testOptions.computeExperimentalFlags(experimentalFlags)
-            ..nnbdStrongMode = !weak
+            ..nnbdMode = weak
+                ? NnbdMode.Weak
+                : (testOptions.nnbdAgnosticMode
+                    ? NnbdMode.Agnostic
+                    : NnbdMode.Strong)
             ..librariesSpecificationUri = librariesSpecificationUri);
       uriTranslator = await options.getUriTranslator();
       _uriTranslators[librariesSpecificationUri] = uriTranslator;
@@ -370,18 +398,24 @@ class FastaContext extends ChainContext with MatchContext {
       File optionsFile =
           new File.fromUri(directory.uri.resolve('link.options'));
       Set<Uri> content = new Set<Uri>();
+      bool nnbdAgnosticMode = false;
       if (optionsFile.existsSync()) {
         for (String line in optionsFile.readAsStringSync().split('\n')) {
           line = line.trim();
           if (line.isEmpty) continue;
-          File f = new File.fromUri(description.uri.resolve(line));
-          if (!f.existsSync()) {
-            throw new UnsupportedError("No file found: $f ($line)");
+          if (line.startsWith(Flags.nnbdAgnosticMode)) {
+            nnbdAgnosticMode = true;
+          } else {
+            File f = new File.fromUri(description.uri.resolve(line));
+            if (!f.existsSync()) {
+              throw new UnsupportedError("No file found: $f ($line)");
+            }
+            content.add(f.uri);
           }
-          content.add(f.uri);
         }
       }
-      linkDependenciesOptions = new LinkDependenciesOptions(content);
+      linkDependenciesOptions = new LinkDependenciesOptions(content,
+          nnbdAgnosticMode: nnbdAgnosticMode);
       _linkDependencies[directory.uri] = linkDependenciesOptions;
     }
     return linkDependenciesOptions;
@@ -490,7 +524,7 @@ class FastaContext extends ChainContext with MatchContext {
   }
 }
 
-class Run extends Step<Uri, int, FastaContext> {
+class Run extends Step<ComponentResult, int, FastaContext> {
   const Run();
 
   String get name => "run";
@@ -499,21 +533,30 @@ class Run extends Step<Uri, int, FastaContext> {
 
   bool get isRuntime => true;
 
-  Future<Result<int>> run(Uri uri, FastaContext context) async {
-    if (context.platformUri == null) {
-      throw "Executed `Run` step before initializing the context.";
+  Future<Result<int>> run(ComponentResult result, FastaContext context) async {
+    TestOptions testOptions = context.computeTestOptions(result.description);
+    switch (testOptions.target) {
+      case "vm":
+        if (context.platformUri == null) {
+          throw "Executed `Run` step before initializing the context.";
+        }
+        File generated = new File.fromUri(result.outputUri);
+        StdioProcess process;
+        try {
+          var args = <String>[];
+          args.add(generated.path);
+          process = await StdioProcess.run(context.vm.toFilePath(), args);
+          print(process.output);
+        } finally {
+          await generated.parent.delete(recursive: true);
+        }
+        return process.toResult();
+      case "none":
+        return pass(0);
+      default:
+        throw new ArgumentError(
+            "Unsupported run target '${testOptions.target}'.");
     }
-    File generated = new File.fromUri(uri);
-    StdioProcess process;
-    try {
-      var args = <String>[];
-      args.add(generated.path);
-      process = await StdioProcess.run(context.vm.toFilePath(), args);
-      print(process.output);
-    } finally {
-      await generated.parent.delete(recursive: true);
-    }
-    return process.toResult();
   }
 }
 
@@ -539,30 +582,44 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     LinkDependenciesOptions linkDependenciesOptions =
         context.computeLinkDependenciesOptions(description);
     TestOptions testOptions = context.computeTestOptions(description);
-    ProcessedOptions options = new ProcessedOptions(
-        options: new CompilerOptions()
-          ..onDiagnostic = (DiagnosticMessage message) {
-            if (errors.isNotEmpty) {
-              errors.write("\n\n");
+    Map<ExperimentalFlag, bool> experimentalFlags =
+        testOptions.computeExperimentalFlags(context.experimentalFlags);
+    NnbdMode nnbdMode = context.weak
+        ? NnbdMode.Weak
+        : (testOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
+    List<Uri> inputs = <Uri>[description.uri];
+
+    ProcessedOptions createProcessedOptions(NnbdMode nnbdMode) {
+      return new ProcessedOptions(
+          options: new CompilerOptions()
+            ..onDiagnostic = (DiagnosticMessage message) {
+              if (errors.isNotEmpty) {
+                errors.write("\n\n");
+              }
+              errors.writeAll(message.plainTextFormatted, "\n");
             }
-            errors.writeAll(message.plainTextFormatted, "\n");
-          }
-          ..environmentDefines = {}
-          ..experimentalFlags =
-              testOptions.computeExperimentalFlags(context.experimentalFlags)
-          ..performNnbdChecks = testOptions.forceNnbdChecks
-          ..nnbdStrongMode = !context.weak
-          ..librariesSpecificationUri = librariesSpecificationUri,
-        inputs: <Uri>[description.uri]);
+            ..environmentDefines = {}
+            ..experimentalFlags = experimentalFlags
+            ..performNnbdChecks = testOptions.forceNnbdChecks
+            ..nnbdMode = nnbdMode
+            ..librariesSpecificationUri = librariesSpecificationUri,
+          inputs: inputs);
+    }
 
     // Disable colors to ensure that expectation files are the same across
     // platforms and independent of stdin/stderr.
     colors.enableColors = false;
 
+    ProcessedOptions options = createProcessedOptions(nnbdMode);
+
     if (linkDependenciesOptions.content.isNotEmpty &&
         linkDependenciesOptions.component == null) {
       // Compile linked dependency.
-      await CompilerContext.runWithOptions(options, (_) async {
+      ProcessedOptions linkOptions = options;
+      if (linkDependenciesOptions.nnbdAgnosticMode) {
+        linkOptions = createProcessedOptions(NnbdMode.Agnostic);
+      }
+      await CompilerContext.runWithOptions(linkOptions, (_) async {
         KernelTarget sourceTarget = await outlineInitialization(context,
             description, testOptions, linkDependenciesOptions.content.toList());
         if (linkDependenciesOptions.errors != null) {
@@ -618,14 +675,14 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
             await instrumentation.fixSource(description.uri, false);
           } else {
             return new Result<ComponentResult>(
-                new ComponentResult(p, userLibraries),
+                new ComponentResult(description, p, userLibraries),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
                 null);
           }
         }
       }
-      return pass(new ComponentResult(p, userLibraries));
+      return pass(new ComponentResult(description, p, userLibraries));
     });
   }
 
@@ -639,13 +696,26 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     Ticker ticker = new Ticker();
     UriTranslator uriTranslator =
         await context.computeUriTranslator(description);
+    TargetFlags targetFlags = new TargetFlags(
+        forceLateLoweringForTesting: testOptions.forceLateLowering,
+        forceNoExplicitGetterCallsForTesting:
+            testOptions.forceNoExplicitGetterCalls);
+    Target target;
+    switch (testOptions.target) {
+      case "vm":
+        target = new TestVmTarget(targetFlags);
+        break;
+      case "none":
+        target = new NoneTarget(targetFlags);
+        break;
+      default:
+        throw new ArgumentError(
+            "Unsupported test target '${testOptions.target}'.");
+    }
     DillTarget dillTarget = new DillTarget(
       ticker,
       uriTranslator,
-      new TestVmTarget(new TargetFlags(
-          forceLateLoweringForTesting: testOptions.forceLateLowering,
-          forceNoExplicitGetterCallsForTesting:
-              testOptions.forceNoExplicitGetterCalls)),
+      target,
     );
     dillTarget.loader.appendLibraries(platform);
     if (alsoAppend != null) {
@@ -670,14 +740,18 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
     Component component = result.component;
     KernelTarget sourceTarget = context.componentToTarget[component];
     context.componentToTarget.remove(component);
-    TestVmTarget backendTarget = sourceTarget.backendTarget;
-    backendTarget.enabled = true;
+    Target backendTarget = sourceTarget.backendTarget;
+    if (backendTarget is TestVmTarget) {
+      backendTarget.enabled = true;
+    }
     try {
       if (sourceTarget.loader.coreTypes != null) {
         sourceTarget.runBuildTransformations();
       }
     } finally {
-      backendTarget.enabled = false;
+      if (backendTarget is TestVmTarget) {
+        backendTarget.enabled = false;
+      }
     }
     List<String> errors = VerifyTransformed.verify(component);
     if (errors.isNotEmpty) {

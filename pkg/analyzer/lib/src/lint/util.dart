@@ -5,16 +5,11 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/parser.dart' show Parser;
-import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:path/path.dart' as path;
 
 final _identifier = RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
@@ -98,38 +93,13 @@ class Spelunker {
   void spelunk() {
     var contents = File(path).readAsStringSync();
 
-    var errorListener = _ErrorListener();
-
-    var reader = CharSequenceReader(contents);
-    var stringSource = StringSource(contents, path);
-    var scanner = Scanner(stringSource, reader, errorListener)
-      ..configureFeatures(featureSet);
-    var startToken = scanner.tokenize();
-
-    errorListener.throwIfErrors();
-
-    var parser = Parser(stringSource, errorListener, featureSet: featureSet);
-    var node = parser.parseCompilationUnit(startToken);
-
-    errorListener.throwIfErrors();
+    var parseResult = parseString(
+      content: contents,
+      featureSet: featureSet,
+    );
 
     var visitor = _SourceVisitor(sink);
-    node.accept(visitor);
-  }
-}
-
-class _ErrorListener implements AnalysisErrorListener {
-  final errors = <AnalysisError>[];
-
-  @override
-  void onError(AnalysisError error) {
-    errors.add(error);
-  }
-
-  void throwIfErrors() {
-    if (errors.isNotEmpty) {
-      throw Exception(errors);
-    }
+    parseResult.unit.accept(visitor);
   }
 }
 

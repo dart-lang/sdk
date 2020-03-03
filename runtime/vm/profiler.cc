@@ -1376,7 +1376,7 @@ void Profiler::SampleThread(Thread* thread,
       SampleThreadSingleFrame(thread, pc);
       return;
     }
-    if (isolate->compaction_in_progress()) {
+    if (isolate->group()->compaction_in_progress()) {
       // The Dart stack isn't fully walkable.
       SampleThreadSingleFrame(thread, pc);
       return;

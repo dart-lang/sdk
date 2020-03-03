@@ -24,6 +24,7 @@ import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
+import 'package:front_end/src/base/nnbd_mode.dart';
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -268,8 +269,9 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--single-root-base": Uri,
   "--single-root-scheme": String,
   Flags.nnbdStrongMode: false,
+  Flags.nnbdAgnosticMode: false,
   "--supermixin": true,
-  "--target": String,
+  Flags.target: String,
   "--enable-asserts": false,
   "--verbose": false,
   "--verify": false,
@@ -360,6 +362,18 @@ ProcessedOptions analyzeCommandLine(
 
   final bool nnbdStrongMode = options[Flags.nnbdStrongMode];
 
+  final bool nnbdAgnosticMode = options[Flags.nnbdAgnosticMode];
+
+  final NnbdMode nnbdMode = nnbdAgnosticMode
+      ? NnbdMode.Agnostic
+      : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
+
+  if (nnbdStrongMode && nnbdAgnosticMode) {
+    return throw new CommandLineProblem.deprecated(
+        "Can't specify both '${Flags.nnbdStrongMode}' and "
+        "'${Flags.nnbdAgnosticMode}'.");
+  }
+
   final bool forceNnbdChecks = options[Flags.forceNnbdChecks];
 
   FileSystem fileSystem = StandardFileSystem.instance;
@@ -408,7 +422,7 @@ ProcessedOptions analyzeCommandLine(
           ..bytecode = bytecode
           ..experimentalFlags = experimentalFlags
           ..environmentDefines = noDefines ? null : parsedArguments.defines
-          ..nnbdStrongMode = nnbdStrongMode
+          ..nnbdMode = nnbdMode
           ..performNnbdChecks = forceNnbdChecks,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
@@ -466,7 +480,7 @@ ProcessedOptions analyzeCommandLine(
     ..verify = verify
     ..experimentalFlags = experimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
-    ..nnbdStrongMode = nnbdStrongMode
+    ..nnbdMode = nnbdMode
     ..performNnbdChecks = forceNnbdChecks;
 
   // TODO(ahe): What about chase dependencies?

@@ -482,6 +482,12 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
+    ldr(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()),
+        kUnsignedByte);
+    cmp(TMP, Operand(value));
+  }
+
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
   }

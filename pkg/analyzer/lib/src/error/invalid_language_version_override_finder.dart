@@ -94,14 +94,19 @@ class InvalidLanguageVersionOverrideFinder {
         (character >= 0x41 && character <= 0x5A) ||
         (character >= 0x61 && character <= 0x7A);
 
+    void skipWhitespaces() {
+      while (index < length && isWhitespace(comment.codeUnitAt(index))) {
+        index++;
+      }
+    }
+
     // Count the number of `/` characters at the beginning.
     while (index < length && comment.codeUnitAt(index) == 0x2F) {
       index++;
     }
     int slashCount = index;
-    while (index < length && isWhitespace(comment.codeUnitAt(index))) {
-      index++;
-    }
+
+    skipWhitespaces();
     if (index == length) {
       // This is not an attempted language version override comment.
       return false;
@@ -123,9 +128,7 @@ class InvalidLanguageVersionOverrideFinder {
     }
 
     index += 4;
-    while (index < length && isWhitespace(comment.codeUnitAt(index))) {
-      index++;
-    }
+    skipWhitespaces();
     if (index == length) {
       // This is not an attempted language version override comment.
       return false;
@@ -149,9 +152,7 @@ class InvalidLanguageVersionOverrideFinder {
     }
 
     int dartVersionSeparatorLength = index - dartVersionSeparatorStartIndex;
-    while (index < length && isWhitespace(comment.codeUnitAt(index))) {
-      index++;
-    }
+    skipWhitespaces();
     if (index == length) {
       // This is not an attempted language version override comment.
       return false;
@@ -233,24 +234,30 @@ class InvalidLanguageVersionOverrideFinder {
     // Nothing preceding the version number makes this comment invalid. Check
     // the format of the version number, and trailing characters.
 
-    index++;
+    // Skip major version.
+    while (index < length && isNumeric(comment.codeUnitAt(index))) {
+      index++;
+    }
+
+    // Skip '.' separator.
     if (index == length || comment.codeUnitAt(index) != 0x2E) {
       reportInvalidNumber();
       return false;
     }
     index++;
-    if (index == length || !isNumeric(comment.codeUnitAt(index))) {
-      reportInvalidNumber();
-      return false;
-    }
-    index++;
-    while (index < length && isWhitespace(comment.codeUnitAt(index))) {
+
+    // Skip minor version.
+    while (index < length && isNumeric(comment.codeUnitAt(index))) {
       index++;
     }
+
+    skipWhitespaces();
+
+    // OK, no trailing characters.
     if (index == length) {
-      // This is a valid language version override comment.
       return true;
     }
+
     // This comment is a valid language version override, except for trailing
     // characters.
     _errorReporter.reportErrorForOffset(

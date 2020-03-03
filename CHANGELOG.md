@@ -6,6 +6,14 @@
 
 ### Core libraries
 
+#### `dart:core`
+
+* The class `TypeError` no longer extends `AssertionError`.
+  This also means that it no longer inherits the spurious `message` getter
+  which was added to `AssertionError` when the second operand to `assert`
+  was allowed. The value of that getter on a `TypeError` was the same
+  string as returned by `toString`, so it is still available.
+
 #### `dart:html`
 
 * **Breaking Change**: Changed the return type of several html native methods
@@ -22,20 +30,36 @@ used (see Issue [39627][]).
 #### `dart:io`
 
 * Class `HttpParser` will no longer throw an exception when a HTTP response
-  status code is within [0, 999]. Customized status codes in this range are now valid.
+  status code is within [0, 999]. Customized status codes in this range are now
+  valid.
+
 * **Breaking change** [#33501](https://github.com/dart-lang/sdk/issues/33501):
+  This is breaking only for classes extending or implementing `HttpHeaders` and
+  having their own `add` or `set` methods without the `bool preserveHeaderCase`
+  named parameter. The signature of `add` and `set` has been changed to
 
-An named parameter is added to `add` and `set` for class `HttpHeaders`.
-The signature of has been changed from `void add(String name, Object value)` to
-`void add(String name, Object value, {bool preserveHeaderCase: false})`.
-Same change is applied to `set`. `preserveHeaderCase` will preserve the
-case of `name` instead of converting them to lowercase.
-`HttpHeader.forEach()` provides the current case of each header.
+  ```dart
+  void add(String name, Object value, {bool preserveHeaderCase: false})
+  void set(String name, Object value, {bool preserveHeaderCase: false})
+  ```
 
-* The `Socket` class will now throw a `SocketException` if the socket has been
-  destroyed or upgraded to a secure socket upon setting or getting socket
-  options. Previously setting a socket options would be ignored and getting a
-  socket option would return `null`.
+  Setting `preserveHeaderCase` to `true` will preserve the case of the `name`
+  parameter instead of converting it to lowercase. The `HttpHeader.forEach()`
+  method provides the current case of each header.
+
+* **Breaking change** [#40702](https://github.com/dart-lang/sdk/issues/40702):
+  The `Socket` class will now throw a `SocketException` if the socket has been
+  explicitly destroyed or upgraded to a secure socket upon setting or getting
+  socket options. Previously setting a socket option would be ignored and
+  getting a socket option would return `null`.
+
+* **Breaking change** [#40483](https://github.com/dart-lang/sdk/issues/40483):
+  The `Process` class will now throw a `StateError` if the process is detached
+  (`ProcessStartMode.detached` and `ProcessStartMode.detachedWithStdio`) upon
+  accessing the `exitCode` getter. It now also throws when not connected to the
+  child process's stdio (`ProcessStartMode.detached` and
+  `ProcessStartMode.inheritStdio`) upon accessing the `stdin`, `stdout`, and
+  `stderr` getters. Previously these getters would all return `null`.
 
 #### `dart:mirrors`
 
@@ -108,14 +132,13 @@ additional details see the [announcement].
 
 #### Linter
 
-The Linter was updated to `0.1.110`, which includes:
+The Linter was updated to `0.1.112`, which includes:
 
-* fixed flutter web plugin detection in `avoid_web_libraries_in_flutter`
-* new lint: `unnecessary_string_interpolations`
-* new lint: `missing_whitespace_between_adjacent_strings`
-* `avoid_unused_constructor_parameters` updated to ignore deprecated parameters
-* new lint: `no_runtimeType_toString`
-* miscellaneous doc fixes
+* new lint: `use_raw_strings`
+* new lint: `unnecessary_raw_strings`
+* new lint: `avoid_escaping_inner_quotes`
+* new lint: `unnecessary_string_escapes`
+* incompatible rule documentation improvements
 
 #### Pub
 
@@ -761,7 +784,7 @@ The Linter was updated to `0.1.91`, which includes the following changes:
 
 * `pub publish` will no longer warn about missing dependencies for import
    statements in `example/`.
-* OAuth2 authentication will explicitely ask for the `openid` scope.
+* OAuth2 authentication will explicitly ask for the `openid` scope.
 
 ## 2.3.2 - 2019-06-11
 
@@ -2155,7 +2178,7 @@ significant changes across all areas of the platform. Large changes include:
 #### `dart:developer`
 
 *   `Flow` class added.
-*   `Timeline.startSync` and `Timeline.timeSync` now accept an optional
+*   `Timeline.startSync` and `Timeline.timeSync` now accepts an optional
     parameter `flow` of type `Flow`. The `flow` parameter is used to generate
     flow timeline events that are enclosed by the slice described by
     `Timeline.{start,finish}Sync` and `Timeline.timeSync`.
@@ -2644,7 +2667,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 #### Strong Mode
 
 * Removed ad hoc `Future.then` inference in favor of using `FutureOr`.  Prior to
-  adding `FutureOr` to the language, the analyzer implented an ad hoc type
+  adding `FutureOr` to the language, the analyzer implemented an ad hoc type
   inference for `Future.then` (and overrides) treating it as if the onValue
   callback was typed to return `FutureOr` for the purposes of inference.
   This ad hoc inference has been removed now that `FutureOr` has been added.

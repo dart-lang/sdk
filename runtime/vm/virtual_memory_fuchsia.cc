@@ -183,7 +183,8 @@ void VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT((thread == nullptr) || thread->IsMutatorThread() ||
+  ASSERT(thread == nullptr || thread->IsMutatorThread() ||
+         thread->isolate() == nullptr ||
          thread->isolate()->mutator_thread()->IsAtSafepoint());
 #endif
   const uword start_address = reinterpret_cast<uword>(address);

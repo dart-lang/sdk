@@ -499,7 +499,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         for (var member in members)
           if (member is FieldDeclaration)
             for (var field in member.fields.variables)
-              if (field.initializer == null)
+              if (!field.declaredElement.isStatic && field.initializer == null)
                 field.declaredElement as FieldElement
       };
       if (_currentClassOrExtension is ClassElement &&
@@ -889,11 +889,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Iterable<DartType> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;
     var typeArguments = node.constructorName.type.typeArguments;
+    List<EdgeOrigin> parameterEdgeOrigins;
     if (typeArguments != null) {
       typeArguments.accept(this);
       typeArgumentTypes = typeArguments.arguments.map((t) => t.type);
       decoratedTypeArguments = typeArguments.arguments
           .map((t) => _variables.decoratedTypeAnnotation(source, t))
+          .toList();
+      parameterEdgeOrigins = typeArguments.arguments
+          .map((typeAnn) => TypeParameterInstantiationOrigin(source, typeAnn))
           .toList();
     } else {
       var staticType = node.staticType;
@@ -905,6 +909,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             .toList();
         instrumentation?.implicitTypeArguments(
             source, node, decoratedTypeArguments);
+        parameterEdgeOrigins = List.filled(typeArgumentTypes.length,
+            InferredTypeParameterInstantiationOrigin(source, node));
       } else {
         // Note: this could happen if the code being migrated has errors.
         typeArgumentTypes = const [];
@@ -926,7 +932,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         typeArguments: decoratedTypeArguments);
     var calleeType = getOrComputeElementType(callee, targetType: createdType);
     for (var i = 0; i < decoratedTypeArguments.length; ++i) {
-      _checkAssignment(null,
+      _checkAssignment(parameterEdgeOrigins?.elementAt(i),
           source: decoratedTypeArguments[i],
           destination:
               _variables.decoratedTypeParameterBound(typeParameters[i]),
@@ -1228,7 +1234,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           offset: node.offset);
       _graph.makeNullable(
           implicitNullType.node, AlwaysNullableTypeOrigin(source, node));
-      _checkAssignment(null,
+      _checkAssignment(ImplicitNullReturnOrigin(source, node),
           source: isAsync
               ? _futureOf(implicitNullType, offset: node.offset)
               : implicitNullType,
@@ -1523,7 +1529,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       final decoratedType = typedefType.substitute(substitutions);
       final origin = TypedefReferenceOrigin(source, typeName);
-      _linkDecoratedTypes(decoratedType, typeNameType, origin, isUnion: true);
+      _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
+          isUnion: true);
+      _linkDecoratedTypes(
+          decoratedType.returnType, typeNameType.returnType, origin,
+          isUnion: true);
     } else if (element is TypeParameterizedElement) {
       if (typeArguments == null) {
         var instantiatedType =
@@ -1552,8 +1562,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             _unimplemented(typeName,
                 'No decorated type for type argument ${typeArguments[i]} ($i)');
           }
-          _checkAssignment(null,
-              source: argumentType, destination: bound, hard: true);
+          _checkAssignment(
+              TypeParameterInstantiationOrigin(source, typeArguments[i]),
+              source: argumentType,
+              destination: bound,
+              hard: true);
         }
       }
     }
@@ -1580,7 +1593,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         assert(_flowAnalysis != null);
       }
       try {
-        if (initializer != null) {
+        if (initializer == null) {
+          // For top level variables and static fields, we have to generate an
+          // implicit assignment of `null`.  For instance fields, this is done
+          // when processing constructors.  For local variables, this is done
+          // when processing variable reads (only if flow analysis indicates
+          // the variable isn't definitely assigned).
+          if (isTopLevel &&
+              !(declaredElement is FieldElement && !declaredElement.isStatic)) {
+            var type = _variables.decoratedElementType(declaredElement);
+            _graph.makeNullable(
+                type.node, ImplicitNullInitializerOrigin(source, node));
+          }
+        } else {
           if (declaredElement is PromotableElement) {
             _flowAnalysis.initialize(declaredElement);
           }
@@ -2227,10 +2252,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   /// Instantiate [type] with [argumentTypes], assigning [argumentTypes] to
   /// [bounds].
-  DecoratedType _handleInstantiation(
-      DecoratedType type, List<DecoratedType> argumentTypes) {
+  DecoratedType _handleInstantiation(DecoratedType type,
+      List<DecoratedType> argumentTypes, List<EdgeOrigin> edgeOrigins) {
     for (var i = 0; i < argumentTypes.length; ++i) {
-      _checkAssignment(null,
+      _checkAssignment(edgeOrigins?.elementAt(i),
           source: argumentTypes[i],
           destination: DecoratedTypeParameterBounds.current
               .get((type.type as FunctionType).typeFormals[i]),
@@ -2262,12 +2287,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var argumentTypes = typeArguments.arguments
             .map((t) => _variables.decoratedTypeAnnotation(source, t))
             .toList();
+        var origins = typeArguments.arguments
+            .map((typeAnnotation) =>
+                TypeParameterInstantiationOrigin(source, typeAnnotation))
+            .toList();
         if (constructorTypeParameters != null) {
           calleeType = calleeType.substitute(
               Map<TypeParameterElement, DecoratedType>.fromIterables(
                   constructorTypeParameters, argumentTypes));
         } else {
-          calleeType = _handleInstantiation(calleeType, argumentTypes);
+          calleeType = _handleInstantiation(calleeType, argumentTypes, origins);
         }
       } else {
         if (invokeType is FunctionType) {
@@ -2277,7 +2306,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   offset: node.offset))
               .toList();
           instrumentation?.implicitTypeArguments(source, node, argumentTypes);
-          calleeType = _handleInstantiation(calleeType, argumentTypes);
+          calleeType = _handleInstantiation(
+              calleeType,
+              argumentTypes,
+              List.filled(argumentTypes.length,
+                  InferredTypeParameterInstantiationOrigin(source, node)));
         } else if (constructorTypeParameters != null) {
           // No need to instantiate; caller has already substituted in the
           // correct type arguments.
@@ -2601,6 +2634,7 @@ mixin _AssignmentChecker {
       @required bool hard,
       bool checkable = true,
       bool sourceIsFunctionLiteral = false}) {
+    assert(origin != null);
     var sourceType = source.type;
     var destinationType = destination.type;
     if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {

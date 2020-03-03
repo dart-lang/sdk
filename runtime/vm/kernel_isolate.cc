@@ -613,10 +613,6 @@ class KernelCompilationRequest : public ValueObject {
     dart_incremental.type = Dart_CObject_kBool;
     dart_incremental.value.as_bool = incremental_compile;
 
-    Dart_CObject dart_strong;
-    dart_strong.type = Dart_CObject_kBool;
-    dart_strong.value.as_bool = true;
-
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into
     // IsolateSetupHelper in main.cc.
@@ -643,6 +639,10 @@ class KernelCompilationRequest : public ValueObject {
     enable_asserts.type = Dart_CObject_kBool;
     enable_asserts.value.as_bool =
         isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
+
+    Dart_CObject null_safety;
+    null_safety.type = Dart_CObject_kBool;
+    null_safety.value.as_bool = FLAG_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -702,7 +702,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &uri,
                                    &dart_platform_kernel,
                                    &dart_incremental,
-                                   &dart_strong,
+                                   &null_safety,
                                    &isolate_id,
                                    &files,
                                    &suppress_warnings,

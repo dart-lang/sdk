@@ -77,7 +77,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
-  CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY,
+  CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
   CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
@@ -441,6 +441,8 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNDEFINED_SHOWN_NAME,
   HintCode.UNNECESSARY_CAST,
   HintCode.UNNECESSARY_NO_SUCH_METHOD,
+  HintCode.UNNECESSARY_NULL_COMPARISON_FALSE,
+  HintCode.UNNECESSARY_NULL_COMPARISON_TRUE,
   HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
   HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
   HintCode.UNUSED_CATCH_CLAUSE,
@@ -721,7 +723,7 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
-  StaticWarningCode.DEAD_NULL_COALESCE,
+  StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION,
   StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,

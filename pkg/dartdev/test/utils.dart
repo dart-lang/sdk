@@ -5,13 +5,18 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
+
+Timeout defaultTimeout = Timeout(Duration(seconds: 15));
 
 TestProject project({String mainSrc}) => TestProject(mainSrc: mainSrc);
 
 class TestProject {
+  static String get defaultProjectName => 'dartdev_temp';
+
   Directory dir;
 
-  static String get defaultProjectName => 'dartdev_temp';
+  String get dirPath => dir.path;
 
   String get name => defaultProjectName;
 
@@ -32,10 +37,16 @@ class TestProject {
   }
 
   void dispose() {
-    dir.deleteSync(recursive: true);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+    }
   }
 
-  ProcessResult runSync(String command, [List<String> args]) {
+  ProcessResult runSync(
+    String command,
+    List<String> args, {
+    String workingDir,
+  }) {
     var arguments = [
       absolutePathToDartdevFile,
       command,
@@ -48,7 +59,7 @@ class TestProject {
     return Process.runSync(
       Platform.resolvedExecutable,
       arguments,
-      workingDirectory: dir.path,
+      workingDirectory: workingDir ?? dir.path,
     );
   }
 

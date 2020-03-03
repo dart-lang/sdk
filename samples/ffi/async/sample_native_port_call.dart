@@ -35,6 +35,10 @@ main() async {
   print("C T2 = Some C thread executing C.");
   print("C    = C T1 or C T2.");
   print("Dart: Setup.");
+  registerDart_PostCObject(NativeApi.nativeApiPostCObject);
+  registerDart_NewNativePort(NativeApi.nativeApiNewNativePort);
+  registerDart_CloseNativePort(NativeApi.nativeApiCloseNativePort);
+
   final interactiveCppRequests = ReceivePort()..listen(handleCppRequests);
   final int nativePort = interactiveCppRequests.sendPort.nativePort;
   registerSendPort(nativePort);
@@ -125,6 +129,39 @@ final startWorkSimulator2 =
 
 final stopWorkSimulator2 =
     dl.lookupFunction<Void Function(), void Function()>('StopWorkSimulator2');
+
+final registerDart_PostCObject = dl.lookupFunction<
+    Void Function(
+        Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+            functionPointer),
+    void Function(
+        Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+            functionPointer)>('RegisterDart_PostCObject');
+
+final registerDart_NewNativePort = dl.lookupFunction<
+    Void Function(
+        Pointer<
+                NativeFunction<
+                    Int64 Function(
+                        Pointer<Uint8>,
+                        Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+                        Int8)>>
+            functionPointer),
+    void Function(
+        Pointer<
+                NativeFunction<
+                    Int64 Function(
+                        Pointer<Uint8>,
+                        Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+                        Int8)>>
+            functionPointer)>('RegisterDart_NewNativePort');
+
+final registerDart_CloseNativePort = dl.lookupFunction<
+        Void Function(
+            Pointer<NativeFunction<Int8 Function(Int64)>> functionPointer),
+        void Function(
+            Pointer<NativeFunction<Int8 Function(Int64)>> functionPointer)>(
+    'RegisterDart_CloseNativePort');
 
 Future asyncSleep(int ms) {
   return new Future.delayed(Duration(milliseconds: ms), () => true);

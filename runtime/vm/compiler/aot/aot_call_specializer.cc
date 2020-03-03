@@ -251,6 +251,10 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
 bool AotCallSpecializer::TryInlineFieldAccess(StaticCallInstr* call) {
   if (call->function().IsImplicitGetterFunction()) {
     Field& field = Field::ZoneHandle(call->function().accessor_field());
+    if (field.is_late()) {
+      // TODO(dartbug.com/40447): Inline implicit getters for late fields.
+      return false;
+    }
     if (should_clone_fields_) {
       field = field.CloneFromOriginal();
     }

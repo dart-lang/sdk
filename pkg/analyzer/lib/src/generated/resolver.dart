@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -34,6 +35,7 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
@@ -217,8 +219,10 @@ class ResolverVisitor extends ScopedVisitor {
   AssignmentExpressionResolver _assignmentExpressionResolver;
   BinaryExpressionResolver _binaryExpressionResolver;
   FunctionExpressionInvocationResolver _functionExpressionInvocationResolver;
+  ForResolver _forResolver;
   PostfixExpressionResolver _postfixExpressionResolver;
   PrefixExpressionResolver _prefixExpressionResolver;
+  YieldStatementResolver _yieldStatementResolver;
 
   InvocationInferenceHelper inferenceHelper;
 
@@ -367,6 +371,10 @@ class ResolverVisitor extends ScopedVisitor {
         FunctionExpressionInvocationResolver(
       resolver: this,
     );
+    this._forResolver = ForResolver(
+      resolver: this,
+      flowAnalysis: _flowAnalysis,
+    );
     this._postfixExpressionResolver = PostfixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
@@ -374,6 +382,9 @@ class ResolverVisitor extends ScopedVisitor {
     this._prefixExpressionResolver = PrefixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
+    );
+    this._yieldStatementResolver = YieldStatementResolver(
+      resolver: this,
     );
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
@@ -1017,192 +1028,12 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForElementInScope(ForElement node) {
-    ForLoopParts forLoopParts = node.forLoopParts;
-    if (forLoopParts is ForParts) {
-      if (forLoopParts is ForPartsWithDeclarations) {
-        forLoopParts.variables?.accept(this);
-      } else if (forLoopParts is ForPartsWithExpression) {
-        forLoopParts.initialization?.accept(this);
-      }
-
-      var condition = forLoopParts.condition;
-
-      _flowAnalysis?.for_conditionBegin(node);
-      if (condition != null) {
-        InferenceContext.setType(condition, typeProvider.boolType);
-        condition.accept(this);
-        condition = forLoopParts.condition;
-        boolExpressionVerifier.checkForNonBoolCondition(condition);
-      }
-
-      _flowAnalysis?.for_bodyBegin(node, condition);
-      node.body?.accept(this);
-
-      _flowAnalysis?.flow?.for_updaterBegin();
-      forLoopParts.updaters.accept(this);
-
-      _flowAnalysis?.flow?.for_end();
-    } else if (forLoopParts is ForEachParts) {
-      Expression iterable = forLoopParts.iterable;
-      DeclaredIdentifier loopVariable;
-      DartType valueType;
-      Element identifierElement;
-      if (forLoopParts is ForEachPartsWithDeclaration) {
-        loopVariable = forLoopParts.loopVariable;
-        valueType = loopVariable?.type?.type ?? UnknownInferredType.instance;
-      } else if (forLoopParts is ForEachPartsWithIdentifier) {
-        SimpleIdentifier identifier = forLoopParts.identifier;
-        identifier?.accept(this);
-        identifierElement = identifier?.staticElement;
-        if (identifierElement is VariableElement) {
-          valueType = identifierElement.type;
-        } else if (identifierElement is PropertyAccessorElement) {
-          var parameters = identifierElement.parameters;
-          if (parameters.isNotEmpty) {
-            valueType = parameters[0].type;
-          }
-        }
-      }
-
-      if (valueType != null) {
-        InterfaceType targetType = (node.awaitKeyword == null)
-            ? typeProvider.iterableType2(valueType)
-            : typeProvider.streamType2(valueType);
-        InferenceContext.setType(iterable, targetType);
-      }
-      //
-      // We visit the iterator before the loop variable because the loop
-      // variable cannot be in scope while visiting the iterator.
-      //
-      iterable?.accept(this);
-      // Note: the iterable could have been rewritten so grab it from
-      // forLoopParts again.
-      iterable = forLoopParts.iterable;
-      loopVariable?.accept(this);
-      var elementType = typeAnalyzer.computeForEachElementType(
-          iterable, node.awaitKeyword != null);
-      if (loopVariable != null &&
-          elementType != null &&
-          loopVariable.type == null) {
-        var loopVariableElement =
-            loopVariable.declaredElement as LocalVariableElementImpl;
-        loopVariableElement.type = elementType;
-      }
-      _flowAnalysis?.flow?.forEach_bodyBegin(
-          node,
-          identifierElement is VariableElement
-              ? identifierElement
-              : loopVariable?.declaredElement,
-          elementType ?? typeProvider.dynamicType);
-      node.body?.accept(this);
-      _flowAnalysis?.flow?.forEach_end();
-
-      node.accept(elementResolver);
-      node.accept(typeAnalyzer);
-    }
+    _forResolver.resolveElement(node);
   }
 
   @override
   void visitForStatementInScope(ForStatement node) {
-    _flowAnalysis?.checkUnreachableNode(node);
-
-    ForLoopParts forLoopParts = node.forLoopParts;
-    if (forLoopParts is ForParts) {
-      if (forLoopParts is ForPartsWithDeclarations) {
-        forLoopParts.variables?.accept(this);
-      } else if (forLoopParts is ForPartsWithExpression) {
-        forLoopParts.initialization?.accept(this);
-      }
-
-      var condition = forLoopParts.condition;
-
-      _flowAnalysis?.for_conditionBegin(node);
-      if (condition != null) {
-        InferenceContext.setType(condition, typeProvider.boolType);
-        condition.accept(this);
-        condition = forLoopParts.condition;
-        boolExpressionVerifier.checkForNonBoolCondition(condition);
-      }
-
-      _flowAnalysis?.for_bodyBegin(node, condition);
-      visitStatementInScope(node.body);
-
-      _flowAnalysis?.flow?.for_updaterBegin();
-      forLoopParts.updaters.accept(this);
-
-      _flowAnalysis?.flow?.for_end();
-    } else if (forLoopParts is ForEachParts) {
-      Expression iterable = forLoopParts.iterable;
-      DeclaredIdentifier loopVariable;
-      SimpleIdentifier identifier;
-      Element identifierElement;
-      if (forLoopParts is ForEachPartsWithDeclaration) {
-        loopVariable = forLoopParts.loopVariable;
-      } else if (forLoopParts is ForEachPartsWithIdentifier) {
-        identifier = forLoopParts.identifier;
-        identifier?.accept(this);
-      }
-
-      DartType valueType;
-      if (loopVariable != null) {
-        TypeAnnotation typeAnnotation = loopVariable.type;
-        valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
-      }
-      if (identifier != null) {
-        identifierElement = identifier.staticElement;
-        if (identifierElement is VariableElement) {
-          valueType = identifierElement.type;
-        } else if (identifierElement is PropertyAccessorElement) {
-          var parameters = identifierElement.parameters;
-          if (parameters.isNotEmpty) {
-            valueType = parameters[0].type;
-          }
-        }
-      }
-      if (valueType != null) {
-        InterfaceType targetType = (node.awaitKeyword == null)
-            ? typeProvider.iterableType2(valueType)
-            : typeProvider.streamType2(valueType);
-        InferenceContext.setType(iterable, targetType);
-      }
-      //
-      // We visit the iterator before the loop variable because the loop variable
-      // cannot be in scope while visiting the iterator.
-      //
-      iterable?.accept(this);
-      // Note: the iterable could have been rewritten so grab it again.
-      iterable = forLoopParts.iterable;
-
-      nullableDereferenceVerifier.expression(iterable);
-
-      loopVariable?.accept(this);
-      var elementType = typeAnalyzer.computeForEachElementType(
-          iterable, node.awaitKeyword != null);
-      if (loopVariable != null &&
-          elementType != null &&
-          loopVariable.type == null) {
-        var loopVariableElement =
-            loopVariable.declaredElement as LocalVariableElementImpl;
-        loopVariableElement.type = elementType;
-      }
-
-      _flowAnalysis?.flow?.forEach_bodyBegin(
-          node,
-          identifierElement is VariableElement
-              ? identifierElement
-              : loopVariable?.declaredElement,
-          elementType ?? typeProvider.dynamicType);
-
-      Statement body = node.body;
-      if (body != null) {
-        visitStatementInScope(body);
-      }
-
-      _flowAnalysis?.flow?.forEach_end();
-
-      node.accept(elementResolver);
-      node.accept(typeAnalyzer);
-    }
+    _forResolver.resolveStatement(node);
   }
 
   @override
@@ -1886,51 +1717,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    Expression e = node.expression;
-    DartType returnType = inferenceContext.returnContext;
-    bool isGenerator = _enclosingFunction?.isGenerator ?? false;
-    if (returnType != null && isGenerator) {
-      // If we're not in a generator ([a]sync*, then we shouldn't have a yield.
-      // so don't infer
-
-      // If this just a yield, then we just pass on the element type
-      DartType type = returnType;
-      if (node.star != null) {
-        // If this is a yield*, then we wrap the element return type
-        // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-        type = _enclosingFunction.isSynchronous
-            ? typeProvider.iterableType2(type)
-            : typeProvider.streamType2(type);
-      }
-      InferenceContext.setType(e, type);
-    }
-    super.visitYieldStatement(node);
-
-    if (node.star != null) {
-      nullableDereferenceVerifier.expression(node.expression);
-    }
-
-    DartType type = e?.staticType;
-    if (type != null && isGenerator) {
-      // If this just a yield, then we just pass on the element type
-      if (node.star != null) {
-        // If this is a yield*, then we unwrap the element return type
-        // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-        if (type is InterfaceType) {
-          ClassElement wrapperElement = _enclosingFunction.isSynchronous
-              ? typeProvider.iterableElement
-              : typeProvider.streamElement;
-          var asInstanceType =
-              (type as InterfaceTypeImpl).asInstanceOf(wrapperElement);
-          if (asInstanceType != null) {
-            type = asInstanceType.typeArguments[0];
-          }
-        }
-      }
-      if (type != null) {
-        inferenceContext.addReturnOrYieldType(type);
-      }
-    }
+    _yieldStatementResolver.resolve(node);
   }
 
   void _checkForBodyMayCompleteNormally({
@@ -1953,7 +1740,7 @@ class ResolverVisitor extends ScopedVisitor {
 
       if (typeSystem.isPotentiallyNonNullable(returnType)) {
         errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY,
+          CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
           errorNode,
         );
       }

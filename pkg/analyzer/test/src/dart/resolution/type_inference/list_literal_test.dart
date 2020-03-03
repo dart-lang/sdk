@@ -258,7 +258,13 @@ f() async {
   var a = [1, ...?await futureNull, 2];
 }
 ''');
-    assertType(findNode.listLiteral('['), 'List<int>');
+    assertType(
+      findNode.listLiteral('['),
+      typeStringByNullability(
+        nullable: 'List<int?>',
+        legacy: 'List<int>',
+      ),
+    );
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
@@ -302,7 +308,7 @@ var a = <num>[];
 }
 
 @reflectiveTest
-class ListLiteralWithNnbdTest extends DriverResolutionTest {
+class ListLiteralWithNnbdTest extends ListLiteralTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(

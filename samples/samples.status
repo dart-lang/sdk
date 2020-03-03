@@ -14,9 +14,6 @@ sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This te
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dartkp && $system == windows ]
-ffi/async/async_test: Skip # dartbug.com/40564 dartbug.com/40579
-
 [ $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
 sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
 

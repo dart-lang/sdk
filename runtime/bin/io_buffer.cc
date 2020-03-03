@@ -4,6 +4,8 @@
 
 #include "bin/io_buffer.h"
 
+#include "platform/memory_sanitizer.h"
+
 namespace dart {
 namespace bin {
 
@@ -26,7 +28,7 @@ Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t** buffer) {
 }
 
 uint8_t* IOBuffer::Allocate(intptr_t size) {
-  return reinterpret_cast<uint8_t*>(malloc(size));
+  return reinterpret_cast<uint8_t*>(calloc(size, sizeof(uint8_t)));
 }
 
 }  // namespace bin

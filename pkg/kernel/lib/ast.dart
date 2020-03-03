@@ -1637,7 +1637,10 @@ class Field extends Member {
     this.isStatic = isStatic;
     this.isLate = isLate;
     this.hasImplicitGetter = hasImplicitGetter ?? !isStatic;
-    this.hasImplicitSetter = hasImplicitSetter ?? (!isStatic && !isFinal);
+    this.hasImplicitSetter = hasImplicitSetter ??
+        (!isStatic &&
+            !isConst &&
+            (!isFinal || (isLate && initializer == null)));
     this.transformerFlags = transformerFlags;
   }
 

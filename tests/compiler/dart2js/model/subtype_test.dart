@@ -751,8 +751,6 @@ Future testStrongModeSubtyping() async {
       }
     }
 
-    var types = env.types;
-
     InterfaceType ClassWithCall = env['ClassWithCall'];
     DartType Object_ = env['Object'];
     DartType dynamic_ = env['dynamic'];
@@ -762,16 +760,11 @@ Future testStrongModeSubtyping() async {
     DartType ClassWithCallType =
         env.getMemberType('call', ClassWithCall.element);
 
-    InterfaceType List_Object =
-        env.commonElements.listType(types.defaultNullability, Object_);
-    InterfaceType List_dynamic =
-        env.commonElements.listType(types.defaultNullability, dynamic_);
-    InterfaceType List_void =
-        env.commonElements.listType(types.defaultNullability, void_);
-    InterfaceType List_Null =
-        env.commonElements.listType(types.defaultNullability, Null_);
-    InterfaceType List_Function =
-        env.commonElements.listType(types.defaultNullability, Function_);
+    InterfaceType List_Object = env.commonElements.listType(Object_);
+    InterfaceType List_dynamic = env.commonElements.listType(dynamic_);
+    InterfaceType List_void = env.commonElements.listType(void_);
+    InterfaceType List_Null = env.commonElements.listType(Null_);
+    InterfaceType List_Function = env.commonElements.listType(Function_);
 
     DartType returnNum = env.getMemberType('returnNum');
     DartType returnInt = env.getMemberType('returnInt');

@@ -58,7 +58,7 @@ void _postEvent(String eventKind, String eventData)
     native "Developer_postEvent";
 
 @patch
-ServiceExtensionHandler _lookupExtension(String method)
+ServiceExtensionHandler? _lookupExtension(String method)
     native "Developer_lookupExtension";
 
 @patch

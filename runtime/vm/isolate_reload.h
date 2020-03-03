@@ -294,7 +294,8 @@ class IsolateGroupReloadContext {
   friend class MarkFunctionsForRecompilation;  // IsDirty.
   friend class ReasonForCancelling;
   friend class IsolateReloadContext;
-  friend class Instance;  // GetClassSizeForHeapWalkAt
+  friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
+  friend class RawObject;     // GetClassSizeForHeapWalkAt
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };

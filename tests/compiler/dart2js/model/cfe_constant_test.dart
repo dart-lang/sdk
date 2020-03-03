@@ -25,8 +25,7 @@ main(List<String> args) {
         .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data'));
     await checkTests<String>(dataDir, new ConstantDataComputer(),
         args: args,
-        testedConfigs: [sharedConfig],
-        supportedMarkers: sharedMarkers);
+        testedConfigs: [sharedConfig]);
   });
 }
 

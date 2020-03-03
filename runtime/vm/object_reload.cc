@@ -848,6 +848,7 @@ bool Class::CanReloadFinalized(const Class& replacement,
   // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
   auto group_context = context->group_reload_context();
+  auto shared_class_table = group_context->isolate_group()->class_table();
   if (NumTypeArguments() != replacement.NumTypeArguments()) {
     group_context->AddReasonForCancelling(
         new (context->zone())
@@ -857,12 +858,10 @@ bool Class::CanReloadFinalized(const Class& replacement,
   if (RequiresInstanceMorphing(replacement)) {
     ASSERT(id() == replacement.id());
     const classid_t cid = id();
-
     // We unconditionally create an instance morpher. As a side effect of
     // building the morpher, we will mark all new fields as late.
     auto instance_morpher = InstanceMorpher::CreateFromClassDescriptors(
-        context->zone(), context->isolate()->shared_class_table(), *this,
-        replacement);
+        context->zone(), shared_class_table, *this, replacement);
     group_context->EnsureHasInstanceMorpherFor(cid, instance_morpher);
   }
   return true;

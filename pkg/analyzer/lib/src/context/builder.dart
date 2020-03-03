@@ -11,10 +11,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/command_line/arguments.dart'
-    show
-        applyAnalysisOptionFlags,
-        bazelAnalysisOptionsPath,
-        flutterAnalysisOptionsPath;
+    show applyAnalysisOptionFlags, flutterAnalysisOptionsPath;
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -324,8 +321,8 @@ class ContextBuilder {
     } else {
       // Search for the default analysis options.
       Source source;
-      if (workspace is BazelWorkspace) {
-        source = sourceFactory.forUri(bazelAnalysisOptionsPath);
+      if (workspace is WorkspaceWithDefaultAnalysisOptions) {
+        source = sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
       } else {
         source = sourceFactory.forUri(flutterAnalysisOptionsPath);
       }

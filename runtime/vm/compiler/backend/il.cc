@@ -115,20 +115,16 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
     bool exclude_null) {
   ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
-  CidRangeVector** cid_ranges = nullptr;
+  std::unique_ptr<CidRangeVector[]>* cid_ranges = nullptr;
   if (include_abstract) {
-    ASSERT(!exclude_null);
-    cid_ranges = &cid_subtype_ranges_abstract_nullable_;
-  } else if (exclude_null) {
-    ASSERT(!include_abstract);
-    cid_ranges = &cid_subtype_ranges_nonnullable_;
+    cid_ranges = exclude_null ? &cid_subtype_ranges_abstract_nonnullable_
+                              : &cid_subtype_ranges_abstract_nullable_;
   } else {
-    ASSERT(!include_abstract);
-    ASSERT(!exclude_null);
-    cid_ranges = &cid_subtype_ranges_nullable_;
+    cid_ranges = exclude_null ? &cid_subtype_ranges_nonnullable_
+                              : &cid_subtype_ranges_nullable_;
   }
   if (*cid_ranges == nullptr) {
-    *cid_ranges = new CidRangeVector[cid_count];
+    cid_ranges->reset(new CidRangeVector[cid_count]);
   }
   CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
@@ -147,8 +143,8 @@ const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
     const Class& klass) {
   ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
-  if (cid_subclass_ranges_ == NULL) {
-    cid_subclass_ranges_ = new CidRangeVector[cid_count];
+  if (cid_subclass_ranges_ == nullptr) {
+    cid_subclass_ranges_.reset(new CidRangeVector[cid_count]);
   }
 
   CidRangeVector& ranges = cid_subclass_ranges_[klass.id()];
@@ -270,7 +266,6 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
                    exclude_null);
     return;
   }
-  ASSERT(!exclude_null);
 
   Zone* zone = thread()->zone();
   GrowableArray<intptr_t> cids;
@@ -2957,7 +2952,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     instantiator_type_arguments()->BindTo(flow_graph->constant_null());
     function_type_arguments()->BindTo(flow_graph->constant_null());
 
-    if (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType() ||
+    if (new_dst_type.IsTopTypeForAssignability() ||
         (FLAG_eliminate_type_checks &&
          value()->Type()->IsAssignableTo(nnbd_mode(), new_dst_type))) {
       return value()->definition();
@@ -4019,33 +4014,16 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-void IndirectGotoInstr::ComputeOffsetTable() {
-  if (GetBlock()->offset() < 0) {
-    // Don't generate a table when contained in an unreachable block.
-    return;
-  }
+void IndirectGotoInstr::ComputeOffsetTable(FlowGraphCompiler* compiler) {
   ASSERT(SuccessorCount() == offsets_.Length());
   intptr_t element_size = offsets_.ElementSizeInBytes();
   for (intptr_t i = 0; i < SuccessorCount(); i++) {
     TargetEntryInstr* target = SuccessorAt(i);
-    intptr_t offset = target->offset();
-
-    // The intermediate block might be compacted, if so, use the indirect entry.
-    if (offset < 0) {
-      // Optimizations might have modified the immediate target block, but it
-      // must end with a goto to the indirect entry. Also, we can't use
-      // last_instruction because 'target' is compacted/unreachable.
-      Instruction* last = target->next();
-      while (last != nullptr && !last->IsGoto()) {
-        last = last->next();
-      }
-      ASSERT(last);
-      const JoinEntryInstr* entry = last->AsGoto()->successor()->AsJoinEntry();
-      ASSERT(entry != nullptr);
-      offset = entry->offset();
-    }
-
-    ASSERT(offset > 0);
+    auto* label = compiler->GetJumpLabel(target);
+    RELEASE_ASSERT(label != nullptr);
+    RELEASE_ASSERT(label->IsBound());
+    intptr_t offset = label->Position();
+    RELEASE_ASSERT(offset > 0);
     offsets_.SetInt32(i * element_size, offset);
   }
 }
@@ -5494,11 +5472,7 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
           CallingConventions::kArgumentRegisters) == 0);
 
-#if defined(TARGET_ARCH_ARM)
-  constexpr intptr_t kNumTemps = 3;
-#else
   constexpr intptr_t kNumTemps = 2;
-#endif
 
   LocationSummary* summary = new (zone)
       LocationSummary(zone, /*num_inputs=*/InputCount(),
@@ -5511,10 +5485,6 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                            CallingConventions::kSecondNonArgumentRegister));
   summary->set_temp(1, Location::RegisterLocation(
                            CallingConventions::kFirstCalleeSavedCpuReg));
-#if defined(TARGET_ARCH_ARM)
-  summary->set_temp(2, Location::RegisterLocation(
-                           CallingConventions::kSecondCalleeSavedCpuReg));
-#endif
   summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
 
   for (intptr_t i = 0, n = marshaller_.num_args(); i < n; ++i) {

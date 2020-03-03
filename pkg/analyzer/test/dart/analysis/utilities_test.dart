@@ -203,6 +203,35 @@ int? f() => 1;
     expect(result.unit.toString(), equals('int? f() => 1;'));
   }
 
+  test_parseString_languageVersion() {
+    var content = '''
+// @dart = 2.7
+class A {}
+''';
+    var result = parseString(
+      content: content,
+      throwIfDiagnostics: false,
+      featureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    var languageVersion = result.unit.languageVersion;
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 7);
+  }
+
+  test_parseString_languageVersion_null() {
+    var content = '''
+class A {}
+''';
+    var result = parseString(
+      content: content,
+      throwIfDiagnostics: false,
+      featureSet: FeatureSet.fromEnableFlags([]),
+    );
+
+    expect(result.unit.languageVersion, isNull);
+  }
+
   test_parseString_lineInfo() {
     String content = '''
 main() {

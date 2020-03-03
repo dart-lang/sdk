@@ -361,7 +361,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
 
   page->set_object_end(page->memory_->end());
   if ((type != HeapPage::kExecutable) && (heap_ != nullptr) &&
-      (heap_->isolate() != Dart::vm_isolate())) {
+      (heap_->isolate_group() != Dart::vm_isolate()->group())) {
     page->AllocateForwardingPage();
   }
   return page;
@@ -680,7 +680,7 @@ class ExclusiveCodePageIterator : ValueObject {
 void PageSpace::MakeIterable() const {
   // Assert not called from concurrent sweeper task.
   // TODO(koda): Use thread/task identity when implemented.
-  ASSERT(Isolate::Current()->heap() != NULL);
+  ASSERT(IsolateGroup::Current()->heap() != NULL);
   if (bump_top_ < bump_end_) {
     FreeListElement::AsElement(bump_top_, bump_end_ - bump_top_);
   }
@@ -706,9 +706,9 @@ void PageSpace::UpdateMaxCapacityLocked() {
     return;
   }
   ASSERT(heap_ != NULL);
-  ASSERT(heap_->isolate() != NULL);
-  Isolate* isolate = heap_->isolate();
-  isolate->GetHeapOldCapacityMaxMetric()->SetValue(
+  ASSERT(heap_->isolate_group() != NULL);
+  auto isolate_group = heap_->isolate_group();
+  isolate_group->GetHeapOldCapacityMaxMetric()->SetValue(
       static_cast<int64_t>(usage_.capacity_in_words) * kWordSize);
 #endif  // !defined(PRODUCT)
 }
@@ -720,9 +720,9 @@ void PageSpace::UpdateMaxUsed() {
     return;
   }
   ASSERT(heap_ != NULL);
-  ASSERT(heap_->isolate() != NULL);
-  Isolate* isolate = heap_->isolate();
-  isolate->GetHeapOldUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
+  ASSERT(heap_->isolate_group() != NULL);
+  auto isolate_group = heap_->isolate_group();
+  isolate_group->GetHeapOldUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
 #endif  // !defined(PRODUCT)
 }
 
@@ -859,8 +859,8 @@ void PageSpace::WriteProtect(bool read_only) {
 
 #ifndef PRODUCT
 void PageSpace::PrintToJSONObject(JSONObject* object) const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  auto isolate_group = IsolateGroup::Current();
+  ASSERT(isolate_group != nullptr);
   JSONObject space(object, "old");
   space.AddProperty("type", "HeapSpace");
   space.AddProperty("name", "old");
@@ -871,7 +871,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
   if (collections() > 0) {
-    int64_t run_time = isolate->UptimeMicros();
+    int64_t run_time = isolate_group->UptimeMicros();
     run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
     double run_time_millis = MicrosecondsToMilliseconds(run_time);
     double avg_time_between_collections =
@@ -1079,14 +1079,16 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
                                           int64_t pre_safe_point) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsAtSafepoint());
-  Isolate* isolate = heap_->isolate();
-  ASSERT(isolate == Isolate::Current());
+  auto isolate_group = heap_->isolate_group();
+  ASSERT(isolate_group == IsolateGroup::Current());
 
   const int64_t start = OS::GetCurrentMonotonicMicros();
 
   // Perform various cleanup that relies on no tasks interfering.
-  isolate->class_table()->FreeOldTables();
-  isolate->field_table()->FreeOldTables();
+  isolate_group->class_table()->FreeOldTables();
+  isolate_group->ForEachIsolate(
+      [&](Isolate* isolate) { isolate->field_table()->FreeOldTables(); },
+      /*at_safepoint=*/true);
 
   NoSafepointScope no_safepoints;
 
@@ -1112,7 +1114,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   // Mark all reachable old-gen objects.
   if (marker_ == NULL) {
     ASSERT(phase() == kDone);
-    marker_ = new GCMarker(isolate, heap_);
+    marker_ = new GCMarker(isolate_group, heap_);
   } else {
     ASSERT(phase() == kAwaitingFinalization);
   }
@@ -1177,7 +1179,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
     Compact(thread);
     set_phase(kDone);
   } else if (FLAG_concurrent_sweep) {
-    ConcurrentSweep(isolate);
+    ConcurrentSweep(isolate_group);
   } else {
     SweepLarge();
     Sweep();
@@ -1261,17 +1263,17 @@ void PageSpace::Sweep() {
   }
 }
 
-void PageSpace::ConcurrentSweep(Isolate* isolate) {
+void PageSpace::ConcurrentSweep(IsolateGroup* isolate_group) {
   // Start the concurrent sweeper task now.
-  GCSweeper::SweepConcurrent(isolate, pages_, pages_tail_, large_pages_,
+  GCSweeper::SweepConcurrent(isolate_group, pages_, pages_tail_, large_pages_,
                              large_pages_tail_, &freelist_[HeapPage::kData]);
 }
 
 void PageSpace::Compact(Thread* thread) {
-  thread->isolate()->set_compaction_in_progress(true);
+  thread->isolate_group()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
   compactor.Compact(pages_, &freelist_[HeapPage::kData], &pages_lock_);
-  thread->isolate()->set_compaction_in_progress(false);
+  thread->isolate_group()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {
     OS::PrintErr("Verifying after compacting...");
@@ -1379,6 +1381,92 @@ bool PageSpace::IsObjectFromImagePages(dart::RawObject* object) {
     image_page = image_page->next();
   }
   return false;
+}
+
+static void AppendList(HeapPage** pages,
+                       HeapPage** pages_tail,
+                       HeapPage** other_pages,
+                       HeapPage** other_pages_tail) {
+  ASSERT((*pages == nullptr) == (*pages_tail == nullptr));
+  ASSERT((*other_pages == nullptr) == (*other_pages_tail == nullptr));
+
+  if (*other_pages != nullptr) {
+    if (*pages_tail == nullptr) {
+      *pages = *other_pages;
+      *pages_tail = *other_pages_tail;
+    } else {
+      const bool is_execute = FLAG_write_protect_code &&
+                              (*pages_tail)->type() == HeapPage::kExecutable;
+      if (is_execute) {
+        (*pages_tail)->WriteProtect(false);
+      }
+      (*pages_tail)->set_next(*other_pages);
+      if (is_execute) {
+        (*pages_tail)->WriteProtect(true);
+      }
+      *pages_tail = *other_pages_tail;
+    }
+    *other_pages = nullptr;
+    *other_pages_tail = nullptr;
+  }
+}
+
+static void EnsureEqualImagePages(HeapPage* pages, HeapPage* other_pages) {
+#if defined(DEBUG)
+  while (pages != nullptr) {
+    ASSERT((pages == nullptr) == (other_pages == nullptr));
+    ASSERT(pages->object_start() == other_pages->object_start());
+    ASSERT(pages->object_end() == other_pages->object_end());
+    pages = pages->next();
+    other_pages = other_pages->next();
+  }
+#endif
+}
+
+void PageSpace::MergeOtherPageSpace(PageSpace* other) {
+  MutexLocker ml(&pages_lock_);
+  MutexLocker ml2(&other->pages_lock_);
+
+  other->AbandonBumpAllocation();
+
+  ASSERT(other->bump_top_ == 0 && other->bump_end_ == 0);
+  ASSERT(other->tasks_ == 0);
+  ASSERT(other->concurrent_marker_tasks_ == 0);
+  ASSERT(other->phase_ == kDone);
+  DEBUG_ASSERT(other->iterating_thread_ == nullptr);
+  ASSERT(other->marker_ == nullptr);
+
+  for (intptr_t i = 0; i < HeapPage::kNumPageTypes; ++i) {
+    const bool is_protected =
+        FLAG_write_protect_code && i == HeapPage::kExecutable;
+    freelist_[i].MergeOtherFreelist(&other->freelist_[i], is_protected);
+    other->freelist_[i].Reset();
+  }
+
+  AppendList(&pages_, &pages_tail_, &other->pages_, &other->pages_tail_);
+  AppendList(&exec_pages_, &exec_pages_tail_, &other->exec_pages_,
+             &other->exec_pages_tail_);
+  AppendList(&large_pages_, &large_pages_tail_, &other->large_pages_,
+             &other->large_pages_tail_);
+  // We intentionall do not merge [image_pages_] beause [this] and [other] have
+  // the same mmap()ed image page areas.
+  EnsureEqualImagePages(image_pages_, other->image_pages_);
+
+  // We intentionaly do not increase [max_capacity_in_words_] because this can
+  // lead [max_capacity_in_words_] to become larger and larger and eventually
+  // wrap-around and become negative.
+  allocated_black_in_words_ += other->allocated_black_in_words_;
+  gc_time_micros_ += other->gc_time_micros_;
+  collections_ += other->collections_;
+
+  usage_.capacity_in_words += other->usage_.capacity_in_words;
+  usage_.used_in_words += other->usage_.used_in_words;
+  usage_.external_in_words += other->usage_.external_in_words;
+
+  page_space_controller_.MergeOtherPageSpaceController(
+      &other->page_space_controller_);
+
+  ASSERT(FLAG_concurrent_mark || other->enable_concurrent_mark_ == false);
 }
 
 PageSpaceController::PageSpaceController(Heap* heap,
@@ -1576,9 +1664,17 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
 
   if (FLAG_log_growth) {
     THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=%s\n",
-              heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
+              heap_->isolate_group()->source()->name,
+              gc_threshold_in_words_ / KBInWords,
               idle_gc_threshold_in_words_ / KBInWords, reason);
   }
+}
+
+void PageSpaceController::MergeOtherPageSpaceController(
+    PageSpaceController* other) {
+  last_usage_.capacity_in_words += other->last_usage_.capacity_in_words;
+  last_usage_.used_in_words += other->last_usage_.used_in_words;
+  last_usage_.external_in_words += other->last_usage_.external_in_words;
 }
 
 void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,

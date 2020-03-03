@@ -1845,6 +1845,52 @@ main() {
     });
   }
 
+  Future<void> test_formalParameter_named_ofConstructor_genericClass() {
+    addTestFile('''
+class A<T> {
+  A({T test});
+}
+
+main() {
+  A(test: 0);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test: 0', 'newName');
+    }, '''
+class A<T> {
+  A({T newName});
+}
+
+main() {
+  A(newName: 0);
+}
+''');
+  }
+
+  Future<void> test_formalParameter_named_ofMethod_genericClass() {
+    addTestFile('''
+class A<T> {
+  void foo({T test}) {}
+}
+
+main(A<int> a) {
+  a.foo(test: 0);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test: 0', 'newName');
+    }, '''
+class A<T> {
+  void foo({T newName}) {}
+}
+
+main(A<int> a) {
+  a.foo(newName: 0);
+}
+''');
+  }
+
   Future<void> test_function() {
     addTestFile('''
 test() {}

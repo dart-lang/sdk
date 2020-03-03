@@ -49,7 +49,7 @@ abstract class JsToElementMap {
   /// Return the [InterfaceType] corresponding to the [cls] with the given
   /// [typeArguments] and [nullability].
   InterfaceType createInterfaceType(
-      ir.Class cls, List<ir.DartType> typeArguments, Nullability nullability);
+      ir.Class cls, List<ir.DartType> typeArguments);
 
   /// Returns the [CallStructure] corresponding to the [arguments].
   CallStructure getCallStructure(ir.Arguments arguments);

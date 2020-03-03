@@ -26,29 +26,46 @@ import 'dart:math';
 
 part 'stream.dart';
 
-class Future<T> {
-  factory Future(computation()) => null;
-  factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.microtask(FutureOr<T> computation()) => null;
-  factory Future.value([FutureOr<T> result]) => null;
+abstract class Future<T> {
+  factory Future(computation()) {
+    throw 0;
+  }
 
-  Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
+  factory Future.delayed(Duration duration, [T computation()?]) {
+    throw 0;
+  }
+
+  factory Future.microtask(FutureOr<T> computation()) {
+    throw 0;
+  }
+
+  factory Future.value([FutureOr<T>? result]) {
+    throw 0;
+  }
+
+  Future<R> then<R>(FutureOr<R> onValue(T value));
+
   Future<T> whenComplete(action());
 
-  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => null;
+  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => throw 0;
 }
 
-class FutureOr<T> {}
+abstract class FutureOr<T> {}
 
 abstract class Completer<T> {
-  factory Completer() => null;
-  factory Completer.sync() => null;
+  factory Completer() {
+    throw 0;
+  }
+
+  factory Completer.sync() {
+    throw 0;
+  }
 
   Future<T> get future;
   bool get isCompleted;
 
-  void complete([value]);
-  void completeError(Object error, [StackTrace stackTrace]);
+  void complete([FutureOr<T>? value]);
+  void completeError(Object error, [StackTrace? stackTrace]);
 }
 
 abstract class Timer {
@@ -64,14 +81,14 @@ part of dart.async;
 
 abstract class Stream<T> {
   Stream();
-  factory Stream.fromIterable(Iterable<T> data) => null;
+  factory Stream.fromIterable(Iterable<T> data) {
+    throw 0;
+  }
 
   Future<T> get first;
 
-  StreamSubscription<T> listen(void onData(T event),
-                               { Function onError,
-                                 void onDone(),
-                                 bool cancelOnError});
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError});
 }
 
 abstract class StreamIterator<T> {}
@@ -79,12 +96,12 @@ abstract class StreamIterator<T> {}
 abstract class StreamSubscription<T> {
   bool get isPaused;
 
-  Future<E> asFuture<E>([E futureValue]);
+  Future<E> asFuture<E>([E? futureValue]);
   Future cancel();
-  void onData(void handleData(T data));
-  void onError(Function handleError);
-  void onDone(void handleDone());
-  void pause([Future resumeSignal]);
+  void onData(void handleData(T data)?);
+  void onError(Function? handleError);
+  void onDone(void handleDone()?);
+  void pause([Future<void>? resumeSignal]);
   void resume();
 }
 
@@ -114,56 +131,80 @@ library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {
   external factory HashMap(
-      {bool equals(K key1, K key2),
-      int hashCode(K key),
-      bool isValidKey(potentialKey)});
+      {bool Function(K, K)? equals,
+      int Function(K)? hashCode,
+      bool Function(dynamic)? isValidKey});
 
   external factory HashMap.identity();
 
-  factory HashMap.from(Map other) => null;
+  factory HashMap.from(Map<dynamic, dynamic> other) {
+    throw 0;
+  }
 
-  factory HashMap.of(Map<K, V> other) => null;
+  factory HashMap.of(Map<K, V> other) {
+    throw 0;
+  }
 
   factory HashMap.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) => null;
+      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
+    throw 0;
+  }
 
-  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) => null;
+  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
+    throw 0;
+  }
 
-  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) => null;
+  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
+    throw 0;
+  }
 }
 
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   external factory LinkedHashMap(
-      {bool equals(K key1, K key2),
-      int hashCode(K key),
-      bool isValidKey(potentialKey)});
+      {bool Function(K, K)? equals,
+      int Function(K)? hashCode,
+      bool Function(dynamic)? isValidKey});
 
   external factory LinkedHashMap.identity();
 
-  factory LinkedHashMap.from(Map other) => null;
+  factory LinkedHashMap.from(Map<dynamic, dynamic> other) {
+    throw 0;
+  }
 
-  factory LinkedHashMap.of(Map<K, V> other) => null;
+  factory LinkedHashMap.of(Map<K, V> other) {
+    throw 0;
+  }
 
-  factory LinkedHashMap.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) => null;
+    factory LinkedHashMap.fromIterable(Iterable iterable,
+      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
+    throw 0;
+  }
 
-  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values)
-      => null;
 
-  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) => null;
+  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
+    throw 0;
+  }
+
+  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
+    throw 0;
+  }
 }
 
 abstract class LinkedHashSet<E> implements Set<E> {
   external factory LinkedHashSet(
-      {bool equals(E e1, E e2),
-      int hashCode(E e),
-      bool isValidKey(potentialKey)});
+      {bool Function(E, E)? equals,
+      int Function(E)? hashCode,
+      bool Function(dynamic)? isValidKey});
 
   external factory LinkedHashSet.identity();
 
-  factory LinkedHashSet.from(Iterable elements) => null;
+  factory LinkedHashSet.from(Iterable<dynamic> elements) {
+    throw 0;
+  }
 
-  factory LinkedHashSet.of(Iterable<E> elements) => null;
+  factory LinkedHashSet.of(Iterable<E> elements) {
+    throw 0;
+  }
 }
 ''',
   )
@@ -205,9 +246,9 @@ const override = const _Override();
 
 const proxy = const _Proxy();
 
-external bool identical(Object a, Object b);
+external bool identical(Object? a, Object? b);
 
-void print(Object object) {}
+void print(Object? object) {}
 
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
@@ -233,7 +274,7 @@ class Deprecated extends Object {
 
 class pragma {
   final String name;
-  final Object options;
+  final Object? options;
   const pragma(this.name, [this.options]);
 }
 
@@ -264,19 +305,24 @@ abstract class double extends num {
   int truncate();
   double truncateToDouble();
 
-  external static double parse(String source, [double onError(String source)]);
+  external static double parse(String source,
+      [@deprecated double onError(String source)?]);
+
+  external static double? tryParse(String source);
 }
 
 class Duration implements Comparable<Duration> {}
 
 class Error {
   Error();
-  static String safeToString(Object object) => '';
-  external StackTrace get stackTrace;
+  static String safeToString(Object? object) => '';
+  external StackTrace? get stackTrace;
 }
 
 class Exception {
-  factory Exception([var message]) => null;
+  factory Exception([var message]) {
+    throw 0;
+  }
 }
 
 class FormatException implements Exception {}
@@ -284,7 +330,8 @@ class FormatException implements Exception {}
 class Function {}
 
 abstract class int extends num {
-  external const factory int.fromEnvironment(String name, {int defaultValue});
+  external const factory int.fromEnvironment(String name,
+      {int defaultValue = 0});
 
   bool get isEven => false;
   bool get isNegative;
@@ -302,7 +349,9 @@ abstract class int extends num {
   String toString();
 
   external static int parse(String source,
-      {int radix, int onError(String source)});
+      {int? radix, @deprecated int onError(String source)?});
+
+  external static int? tryParse(String source, {int? radix});
 }
 
 abstract class Invocation {}
@@ -318,9 +367,9 @@ abstract class Iterable<E> {
 
   Iterable<T> expand<T>(Iterable<T> f(E element));
 
-  E firstWhere(bool test(E element), { E orElse()});
+  E firstWhere(bool test(E element), {E orElse()?});
 
-  R fold<R>(R initialValue, R combine(R previousValue, E element)) => null;
+  R fold<R>(R initialValue, R combine(R previousValue, E element));
 
   void forEach(void f(E element));
 
@@ -339,17 +388,17 @@ abstract class Iterator<E> {
 }
 
 class List<E> implements Iterable<E> {
-  List([int length]);
-  external factory List.from(Iterable elements, {bool growable: true});
+  external factory List([int? length]);
   external factory List.filled(int length, E fill, {bool growable = false});
+  external factory List.empty({bool growable = false});
   external factory List.from(Iterable elements, {bool growable = true});
   external factory List.of(Iterable<E> elements, {bool growable = true});
   external factory List.generate(int length, E generator(int index),
       {bool growable = true});
   external factory List.unmodifiable(Iterable elements);
 
-  E get last => null;
-  E operator [](int index) => null;
+  E get last => throw 0;
+  E operator [](int index) => throw 0;
   void operator []=(int index, E value) {}
 
   void add(E value) {}
@@ -362,27 +411,43 @@ class List<E> implements Iterable<E> {
   noSuchMethod(Invocation invocation) => null;
 }
 
-class Map<K, V> {
-  factory Map() => null;
+abstract class Map<K, V> {
+  external factory Map();
+  external factory Map.from();
+  external Map.of(Map<K, V> other);
+  external factory Map.unmodifiable(Map<dynamic, dynamic> other);
+  external factory Map.identity();
 
-  factory Map.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) => null;
+  external factory Map.fromIterable(Iterable iterable,
+      {K key(element)?, V value(element)?});
 
-  Iterable<K> get keys => null;
+  external factory Map.fromIterables(Iterable<K> keys, Iterable<V> values);
+  external factory Map.fromEntries(Iterable<MapEntry<K, V>> entries);
+
+  Iterable<K> get keys;
   bool get isEmpty;
   bool get isNotEmpty;
   int get length => 0;
-  Iterable<V> get values => null;
+  Iterable<V> get values;
 
-  V operator [](K key) => null;
-  void operator []=(K key, V value) {}
+  V? operator [](K key);
+  void operator []=(K key, V value);
 
-  Map<RK, RV> cast<RK, RV>() => null;
-  bool containsKey(Object key) => false;
+  Map<RK, RV> cast<RK, RV>();
+  bool containsKey(Object? key);
 }
 
 class Null extends Object {
-  factory Null._uninstantiable() => null;
+  factory Null._uninstantiable() {
+    throw 0;
+  }
+}
+
+class MapEntry<K, V> {
+  final K key;
+  final V value;
+  const factory MapEntry(K key, V value) = MapEntry<K, V>._;
+  const MapEntry._(this.key, this.value);
 }
 
 abstract class num implements Comparable<num> {
@@ -414,13 +479,13 @@ abstract class num implements Comparable<num> {
 class Object {
   const Object();
 
-  int get hashCode => 0;
-  Type get runtimeType => null;
+  external int get hashCode;
+  external Type get runtimeType;
 
-  bool operator ==(Object other) => identical(this, other);
+  external bool operator ==(Object other);
 
-  String toString() => 'a string';
-  dynamic noSuchMethod(Invocation invocation) => null;
+  external String toString();
+  external dynamic noSuchMethod(Invocation invocation);
 }
 
 abstract class Pattern {}
@@ -430,36 +495,48 @@ abstract class RegExp implements Pattern {
 }
 
 abstract class Set<E> implements Iterable<E> {
-  factory Set() => null;
-  factory Set.identity() => null;
-  factory Set.from(Iterable elements) => null;
-  factory Set.of(Iterable<E> elements) => null;
+  external factory Set();
+  external factory Set.identity();
+  external factory Set.from(Iterable elements);
+  external factory Set.of(Iterable<E> elements);
 
   Set<R> cast<R>();
 
-  void add(E element) {}
+  bool add(E value);
+  void addAll(Iterable<E> elements);
+  bool remove(Object? value);
+  E? lookup(Object? object);
 }
 
 class StackTrace {}
 
 abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int end]);
+      [int start = 0, int? end]);
+
+  external factory String.fromCharCode(int charCode);
+
+  external const factory String.fromEnvironment(String name,
+    {String defaultValue = ""});
 
   List<int> get codeUnits;
-  int indexOf(Pattern pattern, [int start]);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
 
-  String operator +(String other) => null;
   bool operator ==(Object other);
+  String operator [](int index);
+  String operator +(String other);
+  String operator *(int times);
 
   int codeUnitAt(int index);
   bool contains(String other, [int startIndex = 0]);
+  int indexOf(Pattern pattern, [int start = 0]);
+  int lastIndexOf(Pattern pattern, [int? start]);
+  bool startsWith(Pattern pattern, [int index = 0]);
   String splitMapJoin(Pattern pattern,
-      {String onMatch(Match match), String onNonMatch(String nonMatch)});
-  String substring(int len) => null;
+      {String Function(Match)? onMatch, String Function(String)? onNonMatch});
+  String substring(int startIndex, [int? endIndex]);
   String toLowerCase();
   String toUpperCase();
 }
@@ -576,26 +653,26 @@ abstract class ElementStream<T extends Event> implements Stream<T> {}
 
 abstract class Element {
   /// Stream of `cut` events handled by this [Element].
-  ElementStream<Event> get onCut => null;
+  ElementStream<Event> get onCut => throw 0;
 
-  String get id => null;
+  String get id => throw 0;
 
-  set id(String value) => null;
+  set id(String value) => throw 0;
 }
 
 class HtmlElement extends Element {
   int tabIndex;
-  ElementStream<Event> get onChange => null;
-  ElementStream<MouseEvent> get onClick => null;
-  ElementStream<KeyEvent> get onKeyUp => null;
-  ElementStream<KeyEvent> get onKeyDown => null;
+  ElementStream<Event> get onChange => throw 0;
+  ElementStream<MouseEvent> get onClick => throw 0;
+  ElementStream<KeyEvent> get onKeyUp => throw 0;
+  ElementStream<KeyEvent> get onKeyDown => throw 0;
 
-  bool get hidden => null;
-  set hidden(bool value) => null;
+  bool get hidden => throw 0;
+  set hidden(bool value) {}
 
-  void set className(String s){}
-  void set readOnly(bool b){}
-  void set tabIndex(int i){}
+  void set className(String s) {}
+  void set readOnly(bool b) {}
+  void set tabIndex(int i) {}
 
   String _innerHtml;
   String get innerHtml {
@@ -621,7 +698,7 @@ class AnchorElement extends HtmlElement {
 class BodyElement extends HtmlElement {
   factory BodyElement() => document.createElement("body");
 
-  ElementStream<Event> get onUnload => null;
+  ElementStream<Event> get onUnload => throw 0;
 }
 
 class ButtonElement extends HtmlElement {
@@ -680,12 +757,12 @@ class ScriptElement extends HtmlElement {
 
 class TableSectionElement extends HtmlElement {
 
-  List<TableRowElement> get rows => null;
+  List<TableRowElement> get rows => throw 0;
 
   TableRowElement addRow() {
   }
 
-  TableRowElement insertRow(int index) => null;
+  TableRowElement insertRow(int index) => throw 0;
 
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -762,42 +839,46 @@ final MockSdkLibrary _LIB_IO = MockSdkLibrary(
 library dart.io;
 
 abstract class Directory implements FileSystemEntity {
-  factory Directory(String path) => null;
+  factory Directory(String path) {
+    throw 0;
+  }
 
   Future<bool> exists() async => true;
   bool existsSync() => true;
 
-  Future<FileStat> stat() async => null;
-  FileStat statSync() => null;
+  Future<FileStat> stat() async => throw 0;
+  FileStat statSync() => throw 0;
 }
 
 abstract class File implements FileSystemEntity {
-  factory File(String path) => null;
+  factory File(String path) {
+    throw 0;
+  }
 
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
 
-  Future<bool> exists() async => true;
-  bool existsSync() => true;
+  Future<bool> exists();
+  bool existsSync();
 
-  Future<FileStat> stat() async => null;
-  FileStat statSync() => null;
+  Future<FileStat> stat();
+  FileStat statSync();
 }
 
 abstract class FileSystemEntity {
-  static Future<bool> isDirectory(String path) => true;
+  static Future<bool> isDirectory(String path) async => true;
   static bool isDirectorySync(String path) => true;
 
-  static Future<bool> isFile(String path) => true;
+  static Future<bool> isFile(String path) async => true;
   static bool isFileSync(String path) => true;
 
-  static Future<bool> isLink(String path) => true;
+  static Future<bool> isLink(String path) async => true;
   static bool isLinkSync(String path) => true;
 
   static Future<FileSystemEntityType> type(
-    String path, {bool followLinks: true}) async => null;
+    String path, {bool followLinks: true}) => throw 0;
   static FileSystemEntityType typeSync(
-    String path, {bool followLinks: true}) => null;
+    String path, {bool followLinks: true}) => throw 0;
 }
 ''',
     )
@@ -816,8 +897,8 @@ const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
 const double LN10 =  2.302585092994046;
 
-T min<T extends num>(T a, T b) => null;
-T max<T extends num>(T a, T b) => null;
+T min<T extends num>(T a, T b) => throw 0;
+T max<T extends num>(T a, T b) => throw 0;
 
 external double cos(num radians);
 external double sin(num radians);

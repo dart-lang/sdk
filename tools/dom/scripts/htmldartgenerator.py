@@ -839,7 +839,8 @@ class HtmlDartGenerator(object):
             else:
                 template = '\n  $TYPE get $NAME;\n'
         else:
-            template = '\n  $TYPE $NAME;\n'
+            template = '\n  $TYPE get $NAME native;\n' \
+                       '\n  void set $NAME native;\n'
 
         self._members_emitter.Emit(template, NAME=attr_name, TYPE=type_name)
 

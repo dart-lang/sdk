@@ -1577,12 +1577,17 @@ void Assembler::LoadPoolPointer(Register reg) {
   set_constant_pool_allowed(reg == PP);
 }
 
-void Assembler::LoadIsolate(Register rd) {
-  ldr(rd, Address(THR, target::Thread::isolate_offset()));
+void Assembler::SetupGlobalPoolAndDispatchTable() {
+  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  if (FLAG_use_table_dispatch) {
+    ldr(DISPATCH_TABLE_REG,
+        Address(THR, target::Thread::dispatch_table_array_offset()));
+  }
 }
 
-void Assembler::LoadDispatchTable(Register rd) {
-  ldr(rd, Address(THR, target::Thread::dispatch_table_array_offset()));
+void Assembler::LoadIsolate(Register rd) {
+  ldr(rd, Address(THR, target::Thread::isolate_offset()));
 }
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {

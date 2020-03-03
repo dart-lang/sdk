@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
@@ -165,7 +166,8 @@ abstract class AstFactory {
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
       @required Token endToken,
-      @required FeatureSet featureSet});
+      @required FeatureSet featureSet,
+      LanguageVersion languageVersion});
 
   /// Returns a newly created conditional expression.
   ConditionalExpression conditionalExpression(
@@ -606,13 +608,33 @@ abstract class AstFactory {
       List<Combinator> combinators,
       Token semicolon);
 
-  /// Returns a newly created index expression.
+  /// Returns a newly created index expression suitable for use in a cascade
+  /// expression.
+  @Deprecated('Use indexExpressionForCascade2')
   IndexExpression indexExpressionForCascade(
       Token period, Token leftBracket, Expression index, Token rightBracket);
 
   /// Returns a newly created index expression.
+  IndexExpression indexExpressionForCascade2(
+      {@required Token period,
+      Token question,
+      @required Token leftBracket,
+      @required Expression index,
+      @required Token rightBracket});
+
+  /// Returns a newly created index expression suitable for use outside a
+  /// cascade expression.
+  @Deprecated('Use indexExpressionForTarget2')
   IndexExpression indexExpressionForTarget(Expression target, Token leftBracket,
       Expression index, Token rightBracket);
+
+  /// Returns a newly created index expression.
+  IndexExpression indexExpressionForTarget2(
+      {@required Expression target,
+      Token question,
+      @required Token leftBracket,
+      @required Expression index,
+      @required Token rightBracket});
 
   /// Returns a newly created instance creation expression.
   InstanceCreationExpression instanceCreationExpression(

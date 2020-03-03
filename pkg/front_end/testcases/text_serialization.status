@@ -6,6 +6,9 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+agnostic/identical: TextSerializationFailure
+agnostic/map: TextSerializationFailure
+agnostic/set: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure
@@ -233,6 +236,8 @@ general/issue39344: TextSerializationFailure
 general/issue39421: TextSerializationFailure
 general/issue39817: TextSerializationFailure
 general/issue40428: TextSerializationFailure
+general/issue40662: TextSerializationFailure
+general/issue40744: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
@@ -1200,6 +1205,7 @@ late_lowering/instance_nullable_final_field_without_initializer: TextSerializati
 late_lowering/issue40093: TextSerializationFailure
 late_lowering/issue40373: TextSerializationFailure
 late_lowering/issue40373b: TextSerializationFailure
+late_lowering/late_field_inference: TextSerializationFailure
 late_lowering/late_field_with_initializer: TextSerializationFailure
 late_lowering/late_field_without_initializer: TextSerializationFailure
 late_lowering/late_final_field_with_initializer: TextSerializationFailure
@@ -1231,7 +1237,9 @@ nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
+nnbd/from_agnostic/from_agnostic: TextSerializationFailure
 nnbd/function_types: TextSerializationFailure
+nnbd/future_or_variables: TextSerializationFailure
 nnbd/generic_override: TextSerializationFailure
 nnbd/infer_from_opt_in: TextSerializationFailure
 nnbd/infer_from_opt_out: TextSerializationFailure
@@ -1244,6 +1252,7 @@ nnbd/issue39659: TextSerializationFailure
 nnbd/issue39822: TextSerializationFailure
 nnbd/issue40093: TextSerializationFailure
 nnbd/issue40134: TextSerializationFailure
+nnbd/issue40512/issue40512: TextSerializationFailure
 nnbd/issue40600: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
@@ -1259,6 +1268,7 @@ nnbd/missing_required_named_parameter: TextSerializationFailure
 nnbd/mixed_mode_hierarchy_generic_methods: TextSerializationFailure
 nnbd/mixin_from_opt_in: TextSerializationFailure
 nnbd/mixin_from_opt_out: TextSerializationFailure
+nnbd/never_bound: TextSerializationFailure
 nnbd/never_opt_out: TypeCheckError
 nnbd/never_receiver: TextSerializationFailure
 nnbd/nnbd_opt_out_language_version: TextSerializationFailure
@@ -1267,6 +1277,7 @@ nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure
 nnbd/non_nullable_field_initialization: TextSerializationFailure
+nnbd/non_nullable_optional: TextSerializationFailure
 nnbd/not_definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/nsm_from_opt_in: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure
@@ -1285,6 +1296,7 @@ nnbd/nullable_receiver: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
 nnbd/override_checks: TextSerializationFailure
 nnbd/platform_definite_assignment/main: TextSerializationFailure
+nnbd/platform_nonnullable_fields/main: TextSerializationFailure
 nnbd/platform_optional_parameters/main: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure

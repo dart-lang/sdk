@@ -103,6 +103,9 @@ class DillLoader extends Loader {
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder library = builders[kernelLibrary.importUri];
+    if (library == null) {
+      library = currentSourceLoader?.builders[kernelLibrary.importUri];
+    }
     return library.lookupLocalMember(cls.name, required: true);
   }
 

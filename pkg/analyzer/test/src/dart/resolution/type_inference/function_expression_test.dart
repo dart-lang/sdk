@@ -5,10 +5,8 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../generated/test_support.dart';
 import '../driver_resolution.dart';
 
 main() {
@@ -20,17 +18,6 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionTest extends DriverResolutionTest {
-  List<ExpectedError> expectedErrorsByNullability({
-    @required List<ExpectedError> nullable,
-    @required List<ExpectedError> legacy,
-  }) {
-    if (typeToStringWithNullability) {
-      return nullable;
-    } else {
-      return legacy;
-    }
-  }
-
   test_downward_argumentType_Never() async {
     await assertNoErrorsInCode(r'''
 void foo(void Function(Never) a) {}
@@ -212,17 +199,6 @@ var v = () => null;
 ''');
     var element = findNode.functionExpression('() =>').declaredElement;
     assertType(element.returnType, 'Null');
-  }
-
-  String typeStringByNullability({
-    @required String nullable,
-    @required String legacy,
-  }) {
-    if (typeToStringWithNullability) {
-      return nullable;
-    } else {
-      return legacy;
-    }
   }
 }
 

@@ -19,35 +19,35 @@ class LegacyClass extends Class implements Interface {
   /*member: LegacyClass.method4:int* Function()**/
   int method4() => 0;
 
-  /*member: LegacyClass.method5a:int* Function(int*,int*)**/
-  /*member: LegacyClass.method5b:int* Function(int*,[int*])**/
-  /*member: LegacyClass.method5c:int* Function([int*,int*])**/
+  /*member: LegacyClass.method5a:int* Function(int*, int*)**/
+  /*member: LegacyClass.method5b:int* Function(int*, [int*])**/
+  /*member: LegacyClass.method5c:int* Function([int*, int*])**/
 
-  /*member: LegacyClass.method6a:int* Function(int*,int*)**/
+  /*member: LegacyClass.method6a:int* Function(int*, int*)**/
   int method6a(int a, int b) => 0;
 
-  /*member: LegacyClass.method6b:int* Function(int*,[int*])**/
+  /*member: LegacyClass.method6b:int* Function(int*, [int*])**/
   int method6b(int a, [int b]) => 0;
 
-  /*member: LegacyClass.method6c:int* Function([int*,int*])**/
+  /*member: LegacyClass.method6c:int* Function([int*, int*])**/
   int method6c([int a, int b]) => 0;
 
-  /*member: LegacyClass.method7a:int* Function(int*,{int* b})**/
-  /*member: LegacyClass.method7b:int* Function({int* a,int* b})**/
+  /*member: LegacyClass.method7a:int* Function(int*, {int* b})**/
+  /*member: LegacyClass.method7b:int* Function({int* a, int* b})**/
 
-  /*member: LegacyClass.method8a:int* Function(int*,{int* b})**/
+  /*member: LegacyClass.method8a:int* Function(int*, {int* b})**/
   int method8a(int a, {int b: 0}) => 0;
 
-  /*member: LegacyClass.method8b:int* Function({int* a,int* b})**/
+  /*member: LegacyClass.method8b:int* Function({int* a, int* b})**/
   int method8b({int a, int b: 0}) => 0;
 
-  /*member: LegacyClass.method9a:int* Function(int*,{int* b})**/
-  /*member: LegacyClass.method9b:int* Function({int* a,int* b})**/
+  /*member: LegacyClass.method9a:int* Function(int*, {int* b})**/
+  /*member: LegacyClass.method9b:int* Function({int* a, int* b})**/
 
-  /*member: LegacyClass.method10a:int* Function(int*,{int* b})**/
+  /*member: LegacyClass.method10a:int* Function(int*, {int* b})**/
   int method10a(int a, {int b}) => 0;
 
-  /*member: LegacyClass.method10b:int* Function({int* a,int* b})**/
+  /*member: LegacyClass.method10b:int* Function({int* a, int* b})**/
   int method10b({int a, int b}) => 0;
 
   /*member: LegacyClass.getter1:int**/
@@ -71,23 +71,28 @@ class LegacyClass extends Class implements Interface {
 
   /*member: LegacyClass.field1:int**/
   /*member: LegacyClass.field1=:int**/
+
   /*member: LegacyClass.field2:int**/
   /*member: LegacyClass.field2=:int**/
 
   /*member: LegacyClass.field3:int**/
+  /*member: LegacyClass.field3=:int**/
   int field3;
 
   /*member: LegacyClass.field4:int**/
+  /*member: LegacyClass.field4=:int**/
   int field4;
-
-  /*member: LegacyClass.field6a:int**/
-  var field6a = 0;
-
-  /*member: LegacyClass.field6b:int**/
-  var field6b = constant;
 
   /*member: LegacyClass.field5:int**/
   /*member: LegacyClass.field5=:int**/
+
+  /*member: LegacyClass.field6a:int**/
+  /*member: LegacyClass.field6a=:int**/
+  var field6a = 0;
+
+  /*member: LegacyClass.field6b:int**/
+  /*member: LegacyClass.field6b=:int**/
+  var field6b = constant;
 
   /*member: LegacyClass.property1:int**/
   /*member: LegacyClass.property1=:int**/
@@ -108,13 +113,16 @@ class LegacyClass extends Class implements Interface {
 
   /*member: LegacyClass.property5:int**/
   /*member: LegacyClass.property5=:int**/
+
   /*member: LegacyClass.property6:int**/
   /*member: LegacyClass.property6=:int**/
 
   /*member: LegacyClass.property7:int**/
+  /*member: LegacyClass.property7=:int**/
   int property7;
 
   /*member: LegacyClass.property8:int**/
+  /*member: LegacyClass.property8=:int**/
   int property8;
 }
 
@@ -126,6 +134,7 @@ abstract class LegacyClass2a extends Class {
   /*member: LegacyClass2a.field2=:int**/
   /*member: LegacyClass2a.field5:int**/
   /*member: LegacyClass2a.field5=:int**/
+
   /*member: LegacyClass2a.field6a:int**/
   /*member: LegacyClass2a.field6a=:int**/
   /*member: LegacyClass2a.field6b:int**/
@@ -136,13 +145,13 @@ abstract class LegacyClass2a extends Class {
 
   /*member: LegacyClass2a.method1:int* Function()**/
   /*member: LegacyClass2a.method2:int* Function()**/
-  /*member: LegacyClass2a.method5a:int* Function(int*,int*)**/
-  /*member: LegacyClass2a.method5b:int* Function(int*,[int*])**/
-  /*member: LegacyClass2a.method5c:int* Function([int*,int*])**/
-  /*member: LegacyClass2a.method7a:int* Function(int*,{int* b})**/
-  /*member: LegacyClass2a.method7b:int* Function({int* a,int* b})**/
-  /*member: LegacyClass2a.method9a:int* Function(int*,{int* b})**/
-  /*member: LegacyClass2a.method9b:int* Function({int* a,int* b})**/
+  /*member: LegacyClass2a.method5a:int* Function(int*, int*)**/
+  /*member: LegacyClass2a.method5b:int* Function(int*, [int*])**/
+  /*member: LegacyClass2a.method5c:int* Function([int*, int*])**/
+  /*member: LegacyClass2a.method7a:int* Function(int*, {int* b})**/
+  /*member: LegacyClass2a.method7b:int* Function({int* a, int* b})**/
+  /*member: LegacyClass2a.method9a:int* Function(int*, {int* b})**/
+  /*member: LegacyClass2a.method9b:int* Function({int* a, int* b})**/
 
   /*member: LegacyClass2a.property1:int**/
   /*member: LegacyClass2a.property1=:int**/
@@ -177,20 +186,20 @@ abstract class LegacyInterface2 implements Interface {
   /*member: LegacyInterface2.method2:int* Function()**/
   /*member: LegacyInterface2.method3:int* Function()**/
   /*member: LegacyInterface2.method4:int* Function()**/
-  /*member: LegacyInterface2.method5a:int* Function(int*,int*)**/
-  /*member: LegacyInterface2.method5b:int* Function(int*,[int*])**/
-  /*member: LegacyInterface2.method5c:int* Function([int*,int*])**/
-  /*member: LegacyInterface2.method6a:int* Function(int*,int*)**/
-  /*member: LegacyInterface2.method6b:int* Function(int*,[int*])**/
-  /*member: LegacyInterface2.method6c:int* Function([int*,int*])**/
-  /*member: LegacyInterface2.method7a:int* Function(int*,{int* b})**/
-  /*member: LegacyInterface2.method7b:int* Function({int* a,int* b})**/
-  /*member: LegacyInterface2.method8a:int* Function(int*,{int* b})**/
-  /*member: LegacyInterface2.method8b:int* Function({int* a,int* b})**/
-  /*member: LegacyInterface2.method9a:int* Function(int*,{int* b})**/
-  /*member: LegacyInterface2.method9b:int* Function({int* a,int* b})**/
-  /*member: LegacyInterface2.method10a:int* Function(int*,{int* b})**/
-  /*member: LegacyInterface2.method10b:int* Function({int* a,int* b})**/
+  /*member: LegacyInterface2.method5a:int* Function(int*, int*)**/
+  /*member: LegacyInterface2.method5b:int* Function(int*, [int*])**/
+  /*member: LegacyInterface2.method5c:int* Function([int*, int*])**/
+  /*member: LegacyInterface2.method6a:int* Function(int*, int*)**/
+  /*member: LegacyInterface2.method6b:int* Function(int*, [int*])**/
+  /*member: LegacyInterface2.method6c:int* Function([int*, int*])**/
+  /*member: LegacyInterface2.method7a:int* Function(int*, {int* b})**/
+  /*member: LegacyInterface2.method7b:int* Function({int* a, int* b})**/
+  /*member: LegacyInterface2.method8a:int* Function(int*, {int* b})**/
+  /*member: LegacyInterface2.method8b:int* Function({int* a, int* b})**/
+  /*member: LegacyInterface2.method9a:int* Function(int*, {int* b})**/
+  /*member: LegacyInterface2.method9b:int* Function({int* a, int* b})**/
+  /*member: LegacyInterface2.method10a:int* Function(int*, {int* b})**/
+  /*member: LegacyInterface2.method10b:int* Function({int* a, int* b})**/
 
   /*member: LegacyInterface2.property1:int**/
   /*member: LegacyInterface2.property1=:int**/
@@ -241,20 +250,20 @@ abstract class LegacyClass2b extends LegacyClass2a implements LegacyInterface2 {
   /*member: LegacyClass2b.method2:int* Function()**/
   /*member: LegacyClass2b.method3:int* Function()**/
   /*member: LegacyClass2b.method4:int* Function()**/
-  /*member: LegacyClass2b.method5a:int* Function(int*,int*)**/
-  /*member: LegacyClass2b.method5b:int* Function(int*,[int*])**/
-  /*member: LegacyClass2b.method5c:int* Function([int*,int*])**/
-  /*member: LegacyClass2b.method6a:int* Function(int*,int*)**/
-  /*member: LegacyClass2b.method6b:int* Function(int*,[int*])**/
-  /*member: LegacyClass2b.method6c:int* Function([int*,int*])**/
-  /*member: LegacyClass2b.method7a:int* Function(int*,{int* b})**/
-  /*member: LegacyClass2b.method7b:int* Function({int* a,int* b})**/
-  /*member: LegacyClass2b.method8a:int* Function(int*,{int* b})**/
-  /*member: LegacyClass2b.method8b:int* Function({int* a,int* b})**/
-  /*member: LegacyClass2b.method9a:int* Function(int*,{int* b})**/
-  /*member: LegacyClass2b.method9b:int* Function({int* a,int* b})**/
-  /*member: LegacyClass2b.method10a:int* Function(int*,{int* b})**/
-  /*member: LegacyClass2b.method10b:int* Function({int* a,int* b})**/
+  /*member: LegacyClass2b.method5a:int* Function(int*, int*)**/
+  /*member: LegacyClass2b.method5b:int* Function(int*, [int*])**/
+  /*member: LegacyClass2b.method5c:int* Function([int*, int*])**/
+  /*member: LegacyClass2b.method6a:int* Function(int*, int*)**/
+  /*member: LegacyClass2b.method6b:int* Function(int*, [int*])**/
+  /*member: LegacyClass2b.method6c:int* Function([int*, int*])**/
+  /*member: LegacyClass2b.method7a:int* Function(int*, {int* b})**/
+  /*member: LegacyClass2b.method7b:int* Function({int* a, int* b})**/
+  /*member: LegacyClass2b.method8a:int* Function(int*, {int* b})**/
+  /*member: LegacyClass2b.method8b:int* Function({int* a, int* b})**/
+  /*member: LegacyClass2b.method9a:int* Function(int*, {int* b})**/
+  /*member: LegacyClass2b.method9b:int* Function({int* a, int* b})**/
+  /*member: LegacyClass2b.method10a:int* Function(int*, {int* b})**/
+  /*member: LegacyClass2b.method10b:int* Function({int* a, int* b})**/
 
   /*member: LegacyClass2b.property1:int**/
   /*member: LegacyClass2b.property1=:int**/
@@ -281,6 +290,6 @@ abstract class LegacyClass2b extends LegacyClass2a implements LegacyInterface2 {
 
 /*class: LegacyGenericClass1:GenericInterface<T*>,LegacyGenericClass1<T*>,Object*/
 abstract class LegacyGenericClass1<T> implements GenericInterface<T> {
-  /*member: LegacyGenericClass1.genericMethod1:S* Function<S>(T*,S*,{T* c,S* d})**/
-  /*member: LegacyGenericClass1.genericMethod2:S* Function<S>(T*,S*,[T*,S*])**/
+  /*member: LegacyGenericClass1.genericMethod1:S* Function<S>(T*, S*, {T* c, S* d})**/
+  /*member: LegacyGenericClass1.genericMethod2:S* Function<S>(T*, S*, [T*, S*])**/
 }

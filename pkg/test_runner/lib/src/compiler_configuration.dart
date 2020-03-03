@@ -1183,7 +1183,11 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
     var arguments = [
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
-      ..._experimentsArgument(_configuration, testFile)
+      ..._experimentsArgument(_configuration, testFile),
+      if (_configuration.configuration.nnbdMode == NnbdMode.strong) ...[
+        "--force-nnbd-checks",
+        "--nnbd-strong"
+      ]
     ];
     for (var argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;

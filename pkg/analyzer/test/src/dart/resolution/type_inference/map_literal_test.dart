@@ -271,7 +271,13 @@ f() async {
   a;
 }
 ''');
-    assertType(setOrMapLiteral('{1'), 'Map<int, String>');
+    assertType(
+      setOrMapLiteral('{1'),
+      typeStringByNullability(
+        nullable: 'Map<int?, String?>',
+        legacy: 'Map<int, String>',
+      ),
+    );
   }
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_set() async {
@@ -282,7 +288,13 @@ f() async {
   a;
 }
 ''');
-    assertType(setOrMapLiteral('{1'), 'Set<int>');
+    assertType(
+      setOrMapLiteral('{1'),
+      typeStringByNullability(
+        nullable: 'Set<int?>',
+        legacy: 'Set<int>',
+      ),
+    );
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
@@ -343,7 +355,7 @@ var a = <num, String>{};
 }
 
 @reflectiveTest
-class MapLiteralWithNnbdTest extends DriverResolutionTest {
+class MapLiteralWithNnbdTest extends MapLiteralTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.fromEnableFlags(
@@ -352,15 +364,6 @@ class MapLiteralWithNnbdTest extends DriverResolutionTest {
 
   @override
   bool get typeToStringWithNullability => true;
-
-  AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
-
-  test_context_noTypeArgs_noEntries() async {
-    await resolveTestCode('''
-Map<String, String> a = {};
-''');
-    assertType(setOrMapLiteral('{'), 'Map<String, String>');
-  }
 
   test_context_noTypeArgs_noEntries_typeParameterNullable() async {
     await resolveTestCode('''

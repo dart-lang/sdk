@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -130,6 +131,57 @@ f(F<int> a) {}
       findNode.typeName('F<int> a'),
       findElement.functionTypeAlias('F'),
       typeStr('int Function()', 'int* Function()*'),
+    );
+  }
+
+  test_instanceCreation_explicitNew_prefix_unresolvedClass() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as math;
+
+main() {
+  new math.A();
+}
+''', [
+      error(StaticWarningCode.NEW_WITH_NON_TYPE, 49, 1),
+    ]);
+
+    assertTypeName(
+      findNode.typeName('A();'),
+      null,
+      'dynamic',
+      expectedPrefix: findElement.prefix('math'),
+    );
+  }
+
+  test_instanceCreation_explicitNew_resolvedClass() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+main() {
+  new A();
+}
+''');
+
+    assertTypeName(
+      findNode.typeName('A();'),
+      findElement.class_('A'),
+      typeStr('A', 'A*'),
+    );
+  }
+
+  test_instanceCreation_explicitNew_unresolvedClass() async {
+    await assertErrorsInCode(r'''
+main() {
+  new A();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 15, 1),
+    ]);
+
+    assertTypeName(
+      findNode.typeName('A();'),
+      null,
+      'dynamic',
     );
   }
 

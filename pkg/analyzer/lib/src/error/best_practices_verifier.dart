@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -236,6 +237,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitBinaryExpression(BinaryExpression node) {
     _checkForDivisionOptimizationHint(node);
     _checkForDeprecatedMemberUse(node.staticElement, node);
+    _checkForInvariantNullComparison(node);
     super.visitBinaryExpression(node);
   }
 
@@ -970,6 +972,45 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           }
         }
       }
+    }
+  }
+
+  void _checkForInvariantNullComparison(BinaryExpression node) {
+    if (!_isNonNullableByDefault) return;
+
+    void reportStartEnd(
+      HintCode errorCode,
+      SyntacticEntity startEntity,
+      SyntacticEntity endEntity,
+    ) {
+      var offset = startEntity.offset;
+      _errorReporter.reportErrorForOffset(
+        errorCode,
+        offset,
+        endEntity.end - offset,
+      );
+    }
+
+    void checkLeftRight(HintCode errorCode) {
+      if (node.leftOperand is NullLiteral) {
+        var rightType = node.rightOperand.staticType;
+        if (_typeSystem.isStrictlyNonNullable(rightType)) {
+          reportStartEnd(errorCode, node.leftOperand, node.operator);
+        }
+      }
+
+      if (node.rightOperand is NullLiteral) {
+        var leftType = node.leftOperand.staticType;
+        if (_typeSystem.isStrictlyNonNullable(leftType)) {
+          reportStartEnd(errorCode, node.operator, node.rightOperand);
+        }
+      }
+    }
+
+    if (node.operator.type == TokenType.BANG_EQ) {
+      checkLeftRight(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+    } else if (node.operator.type == TokenType.EQ_EQ) {
+      checkLeftRight(HintCode.UNNECESSARY_NULL_COMPARISON_FALSE);
     }
   }
 

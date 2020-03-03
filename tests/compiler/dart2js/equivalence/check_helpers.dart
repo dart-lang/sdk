@@ -426,7 +426,7 @@ class DartTypePrinter implements DartTypeVisitor {
   StringBuffer sb = new StringBuffer();
 
   @override
-  visit(DartType type, [_]) {
+  void visit(DartType type, [_]) {
     type.accept(this, null);
   }
 
@@ -440,58 +440,55 @@ class DartTypePrinter implements DartTypeVisitor {
     return comma;
   }
 
-  void _writeNullability(Nullability nullability, StringBuffer sb) {
-    switch (nullability) {
-      case Nullability.none:
-        return;
-      case Nullability.question:
-        sb.write('?');
-        return;
-      case Nullability.star:
-        sb.write('*');
-        return;
-    }
+  @override
+  void visitLegacyType(LegacyType type, _) {
+    visit(type.baseType);
+    sb.write('*');
   }
 
   @override
-  visitNeverType(NeverType type, _) {
+  void visitNullableType(NullableType type, _) {
+    visit(type.baseType);
+    sb.write('?');
+  }
+
+  @override
+  void visitNeverType(NeverType type, _) {
     sb.write('Never');
-    _writeNullability(type.nullability, sb);
   }
 
   @override
-  visitVoidType(VoidType type, _) {
+  void visitVoidType(VoidType type, _) {
     sb.write('void');
   }
 
   @override
-  visitDynamicType(DynamicType type, _) {
+  void visitDynamicType(DynamicType type, _) {
     sb.write('dynamic');
   }
 
   @override
-  visitErasedType(ErasedType type, _) {
+  void visitErasedType(ErasedType type, _) {
     sb.write('erased');
   }
 
   @override
-  visitAnyType(AnyType type, _) {
+  void visitAnyType(AnyType type, _) {
     sb.write('any');
   }
 
   @override
-  visitInterfaceType(InterfaceType type, _) {
+  void visitInterfaceType(InterfaceType type, _) {
     sb.write(type.element.name);
     if (type.typeArguments.any((type) => type is! DynamicType)) {
       sb.write('<');
       visitTypes(type.typeArguments);
       sb.write('>');
     }
-    _writeNullability(type.nullability, sb);
   }
 
   @override
-  visitFunctionType(FunctionType type, _) {
+  void visitFunctionType(FunctionType type, _) {
     visit(type.returnType);
     sb.write(' Function');
     if (type.typeVariables.isNotEmpty) {
@@ -520,27 +517,23 @@ class DartTypePrinter implements DartTypeVisitor {
       sb.write('}');
     }
     sb.write(')');
-    _writeNullability(type.nullability, sb);
   }
 
   @override
-  visitFunctionTypeVariable(FunctionTypeVariable type, _) {
+  void visitFunctionTypeVariable(FunctionTypeVariable type, _) {
     sb.write(type);
-    _writeNullability(type.nullability, sb);
   }
 
   @override
-  visitTypeVariableType(TypeVariableType type, _) {
+  void visitTypeVariableType(TypeVariableType type, _) {
     sb.write(type);
-    _writeNullability(type.nullability, sb);
   }
 
   @override
-  visitFutureOrType(FutureOrType type, _) {
+  void visitFutureOrType(FutureOrType type, _) {
     sb.write('FutureOr<');
     visit(type.typeArgument);
     sb.write('>');
-    _writeNullability(type.nullability, sb);
   }
 
   String getText() => sb.toString();

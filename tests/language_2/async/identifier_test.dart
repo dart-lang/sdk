@@ -150,6 +150,8 @@ main() {
       int async() => null;
       async();
     }
+
+    f();
   }
   {
     f() async {

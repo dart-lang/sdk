@@ -37,24 +37,28 @@ static bool IsUserClass(intptr_t cid) {
 // - Use tag bits for compact Node and sentinel representations.
 class ObjectGraph::Stack : public ObjectPointerVisitor {
  public:
-  explicit Stack(Isolate* isolate)
-      : ObjectPointerVisitor(isolate),
+  explicit Stack(IsolateGroup* isolate_group)
+      : ObjectPointerVisitor(isolate_group),
         include_vm_objects_(true),
-        data_(kInitialCapacity) {}
+        data_(kInitialCapacity) {
+    object_ids_ = new WeakTable();
+  }
+  ~Stack() {
+    delete object_ids_;
+    object_ids_ = nullptr;
+  }
 
   // Marks and pushes. Used to initialize this stack with roots.
   // We can use ObjectIdTable normally used by serializers because it
   // won't be in use while handling a service request (ObjectGraph's only use).
   virtual void VisitPointers(RawObject** first, RawObject** last) {
-    Heap* heap = isolate()->heap();
     for (RawObject** current = first; current <= last; ++current) {
-      if ((*current)->IsHeapObject() &&
-          !(*current)->InVMIsolateHeap() &&
-          heap->GetObjectId(*current) == 0) {  // not visited yet
+      if ((*current)->IsHeapObject() && !(*current)->InVMIsolateHeap() &&
+          object_ids_->GetValueExclusive(*current) == 0) {  // not visited yet
         if (!include_vm_objects_ && !IsUserClass((*current)->GetClassId())) {
           continue;
         }
-        heap->SetObjectId(*current, 1);
+        object_ids_->SetValueExclusive(*current, 1);
         Node node;
         node.ptr = current;
         node.obj = *current;
@@ -91,7 +95,6 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
         clear_gc_root_type();
       }
     }
-    isolate()->heap()->ResetObjectIdTable();
   }
 
   virtual bool visit_weak_persistent_handles() const {
@@ -126,6 +129,10 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
     return kNoParent;
   }
 
+  // During the iteration of the heap we are already at a safepoint, so there is
+  // no need to let the GC know about [object_ids_] (i.e. GC cannot run while we
+  // use [object_ids]).
+  WeakTable* object_ids_ = nullptr;
   GrowableArray<Node> data_;
   friend class StackIterator;
   DISALLOW_COPY_AND_ASSIGN(Stack);
@@ -214,15 +221,16 @@ ObjectGraph::ObjectGraph(Thread* thread) : ThreadStackResource(thread) {
 ObjectGraph::~ObjectGraph() {}
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
-  Stack stack(isolate());
+  Stack stack(isolate_group());
   stack.set_visit_weak_persistent_handles(
       visitor->visit_weak_persistent_handles());
-  isolate()->VisitObjectPointers(&stack, ValidationPolicy::kDontValidateFrames);
+  isolate_group()->VisitObjectPointers(&stack,
+                                       ValidationPolicy::kDontValidateFrames);
   stack.TraverseGraph(visitor);
 }
 
 void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
-  Stack stack(isolate());
+  Stack stack(isolate_group());
   stack.set_visit_weak_persistent_handles(
       visitor->visit_weak_persistent_handles());
   IterateUserFields(&stack);
@@ -232,7 +240,7 @@ void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
 
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
-  Stack stack(isolate());
+  Stack stack(isolate_group());
   stack.set_visit_weak_persistent_handles(
       visitor->visit_weak_persistent_handles());
   RawObject* root_raw = root.raw();
@@ -262,7 +270,7 @@ class InstanceAccumulator : public ObjectVisitor {
 void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
                                      ObjectGraph::Visitor* visitor) {
   HeapIterationScope iteration(thread());
-  Stack stack(isolate());
+  Stack stack(isolate_group());
 
   InstanceAccumulator accumulator(&stack, class_id);
   iteration.IterateObjectsNoImagePages(&accumulator);
@@ -455,7 +463,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
                            RawObject* target,
                            const Array& references,
                            Object* scratch)
-      : ObjectPointerVisitor(isolate),
+      : ObjectPointerVisitor(isolate->group()),
         source_(NULL),
         target_(target),
         references_(references),
@@ -753,7 +761,7 @@ class Pass1Visitor : public ObjectVisitor,
  public:
   explicit Pass1Visitor(HeapSnapshotWriter* writer)
       : ObjectVisitor(),
-        ObjectPointerVisitor(Isolate::Current()),
+        ObjectPointerVisitor(IsolateGroup::Current()),
         HandleVisitor(Thread::Current()),
         writer_(writer) {}
 
@@ -806,8 +814,9 @@ class Pass2Visitor : public ObjectVisitor,
  public:
   explicit Pass2Visitor(HeapSnapshotWriter* writer)
       : ObjectVisitor(),
-        ObjectPointerVisitor(Isolate::Current()),
+        ObjectPointerVisitor(IsolateGroup::Current()),
         HandleVisitor(Thread::Current()),
+        isolate_(thread()->isolate()),
         writer_(writer) {}
 
   void VisitObject(RawObject* obj) {
@@ -920,9 +929,9 @@ class Pass2Visitor : public ObjectVisitor,
     }
 
     DoCount();
-    obj->VisitPointersPrecise(this);
+    obj->VisitPointersPrecise(isolate_, this);
     DoWrite();
-    obj->VisitPointersPrecise(this);
+    obj->VisitPointersPrecise(isolate_, this);
   }
 
   void ScrubAndWriteUtf8(RawString* str) {
@@ -983,6 +992,10 @@ class Pass2Visitor : public ObjectVisitor,
   }
 
  private:
+  // TODO(dartbug.com/36097): Once the shared class table contains more
+  // information than just the size (i.e. includes an immutable class
+  // descriptor), we can remove this dependency on the current isolate.
+  Isolate* isolate_;
   HeapSnapshotWriter* const writer_;
   bool writing_ = false;
   intptr_t counted_ = 0;
@@ -1129,7 +1142,7 @@ void HeapSnapshotWriter::Write() {
     iteration.IterateObjects(&visitor);
 
     // External properties.
-    isolate()->VisitWeakPersistentHandles(&visitor);
+    isolate()->group()->VisitWeakPersistentHandles(&visitor);
   }
 
   {
@@ -1157,7 +1170,7 @@ void HeapSnapshotWriter::Write() {
 
     // External properties.
     WriteUnsigned(external_property_count_);
-    isolate()->VisitWeakPersistentHandles(&visitor);
+    isolate()->group()->VisitWeakPersistentHandles(&visitor);
   }
 
   {

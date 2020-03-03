@@ -215,8 +215,32 @@ void _warn(arg) {
   JS('void', 'console.warn(#)', arg);
 }
 
-var _lazyJSTypes = JS('', 'new Map()');
-var _anonymousJSTypes = JS('', 'new Map()');
+void _nullWarn(arg) {
+  _warn('$arg\n'
+      'This will become a failure when runtime null safety is enabled.');
+}
+
+/// Tracks objects that have been compared against null (i.e., null is Type).
+/// Separating this null set out from _cacheMaps lets us fast-track common
+/// legacy type checks.
+/// TODO: Delete this set when legacy nullability is phased out.
+var _nullComparisonSet = JS<Object>('', 'new Set()');
+
+/// Warn on null cast failures when casting to a particular non-nullable
+/// `type`.  Note, we cache by type to avoid excessive warning messages at
+/// runtime.
+/// TODO(vsm): Consider changing all invocations to pass / cache on location
+/// instead.  That gives more useful feedback to the user.
+void _nullWarnOnType(type) {
+  bool result = JS('', '#.has(#)', _nullComparisonSet, type);
+  if (!result) {
+    JS('', '#.add(#)', _nullComparisonSet, type);
+    _nullWarn("Null is not a subtype of $type.");
+  }
+}
+
+var _lazyJSTypes = JS<Object>('', 'new Map()');
+var _anonymousJSTypes = JS<Object>('', 'new Map()');
 
 lazyJSType(Function() getJSTypeCallback, String name) {
   var ret = JS('', '#.get(#)', _lazyJSTypes, name);
@@ -251,7 +275,7 @@ final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
 Object nullable(type) {
   if (_isNullable(type) || _isTop(type) || _isNullType(type)) return type;
   if (type == never_) return unwrapType(Null);
-  if (_isLegacy(type)) type = type.type;
+  if (_isLegacy(type)) type = JS<Object>('', '#.type', type);
 
   // Check if a nullable version of this type has already been created.
   if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedNullable)) {
@@ -747,7 +771,6 @@ class FunctionType extends AbstractFunctionType {
 
   @JSExportName('as')
   as_T(obj, [@notNull bool isImplicit = false]) {
-    if (obj == null) return obj;
     if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
       // If there's no actual type, it's a JS function.
@@ -971,13 +994,13 @@ class GenericFunctionType extends AbstractFunctionType {
 
   @JSExportName('as')
   as_T(obj) {
-    if (obj == null || is_T(obj)) return obj;
+    if (is_T(obj)) return obj;
     return castError(obj, this, false);
   }
 
   @JSExportName('_check')
   check_T(obj) {
-    if (obj == null || is_T(obj)) return obj;
+    if (is_T(obj)) return obj;
     return castError(obj, this, true);
   }
 }
@@ -1168,6 +1191,8 @@ _isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
 bool isSubtypeOf(Object t1, Object t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
+  // TODO: Find a way to eagerly attach this cache to the Null object at
+  // compile-time so we can remove the top-level null comparison cache entirely.
   Object map;
   if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
     JS('', '#[#] = #', t1, _subtypeCache, map = JS<Object>('!', 'new Map()'));
@@ -1184,9 +1209,8 @@ bool isSubtypeOf(Object t1, Object t2) {
     if (validSubtype) {
       // TODO(nshahan) Need more information to be helpful here.
       // File and line number that caused the subtype check?
-      // Possibly break into debuger?
-      _warn("$t1 is not a subtype of $t2.\n"
-          "This will be a runtime failure when strict mode is enabled.");
+      // Possibly break into debugger?
+      _nullWarn("$t1 is not a subtype of $t2.");
     }
   }
   JS('', '#.set(#, #)', map, t2, validSubtype);
@@ -1390,15 +1414,9 @@ bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
     // Without type bounds all will instantiate to dynamic. Only need to check
     // further if at least one of the functions has type bounds.
     if ($t1.hasTypeBounds || $t2.hasTypeBounds) {
-      // Check the bounds of the type parameters of g1 and g2.
-      // given a type parameter `T1 extends U1` from g1, and a type parameter
-      // `T2 extends U2` from g2, we must ensure that:
-      //
-      //      U1 == U2
-      //
-      // given a legacy type can be equivalent to nullable or non-nullable
-      // versions of the same type. The language spec recomends testing for
-      // mutual subtypes to allow this behaivor.
+      // Check the bounds of the type parameters of g1 and g2. Given a type
+      // parameter `T1 extends U1` from g1, and a type parameter `T2 extends U2`
+      // from g2, we must ensure that U1 and U2 are mutual subtypes.
       //
       // (Note there is no variance in the type bounds of type parameters of
       // generic functions).

@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -97,31 +98,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// Is `true` if the library being analyzed is non-nullable by default.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
-
-  /**
-   * Given an iterable expression from a foreach loop, attempt to infer
-   * a type for the elements being iterated over.  Inference is based
-   * on the type of the iterator or stream over which the foreach loop
-   * is defined.
-   */
-  DartType computeForEachElementType(Expression iterable, bool isAsync) {
-    DartType iterableType = iterable.staticType;
-    if (iterableType == null) return null;
-    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
-
-    ClassElement iteratedElement =
-        isAsync ? _typeProvider.streamElement : _typeProvider.iterableElement;
-
-    InterfaceType iteratedType = iterableType is InterfaceTypeImpl
-        ? iterableType.asInstanceOf(iteratedElement)
-        : null;
-
-    if (iteratedType != null) {
-      return iteratedType.typeArguments.single;
-    } else {
-      return null;
-    }
-  }
 
   /**
    * Given a constructor for a generic type, returns the equivalent generic
@@ -985,7 +961,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         if (type != null && !type.isBottom && !type.isDartCoreNull) {
           VariableElement element = node.declaredElement;
           if (element is LocalVariableElementImpl) {
-            element.type = initializer.staticType;
+            var initializerType = initializer.staticType;
+            var inferredType = demoteType(
+              _resolver.definingLibrary,
+              initializerType,
+            );
+            element.type = inferredType;
           }
         }
       }

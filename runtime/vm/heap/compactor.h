@@ -27,7 +27,7 @@ class GCCompactor : public ValueObject,
  public:
   GCCompactor(Thread* thread, Heap* heap)
       : HandleVisitor(thread),
-        ObjectPointerVisitor(thread->isolate()),
+        ObjectPointerVisitor(thread->isolate_group()),
         heap_(heap) {}
   ~GCCompactor() {}
 

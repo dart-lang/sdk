@@ -466,17 +466,21 @@ String getDeclarationCompletionDetail(
     // appear in the completion list, so displaying them as setters is misleading.
     // To avoid this, always show only the return type, whether it's a getter
     // or a setter.
-    return prefix +
-        (declaration.kind == dec.DeclarationKind.GETTER
-            ? declaration.returnType
-            // Don't assume setters always have parameters
-            // See https://github.com/dart-lang/sdk/issues/27747
-            : declaration.parameters != null &&
-                    declaration.parameters.isNotEmpty
-                // Extract the type part from '(MyType value)`
-                ? declaration.parameters
-                    .substring(1, declaration.parameters.lastIndexOf(' '))
-                : '');
+    String suffix = '';
+    if (declaration.kind == dec.DeclarationKind.GETTER) {
+      suffix = declaration.returnType;
+    } else {
+      // Don't assume setters always have parameters
+      // See https://github.com/dart-lang/sdk/issues/27747
+      if (declaration.parameters != null && declaration.parameters.isNotEmpty) {
+        // Extract the type part from `(MyType value)`, if there is a type.
+        var spaceIndex = declaration.parameters.lastIndexOf(' ');
+        if (spaceIndex > 0) {
+          suffix = declaration.parameters.substring(1, spaceIndex);
+        }
+      }
+    }
+    return prefix + suffix;
   } else if (hasParameters && hasReturnType) {
     return '$prefix${declaration.parameters} → ${declaration.returnType}';
   } else if (hasReturnType) {

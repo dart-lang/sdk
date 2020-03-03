@@ -81,15 +81,19 @@ class _AssertionError extends Error implements AssertionError {
   final Object? message;
 }
 
-class _TypeError extends _AssertionError implements TypeError {
+class _TypeError extends Error implements TypeError {
   @pragma("vm:entry-point")
-  _TypeError._create(String url, int line, int column, String errorMsg)
-      : super._create("is assignable", url, line, column, errorMsg);
+  _TypeError._create(this._url, this._line, this._column, this._message);
 
   static _throwNew(int location, Object srcValue, _Type dstType, String dstName)
       native "TypeError_throwNew";
 
-  String toString() => super.message as String;
+  String toString() => _message;
+
+  final String _url;
+  final int _line;
+  final int _column;
+  final String _message;
 }
 
 class _CastError extends Error implements CastError {

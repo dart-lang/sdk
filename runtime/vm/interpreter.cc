@@ -282,7 +282,7 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
 
   const uword start = thread->top();
 #ifndef PRODUCT
-  auto table = thread->isolate()->shared_class_table();
+  auto table = thread->isolate_group()->class_table();
   if (UNLIKELY(table->TraceAllocationFor(class_id))) {
     return false;
   }
@@ -2804,13 +2804,13 @@ SwitchDispatch:
 
   {
     BYTECODE(NullCheck, D);
-    SP -= 1;
 
     if (UNLIKELY(SP[0] == null_value)) {
       // Load selector.
       SP[0] = LOAD_CONSTANT(rD);
       goto ThrowNullError;
     }
+    SP -= 1;
 
     DISPATCH();
   }

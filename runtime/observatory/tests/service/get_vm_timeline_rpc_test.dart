@@ -110,7 +110,10 @@ void allEventsHaveIsolateNumber(List events) {
     }
     Map arguments = event['args'];
     expect(arguments, new isInstanceOf<Map>());
-    expect(arguments['isolateId'], new isInstanceOf<String>());
+    expect(arguments['isolateGroupId'], new isInstanceOf<String>());
+    if (event['cat'] != 'GC') {
+      expect(arguments['isolateId'], new isInstanceOf<String>());
+    }
   }
 }
 

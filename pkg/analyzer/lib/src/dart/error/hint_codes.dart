@@ -1492,7 +1492,7 @@ class HintCode extends AnalyzerErrorCode {
   //   sdk: '>=2.1.0 <2.4.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -1668,7 +1668,7 @@ class HintCode extends AnalyzerErrorCode {
   //  sdk: '>=2.4.0 <2.7.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -1787,7 +1787,7 @@ class HintCode extends AnalyzerErrorCode {
   //   sdk: '>=2.1.0 <2.4.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -1947,7 +1947,7 @@ class HintCode extends AnalyzerErrorCode {
   //   sdk: '>=2.2.0 <2.4.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -2008,7 +2008,7 @@ class HintCode extends AnalyzerErrorCode {
   //   sdk: '>=2.4.0 <2.6.0'
   // ```
   //
-  // In the package that has that pubspec, code like the following generates
+  // In the package that has that pubspec, code like the following produces
   // this diagnostic:
   //
   // ```dart
@@ -2201,17 +2201,44 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try removing the declaration of 'noSuchMethod'.");
 
   /**
-   * Unnecessary type checks, the result is always false.
+   * No parameters.
    */
-  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCode(
+  static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE =
+      HintCodeWithUniqueName(
+          'UNNECESSARY_NULL_COMPARISON',
+          'UNNECESSARY_NULL_COMPARISON_FALSE',
+          "The operand can't be null, so the condition is always false.",
+          correction: "Try removing the condition, an enclosing condition, "
+              "or the whole conditional statement.");
+
+  /**
+   * No parameters.
+   */
+  static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE =
+      HintCodeWithUniqueName(
+          'UNNECESSARY_NULL_COMPARISON',
+          'UNNECESSARY_NULL_COMPARISON_TRUE',
+          "The operand can't be null, so the condition is always true.",
+          correction: "Remove the condition.");
+
+  /**
+   * Unnecessary type checks, the result is always false.
+   *
+   * No parameters.
+   */
+  static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCodeWithUniqueName(
+      'UNNECESSARY_TYPE_CHECK',
       'UNNECESSARY_TYPE_CHECK_FALSE',
       "Unnecessary type check, the result is always false.",
       correction: "Try correcting the type check, or removing the type check.");
 
   /**
    * Unnecessary type checks, the result is always true.
+   *
+   * No parameters.
    */
-  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCode(
+  static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCodeWithUniqueName(
+      'UNNECESSARY_TYPE_CHECK',
       'UNNECESSARY_TYPE_CHECK_TRUE',
       "Unnecessary type check, the result is always true.",
       correction: "Try correcting the type check, or removing the type check.");

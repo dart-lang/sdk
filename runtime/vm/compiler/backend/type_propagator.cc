@@ -413,9 +413,11 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       type = &(instance_of->type());
       left = instance_of->value()->definition();
     }
-    if (!type->IsDynamicType() && !type->IsObjectType()) {
-      const bool is_nullable = type->IsNullType() ? CompileType::kNullable
-                                                  : CompileType::kNonNullable;
+    if (!type->IsTopType()) {
+      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter() ||
+                                (type->IsNeverType() && type->IsLegacy()))
+                                   ? CompileType::kNullable
+                                   : CompileType::kNonNullable;
       EnsureMoreAccurateRedefinition(
           true_successor, left,
           CompileType::FromAbstractType(*type, is_nullable));
@@ -814,7 +816,7 @@ bool CompileType::IsSubtypeOf(NNBDMode mode, const AbstractType& other) {
 }
 
 bool CompileType::IsAssignableTo(NNBDMode mode, const AbstractType& other) {
-  if (other.IsTopType()) {
+  if (other.IsTopTypeForAssignability()) {
     return true;
   }
 
@@ -824,19 +826,8 @@ bool CompileType::IsAssignableTo(NNBDMode mode, const AbstractType& other) {
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
-
   if (compile_type.IsNullType()) {
-    if (!FLAG_strong_non_nullable_type_checks) {
-      // In weak mode, 'null' is assignable to any type.
-      return true;
-    }
-    // In strong mode, 'null' is assignable to any nullable or legacy type.
-    // It is also assignable to FutureOr<T> if it is assignable to T.
-    const AbstractType& unwrapped_other =
-        AbstractType::Handle(other.UnwrapFutureOr());
-    // A nullable or legacy type parameter will still be either nullable or
-    // legacy after instantiation.
-    return unwrapped_other.IsNullable() || unwrapped_other.IsLegacy();
+    return Instance::NullIsAssignableTo(other);
   }
   return compile_type.IsSubtypeOf(mode, other, Heap::kOld);
 }
@@ -1416,6 +1407,10 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     // Should be kept in sync with Slot::Get.
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
+  }
+  if (field.is_late()) {
+    // TODO(dartbug.com/40796): Extend CompileType to handle lateness.
+    is_nullable = CompileType::kNullable;
   }
   return CompileType(is_nullable, cid, abstract_type);
 }

@@ -41,15 +41,16 @@ void ThreadRegistry::ReturnThreadLocked(Thread* thread) {
   ReturnToFreelistLocked(thread);
 }
 
-void ThreadRegistry::VisitObjectPointers(Isolate* isolate_of_interest,
-                                         ObjectPointerVisitor* visitor,
-                                         ValidationPolicy validate_frames) {
+void ThreadRegistry::VisitObjectPointers(
+    IsolateGroup* isolate_group_of_interest,
+    ObjectPointerVisitor* visitor,
+    ValidationPolicy validate_frames) {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
-    if (thread->isolate() == isolate_of_interest) {
+    if (thread->isolate_group() == isolate_group_of_interest) {
       // The mutator thread is visited by the isolate itself (see
-      // [Isolate::VisitStackPointers]).
+      // [IsolateGroup::VisitStackPointers]).
       if (!thread->IsMutatorThread()) {
         thread->VisitObjectPointers(visitor, validate_frames);
       }
@@ -58,42 +59,37 @@ void ThreadRegistry::VisitObjectPointers(Isolate* isolate_of_interest,
   }
 }
 
-void ThreadRegistry::ReleaseStoreBuffers(Isolate* isolate_of_interest) {
+void ThreadRegistry::ReleaseStoreBuffers() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
-    if (thread->isolate() == isolate_of_interest) {
-      if (!thread->BypassSafepoints()) {
-        thread->ReleaseStoreBuffer();
-      }
+    if (!thread->BypassSafepoints()) {
+      thread->ReleaseStoreBuffer();
     }
     thread = thread->next_;
   }
 }
 
-void ThreadRegistry::AcquireMarkingStacks(Isolate* isolate_of_interest) {
+void ThreadRegistry::AcquireMarkingStacks() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
-    if (thread->isolate() == isolate_of_interest) {
-      if (!thread->BypassSafepoints()) {
-        thread->MarkingStackAcquire();
-        thread->DeferredMarkingStackAcquire();
-      }
+    if (!thread->BypassSafepoints()) {
+      thread->MarkingStackAcquire();
+      thread->DeferredMarkingStackAcquire();
     }
     thread = thread->next_;
   }
 }
 
-void ThreadRegistry::ReleaseMarkingStacks(Isolate* isolate_of_interest) {
+void ThreadRegistry::ReleaseMarkingStacks() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
-    if (thread->isolate() == isolate_of_interest) {
-      if (!thread->BypassSafepoints()) {
-        thread->MarkingStackRelease();
-        thread->DeferredMarkingStackRelease();
-      }
+    if (!thread->BypassSafepoints()) {
+      thread->MarkingStackRelease();
+      thread->DeferredMarkingStackRelease();
+      ASSERT(!thread->is_marking());
     }
     thread = thread->next_;
   }

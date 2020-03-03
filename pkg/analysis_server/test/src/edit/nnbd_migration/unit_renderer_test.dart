@@ -169,6 +169,45 @@ class <span id="...">C</span> {
         contains('int<span class="region added-region">?</span> a = null;'));
   }
 
+  Future<void> test_project_with_parts() async {
+    // In this test, we migrate a library and its part file.  Both files require
+    // addition of a `?`, but at different offsets.  We make sure the `?`s get
+    // added at the correct locations in each file.
+    var files = {
+      convertPath('/project/lib/a.dart'): '''
+part 'b.dart';
+
+int f() => null;
+''',
+      convertPath('/project/lib/b.dart'): '''
+part of 'a.dart';
+
+int g() => null;
+''',
+    };
+    var packageRoot = convertPath('/project');
+    await buildInfoForTestFiles(files, includedRoot: packageRoot);
+    var outputJson = renderUnits();
+    expect(jsonDecode(outputJson[0])['sourceCode'], contains('int?'));
+    expect(jsonDecode(outputJson[1])['sourceCode'], contains('int?'));
+  }
+
+  Future<void> test_reference_to_sdk_file_with_parts() async {
+    await buildInfoForSingleTestFile('''
+import 'dart:async';
+Future<int> f(Future<int> x) {
+  return x.whenComplete(() {});
+}
+''', migratedContent: '''
+import 'dart:async';
+Future<int> f(Future<int> x) {
+  return x.whenComplete(() {});
+}
+''');
+    renderUnits();
+    // No assertions; we're just making sure there's no crash.
+  }
+
   Future<void> test_regionsContainsEscapedHtml_ampersand() async {
     await buildInfoForSingleTestFile('bool a = true && false;',
         migratedContent: 'bool a = true && false;');

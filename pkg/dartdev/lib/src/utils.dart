@@ -16,7 +16,7 @@ Directory getDartPrefsDirectory() {
 String getUserHomeDir() {
   String envKey = Platform.operatingSystem == 'windows' ? 'APPDATA' : 'HOME';
   String value = Platform.environment[envKey];
-  return value == null ? '.' : value;
+  return value ?? '.';
 }
 
 /// A typedef to represent a function taking no arguments and with no return
@@ -36,3 +36,11 @@ String formatNumber(int i) => _numberFormat.format(i);
 
 /// Emit the given word with the correct pluralization.
 String pluralize(String word, int count) => count == 1 ? word : '${word}s';
+
+/// String utility to trim some suffix from the end of a [String].
+String trimEnd(String s, String suffix) {
+  if (s != null && suffix != null && suffix.isNotEmpty && s.endsWith(suffix)) {
+    return s.substring(0, s.length - suffix.length);
+  }
+  return s;
+}

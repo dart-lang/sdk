@@ -88,7 +88,7 @@ String _createDartFormula(
     '''
 class Dart < Formula
   desc "The Dart SDK"
-  homepage "https://www.dartlang.org/"
+  homepage "https://dart.dev"
 
   version "$stableVersion"
   if OS.mac?
@@ -149,9 +149,10 @@ class Dart < Formula
     EOS
   end
 
-  def caveats; <<~EOS
-    Please note the path to the Dart SDK:
-      #{opt_libexec}
+  def caveats
+    <<~EOS
+      Please note the path to the Dart SDK:
+        #{opt_libexec}
     EOS
   end
 

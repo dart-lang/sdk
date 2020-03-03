@@ -63,9 +63,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  final int keyCode;
+  int get keyCode native;
 
-  final int charCode;
+  int get charCode native;
 
   int get which => _which;
 $!MEMBERS

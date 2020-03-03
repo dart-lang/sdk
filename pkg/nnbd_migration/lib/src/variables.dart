@@ -25,6 +25,7 @@ import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/postmortem_file.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 
 /// Data structure used by [Variables.spanForUniqueIdentifier] to return an
@@ -35,6 +36,9 @@ class OffsetEndPair {
   final int end;
 
   OffsetEndPair(this.offset, this.end);
+
+  @override
+  String toString() => '$offset-$end';
 }
 
 class Variables implements VariableRecorder, VariableRepository {
@@ -61,7 +65,10 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final NullabilityMigrationInstrumentation /*?*/ instrumentation;
 
-  Variables(this._graph, this._typeProvider, {this.instrumentation})
+  final PostmortemFileWriter postmortemFileWriter;
+
+  Variables(this._graph, this._typeProvider,
+      {this.instrumentation, this.postmortemFileWriter})
       : _alreadyMigratedCodeDecorator =
             AlreadyMigratedCodeDecorator(_graph, _typeProvider);
 
@@ -187,8 +194,9 @@ class Variables implements VariableRecorder, VariableRepository {
     instrumentation?.explicitTypeNullability(source, node, type.node);
     if (potentialModification != null)
       _addPotentialModification(source, potentialModification);
-    (_decoratedTypeAnnotations[source] ??=
-        {})[uniqueIdentifierForSpan(node.offset, node.end)] = type;
+    var id = uniqueIdentifierForSpan(node.offset, node.end);
+    (_decoratedTypeAnnotations[source] ??= {})[id] = type;
+    postmortemFileWriter?.storeFileDecorations(source.fullName, id, type);
   }
 
   @override
@@ -352,7 +360,6 @@ class Variables implements VariableRecorder, VariableRepository {
 
   /// Inverts the logic of [uniqueIdentifierForSpan], producing an (offset, end)
   /// pair.
-  @visibleForTesting
   static OffsetEndPair spanForUniqueIdentifier(int span) {
     // The formula for uniqueIdentifierForSpan was:
     //   span = end*(end + 1) / 2 + offset

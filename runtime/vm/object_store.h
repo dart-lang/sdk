@@ -73,6 +73,9 @@ class ObjectPointerVisitor;
   RW(Type, string_type)                                                        \
   RW(Type, legacy_string_type)                                                 \
   RW(Type, non_nullable_string_type)                                           \
+  RW(Type, non_nullable_list_rare_type)   /* maybe be null, lazily built */    \
+  RW(Type, non_nullable_map_rare_type)    /* maybe be null, lazily built */    \
+  RW(Type, non_nullable_future_rare_type) /* maybe be null, lazily built */    \
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_non_nullable_int)                            \
@@ -93,6 +96,8 @@ class ObjectPointerVisitor;
   RW(Field, pragma_name)                                                       \
   RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
+  RW(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
+  RW(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
   RW(Class, completer_class)                                                   \
   RW(Class, symbol_class)                                                      \
   RW(Class, one_byte_string_class)                                             \

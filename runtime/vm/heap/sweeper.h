@@ -13,7 +13,7 @@ namespace dart {
 class FreeList;
 class Heap;
 class HeapPage;
-class Isolate;
+class IsolateGroup;
 class PageSpace;
 
 // The class GCSweeper is used to visit the heap after marking to reclaim unused
@@ -35,7 +35,7 @@ class GCSweeper {
   intptr_t SweepLargePage(HeapPage* page);
 
   // Sweep the regular sized data pages between first and last inclusive.
-  static void SweepConcurrent(Isolate* isolate,
+  static void SweepConcurrent(IsolateGroup* isolate_group,
                               HeapPage* first,
                               HeapPage* last,
                               HeapPage* large_first,

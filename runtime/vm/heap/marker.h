@@ -14,7 +14,7 @@ namespace dart {
 // Forward declarations.
 class HandleVisitor;
 class Heap;
-class Isolate;
+class IsolateGroup;
 class ObjectPointerVisitor;
 class PageSpace;
 class RawWeakProperty;
@@ -30,7 +30,7 @@ class Thread;
 // is exited during concurrent marking.
 class GCMarker {
  public:
-  GCMarker(Isolate* isolate, Heap* heap);
+  GCMarker(IsolateGroup* isolate_group, Heap* heap);
   ~GCMarker();
 
   // Mark roots synchronously, then spawn tasks to concurrently drain the
@@ -60,7 +60,7 @@ class GCMarker {
   template <class MarkingVisitorType>
   void FinalizeResultsFrom(MarkingVisitorType* visitor);
 
-  Isolate* const isolate_;
+  IsolateGroup* const isolate_group_;
   Heap* const heap_;
   MarkingStack marking_stack_;
   MarkingStack deferred_marking_stack_;

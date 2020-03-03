@@ -8,7 +8,7 @@
 
 import "package:expect/expect.dart";
 
-testTrue() {
+int testTrue() {
   int i = 0;
   try {
     assert(true);
@@ -18,7 +18,7 @@ testTrue() {
   return i;
 }
 
-testFalse() {
+int testFalse() {
   int i = 0;
   try {
     assert(false);
@@ -28,11 +28,11 @@ testFalse() {
   return i;
 }
 
-unknown(dynamic a) {
+dynamic unknown(dynamic a) {
   return a ? true : false;
 }
 
-testBoolean(bool value) {
+int testBoolean(bool value) {
   int i = 0;
   try {
     assert(value);
@@ -42,7 +42,7 @@ testBoolean(bool value) {
   return i;
 }
 
-testDynamic(dynamic value) {
+int testDynamic(dynamic value) {
   int i = 0;
   try {
     assert(value);
@@ -52,13 +52,13 @@ testDynamic(dynamic value) {
   return i;
 }
 
-testMessage(value, message) {
+AssertionError testMessage(value, message) {
   try {
     assert(value, message);
-    return null;
   } on AssertionError catch (error) {
     return error;
   }
+  return null;
 }
 
 main() {
@@ -70,13 +70,13 @@ main() {
   Expect.equals(1, testBoolean(false));
   Expect.equals(1, testDynamic(unknown(false)));
 
-  Expect.equals(1, testBoolean(null));
-  Expect.equals(1, testDynamic(null));
-  Expect.equals(1, testDynamic(42));
-  Expect.equals(1, testDynamic(() => true));
-  Expect.equals(1, testDynamic(() => false));
-  Expect.equals(1, testDynamic(() => 42));
-  Expect.equals(1, testDynamic(() => null));
+  Expect.throwsTypeError(() => testBoolean(null));
+  Expect.throwsTypeError(() => testDynamic(null));
+  Expect.throwsTypeError(() => testDynamic(42));
+  Expect.throwsTypeError(() => testDynamic(() => true));
+  Expect.throwsTypeError(() => testDynamic(() => false));
+  Expect.throwsTypeError(() => testDynamic(() => 42));
+  Expect.throwsTypeError(() => testDynamic(() => null));
 
   Expect.equals(1234, testMessage(false, 1234).message);
   Expect.equals('hi', testMessage(false, 'hi').message);

@@ -267,14 +267,6 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     if (Dart_IsError(result)) goto failed;
   }
 
-  if (Options::gen_snapshot_kind() == kAppJIT) {
-    // If we sort, we must do it for all isolates, not just the main isolate,
-    // otherwise isolates related by spawnFunction will disagree on CIDs and
-    // cannot correctly send each other messages.
-    result = Dart_SortClasses();
-    if (Dart_IsError(result)) goto failed;
-  }
-
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
   Dart_ExitIsolate();

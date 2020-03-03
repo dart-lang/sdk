@@ -23,7 +23,7 @@ Future<T> retryClosure<T>(Future<T> Function() closure,
   if (retries > 0) {
     return await Future.sync(closure).catchError(handleError);
   } else {
-    return await Future.sync(closure);
+    return closure();
   }
 }
 

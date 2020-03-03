@@ -23,8 +23,6 @@ VM_UNIT_TEST_CASE(Expect) {
   EXPECT_EQ(pointer, pointer);
 
   EXPECT_STREQ("Hello", "Hello");
-  EXPECT_STREQ(42, 42);
-  EXPECT_STREQ(87, "87");
 
   EXPECT_LT(1, 2);
   EXPECT_LT(1, 1.5);

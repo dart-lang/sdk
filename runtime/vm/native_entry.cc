@@ -206,7 +206,7 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   {
     Isolate* isolate = thread->isolate();
-    ApiState* state = isolate->api_state();
+    ApiState* state = isolate->group()->api_state();
     ASSERT(state != NULL);
     TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
     thread->EnterApiScope();

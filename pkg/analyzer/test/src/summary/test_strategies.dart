@@ -29,8 +29,11 @@ CompilationUnit parseText(
   // because the scanner may have detected a language version comment
   // and downgraded the feature set it holds.
   Parser parser = Parser(
-      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER,
-      featureSet: scanner.featureSet);
+    NonExistingSource.unknown,
+    AnalysisErrorListener.NULL_LISTENER,
+    languageVersion: scanner.languageVersion,
+    featureSet: scanner.featureSet,
+  );
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = LineInfo(scanner.lineStarts);
   return unit;

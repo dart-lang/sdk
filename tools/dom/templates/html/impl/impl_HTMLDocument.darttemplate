@@ -9,7 +9,8 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 
-  BodyElement body;
+  BodyElement$NULLABLE get body native;
+  set body(BodyElement$NULLABLE value) native;
 
   /// UNSTABLE: Chrome-only - create a Range from the given point.
   @Unstable()

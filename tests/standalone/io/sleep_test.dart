@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:io";
-import "package:unittest/unittest.dart";
+import 'dart:io';
+import 'package:expect/expect.dart';
 
 test(int milliseconds) {
   var watch = new Stopwatch();
   watch.start();
   sleep(new Duration(milliseconds: milliseconds));
   watch.stop();
-  expect(watch.elapsedMilliseconds, greaterThanOrEqualTo(milliseconds));
+  Expect.isTrue(watch.elapsedMilliseconds >= milliseconds);
 }
 
 main() {
@@ -21,9 +21,9 @@ main() {
   bool sawError = false;
   try {
     sleep(new Duration(milliseconds: -1));
-    expect(false, isTrue); // should not reach here.
+    Expect.fail('Should not reach here.');
   } on ArgumentError catch (e) {
     sawError = true;
   }
-  expect(sawError, isTrue);
+  Expect.isTrue(sawError);
 }

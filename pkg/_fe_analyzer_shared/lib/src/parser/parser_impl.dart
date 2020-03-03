@@ -65,7 +65,7 @@ import 'formal_parameter_kind.dart'
         isMandatoryFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
 
-import 'forwarding_listener.dart' show ForwardingListener;
+import 'forwarding_listener.dart' show ForwardingListener, NullListener;
 
 import 'identifier_context.dart'
     show IdentifierContext, looksLikeExpressionStart;
@@ -91,7 +91,11 @@ import 'recovery_listeners.dart'
         ImportRecoveryListener,
         MixinHeaderRecoveryListener;
 
-import 'token_stream_rewriter.dart' show TokenStreamRewriter;
+import 'token_stream_rewriter.dart'
+    show
+        TokenStreamRewriter,
+        TokenStreamRewriterImpl,
+        UndoableTokenStreamRewriter;
 
 import 'type_info.dart'
     show
@@ -289,7 +293,7 @@ class Parser {
   TokenStreamRewriter cachedRewriter;
 
   TokenStreamRewriter get rewriter {
-    cachedRewriter ??= new TokenStreamRewriter();
+    cachedRewriter ??= new TokenStreamRewriterImpl();
     return cachedRewriter;
   }
 
@@ -4199,6 +4203,50 @@ class Parser {
         : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
   }
 
+  bool canParseAsConditional(Token question) {
+    // We want to check if we can parse, not send events and permanently change
+    // the token stream. Set it up so we can do that.
+    Listener originalListener = listener;
+    TokenStreamRewriter originalRewriter = cachedRewriter;
+    NullListener nullListener = listener = new NullListener();
+    UndoableTokenStreamRewriter undoableTokenStreamRewriter =
+        new UndoableTokenStreamRewriter();
+    cachedRewriter = undoableTokenStreamRewriter;
+
+    bool isConditional = false;
+
+    Token afterExpression1 = parseExpressionWithoutCascade(question);
+    if (!nullListener.hasErrors && optional(':', afterExpression1.next)) {
+      parseExpressionWithoutCascade(afterExpression1.next);
+      if (!nullListener.hasErrors) {
+        // Now we know it's a conditional expression.
+        isConditional = true;
+      }
+    }
+
+    // Undo all changes and reset.
+    undoableTokenStreamRewriter.undo();
+    listener = originalListener;
+    cachedRewriter = originalRewriter;
+
+    return isConditional;
+  }
+
+  Token parseNullAwareBracketOrConditionalExpressionRest(
+      Token token, TypeParamOrArgInfo typeArg) {
+    Token question = token.next;
+    assert(optional('?', question));
+    Token bracket = question.next;
+    assert(optional('[', bracket));
+
+    bool isConditional = canParseAsConditional(question);
+    if (isConditional) {
+      return parseConditionalExpressionRest(token);
+    }
+    // It wasn't a conditional expression. Must be a null aware bracket then.
+    return parseArgumentOrIndexStar(token, typeArg, true);
+  }
+
   Token parseConditionalExpressionRest(Token token) {
     Token question = token = token.next;
     assert(optional('?', question));
@@ -4270,7 +4318,7 @@ class Parser {
           } else if (identical(type, TokenType.OPEN_PAREN) ||
               identical(type, TokenType.OPEN_SQUARE_BRACKET) ||
               identical(type, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
-            token = parseArgumentOrIndexStar(token, typeArg);
+            token = parseArgumentOrIndexStar(token, typeArg, false);
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
@@ -4278,7 +4326,7 @@ class Parser {
                 new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
             rewriter.replaceTokenFollowing(token, replacement);
             replacement.endToken = replacement.next;
-            token = parseArgumentOrIndexStar(token, noTypeParamOrArg);
+            token = parseArgumentOrIndexStar(token, noTypeParamOrArg, false);
           } else if (identical(type, TokenType.BANG)) {
             listener.handleNonNullAssertExpression(token.next);
             token = next;
@@ -4293,7 +4341,12 @@ class Parser {
         } else if (identical(type, TokenType.AS)) {
           token = parseAsOperatorRest(token);
         } else if (identical(type, TokenType.QUESTION)) {
-          token = parseConditionalExpressionRest(token);
+          if (optional('[', next.next)) {
+            token = parseNullAwareBracketOrConditionalExpressionRest(
+                token, typeArg);
+          } else {
+            token = parseConditionalExpressionRest(token);
+          }
         } else {
           if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
             // We don't allow (a == b == c) or (a < b < c).
@@ -4344,7 +4397,7 @@ class Parser {
     assert(optional('..', cascadeOperator) || optional('?..', cascadeOperator));
     listener.beginCascade(cascadeOperator);
     if (optional('[', token.next)) {
-      token = parseArgumentOrIndexStar(token, noTypeParamOrArg);
+      token = parseArgumentOrIndexStar(token, noTypeParamOrArg, false);
     } else {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.endBinaryExpression(cascadeOperator);
@@ -4370,7 +4423,7 @@ class Parser {
         next = token.next;
         assert(optional('(', next));
       }
-      token = parseArgumentOrIndexStar(token, typeArg);
+      token = parseArgumentOrIndexStar(token, typeArg, false);
       next = token.next;
     } while (!identical(mark, token));
 
@@ -4444,13 +4497,31 @@ class Parser {
     return parsePrimary(token, IdentifierContext.expression);
   }
 
-  Token parseArgumentOrIndexStar(Token token, TypeParamOrArgInfo typeArg) {
+  Token parseArgumentOrIndexStar(
+      Token token, TypeParamOrArgInfo typeArg, bool checkedNullAware) {
     Token next = token.next;
-    Token beginToken = next;
+    final Token beginToken = next;
     while (true) {
-      if (optional('[', next) || optional('?.[', next)) {
+      bool potentialNullAware =
+          (optional('?', next) && optional('[', next.next));
+      if (potentialNullAware && !checkedNullAware) {
+        // While it's a potential null aware index it hasn't been checked.
+        // It might be a conditional expression.
+        assert(optional('?', next));
+        bool isConditional = canParseAsConditional(next);
+        if (isConditional) potentialNullAware = false;
+      }
+
+      if (optional('[', next) || optional('?.[', next) || potentialNullAware) {
         assert(typeArg == noTypeParamOrArg);
         Token openSquareBracket = next;
+        Token question;
+        if (optional('?', next)) {
+          question = next;
+          next = next.next;
+          openSquareBracket = next;
+          assert(optional('[', openSquareBracket));
+        }
         bool old = mayParseFunctionExpressions;
         mayParseFunctionExpressions = true;
         token = parseExpression(next);
@@ -4470,7 +4541,7 @@ class Parser {
             next = endGroup;
           }
         }
-        listener.handleIndexedExpression(openSquareBracket, next);
+        listener.handleIndexedExpression(question, openSquareBracket, next);
         token = next;
         typeArg = computeMethodTypeArguments(token);
         if (typeArg != noTypeParamOrArg) {

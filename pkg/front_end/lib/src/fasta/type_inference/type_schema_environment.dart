@@ -348,9 +348,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   @override
-  bool isSubtypeOf(
-      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
-    if (subtype is UnknownType) return true;
+  IsSubtypeOf performNullabilityAwareSubtypeCheck(
+      DartType subtype, DartType supertype) {
+    if (subtype is UnknownType) return const IsSubtypeOf.always();
     DartType unwrappedSupertype = supertype;
     while (unwrappedSupertype is InterfaceType &&
         unwrappedSupertype.classNode == futureOrClass) {
@@ -358,9 +358,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
           (unwrappedSupertype as InterfaceType).typeArguments.single;
     }
     if (subtype == coreTypes.nullType && unwrappedSupertype is UnknownType) {
-      return true;
+      return const IsSubtypeOf.always();
     }
-    return super.isSubtypeOf(subtype, supertype, mode);
+    return super.performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
 
   bool isEmptyContext(DartType context) {

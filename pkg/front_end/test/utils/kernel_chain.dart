@@ -56,7 +56,14 @@ import 'package:kernel/text/text_serialization_verifier.dart'
         TextSerializationVerifier;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Expectation, ExpectationSet, Result, StdioProcess, Step;
+    show
+        ChainContext,
+        Expectation,
+        ExpectationSet,
+        Result,
+        StdioProcess,
+        Step,
+        TestDescription;
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
 
@@ -362,26 +369,28 @@ class KernelTextSerialization
   }
 }
 
-class WriteDill extends Step<ComponentResult, Uri, ChainContext> {
+class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   const WriteDill();
 
   String get name => "write .dill";
 
-  Future<Result<Uri>> run(ComponentResult result, _) async {
+  Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
     Directory tmp = await Directory.systemTemp.createTemp();
     Uri uri = tmp.uri.resolve("generated.dill");
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
+    result = new ComponentResult(
+        result.description, result.component, result.userLibraries, uri);
     try {
       new BinaryPrinter(sink).writeComponentFile(component);
     } catch (e, s) {
-      return fail(uri, e, s);
+      return fail(result, e, s);
     } finally {
       print("Wrote `${generated.path}`");
       await sink.close();
     }
-    return pass(uri);
+    return pass(result);
   }
 }
 
@@ -464,10 +473,13 @@ Future<void> openWrite(Uri uri, f(IOSink sink)) async {
 }
 
 class ComponentResult {
+  final TestDescription description;
   final Component component;
   final Set<Uri> userLibraries;
+  final Uri outputUri;
 
-  ComponentResult(this.component, this.userLibraries);
+  ComponentResult(this.description, this.component, this.userLibraries,
+      [this.outputUri]);
 
   bool isUserLibrary(Library library) {
     return userLibraries.contains(library.importUri);

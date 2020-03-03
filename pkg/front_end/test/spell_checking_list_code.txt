@@ -472,6 +472,7 @@ implying
 importantly
 inc
 incomparable
+inconsistency
 incremented
 independently
 indexer
@@ -726,6 +727,7 @@ pdf
 pedantic
 per
 perf
+permanently
 permit
 pi
 picking
@@ -949,6 +951,7 @@ stale
 statics
 stderr
 stdin
+stdio
 stdout
 stmt
 str
@@ -1015,6 +1018,7 @@ termcap
 terminator
 test
 tester
+testers
 testing
 tex
 tflite
@@ -1084,6 +1088,8 @@ uncommon
 unconditionally
 unconstrained
 undeclare
+undo
+undoable
 unequal
 unescape
 unexact
@@ -1108,6 +1114,7 @@ unpaired
 unparsed
 unpleasant
 unreachable
+unseen
 unshadowed
 unwraps
 unzip
@@ -1150,6 +1157,7 @@ watch
 watcher
 wb
 wc
+weakener
 weird
 weren't
 werror

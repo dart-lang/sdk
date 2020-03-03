@@ -12,8 +12,6 @@ vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception m
 number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
-async/await_syntax_test/e5: Crash # Assertion error: continuation.dart: Failed assertion: 'node.expression == null || node.expression is NullLiteral': is not true.
-async/await_syntax_test/e6: Crash # Assertion error: continuation.dart: Failed assertion: 'node.expression == null || node.expression is NullLiteral': is not true.
 number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $fasta ]

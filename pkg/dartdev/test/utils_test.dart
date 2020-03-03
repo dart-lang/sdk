@@ -19,4 +19,26 @@ void main() {
       expect(pluralize('cat', 2), 'cats');
     });
   });
+
+  group('trimEnd', () {
+    test('null string', () {
+      expect(trimEnd(null, 'suffix'), null);
+    });
+
+    test('null suffix', () {
+      expect(trimEnd('string', null), 'string');
+    });
+
+    test('suffix empty', () {
+      expect(trimEnd('string', ''), 'string');
+    });
+
+    test('suffix miss', () {
+      expect(trimEnd('string', 'suf'), 'string');
+    });
+
+    test('suffix hit', () {
+      expect(trimEnd('string', 'ring'), 'st');
+    });
+  });
 }

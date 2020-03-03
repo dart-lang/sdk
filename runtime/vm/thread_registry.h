@@ -25,13 +25,13 @@ class ThreadRegistry {
   ThreadRegistry() : threads_lock_(), active_list_(NULL), free_list_(NULL) {}
   ~ThreadRegistry();
 
-  void VisitObjectPointers(Isolate* isolate_of_interest,
+  void VisitObjectPointers(IsolateGroup* isolate_group_of_interest,
                            ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
 
-  void ReleaseStoreBuffers(Isolate* isolate_of_interest);
-  void AcquireMarkingStacks(Isolate* isolate_of_interest);
-  void ReleaseMarkingStacks(Isolate* isolate_of_interest);
+  void ReleaseStoreBuffers();
+  void AcquireMarkingStacks();
+  void ReleaseMarkingStacks();
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;

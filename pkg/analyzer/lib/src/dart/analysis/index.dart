@@ -10,6 +10,44 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
+Element declaredParameterElement(
+  SimpleIdentifier node,
+  Element element,
+) {
+  if (element.enclosingElement != null) {
+    return element;
+  }
+
+  /// When we instantiate the [FunctionType] of an executable, we use
+  /// synthetic [ParameterElement]s, disconnected from the rest of the
+  /// element model. But we want to index these parameter references
+  /// as references to declared parameters.
+  ParameterElement namedParameterElement(ExecutableElement executable) {
+    var parameterName = node.name;
+    return executable.declaration.parameters.where((parameter) {
+      return parameter.isNamed && parameter.name == parameterName;
+    }).first;
+  }
+
+  var parent = node.parent;
+  if (parent is Label && parent.label == node) {
+    var namedExpression = parent.parent;
+    if (namedExpression is NamedExpression && namedExpression.name == parent) {
+      var argumentList = namedExpression.parent;
+      if (argumentList is ArgumentList) {
+        var invocation = argumentList.parent;
+        if (invocation is InstanceCreationExpression) {
+          return namedParameterElement(invocation.staticElement);
+        } else if (invocation is MethodInvocation) {
+          return namedParameterElement(invocation.methodName.staticElement);
+        }
+      }
+    }
+  }
+
+  return element;
+}
+
 /**
  * Return the [CompilationUnitElement] that should be used for [element].
  * Throw [StateError] if the [element] is not linked into a unit.
@@ -719,7 +757,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (node.inDeclarationContext()) {
       return;
     }
+
     Element element = node.staticElement;
+    if (node is SimpleIdentifier && element is ParameterElement) {
+      element = declaredParameterElement(node, element);
+    }
+
     // record unresolved name reference
     bool isQualified = _isQualified(node);
     if (element == null) {

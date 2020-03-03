@@ -14,6 +14,7 @@ namespace dart {
 
 // Forward declarations.
 class Isolate;
+class IsolateGroup;
 class RawObject;
 class RawFunction;
 class RawTypedDataView;
@@ -21,10 +22,10 @@ class RawTypedDataView;
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
  public:
-  explicit ObjectPointerVisitor(Isolate* isolate);
+  explicit ObjectPointerVisitor(IsolateGroup* isolate_group);
   virtual ~ObjectPointerVisitor() {}
 
-  Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
 
   // Visit pointers inside the given typed data [view].
   //
@@ -59,7 +60,7 @@ class ObjectPointerVisitor {
   }
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   const char* gc_root_type_;
   SharedClassTable* shared_class_table_;
 

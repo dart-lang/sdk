@@ -65,10 +65,14 @@ import 'package:kernel/src/bounds_checks.dart'
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
 
+import 'package:kernel/src/future_or.dart';
+
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
+
+import '../../base/nnbd_mode.dart';
 
 import '../builder/builder.dart';
 import '../builder/builtin_type_builder.dart';
@@ -311,12 +315,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top()) {
+    updateLibraryNNBDSettings();
+  }
+
+  void updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
-    library.nonNullableByDefaultCompiledMode = loader.target.enableNonNullable
-        ? (loader.nnbdStrongMode
-            ? NonNullableByDefaultCompiledMode.Strong
-            : NonNullableByDefaultCompiledMode.Weak)
-        : NonNullableByDefaultCompiledMode.Disabled;
+    if (loader.target.enableNonNullable) {
+      switch (loader.nnbdMode) {
+        case NnbdMode.Weak:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Weak;
+          break;
+        case NnbdMode.Strong:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Strong;
+          break;
+        case NnbdMode.Agnostic:
+          library.nonNullableByDefaultCompiledMode =
+              NonNullableByDefaultCompiledMode.Agnostic;
+          break;
+      }
+    } else {
+      library.nonNullableByDefaultCompiledMode =
+          NonNullableByDefaultCompiledMode.Disabled;
+    }
   }
 
   SourceLibraryBuilder(
@@ -368,6 +390,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   bool isOptOutPackage(Uri uri) {
     if (!uri.isScheme('package')) return false;
+    if (uri.pathSegments.isEmpty) return false;
     String packageName = uri.pathSegments.first;
     return optOutPackages.contains(packageName);
   }
@@ -517,12 +540,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length: noLength, bool explicit: false}) {
     if (languageVersion.isExplicit) return;
-    _languageVersion =
-        new LanguageVersion(major, minor, fileUri, offset, length, explicit);
 
     if (major == null || minor == null) {
       addPostponedProblem(
           messageLanguageVersionInvalidInDotPackages, offset, length, fileUri);
+      _languageVersion =
+          new InvalidLanguageVersion(fileUri, offset, length, explicit);
       return;
     }
 
@@ -538,8 +561,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           offset,
           length,
           fileUri);
+      _languageVersion =
+          new InvalidLanguageVersion(fileUri, offset, length, explicit);
       return;
     }
+
+    _languageVersion =
+        new LanguageVersion(major, minor, fileUri, offset, length, explicit);
     library.setLanguageVersion(major, minor);
   }
 
@@ -964,14 +992,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           reference: referenceFrom?.reference));
     }
 
-    library.isNonNullableByDefault = isNonNullableByDefault;
     // TODO(CFE Team): Is this really needed in two places?
-    library.nonNullableByDefaultCompiledMode = loader.target.enableNonNullable
-        ? (loader.nnbdStrongMode
-            ? NonNullableByDefaultCompiledMode.Strong
-            : NonNullableByDefaultCompiledMode.Weak)
-        : NonNullableByDefaultCompiledMode.Disabled;
-
+    updateLibraryNNBDSettings();
     return library;
   }
 
@@ -1095,8 +1117,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return false;
     }
 
-    // Language versions have to match.
-    if (languageVersion != part.languageVersion) {
+    // Language versions have to match. Except if (at least) one of them is
+    // invalid in which case we've already gotten an error about this.
+    if (languageVersion != part.languageVersion &&
+        languageVersion.valid &&
+        part.languageVersion.valid) {
       // This is an error, but the part is not removed from the list of
       // parts, so that metadata annotations can be associated with it.
       List<LocatedMessage> context = <LocatedMessage>[];
@@ -2449,7 +2474,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       modifiers |= initializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset, importUri)
+        metadata, modifiers, type, name, this, charOffset, fileUri)
       ..initializerToken = initializerToken
       ..hasDeclaredInitializer = (initializerToken != null);
     return formal;
@@ -3128,11 +3153,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!fieldBuilder.isDeclarationInstanceMember &&
           !fieldBuilder.field.isLate &&
           fieldType is! InvalidType &&
-          fieldType.isPotentiallyNonNullable &&
+          isPotentiallyNonNullable(fieldType, typeEnvironment.futureOrClass) &&
           !fieldBuilder.hasInitializer) {
-        if (loader.nnbdStrongMode) {
+        if (loader.nnbdMode == NnbdMode.Weak) {
           addProblem(
-              templateFieldNonNullableWithoutInitializerError.withArguments(
+              templateFieldNonNullableWithoutInitializerWarning.withArguments(
                   fieldBuilder.name,
                   fieldBuilder.field.type,
                   isNonNullableByDefault),
@@ -3141,7 +3166,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               fileUri);
         } else {
           addProblem(
-              templateFieldNonNullableWithoutInitializerWarning.withArguments(
+              templateFieldNonNullableWithoutInitializerError.withArguments(
                   fieldBuilder.name,
                   fieldBuilder.field.type,
                   isNonNullableByDefault),
@@ -3153,7 +3178,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void checkInitializersInFormals(List<FormalParameterBuilder> formals) {
+  void checkInitializersInFormals(
+      List<FormalParameterBuilder> formals, TypeEnvironment typeEnvironment) {
     bool performInitializerChecks =
         isNonNullableByDefault && loader.performNnbdChecks;
     if (!performInitializerChecks) return;
@@ -3163,23 +3189,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool isOptionalNamed = !formal.isNamedRequired && formal.isNamed;
       bool isOptional = isOptionalPositional || isOptionalNamed;
       if (isOptional &&
-          formal.variable.type.isPotentiallyNonNullable &&
+          isPotentiallyNonNullable(
+              formal.variable.type, typeEnvironment.futureOrClass) &&
           !formal.hasDeclaredInitializer) {
-        if (loader.nnbdStrongMode) {
-          addProblem(
-              templateOptionalNonNullableWithoutInitializerError.withArguments(
-                  formal.name, formal.variable.type, isNonNullableByDefault),
-              formal.charOffset,
-              formal.name.length,
-              fileUri);
-        } else {
+        if (loader.nnbdMode == NnbdMode.Weak) {
           addProblem(
               templateOptionalNonNullableWithoutInitializerWarning
                   .withArguments(formal.name, formal.variable.type,
                       isNonNullableByDefault),
               formal.charOffset,
               formal.name.length,
-              fileUri);
+              formal.fileUri);
+        } else {
+          addProblem(
+              templateOptionalNonNullableWithoutInitializerError.withArguments(
+                  formal.name, formal.variable.type, isNonNullableByDefault),
+              formal.charOffset,
+              formal.name.length,
+              formal.fileUri);
         }
       }
     }
@@ -3265,7 +3292,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
 
             nnbdIssues ??= const {};
-            if (nnbdIssues.contains(issue) && !loader.nnbdStrongMode) {
+            if (nnbdIssues.contains(issue) &&
+                loader.nnbdMode == NnbdMode.Weak) {
               reportProblem(templateIncorrectTypeArgumentInReturnTypeWarning);
             } else {
               reportProblem(templateIncorrectTypeArgumentInReturnType);
@@ -3332,10 +3360,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (nnbdIssues != null) {
       if (legacyIssues != null) {
-        nnbdIssues = nnbdIssues.where((issue) => !legacyIssues.contains(issue));
+        nnbdIssues =
+            nnbdIssues.where((issue) => !legacyIssues.contains(issue)).toSet();
       }
       reportTypeArgumentIssues(nnbdIssues, fileUri, offset,
-          inferred: inferred, areWarnings: !loader.nnbdStrongMode);
+          inferred: inferred, areWarnings: loader.nnbdMode == NnbdMode.Weak);
     }
   }
 
@@ -3426,7 +3455,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
           targetName: targetName,
-          areWarnings: !loader.nnbdStrongMode);
+          areWarnings: loader.nnbdMode == NnbdMode.Weak);
     }
   }
 
@@ -3509,7 +3538,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           typeArgumentsInfo: getTypeArgumentsInfo(arguments),
           targetReceiver: receiverType,
           targetName: name.name,
-          areWarnings: !loader.nnbdStrongMode);
+          areWarnings: loader.nnbdMode == NnbdMode.Weak);
     }
   }
 
@@ -3523,7 +3552,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         checkBoundsInFunctionNode(declaration.procedure.function,
             typeEnvironment, declaration.fileUri);
         if (declaration.formals != null) {
-          checkInitializersInFormals(declaration.formals);
+          checkInitializersInFormals(declaration.formals, typeEnvironment);
         }
       } else if (declaration is ClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
@@ -3900,6 +3929,8 @@ class LanguageVersion {
   LanguageVersion(this.major, this.minor, this.fileUri, this.charOffset,
       this.charCount, this.isExplicit);
 
+  bool get valid => true;
+
   int get hashCode =>
       major.hashCode * 13 + minor.hashCode * 17 + isExplicit.hashCode * 19;
 
@@ -3917,6 +3948,37 @@ class LanguageVersion {
   }
 }
 
+class InvalidLanguageVersion implements LanguageVersion {
+  final Uri fileUri;
+  final int charOffset;
+  final int charCount;
+  final bool isExplicit;
+
+  InvalidLanguageVersion(
+      this.fileUri, this.charOffset, this.charCount, this.isExplicit);
+
+  @override
+  int get major => Library.defaultLanguageVersionMajor;
+
+  @override
+  int get minor => Library.defaultLanguageVersionMinor;
+
+  @override
+  bool get valid => false;
+
+  int get hashCode => isExplicit.hashCode * 19;
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is InvalidLanguageVersion && isExplicit == other.isExplicit;
+  }
+
+  String toString() {
+    return 'InvalidLanguageVersion(isExplicit=$isExplicit,'
+        'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
+  }
+}
+
 class ImplicitLanguageVersion implements LanguageVersion {
   const ImplicitLanguageVersion();
 
@@ -3925,6 +3987,9 @@ class ImplicitLanguageVersion implements LanguageVersion {
 
   @override
   int get minor => Library.defaultLanguageVersionMinor;
+
+  @override
+  bool get valid => true;
 
   @override
   Uri get fileUri => null;

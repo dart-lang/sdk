@@ -778,6 +778,10 @@ class TypeSchemaEnvironmentTest {
     expect(
         env.isSubtypeOf(A, unknownType, SubtypeCheckMode.ignoringNullabilities),
         isTrue);
+    expect(
+        env.isSubtypeOf(_map(A, A), _map(unknownType, unknownType),
+            SubtypeCheckMode.ignoringNullabilities),
+        isTrue);
   }
 
   Class _addClass(Class c) {

@@ -290,6 +290,7 @@ class StackMapEntryKeyIntValueTrait {
     Pair(const Key key, const Value& value)
         : key(ASSERT_NOTNULL(key)), value(value) {}
     Pair(const Pair& other) : key(other.key), value(other.value) {}
+    Pair& operator=(const Pair&) = default;
   };
 
   static Key KeyOf(Pair kv) { return kv.key; }
@@ -868,6 +869,7 @@ void ProgramVisitor::DedupLists() {
           if (!function.HasOptionalNamedParameters() &&
               !list_.InVMIsolateHeap()) {
             // Parameter names not needed for resolution.
+            ASSERT(list_.Length() == function.NumParameters());
             for (intptr_t i = 0; i < list_.Length(); i++) {
               list_.SetAt(i, Symbols::OptimizedOut());
             }

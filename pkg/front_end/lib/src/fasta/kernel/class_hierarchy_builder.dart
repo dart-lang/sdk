@@ -1304,9 +1304,6 @@ class ClassHierarchyNodeBuilder {
     localMembers.sort(compareDeclarations);
     localSetters.sort(compareDeclarations);
 
-    // Add implied setters from fields in [localMembers].
-    localSetters = mergeAccessors(localMembers, localSetters);
-
     /// Members (excluding setters) declared in [cls] or its superclasses. This
     /// includes static methods of [cls], but not its superclasses.
     List<ClassMember> classMembers;
@@ -1668,54 +1665,6 @@ class ClassHierarchyNodeBuilder {
       input = output;
     }
     return input.single;
-  }
-
-  /// Merge [and check] accessors. This entails copying mutable fields to
-  /// setters to simulate implied setters, and checking that setters don't
-  /// override regular methods.
-  List<ClassMember> mergeAccessors(
-      List<ClassMember> members, List<ClassMember> setters) {
-    final List<ClassMember> mergedSetters = new List<ClassMember>.filled(
-        members.length + setters.length, null,
-        growable: true);
-    int storeIndex = 0;
-    int i = 0;
-    int j = 0;
-    while (i < members.length && j < setters.length) {
-      final ClassMember member = members[i];
-      final ClassMember setter = setters[j];
-      final int compare = compareDeclarations(member, setter);
-      if (compare == 0) {
-        mergedSetters[storeIndex++] = setter;
-        i++;
-        j++;
-      } else if (compare < 0) {
-        if (member.isAssignable) {
-          mergedSetters[storeIndex++] = member;
-        }
-        i++;
-      } else {
-        mergedSetters[storeIndex++] = setters[j];
-        j++;
-      }
-    }
-    while (i < members.length) {
-      final ClassMember member = members[i];
-      if (member.isAssignable) {
-        mergedSetters[storeIndex++] = member;
-      }
-      i++;
-    }
-    while (j < setters.length) {
-      mergedSetters[storeIndex++] = setters[j];
-      j++;
-    }
-
-    if (storeIndex == j) {
-      return setters;
-    } else {
-      return mergedSetters..length = storeIndex;
-    }
   }
 
   void reportMissingMembers() {

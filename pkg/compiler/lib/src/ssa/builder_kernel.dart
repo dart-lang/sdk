@@ -2126,9 +2126,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<HInstruction> arguments = [pop()];
     ClassEntity cls = _commonElements.streamIterator;
     DartType typeArg = _elementMap.getDartType(node.variable.type);
-    InterfaceType instanceType = localsHandler.substInContext(
-        dartTypes.interfaceType(
-            cls, [typeArg], closedWorld.dartTypes.defaultNullability));
+    InterfaceType instanceType =
+        localsHandler.substInContext(dartTypes.interfaceType(cls, [typeArg]));
     // TODO(johnniwinther): This should be the exact type.
     StaticType staticInstanceType =
         new StaticType(instanceType, ClassRelation.subtype);
@@ -3115,9 +3114,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (options.useNewRti) {
       // [type] could be `List<T>`, so ensure it is `JSArray<T>`.
       InterfaceType arrayType = dartTypes.interfaceType(
-          _commonElements.jsArrayClass,
-          type.typeArguments,
-          closedWorld.dartTypes.defaultNullability);
+          _commonElements.jsArrayClass, type.typeArguments);
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(arrayType, sourceElement);
 
@@ -3152,8 +3149,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildListLiteral(node);
       InterfaceType type = localsHandler.substInContext(
-          _commonElements.listType(
-              Nullability.none, _elementMap.getDartType(node.typeArgument)));
+          _commonElements.listType(_elementMap.getDartType(node.typeArgument)));
       listInstruction = _setListRuntimeTypeInfoIfNeeded(
           listInstruction, type, sourceInformation);
     }
@@ -3196,8 +3192,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     assert(
         constructor is ConstructorEntity && constructor.isFactoryConstructor);
 
-    InterfaceType type = localsHandler.substInContext(_commonElements.setType(
-        Nullability.none, _elementMap.getDartType(node.typeArgument)));
+    InterfaceType type = localsHandler.substInContext(
+        _commonElements.setType(_elementMap.getDartType(node.typeArgument)));
     ClassEntity cls = constructor.enclosingClass;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {
@@ -3278,7 +3274,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         constructor is ConstructorEntity && constructor.isFactoryConstructor);
 
     InterfaceType type = localsHandler.substInContext(_commonElements.mapType(
-        Nullability.none,
         _elementMap.getDartType(node.keyType),
         _elementMap.getDartType(node.valueType)));
     ClassEntity cls = constructor.enclosingClass;
@@ -3891,9 +3886,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
 
     InterfaceType instanceType = _elementMap.createInterfaceType(
-        invocation.target.enclosingClass,
-        invocation.arguments.types,
-        Nullability.none);
+        invocation.target.enclosingClass, invocation.arguments.types);
 
     AbstractValue resultType = typeMask;
 
@@ -4018,9 +4011,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             isGrowableListConstructorCall ||
             isJSArrayTypedConstructor)) {
       InterfaceType type = _elementMap.createInterfaceType(
-          invocation.target.enclosingClass,
-          invocation.arguments.types,
-          Nullability.none);
+          invocation.target.enclosingClass, invocation.arguments.types);
       stack
           .add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
     }
@@ -4149,6 +4140,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _handleCreateInvocationMirror(invocation);
     } else if (name == 'TYPE_REF') {
       _handleForeignTypeRef(invocation);
+    } else if (name == 'LEGACY_TYPE_REF') {
+      _handleForeignLegacyTypeRef(invocation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
@@ -4682,8 +4675,10 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (argumentInstruction is HConstant) {
       ConstantValue argumentConstant = argumentInstruction.constant;
       if (argumentConstant is TypeConstantValue &&
-          argumentConstant.representedType is InterfaceType) {
-        InterfaceType type = argumentConstant.representedType;
+          argumentConstant.representedType.withoutNullability
+              is InterfaceType) {
+        InterfaceType type =
+            argumentConstant.representedType.withoutNullability;
         // TODO(sra): Check that type is a subclass of [Interceptor].
         ConstantValue constant = new InterceptorConstantValue(type.element);
         HInstruction instruction = graph.addConstant(constant, closedWorld);
@@ -4727,10 +4722,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
     // TODO(sra): This should be JSArray<any>, created via
     // _elementEnvironment.getJsInteropType(_elementEnvironment.jsArrayClass);
-    InterfaceType interopType = dartTypes.interfaceType(
-        _commonElements.jsArrayClass,
-        [dartTypes.dynamicType()],
-        closedWorld.dartTypes.defaultNullability);
+    InterfaceType interopType = dartTypes
+        .interfaceType(_commonElements.jsArrayClass, [dartTypes.dynamicType()]);
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     HInstruction rti =
@@ -4828,6 +4821,22 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
     DartType type = _elementMap.getDartType(invocation.arguments.types.single);
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildCall(invocation, invocation);
+    push(HLoadType.type(type, _abstractValueDomain.dynamicType)
+      ..sourceInformation = sourceInformation);
+  }
+
+  void _handleForeignLegacyTypeRef(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 0, maxPositional: 0, typeArgumentCount: 1)) {
+      stack.add(
+          // Result expected on stack.
+          graph.addConstantNull(closedWorld));
+      return;
+    }
+    DartType type = closedWorld.dartTypes
+        .legacyType(_elementMap.getDartType(invocation.arguments.types.single));
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     push(HLoadType.type(type, _abstractValueDomain.dynamicType)
@@ -5386,7 +5395,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     ClassEntity cls = constructor.enclosingClass;
     AbstractValue typeMask = _abstractValueDomain.createNonNullExact(cls);
     InterfaceType instanceType = _elementMap.createInterfaceType(
-        target.enclosingClass, node.arguments.types, Nullability.none);
+        target.enclosingClass, node.arguments.types);
     instanceType = localsHandler.substInContext(instanceType);
 
     List<HInstruction> arguments = <HInstruction>[];

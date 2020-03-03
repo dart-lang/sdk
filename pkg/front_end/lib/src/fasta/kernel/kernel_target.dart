@@ -45,15 +45,18 @@ import 'package:kernel/core_types.dart';
 
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
+import 'package:kernel/src/future_or.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
+
 import 'package:package_config/package_config.dart';
 
 import '../../api_prototype/file_system.dart' show FileSystem;
+import '../../base/nnbd_mode.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -830,16 +833,7 @@ class KernelTarget extends TargetImplementation {
         if (library.isNonNullableByDefault &&
             library.loader.performNnbdChecks) {
           if (constructor.isConst && lateFinalFields.isNotEmpty) {
-            if (library.loader.nnbdStrongMode) {
-              builder.addProblem(messageConstConstructorLateFinalFieldError,
-                  constructor.fileOffset, noLength,
-                  context: lateFinalFields
-                      .map((field) => messageConstConstructorLateFinalFieldCause
-                          .withLocation(
-                              field.fileUri, field.charOffset, noLength))
-                      .toList());
-              lateFinalFields.clear();
-            } else {
+            if (library.loader.nnbdMode == NnbdMode.Weak) {
               builder.addProblem(messageConstConstructorLateFinalFieldWarning,
                   constructor.fileOffset, noLength,
                   context: lateFinalFields
@@ -847,8 +841,16 @@ class KernelTarget extends TargetImplementation {
                           .withLocation(
                               field.fileUri, field.charOffset, noLength))
                       .toList());
-              lateFinalFields.clear();
+            } else {
+              builder.addProblem(messageConstConstructorLateFinalFieldError,
+                  constructor.fileOffset, noLength,
+                  context: lateFinalFields
+                      .map((field) => messageConstConstructorLateFinalFieldCause
+                          .withLocation(
+                              field.fileUri, field.charOffset, noLength))
+                      .toList());
             }
+            lateFinalFields.clear();
           }
         }
       }
@@ -888,27 +890,28 @@ class KernelTarget extends TargetImplementation {
                   field.fileUri);
             }
           } else if (field.type is! InvalidType &&
-              field.type.isPotentiallyNonNullable &&
+              isPotentiallyNonNullable(
+                  field.type, loader.coreTypes.futureOrClass) &&
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault &&
                 library.loader.performNnbdChecks) {
-              if (library.loader.nnbdStrongMode) {
-                library.addProblem(
-                    templateFieldNonNullableWithoutInitializerError
-                        .withArguments(field.name.name, field.type,
-                            library.isNonNullableByDefault),
-                    field.fileOffset,
-                    field.name.name.length,
-                    library.fileUri);
-              } else {
+              if (library.loader.nnbdMode == NnbdMode.Weak) {
                 library.addProblem(
                     templateFieldNonNullableWithoutInitializerWarning
                         .withArguments(field.name.name, field.type,
                             library.isNonNullableByDefault),
                     field.fileOffset,
                     field.name.name.length,
-                    library.fileUri);
+                    field.fileUri);
+              } else {
+                library.addProblem(
+                    templateFieldNonNullableWithoutInitializerError
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    field.fileUri);
               }
             }
           }
@@ -941,21 +944,22 @@ class KernelTarget extends TargetImplementation {
                           field.name.name.length)
                 ]);
           } else if (field.type is! InvalidType &&
-              field.type.isPotentiallyNonNullable) {
+              isPotentiallyNonNullable(
+                  field.type, loader.coreTypes.futureOrClass)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault &&
                 library.loader.performNnbdChecks) {
-              if (library.loader.nnbdStrongMode) {
+              if (library.loader.nnbdMode == NnbdMode.Weak) {
                 library.addProblem(
-                    templateFieldNonNullableNotInitializedByConstructorError
+                    templateFieldNonNullableNotInitializedByConstructorWarning
                         .withArguments(field.name.name, field.type,
                             library.isNonNullableByDefault),
                     field.fileOffset,
                     field.name.name.length,
-                    library.fileUri);
+                    field.fileUri);
               } else {
                 library.addProblem(
-                    templateFieldNonNullableNotInitializedByConstructorWarning
+                    templateFieldNonNullableNotInitializedByConstructorError
                         .withArguments(field.name.name, field.type,
                             library.isNonNullableByDefault),
                     field.fileOffset,
@@ -983,10 +987,16 @@ class KernelTarget extends TargetImplementation {
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode;
     if (enableNonNullable) {
-      if (loader.nnbdStrongMode) {
-        evaluationMode = constants.EvaluationMode.strong;
-      } else {
-        evaluationMode = constants.EvaluationMode.weak;
+      switch (loader.nnbdMode) {
+        case NnbdMode.Weak:
+          evaluationMode = constants.EvaluationMode.weak;
+          break;
+        case NnbdMode.Strong:
+          evaluationMode = constants.EvaluationMode.strong;
+          break;
+        case NnbdMode.Agnostic:
+          evaluationMode = constants.EvaluationMode.agnostic;
+          break;
       }
     } else {
       evaluationMode = constants.EvaluationMode.legacy;

@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_CLASS_TABLE_H_
 #define RUNTIME_VM_CLASS_TABLE_H_
 
+#include <memory>
+
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/utils.h"
@@ -80,6 +82,7 @@ class SharedClassTable {
 
   void SetSizeAt(intptr_t index, intptr_t size) {
     ASSERT(IsValidIndex(index));
+
     // Ensure we never change size for a given cid from one non-zero size to
     // another non-zero size.
     RELEASE_ASSERT(table_[index] == 0 || table_[index] == size);
@@ -200,6 +203,8 @@ class SharedClassTable {
   static bool ShouldUpdateSizeForClassId(intptr_t cid);
 
 #ifndef PRODUCT
+  // Copy-on-write is used for trace_allocation_table_, with old copies stored
+  // in old_tables_.
   uint8_t* trace_allocation_table_ = nullptr;
 #endif  // !PRODUCT
 
@@ -211,8 +216,8 @@ class SharedClassTable {
   intptr_t capacity_;
 
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
-  intptr_t* table_;  // Maps the cid to the instance size.
-  MallocGrowableArray<intptr_t*>* old_tables_;
+  intptr_t* table_ = nullptr;  // Maps the cid to the instance size.
+  MallocGrowableArray<void*>* old_tables_;
 
   IsolateGroupReloadContext* reload_context_ = nullptr;
 
@@ -221,8 +226,7 @@ class SharedClassTable {
   // the GC has to scan, a 1 indicates that the word is part of e.g. an unboxed
   // double and does not need to be scanned. (see Class::Calculate...() where
   // the bitmap is constructed)
-  UnboxedFieldBitmap* unboxed_fields_map_;
-  MallocGrowableArray<UnboxedFieldBitmap*>* old_unboxed_fields_maps_;
+  UnboxedFieldBitmap* unboxed_fields_map_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(SharedClassTable);
 };
@@ -230,10 +234,6 @@ class SharedClassTable {
 class ClassTable {
  public:
   explicit ClassTable(SharedClassTable* shared_class_table_);
-
-  // Creates a shallow copy of the original class table for some read-only
-  // access, without support for stats data.
-  ClassTable(ClassTable* original, SharedClassTable* shared_class_table);
   ~ClassTable();
 
   SharedClassTable* shared_class_table() const { return shared_class_table_; }
@@ -357,6 +357,9 @@ class ClassTable {
   friend class MarkingWeakVisitor;
   friend class Scavenger;
   friend class ScavengerWeakVisitor;
+  friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
+                                                   const char* name,
+                                                   char** error);
   static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
   static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 

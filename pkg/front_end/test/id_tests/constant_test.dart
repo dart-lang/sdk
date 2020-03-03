@@ -27,7 +27,6 @@ main(List<String> args) async {
       .resolve('../../../_fe_analyzer_shared/test/constants/data'));
   await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const ConstantsDataComputer(), [defaultCfeConfig]));

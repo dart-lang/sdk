@@ -706,24 +706,32 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   String get _serviceTypePath => throw new UnimplementedError();
   String get _serviceTypeName => throw new UnimplementedError();
 
-  Uint8List read(int len) {
-    if (len != null && len <= 0) {
-      throw new ArgumentError("Illegal length $len");
+  Uint8List read(int count) {
+    if (count != null && count <= 0) {
+      throw ArgumentError("Illegal length $count");
     }
     if (isClosing || isClosed) return null;
-    len = min(available, len == null ? available : len);
-    if (len == 0) return null;
-    var result = nativeRead(len);
+    var length = count == null ? available : min(available, count);
+    if (length == 0) return null;
+    var result = nativeRead(length);
     if (result is OSError) {
       reportError(result, StackTrace.current, "Read failed");
       return null;
     }
-    if (result != null) {
-      available -= result.length;
+    final list = result as Uint8List;
+    if (list != null) {
+      if (count == null) {
+        // If count is not specified, read as many bytes as possible.
+        // This checks remaining bytes, if available > 0, issue() in
+        // issueReadEvent() will keep reading.
+        available = nativeAvailable();
+      } else {
+        available -= list.length;
+      }
       // TODO(ricow): Remove when we track internal and pipe uses.
       assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
       if (resourceInfo != null) {
-        resourceInfo.totalRead += result.length;
+        resourceInfo.totalRead += list.length;
       }
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
@@ -733,9 +741,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
     if (!const bool.fromEnvironment("dart.vm.product")) {
       _SocketProfile.collectStatistic(
-          nativeGetSocketId(), _SocketProfileType.readBytes, result?.length);
+          nativeGetSocketId(), _SocketProfileType.readBytes, list?.length);
     }
-    return result;
+    return list;
   }
 
   Datagram receive() {

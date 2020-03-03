@@ -495,6 +495,32 @@ class X = Object with Test;
     });
   }
 
+  Future<void> test_withClass_catchClause() async {
+    addSource('/home/test/lib/lib.dart', '''
+class Test {}
+''');
+    await resolveTestUnit('''
+void f() {
+  try {
+    print(1);
+  } on Test {
+    print(2);
+  }
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f() {
+  try {
+    print(1);
+  } on Test {
+    print(2);
+  }
+}
+''');
+  }
+
   Future<void> test_withTopLevelVariable() async {
     addSource('/home/test/lib/lib.dart', '''
 library lib;

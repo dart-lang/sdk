@@ -211,35 +211,35 @@ class FinalizablePersistentHandle {
     return ExternalSizeInWordsBits::decode(external_data_) * kWordSize;
   }
 
-  void SetExternalSize(intptr_t size, Isolate* isolate) {
+  void SetExternalSize(intptr_t size, IsolateGroup* isolate_group) {
     ASSERT(size >= 0);
     set_external_size(size);
     if (SpaceForExternal() == Heap::kNew) {
       SetExternalNewSpaceBit();
     }
-    isolate->heap()->AllocateExternal(raw()->GetClassIdMayBeSmi(),
-                                      external_size(), SpaceForExternal());
+    isolate_group->heap()->AllocateExternal(
+        raw()->GetClassIdMayBeSmi(), external_size(), SpaceForExternal());
   }
 
   // Called when the referent becomes unreachable.
-  void UpdateUnreachable(Isolate* isolate) {
-    EnsureFreeExternal(isolate);
-    Finalize(isolate, this);
+  void UpdateUnreachable(IsolateGroup* isolate_group) {
+    EnsureFreeExternal(isolate_group);
+    Finalize(isolate_group, this);
   }
 
   // Called when the referent has moved, potentially between generations.
-  void UpdateRelocated(Isolate* isolate) {
+  void UpdateRelocated(IsolateGroup* isolate_group) {
     if (IsSetNewSpaceBit() && (SpaceForExternal() == Heap::kOld)) {
-      isolate->heap()->PromoteExternal(raw()->GetClassIdMayBeSmi(),
-                                       external_size());
+      isolate_group->heap()->PromoteExternal(raw()->GetClassIdMayBeSmi(),
+                                             external_size());
       ClearExternalNewSpaceBit();
     }
   }
 
   // Idempotent. Called when the handle is explicitly deleted or the
   // referent becomes unreachable.
-  void EnsureFreeExternal(Isolate* isolate) {
-    isolate->heap()->FreeExternal(external_size(), SpaceForExternal());
+  void EnsureFreeExternal(IsolateGroup* isolate_group) {
+    isolate_group->heap()->FreeExternal(external_size(), SpaceForExternal());
     set_external_size(0);
   }
 
@@ -268,7 +268,8 @@ class FinalizablePersistentHandle {
       : raw_(NULL), peer_(NULL), external_data_(0), callback_(NULL) {}
   ~FinalizablePersistentHandle() {}
 
-  static void Finalize(Isolate* isolate, FinalizablePersistentHandle* handle);
+  static void Finalize(IsolateGroup* isolate_group,
+                       FinalizablePersistentHandle* handle);
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
@@ -677,7 +678,7 @@ class ApiGrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
 
 // Implementation of the API State used in dart api for maintaining
 // local scopes, persistent handles etc. These are setup on a per isolate
-// basis and destroyed when the isolate is shutdown.
+// group basis and destroyed when the isolate group is shutdown.
 class ApiState {
  public:
   ApiState()
@@ -705,6 +706,8 @@ class ApiState {
       acquired_error_ = NULL;
     }
   }
+
+  void MergeOtherApiState(ApiState* api_state);
 
   void VisitObjectPointersUnlocked(ObjectPointerVisitor* visitor) {
     persistent_handles_.VisitObjectPointers(visitor);
@@ -817,14 +820,14 @@ inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback,
     intptr_t external_size) {
-  ApiState* state = isolate->api_state();
+  ApiState* state = isolate->group()->api_state();
   ASSERT(state != NULL);
   FinalizablePersistentHandle* ref = state->AllocateWeakPersistentHandle();
   ref->set_raw(object);
   ref->set_peer(peer);
   ref->set_callback(callback);
   // This may trigger GC, so it must be called last.
-  ref->SetExternalSize(external_size, isolate);
+  ref->SetExternalSize(external_size, isolate->group());
   return ref;
 }
 

@@ -353,8 +353,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
   if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, smi_class,
-                         Object::null_type_arguments(), type_class,
-                         Object::null_type_arguments(), Heap::kOld)) {
+                         Object::null_type_arguments(), type, Heap::kOld)) {
     // Fast case for type = int/num/top-type.
     __ BranchIfSmi(kInstanceReg, is_instance_lbl);
   } else {
@@ -679,8 +678,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
-         !dst_type.IsVoidType());
+  ASSERT(!dst_type.IsTopTypeForAssignability());
+
   const Register kInstantiatorTypeArgumentsReg = R1;
   const Register kFunctionTypeArgumentsReg = R2;
 
@@ -690,9 +689,10 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   } else {
     compiler::Label is_assignable_fast, is_assignable, runtime_call;
 
-    // A null object is always assignable and is returned as result.
-    __ CompareObject(R0, Object::null_object());
-    __ b(&is_assignable_fast, EQ);
+    if (Instance::NullIsAssignableTo(dst_type)) {
+      __ CompareObject(R0, Object::null_object());
+      __ b(&is_assignable_fast, EQ);
+    }
 
     __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
 
@@ -937,7 +937,7 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable();
+    indirect_gotos_[i]->ComputeOffsetTable(this);
   }
 }
 

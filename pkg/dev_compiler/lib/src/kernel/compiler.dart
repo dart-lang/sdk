@@ -209,6 +209,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Maps Kernel constants to their JS aliases.
   final constAliasCache = HashMap<Constant, js_ast.Expression>();
 
+  /// Maps uri strings in asserts and elsewhere to hoisted identifiers.
+  final _uriMap = HashMap<String, js_ast.Identifier>();
+
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
   final Class _linkedHashMapImplClass;
@@ -349,6 +352,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       moduleItems.insert(_constTableInsertionIndex, constTableBody);
       _constLazyAccessors.clear();
     }
+
+    // Add assert locations
+    _uriMap.forEach((location, id) {
+      moduleItems
+          .add(js.statement('var # = #;', [id, js.escapedString(location)]));
+    });
 
     moduleItems.addAll(afterClassDefItems);
     afterClassDefItems.clear();
@@ -753,6 +762,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               t, t.typeArguments.map(emitDeferredType));
         }
         return _emitInterfaceType(t, emitNullability: false);
+      } else if (t is TypeParameterType) {
+        return _emitTypeParameterType(t, emitNullability: false);
       }
       return _emitType(t);
     }
@@ -1298,10 +1309,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     emitSignature('Setter', instanceSetters);
     emitSignature('StaticGetter', staticGetters);
     emitSignature('StaticSetter', staticSetters);
-    body.add(runtimeStatement('setLibraryUri(#, #)', [
-      className,
-      js.escapedString(jsLibraryDebuggerName(c.enclosingLibrary))
-    ]));
+    body.add(runtimeStatement('setLibraryUri(#, #)',
+        [className, _cacheUri(jsLibraryDebuggerName(c.enclosingLibrary))]));
 
     var instanceFields = <js_ast.Property>[];
     var staticFields = <js_ast.Property>[];
@@ -1373,11 +1382,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     FunctionType result;
     if (!f.positionalParameters.any(isCovariantParameter) &&
         !f.namedParameters.any(isCovariantParameter)) {
-      result = f.computeThisFunctionType(member.enclosingLibrary.nonNullable);
+      // Avoid tagging a member as Function? or Function*
+      result = f.computeThisFunctionType(Nullability.nonNullable);
     } else {
       DartType reifyParameter(VariableDeclaration p) => isCovariantParameter(p)
-          ? _coreTypes.objectClass.getThisType(
-              _coreTypes, _coreTypes.objectClass.enclosingLibrary.nonNullable)
+          ? _coreTypes.objectRawType(member.enclosingLibrary.nullable)
           : p.type;
       NamedType reifyNamedParameter(VariableDeclaration p) =>
           NamedType(p.name, reifyParameter(p));
@@ -1385,7 +1394,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): do covariant type parameter bounds also need to be
       // reified as `Object`?
       result = FunctionType(f.positionalParameters.map(reifyParameter).toList(),
-          f.returnType, Nullability.legacy,
+          f.returnType, Nullability.nonNullable,
           namedParameters: f.namedParameters.map(reifyNamedParameter).toList()
             ..sort(),
           typeParameters: f
@@ -2542,7 +2551,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
       {bool topLevel = false}) {
     var lazy = topLevel && !_canEmitTypeAtTopLevel(type);
-    var typeRep = visitFunctionType(type, lazy: lazy);
+    var typeRep = visitFunctionType(
+        // Avoid tagging a closure as Function? or Function*
+        type.withNullability(Nullability.nonNullable),
+        lazy: lazy);
     return runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
@@ -2742,14 +2754,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         : namedTypes.add(param));
     var allNamedTypes = type.namedParameters;
 
-    var returnType = _emitNullabilityWrapper(
-        _emitType(type.returnType), type.returnType.nullability);
+    var returnType = _emitType(type.returnType);
     var requiredArgs = _emitTypeNames(requiredTypes, requiredParams, member);
 
     List<js_ast.Expression> typeParts;
     if (allNamedTypes.isNotEmpty) {
       assert(optionalTypes.isEmpty);
-      // TODO(vsm): The old pageloader may require annotations here.
       var namedArgs = _emitTypeProperties(namedTypes);
       var requiredNamedArgs = _emitTypeProperties(requiredNamedTypes);
       typeParts = [returnType, requiredArgs, namedArgs, requiredNamedArgs];
@@ -2815,9 +2825,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       helperCall = 'fnType(#)';
     }
     var typeRep = runtimeCall(helperCall, [typeParts]);
-    return _cacheTypes
+    // Avoid caching the nullability of the function type itself so it can be
+    // shared by nullable, non-nullable, and legacy versions at the use site.
+    typeRep = _cacheTypes
         ? _typeTable.nameFunctionType(type, typeRep, lazy: lazy)
         : typeRep;
+
+    return _emitNullabilityWrapper(typeRep, type.nullability);
   }
 
   js_ast.Expression _emitAnnotatedFunctionType(
@@ -3228,7 +3242,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var check = js.statement(' if (#) #.nullFailed(#, #, #, #);', [
           condition,
           runtimeModule,
-          js.escapedString(location.file.toString()),
+          _cacheUri(location.file.toString()),
           js.number(location.line),
           js.number(location.column),
           js.escapedString('${p.name}'),
@@ -3491,6 +3505,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     throw UnsupportedError('compilation of an assert block');
   }
 
+  // Replace a string `uri` literal with a cached top-level variable containing
+  // the value to reduce overall code size.
+  js_ast.Identifier _cacheUri(String uri) {
+    var id = _uriMap[uri];
+    if (id == null) {
+      var name = 'L${_uriMap.length}';
+      id = js_ast.TemporaryId(name);
+      _uriMap[uri] = id;
+    }
+    return id;
+  }
+
   @override
   js_ast.Statement visitAssertStatement(AssertStatement node) {
     if (!_options.enableAsserts) return js_ast.EmptyStatement();
@@ -3519,7 +3545,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.LiteralNull()
       else
         _visitExpression(node.message),
-      js.escapedString(location.sourceUrl.toString()),
+      _cacheUri(location.sourceUrl.toString()),
       // Lines and columns are typically printed with 1 based indexing.
       js.number(location.line + 1),
       js.number(location.column + 1),
@@ -5258,23 +5284,48 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     var isTypeError = node.isTypeError;
     if (!isTypeError &&
-        _types.isSubtypeOf(from, to, SubtypeCheckMode.ignoringNullabilities)) {
+        _types.isSubtypeOf(from, to, SubtypeCheckMode.withNullabilities)) {
       return jsFrom;
     }
 
-    // All Dart number types map to a JS double.
+    if (!isTypeError &&
+        from.withNullability(Nullability.nonNullable) == to &&
+        _mustBeNonNullable(to)) {
+      // If the underlying type is the same, we only need a null check.
+      return runtimeCall('nullCast(#, #, #)',
+          [jsFrom, _emitType(to), js.boolean(isTypeError)]);
+    }
+
+    // All Dart number types map to a JS double.  We can specialize these
+    // cases.
     if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
-      // Make sure to check when converting to int.
-      if (from != _coreTypes.intLegacyRawType &&
-          to == _coreTypes.intLegacyRawType) {
-        // TODO(jmesserly): fuse this with notNull check.
-        // TODO(jmesserly): this does not correctly distinguish user casts from
-        // required-for-soundness casts.
+      // If `to` is some form of `num`, it should have been filtered above.
+
+      // * -> double? | double* : no-op
+      if (to == _coreTypes.doubleLegacyRawType ||
+          to == _coreTypes.doubleNullableRawType) {
+        return jsFrom;
+      }
+
+      // * -> double : null check
+      if (to == _coreTypes.doubleNonNullableRawType) {
+        if (from.nullability == Nullability.nonNullable) {
+          return jsFrom;
+        }
+        return runtimeCall('nullCast(#, #, #)',
+            [jsFrom, _emitType(to), js.boolean(isTypeError)]);
+      }
+
+      // * -> int : asInt check
+      if (to == _coreTypes.intNonNullableRawType) {
         return runtimeCall('asInt(#)', [jsFrom]);
       }
 
-      // A no-op in JavaScript.
-      return jsFrom;
+      // * -> int? | int* : asNullableInt check
+      if (to == _coreTypes.intLegacyRawType ||
+          to == _coreTypes.intNullableRawType) {
+        return runtimeCall('asNullableInt(#)', [jsFrom]);
+      }
     }
 
     return _emitCast(jsFrom, to, implicit: isTypeError);

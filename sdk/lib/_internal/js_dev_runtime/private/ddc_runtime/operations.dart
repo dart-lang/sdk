@@ -436,6 +436,8 @@ asInt(obj) {
   return obj;
 }
 
+asNullableInt(obj) => asInt(obj);
+
 /// Checks that `x` is not null or undefined.
 //
 // TODO(jmesserly): inline this, either by generating it as a function into
@@ -448,6 +450,9 @@ _notNull(x) {
   if (x == null) throwNullValueError();
   return x;
 }
+
+/// No-op without null safety enabled.
+nullCast(x, type, [@notNull bool isImplicit = false]) => x;
 
 /// The global constant map table.
 final constantMaps = JS('', 'new Map()');

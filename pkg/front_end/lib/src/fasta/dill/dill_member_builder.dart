@@ -135,9 +135,10 @@ class DillMemberBuilder extends MemberBuilderImpl {
       : <ClassMember>[new DillClassMember(this)];
 
   @override
-  List<ClassMember> get localSetters => isSetter
-      ? <ClassMember>[new DillClassMember(this)]
-      : const <ClassMember>[];
+  List<ClassMember> get localSetters =>
+      isSetter || member is Field && member.hasSetter
+          ? <ClassMember>[new DillClassMember(this)]
+          : const <ClassMember>[];
 }
 
 class DillClassMember extends BuilderClassMember {

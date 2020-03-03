@@ -14,5 +14,6 @@ class SubClass1 extends LegacyClass1 {
 
 /*class: SubClass2:Class,Interface,LegacyClass2,Object,SubClass2*/
 class SubClass2 extends LegacyClass2 implements Interface {
-  /*member: SubClass2.method:int? Function(int!)!*/
+  /*cfe|cfe:builder.member: SubClass2.method:int? Function(int)*/
+  /*analyzer.member: SubClass2.method:int* Function(int*)**/
 }

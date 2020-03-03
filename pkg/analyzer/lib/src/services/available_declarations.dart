@@ -7,21 +7,17 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
@@ -1873,20 +1869,11 @@ class _File {
   }
 
   static CompilationUnit _parse(FeatureSet featureSet, String content) {
-    var errorListener = AnalysisErrorListener.NULL_LISTENER;
-    var source = StringSource(content, '');
-
-    var reader = CharSequenceReader(content);
-    var scanner = Scanner(null, reader, errorListener)
-      ..configureFeatures(featureSet);
-    var token = scanner.tokenize();
-
-    var parser =
-        Parser(source, errorListener, featureSet: featureSet, useFasta: true);
-    var unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = LineInfo(scanner.lineStarts);
-
-    return unit;
+    return parseString(
+      content: content,
+      featureSet: featureSet,
+      throwIfDiagnostics: false,
+    ).unit;
   }
 
   static String _readContent(File resource) {

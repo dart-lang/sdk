@@ -34,7 +34,6 @@
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
-#include "vm/kernel_loader.h"  // For kernel::ParseStaticFieldInitializer.
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -195,8 +194,6 @@ Precompiler::~Precompiler() {
 }
 
 void Precompiler::DoCompileAll() {
-  ASSERT(I->compilation_allowed());
-
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
@@ -391,8 +388,6 @@ void Precompiler::DoCompileAll() {
         }
       }
 
-      I->set_compilation_allowed(false);
-
       if (FLAG_serialize_flow_graphs_to != nullptr &&
           Dart::file_write_callback() != nullptr) {
         if (auto file_close = Dart::file_close_callback()) {
@@ -419,7 +414,6 @@ void Precompiler::DoCompileAll() {
       Class& null_class = Class::Handle(Z);
       Function& null_function = Function::Handle(Z);
       Field& null_field = Field::Handle(Z);
-      I->object_store()->set_future_class(null_class);
       I->object_store()->set_pragma_class(null_class);
       I->object_store()->set_pragma_name(null_field);
       I->object_store()->set_pragma_options(null_field);
@@ -947,7 +941,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
   class ConstObjectVisitor : public ObjectPointerVisitor {
    public:
     ConstObjectVisitor(Precompiler* precompiler, Isolate* isolate)
-        : ObjectPointerVisitor(isolate),
+        : ObjectPointerVisitor(isolate->group()),
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 
@@ -1022,8 +1016,10 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   Zone* zone = stack_zone.GetZone();
   ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
 
+  const Function& initializer_fun =
+      Function::ZoneHandle(zone, field.EnsureInitializerFunction());
   ParsedFunction* parsed_function =
-      kernel::ParseStaticFieldInitializer(zone, field);
+      new (zone) ParsedFunction(thread, initializer_fun);
 
   DartCompilationPipeline pipeline;
   PrecompileParsedFunctionHelper helper(Precompiler::Instance(),
@@ -2142,9 +2138,9 @@ void Precompiler::BindStaticCalls() {
   }
 }
 
-void Precompiler::DedupUnlinkedCalls() {
-  ASSERT(!I->compilation_allowed());
+DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
 
+void Precompiler::DedupUnlinkedCalls() {
   class UnlinkedCallDeduper {
    public:
     explicit UnlinkedCallDeduper(Zone* zone)
@@ -2213,7 +2209,16 @@ void Precompiler::DedupUnlinkedCalls() {
   ASSERT(gop.IsNull() != FLAG_use_bare_instructions);
   if (FLAG_use_bare_instructions) {
     deduper.DedupPool(gop);
-  } else {
+  }
+
+  // Note: in bare instructions mode we can still have object pools attached
+  // to code objects and these pools need to be deduplicated.
+  // We use these pools to carry information about references between code
+  // objects and other objects in the snapshots (these references are otherwise
+  // implicit and go through global object pool). This information is needed
+  // to produce more informative snapshot profile.
+  if (!FLAG_use_bare_instructions ||
+      FLAG_write_v8_snapshot_profile_to != nullptr) {
     DedupUnlinkedCallsVisitor visitor(&deduper, Z);
 
     // We need both iterations to ensure we visit all the functions that might

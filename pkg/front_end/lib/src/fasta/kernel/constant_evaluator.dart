@@ -45,7 +45,9 @@ import '../fasta_codes.dart'
         messageConstEvalNullValue,
         messageConstEvalStartingPoint,
         messageConstEvalUnevaluated,
+        messageNonAgnosticConstant,
         noLength,
+        templateConstEvalCaseImplementsEqual,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateElement,
         templateConstEvalDuplicateKey,
@@ -128,7 +130,161 @@ void transformLibraries(
 enum EvaluationMode {
   legacy,
   weak,
+  agnostic,
   strong,
+}
+
+class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
+  ConstantEvaluator _evaluator;
+
+  ConstantWeakener(this._evaluator);
+
+  CoreTypes get _coreTypes => _evaluator.coreTypes;
+
+  Constant processValue(Constant node, Constant value) {
+    if (value != null) {
+      value = _evaluator.canonicalize(value);
+    }
+    return value;
+  }
+
+  @override
+  Constant defaultConstant(Constant node) => throw new UnsupportedError(
+      "Unhandled constant ${node} (${node.runtimeType})");
+
+  @override
+  Constant visitNullConstant(NullConstant node) => null;
+
+  @override
+  Constant visitBoolConstant(BoolConstant node) => null;
+
+  @override
+  Constant visitIntConstant(IntConstant node) => null;
+
+  @override
+  Constant visitDoubleConstant(DoubleConstant node) => null;
+
+  @override
+  Constant visitStringConstant(StringConstant node) => null;
+
+  @override
+  Constant visitSymbolConstant(SymbolConstant node) => null;
+
+  @override
+  Constant visitMapConstant(MapConstant node) {
+    DartType keyType = rawLegacyErasure(_coreTypes, node.keyType);
+    DartType valueType = rawLegacyErasure(_coreTypes, node.valueType);
+    List<ConstantMapEntry> entries;
+    for (int index = 0; index < node.entries.length; index++) {
+      ConstantMapEntry entry = node.entries[index];
+      Constant key = visitConstant(entry.key);
+      Constant value = visitConstant(entry.value);
+      if (key != null || value != null) {
+        entries ??= node.entries.toList(growable: false);
+        entries[index] =
+            new ConstantMapEntry(key ?? entry.key, value ?? entry.value);
+      }
+    }
+    if (keyType != null || valueType != null || entries != null) {
+      return new MapConstant(keyType ?? node.keyType,
+          valueType ?? node.valueType, entries ?? node.entries);
+    }
+    return null;
+  }
+
+  @override
+  Constant visitListConstant(ListConstant node) {
+    DartType typeArgument = rawLegacyErasure(_coreTypes, node.typeArgument);
+    List<Constant> entries;
+    for (int index = 0; index < node.entries.length; index++) {
+      Constant entry = visitConstant(node.entries[index]);
+      if (entry != null) {
+        entries ??= node.entries.toList(growable: false);
+        entries[index] = entry;
+      }
+    }
+    if (typeArgument != null || entries != null) {
+      return new ListConstant(
+          typeArgument ?? node.typeArgument, entries ?? node.entries);
+    }
+    return null;
+  }
+
+  @override
+  Constant visitSetConstant(SetConstant node) {
+    DartType typeArgument = rawLegacyErasure(_coreTypes, node.typeArgument);
+    List<Constant> entries;
+    for (int index = 0; index < node.entries.length; index++) {
+      Constant entry = visitConstant(node.entries[index]);
+      if (entry != null) {
+        entries ??= node.entries.toList(growable: false);
+        entries[index] = entry;
+      }
+    }
+    if (typeArgument != null || entries != null) {
+      return new SetConstant(
+          typeArgument ?? node.typeArgument, entries ?? node.entries);
+    }
+    return null;
+  }
+
+  @override
+  Constant visitInstanceConstant(InstanceConstant node) {
+    List<DartType> typeArguments;
+    for (int index = 0; index < node.typeArguments.length; index++) {
+      DartType typeArgument =
+          rawLegacyErasure(_coreTypes, node.typeArguments[index]);
+      if (typeArgument != null) {
+        typeArguments ??= node.typeArguments.toList(growable: false);
+        typeArguments[index] = typeArgument;
+      }
+    }
+    Map<Reference, Constant> fieldValues;
+    for (Reference reference in node.fieldValues.keys) {
+      Constant value = visitConstant(node.fieldValues[reference]);
+      if (value != null) {
+        fieldValues ??= new Map<Reference, Constant>.from(node.fieldValues);
+        fieldValues[reference] = value;
+      }
+    }
+    if (typeArguments != null || fieldValues != null) {
+      return new InstanceConstant(node.classReference,
+          typeArguments ?? node.typeArguments, fieldValues ?? node.fieldValues);
+    }
+    return null;
+  }
+
+  @override
+  Constant visitPartialInstantiationConstant(
+      PartialInstantiationConstant node) {
+    List<DartType> types;
+    for (int index = 0; index < node.types.length; index++) {
+      DartType type = rawLegacyErasure(_coreTypes, node.types[index]);
+      if (type != null) {
+        types ??= node.types.toList(growable: false);
+        types[index] = type;
+      }
+    }
+    if (types != null) {
+      return new PartialInstantiationConstant(node.tearOffConstant, types);
+    }
+    return null;
+  }
+
+  @override
+  Constant visitTearOffConstant(TearOffConstant node) => null;
+
+  @override
+  Constant visitTypeLiteralConstant(TypeLiteralConstant node) {
+    DartType type = rawLegacyErasure(_coreTypes, node.type);
+    if (type != null) {
+      return new TypeLiteralConstant(type);
+    }
+    return null;
+  }
+
+  @override
+  Constant visitUnevaluatedConstant(UnevaluatedConstant node) => null;
 }
 
 class ConstantsTransformer extends Transformer {
@@ -391,9 +547,12 @@ class ConstantsTransformer extends Transformer {
     final Member target = node.target;
     if (target is Field && target.isConst) {
       // Make sure the initializer is evaluated first.
+      StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+      _staticTypeContext = new StaticTypeContext(target, typeEnvironment);
       target.initializer =
           evaluateAndTransformWithContext(target, target.initializer)
             ..parent = target;
+      _staticTypeContext = oldStaticTypeContext;
       if (shouldInline(target.initializer)) {
         return evaluateAndTransformWithContext(node, node);
       }
@@ -407,6 +566,36 @@ class ConstantsTransformer extends Transformer {
   SwitchCase visitSwitchCase(SwitchCase node) {
     transformExpressions(node.expressions, node);
     return super.visitSwitchCase(node);
+  }
+
+  @override
+  SwitchStatement visitSwitchStatement(SwitchStatement node) {
+    SwitchStatement result = super.visitSwitchStatement(node);
+    Library library = constantEvaluator.libraryOf(node);
+    if (library != null &&
+        library.isNonNullableByDefault &&
+        constantEvaluator.errorReporter.performNnbdChecks) {
+      for (SwitchCase switchCase in node.cases) {
+        for (Expression caseExpression in switchCase.expressions) {
+          if (caseExpression is ConstantExpression) {
+            if (!constantEvaluator.hasPrimitiveEqual(caseExpression.constant)) {
+              Uri uri = constantEvaluator.getFileUri(caseExpression);
+              int offset = constantEvaluator.getFileOffset(uri, caseExpression);
+              constantEvaluator.errorReporter.report(
+                  templateConstEvalCaseImplementsEqual
+                      .withArguments(caseExpression.constant,
+                          constantEvaluator.isNonNullableByDefault)
+                      .withLocation(uri, offset, noLength),
+                  null);
+            }
+          } else {
+            // If caseExpression is not ConstantExpression, an error is reported
+            // elsewhere.
+          }
+        }
+      }
+    }
+    return result;
   }
 
   @override
@@ -570,6 +759,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool get isNonNullableByDefault =>
       _staticTypeContext.nonNullable == Nullability.nonNullable;
 
+  ConstantWeakener _weakener;
+
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.errorReporter,
       {this.desugarSets = false,
@@ -605,12 +796,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       coreTypes.symbolClass: true,
       coreTypes.typeClass: true,
     };
+    _weakener = new ConstantWeakener(this);
   }
 
   DartType convertType(DartType type) {
     switch (evaluationMode) {
       case EvaluationMode.legacy:
       case EvaluationMode.strong:
+      case EvaluationMode.agnostic:
         return type;
       case EvaluationMode.weak:
         return legacyErasure(coreTypes, type);
@@ -623,6 +816,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     switch (evaluationMode) {
       case EvaluationMode.legacy:
       case EvaluationMode.strong:
+      case EvaluationMode.agnostic:
         return types;
       case EvaluationMode.weak:
         return types
@@ -1657,9 +1851,19 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       final Member target = node.target;
       if (target is Field) {
         if (target.isConst) {
-          return runInsideContext(target, () {
-            return _evaluateSubexpression(target.initializer);
+          StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+          _staticTypeContext = new StaticTypeContext(target, typeEnvironment);
+          Constant constant = runInsideContext(target, () {
+            Constant constant = _evaluateSubexpression(target.initializer);
+            if (_staticTypeContext.nonNullableByDefaultCompiledMode ==
+                    NonNullableByDefaultCompiledMode.Agnostic &&
+                evaluationMode == EvaluationMode.weak) {
+              constant = _weakener.visitConstant(constant) ?? constant;
+            }
+            return constant;
           });
+          _staticTypeContext = oldStaticTypeContext;
+          return constant;
         }
         return report(
             node,
@@ -1804,16 +2008,30 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         final Constant left = positionals[0];
         final Constant right = positionals[1];
 
+        Constant evaluateIdentical() {
+          // Since we canonicalize constants during the evaluation, we can use
+          // identical here.
+          Constant result = makeBoolConstant(identical(left, right));
+          if (evaluationMode == EvaluationMode.agnostic) {
+            Constant weakLeft = _weakener.visitConstant(left);
+            Constant weakRight = _weakener.visitConstant(right);
+            if (weakLeft != null || weakRight != null) {
+              Constant weakResult = makeBoolConstant(
+                  identical(weakLeft ?? left, weakRight ?? right));
+              if (!identical(result, weakResult)) {
+                report(node, messageNonAgnosticConstant);
+              }
+            }
+          }
+          return result;
+        }
+
         if (targetingJavaScript) {
           // In JavaScript, we lower [identical] to `===`, so we need to take
           // the double special cases into account.
-          return doubleSpecialCases(left, right) ??
-              makeBoolConstant(identical(left, right));
+          return doubleSpecialCases(left, right) ?? evaluateIdentical();
         }
-
-        // Since we canonicalize constants during the evaluation, we can use
-        // identical here.
-        return makeBoolConstant(identical(left, right));
+        return evaluateIdentical();
       }
     } else if (target.isExtensionMember) {
       return report(node, messageConstEvalExtension);
@@ -2270,13 +2488,20 @@ class _AbortDueToInvalidExpression {
 abstract class ErrorReporter {
   const ErrorReporter();
 
+  // TODO(johnniwinther,dmitryas): Remove the getter when the NNBD error
+  // reporting is enabled by default.
+  bool get performNnbdChecks;
+
   void report(LocatedMessage message, List<LocatedMessage> context);
 
   void reportInvalidExpression(InvalidExpression node);
 }
 
 class SimpleErrorReporter implements ErrorReporter {
-  const SimpleErrorReporter();
+  @override
+  final bool performNnbdChecks;
+
+  const SimpleErrorReporter(this.performNnbdChecks);
 
   @override
   void report(LocatedMessage message, List<LocatedMessage> context) {

@@ -26,6 +26,7 @@ class D extends B {
 }
 
 bar(B b) {
+  const dynamic x = const D(123);
   switch (b) {
     case const B(42):
       break;
@@ -34,6 +35,8 @@ bar(B b) {
     case const A(42): // Error: not a subtype of B.
       break;
     case const D(42): // Error: D has custom operator ==.
+      break;
+    case x: // Error: D has custom operator ==.
       break;
     default:
   }

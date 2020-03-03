@@ -801,7 +801,7 @@ class Object {
 #undef DECLARE_SHARED_READONLY_HANDLE
 
   friend void ClassTable::Register(const Class& cls);
-  friend void RawObject::Validate(Isolate* isolate) const;
+  friend void RawObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
   friend class SnapshotReader;
   friend class InstanceDeserializationCluster;
@@ -885,19 +885,27 @@ enum class Nullability : int8_t {
 enum class TypeEquality {
   kCanonical = 0,
   kSyntactical = 1,
-  kSubtypeNullability = 2,
-  kIgnoreNullability = 3,
+  kInSubtypeTest = 2,
 };
 
 // The NNBDMode is passed to routines performing type reification and/or subtype
 // tests. The mode reflects the opted-in status of the library performing type
 // reification and/or subtype tests.
 // Note that the weak or strong testing mode is not reflected in NNBDMode, but
-// imposed globally by the value of FLAG_strong_non_nullable_type_checks.
+// imposed globally by the value of FLAG_null_safety.
 enum class NNBDMode {
   // Status of the library:
   kLegacyLib = 0,   // Library is legacy.
   kOptedInLib = 1,  // Library is opted-in.
+};
+
+// The NNBDCompiledMode reflects the mode in which constants of the library were
+// compiled by CFE.
+enum class NNBDCompiledMode {
+  kDisabled = 0,
+  kWeak = 1,
+  kStrong = 2,
+  kAgnostic = 3,
 };
 
 class Class : public Object {
@@ -1226,13 +1234,12 @@ class Class : public Object {
         cls->ptr()->library_->ptr()->flags_);
   }
 
-  // Returns true if the type specified by cls and type_arguments is a
-  // subtype of the type specified by other class and other_type_arguments.
+  // Returns true if the type specified by cls and type_arguments is a subtype
+  // of the other type.
   static bool IsSubtypeOf(NNBDMode mode,
                           const Class& cls,
                           const TypeArguments& type_arguments,
-                          const Class& other,
-                          const TypeArguments& other_type_arguments,
+                          const AbstractType& other,
                           Heap::Space space);
 
   // Check if this is the top level class.
@@ -2512,11 +2519,28 @@ class Function : public Object {
   void set_parameter_types(const Array& value) const;
 
   // Parameter names are valid for all valid parameter indices, and are not
-  // limited to named optional parameters.
+  // limited to named optional parameters. If there are parameter flags (eg
+  // required) they're stored at the end of this array, so the size of this
+  // array isn't necessarily NumParameters(), but the first NumParameters()
+  // elements are the names.
   RawString* ParameterNameAt(intptr_t index) const;
   void SetParameterNameAt(intptr_t index, const String& value) const;
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
+
+  // The required flags are stored at the end of the parameter_names. The flags
+  // are packed into SMIs, but omitted if they're 0.
+  bool IsRequiredAt(intptr_t index) const;
+  void SetIsRequiredAt(intptr_t index) const;
+
+  // Truncate the parameter names array to remove any unused flag slots. Make
+  // sure to only do this after calling SetIsRequiredAt as necessary.
+  void TruncateUnusedParameterFlags() const;
+
+  // Returns the length of the parameter names array that is required to store
+  // all the names plus all their flags. This may be an overestimate if some
+  // parameters don't have flags.
+  static intptr_t NameArrayLengthIncludingFlags(intptr_t num_parameters);
 
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
@@ -3507,6 +3531,11 @@ class Function : public Object {
                                 const Function& other,
                                 intptr_t other_parameter_position,
                                 Heap::Space space) const;
+
+  // Returns the index in the parameter names array of the corresponding flag
+  // for the given parametere index. Also returns (via flag_mask) the
+  // corresponding mask within the flag.
+  intptr_t GetRequiredFlagIndex(intptr_t index, intptr_t* flag_mask) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
@@ -4553,6 +4582,15 @@ class Library : public Object {
 
   NNBDMode nnbd_mode() const {
     return is_nnbd() ? NNBDMode::kOptedInLib : NNBDMode::kLegacyLib;
+  }
+
+  NNBDCompiledMode nnbd_compiled_mode() const {
+    return static_cast<NNBDCompiledMode>(
+        RawLibrary::NnbdCompiledModeBits::decode(raw_ptr()->flags_));
+  }
+  void set_nnbd_compiled_mode(NNBDCompiledMode value) const {
+    set_flags(RawLibrary::NnbdCompiledModeBits::update(
+        static_cast<uint8_t>(value), raw_ptr()->flags_));
   }
 
   RawString* PrivateName(const String& name) const;
@@ -6836,6 +6874,11 @@ class Instance : public Object {
                       const TypeArguments& other_instantiator_type_arguments,
                       const TypeArguments& other_function_type_arguments) const;
 
+  // Return true if the null instance can be assigned to a variable of [other]
+  // type. Return false if null cannot be assigned or we cannot tell (if
+  // [other] is a type parameter in NNBD strong mode).
+  static bool NullIsAssignableTo(const AbstractType& other);
+
   // Returns true if the type of this instance is a subtype of FutureOr<T>
   // specified by instantiated type 'other'.
   // Returns false if other type is not a FutureOr.
@@ -7052,6 +7095,13 @@ class TypeArguments : public Instance {
   // Names of internal classes are mapped to their public interfaces.
   RawString* UserVisibleName() const;
 
+  // Print the internal or public name of a subvector of this type argument
+  // vector, e.g. "<T, dynamic, List<T>, int>".
+  void PrintSubvectorName(intptr_t from_index,
+                          intptr_t len,
+                          NameVisibility name_visibility,
+                          ZoneTextBuffer* printer) const;
+
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
   bool IsRaw(intptr_t from_index, intptr_t len) const {
@@ -7228,13 +7278,6 @@ class TypeArguments : public Instance {
                       intptr_t from_index,
                       intptr_t len) const;
 
-  // Return the internal or public name of a subvector of this type argument
-  // vector, e.g. "<T, dynamic, List<T>, int>".
-  void PrintSubvectorName(intptr_t from_index,
-                          intptr_t len,
-                          NameVisibility name_visibility,
-                          ZoneTextBuffer* printer) const;
-
   RawArray* instantiations() const;
   void set_instantiations(const Array& value) const;
   RawAbstractType* const* TypeAddr(intptr_t index) const;
@@ -7279,6 +7322,7 @@ class AbstractType : public Instance {
   virtual RawAbstractType* SetInstantiatedNullability(
       const TypeParameter& type_param,
       Heap::Space space) const;
+  virtual RawAbstractType* NormalizeInstantiatedType() const;
 
   virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
@@ -7365,6 +7409,10 @@ class AbstractType : public Instance {
   // Return a formatted string of the uris.
   static RawString* PrintURIs(URIs* uris);
 
+  // Returns a C-String (possibly "") representing the nullability of this type.
+  // Legacy and undetermined suffixes are only displayed with kInternalName.
+  virtual const char* NullabilitySuffix(NameVisibility name_visibility) const;
+
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const;
 
@@ -7406,6 +7454,13 @@ class AbstractType : public Instance {
 
   // Check if this type represents a top type.
   bool IsTopType() const;
+
+  // Check if this type represents a top type with respect to
+  // assignability and 'as' type tests, e.g. returns true if any value can be
+  // assigned to a variable of this type and 'as' type test always succeeds.
+  // Guaranteed to return true for top types according to IsTopType(), but
+  // may also return true for other types (non-nullable Object in weak mode).
+  bool IsTopTypeForAssignability() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }
@@ -10519,7 +10574,7 @@ RawClass* Object::clazz() const {
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
-  ASSERT(!Isolate::Current()->compaction_in_progress());
+  ASSERT(!IsolateGroup::Current()->compaction_in_progress());
   return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
 

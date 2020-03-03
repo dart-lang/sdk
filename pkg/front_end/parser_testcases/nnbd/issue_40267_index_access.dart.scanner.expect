@@ -1,0 +1,11 @@
+f() {
+var a, b;
+a?.[b];
+a?[b];
+}
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] a[StringToken],[SimpleToken] b[StringToken];[SimpleToken]
+a[StringToken]?.[[BeginToken]b[StringToken]][SimpleToken];[SimpleToken]
+a[StringToken]?[SimpleToken][[BeginToken]b[StringToken]][SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

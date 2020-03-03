@@ -219,6 +219,10 @@ class _DartTypeKindVisitor implements DartTypeVisitor<int, Null> {
   int visitErasedType(ErasedType type, _) => 8;
   @override
   int visitFutureOrType(FutureOrType type, _) => 9;
+  @override
+  int visitLegacyType(LegacyType type, _) => 10;
+  @override
+  int visitNullableType(NullableType type, _) => 11;
 }
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
@@ -239,16 +243,19 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
     return r;
   }
 
-  int _compareNullability(DartType a, DartType b) =>
-      a.nullability.compareTo(b.nullability);
+  @override
+  int visitLegacyType(covariant LegacyType type, covariant LegacyType other) =>
+      visit(type.baseType, other.baseType);
+
+  @override
+  int visitNullableType(
+          covariant NullableType type, covariant NullableType other) =>
+      visit(type.baseType, other.baseType);
 
   @override
   int visitFutureOrType(
-      covariant FutureOrType type, covariant FutureOrType other) {
-    int r = _compareNullability(type, other);
-    if (r != 0) return r;
-    return visit(type.typeArgument, other.typeArgument);
-  }
+          covariant FutureOrType type, covariant FutureOrType other) =>
+      visit(type.typeArgument, other.typeArgument);
 
   @override
   int visitNeverType(covariant NeverType type, covariant NeverType other) {
@@ -270,13 +277,11 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   @override
   int visitFunctionTypeVariable(covariant FunctionTypeVariable type,
       covariant FunctionTypeVariable other) {
-    int r = _compareNullability(type, other);
-    if (r != 0) return r;
     int leftIndex = _leftFunctionTypeVariables.indexOf(type);
     int rightIndex = _rightFunctionTypeVariables.indexOf(other);
     assert(leftIndex != -1);
     assert(rightIndex != -1);
-    r = leftIndex.compareTo(rightIndex);
+    int r = leftIndex.compareTo(rightIndex);
     if (r != 0) return r;
     return compare(type.bound, other.bound);
   }
@@ -284,14 +289,12 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   @override
   int visitFunctionType(
       covariant FunctionType type, covariant FunctionType other) {
-    int r = _compareNullability(type, other);
-    if (r != 0) return r;
     int oldLeftLength = _leftFunctionTypeVariables.length;
     int oldRightLength = _rightFunctionTypeVariables.length;
     _leftFunctionTypeVariables.addAll(type.typeVariables);
     _rightFunctionTypeVariables.addAll(other.typeVariables);
     try {
-      r = _compareTypeArguments(type.parameterTypes, other.parameterTypes);
+      int r = _compareTypeArguments(type.parameterTypes, other.parameterTypes);
       if (r != 0) return r;
       r = _compareTypeArguments(
           type.optionalParameterTypes, other.optionalParameterTypes);
@@ -314,9 +317,7 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   @override
   int visitInterfaceType(
       covariant InterfaceType type, covariant InterfaceType other) {
-    int r = _compareNullability(type, other);
-    if (r != 0) return r;
-    r = _constantOrdering.compareClasses(type.element, other.element);
+    int r = _constantOrdering.compareClasses(type.element, other.element);
     if (r != 0) return r;
     return _compareTypeArguments(type.typeArguments, other.typeArguments);
   }

@@ -8,7 +8,7 @@ import 'package:path/path.dart' as p;
 import 'io.dart';
 import 'log.dart';
 
-bool analyzeTests(String nnbdTestDir) {
+Future<bool> analyzeTests(String nnbdTestDir) async {
   var files = <String, _FileInfo>{};
 
   for (var entry in Directory(nnbdTestDir).listSync(recursive: true)) {
@@ -21,9 +21,18 @@ bool analyzeTests(String nnbdTestDir) {
     }
   }
 
+  // Pre-existing multi-line errors will modify the character length in the
+  // errors reported by the analyzer. Strip all errors first before updating.
+  for (var file in files.values) {
+    if (!dryRun) _removeErrors(file.path);
+  }
+
   // Analyze the directory both in legacy and NNBD modes.
-  var legacyErrors = _runAnalyzer(nnbdTestDir, nnbd: false);
-  var nnbdErrors = _runAnalyzer(nnbdTestDir, nnbd: true);
+  var legacyErrorsFuture = _runAnalyzer(nnbdTestDir, nnbd: false);
+  var nnbdErrorsFuture = _runAnalyzer(nnbdTestDir, nnbd: true);
+
+  var legacyErrors = await legacyErrorsFuture;
+  var nnbdErrors = await nnbdErrorsFuture;
 
   legacyErrors.forEach((path, errors) {
     // Sometimes the analysis reaches out to things like pkg/expect.
@@ -49,7 +58,9 @@ bool analyzeTests(String nnbdTestDir) {
 
   plural(int count, String name) => "$count $name${count == 1 ? '' : 's'}";
 
-  for (var file in files.values) {
+  var fileNames = files.keys.toList()..sort();
+  for (var fileName in fileNames) {
+    var file = files[fileName];
     if (!file.isTest) continue;
 
     // Only insert errors that are not already present when the file is
@@ -65,7 +76,7 @@ bool analyzeTests(String nnbdTestDir) {
       errorFileCount++;
     }
 
-    if (!dryRun) _updateErrors(file.path, file.addedErrors);
+    if (!dryRun) _insertErrors(file.path, file.addedErrors);
   }
 
   if (errorCount == 0) {
@@ -79,10 +90,11 @@ bool analyzeTests(String nnbdTestDir) {
   return errorCount == 0;
 }
 
-Map<String, List<_StaticError>> _runAnalyzer(String inputDir, {bool nnbd}) {
+Future<Map<String, List<_StaticError>>> _runAnalyzer(String inputDir,
+    {bool nnbd}) async {
   print("Analyzing ${p.relative(inputDir, from: testRoot)}"
       "${nnbd ? ' with NNBD' : ''}...");
-  var result = Process.runSync("dartanalyzer", [
+  var result = await Process.run("dartanalyzer", [
     "--packages=${p.join(sdkRoot, '.packages')}",
     if (nnbd) ...[
       "--dart-sdk=$nnbdSdkBuildDir",
@@ -106,9 +118,8 @@ Map<String, List<_StaticError>> _runAnalyzer(String inputDir, {bool nnbd}) {
   return errorsByFile;
 }
 
-/// Removes any previously inserted errors from the file at [path] and inserts
-/// any new errors in [errors].
-void _updateErrors(String path, List<_StaticError> errors) {
+/// Removes pre-existing errors in the file at [path].
+void _removeErrors(String path) {
   // Sanity check.
   if (!p.isWithin(testRoot, path)) {
     throw ArgumentError("$path is outside of test directory.");
@@ -125,7 +136,26 @@ void _updateErrors(String path, List<_StaticError> errors) {
     } else {
       changed = true;
     }
+  }
 
+  if (changed) {
+    writeFile(path, result.toString());
+  }
+}
+
+/// Inserts any new errors in [errors] into the file at [path].
+void _insertErrors(String path, List<_StaticError> errors) {
+  // Sanity check.
+  if (!p.isWithin(testRoot, path)) {
+    throw ArgumentError("$path is outside of test directory.");
+  }
+
+  var lines = readFileLines(path);
+  var result = StringBuffer();
+  var changed = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    result.writeln(lines[i]);
     // TODO(rnystrom): Inefficient.
     for (var error in errors) {
       if (error.line == i + 1) {

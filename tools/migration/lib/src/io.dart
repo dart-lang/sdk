@@ -83,7 +83,10 @@ void writeFile(String path, String contents) {
     return;
   }
 
-  File(p.join(testRoot, path)).writeAsStringSync(contents);
+  final oldContents = File(p.join(testRoot, path)).readAsStringSync();
+  if (oldContents != contents) {
+    File(p.join(testRoot, path)).writeAsStringSync(contents);
+  }
 }
 
 /// Whether the contents of the files at [aPath] and [bPath] are identical.

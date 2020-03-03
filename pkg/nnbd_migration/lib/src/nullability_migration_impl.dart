@@ -126,7 +126,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   void prepareInput(ResolvedUnitResult result) {
     if (_variables == null) {
       _variables = Variables(_graph, result.typeProvider,
-          instrumentation: _instrumentation);
+          instrumentation: _instrumentation,
+          postmortemFileWriter: _postmortemFileWriter);
       _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
     }
     var unit = result.unit;

@@ -244,19 +244,19 @@ class Cursor extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get direction => JS("String", "#.direction", this);
+  String get direction native;
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
-  Object? get key => JS("Object", "#.key", this);
+  Object? get key native;
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
-  Object? get primaryKey => JS("Object", "#.primaryKey", this);
+  Object? get primaryKey native;
 
   @Creates('Null')
   @Returns('ObjectStore|Index|Null')
-  Object? get source => JS("Object", "#.source", this);
+  Object? get source native;
 
   void advance(int count) native;
 
@@ -289,7 +289,7 @@ class CursorWithValue extends Cursor {
   @JSName('value')
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  dynamic get _get_value => JS("", "#.value", this);
+  dynamic get _get_value native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -400,16 +400,15 @@ class Database extends EventTarget {
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent =
       const EventStreamProvider<VersionChangeEvent>('versionchange');
 
-  String get name => JS("String", "#.name", this);
+  String get name native;
 
   @Returns('DomStringList')
   @Creates('DomStringList')
-  List<String> get objectStoreNames =>
-      JS("DomStringList", "#.objectStoreNames", this);
+  List<String> get objectStoreNames native;
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  int get version => JS("int", "#.version", this);
+  int get version native;
 
   void close() native;
 
@@ -655,19 +654,17 @@ class Index extends Interceptor {
   }
 
   @annotation_Creates_SerializedScriptValue
-  Object? get keyPath => JS("Object", "#.keyPath", this);
+  Object? get keyPath native;
 
-  bool get multiEntry => JS("bool", "#.multiEntry", this);
+  bool get multiEntry native;
 
-  String get name => JS("String", "#.name", this);
+  String get name native;
 
-  set name(String value) {
-    JS("void", "#.name = #", this, value);
-  }
+  set name(String value) native;
 
-  ObjectStore get objectStore => JS("ObjectStore", "#.objectStore", this);
+  ObjectStore get objectStore native;
 
-  bool get unique => JS("bool", "#.unique", this);
+  bool get unique native;
 
   @JSName('count')
   Request _count(Object? key) native;
@@ -728,14 +725,14 @@ class KeyRange extends Interceptor {
   }
 
   @annotation_Creates_SerializedScriptValue
-  Object? get lower => JS("Object", "#.lower", this);
+  Object? get lower native;
 
-  bool get lowerOpen => JS("bool", "#.lowerOpen", this);
+  bool get lowerOpen native;
 
   @annotation_Creates_SerializedScriptValue
-  Object? get upper => JS("Object", "#.upper", this);
+  Object? get upper native;
 
-  bool get upperOpen => JS("bool", "#.upperOpen", this);
+  bool get upperOpen native;
 
   @JSName('bound')
   static KeyRange bound_(Object lower, Object upper,
@@ -882,22 +879,20 @@ class ObjectStore extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get autoIncrement => JS("bool", "#.autoIncrement", this);
+  bool get autoIncrement native;
 
   @Returns('DomStringList')
   @Creates('DomStringList')
-  List<String> get indexNames => JS("DomStringList", "#.indexNames", this);
+  List<String> get indexNames native;
 
   @annotation_Creates_SerializedScriptValue
-  Object? get keyPath => JS("Object", "#.keyPath", this);
+  Object? get keyPath native;
 
-  String get name => JS("String", "#.name", this);
+  String get name native;
 
-  set name(String value) {
-    JS("void", "#.name = #", this, value);
-  }
+  set name(String value) native;
 
-  Transaction get transaction => JS("Transaction", "#.transaction", this);
+  Transaction get transaction native;
 
   @Returns('Request')
   @Creates('Request')
@@ -1031,11 +1026,11 @@ class Observation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Object? get key => JS("Object", "#.key", this);
+  Object? get key native;
 
-  String get type => JS("String", "#.type", this);
+  String get type native;
 
-  Object? get value => JS("Object", "#.value", this);
+  Object? get value native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1077,11 +1072,11 @@ class ObserverChanges extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Database get database => JS("Database", "#.database", this);
+  Database get database native;
 
-  Object? get records => JS("Object", "#.records", this);
+  Object? get records native;
 
-  Transaction get transaction => JS("Transaction", "#.transaction", this);
+  Transaction get transaction native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1150,19 +1145,19 @@ class Request extends EventTarget {
   static const EventStreamProvider<Event> successEvent =
       const EventStreamProvider<Event>('success');
 
-  DomException get error => JS("DomException", "#.error", this);
+  DomException get error native;
 
-  String get readyState => JS("String", "#.readyState", this);
+  String get readyState native;
 
   dynamic get result => _convertNativeToDart_IDBAny(this._get_result);
   @JSName('result')
   @Creates('Null')
-  dynamic get _get_result => JS("", "#.result", this);
+  dynamic get _get_result native;
 
   @Creates('Null')
-  Object? get source => JS("Object", "#.source", this);
+  Object? get source native;
 
-  Transaction get transaction => JS("Transaction", "#.transaction", this);
+  Transaction get transaction native;
 
   /// Stream of `error` events handled by this [Request].
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -1237,16 +1232,15 @@ class Transaction extends EventTarget {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  Database get db => JS("Database", "#.db", this);
+  Database get db native;
 
-  DomException get error => JS("DomException", "#.error", this);
+  DomException get error native;
 
-  String get mode => JS("String", "#.mode", this);
+  String get mode native;
 
   @Returns('DomStringList')
   @Creates('DomStringList')
-  List<String> get objectStoreNames =>
-      JS("DomStringList", "#.objectStoreNames", this);
+  List<String> get objectStoreNames native;
 
   void abort() native;
 
@@ -1288,18 +1282,18 @@ class VersionChangeEvent extends Event {
   static VersionChangeEvent _create_2(type) =>
       JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#)', type);
 
-  String get dataLoss => JS("String", "#.dataLoss", this);
+  String get dataLoss native;
 
-  String get dataLossMessage => JS("String", "#.dataLossMessage", this);
-
-  @Creates('int|String|Null')
-  @Returns('int|String|Null')
-  int? get newVersion => JS("int", "#.newVersion", this);
+  String get dataLossMessage native;
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  int get oldVersion => JS("int", "#.oldVersion", this);
+  int? get newVersion native;
+
+  @Creates('int|String|Null')
+  @Returns('int|String|Null')
+  int get oldVersion native;
 
   @JSName('target')
-  final OpenDBRequest target;
+  OpenDBRequest get target native;
 }

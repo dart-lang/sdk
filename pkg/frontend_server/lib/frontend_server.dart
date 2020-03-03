@@ -145,6 +145,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Include only bytecode into the output file', defaultsTo: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
+  ..addFlag('null-safety',
+      help:
+          'Respect the nullability of types at runtime in casts and instance checks.',
+      defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -155,7 +159,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('component-name', help: 'Name of the Fuchsia component')
   ..addOption('data-dir',
       help: 'Name of the subdirectory of //data for output files')
-  ..addOption('far-manifest', help: 'Path to output Fuchsia package manifest');
+  ..addOption('far-manifest', help: 'Path to output Fuchsia package manifest')
+  ..addOption('libraries-spec',
+      help: 'A path or uri to the libraries specification JSON file');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -369,6 +375,7 @@ class FrontendCompiler implements CompilerInterface {
       ..experimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
+      ..nnbdMode = options['null-safety'] ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -388,6 +395,11 @@ class FrontendCompiler implements CompilerInterface {
           printDiagnosticMessage(message, _outputStream.writeln);
         }
       };
+
+    if (options.wasParsed('libraries-spec')) {
+      compilerOptions.librariesSpecificationUri =
+          resolveInputUri(options['libraries-spec']);
+    }
 
     if (options.wasParsed('filesystem-root')) {
       if (_options['output-dill'] == null) {

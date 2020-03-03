@@ -186,7 +186,7 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
       var error = "Dynamic call with missing required named arguments: "
           "${missingRequired.join(', ')}.";
       if (!_strictSubtypeChecks) {
-        _warn("$error This will be an error when strict mode is enabled.");
+        _nullWarn(error);
       } else {
         return error;
       }
@@ -422,7 +422,22 @@ bool instanceOf(obj, type) {
 
 @JSExportName('as')
 cast(obj, type, @notNull bool isImplicit) {
-  if (obj == null && (_isNullable(type) || _isNullType(type))) return obj;
+  // We hoist the common case where null is checked against another type here
+  // for better performance.
+  if (obj == null) {
+    if (_isLegacy(type) ||
+        _isNullType(type) ||
+        _isTop(type) ||
+        _isNullable(type)) {
+      return obj;
+    }
+    if (_strictSubtypeChecks) {
+      return castError(obj, type, isImplicit);
+    }
+    // Check the null comparison cache to avoid emitting repeated warnings.
+    _nullWarnOnType(type);
+    return obj;
+  }
   var actual = getReifiedType(obj);
   if (isSubtypeOf(actual, type)) {
     return obj;
@@ -448,13 +463,19 @@ void booleanConversionFailed(obj) {
 }
 
 asInt(obj) {
-  if (obj == null) return null;
-
+  // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    castError(obj, JS('', '#', int), false);
+    if (obj == null && !_strictSubtypeChecks) {
+      _nullWarnOnType(JS('', '#', int));
+      return null;
+    } else {
+      castError(obj, JS('', '#', int), false);
+    }
   }
   return obj;
 }
+
+asNullableInt(obj) => obj == null ? null : asInt(obj);
 
 /// Checks that `x` is not null or undefined.
 //
@@ -466,6 +487,23 @@ asInt(obj) {
 @JSExportName('notNull')
 _notNull(x) {
   if (x == null) throwNullValueError();
+  return x;
+}
+
+/// Checks that `x` is not null or undefined.
+///
+/// Unlike `_notNull`, this throws a `CastError` (under strict checking)
+/// or emits a runtime warning (otherwise).  This is only used by the
+/// compiler when casting from nullable to non-nullable variants of the
+/// same type.
+nullCast(x, type, [@notNull bool isImplicit = false]) {
+  if (x == null) {
+    if (!_strictSubtypeChecks) {
+      _nullWarnOnType(type);
+    } else {
+      castError(x, type, isImplicit);
+    }
+  }
   return x;
 }
 

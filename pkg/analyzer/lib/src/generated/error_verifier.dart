@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1312,23 +1313,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     super.visitWithClause(node);
   }
 
-  @override
-  void visitYieldStatement(YieldStatement node) {
-    if (_inGenerator) {
-      _checkForYieldOfInvalidType(node.expression, node.star != null);
-    } else {
-      CompileTimeErrorCode errorCode;
-      if (node.star != null) {
-        errorCode = CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR;
-      } else {
-        errorCode = CompileTimeErrorCode.YIELD_IN_NON_GENERATOR;
-      }
-      _errorReporter.reportErrorForNode(errorCode, node);
-    }
-    _checkForUseOfVoidResult(node.expression);
-    super.visitYieldStatement(node);
-  }
-
   /**
    * Checks the class for problems with the superclass, mixins, or implemented
    * interfaces.
@@ -2325,7 +2309,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (_typeSystem.isStrictlyNonNullable(lhsType)) {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.DEAD_NULL_COALESCE,
+        StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION,
         rhs,
       );
     }
@@ -2419,6 +2403,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
+    // TODO(scheglov) use NullableDereferenceVerifier
+    if (_isNonNullableByDefault) {
+      if (_typeSystem.isNullable(iterableType)) {
+        return false;
+      }
+    }
+
     // The type of the loop variable.
     DartType variableType;
     var variableElement = variable.staticElement;
@@ -2444,37 +2435,46 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
     iterableType = iterableType.resolveToBound(_typeProvider.objectType);
 
-    ClassElement sequenceElement = awaitKeyword != null
-        ? _typeProvider.streamElement
-        : _typeProvider.iterableElement;
+    var requiredSequenceType = awaitKeyword != null
+        ? _typeProvider.streamDynamicType
+        : _typeProvider.iterableDynamicType;
 
-    DartType bestIterableType;
+    if (_typeSystem.isTop(iterableType)) {
+      iterableType = requiredSequenceType;
+    }
+
+    if (!_typeSystem.isAssignableTo2(iterableType, requiredSequenceType)) {
+      _errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+        node.iterable,
+        [iterableType, loopTypeName],
+      );
+      return false;
+    }
+
+    DartType sequenceElementType;
     if (iterableType is InterfaceTypeImpl) {
+      var sequenceElement = awaitKeyword != null
+          ? _typeProvider.streamElement
+          : _typeProvider.iterableElement;
       var sequenceType = iterableType.asInstanceOf(sequenceElement);
       if (sequenceType != null) {
-        bestIterableType = sequenceType.typeArguments[0];
+        sequenceElementType = sequenceType.typeArguments[0];
       }
     }
 
-    // Allow it to be a supertype of Iterable<T> (basically just Object) and do
-    // an implicit downcast to Iterable<dynamic>.
-    if (bestIterableType == null) {
-      if (iterableType == _typeProvider.objectType) {
-        bestIterableType = DynamicTypeImpl.instance;
-      }
+    if (sequenceElementType == null) {
+      return true;
     }
 
-    if (bestIterableType == null) {
+    if (!_typeSystem.isAssignableTo2(sequenceElementType, variableType)) {
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
-          node.iterable,
-          [iterableType, loopTypeName]);
-    } else if (!_typeSystem.isAssignableTo2(bestIterableType, variableType)) {
-      _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
-          node.iterable,
-          [iterableType, loopTypeName, variableType]);
+        StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+        node.iterable,
+        [iterableType, loopTypeName, variableType],
+      );
     }
+
     return true;
   }
 
@@ -2811,7 +2811,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForFinalNotInitializedInClass(List<ClassMember> members) {
     for (ClassMember classMember in members) {
       if (classMember is ConstructorDeclaration) {
-        return;
+        if (_isNonNullableByDefault) {
+          if (classMember.factoryKeyword == null) {
+            return;
+          }
+        } else {
+          return;
+        }
       }
     }
     for (ClassMember classMember in members) {
@@ -4181,8 +4187,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               parameter.identifier);
         }
       }
-      _checkForRedirectToNonConstConstructor(declaration.declaredElement,
-          redirectedConstructor.staticElement, redirectedConstructor);
+      _checkForRedirectToNonConstConstructor(
+        declaration.declaredElement,
+        redirectedConstructor.staticElement,
+        redirectedConstructor,
+      );
     }
     // check if there are redirected invocations
     int numRedirections = 0;
@@ -4217,8 +4226,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
         // [declaration] is a redirecting constructor via a redirecting
         // initializer.
-        _checkForRedirectToNonConstConstructor(declaration.declaredElement,
-            initializer.staticElement, initializer.constructorName);
+        _checkForRedirectToNonConstConstructor(
+          declaration.declaredElement,
+          initializer.staticElement,
+          initializer.constructorName ?? initializer.thisKeyword,
+        );
         numRedirections++;
       }
     }
@@ -4250,15 +4262,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
    */
-  void _checkForRedirectToNonConstConstructor(ConstructorElement element,
-      ConstructorElement redirectedElement, AstNode reportingNode) {
+  void _checkForRedirectToNonConstConstructor(
+    ConstructorElement element,
+    ConstructorElement redirectedElement,
+    SyntacticEntity errorEntity,
+  ) {
     // This constructor is const, but it redirects to a non-const constructor.
     if (redirectedElement != null &&
         element.isConst &&
         !redirectedElement.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
-          reportingNode);
+      _errorReporter.reportErrorForOffset(
+        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+        errorEntity.offset,
+        errorEntity.end - errorEntity.offset,
+      );
     }
   }
 
@@ -5071,52 +5088,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           variance.toKeywordString()
         ],
       );
-    }
-  }
-
-  /**
-   * Check for a type mis-match between the yielded type and the declared
-   * return type of a generator function.
-   *
-   * This method should only be called in generator functions.
-   */
-  void _checkForYieldOfInvalidType(
-      Expression yieldExpression, bool isYieldEach) {
-    assert(_inGenerator);
-    if (_enclosingFunction == null) {
-      return;
-    }
-    DartType declaredReturnType = _enclosingFunction.returnType;
-    DartType staticYieldedType = getStaticType(yieldExpression);
-    DartType impliedReturnType;
-    if (isYieldEach) {
-      impliedReturnType = staticYieldedType;
-    } else if (_enclosingFunction.isAsynchronous) {
-      impliedReturnType = _typeProvider.streamType2(staticYieldedType);
-    } else {
-      impliedReturnType = _typeProvider.iterableType2(staticYieldedType);
-    }
-    if (!_checkForAssignableExpressionAtType(yieldExpression, impliedReturnType,
-        declaredReturnType, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE)) {
-      return;
-    }
-    if (isYieldEach) {
-      // Since the declared return type might have been "dynamic", we need to
-      // also check that the implied return type is assignable to generic
-      // Stream/Iterable.
-      DartType requiredReturnType;
-      if (_enclosingFunction.isAsynchronous) {
-        requiredReturnType = _typeProvider.streamDynamicType;
-      } else {
-        requiredReturnType = _typeProvider.iterableDynamicType;
-      }
-      if (!_typeSystem.isAssignableTo2(impliedReturnType, requiredReturnType)) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
-            yieldExpression,
-            [impliedReturnType, requiredReturnType]);
-        return;
-      }
     }
   }
 

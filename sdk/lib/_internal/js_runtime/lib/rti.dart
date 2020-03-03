@@ -17,7 +17,8 @@ import 'dart:_foreign_helper'
         JS_GET_FLAG,
         JS_GET_NAME,
         RAW_DART_FUNCTION_REF,
-        TYPE_REF;
+        TYPE_REF,
+        LEGACY_TYPE_REF;
 
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSUnmodifiableArray;
@@ -1676,7 +1677,6 @@ class _Universe {
       } else if (baseKind == Rti.kindStar) {
         Rti starArgument = Rti._getStarArgument(baseType);
         int starArgumentKind = Rti._getKind(starArgument);
-        // TODO(fishythefish): Directly test for `LEGACY_TYPE_REF<Never>()`.
         if (starArgumentKind == Rti.kindNever) {
           return TYPE_REF<Null>();
         } else if (starArgumentKind == Rti.kindFutureOr &&
@@ -1707,16 +1707,11 @@ class _Universe {
       universe, Rti baseType, String key, bool normalize) {
     if (normalize) {
       int baseKind = Rti._getKind(baseType);
-      if (isTopType(baseType) ||
-          isObjectType(baseType) ||
-          // TODO(fishythefish): Directly test for `LEGACY_TYPE_REF<Object>()`.
-          baseKind == Rti.kindStar &&
-              isObjectType(Rti._getStarArgument(baseType))) {
+      if (isTopType(baseType) || isObjectType(baseType)) {
         return baseType;
       } else if (baseKind == Rti.kindNever) {
         return _lookupFutureRti(universe, baseType);
       } else if (isNullType(baseType)) {
-        // TODO(fishythefish): Use `TYPE_REF<Future<Null>?>()`.
         return JS_GET_FLAG('NNBD')
             ? _lookupQuestionRti(universe, TYPE_REF<Future<Null>>(), false)
             : TYPE_REF<Future<Null>>();
@@ -2826,10 +2821,8 @@ bool isStrongTopType(Rti t) {
 }
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
-// TODO(fishythefish): Use `LEGACY_TYPE_REF<Object>()`.
 bool isLegacyObjectType(Rti t) =>
-    Rti._getKind(t) == Rti.kindStar && isObjectType(Rti._getStarArgument(t));
-// TODO(fishythefish): Use `TYPE_REF<Object?>()`.
+    _Utils.isIdentical(t, LEGACY_TYPE_REF<Object>());
 bool isNullableObjectType(Rti t) =>
     Rti._getKind(t) == Rti.kindQuestion &&
     isObjectType(Rti._getQuestionArgument(t));

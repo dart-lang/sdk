@@ -770,8 +770,8 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   auto& type = AbstractType::Handle(zone);
   for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
     type = function.ParameterTypeAt(i);
-    if (!type.IsTopType() && !is_generic_covariant_impl.Contains(i) &&
-        !is_covariant.Contains(i)) {
+    if (!type.IsTopTypeForAssignability() &&
+        !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
       return true;
     }
   }

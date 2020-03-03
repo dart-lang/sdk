@@ -30,8 +30,13 @@ import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
+
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
+
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -63,6 +68,23 @@ class MessageTestDescription extends TestDescription {
 
   MessageTestDescription(this.uri, this.shortName, this.name, this.data,
       this.example, this.problem);
+}
+
+class Configuration {
+  final NnbdMode nnbdMode;
+
+  const Configuration(this.nnbdMode);
+
+  CompilerOptions apply(CompilerOptions options) {
+    if (nnbdMode != null) {
+      options.experimentalFlags[ExperimentalFlag.nonNullable] = true;
+      options.performNnbdChecks = true;
+      options.nnbdMode = nnbdMode;
+    }
+    return options;
+  }
+
+  static const Configuration defaultConfiguration = const Configuration(null);
 }
 
 class MessageTestSuite extends ChainContext {
@@ -119,6 +141,7 @@ class MessageTestSuite extends ChainContext {
       const String spellingPostMessage = "\nIf the word(s) look okay, update "
           "'spell_checking_list_messages.txt' or "
           "'spell_checking_list_common.txt'.";
+      Configuration configuration;
 
       Source source;
       List<String> formatSpellingMistakes(
@@ -285,6 +308,16 @@ class MessageTestSuite extends ChainContext {
             }
             break;
 
+          case "configuration":
+            if (value == "nnbd-weak") {
+              configuration = const Configuration(NnbdMode.Weak);
+            } else if (value == "nnbd-strong") {
+              configuration = const Configuration(NnbdMode.Strong);
+            } else {
+              throw new ArgumentError("Unknown configuration '$value'.");
+            }
+            break;
+
           default:
             unknownKeys.add(key);
         }
@@ -295,6 +328,10 @@ class MessageTestSuite extends ChainContext {
         for (Example example in examples) {
           example.allowMoreCodes = exampleAllowMoreCodes;
         }
+      }
+      for (Example example in examples) {
+        example.configuration =
+            configuration ?? Configuration.defaultConfiguration;
       }
 
       MessageTestDescription createDescription(
@@ -434,6 +471,8 @@ abstract class Example {
 
   bool allowMoreCodes = false;
 
+  Configuration configuration;
+
   Example(this.name, this.expectedCode);
 
   YamlNode get node;
@@ -559,8 +598,11 @@ class PartWrapExample extends Example {
   final Example example;
   @override
   final bool allowMoreCodes;
+
   PartWrapExample(String name, String code, this.allowMoreCodes, this.example)
-      : super(name, code);
+      : super(name, code) {
+    configuration = example.configuration;
+  }
 
   @override
   Uint8List get bytes => throw "Unsupported: PartWrapExample.bytes";
@@ -650,14 +692,14 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
     List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 
     await suite.compiler.batchCompile(
-        new CompilerOptions()
+        example.configuration.apply(new CompilerOptions()
           ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
               .resolve("vm_platform_strong.dill")
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
           ..packagesFileUri = dotPackagesUri
           ..onDiagnostic = messages.add
-          ..environmentDefines = const {},
+          ..environmentDefines = const {}),
         main,
         output);
 

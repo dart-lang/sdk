@@ -8,7 +8,6 @@ import 'dart:core';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
-import 'package:analyzer/dart/analysis/features.dart' as analyzer_features;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
@@ -51,6 +50,7 @@ import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
+import 'package:analyzer/dart/analysis/features.dart' as analyzer_features;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -363,6 +363,11 @@ class AnalysisServer extends AbstractAnalysisServer {
         resourceProvider.pathContext.normalize(path) == path;
   }
 
+  @override
+  void notifyFlutterWidgetDescriptions(String path) {
+    flutterWidgetDescriptions.flush();
+  }
+
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   void reanalyze() {
@@ -475,6 +480,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       throw RequestFailure(Response.unsupportedFeature(requestId, e.message));
     }
     addContextsToDeclarationsTracker();
+    analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
   }
 
   /// Implementation for `analysis.setSubscriptions`.
@@ -626,6 +632,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       contextManager.getDriverFor(file)?.addFile(file);
 
       notifyDeclarationsTracker(file);
+      notifyFlutterWidgetDescriptions(file);
 
       // TODO(scheglov) implement other cases
     });
@@ -903,6 +910,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
+    analysisServer.notifyFlutterWidgetDescriptions(event.path);
     analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 

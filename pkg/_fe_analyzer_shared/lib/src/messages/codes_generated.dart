@@ -6032,6 +6032,14 @@ const MessageCode messageNoUnnamedConstructorInObject = const MessageCode(
     message: r"""'Object' has no unnamed constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAgnosticConstant = messageNonAgnosticConstant;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAgnosticConstant = const MessageCode(
+    "NonAgnosticConstant",
+    message: r"""Constant value is not strong/weak mode agnostic.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String character,

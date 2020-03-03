@@ -487,9 +487,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * expression with a potentially non-nullable return type may completely
    * normally.
    */
-  static const CompileTimeErrorCode BODY_MAY_COMPLETE_NORMALLY =
+  static const CompileTimeErrorCode BODY_MIGHT_COMPLETE_NORMALLY =
       CompileTimeErrorCode(
-          'BODY_MAY_COMPLETE_NORMALLY',
+          'BODY_MIGHT_COMPLETE_NORMALLY',
           "The body might complete normally, which would cause 'null' to be "
               "returned, but the return type is a potentially "
               "non-nullable type.",
@@ -1747,7 +1747,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Examples
   //
-  // The following code generates this diagnostic:
+  // The following code produces this diagnostic:
   //
   // ```dart
   // var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
@@ -3083,7 +3083,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class A {}
   //
   // class C {
-  //   factory [!A!]() => null;
+  //   factory [!A!]() => throw 0;
   // }
   // ```
   //
@@ -3096,7 +3096,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class A {}
   //
   // class C {
-  //   factory C() => null;
+  //   factory C() => throw 0;
   // }
   // ```
   //
@@ -3105,7 +3105,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // class A {
-  //   factory A() => null;
+  //   factory A() => throw 0;
   // }
   //
   // class C {}
@@ -3119,7 +3119,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class A {}
   //
   // class C {
-  //   static A a() => null;
+  //   static A a() => throw 0;
   // }
   // ```
   static const CompileTimeErrorCode INVALID_FACTORY_NAME_NOT_A_CLASS =
@@ -4443,13 +4443,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * marked with the `late` modifier.
    *
    * Parameters:
-   *
-   * Parameters:
    * 0: the name of the field that is not initialized
    */
   static const CompileTimeErrorCode
       NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
           'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
           "Non-nullable instance field '{0}' must be initialized.",
           correction: "Try adding an initializer expression, "
@@ -4479,7 +4478,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Examples
   //
-  // The following code generates this diagnostic:
+  // The following code produces this diagnostic:
   //
   // ```dart
   // var m = <String, int>{'a': 0, 'b': 1};
@@ -4904,7 +4903,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `f` is a function:
   //
   // ```dart
-  // C f() => null;
+  // C f() => throw 0;
   //
   // class C {
   //   factory C() = [!f!];
@@ -4923,7 +4922,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // the constructor to return the value from the constructor's body:
   //
   // ```dart
-  // C f() => null;
+  // C f() => throw 0;
   //
   // class C {
   //   factory C() => f();
@@ -7745,9 +7744,11 @@ class StaticWarningCode extends AnalyzerErrorCode {
   /**
    * It is a warning to use null aware operators '??' or '??=' on an
    * expression of type `T` if `T` is strictly non-nullable.
+   *
+   * No parameters.
    */
-  static const StaticWarningCode DEAD_NULL_COALESCE = StaticWarningCode(
-      'DEAD_NULL_COALESCE',
+  static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
+      'DEAD_NULL_AWARE_EXPRESSION',
       "The left operand can't be null, so the right operand is never executed.",
       correction: "Try removing the right operand.",
       errorSeverity: ErrorSeverity.WARNING);

@@ -6,11 +6,14 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub/src/package_config.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -260,10 +263,18 @@ class FantasySubPackage {
       resourceProvider.pathContext.normalize(resourceProvider.pathContext
           .join(containingRepo.repoRoot.path, packageSettings.subDir)));
 
+  String get languageVersion => extractLanguageVersion(versionConstraint);
+
+  VersionConstraint _versionConstraint;
+  VersionConstraint get versionConstraint =>
+      _versionConstraint ??= SdkConstraintExtractor(pubspecYaml).constraint();
+
+  File _pubspecYaml;
+  File get pubspecYaml => _pubspecYaml ??= resourceProvider.getFile(
+      resourceProvider.pathContext.join(packageRoot.path, 'pubspec.yaml'));
+
   Future<void> _acceptPubspecVisitor<T>(
       PubspecVisitor<T> pubspecVisitor) async {
-    File pubspecYaml = resourceProvider.getFile(
-        resourceProvider.pathContext.join(packageRoot.path, 'pubspec.yaml'));
     if (!pubspecYaml.exists) return;
     Pubspec pubspec = Pubspec.parse(pubspecYaml.readAsStringSync(),
         sourceUrl: resourceProvider.pathContext.toUri(pubspecYaml.path));
@@ -300,6 +311,18 @@ class FantasySubPackage {
     // TODO(jcollins-g): implement
   }
 
+  static final RegExp _sdkConstraint = RegExp(r'^\s+sdk:\s+.*');
+
+  Future<void> removeSdkConstraintHack() async {
+    if (pubspecYaml.exists) {
+      List<String> lines = pubspecYaml.readAsStringSync().split('\n');
+      lines = lines.where((l) => !_sdkConstraint.hasMatch(l)).toList();
+      pubspecYaml.writeAsStringSync(lines.join('\n'));
+    }
+    _pubspecYaml = null;
+    _versionConstraint = null;
+  }
+
   /// Modify all analysis_options.yaml file to include the nullability
   /// experiment.
   Future<void> enableExperimentHack() async {
@@ -308,7 +331,8 @@ class FantasySubPackage {
     // TODO(jcollins-g): Remove this hack once no longer needed.
     File optionsFile =
         packageRoot.getChildAssumingFile('analysis_options.yaml');
-    SourceChange sourceChange = SourceChange('fantasy_sub_package-$name');
+    SourceChange sourceChange =
+        SourceChange('fantasy_sub_package-experimenthack-$name');
     String optionsContent;
     YamlNode optionsMap;
     if (optionsFile.exists) {

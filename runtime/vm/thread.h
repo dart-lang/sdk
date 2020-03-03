@@ -271,6 +271,11 @@ class Thread : public ThreadState {
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
+  static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
+                                        TaskKind kind,
+                                        bool bypass_safepoint);
+  static void ExitIsolateGroupAsHelper(bool bypass_safepoint);
+
   // Empties the store buffer block into the isolate.
   void ReleaseStoreBuffer();
   void AcquireMarkingStack();
@@ -862,7 +867,7 @@ class Thread : public ThreadState {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  uword stack_limit_;
+  RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
   Isolate* isolate_;
   uword* dispatch_table_array_;
@@ -981,6 +986,7 @@ class Thread : public ThreadState {
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
+  bool is_mutator_thread_ = false;
 
   explicit Thread(bool is_vm_isolate);
 
@@ -1021,9 +1027,13 @@ class Thread : public ThreadState {
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
+  friend class NoActiveIsolateScope;
   friend class CompilerState;
   friend class compiler::target::Thread;
   friend class FieldTable;
+  friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
+                                                   const char*,
+                                                   char**);
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

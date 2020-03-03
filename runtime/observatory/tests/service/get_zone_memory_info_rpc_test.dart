@@ -12,7 +12,7 @@ var tests = <VMTest>[
     isInstanceOf<int> isInt = new isInstanceOf<int>();
     // Just iterate over all the isolates to confirm they have
     // the correct fields needed to examine zone memory usage.
-    for (Isolate isolate in vm.isolates) {
+    for (Isolate isolate in new List.from(vm.isolates)) {
       await isolate.reload();
       expect(isolate.zoneHighWatermark, isInt);
       expect(isolate.threads, isNotNull);

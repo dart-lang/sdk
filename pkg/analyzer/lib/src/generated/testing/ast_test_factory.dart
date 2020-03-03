@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -138,11 +139,13 @@ class AstTestFactory {
           identifier3(label), TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static IndexExpression cascadedIndexExpression(Expression index) =>
-      astFactory.indexExpressionForCascade(
-          TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForCascade2(
+          period: TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
+          leftBracket:
+              TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static MethodInvocation cascadedMethodInvocation(String methodName,
           [List<Expression> arguments]) =>
@@ -287,12 +290,14 @@ class AstTestFactory {
           directives: directives ?? <Directive>[],
           declarations: declarations ?? <CompilationUnitMember>[],
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
+          languageVersion: null,
           featureSet: null);
 
   static CompilationUnit compilationUnit9(
           {String scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations,
+          LanguageVersion languageVersion,
           FeatureSet featureSet}) =>
       astFactory.compilationUnit(
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
@@ -301,6 +306,7 @@ class AstTestFactory {
           directives: directives ?? <Directive>[],
           declarations: declarations ?? <CompilationUnitMember>[],
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
+          languageVersion: languageVersion,
           featureSet: featureSet);
 
   static ConditionalExpression conditionalExpression(Expression condition,
@@ -774,19 +780,21 @@ class AstTestFactory {
 
   static IndexExpression indexExpression(Expression array, Expression index,
           [TokenType leftBracket = TokenType.OPEN_SQUARE_BRACKET]) =>
-      astFactory.indexExpressionForTarget(
-          array,
-          TokenFactory.tokenFromType(leftBracket),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForTarget2(
+          target: array,
+          leftBracket: TokenFactory.tokenFromType(leftBracket),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static IndexExpression indexExpressionForCascade(Expression array,
           Expression index, TokenType period, TokenType leftBracket) =>
-      astFactory.indexExpressionForCascade(
-          TokenFactory.tokenFromType(period),
-          TokenFactory.tokenFromType(leftBracket),
-          index,
-          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+      astFactory.indexExpressionForCascade2(
+          period: TokenFactory.tokenFromType(period),
+          leftBracket: TokenFactory.tokenFromType(leftBracket),
+          index: index,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static InstanceCreationExpression instanceCreationExpression(
           Keyword keyword, ConstructorName name,

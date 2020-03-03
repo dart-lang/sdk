@@ -2480,6 +2480,12 @@ void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
+void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
+    Assembler* assembler) {
+  // Not implemented on ia32.
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
   // Not implemented on ia32.
   __ Breakpoint();
@@ -2491,6 +2497,12 @@ void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
+    Assembler* assembler) {
+  // Not implemented on ia32.
+  __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
     Assembler* assembler) {
   // Not implemented on ia32.
   __ Breakpoint();

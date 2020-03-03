@@ -22,10 +22,7 @@ DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 SharedClassTable::SharedClassTable()
     : top_(kNumPredefinedCids),
       capacity_(0),
-      table_(NULL),
-      old_tables_(new MallocGrowableArray<intptr_t*>()),
-      unboxed_fields_map_(nullptr),
-      old_unboxed_fields_maps_(new MallocGrowableArray<UnboxedFieldBitmap*>()) {
+      old_tables_(new MallocGrowableArray<void*>()) {
   if (Dart::vm_isolate() == NULL) {
     ASSERT(kInitialCapacity >= kNumPredefinedCids);
     capacity_ = kInitialCapacity;
@@ -33,7 +30,7 @@ SharedClassTable::SharedClassTable()
     table_ = static_cast<intptr_t*>(calloc(capacity_, sizeof(intptr_t)));
   } else {
     // Duplicate the class table from the VM isolate.
-    auto vm_shared_class_table = Dart::vm_isolate()->shared_class_table();
+    auto vm_shared_class_table = Dart::vm_isolate()->group()->class_table();
     capacity_ = vm_shared_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
     table_ = static_cast<intptr_t*>(calloc(capacity_, sizeof(RawClass*)));
@@ -52,33 +49,23 @@ SharedClassTable::SharedClassTable()
     table_[kNeverCid] = vm_shared_class_table->SizeAt(kNeverCid);
   }
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+  // Note that [calloc] will zero-initialize the memory.
   unboxed_fields_map_ = static_cast<UnboxedFieldBitmap*>(
-      malloc(capacity_ * sizeof(UnboxedFieldBitmap)));
-  memset(unboxed_fields_map_, 0, sizeof(UnboxedFieldBitmap) * capacity_);
+      calloc(capacity_, sizeof(UnboxedFieldBitmap)));
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 #ifndef PRODUCT
+  // Note that [calloc] will zero-initialize the memory.
   trace_allocation_table_ =
-      static_cast<uint8_t*>(malloc(capacity_ * sizeof(uint8_t)));  // NOLINT
-  for (intptr_t i = 0; i < capacity_; i++) {
-    trace_allocation_table_[i] = 0;
-  }
+      static_cast<uint8_t*>(calloc(capacity_, sizeof(uint8_t)));
 #endif  // !PRODUCT
 }
 SharedClassTable::~SharedClassTable() {
   if (old_tables_ != NULL) {
     FreeOldTables();
     delete old_tables_;
-    free(table_);
   }
-
-  if (old_unboxed_fields_maps_ != nullptr) {
-    FreeOldUnboxedFieldsMaps();
-    delete old_unboxed_fields_maps_;
-  }
-
-  if (unboxed_fields_map_ != nullptr) {
-    free(unboxed_fields_map_);
-  }
+  free(table_);
+  free(unboxed_fields_map_);
 
   NOT_IN_PRODUCT(free(trace_allocation_table_));
 }
@@ -114,14 +101,6 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
   }
 }
 
-ClassTable::ClassTable(ClassTable* original,
-                       SharedClassTable* shared_class_table)
-    : top_(original->top_),
-      capacity_(original->top_),
-      table_(original->table_),
-      old_class_tables_(nullptr),
-      shared_class_table_(shared_class_table) {}
-
 ClassTable::~ClassTable() {
   if (old_class_tables_ != nullptr) {
     FreeOldTables();
@@ -149,12 +128,6 @@ void SharedClassTable::AddOldTable(intptr_t* old_table) {
 void SharedClassTable::FreeOldTables() {
   while (old_tables_->length() > 0) {
     free(old_tables_->RemoveLast());
-  }
-}
-
-void SharedClassTable::FreeOldUnboxedFieldsMaps() {
-  while (old_unboxed_fields_maps_->length() > 0) {
-    free(old_unboxed_fields_maps_->RemoveLast());
   }
 }
 
@@ -237,11 +210,13 @@ void ClassTable::Grow(intptr_t new_capacity) {
 
   auto new_table = static_cast<RawClass**>(
       malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
-  memmove(new_table, table_, top_ * sizeof(RawClass*));
-  memset(new_table + top_, 0, (new_capacity - top_) * sizeof(RawClass*));
-  capacity_ = new_capacity;
+  memmove(new_table, table_, capacity_ * sizeof(RawClass*));
+  memset(new_table + capacity_, 0,
+         (new_capacity - capacity_) * sizeof(RawClass*));
   old_class_tables_->Add(table_);
   table_ = new_table;  // TODO(koda): This should use atomics.
+
+  capacity_ = new_capacity;
 }
 
 void SharedClassTable::AllocateIndex(intptr_t index) {
@@ -265,33 +240,36 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
   intptr_t* new_table = static_cast<intptr_t*>(
       malloc(new_capacity * sizeof(intptr_t)));  // NOLINT
 
-  memmove(new_table, table_, top_ * sizeof(intptr_t));
-  memset(new_table + top_, 0, (new_capacity - top_) * sizeof(intptr_t));
-#ifndef PRODUCT
-  auto new_stats_table =
-      static_cast<uint8_t*>(realloc(trace_allocation_table_,
-                                    new_capacity * sizeof(uint8_t)));  // NOLINT
-#endif
-  for (intptr_t i = capacity_; i < new_capacity; i++) {
-    new_table[i] = 0;
-    NOT_IN_PRODUCT(new_stats_table[i] = 0);
-  }
+  memmove(new_table, table_, capacity_ * sizeof(intptr_t));
+  memset(new_table + capacity_, 0,
+         (new_capacity - capacity_) * sizeof(intptr_t));
 
-  capacity_ = new_capacity;
+#if !defined(PRODUCT)
+  auto new_trace_table =
+      static_cast<uint8_t*>(malloc(new_capacity * sizeof(uint8_t)));  // NOLINT
+  memmove(new_trace_table, trace_allocation_table_,
+          capacity_ * sizeof(uint8_t));
+  memset(new_trace_table + capacity_, 0,
+         (new_capacity - capacity_) * sizeof(uint8_t));
+#endif
+
   old_tables_->Add(table_);
   table_ = new_table;  // TODO(koda): This should use atomics.
-  NOT_IN_PRODUCT(trace_allocation_table_ = new_stats_table);
+  NOT_IN_PRODUCT(old_tables_->Add(trace_allocation_table_));
+  NOT_IN_PRODUCT(trace_allocation_table_ = new_trace_table);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
   auto new_unboxed_fields_map = static_cast<UnboxedFieldBitmap*>(
       malloc(new_capacity * sizeof(UnboxedFieldBitmap)));
   memmove(new_unboxed_fields_map, unboxed_fields_map_,
-          top_ * sizeof(UnboxedFieldBitmap));
-  memset(new_unboxed_fields_map + top_, 0,
-         (new_capacity - top_) * sizeof(UnboxedFieldBitmap));
-  old_unboxed_fields_maps_->Add(unboxed_fields_map_);
+          capacity_ * sizeof(UnboxedFieldBitmap));
+  memset(new_unboxed_fields_map + capacity_, 0,
+         (new_capacity - capacity_) * sizeof(UnboxedFieldBitmap));
+  old_tables_->Add(unboxed_fields_map_);
   unboxed_fields_map_ = new_unboxed_fields_map;
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+
+  capacity_ = new_capacity;
 }
 
 void ClassTable::Unregister(intptr_t index) {
@@ -308,26 +286,23 @@ void SharedClassTable::Unregister(intptr_t index) {
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());
-  shared_class_table_->Remap(old_to_new_cid);
-
   const intptr_t num_cids = NumCids();
-  auto cls_by_old_cid = new RawClass*[num_cids];
-  memmove(cls_by_old_cid, table_, sizeof(RawClass*) * num_cids);
+  std::unique_ptr<RawClass*[]> cls_by_old_cid(new RawClass*[num_cids]);
+  memmove(cls_by_old_cid.get(), table_, sizeof(RawClass*) * num_cids);
   for (intptr_t i = 0; i < num_cids; i++) {
     table_[old_to_new_cid[i]] = cls_by_old_cid[i];
   }
-  delete[] cls_by_old_cid;
 }
 
 void SharedClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   const intptr_t num_cids = NumCids();
-  std::unique_ptr<intptr_t[]> cls_by_old_cid(new intptr_t[num_cids]);
+  std::unique_ptr<intptr_t[]> size_by_old_cid(new intptr_t[num_cids]);
   for (intptr_t i = 0; i < num_cids; i++) {
-    cls_by_old_cid[i] = table_[i];
+    size_by_old_cid[i] = table_[i];
   }
   for (intptr_t i = 0; i < num_cids; i++) {
-    table_[old_to_new_cid[i]] = cls_by_old_cid[i];
+    table_[old_to_new_cid[i]] = size_by_old_cid[i];
   }
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
@@ -428,18 +403,20 @@ intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  Heap* heap = isolate->heap();
+  auto isolate_group = isolate->group();
+  Heap* heap = isolate_group->heap();
   ASSERT(heap != NULL);
   JSONObject obj(stream);
   obj.AddProperty("type", "AllocationProfile");
-  if (isolate->last_allocationprofile_accumulator_reset_timestamp() != 0) {
+  if (isolate_group->last_allocationprofile_accumulator_reset_timestamp() !=
+      0) {
     obj.AddPropertyF(
         "dateLastAccumulatorReset", "%" Pd64 "",
-        isolate->last_allocationprofile_accumulator_reset_timestamp());
+        isolate_group->last_allocationprofile_accumulator_reset_timestamp());
   }
-  if (isolate->last_allocationprofile_gc_timestamp() != 0) {
+  if (isolate_group->last_allocationprofile_gc_timestamp() != 0) {
     obj.AddPropertyF("dateLastServiceGC", "%" Pd64 "",
-                     isolate->last_allocationprofile_gc_timestamp());
+                     isolate_group->last_allocationprofile_gc_timestamp());
   }
 
   if (internal) {
@@ -458,7 +435,7 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   {
     HeapIterationScope iter(thread);
     iter.IterateObjects(&visitor);
-    isolate->VisitWeakPersistentHandles(&visitor);
+    isolate->group()->VisitWeakPersistentHandles(&visitor);
   }
 
   {

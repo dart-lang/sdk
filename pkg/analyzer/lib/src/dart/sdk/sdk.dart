@@ -6,17 +6,13 @@ import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
@@ -740,20 +736,19 @@ class SdkLibrariesReader {
    * of the file is already known to be [libraryFileContents].
    */
   LibraryMap readFromSource(Source source, String libraryFileContents) {
-    BooleanErrorListener errorListener = BooleanErrorListener();
     // TODO(paulberry): initialize the feature set appropriately based on the
     // version of the SDK we are reading, and enable flags.
     var featureSet = FeatureSet.fromEnableFlags([]);
-    Scanner scanner =
-        Scanner(source, CharSequenceReader(libraryFileContents), errorListener)
-          ..configureFeatures(featureSet);
-    Parser parser = Parser(source, errorListener, featureSet: featureSet);
-    CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-    SdkLibrariesReader_LibraryBuilder libraryBuilder =
-        SdkLibrariesReader_LibraryBuilder();
-    // If any syntactic errors were found then don't try to visit the AST
-    // structure.
-    if (!errorListener.errorReported) {
+
+    var parseResult = parseString(
+      content: libraryFileContents,
+      featureSet: featureSet,
+      throwIfDiagnostics: false,
+    );
+    var unit = parseResult.unit;
+
+    var libraryBuilder = SdkLibrariesReader_LibraryBuilder();
+    if (parseResult.errors.isEmpty) {
       unit.accept(libraryBuilder);
     }
     return libraryBuilder.librariesMap;

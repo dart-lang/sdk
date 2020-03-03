@@ -2980,21 +2980,22 @@ void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
 // Note of warning: The caller will not populate CODE_REG and we have therefore
 // no access to the pool.
 void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
+  // Tail call the [SubtypeTestCache]-based implementation.
+  __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
+  __ ldr(R9, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ br(R9);
+}
+
+// Used instead of DefaultTypeTestStub when null is assignable.
+void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
+    Assembler* assembler) {
   Label done;
 
   const Register kInstanceReg = R0;
-  const Register kDstTypeReg = R8;
 
   // Fast case for 'null'.
   __ CompareObject(kInstanceReg, NullObject());
   __ BranchIf(EQUAL, &done);
-
-  // Fast case for 'int'.
-  Label not_smi;
-  __ BranchIfNotSmi(kInstanceReg, &not_smi);
-  __ CompareObject(kDstTypeReg, CastHandle<Object>(IntType()));
-  __ BranchIf(EQUAL, &done);
-  __ Bind(&not_smi);
 
   // Tail call the [SubtypeTestCache]-based implementation.
   __ ldr(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
@@ -3046,6 +3047,17 @@ static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
 
 void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
     Assembler* assembler) {
+  __ ldr(CODE_REG,
+         Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
+  __ EnterStubFrame();
+  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+// Used instead of LazySpecializeTypeTestStub when null is assignable.
+void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
+    Assembler* assembler) {
   const Register kInstanceReg = R0;
   Label done;
 
@@ -3071,15 +3083,6 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   const Register kDstTypeReg = R8;
 
   __ EnterStubFrame();
-
-#ifdef DEBUG
-  // Guaranteed by caller.
-  Label no_error;
-  __ CompareObject(kInstanceReg, NullObject());
-  __ BranchIf(NOT_EQUAL, &no_error);
-  __ Breakpoint();
-  __ Bind(&no_error);
-#endif
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(kSubtypeTestCacheReg, NullObject());

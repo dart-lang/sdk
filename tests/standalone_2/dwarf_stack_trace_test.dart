@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:expect/expect.dart';
 
 @pragma("vm:prefer-inline")
 bar() {
@@ -61,7 +61,7 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
 
   // We should have at least enough PC addresses to cover the frames we'll be
   // checking.
-  expect(pcOffsets.length, greaterThanOrEqualTo(expectedAllCallsInfo.length));
+  Expect.isTrue(pcOffsets.length >= expectedAllCallsInfo.length);
 
   final virtualAddresses =
       pcOffsets.map((o) => dwarf.virtualAddressOf(o)).toList();
@@ -125,9 +125,8 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   final expectedStrings = extractCallStrings(expectedAllCallsInfo);
   final expectedCallCount = expectedStrings.length ~/ 2;
 
-  expect(externalSymbolizedCalls.length,
-      greaterThanOrEqualTo(expectedExternalCallCount));
-  expect(allSymbolizedCalls.length, greaterThanOrEqualTo(expectedCallCount));
+  Expect.isTrue(externalSymbolizedCalls.length >= expectedExternalCallCount);
+  Expect.isTrue(allSymbolizedCalls.length >= expectedCallCount);
 
   // Strip off any unexpected lines, so we can also make sure we didn't get
   // unexpected calls prior to those calls we expect.
@@ -136,8 +135,8 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   final allCallsTrace =
       allSymbolizedCalls.sublist(0, expectedCallCount).join('\n');
 
-  expect(externalCallsTrace, stringContainsInOrder(expectedExternalStrings));
-  expect(allCallsTrace, stringContainsInOrder(expectedStrings));
+  Expect.stringContainsInOrder(externalCallsTrace, expectedExternalStrings);
+  Expect.stringContainsInOrder(allCallsTrace, expectedStrings);
 }
 
 final expectedCallsInfo = <List<CallInfo>>[
@@ -176,29 +175,43 @@ void checkConsistency(
     List<List<CallInfo>> externalFrames, List<List<CallInfo>> allFrames) {
   // We should have the same number of frames for both external-only
   // and combined call information.
-  expect(externalFrames.length, equals(allFrames.length));
-  // There should be no frames in either version where we failed to look up
-  // call information.
-  expect(externalFrames, everyElement(isNotNull));
-  expect(allFrames, everyElement(isNotNull));
-  // All frames in the internal-including version should have at least one
-  // piece of call information.
-  expect(allFrames, everyElement(isNotEmpty));
-  // External-only call information should only include call information with
-  // positive line numbers.
-  expect(
-      externalFrames, everyElement(everyElement(predicate((c) => c.line > 0))));
+  Expect.equals(externalFrames.length, allFrames.length);
+
+  for (var frame in externalFrames) {
+    // There should be no frames in either version where we failed to look up
+    // call information.
+    Expect.isNotNull(frame);
+
+    // External-only call information should only include call information with
+    // positive line numbers.
+    for (var call in frame) {
+      Expect.isTrue(call.line > 0);
+    }
+  }
+
+  for (var frame in allFrames) {
+    // There should be no frames in either version where we failed to look up
+    // call information.
+    Expect.isNotNull(frame);
+
+    // All frames in the internal-including version should have at least one
+    // piece of call information.
+    Expect.isTrue(frame.isNotEmpty);
+  }
+
   // The information in the external-only and combined call information should
   // be consistent for external frames.
   for (var i = 0; i < allFrames.length; i++) {
-    expect(externalFrames[i], anyOf(isEmpty, equals(allFrames[i])));
+    if (externalFrames[i].isNotEmpty) {
+      Expect.listEquals(externalFrames[i], allFrames[i]);
+    }
   }
 }
 
 void checkFrames(
     List<List<CallInfo>> framesInfo, List<List<CallInfo>> expectedInfo) {
   // There may be frames below those we check.
-  expect(framesInfo.length, greaterThanOrEqualTo(expectedInfo.length));
+  Expect.isTrue(framesInfo.length >= expectedInfo.length);
 
   // We can't just use deep equality, since we only have the filenames in the
   // expected version, not the whole path, and we don't really care if
@@ -207,13 +220,13 @@ void checkFrames(
     for (var j = 0; j < expectedInfo[i].length; j++) {
       final got = framesInfo[i][j];
       final expected = expectedInfo[i][j];
-      expect(got.function, equals(expected.function));
-      expect(got.inlined, equals(expected.inlined));
-      expect(path.basename(got.filename), equals(expected.filename));
+      Expect.equals(got.function, expected.function);
+      Expect.equals(got.inlined, expected.inlined);
+      Expect.equals(path.basename(got.filename), expected.filename);
       if (expected.line > 0) {
-        expect(got.line, equals(expected.line));
+        Expect.equals(got.line, expected.line);
       } else {
-        expect(got.line, lessThanOrEqualTo(0));
+        Expect.isTrue(got.line <= 0);
       }
     }
   }

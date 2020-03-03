@@ -11,12 +11,43 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveIfNullOperatorTest);
+    defineReflectiveTests(DeadNullAwareExpressionTest);
+    defineReflectiveTests(UnnecessaryNullInIfNullOperatorsTest);
   });
 }
 
 @reflectiveTest
-class RemoveIfNullOperatorTest extends FixProcessorLintTest {
+class DeadNullAwareExpressionTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
+
+  @override
+  void setUp() {
+    super.setUp();
+    createAnalysisOptionsFile(experiments: ['non-nullable']);
+  }
+
+  Future<void> test_immediateChild() async {
+    await resolveTestUnit('''
+int f(int a, int b) => a ?? b;
+''');
+    await assertHasFix('''
+int f(int a, int b) => a;
+''');
+  }
+
+  Future<void> test_nestedChild() async {
+    await resolveTestUnit('''
+int f(int a, int b) => a ?? b * 2 + 1;
+''');
+    await assertHasFix('''
+int f(int a, int b) => a;
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryNullInIfNullOperatorsTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 

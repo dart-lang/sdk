@@ -19,7 +19,7 @@ import 'memory_compiler.dart' as memory;
 
 DartType instantiate(
     DartTypes dartTypes, ClassEntity element, List<DartType> arguments) {
-  return dartTypes.interfaceType(element, arguments, Nullability.none);
+  return dartTypes.interfaceType(element, arguments);
 }
 
 class TypeEnvironment {

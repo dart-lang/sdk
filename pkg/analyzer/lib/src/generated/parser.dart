@@ -15,6 +15,7 @@ import 'package:_fe_analyzer_shared/src/parser/type_info.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
@@ -201,10 +202,12 @@ class Parser {
   /// Initialize a newly created parser to parse tokens in the given [_source]
   /// and to report any errors that are found to the given [_errorListener].
   factory Parser(Source source, AnalysisErrorListener errorListener,
-      {bool useFasta, @required FeatureSet featureSet}) {
+      {bool useFasta,
+      LanguageVersion languageVersion,
+      @required FeatureSet featureSet}) {
     featureSet ??= FeatureSet.fromEnableFlags([]);
     if (useFasta ?? Parser.useFasta) {
-      return _Parser2(source, errorListener, featureSet,
+      return _Parser2(source, errorListener, languageVersion, featureSet,
           allowNativeClause: true);
     } else {
       return Parser.withoutFasta(source, errorListener, featureSet: featureSet);
@@ -786,8 +789,11 @@ class Parser {
       try {
         Expression index = parseExpression2();
         Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-        return astFactory.indexExpressionForTarget(
-            prefix, leftBracket, index, rightBracket);
+        return astFactory.indexExpressionForTarget2(
+            target: prefix,
+            leftBracket: leftBracket,
+            index: index,
+            rightBracket: rightBracket);
       } finally {
         _inInitializer = wasInInitializer;
       }
@@ -807,8 +813,11 @@ class Parser {
         Token leftBracket = getAndAdvance();
         Expression index = parseSimpleIdentifier();
         Token rightBracket = getAndAdvance();
-        return astFactory.indexExpressionForTarget(
-            prefix, leftBracket, index, rightBracket);
+        return astFactory.indexExpressionForTarget2(
+            target: prefix,
+            leftBracket: leftBracket,
+            index: index,
+            rightBracket: rightBracket);
       } else {
         if (!optional) {
           // Report the missing selector.
@@ -979,8 +988,11 @@ class Parser {
       try {
         Expression index = parseExpression2();
         Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
-        expression = astFactory.indexExpressionForCascade(
-            period, leftBracket, index, rightBracket);
+        expression = astFactory.indexExpressionForCascade2(
+            period: period,
+            leftBracket: leftBracket,
+            index: index,
+            rightBracket: rightBracket);
         period;
       } finally {
         _inInitializer = wasInInitializer;
@@ -1890,7 +1902,11 @@ class Parser {
           _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
           Token eof = Token.eof(0);
           return astFactory.compilationUnit(
-              beginToken: eof, endToken: eof, featureSet: _featureSet);
+            beginToken: eof,
+            endToken: eof,
+            languageVersion: null,
+            featureSet: _featureSet,
+          );
         }
         if (member != null) {
           declarations.add(member);
@@ -1940,12 +1956,14 @@ class Parser {
       }
     }
     return astFactory.compilationUnit(
-        beginToken: firstToken,
-        scriptTag: scriptTag,
-        directives: directives,
-        declarations: declarations,
-        endToken: _currentToken,
-        featureSet: _featureSet);
+      beginToken: firstToken,
+      scriptTag: scriptTag,
+      directives: directives,
+      declarations: declarations,
+      endToken: _currentToken,
+      languageVersion: null,
+      featureSet: _featureSet,
+    );
   }
 
   /// Parse a compilation unit member. The [commentAndMetadata] is the metadata
@@ -2396,19 +2414,23 @@ class Parser {
           _advance();
         }
         return astFactory.compilationUnit(
-            beginToken: firstToken,
-            scriptTag: scriptTag,
-            directives: directives,
-            endToken: _currentToken,
-            featureSet: _featureSet);
+          beginToken: firstToken,
+          scriptTag: scriptTag,
+          directives: directives,
+          endToken: _currentToken,
+          languageVersion: null,
+          featureSet: _featureSet,
+        );
       }
     }
     return astFactory.compilationUnit(
-        beginToken: firstToken,
-        scriptTag: scriptTag,
-        directives: directives,
-        endToken: _currentToken,
-        featureSet: _featureSet);
+      beginToken: firstToken,
+      scriptTag: scriptTag,
+      directives: directives,
+      endToken: _currentToken,
+      languageVersion: null,
+      featureSet: _featureSet,
+    );
   }
 
   /// Parse a documentation comment based on the given list of documentation

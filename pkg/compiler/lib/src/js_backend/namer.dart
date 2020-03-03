@@ -636,6 +636,8 @@ class Namer extends ModularNamer {
   String privateName(Name originalName) {
     String text = originalName.text;
 
+    text = text.replaceAll(_nonIdentifierRE, '_');
+
     // Public names are easy.
     if (!originalName.isPrivate) return text;
 
@@ -883,7 +885,8 @@ class Namer extends ModularNamer {
     if (_closedWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
-      String proposeName() => '${enclosingClass.name}_${element.name}';
+      String proposeName() => '${enclosingClass.name}_${element.name}'
+          .replaceAll(_nonIdentifierRE, '_');
       return _disambiguateInternalMember(element, proposeName);
     }
 
@@ -1258,7 +1261,8 @@ class Namer extends ModularNamer {
       return _proposeNameForMember(element.function) + r'$body';
     } else if (element.enclosingClass != null) {
       ClassEntity enclosingClass = element.enclosingClass;
-      return '${enclosingClass.name}_${element.name}';
+      return '${enclosingClass.name}_${element.name}'
+          .replaceAll(_nonIdentifierRE, '_');
     }
     return element.name.replaceAll(_nonIdentifierRE, '_');
   }
@@ -1612,6 +1616,7 @@ class Namer extends ModularNamer {
   }
 
   String getTypeRepresentationForTypeConstant(DartType type) {
+    type = type.withoutNullability;
     if (type is DynamicType) return "dynamic";
     if (type is FutureOrType) {
       return "FutureOr<dynamic>";

@@ -41,7 +41,7 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
     }
   }
   allocated_set_->Add(raw_obj);
-  raw_obj->Validate(isolate_);
+  raw_obj->Validate(isolate_group_);
 }
 
 void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
@@ -69,18 +69,19 @@ void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
 
 void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   HeapIterationScope iteration(thread);
   StackZone stack_zone(thread);
-  ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet(
+  ObjectSet* allocated_set = isolate_group->heap()->CreateAllocatedObjectSet(
       stack_zone.GetZone(), mark_expectation);
 
-  VerifyPointersVisitor visitor(isolate, allocated_set);
+  VerifyPointersVisitor visitor(isolate_group, allocated_set);
   // Visit all strongly reachable objects.
   iteration.IterateObjectPointers(&visitor, ValidationPolicy::kValidateFrames);
   VerifyWeakPointersVisitor weak_visitor(&visitor);
+
   // Visit weak handles and prologue weak handles.
-  isolate->VisitWeakPersistentHandles(&weak_visitor);
+  isolate_group->VisitWeakPersistentHandles(&weak_visitor);
 }
 
 #if defined(DEBUG)
@@ -88,16 +89,22 @@ VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
     : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
 
 void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
-  if ((obj->GetClassId() >= kInstanceCid) &&
-      (obj->GetClassId() != kTypeArgumentsCid)) {
-    if (obj->IsCanonical()) {
-      instanceHandle_ ^= obj;
-      const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);
-      if (!is_canonical) {
-        OS::PrintErr("Instance `%s` is not canonical!\n",
-                     instanceHandle_.ToCString());
+  // TODO(dartbug.com/36097): The heap walk can encounter canonical objects of
+  // other isolates. We should either scan live objects from the roots of each
+  // individual isolate, or wait until we are ready to share constants across
+  // isolates.
+  if (!FLAG_enable_isolate_groups) {
+    if ((obj->GetClassId() >= kInstanceCid) &&
+        (obj->GetClassId() != kTypeArgumentsCid)) {
+      if (obj->IsCanonical()) {
+        instanceHandle_ ^= obj;
+        const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);
+        if (!is_canonical) {
+          OS::PrintErr("Instance `%s` is not canonical!\n",
+                       instanceHandle_.ToCString());
+        }
+        ASSERT(is_canonical);
       }
-      ASSERT(is_canonical);
     }
   }
 }

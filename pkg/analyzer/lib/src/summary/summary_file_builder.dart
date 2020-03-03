@@ -5,17 +5,13 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
@@ -135,19 +131,10 @@ class _Builder {
   }
 
   CompilationUnit _parse(Source source) {
-    AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
-    String code = source.contents.data;
-    CharSequenceReader reader = CharSequenceReader(code);
-    Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(featureSet);
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = LineInfo(scanner.lineStarts);
-    Parser parser = Parser(source, errorListener,
-        featureSet: scanner.featureSet,
-        useFasta: context.analysisOptions.useFastaParser);
-    parser.enableOptionalNewAndConst = true;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
-    return unit;
+    return parseString(
+      content: source.contents.data,
+      featureSet: featureSet,
+      throwIfDiagnostics: false,
+    ).unit;
   }
 }

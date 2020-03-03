@@ -199,6 +199,12 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void> {
     registerNode(node);
     super.visitConstantExpression(node);
   }
+
+  @override
+  void visitNullCheck(ir.NullCheck node) {
+    registerNode(node);
+    super.visitNullCheck(node);
+  }
 }
 
 /// Visitor that ascribes an index to all [ir.Constant]s that we potentially

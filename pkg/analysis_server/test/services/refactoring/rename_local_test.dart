@@ -491,6 +491,61 @@ main() {
 ''');
   }
 
+  Future<void>
+      test_createChange_parameter_named_ofConstructor_genericClass() async {
+    await indexTestUnit('''
+class A<T> {
+  A({T test});
+}
+
+main() {
+  A(test: 0);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test}');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A<T> {
+  A({T newName});
+}
+
+main() {
+  A(newName: 0);
+}
+''');
+  }
+
+  Future<void> test_createChange_parameter_named_ofMethod_genericClass() async {
+    await indexTestUnit('''
+class A<T> {
+  void foo({T test}) {}
+}
+
+main(A<int> a) {
+  a.foo(test: 0);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test}');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A<T> {
+  void foo({T newName}) {}
+}
+
+main(A<int> a) {
+  a.foo(newName: 0);
+}
+''');
+  }
+
   Future<void> test_createChange_parameter_named_updateHierarchy() async {
     await indexUnit('/home/test/lib/test2.dart', '''
 library test2;

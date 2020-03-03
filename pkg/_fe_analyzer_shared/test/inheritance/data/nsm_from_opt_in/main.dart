@@ -10,7 +10,7 @@ import 'opt_in.dart';
 
 /*class: B2:A,B2,C2,Object*/
 abstract class B2 extends A implements C2 {
-  /*member: B2.method:int* Function(int*,{dynamic optional})**/
+  /*member: B2.method:int* Function(int*, {dynamic optional})**/
 
   /*member: B2.noSuchMethod:dynamic Function(Invocation*)**/
   noSuchMethod(Invocation invocation) {
@@ -20,6 +20,6 @@ abstract class B2 extends A implements C2 {
 
 /*class: C2:C2,Object*/
 abstract class C2 {
-  /*member: C2.method:int* Function(int*,{dynamic optional})**/
+  /*member: C2.method:int* Function(int*, {dynamic optional})**/
   int method(int i, {optional});
 }

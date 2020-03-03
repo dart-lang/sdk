@@ -146,10 +146,6 @@ class SharedCompilerOptions {
       ..addOption('module-name',
           help: 'The output module name, used in some JS module formats.\n'
               'Defaults to the output file name (without .js).')
-      ..addOption('library-root',
-          help: '(deprecated) used to name libraries inside the module, '
-              'ignored with -k.',
-          hide: hide)
       ..addFlag('repl-compile',
           help: 'compile in a more permissive REPL mode, allowing access'
               ' to private members across library boundaries. This should'

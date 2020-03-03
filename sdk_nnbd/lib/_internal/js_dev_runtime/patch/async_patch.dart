@@ -25,7 +25,7 @@ import 'dart:_runtime' as dart;
 _async<T>(Function() initGenerator) {
   var iter;
   late Object? Function(Object?) onValue;
-  late Object Function(Object, StackTrace) onError;
+  late Object Function(Object, StackTrace?) onError;
 
   onAwait(Object? value) {
     _Future<Object?> f;

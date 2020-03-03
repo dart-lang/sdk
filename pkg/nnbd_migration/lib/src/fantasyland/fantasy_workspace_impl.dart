@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
@@ -10,7 +13,6 @@ import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 import 'package:nnbd_migration/src/utilities/multi_future_tracker.dart';
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
-import 'package:package_config/packages_file.dart' as packages_file;
 
 class FantasyWorkspaceError extends Error {
   final String message;
@@ -32,10 +34,11 @@ class FantasyWorkspaceDependencies {
       SubprocessLauncher launcher,
       Future<FantasyRepo> Function(FantasyRepoSettings, String, bool,
               {FantasyRepoDependencies fantasyRepoDependencies})
-          buildGitRepoFrom})
+          buildGitRepoFrom,
+      List<String> dartfixExec})
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE,
-        launcher = launcher, // Pass through to FantasyRepoDependencies.
+        launcher = launcher ?? SubprocessLauncher('fantasy-workspace'),
         buildGitRepoFrom = buildGitRepoFrom ?? FantasyRepo.buildGitRepoFrom;
 }
 
@@ -68,9 +71,31 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
       _external.resourceProvider.pathContext
           .join(workspaceRootPath, '.packages'));
 
-  // TODO(jcollins-g): use package_config when pub package is updated, or
-  // implement writing for the analyzer version ourselves.
-  File get packageConfigJson => throw UnimplementedError();
+  File _packageConfigJson;
+  File get packageConfigJson => _packageConfigJson ??=
+      _external.resourceProvider.getFile(_external.resourceProvider.pathContext
+          .join(workspaceRootPath, '.dart_tool', 'package_config.json'));
+
+  File _migratedPackagesFile;
+  // TODO(jcollins-g): Remove this hack once a good way of determining whether
+  // a package is already migrated is available. (and our front-end implements it)
+  File get migratedPackagesFile => _migratedPackagesFile ??=
+      _external.resourceProvider.getFile(_external.resourceProvider.pathContext
+          .join(workspaceRootPath, '.steamroller_already_migrated'));
+
+  Set<String> _migratedPackagePaths;
+  Set<String> get migratedPackagePaths =>
+      _migratedPackagePaths ??= migratedPackagesFile.exists
+          ? migratedPackagesFile.readAsStringSync().split('\n').toSet()
+          : Set();
+
+  /// Call this after migration has completed successfully for [packages].
+  void packagesMigrated(Iterable<FantasySubPackage> packages) {
+    // TODO(jcollins-g): Remove this hack once a reliable way of determining whether
+    // a package is already migrated is available (and our front-end implements it)
+    _migratedPackagePaths.addAll(packages.map((p) => p.packageRoot.path));
+    migratedPackagesFile.writeAsStringSync(_migratedPackagePaths.join('\n'));
+  }
 
   /// The returned future should complete only when this package's repository
   /// is:
@@ -99,6 +124,73 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
     return fantasySubPackage;
   }
 
+  @override
+  Future<bool> forceMigratePackages(
+      Iterable<FantasySubPackage> subPackages,
+      Iterable<FantasySubPackage> subPackagesLibOnly,
+      String sdkPath,
+      List<String> dartfixExec) async {
+    String dartfix_bin = dartfixExec.first;
+    List<String> args = dartfixExec.sublist(1);
+    args.addAll(
+        ['upgrade', 'sdk', '--no-preview', '--force', '--sdk=$sdkPath']);
+    bool migrationNecessary = false;
+    // TODO(jcollins-g): consider using the package graph to break up and
+    // parallelize dartfix runs
+    for (FantasySubPackage subPackage in subPackages) {
+      if (!migratedPackagePaths.contains(subPackage.packageRoot.path)) {
+        args.add(subPackage.packageRoot.path);
+        migrationNecessary = true;
+      }
+    }
+    for (FantasySubPackage subPackage in subPackagesLibOnly) {
+      if (!migratedPackagePaths.contains(subPackage.packageRoot.path)) {
+        args.add(subPackage.packageRoot.getChildAssumingFolder('lib').path);
+        migrationNecessary = true;
+      }
+    }
+    if (migrationNecessary) {
+      await _external.launcher
+          .runStreamed(dartfix_bin, args, instance: 'dartfix');
+    }
+    // Update the file once we're sure it has completed successfully.
+    packagesMigrated(subPackages);
+    packagesMigrated(subPackagesLibOnly);
+    return migrationNecessary;
+  }
+
+  @override
+  Future<void> analyzePackages(
+      Iterable<FantasySubPackage> subPackages,
+      Iterable<FantasySubPackage> subPackagesLibOnly,
+      String sdkPath,
+      List<String> dartanalyzerExec) async {
+    var analyzers = <Future>[];
+    String dartanalyzer_bin = dartanalyzerExec.first;
+    List<String> baseArgs = dartanalyzerExec.sublist(1);
+    baseArgs
+        .addAll(['--enable-experiment=non-nullable', '--dart-sdk=$sdkPath']);
+
+    Future<void> _spawn(
+        FantasySubPackage subPackage, List<String> allArgs) async {
+      return _external.launcher.runStreamed(dartanalyzer_bin, allArgs,
+          workingDirectory: subPackage.packageRoot.path,
+          instance: subPackage.name,
+          allowNonzeroExit: true);
+    }
+
+    for (FantasySubPackage subPackage in subPackages) {
+      List<String> allArgs = baseArgs.followedBy(['.']).toList();
+      analyzers.add(_spawn(subPackage, allArgs));
+    }
+
+    for (FantasySubPackage subPackage in subPackagesLibOnly) {
+      List<String> allArgs = baseArgs.followedBy(['lib']).toList();
+      analyzers.add(_spawn(subPackage, allArgs));
+    }
+    return Future.wait(analyzers);
+  }
+
   static const _repoSubDir = '_repo';
 
   /// Add one repository to the workspace.
@@ -121,6 +213,7 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
     return _repos[repoSettings.name];
   }
 
+  @override
   Future<void> rewritePackageConfigWith(FantasySubPackage subPackage) async {
     return _packageConfigLock.runFutureFromClosure(
         () async => _rewritePackageConfigWith(subPackage));
@@ -129,20 +222,55 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
   // Only one [_rewritePackageConfigWith] should be running at a time
   // per workspace.
   Future<void> _rewritePackageConfigWith(FantasySubPackage subPackage) async {
-    Map<String, Uri> uriMap = {};
     if (packagesFile.exists) {
-      var uri = packagesFile.toUri();
-      var content = packagesFile.readAsBytesSync();
-      uriMap = packages_file.parse(content, uri);
+      // A rogue .packages file can signal to tools the absence of a
+      // [FantasySubPackage.languageVersion].  This paradoxically will mean
+      // to our tools that all language features, including NNBD, are enabled,
+      // which is not necessarily what we want.  It is safer to delete this to
+      // prevent it from being used accidentally.
+      packagesFile.delete();
     }
-    uriMap[subPackage.name] =
-        subPackage.packageRoot.getChildAssumingFolder('lib').toUri();
-    StringBuffer buffer = StringBuffer();
-    packages_file.write(buffer, uriMap);
-    // TODO(jcollins-g): Consider accumulating rewrites rather than doing
-    // this once per package.
-    // TODO(jcollins-g): support package_config.json.
-    return packagesFile.writeAsStringSync(buffer.toString());
+    Map<String, Object> packageConfigMap = {
+      "configVersion": 2,
+      "packages": <Map<String, String>>[],
+    };
+    if (packageConfigJson.exists) {
+      packageConfigMap = jsonDecode(packageConfigJson.readAsStringSync())
+          as Map<String, Object>;
+    }
+
+    packageConfigMap['generated'] = DateTime.now().toIso8601String();
+    packageConfigMap['generator'] = 'fantasyland';
+    // TODO(jcollins-g): analyzer seems to depend on this and ignore some versions
+    packageConfigMap['generatorVersion'] = "2.8.0-dev.9999.0";
+
+    var packages = packageConfigMap['packages'] as List;
+    var rewriteMe =
+        packages.firstWhere((p) => p['name'] == subPackage.name, orElse: () {
+      Map<String, String> newMap = {};
+      packages.add(newMap);
+      return newMap;
+    });
+
+    rewriteMe['name'] = subPackage.name;
+    String subPackageRootUriString =
+        subPackage.packageRoot.toUri().normalizePath().toString();
+    if (subPackageRootUriString.endsWith('/')) {
+      subPackageRootUriString = subPackageRootUriString.substring(
+          0, subPackageRootUriString.length - 1);
+    }
+    rewriteMe['rootUri'] = subPackageRootUriString;
+    // TODO(jcollins-g): is this ever anything different?
+    rewriteMe['packageUri'] = 'lib/';
+    if (subPackage.languageVersion != null) {
+      rewriteMe['languageVersion'] = subPackage.languageVersion;
+    } else {
+      rewriteMe.remove('languageVersion');
+    }
+
+    packageConfigJson.parent.create();
+    JsonEncoder encoder = new JsonEncoder.withIndent("  ");
+    packageConfigJson.writeAsStringSync(encoder.convert(packageConfigMap));
   }
 }
 

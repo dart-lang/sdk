@@ -280,6 +280,114 @@ int? f([num? a]) {
         details: ['The value of the expression is nullable']);
   }
 
+  Future<void> test_bound() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C<T extends Object> {}
+
+C<int/*?*/> c;
+''', migratedContent: '''
+class C<T extends Object?> {}
+
+C<int?/*?*/>? c;
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    assertRegion(
+        region: regions[0],
+        offset: 24,
+        details: ['This type parameter is instantiated with a nullable type']);
+  }
+
+  Future<void> test_bound_instantiation_explicit() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C<T extends Object> {}
+
+void main() {
+  C<int/*?*/>();
+}
+''', migratedContent: '''
+class C<T extends Object?> {}
+
+void main() {
+  C<int?/*?*/>();
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 24,
+        details: ['This type parameter is instantiated with a nullable type']);
+  }
+
+  Future<void> test_bound_instantiation_implicit() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C<T extends Object> {
+  C(T/*!*/ t);
+}
+
+void main() {
+  C(null);
+}
+''', migratedContent: '''
+class C<T extends Object?> {
+  C(T/*!*/ t);
+}
+
+void main() {
+  C(null);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 24, details: [
+      'This type parameter is instantiated with an inferred nullable type'
+    ]);
+  }
+
+  Future<void> test_bound_method_explicit() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+f<T extends Object> {}
+
+void main() {
+  f<int/*?*/>();
+}
+''', migratedContent: '''
+f<T extends Object?> {}
+
+void main() {
+  f<int?/*?*/>();
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 18,
+        details: ['This type parameter is instantiated with a nullable type']);
+  }
+
+  Future<void> test_bound_method_implicit() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+f<T extends Object>(T/*!*/ t) {}
+
+void main() {
+  f(null);
+}
+''', migratedContent: '''
+f<T extends Object?>(T/*!*/ t) {}
+
+void main() {
+  f(null);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 18, details: [
+      'This type parameter is instantiated with an inferred nullable type'
+    ]);
+  }
+
   Future<void> test_discardCondition() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void g(int i) {
@@ -1458,6 +1566,24 @@ String? g() {
         offset: 6,
         details: ['This function returns a nullable value on line 2']);
     assertDetail(detail: regions[0].details[0], offset: 15, length: 6);
+  }
+
+  Future<void> test_returnNoValue() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+int f() {
+  return;
+}
+''', migratedContent: '''
+int? f() {
+  return;
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 3, details: [
+      'This function contains a return statement with no value on line 2,'
+          ' which implicitly returns null.'
+    ]);
   }
 
   Future<void> test_returnType_function_expression() async {

@@ -20,13 +20,13 @@ void f1(
 // [cfe] unspecified
   (nonNullInt ?? nullableInt) + 1;
 //               ^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.DEAD_NULL_COALESCE
+// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
   (nonNullInt ?? nonNullInt) + 1;
 //               ^^^^^^^^^^
-// [analyzer] STATIC_WARNING.DEAD_NULL_COALESCE
+// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 }
 
 // TODO(mfairhurst) add cases with type parameter types

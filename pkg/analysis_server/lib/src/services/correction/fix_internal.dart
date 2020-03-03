@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_map_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
@@ -446,6 +447,9 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createClass();
       await _addFix_createMixin();
       await _addFix_undefinedClass_useSimilar();
+    }
+    if (errorCode == StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE) {
+      await _addFix_importLibrary_withType();
     }
     if (errorCode ==
         CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
@@ -1282,7 +1286,8 @@ class FixProcessor extends BaseProcessor {
         node.thisOrAncestorOfType<FieldDeclaration>();
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(declaration.offset, 'static ');
+      var offset = declaration.firstTokenAfterCommentAndMetadata.offset;
+      builder.addSimpleInsertion(offset, 'static ');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_STATIC);
   }
@@ -3402,12 +3407,17 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_removeEmptyCatch() async {
+    if (node.parent is! CatchClause) {
+      return;
+    }
     var catchClause = node.parent as CatchClause;
+
     var tryStatement = catchClause.parent as TryStatement;
     if (tryStatement.catchClauses.length == 1 &&
         tryStatement.finallyBlock == null) {
       return;
     }
+
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addDeletion(utils.getLinesRange(range.node(catchClause)));
@@ -3757,7 +3767,7 @@ class FixProcessor extends BaseProcessor {
           if (parent.variables.length == 1) {
             sourceRange = utils.getLinesRange(range.node(parent.parent));
           } else {
-            sourceRange = range.nodeInList(parent.variables, node);
+            sourceRange = range.nodeInList(parent.variables, referencedNode);
           }
         } else {
           sourceRange = utils.getLinesRange(range.node(referencedNode));
@@ -4697,7 +4707,12 @@ class FixProcessor extends BaseProcessor {
     }
 
     var errorCode = error.errorCode;
-    if (errorCode is LintCode) {
+    if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
+      await compute(
+        RemoveDeadIfNull(),
+        DartFixKind.REMOVE_IF_NULL_OPERATOR,
+      );
+    } else if (errorCode is LintCode) {
       String name = errorCode.name;
       if (name == LintNames.prefer_collection_literals) {
         await compute(

@@ -31,6 +31,13 @@
 
 namespace dart {
 
+#if defined(DART_PRECOMPILER)
+DEFINE_FLAG(charp,
+            write_v8_snapshot_profile_to,
+            NULL,
+            "Write a snapshot profile in V8 format to a file.");
+#endif  // defined(DART_PRECOMPILER)
+
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 static void RelocateCodeObjects(
@@ -206,7 +213,7 @@ class ClassSerializationCluster : public SerializationCluster {
   UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(Serializer* s,
                                                         intptr_t class_id) {
     const auto unboxed_fields_bitmap_host =
-        s->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(class_id);
 
     UnboxedFieldBitmap unboxed_fields_bitmap;
     if (unboxed_fields_bitmap_host.IsEmpty() ||
@@ -310,6 +317,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
     }
 
+    auto shared_class_table = d->isolate()->group()->class_table();
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawClass* cls = reinterpret_cast<RawClass*>(d->Ref(id));
       Deserializer::InitializeHeader(cls, kClassCid, Class::InstanceSize());
@@ -347,8 +355,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
       if (FLAG_precompiled_mode) {
         const UnboxedFieldBitmap unboxed_fields_map(d->ReadUnsigned64());
-        d->isolate()->shared_class_table()->SetUnboxedFieldsMapAt(
-            class_id, unboxed_fields_map);
+        shared_class_table->SetUnboxedFieldsMapAt(class_id, unboxed_fields_map);
       }
     }
   }
@@ -1460,7 +1467,9 @@ class CodeSerializationCluster : public SerializationCluster {
     RawCode* code = Code::RawCast(object);
     objects_.Add(code);
 
-    s->Push(code->ptr()->object_pool_);
+    if (!(s->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+      s->Push(code->ptr()->object_pool_);
+    }
     s->Push(code->ptr()->owner_);
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
@@ -1521,7 +1530,26 @@ class CodeSerializationCluster : public SerializationCluster {
                              active_unchecked_offset, code, i);
       }
 
-      WriteField(code, object_pool_);
+      // No need to write object pool out if we are producing full AOT
+      // snapshot with bare instructions.
+      if (!(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+        WriteField(code, object_pool_);
+#if defined(DART_PRECOMPILER)
+      } else if (FLAG_write_v8_snapshot_profile_to != nullptr &&
+                 code->ptr()->object_pool_ != ObjectPool::null()) {
+        // If we are writing V8 snapshot profile then attribute references
+        // going through the object pool to the code object itself.
+        RawObjectPool* pool = code->ptr()->object_pool_;
+
+        for (intptr_t i = 0; i < pool->ptr()->length_; i++) {
+          uint8_t bits = pool->ptr()->entry_bits()[i];
+          if (ObjectPool::TypeBits::decode(bits) ==
+              ObjectPool::EntryType::kTaggedObject) {
+            s->AttributeElementRef(pool->ptr()->data()[i].raw_obj_, i);
+          }
+        }
+#endif  // defined(DART_PRECOMPILER)
+      }
       WriteField(code, owner_);
       WriteField(code, exception_handlers_);
       WriteField(code, pc_descriptors_);
@@ -1604,8 +1632,14 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
       d->ReadInstructions(code, id, start_index_);
 
-      code->ptr()->object_pool_ =
-          reinterpret_cast<RawObjectPool*>(d->ReadRef());
+      // There would be a single global pool if this is a full AOT snapshot
+      // with bare instructions.
+      if (!(d->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+        code->ptr()->object_pool_ =
+            reinterpret_cast<RawObjectPool*>(d->ReadRef());
+      } else {
+        code->ptr()->object_pool_ = ObjectPool::null();
+      }
       code->ptr()->owner_ = d->ReadRef();
       code->ptr()->exception_handlers_ =
           reinterpret_cast<RawExceptionHandlers*>(d->ReadRef());
@@ -2802,7 +2836,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t next_field_offset = host_next_field_offset_in_words_
                                        << kWordSizeLog2;
     const auto unboxed_fields_bitmap =
-        s->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     intptr_t offset = Instance::NextFieldOffset();
     while (offset < next_field_offset) {
       // Skips unboxed fields
@@ -2837,13 +2871,12 @@ class InstanceSerializationCluster : public SerializationCluster {
     intptr_t next_field_offset = host_next_field_offset_in_words_
                                  << kWordSizeLog2;
     const intptr_t count = objects_.length();
-    const auto shared_class_table = s->isolate()->shared_class_table();
+    const auto unboxed_fields_bitmap =
+        s->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     for (intptr_t i = 0; i < count; i++) {
       RawInstance* instance = objects_[i];
       AutoTraceObject(instance);
       s->Write<bool>(instance->IsCanonical());
-      const auto unboxed_fields_bitmap =
-          shared_class_table->GetUnboxedFieldsMapAt(cid_);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
@@ -2896,14 +2929,13 @@ class InstanceDeserializationCluster : public DeserializationCluster {
     intptr_t instance_size =
         Object::RoundedAllocationSize(instance_size_in_words_ * kWordSize);
 
-    const auto shared_class_table = d->isolate()->shared_class_table();
+    const auto unboxed_fields_bitmap =
+        d->isolate()->group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawInstance* instance = reinterpret_cast<RawInstance*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(instance, cid_, instance_size,
                                      is_canonical);
-      const auto unboxed_fields_bitmap =
-          shared_class_table->GetUnboxedFieldsMapAt(cid_);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
@@ -5114,10 +5146,11 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   Serialize();
 
   // Write roots.
-  WriteRootRef(symbols.raw());
+  WriteRootRef(symbols.raw(), "symbol-table");
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      WriteRootRef(StubCode::EntryAt(i).raw());
+      WriteRootRef(StubCode::EntryAt(i).raw(),
+                   zone_->PrintToString("Stub:%s", StubCode::NameAt(i)));
     }
   }
 
@@ -5134,6 +5167,13 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   // Return the number of objects, -1 accounts for unused ref 0.
   return next_ref_index_ - 1;
 }
+
+static const char* kObjectStoreFieldNames[] = {
+#define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
+    OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD)
+#undef DECLARE_OBJECT_STORE_FIELD
+};
 
 void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
                                       ObjectStore* object_store) {
@@ -5162,7 +5202,7 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
 
   // Write roots.
   for (RawObject** p = from; p <= to; p++) {
-    WriteRootRef(*p);
+    WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
   }
 
   // Serialize dispatch table.
@@ -5767,12 +5807,6 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   Bootstrap::SetupNativeResolver();
 }
 
-#if defined(DART_PRECOMPILER)
-DEFINE_FLAG(charp,
-            write_v8_snapshot_profile_to,
-            NULL,
-            "Write a snapshot profile in V8 format to a file.");
-#endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
@@ -5929,7 +5963,6 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
       size_(snapshot->length()),
       data_image_(snapshot->DataImage()),
       instructions_image_(instructions_buffer) {
-  thread->isolate()->set_compilation_allowed(kind_ != Snapshot::kFullAOT);
 }
 
 char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(

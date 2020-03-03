@@ -68,7 +68,6 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 32, 1),
       error(StaticWarningCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
     ]);
   }

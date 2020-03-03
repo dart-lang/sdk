@@ -24,9 +24,7 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script
         .resolve('../../../../pkg/front_end/test/id_testing/data'));
     await checkTests(dataDir, new IdTestingDataComputer(),
-        args: args,
-        testedConfigs: [sharedConfig],
-        supportedMarkers: [cfeMarker, dart2jsMarker]);
+        args: args, testedConfigs: [sharedConfig]);
   });
 }
 

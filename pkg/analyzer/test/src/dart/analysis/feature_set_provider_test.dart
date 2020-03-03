@@ -134,7 +134,7 @@ test:lib/
     _buildProvider([]);
 
     var featureSet = _getSdkFeatureSet();
-    expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
+    expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
   }
 
   test_sdk_defaultNonNullable_sdkLegacy() {
@@ -145,7 +145,7 @@ test:lib/
     _buildProvider(['non-nullable']);
 
     var featureSet = _getSdkFeatureSet();
-    expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
+    expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
   }
 
   test_sdk_defaultNonNullable_sdkNonNullable() {

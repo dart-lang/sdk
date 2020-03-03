@@ -33,7 +33,6 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/kernel.h"
-#include "vm/kernel_loader.h"  // For kernel::ParseStaticFieldInitializer.
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -870,13 +869,12 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
   }
 #endif
 
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    FATAL3("Precompilation missed function %s (%s, %s)\n",
-           function.ToLibNamePrefixedQualifiedCString(),
-           function.token_pos().ToCString(),
-           Function::KindToCString(function.kind()));
-  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  FATAL3("Precompilation missed function %s (%s, %s)\n",
+         function.ToLibNamePrefixedQualifiedCString(),
+         function.token_pos().ToCString(),
+         Function::KindToCString(function.kind()));
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
 #if defined(SUPPORT_TIMELINE)

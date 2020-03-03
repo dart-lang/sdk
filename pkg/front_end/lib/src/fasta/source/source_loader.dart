@@ -57,6 +57,8 @@ import '../../base/common.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
+import '../../base/nnbd_mode.dart';
+
 import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
 import '../builder/builder.dart';
@@ -188,7 +190,7 @@ class SourceLoader extends Loader {
             retainDataForTesting ? new SourceLoaderDataForTesting() : null,
         super(target);
 
-  bool get nnbdStrongMode => target.context.options.nnbdStrongMode;
+  NnbdMode get nnbdMode => target.context.options.nnbdMode;
 
   bool get performNnbdChecks => target.context.options.performNnbdChecks;
 

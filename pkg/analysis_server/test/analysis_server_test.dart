@@ -98,33 +98,64 @@ class AnalysisServerTest with ResourceProviderMixin {
     });
   }
 
-  Future test_serverStatusNotifications() {
+  Future test_serverStatusNotifications_hasFile() async {
     server.serverServices.add(ServerService.STATUS);
-    var pkgFolder = convertPath('/pkg');
-    newFolder(pkgFolder);
-    newFolder(join(pkgFolder, 'lib'));
-    newFile(join(pkgFolder, 'lib', 'test.dart'), content: 'class C {}');
-    server.setAnalysisRoots('0', [pkgFolder], [], {});
-    // Pump the event queue to make sure the server has finished any
-    // analysis.
-    return pumpEventQueue(times: 5000).then((_) {
-      List<Notification> notifications = channel.notificationsReceived;
-      expect(notifications, isNotEmpty);
-      // expect at least one notification indicating analysis is in progress
-      expect(notifications.any((Notification notification) {
-        if (notification.event == SERVER_NOTIFICATION_STATUS) {
-          var params = ServerStatusParams.fromNotification(notification);
-          if (params.analysis != null) {
-            return params.analysis.isAnalyzing;
-          }
+
+    newFile('/test/lib/a.dart', content: r'''
+class A {}
+''');
+    server.setAnalysisRoots('0', [convertPath('/test')], [], {});
+
+    // Pump the event queue, so that the server has finished any analysis.
+    await pumpEventQueue(times: 5000);
+
+    var notifications = channel.notificationsReceived;
+    expect(notifications, isNotEmpty);
+
+    // At least one notification indicating analysis is in progress.
+    expect(notifications.any((Notification notification) {
+      if (notification.event == SERVER_NOTIFICATION_STATUS) {
+        var params = ServerStatusParams.fromNotification(notification);
+        if (params.analysis != null) {
+          return params.analysis.isAnalyzing;
         }
-        return false;
-      }), isTrue);
-      // the last notification should indicate that analysis is complete
-      Notification notification = notifications[notifications.length - 1];
-      var params = ServerStatusParams.fromNotification(notification);
-      expect(params.analysis.isAnalyzing, isFalse);
-    });
+      }
+      return false;
+    }), isTrue);
+
+    // The last notification should indicate that analysis is complete.
+    var notification = notifications[notifications.length - 1];
+    var params = ServerStatusParams.fromNotification(notification);
+    expect(params.analysis.isAnalyzing, isFalse);
+  }
+
+  Future test_serverStatusNotifications_noFiles() async {
+    server.serverServices.add(ServerService.STATUS);
+
+    newFolder('/test');
+    server.setAnalysisRoots('0', [convertPath('/test')], [], {});
+
+    // Pump the event queue, so that the server has finished any analysis.
+    await pumpEventQueue(times: 5000);
+
+    var notifications = channel.notificationsReceived;
+    expect(notifications, isNotEmpty);
+
+    // At least one notification indicating analysis is in progress.
+    expect(notifications.any((Notification notification) {
+      if (notification.event == SERVER_NOTIFICATION_STATUS) {
+        var params = ServerStatusParams.fromNotification(notification);
+        if (params.analysis != null) {
+          return params.analysis.isAnalyzing;
+        }
+      }
+      return false;
+    }), isTrue);
+
+    // The last notification should indicate that analysis is complete.
+    var notification = notifications[notifications.length - 1];
+    var params = ServerStatusParams.fromNotification(notification);
+    expect(params.analysis.isAnalyzing, isFalse);
   }
 
   Future<void>
@@ -142,7 +173,7 @@ analyzer:
     });
 
     // We respect subscriptions, even for excluded files.
-    await server.onAnalysisComplete;
+    await pumpEventQueue();
     expect(channel.notificationsReceived.any((notification) {
       return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
     }), isTrue);
@@ -163,7 +194,7 @@ analyzer:
     });
 
     // We respect subscriptions, even for excluded files.
-    await server.onAnalysisComplete;
+    await pumpEventQueue();
     expect(channel.notificationsReceived.any((notification) {
       return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
     }), isTrue);

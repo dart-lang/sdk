@@ -21,11 +21,11 @@ class Class3b<T> extends LegacyClass3<T> implements GenericInterface<T> {}
 /*class: Class4a:Class4a,GenericInterface<num*>,LegacyClass4,Object*/
 class Class4a extends LegacyClass4 {}
 
-/*class: Class4b:Class4b,GenericInterface<num!>,Object*/
+/*class: Class4b:Class4b,GenericInterface<num>,Object*/
 class Class4b implements GenericInterface<num> {}
 
 /*class: Class4c:Class4c,GenericInterface<num?>,Object*/
 class Class4c implements GenericInterface<num?> {}
 
-/*class: Class4d:Class4d,GenericInterface<num!>,LegacyClass4,Object*/
+/*class: Class4d:Class4d,GenericInterface<num>,LegacyClass4,Object*/
 class Class4d extends LegacyClass4 implements GenericInterface<num> {}

@@ -286,6 +286,7 @@ class AstCloner implements AstVisitor<AstNode> {
         directives: cloneNodeList(node.directives),
         declarations: cloneNodeList(node.declarations),
         endToken: cloneToken(node.endToken),
+        languageVersion: node.languageVersion,
         featureSet: node.featureSet);
     clone.lineInfo = node.lineInfo;
     return clone;
@@ -681,17 +682,17 @@ class AstCloner implements AstVisitor<AstNode> {
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = node.period;
     if (period == null) {
-      return astFactory.indexExpressionForTarget(
-          cloneNode(node.target),
-          cloneToken(node.leftBracket),
-          cloneNode(node.index),
-          cloneToken(node.rightBracket));
+      return astFactory.indexExpressionForTarget2(
+          target: cloneNode(node.target),
+          leftBracket: cloneToken(node.leftBracket),
+          index: cloneNode(node.index),
+          rightBracket: cloneToken(node.rightBracket));
     } else {
-      return astFactory.indexExpressionForCascade(
-          cloneToken(period),
-          cloneToken(node.leftBracket),
-          cloneNode(node.index),
-          cloneToken(node.rightBracket));
+      return astFactory.indexExpressionForCascade2(
+          period: cloneToken(period),
+          leftBracket: cloneToken(node.leftBracket),
+          index: cloneNode(node.index),
+          rightBracket: cloneToken(node.rightBracket));
     }
   }
 

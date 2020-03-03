@@ -129,7 +129,16 @@ class Scavenger {
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
-  uword TryAllocateNewTLAB(Thread* thread, intptr_t size);
+  uword TryAllocate(Thread* thread, intptr_t size) {
+    uword addr = TryAllocateFromTLAB(thread, size);
+    if (LIKELY(addr != 0)) {
+      return addr;
+    }
+    TryAllocateNewTLAB(thread);
+    return TryAllocateFromTLAB(thread, size);
+  }
+  void MakeTLABIterable(Thread* thread);
+  void AbandonRemainingTLAB(Thread* thread);
 
   uword AllocateGC(intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -145,24 +154,6 @@ class Scavenger {
     ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
     top_ += size;
     ASSERT((to_->Contains(top_)) || (top_ == to_->end()));
-    return result;
-  }
-
-  uword TryAllocateInTLAB(Thread* thread, intptr_t size) {
-    ASSERT(Utils::IsAligned(size, kObjectAlignment));
-    ASSERT(heap_ != Dart::vm_isolate()->heap());
-    uword top = thread->top();
-    uword end = thread->end();
-    uword result = top;
-    intptr_t remaining = end - top;
-    if (remaining < size) {
-      return 0;
-    }
-    ASSERT(to_->Contains(result));
-    ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
-    top += size;
-    ASSERT((to_->Contains(top)) || (top == to_->end()));
-    thread->set_top(top);
     return result;
   }
 
@@ -183,7 +174,10 @@ class Scavenger {
 
   // Report (TLAB) abandoned bytes that should be taken account when
   // deciding whether to grow new space or not.
-  void AddAbandonedInBytes(intptr_t value) { abandoned_ += value; }
+  void AddAbandonedInBytes(intptr_t value) {
+    MutexLocker ml(&space_lock_);
+    AddAbandonedInBytesLocked(value);
+  }
   int64_t GetAndResetAbandonedInBytes() {
     int64_t result = abandoned_;
     abandoned_ = 0;
@@ -191,6 +185,7 @@ class Scavenger {
   }
 
   int64_t UsedInWords() const {
+    MutexLocker ml(&space_lock_);
     return (top_ - FirstObjectStart()) >> kWordSizeLog2;
   }
   int64_t CapacityInWords() const { return to_->size_in_words(); }
@@ -229,9 +224,10 @@ class Scavenger {
 
   void MakeNewSpaceIterable() const;
   int64_t FreeSpaceInWords(Isolate* isolate) const;
-  void AbandonTLABs(Isolate* isolate);
 
  private:
+  static const intptr_t kTLABSize = 512 * KB;
+
   // Ids for time and data records in Heap::GCStats.
   enum {
     // Time
@@ -248,23 +244,51 @@ class Scavenger {
     kToKBAfterStoreBuffer = 3
   };
 
+  uword TryAllocateFromTLAB(Thread* thread, intptr_t size) {
+    ASSERT(Utils::IsAligned(size, kObjectAlignment));
+    ASSERT(heap_ != Dart::vm_isolate()->heap());
+    uword top = thread->top();
+    uword end = thread->end();
+    uword result = top;
+    intptr_t remaining = end - top;
+    if (UNLIKELY(remaining < size)) {
+      return 0;
+    }
+    ASSERT(to_->Contains(result));
+    ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
+    top += size;
+    ASSERT((to_->Contains(top)) || (top == to_->end()));
+    thread->set_top(top);
+    return result;
+  }
+  void TryAllocateNewTLAB(Thread* thread);
+  void AddAbandonedInBytesLocked(intptr_t value) { abandoned_ += value; }
+  void AbandonRemainingTLABLocked(Thread* thread);
+  void AbandonTLABsLocked(IsolateGroup* isolate_group);
+
   uword FirstObjectStart() const {
     return to_->start() + kNewObjectAlignmentOffset;
   }
-  SemiSpace* Prologue(Isolate* isolate);
-  void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateRoots(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateWeakProperties(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateWeakReferences(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
+  SemiSpace* Prologue(IsolateGroup* isolate_group);
+  void IterateStoreBuffers(IsolateGroup* isolate_group,
+                           ScavengerVisitor* visitor);
+  void IterateObjectIdTable(IsolateGroup* isolate_group,
+                            ScavengerVisitor* visitor);
+  void IterateRoots(IsolateGroup* isolate_group, ScavengerVisitor* visitor);
+  void IterateWeakProperties(IsolateGroup* isolate_group,
+                             ScavengerVisitor* visitor);
+  void IterateWeakReferences(IsolateGroup* isolate_group,
+                             ScavengerVisitor* visitor);
+  void IterateWeakRoots(IsolateGroup* isolate_group, HandleVisitor* visitor);
   void ProcessToSpace(ScavengerVisitor* visitor);
   void EnqueueWeakProperty(RawWeakProperty* raw_weak);
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);
-  void Epilogue(Isolate* isolate, SemiSpace* from);
+  void Epilogue(IsolateGroup* isolate_group, SemiSpace* from);
 
   bool IsUnreachable(RawObject** p);
+
+  void VerifyStoreBuffers();
 
   // During a scavenge we need to remember the promoted objects.
   // This is implemented as a stack of objects at the end of the to space. As
@@ -335,7 +359,7 @@ class Scavenger {
   bool failed_to_promote_;
 
   // Protects new space during the allocation of new TLABs
-  Mutex space_lock_;
+  mutable Mutex space_lock_;
 
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;

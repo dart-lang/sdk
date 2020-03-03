@@ -172,8 +172,14 @@ class VMPage extends MatchingPage {
     app.vm.reload().then((serviceObject) {
       VM vm = serviceObject;
       container.children = <Element>[
-        new VMViewElement(vm, _vmrepository, app.events, app.notifications,
-                new IsolateRepository(app.vm), _scriptRepository,
+        new VMViewElement(
+                vm,
+                _vmrepository,
+                app.events,
+                app.notifications,
+                new IsolateRepository(app.vm),
+                new IsolateGroupRepository(app.vm),
+                _scriptRepository,
                 queue: app.queue)
             .element
       ];

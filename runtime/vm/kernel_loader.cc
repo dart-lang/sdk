@@ -1021,6 +1021,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (library.Loaded()) return library.raw();
 
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
+  library.set_nnbd_compiled_mode(
+      library_helper.GetNonNullableByDefaultCompiledMode());
 
   library_kernel_data_ = helper_.reader_.ExternalDataFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
@@ -2364,15 +2366,6 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_is_extension_member(field.is_extension_member());
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();
-}
-
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
-  Thread* thread = Thread::Current();
-
-  const Function& initializer_fun = Function::ZoneHandle(
-      zone, CreateFieldInitializerFunction(thread, zone, field));
-
-  return new (zone) ParsedFunction(thread, initializer_fun);
 }
 
 }  // namespace kernel

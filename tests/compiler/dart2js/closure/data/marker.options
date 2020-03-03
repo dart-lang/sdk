@@ -1,0 +1,2 @@
+strong=tests/compiler/dart2js/closure/closure_test.dart
+omit=tests/compiler/dart2js/closure/closure_test.dart

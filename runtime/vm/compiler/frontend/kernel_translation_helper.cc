@@ -2778,14 +2778,16 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 
 TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
                                ActiveClass* active_class,
-                               bool finalize)
+                               bool finalize,
+                               bool apply_legacy_erasure)
     : helper_(helper),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       type_parameter_scope_(NULL),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
-      finalize_(finalize) {}
+      finalize_(finalize),
+      apply_legacy_erasure_(apply_legacy_erasure) {}
 
 AbstractType& TypeTranslator::BuildType() {
   BuildTypeInternal();
@@ -2819,6 +2821,9 @@ void TypeTranslator::BuildTypeInternal() {
     case kNeverType: {
       const Nullability nullability = helper_->ReadNullability();
       result_ = Object::never_type().ToNullability(nullability, Heap::kOld);
+      if (apply_legacy_erasure_ && result_.IsNeverType()) {
+        result_ = I->object_store()->null_type();
+      }
       break;
     }
     case kBottomType:
@@ -2852,7 +2857,10 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
 
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
@@ -2897,7 +2905,10 @@ void TypeTranslator::BuildFunctionType(bool simple) {
                                             : Function::Handle(Z),
                                         TokenPosition::kNoSource));
 
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -2931,11 +2942,15 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     all_count = positional_count;
   }
 
+  const intptr_t all_count_with_receiver = all_count + 1;
   const Array& parameter_types =
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
+      Array::Handle(Z, Array::New(all_count_with_receiver, Heap::kOld));
   signature_function.set_parameter_types(parameter_types);
-  const Array& parameter_names =
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
+  const Array& parameter_names = Array::Handle(
+      Z, Array::New(simple ? all_count_with_receiver
+                           : Function::NameArrayLengthIncludingFlags(
+                                 all_count_with_receiver),
+                    Heap::kOld));
   signature_function.set_parameter_names(parameter_names);
 
   intptr_t pos = 0;
@@ -2960,11 +2975,15 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
-      // TODO(markov): Store 'required' bit.
-      helper_->ReadFlags();  // read flags
+      const uint8_t flags = helper_->ReadFlags();  // read flags
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
+      if (!apply_legacy_erasure_ &&
+          (flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
+        signature_function.SetIsRequiredAt(pos);
+      }
     }
+    signature_function.TruncateUnusedParameterFlags();
   }
 
   if (!simple) {
@@ -2991,7 +3010,11 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void TypeTranslator::BuildTypeParameterType() {
-  const Nullability nullability = helper_->ReadNullability();
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_legacy_erasure_) {
+    nullability = Nullability::kLegacy;
+  }
+
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 
@@ -3303,10 +3326,13 @@ void TypeTranslator::SetupFunctionParameters(
         positional_parameter_count - required_parameter_count, true);
   }
   intptr_t parameter_count = extra_parameters + total_parameter_count;
+
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.set_parameter_names(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  const Array& parameter_names = Array::Handle(
+      Z, Array::New(Function::NameArrayLengthIncludingFlags(parameter_count),
+                    Heap::kOld));
+  function.set_parameter_names(parameter_names);
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
@@ -3353,7 +3379,11 @@ void TypeTranslator::SetupFunctionParameters(
 
     function.SetParameterTypeAt(pos, type);
     function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
+    if (helper.IsRequired()) {
+      function.SetIsRequiredAt(pos);
+    }
   }
+  function.TruncateUnusedParameterFlags();
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);
 

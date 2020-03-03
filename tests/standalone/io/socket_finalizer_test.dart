@@ -36,8 +36,18 @@ main() async {
       Expect.fail("Socket error $e");
     });
     isolate.kill();
+
+    // Cause a GC to collect the [socket] from [connectorIsolate].
+    for (int i = 0; i < 100000; ++i) {
+      produceGarbage();
+    }
   });
   await completer.future;
   await server.close();
   asyncEnd();
 }
+
+@pragma('vm:never-inline')
+produceGarbage() => all.add(List(1024));
+
+final all = [];

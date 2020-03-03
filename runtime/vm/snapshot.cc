@@ -621,7 +621,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     intptr_t result_cid = result->GetClassId();
 
     const auto unboxed_fields =
-        isolate()->shared_class_table()->GetUnboxedFieldsMapAt(result_cid);
+        isolate()->group()->class_table()->GetUnboxedFieldsMapAt(result_cid);
 
     while (offset < next_field_offset) {
       if (unboxed_fields.Get(offset / kWordSize)) {
@@ -1476,7 +1476,8 @@ void SnapshotWriter::WriteInstance(RawObject* raw,
     WriteObjectImpl(cls, kAsInlinedObject);
 
     const auto unboxed_fields =
-        isolate()->shared_class_table()->GetUnboxedFieldsMapAt(cls->ptr()->id_);
+        isolate()->group()->class_table()->GetUnboxedFieldsMapAt(
+            cls->ptr()->id_);
 
     // Write out all the fields for the object.
     // Instance::NextFieldOffset() returns the offset of the first field in

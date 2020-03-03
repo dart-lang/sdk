@@ -19,9 +19,12 @@ final Map<String, FantasyRepoSettings> _repoTable = {
   'node-interop': FantasyRepoSettings(
       'node-interop', '$githubHost:pulyaevskiy/node-interop.git'),
   'node_preamble': FantasyRepoSettings(
-      'package_config', '$githubHost:mbullington/node_preamble.dart.git'),
-  'package_config': FantasyRepoSettings('package_config',
-      '$githubHost:dart-lang/package_config', 'master', '1.1.0'),
+      'node_preamble', '$githubHost:mbullington/node_preamble.dart.git'),
+  'package_config': FantasyRepoSettings(
+      'package_config',
+      '$githubHost:dart-lang/package_config',
+      'master',
+      '3401e2897b3cf46e64966e2ba19ed7032501cf41'),
   'source_gen_test': FantasyRepoSettings(
       'source_gen_test', '$githubHost:kevmoo/source_gen_test.git'),
   'quiver-dart':

@@ -406,6 +406,7 @@ namespace dart {
   V(Ffi_asExternalTypedData, 2)                                                \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
+  V(NativeApiFunctionPointer, 1)                                               \
   V(TransferableTypedData_factory, 2)                                          \
   V(TransferableTypedData_materialize, 1)                                      \
   V(Wasm_initModule, 2)                                                        \

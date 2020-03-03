@@ -235,6 +235,13 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
     void onFailure(String message),
     Map<String, List<String>> skipMap,
     Uri nullUri}) async {
+  for (TestConfig config in testedConfigs) {
+    if (!testData.expectedMaps.containsKey(config.marker)) {
+      throw new ArgumentError("Unexpected test marker '${config.marker}'. "
+          "Supported markers: ${testData.expectedMaps.keys}.");
+    }
+  }
+
   Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
     if (skipForConfig(testData.name, config.marker, skipMap)) {

@@ -27,7 +27,7 @@ import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
-import 'body_may_complete_normally_test.dart' as body_may_complete_normally;
+import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
 import 'builtin_identifier_as_extension_name_test.dart'
     as builtin_as_extension_name;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
@@ -57,7 +57,7 @@ import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'dead_code_test.dart' as dead_code;
-import 'dead_null_coalesce_test.dart' as dead_null_coalesce;
+import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
 import 'default_value_in_function_type_test.dart'
@@ -473,8 +473,8 @@ import 'unnecessary_non_null_assertion_test.dart'
 import 'unnecessary_null_aware_call_test.dart' as unnecessary_null_aware_call;
 import 'unnecessary_null_aware_spread_test.dart'
     as unnecessary_null_aware_spread;
-import 'unnecessary_type_check_false_test.dart' as unnecessary_type_check_false;
-import 'unnecessary_type_check_true_test.dart' as unnecessary_type_check_true;
+import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
+import 'unnecessary_type_check_test.dart' as unnecessary_type_check;
 import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
     as unqualified_reference_to_static_member_of_extended_type;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
@@ -499,6 +499,7 @@ import 'wrong_type_parameter_variance_in_superinterface_test.dart'
     as wrong_type_parameter_variance_in_superinterface;
 import 'yield_each_in_non_generator_test.dart' as yield_each_in_non_generator;
 import 'yield_in_non_generator_test.dart' as yield_in_non_generator;
+import 'yield_of_invalid_type_test.dart' as yield_of_invalid_type;
 
 main() {
   defineReflectiveSuite(() {
@@ -519,7 +520,7 @@ main() {
     assignment_to_type.main();
     async_keyword_used_as_identifier.main();
     await_in_late_local_variable_initializer.main();
-    body_may_complete_normally.main();
+    body_might_complete_normally.main();
     builtin_as_extension_name.main();
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
@@ -538,7 +539,7 @@ main() {
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
     dead_code.main();
-    dead_null_coalesce.main();
+    dead_null_aware_expression.main();
     default_list_constructor_mismatch.main();
     default_value_in_function_type.main();
     default_value_in_function_typed_parameter.main();
@@ -821,8 +822,8 @@ main() {
     unnecessary_non_null_assertion.main();
     unnecessary_null_aware_call.main();
     unnecessary_null_aware_spread.main();
-    unnecessary_type_check_false.main();
-    unnecessary_type_check_true.main();
+    unnecessary_null_comparison.main();
+    unnecessary_type_check.main();
     unqualified_reference_to_static_member_of_extended_type.main();
     unused_catch_clause.main();
     unused_catch_stack.main();
@@ -842,5 +843,6 @@ main() {
     wrong_type_parameter_variance_in_superinterface.main();
     yield_each_in_non_generator.main();
     yield_in_non_generator.main();
+    yield_of_invalid_type.main();
   }, name: 'diagnostics');
 }

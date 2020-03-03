@@ -64,10 +64,12 @@ namespace dart {
   V(Subtype4TestCache)                                                         \
   V(Subtype6TestCache)                                                         \
   V(DefaultTypeTest)                                                           \
+  V(DefaultNullableTypeTest)                                                   \
   V(TopTypeTypeTest)                                                           \
   V(UnreachableTypeTest)                                                       \
   V(SlowTypeTest)                                                              \
   V(LazySpecializeTypeTest)                                                    \
+  V(LazySpecializeNullableTypeTest)                                            \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)                                                     \

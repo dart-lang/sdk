@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? _#A#nonNullableInstanceField;
+  field core::bool _#A#nonNullableInstanceField#isSet;
+  field core::int? _#A#nullableInstanceField;
+  field core::bool _#A#nullableInstanceField#isSet;
+  static field core::int? _#nonNullableStaticField;
+  static field core::bool _#nonNullableStaticField#isSet;
+  static field core::int? _#nullableStaticField;
+  static field core::bool _#nullableStaticField#isSet;
+  synthetic constructor •() → self::A
+    ;
+  get nonNullableInstanceField() → core::int;
+  set nonNullableInstanceField(core::int #t1) → void;
+  get nullableInstanceField() → core::int?;
+  set nullableInstanceField(core::int? #t2) → void;
+  static get nonNullableStaticField() → core::int;
+  static set nonNullableStaticField(core::int #t3) → void;
+  static get nullableStaticField() → core::int?;
+  static set nullableStaticField(core::int? #t4) → void;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+  get nonNullableInstanceField() → core::int
+    ;
+  set nonNullableInstanceField(core::int value) → void
+    ;
+  get nullableInstanceField() → core::int?
+    ;
+  set nullableInstanceField(core::int? value) → void
+    ;
+}
+static field core::int? _#nonNullableTopLevelField;
+static field core::bool _#nonNullableTopLevelField#isSet;
+static field core::int? _#nullableTopLevelField;
+static field core::bool _#nullableTopLevelField#isSet;
+static method method() → core::int?
+  ;
+static get nonNullableTopLevelField() → core::int;
+static set nonNullableTopLevelField(core::int #t5) → void;
+static get nullableTopLevelField() → core::int?;
+static set nullableTopLevelField(core::int? #t6) → void;
+static method main() → dynamic
+  ;

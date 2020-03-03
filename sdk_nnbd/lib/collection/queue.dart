@@ -121,8 +121,8 @@ class _DoubleLink<Link extends _DoubleLink<Link>> {
   }
 
   void _unlink() {
-    if (_previousLink != null) _previousLink!._nextLink = _nextLink as Link;
-    if (_nextLink != null) _nextLink!._previousLink = _previousLink as Link;
+    if (_previousLink != null) _previousLink!._nextLink = _nextLink;
+    if (_nextLink != null) _nextLink!._previousLink = _previousLink;
     _nextLink = null;
     _previousLink = null;
   }

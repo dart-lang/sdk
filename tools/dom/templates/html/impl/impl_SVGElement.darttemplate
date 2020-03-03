@@ -100,7 +100,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
     // We create a fragment which will parse in the HTML parser
     var html = '<svg version="1.1">$svg</svg>';
-    var fragment = document.body.createFragment(html,
+    var fragment = document.body$NULLASSERT.createFragment(html,
         treeSanitizer: treeSanitizer);
 
     var svgFragment = new DocumentFragment();
