@@ -2158,7 +2158,7 @@ class RawTypeArguments : public RawInstance {
 
   VISIT_FROM(RawObject*, instantiations_)
   // The instantiations_ array remains empty for instantiated type arguments.
-  RawArray* instantiations_;  // Of 4-tuple: 2 instantiators, mode, result.
+  RawArray* instantiations_;  // Of 3-tuple: 2 instantiators, result.
   RawSmi* length_;
   RawSmi* hash_;
 

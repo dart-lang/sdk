@@ -173,7 +173,6 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    bool use_subtype_test,
                                    bool include_abstract,
                                    bool exclude_null) {
-  // TODO(regis): Does this function depend on NNBDMode?
   Zone* zone = thread()->zone();
   ClassTable* class_table = thread()->isolate()->class_table();
 
@@ -214,8 +213,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
       test_succeeded = false;
     } else if (use_subtype_test) {
       cls_type = cls.RareType();
-      test_succeeded =
-          cls_type.IsSubtypeOf(NNBDMode::kLegacyLib, dst_type, Heap::kNew);
+      test_succeeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
     } else {
       while (!cls.IsObjectClass()) {
         if (cls.raw() == klass.raw()) {
@@ -382,7 +380,7 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     // arguments are not "dynamic" but instantiated-to-bounds.
     const Type& rare_type =
         Type::Handle(zone, Type::RawCast(type_class.RareType()));
-    if (!rare_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kNew)) {
+    if (!rare_type.IsSubtypeOf(type, Heap::kNew)) {
       ASSERT(type.arguments() != TypeArguments::null());
       return false;
     }
@@ -979,8 +977,7 @@ bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
   ASSERT(other_assert != NULL);
   // This predicate has to be commutative for DominatorBasedCSE to work.
   // TODO(fschneider): Eliminate more asserts with subtype relation.
-  return dst_type().raw() == other_assert->dst_type().raw() &&
-         nnbd_mode() == other_assert->nnbd_mode();
+  return dst_type().raw() == other_assert->dst_type().raw();
 }
 
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -1008,9 +1005,9 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
 
     AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
     AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
-    if (AbstractType::InstantiateAndTestSubtype(
-            nnbd_mode(), &sub_type, &super_type, instantiator_type_args,
-            function_type_args)) {
+    if (AbstractType::InstantiateAndTestSubtype(&sub_type, &super_type,
+                                                instantiator_type_args,
+                                                function_type_args)) {
       return NULL;
     }
   }
@@ -1021,8 +1018,7 @@ bool AssertSubtypeInstr::AttributesEqual(Instruction* other) const {
   AssertSubtypeInstr* other_assert = other->AsAssertSubtype();
   ASSERT(other_assert != NULL);
   return super_type().raw() == other_assert->super_type().raw() &&
-         sub_type().raw() == other_assert->sub_type().raw() &&
-         nnbd_mode() == other_assert->nnbd_mode();
+         sub_type().raw() == other_assert->sub_type().raw();
 }
 
 bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
@@ -2867,7 +2863,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   if (FLAG_eliminate_type_checks &&
-      value()->Type()->IsAssignableTo(nnbd_mode(), dst_type())) {
+      value()->Type()->IsAssignableTo(dst_type())) {
     return value()->definition();
   }
   if (dst_type().IsInstantiated()) {
@@ -2933,9 +2929,9 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z, dst_type().InstantiateFrom(nnbd_mode(), *instantiator_type_args,
-                                      *function_type_args, kAllFree, nullptr,
-                                      Heap::kOld));
+        Z,
+        dst_type().InstantiateFrom(*instantiator_type_args, *function_type_args,
+                                   kAllFree, nullptr, Heap::kOld));
     if (new_dst_type.IsNull()) {
       // Failed instantiation in dead code.
       return this;
@@ -2954,7 +2950,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
     if (new_dst_type.IsTopTypeForAssignability() ||
         (FLAG_eliminate_type_checks &&
-         value()->Type()->IsAssignableTo(nnbd_mode(), new_dst_type))) {
+         value()->Type()->IsAssignableTo(new_dst_type))) {
       return value()->definition();
     }
   }
@@ -3240,8 +3236,7 @@ static bool MayBeNumber(CompileType* type) {
   // Note that type 'Number' is a subtype of itself.
   return unwrapped_type.IsTopType() || unwrapped_type.IsObjectType() ||
          unwrapped_type.IsTypeParameter() ||
-         unwrapped_type.IsSubtypeOf(NNBDMode::kLegacyLib,
-                                    Type::Handle(Type::Number()), Heap::kOld);
+         unwrapped_type.IsSubtypeOf(Type::Handle(Type::Number()), Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has
@@ -4245,12 +4240,8 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
-  // Using NNBDMode::kLegacyLib is safe, because it throws a wider
-  // net over the types accepting a Smi value, especially during the nnbd
-  // migration that does not guarantee soundness.
-  if (input_can_be_smi_ &&
-      (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, value_type) ||
-       value_type.IsTypeParameter())) {
+  if (input_can_be_smi_ && (CompileType::Smi().IsAssignableTo(value_type) ||
+                            value_type.IsTypeParameter())) {
     if (representation() == kTagged) {
       __ LoadTaggedClassIdMayBeSmi(result, object);
     } else {
@@ -4295,8 +4286,7 @@ void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
     if (!interface_target().IsNull()) {
       const AbstractType& target_type = AbstractType::Handle(
           zone, Class::Handle(zone, interface_target().Owner()).RareType());
-      if (!CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib,
-                                             target_type)) {
+      if (!CompileType::Smi().IsAssignableTo(target_type)) {
         set_receiver_is_not_smi(true);
       }
     }
@@ -4716,7 +4706,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(token_pos(), deopt_id(), dst_type(),
-                                     dst_name(), nnbd_mode(), locs());
+                                     dst_name(), locs());
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 }
 
@@ -4729,12 +4719,11 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(sub_type());
   __ PushObject(super_type());
   __ PushObject(dst_name());
-  __ PushObject(Smi::ZoneHandle(Smi::New(static_cast<intptr_t>(nnbd_mode()))));
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kSubtypeCheckRuntimeEntry, 6, locs());
+                                kSubtypeCheckRuntimeEntry, 5, locs());
 
-  __ Drop(6);
+  __ Drop(5);
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,

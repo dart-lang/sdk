@@ -967,7 +967,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
     args_desc_array_ = ic.arguments_descriptor();
     ArgumentsDescriptor args_desc(args_desc_array_);
     if (new_target_.IsNull() ||
-        !new_target_.AreValidArguments(NNBDMode::kLegacyLib, args_desc, NULL)) {
+        !new_target_.AreValidArguments(args_desc, NULL)) {
       // TODO(rmacnak): Patch to a NSME stub.
       VTIR_Print("Cannot rebind static call to %s from %s\n",
                  old_target_.ToCString(),

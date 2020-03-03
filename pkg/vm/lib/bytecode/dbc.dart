@@ -674,8 +674,3 @@ const int argumentsLimit = 1 << 8;
 // Base class for exceptions thrown when certain limit of bytecode
 // format is exceeded.
 abstract class BytecodeLimitExceededException {}
-
-// Constants specifying the NNBD mode of libraries.
-// Must be kept in sync with enum class NNBDMode in the VM.
-const int kLegacy = 0;
-const int kOptedIn = 1;

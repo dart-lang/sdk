@@ -410,9 +410,6 @@ class BaseFlowGraphBuilder {
   // Sets raw parameter variables to inferred constant values.
   Fragment InitConstantParameters();
 
-  // The NNBD mode to use when compiling type tests.
-  NNBDMode nnbd_mode() const { return function_.nnbd_mode(); }
-
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 

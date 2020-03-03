@@ -390,16 +390,14 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
-            zone, arguments.InstantiateFrom(NNBDMode::kLegacyLib,
-                                            Object::null_type_arguments(),
+            zone, arguments.InstantiateFrom(Object::null_type_arguments(),
                                             Object::null_type_arguments(),
                                             kNoneFree, NULL, Heap::kNew));
         const TypeArguments& instantiated_pending_arguments =
-            TypeArguments::Handle(
-                zone, pending_arguments.InstantiateFrom(
-                          NNBDMode::kLegacyLib, Object::null_type_arguments(),
-                          Object::null_type_arguments(), kNoneFree, NULL,
-                          Heap::kNew));
+            TypeArguments::Handle(zone, pending_arguments.InstantiateFrom(
+                                            Object::null_type_arguments(),
+                                            Object::null_type_arguments(),
+                                            kNoneFree, NULL, Heap::kNew));
         // By using TypeEquality::kInSubtypeTest, we throw a wider net than
         // using canonical or syntactical equality and may reject more
         // problematic declarations.
@@ -625,8 +623,8 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             continue;
           }
           super_type_arg = super_type_arg.InstantiateFrom(
-              cls.nnbd_mode(), arguments, Object::null_type_arguments(),
-              kNoneFree, instantiation_trail, Heap::kOld);
+              arguments, Object::null_type_arguments(), kNoneFree,
+              instantiation_trail, Heap::kOld);
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments.
@@ -783,8 +781,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           const TypeArguments& instantiator_type_arguments =
               TypeArguments::Handle(zone, fun_type.arguments());
           signature = signature.InstantiateSignatureFrom(
-              scope_class.nnbd_mode(), instantiator_type_arguments,
-              Object::null_type_arguments(), kNoneFree, Heap::kOld);
+              instantiator_type_arguments, Object::null_type_arguments(),
+              kNoneFree, Heap::kOld);
           // Note that if instantiator_type_arguments contains type parameters,
           // as in F<K>, the signature is still uninstantiated (the typedef type
           // parameters were substituted in the signature with typedef type

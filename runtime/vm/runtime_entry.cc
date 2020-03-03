@@ -372,24 +372,21 @@ END_LEAF_RUNTIME_ENTRY
 // Arg0: uninstantiated type.
 // Arg1: instantiator type arguments.
 // Arg2: function type arguments.
-// Arg3: nnbd mode as Smi.
 // Return value: instantiated type.
-DEFINE_RUNTIME_ENTRY(InstantiateType, 4) {
+DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
   AbstractType& type = AbstractType::CheckedHandle(zone, arguments.ArgAt(0));
   const TypeArguments& instantiator_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
-  const NNBDMode nnbd_mode = static_cast<NNBDMode>(
-      Smi::CheckedHandle(zone, arguments.ArgAt(3)).Value());
   ASSERT(!type.IsNull());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsInstantiated());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsInstantiated());
   type =
-      type.InstantiateFrom(nnbd_mode, instantiator_type_arguments,
-                           function_type_arguments, kAllFree, NULL, Heap::kOld);
+      type.InstantiateFrom(instantiator_type_arguments, function_type_arguments,
+                           kAllFree, NULL, Heap::kOld);
   if (type.IsTypeRef()) {
     type = TypeRef::Cast(type).type();
     ASSERT(!type.IsTypeRef());
@@ -403,17 +400,14 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 4) {
 // Arg0: uninstantiated type arguments.
 // Arg1: instantiator type arguments.
 // Arg2: function type arguments.
-// Arg3: nnbd mode as Smi.
 // Return value: instantiated type arguments.
-DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 4) {
+DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(0));
   const TypeArguments& instantiator_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
-  const NNBDMode nnbd_mode = static_cast<NNBDMode>(
-      Smi::CheckedHandle(zone, arguments.ArgAt(3)).Value());
   ASSERT(!type_arguments.IsNull() && !type_arguments.IsInstantiated());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsInstantiated());
@@ -423,7 +417,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 4) {
   // instantiator can be reused as type argument vector.
   ASSERT(!type_arguments.IsUninstantiatedIdentity());
   type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-      nnbd_mode, instantiator_type_arguments, function_type_arguments);
+      instantiator_type_arguments, function_type_arguments);
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
 }
@@ -434,9 +428,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 4) {
 // Arg2: type to be a subtype of the other
 // Arg3: type to be a supertype of the other
 // Arg4: variable name of the subtype parameter
-// Arg5: nnbd mode as Smi
 // No return value.
-DEFINE_RUNTIME_ENTRY(SubtypeCheck, 6) {
+DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   const TypeArguments& instantiator_type_args =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(0));
   const TypeArguments& function_type_args =
@@ -445,16 +438,13 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 6) {
   AbstractType& supertype =
       AbstractType::CheckedHandle(zone, arguments.ArgAt(3));
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
-  const NNBDMode nnbd_mode = static_cast<NNBDMode>(
-      Smi::CheckedHandle(zone, arguments.ArgAt(5)).Value());
 
   ASSERT(!subtype.IsNull());
   ASSERT(!supertype.IsNull());
 
   // The supertype or subtype may not be instantiated.
-  if (AbstractType::InstantiateAndTestSubtype(nnbd_mode, &subtype, &supertype,
-                                              instantiator_type_args,
-                                              function_type_args)) {
+  if (AbstractType::InstantiateAndTestSubtype(
+          &subtype, &supertype, instantiator_type_args, function_type_args)) {
     return;
   }
 
@@ -547,8 +537,7 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
   do {
     call_function = cls.LookupDynamicFunction(Symbols::Call());
     if (!call_function.IsNull()) {
-      if (!call_function.AreValidArguments(NNBDMode::kLegacyLib, args_desc,
-                                           NULL)) {
+      if (!call_function.AreValidArguments(args_desc, NULL)) {
         call_function = Function::null();
       }
       break;
@@ -560,7 +549,6 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
 
 // Helper routine for tracing a type check.
 static void PrintTypeCheck(const char* message,
-                           NNBDMode mode,
                            const Instance& instance,
                            const AbstractType& type,
                            const TypeArguments& instantiator_type_arguments,
@@ -585,9 +573,9 @@ static void PrintTypeCheck(const char* message,
   } else {
     // Instantiate type before printing.
     const AbstractType& instantiated_type =
-        AbstractType::Handle(type.InstantiateFrom(
-            mode, instantiator_type_arguments, function_type_arguments,
-            kAllFree, NULL, Heap::kOld));
+        AbstractType::Handle(type.InstantiateFrom(instantiator_type_arguments,
+                                                  function_type_arguments,
+                                                  kAllFree, NULL, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message, String::Handle(instance_type.Name()).ToCString(),
                  (result.raw() == Bool::True().raw()) ? "is" : "is !",
@@ -608,7 +596,6 @@ static void PrintTypeCheck(const char* message,
 // This operation is currently very slow (lookup of code is not efficient yet).
 static void UpdateTypeTestCache(
     Zone* zone,
-    NNBDMode mode,
     const Instance& instance,
     const AbstractType& type,
     const TypeArguments& instantiator_type_arguments,
@@ -696,7 +683,7 @@ static void UpdateTypeTestCache(
         (last_instance_delayed_type_arguments.raw() ==
          instance_delayed_type_arguments.raw())) {
       OS::PrintErr("  Error in test cache %p ix: %" Pd ",", new_cache.raw(), i);
-      PrintTypeCheck(" duplicate cache entry", mode, instance, type,
+      PrintTypeCheck(" duplicate cache entry", instance, type,
                      instantiator_type_arguments, function_type_arguments,
                      result);
       UNREACHABLE();
@@ -711,7 +698,7 @@ static void UpdateTypeTestCache(
   if (FLAG_trace_type_checks) {
     AbstractType& test_type = AbstractType::Handle(zone, type.raw());
     if (!test_type.IsInstantiated()) {
-      test_type = type.InstantiateFrom(mode, instantiator_type_arguments,
+      test_type = type.InstantiateFrom(instantiator_type_arguments,
                                        function_type_arguments, kAllFree, NULL,
                                        Heap::kNew);
     }
@@ -750,9 +737,8 @@ static void UpdateTypeTestCache(
 // Arg2: type arguments of the instantiator of the type.
 // Arg3: type arguments of the function of the type.
 // Arg4: SubtypeTestCache.
-// Arg5: nnbd mode as Smi.
-// Return value: true or false, or may throw a type error in checked mode.
-DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
+// Return value: true or false.
+DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   const Instance& instance = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments.ArgAt(1));
@@ -762,20 +748,16 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(3));
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(zone, arguments.ArgAt(4));
-  const NNBDMode nnbd_mode = static_cast<NNBDMode>(
-      Smi::CheckedHandle(zone, arguments.ArgAt(5)).Value());
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsDynamicType());  // No need to check assignment.
   const Bool& result = Bool::Get(instance.IsInstanceOf(
-      nnbd_mode, type, instantiator_type_arguments, function_type_arguments));
+      type, instantiator_type_arguments, function_type_arguments));
   if (FLAG_trace_type_checks) {
-    PrintTypeCheck("InstanceOf", nnbd_mode, instance, type,
-                   instantiator_type_arguments, function_type_arguments,
-                   result);
+    PrintTypeCheck("InstanceOf", instance, type, instantiator_type_arguments,
+                   function_type_arguments, result);
   }
-  UpdateTypeTestCache(zone, nnbd_mode, instance, type,
-                      instantiator_type_arguments, function_type_arguments,
-                      result, cache);
+  UpdateTypeTestCache(zone, instance, type, instantiator_type_arguments,
+                      function_type_arguments, result, cache);
   arguments.SetReturn(result);
 }
 
@@ -789,9 +771,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
 // Arg4: name of variable being assigned to.
 // Arg5: SubtypeTestCache.
 // Arg6: invocation mode (see TypeCheckMode)
-// Arg7: nnbd mode as Smi.
 // Return value: instance if a subtype, otherwise throw a TypeError.
-DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
+DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   const Instance& src_instance =
       Instance::CheckedHandle(zone, arguments.ArgAt(0));
   AbstractType& dst_type =
@@ -815,19 +796,15 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
   ASSERT(mode == kTypeCheckFromInline);
 #endif
 
-  const NNBDMode nnbd_mode = static_cast<NNBDMode>(
-      Smi::CheckedHandle(zone, arguments.ArgAt(7)).Value());
-
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   // A null instance is already detected and allowed in inlined code, unless
   // strong checking is enabled.
   ASSERT(!src_instance.IsNull() || FLAG_null_safety);
   const bool is_instance_of = src_instance.IsAssignableTo(
-      nnbd_mode, dst_type, instantiator_type_arguments,
-      function_type_arguments);
+      dst_type, instantiator_type_arguments, function_type_arguments);
 
   if (FLAG_trace_type_checks) {
-    PrintTypeCheck("TypeCheck", nnbd_mode, src_instance, dst_type,
+    PrintTypeCheck("TypeCheck", src_instance, dst_type,
                    instantiator_type_arguments, function_type_arguments,
                    Bool::Get(is_instance_of));
   }
@@ -838,9 +815,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
         AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
-      dst_type = dst_type.InstantiateFrom(
-          nnbd_mode, instantiator_type_arguments, function_type_arguments,
-          kAllFree, NULL, Heap::kNew);
+      dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
+                                          function_type_arguments, kAllFree,
+                                          NULL, Heap::kNew);
     }
     if (dst_name.IsNull()) {
 #if !defined(TARGET_ARCH_IA32)
@@ -940,7 +917,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
 #endif
     }
 
-    UpdateTypeTestCache(zone, nnbd_mode, src_instance, dst_type,
+    UpdateTypeTestCache(zone, src_instance, dst_type,
                         instantiator_type_arguments, function_type_arguments,
                         Bool::True(), cache);
   }
@@ -1235,18 +1212,8 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
                                            const ArgumentsDescriptor& desc) {
-  // If the instance is not null, the result of _simpleInstanceOf does not
-  // depend on the nnbd mode, because we only check against a rare type,
-  // i.e. a class. However, we need to determine the correct nnbd mode when
-  // the instance is null.
-  // Since type literals are not imported, a legacy type indicates that the
-  // call originated in a legacy library. Note that the type test against a
-  // non-legacy type (even in a legacy library) such as dynamic, void, or Null
-  // yield the same result independently of the mode used.
-  const NNBDMode mode =
-      type.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib;
-  const bool result = receiver.IsInstanceOf(
-      mode, type, Object::null_type_arguments(), Object::null_type_arguments());
+  const bool result = receiver.IsInstanceOf(type, Object::null_type_arguments(),
+                                            Object::null_type_arguments());
   const ObjectStore* store = Isolate::Current()->object_store();
   const Function& target =
       Function::Handle(result ? store->simple_instance_of_true_function()
@@ -2126,8 +2093,7 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     while (!cls.IsNull()) {
       function = cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
-        ASSERT(
-            !function.AreValidArguments(NNBDMode::kLegacyLib, args_desc, NULL));
+        ASSERT(!function.AreValidArguments(args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
       function = cls.LookupDynamicFunction(getter_name);

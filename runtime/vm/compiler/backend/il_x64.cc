@@ -2414,8 +2414,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == RDX);  // Instantiator type arguments.
   ASSERT(locs()->in(2).reg() == RCX);  // Function type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), nnbd_mode(),
-                               locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == RAX);
 }
 
@@ -2726,11 +2725,9 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(type());
   __ pushq(instantiator_type_args_reg);  // Push instantiator type arguments.
   __ pushq(function_type_args_reg);      // Push function type arguments.
-  __ PushImmediate(
-      compiler::Immediate(Smi::RawValue(static_cast<intptr_t>(nnbd_mode()))));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeRuntimeEntry, 4, locs());
-  __ Drop(4);           // Drop mode, 2 type vectors, and uninstantiated type.
+                                kInstantiateTypeRuntimeEntry, 3, locs());
+  __ Drop(3);           // Drop 2 type vectors, and uninstantiated type.
   __ popq(result_reg);  // Pop instantiated type.
 }
 
@@ -2796,12 +2793,6 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
                    RDI, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
                             kWordSize));
   __ cmpq(R10, function_type_args_reg);
-  __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
-  __ movq(R10,
-          compiler::Address(
-              RDI, TypeArguments::Instantiation::kNnbdModeIndex * kWordSize));
-  __ cmpq(R10, compiler::Immediate(
-                   Smi::RawValue(static_cast<intptr_t>(nnbd_mode()))));
   __ j(EQUAL, &found, compiler::Assembler::kNearJump);
   __ Bind(&next);
   __ addq(RDI, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
@@ -2824,12 +2815,10 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ PushObject(type_arguments());
   __ pushq(instantiator_type_args_reg);  // Push instantiator type arguments.
   __ pushq(function_type_args_reg);      // Push function type arguments.
-  __ PushImmediate(
-      compiler::Immediate(Smi::RawValue(static_cast<intptr_t>(nnbd_mode()))));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry, 4,
+                                kInstantiateTypeArgumentsRuntimeEntry, 3,
                                 locs());
-  __ Drop(4);           // Drop mode, 2 type vectors, and uninstantiated type.
+  __ Drop(3);           // Drop 2 type vectors, and uninstantiated type.
   __ popq(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
 }

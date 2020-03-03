@@ -552,7 +552,6 @@ class FlowGraphCompiler : public ValueObject {
                                 intptr_t deopt_id,
                                 const AbstractType& dst_type,
                                 const String& dst_name,
-                                NNBDMode mode,
                                 LocationSummary* locs);
 
   // Returns true if we can use a type testing stub based assert
@@ -618,7 +617,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateInstanceOf(TokenPosition token_pos,
                           intptr_t deopt_id,
                           const AbstractType& type,
-                          NNBDMode mode,
                           LocationSummary* locs);
 
   void GenerateInstanceCall(intptr_t deopt_id,

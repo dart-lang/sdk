@@ -2138,8 +2138,7 @@ class FieldInvalidator {
     }
 
     if (!cache_hit) {
-      const NNBDMode nnbd_mode = Class::Handle(field.Origin()).nnbd_mode();
-      if (!value.IsAssignableTo(nnbd_mode, type_, instantiator_type_arguments_,
+      if (!value.IsAssignableTo(type_, instantiator_type_arguments_,
                                 function_type_arguments_)) {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);

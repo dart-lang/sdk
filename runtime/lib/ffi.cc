@@ -278,8 +278,7 @@ DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
 
   auto& new_value_type =
       AbstractType::Handle(zone, new_value.GetType(Heap::kNew));
-  if (!new_value_type.IsSubtypeOf(NNBDMode::kLegacyLib, pointer_type_arg,
-                                  Heap::kNew)) {
+  if (!new_value_type.IsSubtypeOf(pointer_type_arg, Heap::kNew)) {
     const String& error = String::Handle(String::NewFormatted(
         "New value (%s) is not a subtype of '%s'.",
         String::Handle(new_value_type.UserVisibleName()).ToCString(),

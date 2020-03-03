@@ -17,7 +17,6 @@ class Definition;
 class FlowGraphSerializer;
 class SExpression;
 class SExpList;
-enum class NNBDMode;
 
 template <typename T>
 class GrowableArray;
@@ -39,7 +38,6 @@ class CompileType : public ZoneAllocated {
   static const bool kNullable = true;
   static const bool kNonNullable = false;
 
-  // TODO(regis): Should CompileType take an NNBDMode?
   CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
       : is_nullable_(is_nullable), cid_(cid), type_(type) {}
 
@@ -57,7 +55,6 @@ class CompileType : public ZoneAllocated {
     return *this;
   }
 
-  // TODO(regis): Should we also consider type_.nullability() here?
   bool is_nullable() const { return is_nullable_; }
 
   // Return type such that concrete value's type in runtime is guaranteed to
@@ -80,11 +77,11 @@ class CompileType : public ZoneAllocated {
   bool IsNull();
 
   // Return true if this type is a subtype of the given type.
-  bool IsSubtypeOf(NNBDMode mode, const AbstractType& other);
+  bool IsSubtypeOf(const AbstractType& other);
 
   // Return true if value of this type is assignable to a location of the
   // given type.
-  bool IsAssignableTo(NNBDMode mode, const AbstractType& type);
+  bool IsAssignableTo(const AbstractType& type);
 
   // Create a new CompileType representing given combination of class id and
   // abstract type. The pair is assumed to be coherent.

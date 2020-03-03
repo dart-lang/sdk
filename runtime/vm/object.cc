@@ -3658,22 +3658,19 @@ RawFunction* Function::GetDynamicInvocationForwarder(
 #endif
 
 bool AbstractType::InstantiateAndTestSubtype(
-    NNBDMode mode,
     AbstractType* subtype,
     AbstractType* supertype,
     const TypeArguments& instantiator_type_args,
     const TypeArguments& function_type_args) {
   if (!subtype->IsInstantiated()) {
-    *subtype = subtype->InstantiateFrom(mode, instantiator_type_args,
-                                        function_type_args, kAllFree, NULL,
-                                        Heap::kOld);
+    *subtype = subtype->InstantiateFrom(
+        instantiator_type_args, function_type_args, kAllFree, NULL, Heap::kOld);
   }
   if (!supertype->IsInstantiated()) {
-    *supertype = supertype->InstantiateFrom(mode, instantiator_type_args,
-                                            function_type_args, kAllFree, NULL,
-                                            Heap::kOld);
+    *supertype = supertype->InstantiateFrom(
+        instantiator_type_args, function_type_args, kAllFree, NULL, Heap::kOld);
   }
-  return subtype->IsSubtypeOf(mode, *supertype, Heap::kOld);
+  return subtype->IsSubtypeOf(*supertype, Heap::kOld);
 }
 
 RawArray* Class::invocation_dispatcher_cache() const {
@@ -3952,8 +3949,6 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   }
 
   AbstractType& parameter_type = AbstractType::Handle(zone);
-  NNBDMode mode = nnbd_mode();
-
   if (field.IsNull()) {
     const Function& setter =
         Function::Handle(zone, LookupStaticFunction(internal_setter_name));
@@ -3970,7 +3965,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
                                InvocationMirror::kSetter);
     }
     parameter_type = setter.ParameterTypeAt(0);
-    if (!value.RuntimeTypeIsSubtypeOf(mode, parameter_type,
+    if (!value.RuntimeTypeIsSubtypeOf(parameter_type,
                                       Object::null_type_arguments(),
                                       Object::null_type_arguments())) {
       const String& argument_name =
@@ -3993,7 +3988,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   }
 
   parameter_type = field.type();
-  if (!value.RuntimeTypeIsSubtypeOf(mode, parameter_type,
+  if (!value.RuntimeTypeIsSubtypeOf(parameter_type,
                                     Object::null_type_arguments(),
                                     Object::null_type_arguments())) {
     const String& argument_name = String::Handle(zone, field.name());
@@ -4053,16 +4048,14 @@ RawObject* Class::Invoke(const String& function_name,
                                                    arg_names, Heap::kNew));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
-  if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacyLib, args_descriptor,
-                                  NULL) ||
+  if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
         AbstractType::Handle(zone, RareType()), function_name, args, arg_names,
         InvocationMirror::kStatic, InvocationMirror::kMethod);
   }
-  RawObject* type_error = function.DoArgumentTypesMatch(
-      NNBDMode::kLegacyLib, args, args_descriptor, type_args);
+  RawObject* type_error =
+      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
   if (type_error != Error::null()) {
     return type_error;
   }
@@ -4864,8 +4857,7 @@ bool Class::IsFutureClass() const {
 // type T1 is specified by 'other' and must have a type class.
 // This class and class 'other' do not need to be finalized, however, they must
 // be resolved as well as their interfaces.
-bool Class::IsSubtypeOf(NNBDMode mode,
-                        const Class& cls,
+bool Class::IsSubtypeOf(const Class& cls,
                         const TypeArguments& type_arguments,
                         const AbstractType& other,
                         Heap::Space space) {
@@ -4903,12 +4895,11 @@ bool Class::IsSubtypeOf(NNBDMode mode,
       ASSERT(!future_class.IsNull() && future_class.NumTypeParameters() == 1 &&
              this_class.NumTypeParameters() == 1);
       ASSERT(type_arguments.IsNull() || type_arguments.Length() >= 1);
-      if (Class::IsSubtypeOf(mode, future_class, type_arguments, other,
-                             space)) {
+      if (Class::IsSubtypeOf(future_class, type_arguments, other, space)) {
         // Check S0 <: T1.
         const AbstractType& type_arg =
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
-        if (type_arg.IsSubtypeOf(mode, other, space)) {
+        if (type_arg.IsSubtypeOf(other, space)) {
           return true;
         }
       }
@@ -4932,14 +4923,14 @@ bool Class::IsSubtypeOf(NNBDMode mode,
         const AbstractType& type_arg =
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
         // If T0 is Future<S0>, then T0 <: Future<S1>, iff S0 <: S1.
-        if (type_arg.IsSubtypeOf(mode, other_type_arg, space)) {
+        if (type_arg.IsSubtypeOf(other_type_arg, space)) {
           return true;
         }
       }
       // Check T0 <: Future<S1> when T0 is FutureOr<S0> is already done.
       // Check T0 <: S1.
       if (other_type_arg.HasTypeClass() &&
-          Class::IsSubtypeOf(mode, this_class, type_arguments, other_type_arg,
+          Class::IsSubtypeOf(this_class, type_arguments, other_type_arg,
                              space)) {
         return true;
       }
@@ -4967,7 +4958,7 @@ bool Class::IsSubtypeOf(NNBDMode mode,
         // above.
         return false;
       }
-      return type_arguments.IsSubtypeOf(mode, other_type_arguments, from_index,
+      return type_arguments.IsSubtypeOf(other_type_arguments, from_index,
                                         num_type_params, space);
     }
     // Check for 'direct super type' specified in the implements clause
@@ -4991,16 +4982,15 @@ bool Class::IsSubtypeOf(NNBDMode mode,
         // after the type arguments of the super type of this type.
         // The index of the type parameters is adjusted upon finalization.
         interface_args = interface_args.InstantiateFrom(
-            this_class.nnbd_mode(), type_arguments,
-            Object::null_type_arguments(), kNoneFree, NULL, space);
+            type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
+            space);
       }
       // In Dart 2, implementing Function has no meaning.
       // TODO(regis): Can we encounter and skip Object as well?
       if (interface_class.IsDartFunctionClass()) {
         continue;
       }
-      if (Class::IsSubtypeOf(mode, interface_class, interface_args, other,
-                             space)) {
+      if (Class::IsSubtypeOf(interface_class, interface_args, other, space)) {
         return true;
       }
     }
@@ -5763,8 +5753,7 @@ bool TypeArguments::IsTopTypes(intptr_t from_index, intptr_t len) const {
   return true;
 }
 
-bool TypeArguments::IsSubtypeOf(NNBDMode mode,
-                                const TypeArguments& other,
+bool TypeArguments::IsSubtypeOf(const TypeArguments& other,
                                 intptr_t from_index,
                                 intptr_t len,
                                 Heap::Space space) const {
@@ -5777,7 +5766,7 @@ bool TypeArguments::IsSubtypeOf(NNBDMode mode,
     type = TypeAt(from_index + i);
     other_type = other.TypeAt(from_index + i);
     if (type.IsNull() || other_type.IsNull() ||
-        !type.IsSubtypeOf(mode, other_type, space)) {
+        !type.IsSubtypeOf(other_type, space)) {
       return false;
     }
   }
@@ -6003,7 +5992,6 @@ bool TypeArguments::IsFinalized() const {
 }
 
 RawTypeArguments* TypeArguments::InstantiateFrom(
-    NNBDMode mode,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
@@ -6030,7 +6018,7 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
     if (!type.IsNull() &&
         !type.IsInstantiated(kAny, num_free_fun_type_params)) {
       type = type.InstantiateFrom(
-          mode, instantiator_type_arguments, function_type_arguments,
+          instantiator_type_arguments, function_type_arguments,
           num_free_fun_type_params, instantiation_trail, space);
       // A returned null type indicates a failed instantiation in dead code that
       // must be propagated up to the caller, the optimizing compiler.
@@ -6044,7 +6032,6 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
 }
 
 RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
-    NNBDMode mode,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments) const {
   ASSERT(!IsInstantiated());
@@ -6052,9 +6039,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
          instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
-  const Smi& nnbd_mode_as_smi =
-      Smi::Handle(Smi::New(static_cast<intptr_t>(mode)));
-  // Lookup instantiators and mode, and if found, return instantiated result.
+  // Lookup instantiators and if found, return instantiated result.
   Array& prior_instantiations = Array::Handle(instantiations());
   ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
   // The instantiations cache is initialized with Object::zero_array() and is
@@ -6068,10 +6053,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
          instantiator_type_arguments.raw()) &&
         (prior_instantiations.At(
              index + TypeArguments::Instantiation::kFunctionTypeArgsIndex) ==
-         function_type_arguments.raw()) &&
-        (prior_instantiations.At(
-             index + TypeArguments::Instantiation::kNnbdModeIndex) ==
-         nnbd_mode_as_smi.raw())) {
+         function_type_arguments.raw())) {
       return TypeArguments::RawCast(prior_instantiations.At(
           index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex));
     }
@@ -6083,8 +6065,8 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   }
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle();
-  result = InstantiateFrom(mode, instantiator_type_arguments,
-                           function_type_arguments, kAllFree, NULL, Heap::kOld);
+  result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
+                           kAllFree, NULL, Heap::kOld);
   // Canonicalize type arguments.
   result = result.Canonicalize();
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
@@ -6111,8 +6093,6 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   prior_instantiations.SetAt(
       index + TypeArguments::Instantiation::kFunctionTypeArgsIndex,
       function_type_arguments);
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kNnbdModeIndex, nnbd_mode_as_smi);
   prior_instantiations.SetAt(
       index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex, result);
   prior_instantiations.SetAt(
@@ -7421,19 +7401,17 @@ bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
   return true;
 }
 
-bool Function::AreValidArguments(NNBDMode mode,
-                                 intptr_t num_type_arguments,
+bool Function::AreValidArguments(intptr_t num_type_arguments,
                                  intptr_t num_arguments,
                                  const Array& argument_names,
                                  String* error_message) const {
   const Array& args_desc_array = Array::Handle(ArgumentsDescriptor::New(
       num_type_arguments, num_arguments, argument_names, Heap::kNew));
   ArgumentsDescriptor args_desc(args_desc_array);
-  return AreValidArguments(mode, args_desc, error_message);
+  return AreValidArguments(args_desc, error_message);
 }
 
-bool Function::AreValidArguments(NNBDMode mode,
-                                 const ArgumentsDescriptor& args_desc,
+bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
                                  String* error_message) const {
   const intptr_t num_type_arguments = args_desc.TypeArgsLen();
   const intptr_t num_arguments = args_desc.Count();
@@ -7506,7 +7484,6 @@ bool Function::AreValidArguments(NNBDMode mode,
 }
 
 RawObject* Function::DoArgumentTypesMatch(
-    NNBDMode mode,
     const Array& args,
     const ArgumentsDescriptor& args_desc,
     const TypeArguments& instantiator_type_args) const {
@@ -7515,7 +7492,7 @@ RawObject* Function::DoArgumentTypesMatch(
   Function& instantiated_func = Function::Handle(zone, raw());
 
   if (!HasInstantiatedSignature()) {
-    instantiated_func = InstantiateSignatureFrom(mode, instantiator_type_args,
+    instantiated_func = InstantiateSignatureFrom(instantiator_type_args,
                                                  Object::null_type_arguments(),
                                                  kAllFree, Heap::kNew);
   }
@@ -7534,7 +7511,7 @@ RawObject* Function::DoArgumentTypesMatch(
     if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
       continue;
     }
-    if (!argument.IsInstanceOf(mode, parameter_type, instantiator_type_args,
+    if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
                                Object::null_type_arguments())) {
       String& argument_name = String::Handle(zone, ParameterNameAt(i));
       return ThrowTypeError(token_pos(), argument, parameter_type,
@@ -7574,7 +7551,7 @@ RawObject* Function::DoArgumentTypesMatch(
         if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
           continue;
         }
-        if (!argument.IsInstanceOf(mode, parameter_type, instantiator_type_args,
+        if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
                                    Object::null_type_arguments())) {
           String& argument_name = String::Handle(zone, ParameterNameAt(i));
           return ThrowTypeError(token_pos(), argument, parameter_type,
@@ -7680,7 +7657,6 @@ const char* Function::ToQualifiedCString() const {
 }
 
 RawFunction* Function::InstantiateSignatureFrom(
-    NNBDMode mode,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
@@ -7733,7 +7709,7 @@ RawFunction* Function::InstantiateSignatureFrom(
         type_param ^= type_params.TypeAt(i);
         type = type_param.bound();
         if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
-          type = type.InstantiateFrom(mode, instantiator_type_arguments,
+          type = type.InstantiateFrom(instantiator_type_arguments,
                                       function_type_arguments,
                                       num_free_fun_type_params, NULL, space);
           // A returned null type indicates a failed instantiation in dead code
@@ -7769,7 +7745,7 @@ RawFunction* Function::InstantiateSignatureFrom(
 
   type = result_type();
   if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
-    type = type.InstantiateFrom(mode, instantiator_type_arguments,
+    type = type.InstantiateFrom(instantiator_type_arguments,
                                 function_type_arguments,
                                 num_free_fun_type_params, NULL, space);
     // A returned null type indicates a failed instantiation in dead code that
@@ -7787,7 +7763,7 @@ RawFunction* Function::InstantiateSignatureFrom(
   for (intptr_t i = 0; i < num_params; i++) {
     type = ParameterTypeAt(i);
     if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
-      type = type.InstantiateFrom(mode, instantiator_type_arguments,
+      type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
                                   num_free_fun_type_params, NULL, space);
       // A returned null type indicates a failed instantiation in dead code that
@@ -7810,8 +7786,7 @@ RawFunction* Function::InstantiateSignatureFrom(
 // of the type of the specified parameter of the other function (i.e. check
 // parameter contravariance).
 // Note that types marked as covariant are already dealt with in the front-end.
-bool Function::IsContravariantParameter(NNBDMode mode,
-                                        intptr_t parameter_position,
+bool Function::IsContravariantParameter(intptr_t parameter_position,
                                         const Function& other,
                                         intptr_t other_parameter_position,
                                         Heap::Space space) const {
@@ -7822,7 +7797,7 @@ bool Function::IsContravariantParameter(NNBDMode mode,
   }
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  return other_param_type.IsSubtypeOf(mode, param_type, space);
+  return other_param_type.IsSubtypeOf(param_type, space);
 }
 
 bool Function::HasSameTypeParametersAndBounds(const Function& other,
@@ -7835,7 +7810,6 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other,
     return false;
   }
   if (num_type_params > 0) {
-    const NNBDMode mode = nnbd_mode();  // TODO(regis): Remove unused mode.
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, type_parameters());
     ASSERT(!type_params.IsNull());
@@ -7855,8 +7829,8 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other,
       ASSERT(other_bound.IsFinalized());
       if (Dart::non_nullable_flag() && kind == TypeEquality::kInSubtypeTest) {
         // Bounds that are mutual subtypes are considered equal.
-        if (!bound.IsSubtypeOf(mode, other_bound, Heap::kOld) ||
-            !other_bound.IsSubtypeOf(mode, bound, Heap::kOld)) {
+        if (!bound.IsSubtypeOf(other_bound, Heap::kOld) ||
+            !other_bound.IsSubtypeOf(bound, Heap::kOld)) {
           return false;
         }
       } else {
@@ -7869,9 +7843,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other,
   return true;
 }
 
-bool Function::IsSubtypeOf(NNBDMode mode,
-                           const Function& other,
-                           Heap::Space space) const {
+bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
@@ -7904,7 +7876,7 @@ bool Function::IsSubtypeOf(NNBDMode mode,
   // 'void Function()' is a subtype of 'Object Function()'.
   if (!other_res_type.IsTopType()) {
     const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-    if (!res_type.IsSubtypeOf(mode, other_res_type, space)) {
+    if (!res_type.IsSubtypeOf(other_res_type, space)) {
       return false;
     }
   }
@@ -7912,7 +7884,7 @@ bool Function::IsSubtypeOf(NNBDMode mode,
   for (intptr_t i = 0; i < (other_num_fixed_params - other_num_ignored_params +
                             other_num_opt_pos_params);
        i++) {
-    if (!IsContravariantParameter(mode, i + num_ignored_params, other,
+    if (!IsContravariantParameter(i + num_ignored_params, other,
                                   i + other_num_ignored_params, space)) {
       return false;
     }
@@ -7940,7 +7912,7 @@ bool Function::IsSubtypeOf(NNBDMode mode,
       ASSERT(String::Handle(zone, ParameterNameAt(j)).IsSymbol());
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
-        if (!IsContravariantParameter(mode, j, other, i, space)) {
+        if (!IsContravariantParameter(j, other, i, space)) {
           return false;
         }
         if (FLAG_null_safety && IsRequiredAt(j) && !other_is_required) {
@@ -10044,8 +10016,8 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   for (intptr_t i = path.length() - 2; (i >= 0) && !type.IsInstantiated();
        i--) {
     args = path[i]->arguments();
-    type = type.InstantiateFrom(NNBDMode::kLegacyLib, args,
-                                TypeArguments::null_type_arguments(), kAllFree,
+    type = type.InstantiateFrom(args, TypeArguments::null_type_arguments(),
+                                kAllFree,
                                 /*instantiation_trail=*/nullptr, Heap::kNew);
   }
 
@@ -11980,15 +11952,13 @@ static RawObject* InvokeInstanceFunction(
   // Note "args" is already the internal arguments with the receiver as the
   // first element.
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacyLib, args_descriptor,
-                                  NULL) ||
+  if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return DartEntry::InvokeNoSuchMethod(receiver, target_name, args,
                                          args_descriptor_array);
   }
-  RawObject* type_error = function.DoArgumentTypesMatch(
-      NNBDMode::kLegacyLib, args, args_descriptor, instantiator_type_args);
+  RawObject* type_error = function.DoArgumentTypesMatch(args, args_descriptor,
+                                                        instantiator_type_args);
   if (type_error != Error::null()) {
     return type_error;
   }
@@ -12079,8 +12049,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
     }
     setter_type = field.type();
     if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
-        !value.IsInstanceOf(nnbd_mode(), setter_type,
-                            Object::null_type_arguments(),
+        !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
                             Object::null_type_arguments())) {
       return ThrowTypeError(field.token_pos(), value, setter_type, setter_name);
     }
@@ -12120,8 +12089,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
 
   setter_type = setter.ParameterTypeAt(0);
   if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
-      !value.IsInstanceOf(nnbd_mode(), setter_type,
-                          Object::null_type_arguments(),
+      !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
                           Object::null_type_arguments())) {
     return ThrowTypeError(setter.token_pos(), value, setter_type, setter_name);
   }
@@ -12176,17 +12144,15 @@ RawObject* Library::Invoke(const String& function_name,
       kTypeArgsLen, args.Length(), arg_names, Heap::kNew));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
-  if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacyLib, args_descriptor,
-                                  NULL) ||
+  if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
         AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
         function_name, args, arg_names, InvocationMirror::kTopLevel,
         InvocationMirror::kMethod);
   }
-  RawObject* type_error = function.DoArgumentTypesMatch(
-      NNBDMode::kLegacyLib, args, args_descriptor, type_args);
+  RawObject* type_error =
+      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
   if (type_error != Error::null()) {
     return type_error;
   }
@@ -17548,24 +17514,21 @@ Casts (e as T) in strong checking mode in a legacy or opted-in library:
 */
 
 bool Instance::IsInstanceOf(
-    NNBDMode mode,
     const AbstractType& other,
     const TypeArguments& other_instantiator_type_arguments,
     const TypeArguments& other_function_type_arguments) const {
   ASSERT(!other.IsDynamicType());
   if (IsNull()) {
-    return Instance::NullIsInstanceOf(mode, other,
-                                      other_instantiator_type_arguments,
+    return Instance::NullIsInstanceOf(other, other_instantiator_type_arguments,
                                       other_function_type_arguments);
   }
   // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
   // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
-  return RuntimeTypeIsSubtypeOf(mode, other, other_instantiator_type_arguments,
+  return RuntimeTypeIsSubtypeOf(other, other_instantiator_type_arguments,
                                 other_function_type_arguments);
 }
 
 bool Instance::IsAssignableTo(
-    NNBDMode mode,
     const AbstractType& other,
     const TypeArguments& other_instantiator_type_arguments,
     const TypeArguments& other_function_type_arguments) const {
@@ -17576,17 +17539,15 @@ bool Instance::IsAssignableTo(
   ASSERT(FLAG_null_safety || !IsNull());
   // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
   // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
-  return RuntimeTypeIsSubtypeOf(mode, other, other_instantiator_type_arguments,
+  return RuntimeTypeIsSubtypeOf(other, other_instantiator_type_arguments,
                                 other_function_type_arguments);
 }
 
 // If 'other' type (once instantiated) is a legacy type:
 //   return LEGACY_SUBTYPE(other, Null) || LEGACY_SUBTYPE(Object, other).
 // Otherwise return NNBD_SUBTYPE(Null, T).
-// Use 'mode' to instantiate 'other'. TODO(regis): Remove unused mode.
 // Ignore value of strong flag value.
 bool Instance::NullIsInstanceOf(
-    NNBDMode mode,
     const AbstractType& other,
     const TypeArguments& other_instantiator_type_arguments,
     const TypeArguments& other_function_type_arguments) {
@@ -17598,19 +17559,19 @@ bool Instance::NullIsInstanceOf(
   }
   if (other.IsFutureOrType()) {
     const auto& type = AbstractType::Handle(other.UnwrapFutureOr());
-    return NullIsInstanceOf(mode, type, other_instantiator_type_arguments,
+    return NullIsInstanceOf(type, other_instantiator_type_arguments,
                             other_function_type_arguments);
   }
   // No need to instantiate type, unless it is a type parameter.
   // Note that a typeref cannot refer to a type parameter.
   if (other.IsTypeParameter()) {
     auto& type = AbstractType::Handle(other.InstantiateFrom(
-        mode, other_instantiator_type_arguments, other_function_type_arguments,
+        other_instantiator_type_arguments, other_function_type_arguments,
         kAllFree, NULL, Heap::kOld));
     if (type.IsTypeRef()) {
       type = TypeRef::Cast(type).type();
     }
-    return Instance::NullIsInstanceOf(mode, type, Object::null_type_arguments(),
+    return Instance::NullIsInstanceOf(type, Object::null_type_arguments(),
                                       Object::null_type_arguments());
   }
   return other.IsLegacy() && (other.IsTopType() || other.IsNeverType());
@@ -17634,7 +17595,6 @@ bool Instance::NullIsAssignableTo(const AbstractType& other) {
 }
 
 bool Instance::RuntimeTypeIsSubtypeOf(
-    NNBDMode mode,
     const AbstractType& other,
     const TypeArguments& other_instantiator_type_arguments,
     const TypeArguments& other_function_type_arguments) const {
@@ -17660,8 +17620,8 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
     if (!other.IsInstantiated()) {
       instantiated_other = other.InstantiateFrom(
-          mode, other_instantiator_type_arguments,
-          other_function_type_arguments, kAllFree, NULL, Heap::kOld);
+          other_instantiator_type_arguments, other_function_type_arguments,
+          kAllFree, NULL, Heap::kOld);
       if (instantiated_other.IsTypeRef()) {
         instantiated_other = TypeRef::Cast(instantiated_other).type();
       }
@@ -17670,7 +17630,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
         return true;
       }
     }
-    if (IsFutureOrInstanceOf(zone, mode, instantiated_other)) {
+    if (IsFutureOrInstanceOf(zone, instantiated_other)) {
       return true;
     }
     if (!instantiated_other.IsFunctionType()) {
@@ -17680,7 +17640,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
         Function::Handle(zone, Type::Cast(instantiated_other).signature());
     const Function& sig_fun =
         Function::Handle(Closure::Cast(*this).GetInstantiatedSignature(zone));
-    return sig_fun.IsSubtypeOf(mode, other_signature, Heap::kOld);
+    return sig_fun.IsSubtypeOf(other_signature, Heap::kOld);
   }
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
   if (cls.NumTypeArguments() > 0) {
@@ -17700,7 +17660,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
   if (!other.IsInstantiated()) {
     instantiated_other = other.InstantiateFrom(
-        mode, other_instantiator_type_arguments, other_function_type_arguments,
+        other_instantiator_type_arguments, other_function_type_arguments,
         kAllFree, NULL, Heap::kOld);
     if (instantiated_other.IsTypeRef()) {
       instantiated_other = TypeRef::Cast(instantiated_other).type();
@@ -17717,19 +17677,18 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     if (instantiated_other.IsNullType()) {
       return true;
     }
-    if (IsFutureOrInstanceOf(zone, mode, instantiated_other)) {
+    if (IsFutureOrInstanceOf(zone, instantiated_other)) {
       return true;
     }
     return !instantiated_other.IsNonNullable();
   }
   // RuntimeType of non-null instance is non-nullable, so there is no need to
   // check nullability of other type.
-  return Class::IsSubtypeOf(mode, cls, type_arguments, instantiated_other,
+  return Class::IsSubtypeOf(cls, type_arguments, instantiated_other,
                             Heap::kOld);
 }
 
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
-                                    NNBDMode mode,
                                     const AbstractType& other) const {
   if (other.IsFutureOrType()) {
     const TypeArguments& other_type_arguments =
@@ -17744,13 +17703,12 @@ bool Instance::IsFutureOrInstanceOf(Zone* zone,
           TypeArguments::Handle(zone, GetTypeArguments());
       const AbstractType& type_arg =
           AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
-      if (type_arg.IsSubtypeOf(mode, other_type_arg, Heap::kOld)) {
+      if (type_arg.IsSubtypeOf(other_type_arg, Heap::kOld)) {
         return true;
       }
     }
     // Retry RuntimeTypeIsSubtypeOf after unwrapping type arg of FutureOr.
-    if (RuntimeTypeIsSubtypeOf(mode, other_type_arg,
-                               Object::null_type_arguments(),
+    if (RuntimeTypeIsSubtypeOf(other_type_arg, Object::null_type_arguments(),
                                Object::null_type_arguments())) {
       return true;
     }
@@ -17981,11 +17939,10 @@ RawAbstractType* AbstractType::SetInstantiatedNullability(
   const Nullability arg_nullability = nullability();
   const Nullability var_nullability = type_param.nullability();
   // Adjust nullability of result 'arg' instantiated from 'var'.
-  // arg/var ! ? * %
-  //  !      ! ? * !
-  //  ?      ? ? ? ?
-  //  *      * ? * *
-  //  %      % ? * %
+  // arg/var ! ? *
+  //  !      ! ? *
+  //  ?      ? ? ?
+  //  *      * ? *
   if (var_nullability == Nullability::kNullable ||
       arg_nullability == Nullability::kNullable) {
     result_nullability = Nullability::kNullable;
@@ -18106,7 +18063,6 @@ bool AbstractType::IsRecursive() const {
 }
 
 RawAbstractType* AbstractType::InstantiateFrom(
-    NNBDMode mode,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
@@ -18481,8 +18437,7 @@ RawAbstractType* AbstractType::UnwrapFutureOr() const {
   return type_arg.raw();
 }
 
-bool AbstractType::IsSubtypeOf(NNBDMode mode,
-                               const AbstractType& other,
+bool AbstractType::IsSubtypeOf(const AbstractType& other,
                                Heap::Space space) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
@@ -18536,11 +18491,11 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
     }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
     ASSERT(bound.IsFinalized());
-    if (bound.IsSubtypeOf(mode, other, space)) {
+    if (bound.IsSubtypeOf(other, space)) {
       return true;
     }
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
-    if (IsSubtypeOfFutureOr(zone, mode, other, space)) {
+    if (IsSubtypeOfFutureOr(zone, other, space)) {
       return true;
     }
     return false;
@@ -18565,7 +18520,7 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
       // Check for two function types.
       const Function& fun =
           Function::Handle(zone, Type::Cast(*this).signature());
-      return fun.IsSubtypeOf(mode, other_fun, space);
+      return fun.IsSubtypeOf(other_fun, space);
     }
     if (other.IsFunctionType() && !other_type_cls.IsTypedefClass()) {
       // [this] is not a function type. Therefore, non-function type [this]
@@ -18582,17 +18537,16 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
   }
   if (IsFunctionType()) {
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
-    if (IsSubtypeOfFutureOr(zone, mode, other, space)) {
+    if (IsSubtypeOfFutureOr(zone, other, space)) {
       return true;
     }
     return false;
   }
-  return Class::IsSubtypeOf(
-      mode, type_cls, TypeArguments::Handle(zone, arguments()), other, space);
+  return Class::IsSubtypeOf(type_cls, TypeArguments::Handle(zone, arguments()),
+                            other, space);
 }
 
 bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
-                                       NNBDMode mode,
                                        const AbstractType& other,
                                        Heap::Space space) const {
   if (other.IsFutureOrType()) {
@@ -18608,7 +18562,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
       return true;
     }
     // Retry the IsSubtypeOf check after unwrapping type arg of FutureOr.
-    if (IsSubtypeOf(mode, other_type_arg, space)) {
+    if (IsSubtypeOf(other_type_arg, space)) {
       return true;
     }
   }
@@ -18858,7 +18812,6 @@ bool Type::IsInstantiated(Genericity genericity,
 }
 
 RawAbstractType* Type::InstantiateFrom(
-    NNBDMode mode,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
@@ -18881,7 +18834,7 @@ RawAbstractType* Type::InstantiateFrom(
     // parameterization of a generic typedef. They are otherwise ignored.
     ASSERT(type_arguments.Length() == cls.NumTypeArguments());
     type_arguments = type_arguments.InstantiateFrom(
-        mode, instantiator_type_arguments, function_type_arguments,
+        instantiator_type_arguments, function_type_arguments,
         num_free_fun_type_params, instantiation_trail, space);
     // A returned empty_type_arguments indicates a failed instantiation in dead
     // code that must be propagated up to the caller, the optimizing compiler.
@@ -18903,7 +18856,7 @@ RawAbstractType* Type::InstantiateFrom(
       // A generic typedef may actually declare an instantiated signature.
       if (!sig_fun.HasInstantiatedSignature(kAny, num_free_fun_type_params)) {
         sig_fun = sig_fun.InstantiateSignatureFrom(
-            mode, instantiator_type_arguments, function_type_arguments,
+            instantiator_type_arguments, function_type_arguments,
             num_free_fun_type_params, space);
         // A returned null signature indicates a failed instantiation in dead
         // code that must be propagated up to the caller, the optimizing
@@ -19481,7 +19434,6 @@ bool TypeRef::IsEquivalent(const Instance& other,
 }
 
 RawTypeRef* TypeRef::InstantiateFrom(
-    NNBDMode mode,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
@@ -19499,7 +19451,7 @@ RawTypeRef* TypeRef::InstantiateFrom(
   ASSERT(!ref_type.IsNull() && !ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
-      mode, instantiator_type_arguments, function_type_arguments,
+      instantiator_type_arguments, function_type_arguments,
       num_free_fun_type_params, instantiation_trail, space);
   // A returned null type indicates a failed instantiation in dead code that
   // must be propagated up to the caller, the optimizing compiler.
@@ -19774,7 +19726,6 @@ RawAbstractType* TypeParameter::GetFromTypeArguments(
 }
 
 RawAbstractType* TypeParameter::InstantiateFrom(
-    NNBDMode mode,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
@@ -23110,9 +23061,8 @@ RawFunction* Closure::GetInstantiatedSignature(Zone* zone) const {
   }
   if (num_free_params == kCurrentAndEnclosingFree ||
       !sig_fun.HasInstantiatedSignature(kAny)) {
-    return sig_fun.InstantiateSignatureFrom(sig_fun.nnbd_mode(), inst_type_args,
-                                            fn_type_args, num_free_params,
-                                            Heap::kOld);
+    return sig_fun.InstantiateSignatureFrom(inst_type_args, fn_type_args,
+                                            num_free_params, Heap::kOld);
   }
   return sig_fun.raw();
 }

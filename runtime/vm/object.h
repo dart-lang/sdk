@@ -886,9 +886,7 @@ enum class TypeEquality {
   kInSubtypeTest = 2,
 };
 
-// The NNBDMode is passed to routines performing type reification and/or subtype
-// tests. The mode reflects the opted-in status of the library performing type
-// reification and/or subtype tests.
+// The NNBDMode reflects the opted-in status of libraries.
 // Note that the weak or strong testing mode is not reflected in NNBDMode, but
 // imposed globally by the value of FLAG_null_safety.
 enum class NNBDMode {
@@ -1022,7 +1020,7 @@ class Class : public Object {
   // to this class.
   RawClass* Mixin() const;
 
-  // The NNBD mode to use when compiling type tests.
+  // The NNBD mode of the library declaring this class.
   NNBDMode nnbd_mode() const;
 
   bool IsInFullSnapshot() const;
@@ -1234,8 +1232,7 @@ class Class : public Object {
 
   // Returns true if the type specified by cls and type_arguments is a subtype
   // of the other type.
-  static bool IsSubtypeOf(NNBDMode mode,
-                          const Class& cls,
+  static bool IsSubtypeOf(const Class& cls,
                           const TypeArguments& type_arguments,
                           const AbstractType& other,
                           Heap::Space space);
@@ -2453,7 +2450,6 @@ class Function : public Object {
 
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
-      NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
@@ -2490,7 +2486,7 @@ class Function : public Object {
   RawScript* script() const;
   RawObject* RawOwner() const { return raw_ptr()->owner_; }
 
-  // The NNBD mode to use when compiling type tests.
+  // The NNBD mode of the library declaring this function.
   // TODO(alexmarkov): nnbd_mode() doesn't work for mixins.
   // It should be either removed or fixed.
   NNBDMode nnbd_mode() const { return Class::Handle(origin()).nnbd_mode(); }
@@ -3054,7 +3050,6 @@ class Function : public Object {
   // Returns a TypeError if the provided arguments don't match the function
   // parameter types, NULL otherwise. Assumes AreValidArguments is called first.
   RawObject* DoArgumentTypesMatch(
-      NNBDMode mode,
       const Array& args,
       const ArgumentsDescriptor& arg_names,
       const TypeArguments& instantiator_type_args) const;
@@ -3062,13 +3057,11 @@ class Function : public Object {
   // Returns true if the type argument count, total argument count and the names
   // of optional arguments are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
-  bool AreValidArguments(NNBDMode mode,
-                         intptr_t num_type_arguments,
+  bool AreValidArguments(intptr_t num_type_arguments,
                          intptr_t num_arguments,
                          const Array& argument_names,
                          String* error_message) const;
-  bool AreValidArguments(NNBDMode mode,
-                         const ArgumentsDescriptor& args_desc,
+  bool AreValidArguments(const ArgumentsDescriptor& args_desc,
                          String* error_message) const;
 
   // Fully qualified name uniquely identifying the function under gdb and during
@@ -3081,9 +3074,7 @@ class Function : public Object {
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
-  bool IsSubtypeOf(NNBDMode mode,
-                   const Function& other,
-                   Heap::Space space) const;
+  bool IsSubtypeOf(const Function& other, Heap::Space space) const;
 
   bool IsDispatcherOrImplicitAccessor() const {
     switch (kind()) {
@@ -3524,8 +3515,7 @@ class Function : public Object {
   // Returns true if the type of the formal parameter at the given position in
   // this function is contravariant with the type of the other formal parameter
   // at the given position in the other function.
-  bool IsContravariantParameter(NNBDMode mode,
-                                intptr_t parameter_position,
+  bool IsContravariantParameter(intptr_t parameter_position,
                                 const Function& other,
                                 intptr_t other_parameter_position,
                                 Heap::Space space) const;
@@ -6860,15 +6850,13 @@ class Instance : public Object {
 
   // Check if the type of this instance is a subtype of the given other type.
   // The type argument vectors are used to instantiate the other type if needed.
-  bool IsInstanceOf(NNBDMode mode,
-                    const AbstractType& other,
+  bool IsInstanceOf(const AbstractType& other,
                     const TypeArguments& other_instantiator_type_arguments,
                     const TypeArguments& other_function_type_arguments) const;
 
   // Check if this instance is assignable to the given other type.
   // The type argument vectors are used to instantiate the other type if needed.
-  bool IsAssignableTo(NNBDMode mode,
-                      const AbstractType& other,
+  bool IsAssignableTo(const AbstractType& other,
                       const TypeArguments& other_instantiator_type_arguments,
                       const TypeArguments& other_function_type_arguments) const;
 
@@ -6881,7 +6869,6 @@ class Instance : public Object {
   // specified by instantiated type 'other'.
   // Returns false if other type is not a FutureOr.
   bool IsFutureOrInstanceOf(Zone* zone,
-                            NNBDMode mode,
                             const AbstractType& other) const;
 
   bool IsValidNativeIndex(int index) const {
@@ -6962,14 +6949,12 @@ class Instance : public Object {
  private:
   // Return true if the runtimeType of this instance is a subtype of other type.
   bool RuntimeTypeIsSubtypeOf(
-      NNBDMode mode,
       const AbstractType& other,
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments) const;
 
   // Return true if the null instance is an instance of other type.
   static bool NullIsInstanceOf(
-      NNBDMode mode,
       const AbstractType& other,
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments);
@@ -7132,8 +7117,7 @@ class TypeArguments : public Instance {
 
   // Check the subtype relationship, considering only a subvector of length
   // 'len' starting at 'from_index'.
-  bool IsSubtypeOf(NNBDMode mode,
-                   const TypeArguments& other,
+  bool IsSubtypeOf(const TypeArguments& other,
                    intptr_t from_index,
                    intptr_t len,
                    Heap::Space space) const;
@@ -7196,7 +7180,6 @@ class TypeArguments : public Instance {
   // type from the various type argument vectors (class instantiator, function,
   // or parent functions via the current context).
   RawTypeArguments* InstantiateFrom(
-      NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
@@ -7206,16 +7189,14 @@ class TypeArguments : public Instance {
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
   RawTypeArguments* InstantiateAndCanonicalizeFrom(
-      NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments) const;
 
-  // Each cached instantiation consists of a 4-tuple in the instantiations_
+  // Each cached instantiation consists of a 3-tuple in the instantiations_
   // array stored in each canonical uninstantiated type argument vector.
   enum Instantiation {
     kInstantiatorTypeArgsIndex = 0,
     kFunctionTypeArgsIndex,
-    kNnbdModeIndex,
     kInstantiatedTypeArgsIndex,
     kSizeInWords,
   };
@@ -7362,9 +7343,7 @@ class AbstractType : public Instance {
   // must remain uninstantiated, because only T is a free variable in this type.
   //
   // Return a new type, or return 'this' if it is already instantiated.
-  // TODO(regis): mode is not needed anymore. Remove it here and in all callers.
   virtual RawAbstractType* InstantiateFrom(
-      NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
@@ -7509,14 +7488,11 @@ class AbstractType : public Instance {
   RawAbstractType* UnwrapFutureOr() const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(NNBDMode mode,
-                   const AbstractType& other,
-                   Heap::Space space) const;
+  bool IsSubtypeOf(const AbstractType& other, Heap::Space space) const;
 
   // Returns true iff subtype is a subtype of supertype, false otherwise or if
   // an error occurred.
   static bool InstantiateAndTestSubtype(
-      NNBDMode mode,
       AbstractType* subtype,
       AbstractType* supertype,
       const TypeArguments& instantiator_type_args,
@@ -7537,7 +7513,6 @@ class AbstractType : public Instance {
   // Returns true if this type is a subtype of FutureOr<T> specified by 'other'.
   // Returns false if other type is not a FutureOr.
   bool IsSubtypeOfFutureOr(Zone* zone,
-                           NNBDMode mode,
                            const AbstractType& other,
                            Heap::Space space) const;
 
@@ -7615,7 +7590,6 @@ class Type : public AbstractType {
     return signature() != Function::null();
   }
   virtual RawAbstractType* InstantiateFrom(
-      NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
@@ -7767,7 +7741,6 @@ class TypeRef : public AbstractType {
     return !ref_type.IsNull() && ref_type.IsFunctionType();
   }
   virtual RawTypeRef* InstantiateFrom(
-      NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
@@ -7847,7 +7820,6 @@ class TypeParameter : public AbstractType {
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(
-      NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,

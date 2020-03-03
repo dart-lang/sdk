@@ -62,8 +62,8 @@ class Object {
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
   @pragma("vm:entry-point", "call")
-  bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type,
-      nnbd_mode) native "Object_instanceOf";
+  bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type)
+      native "Object_instanceOf";
 
   // Group of functions for implementing fast simple instance of.
   @pragma("vm:entry-point", "call")

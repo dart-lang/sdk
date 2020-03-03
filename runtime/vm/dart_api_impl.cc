@@ -159,9 +159,8 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
     }
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, obj_class,
-                           Object::null_type_arguments(), list_rare_type,
-                           Heap::kNew)) {
+    if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(),
+                           list_rare_type, Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -183,9 +182,8 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
     }
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, obj_class,
-                           Object::null_type_arguments(), map_rare_type,
-                           Heap::kNew)) {
+    if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(),
+                           map_rare_type, Heap::kNew)) {
       return instance.raw();
     }
   }
@@ -2188,8 +2186,7 @@ static bool InstanceIsType(const Thread* thread,
                            const Type& type) {
   ASSERT(!type.IsNull());
   CHECK_CALLBACK_STATE(thread);
-  return instance.IsInstanceOf(NNBDMode::kLegacyLib, type,
-                               Object::null_type_arguments(),
+  return instance.IsInstanceOf(type, Object::null_type_arguments(),
                                Object::null_type_arguments());
 }
 
@@ -2382,9 +2379,8 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
       object_store->set_non_nullable_future_rare_type(future_rare_type);
     }
     const Class& obj_class = Class::Handle(Z, obj.clazz());
-    bool is_future = Class::IsSubtypeOf(NNBDMode::kLegacyLib, obj_class,
-                                        Object::null_type_arguments(),
-                                        future_rare_type, Heap::kNew);
+    bool is_future = Class::IsSubtypeOf(
+        obj_class, Object::null_type_arguments(), future_rare_type, Heap::kNew);
     return is_future;
   }
   return false;
@@ -4266,8 +4262,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       // We do not support generic constructors.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
-          NNBDMode::kLegacyLib, type_arguments, Object::null_type_arguments(),
-          kNoneFree, NULL, Heap::kNew);
+          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
+          Heap::kNew);
       redirect_type ^= redirect_type.Canonicalize();
     }
 

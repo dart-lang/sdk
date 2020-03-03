@@ -269,8 +269,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
         /*exclude_null=*/!Instance::NullIsAssignableTo(type));
 
     const Type& int_type = Type::Handle(Type::IntType());
-    const bool smi_is_ok =
-        int_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kNew);
+    const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     instance_reg, smi_is_ok);
@@ -358,7 +357,7 @@ void TypeTestingStubGenerator::
   // uncommon because most Dart code in 2.0 will be strongly typed)!
   __ CompareObject(instance_type_args_reg, Object::null_object());
   const Type& rare_type = Type::Handle(Type::RawCast(type_class.RareType()));
-  if (rare_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kNew)) {
+  if (rare_type.IsSubtypeOf(type, Heap::kNew)) {
     compiler::Label process_done;
     __ BranchIf(NOT_EQUAL, &process_done);
     __ Ret();

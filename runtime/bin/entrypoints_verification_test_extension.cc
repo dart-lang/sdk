@@ -61,7 +61,6 @@ void FailClosurizeConstructor(const char* name, Dart_Handle result) {
 }
 
 void TestFields(Dart_Handle target) {
-  // TODO(regis): Fix these tests, as a function type is not nullable.
   FAIL("fld0", Dart_GetField(target, Dart_NewStringFromCString("fld0")));
   FAIL("fld0",
        Dart_SetField(target, Dart_NewStringFromCString("fld0"), Dart_Null()));

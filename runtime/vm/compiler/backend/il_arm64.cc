@@ -2432,8 +2432,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == R1);  // Instantiator type arguments.
   ASSERT(locs()->in(2).reg() == R2);  // Function type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), nnbd_mode(),
-                               locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == R0);
 }
 
@@ -2730,10 +2729,9 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(TMP, type());
   __ PushPair(TMP, NULL_REG);
   __ PushPair(function_type_args_reg, instantiator_type_args_reg);
-  __ PushImmediate(Smi::RawValue(static_cast<intptr_t>(nnbd_mode())));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeRuntimeEntry, 4, locs());
-  __ Drop(4);          // Drop mode, 2 type vectors, and uninstantiated type.
+                                kInstantiateTypeRuntimeEntry, 3, locs());
+  __ Drop(3);          // Drop 2 type vectors, and uninstantiated type.
   __ Pop(result_reg);  // Pop instantiated type.
   ASSERT(instantiator_type_args_reg == result_reg);
 }
@@ -2798,10 +2796,6 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
       TMP, R3,
       TypeArguments::Instantiation::kFunctionTypeArgsIndex * kWordSize);
   __ CompareRegisters(TMP, function_type_args_reg);
-  __ b(&next, NE);
-  __ LoadFromOffset(TMP, R3,
-                    TypeArguments::Instantiation::kNnbdModeIndex * kWordSize);
-  __ CompareImmediate(TMP, Smi::RawValue(static_cast<intptr_t>(nnbd_mode())));
   __ b(&found, EQ);
   __ Bind(&next);
   __ AddImmediate(R3, TypeArguments::Instantiation::kSizeInWords * kWordSize);
@@ -2820,11 +2814,10 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ LoadObject(TMP, type_arguments());
   __ PushPair(TMP, NULL_REG);
   __ PushPair(function_type_args_reg, instantiator_type_args_reg);
-  __ PushImmediate(Smi::RawValue(static_cast<intptr_t>(nnbd_mode())));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry, 4,
+                                kInstantiateTypeArgumentsRuntimeEntry, 3,
                                 locs());
-  __ Drop(4);          // Drop mode, 2 type vectors, and uninstantiated type.
+  __ Drop(3);          // Drop 2 type vectors, and uninstantiated type.
   __ Pop(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
 }

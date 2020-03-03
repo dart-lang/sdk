@@ -3078,11 +3078,8 @@ static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
   __ PushObject(NullObject());
   __ pushq(kSubtypeTestCacheReg);
   __ PushImmediate(Immediate(target::ToRawSmi(mode)));
-  // TODO(regis): Pass nnbd mode in a register from call site.
-  __ PushImmediate(
-      Immediate(target::ToRawSmi(static_cast<intptr_t>(NNBDMode::kLegacyLib))));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 8);
-  __ Drop(2);  // mode and nnbd_mode
+  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
+  __ Drop(1);  // mode
   __ popq(kSubtypeTestCacheReg);
   __ Drop(1);
   __ popq(kFunctionTypeArgumentsReg);
