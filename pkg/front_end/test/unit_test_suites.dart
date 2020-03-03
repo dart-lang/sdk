@@ -273,7 +273,7 @@ const List<Suite> suites = [
   const Suite("fasta/weak", weak.createContext, "../../testing.json"),
 ];
 
-const Duration timeoutDuration = Duration(minutes: 15);
+const Duration timeoutDuration = Duration(minutes: 25);
 
 class SuiteConfiguration {
   final String name;
