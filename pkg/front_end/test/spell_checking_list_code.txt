@@ -862,6 +862,7 @@ rf
 rhs
 ri
 rightmost
+risk
 rn
 rnystrom
 role
