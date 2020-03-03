@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:analysis_server/src/edit/nnbd_migration/web/edit_details.dart';
 import 'package:path/path.dart' as _p;
 
 import 'highlight_js.dart';
@@ -187,9 +188,7 @@ void loadAndPopulateEditDetails(String path, int offset) {
     requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
   ).then((HttpRequest xhr) {
     if (xhr.status == 200) {
-      // TODO(devoncarew): Parse this response into an object model (see
-      // RegionRenderer for the schema).
-      Map<String, dynamic> response = jsonDecode(xhr.responseText);
+      var response = EditDetails.fromJson(jsonDecode(xhr.responseText));
       populateEditDetails(response);
       addClickHandlers('.edit-panel .panel-content');
     } else {
@@ -349,7 +348,7 @@ String pluralize(int count, String single, {String multiple}) {
   return count == 1 ? single : (multiple ?? '${single}s');
 }
 
-void populateEditDetails([Map<String, dynamic> response]) {
+void populateEditDetails([EditDetails response]) {
   var editPanel = document.querySelector('.edit-panel .panel-content');
   editPanel.innerHtml = '';
 
@@ -361,16 +360,16 @@ void populateEditDetails([Map<String, dynamic> response]) {
     return;
   }
 
-  String filePath = response['path'];
+  String filePath = response.path;
   String parentDirectory = _p.dirname(filePath);
 
   // 'Changed ... at foo.dart:12.'
-  String explanationMessage = response['explanation'];
+  String explanationMessage = response.explanation;
   String relPath = _p.relative(filePath, from: rootPath);
-  int line = response['line'];
+  int line = response.line;
   Element explanation = editPanel.append(document.createElement('p'));
   explanation.append(Text('$explanationMessage at $relPath:$line.'));
-  int detailCount = response['details'].length;
+  int detailCount = response.details.length;
   if (detailCount == 0) {
     // Having 0 details is not necessarily an expected possibility, but handling
     // the possibility prevents awkward text, "for 0 reasons:".
@@ -378,17 +377,17 @@ void populateEditDetails([Map<String, dynamic> response]) {
     editPanel.append(ParagraphElement()..text = 'Edit rationale:');
 
     Element detailList = editPanel.append(document.createElement('ul'));
-    for (var detail in response['details']) {
+    for (var detail in response.details) {
       var detailItem = detailList.append(document.createElement('li'));
-      detailItem.append(Text(detail['description']));
-      if (detail['link'] != null) {
-        int targetLine = detail['link']['line'];
+      detailItem.append(Text(detail.description));
+      if (detail.link != null) {
+        int targetLine = detail.link.line;
 
         detailItem.append(Text(' ('));
         AnchorElement a = detailItem.append(document.createElement('a'));
-        a.append(Text("${detail['link']['text']}:$targetLine"));
+        a.append(Text("${detail.link.text}:$targetLine"));
 
-        String relLink = detail['link']['href'];
+        String relLink = detail.link.href;
         String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
 
         a.setAttribute('href', fullPath);
@@ -398,12 +397,12 @@ void populateEditDetails([Map<String, dynamic> response]) {
     }
   }
 
-  if (response['edits'] != null) {
-    for (var edit in response['edits']) {
+  if (response.edits != null) {
+    for (var edit in response.edits) {
       Element editParagraph = editPanel.append(document.createElement('p'));
       Element a = editParagraph.append(document.createElement('a'));
-      a.append(Text(edit['text']));
-      a.setAttribute('href', edit['href']);
+      a.append(Text(edit.text));
+      a.setAttribute('href', edit.href);
       a.classes.add('post-link');
     }
   }

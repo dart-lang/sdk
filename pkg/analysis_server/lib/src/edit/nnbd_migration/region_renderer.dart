@@ -6,6 +6,7 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/edit_details.dart';
 import 'package:path/path.dart' as path;
 
 /// The HTML that is displayed for a region of code.
@@ -36,44 +37,44 @@ class RegionRenderer {
   String render() {
     var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
 
-    Map<String, dynamic> linkForTarget(NavigationTarget target) {
+    EditLink linkForTarget(NavigationTarget target) {
       String relativePath = _relativePathToTarget(target, unitDir);
       String targetUri = _uriForRelativePath(relativePath, target);
-      return {
-        'text': relativePath,
-        'href': targetUri,
-        'line': target.line,
-      };
+      return EditLink(
+        text: relativePath,
+        href: targetUri,
+        line: target.line,
+      );
     }
 
-    Map<String, String> linkForEdit(EditDetail edit) => {
-          'text': edit.description,
-          'href': Uri(
-              scheme: 'http',
-              path: pathContext.basename(unitInfo.path),
-              queryParameters: {
-                'offset': edit.offset.toString(),
-                'end': (edit.offset + edit.length).toString(),
-                'replacement': edit.replacement
-              }).toString()
-        };
+    EditLink linkForEdit(EditDetail edit) => EditLink(
+        text: edit.description,
+        href: Uri(
+            scheme: 'http',
+            path: pathContext.basename(unitInfo.path),
+            queryParameters: {
+              'offset': edit.offset.toString(),
+              'end': (edit.offset + edit.length).toString(),
+              'replacement': edit.replacement
+            }).toString());
 
-    var response = {
-      'path': unitInfo.path,
-      'line': region.lineNumber,
-      'explanation': region.explanation,
-      'details': [
+    var response = EditDetails(
+      path: unitInfo.path,
+      line: region.lineNumber,
+      explanation: region.explanation,
+      details: [
         for (var detail in region.details)
-          {
-            'description': detail.description,
-            if (detail.target != null) 'link': linkForTarget(detail.target)
-          },
+          EditRationale(
+              description: detail.description,
+              link:
+                  detail.target == null ? null : linkForTarget(detail.target)),
       ],
-      if (supportsIncrementalWorkflow)
-        'edits': [
-          for (var edit in region.edits) linkForEdit(edit),
-        ],
-    };
+      edits: supportsIncrementalWorkflow
+          ? [
+              for (var edit in region.edits) linkForEdit(edit),
+            ]
+          : null,
+    ).toJson();
     return jsonEncode(response);
   }
 
