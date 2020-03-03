@@ -33,6 +33,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
 import 'class_builder.dart';
+import 'field_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'library_builder.dart';
@@ -77,11 +78,26 @@ abstract class ConstructorBuilder implements FunctionBuilder {
 
   /// Infers the types of any untyped initializing formals.
   void inferFormalTypes();
+
+  /// Registers field as being initialized by this constructor.
+  ///
+  /// The field can be initialized either via an initializing formal or via an
+  /// entry in the constructor initializer list.
+  void registerInitializedField(FieldBuilder fieldBuilder);
+
+  /// Returns the fields registered as initialized by this constructor.
+  ///
+  /// Returns the set of fields previously registered via
+  /// [registerInitializedField] and passes on the ownership of the collection
+  /// to the caller.
+  Set<FieldBuilder> takeInitializedFields();
 }
 
 class ConstructorBuilderImpl extends FunctionBuilderImpl
     implements ConstructorBuilder {
   final Constructor _constructor;
+
+  Set<FieldBuilder> _initializedFields;
 
   @override
   final int charOpenParenOffset;
@@ -368,4 +384,16 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   @override
   List<ClassMember> get localSetters =>
       throw new UnsupportedError('${runtimeType}.localSetters');
+
+  @override
+  void registerInitializedField(FieldBuilder fieldBuilder) {
+    (_initializedFields ??= {}).add(fieldBuilder);
+  }
+
+  @override
+  Set<FieldBuilder> takeInitializedFields() {
+    Set<FieldBuilder> result = _initializedFields;
+    _initializedFields = null;
+    return result;
+  }
 }

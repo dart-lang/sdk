@@ -221,6 +221,10 @@ class EnumBuilder extends SourceClassBuilder {
         null,
         null);
     members["values"] = valuesBuilder;
+    constructorBuilder
+      ..registerInitializedField(members["_name"])
+      ..registerInitializedField(members["index"])
+      ..registerInitializedField(valuesBuilder);
     ProcedureBuilder toStringBuilder = new ProcedureBuilderImpl(
         null,
         0,

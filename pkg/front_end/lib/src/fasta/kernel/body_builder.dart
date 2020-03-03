@@ -5586,6 +5586,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 ]);
           }
         }
+        ConstructorBuilder constructorBuilder = member;
+        constructorBuilder.registerInitializedField(builder);
         return builder.buildInitializer(assignmentOffset, expression,
             isSynthetic: formal != null);
       }

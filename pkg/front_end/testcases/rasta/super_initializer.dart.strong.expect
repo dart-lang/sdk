@@ -29,7 +29,7 @@ class Super extends core::Object {
     ;
 }
 class Sub extends self::Super {
-  field dynamic field = null;
+  field dynamic field;
   constructor arg0() → self::Sub*
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/super_initializer.dart:14:15: Error: Can't have initializers after 'super'.
       : super.arg0(),

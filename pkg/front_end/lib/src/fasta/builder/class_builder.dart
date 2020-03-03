@@ -55,8 +55,6 @@ import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
-import '../../base/common.dart';
-
 import '../../base/nnbd_mode.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
@@ -86,6 +84,7 @@ import '../source/source_loader.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'builder.dart';
+import 'constructor_builder.dart';
 import 'constructor_reference_builder.dart';
 import 'declaration_builder.dart';
 import 'field_builder.dart';
@@ -127,7 +126,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   ClassBuilder actualOrigin;
 
-  ClassBuilder patchForTesting;
+  ClassBuilder get patchForTesting;
 
   bool get isAbstract;
 
@@ -155,6 +154,13 @@ abstract class ClassBuilder implements DeclarationBuilder {
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
   void forEach(void f(String name, Builder builder));
+
+  void forEachDeclaredField(
+      void Function(String name, FieldBuilder fieldBuilder) f);
+
+  void forEachDeclaredConstructor(
+      void Function(String name, ConstructorBuilder constructorBuilder)
+          callback);
 
   /// Find the first member of this class with [name]. This method isn't
   /// suitable for scope lookups as it will throw an error if the name isn't
@@ -321,7 +327,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   ClassBuilder actualOrigin;
 
   @override
-  ClassBuilder patchForTesting;
+  ClassBuilder get patchForTesting => _patchBuilder;
 
   @override
   bool isNullClass = false;
@@ -330,6 +336,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType _nullableRawType;
   InterfaceType _nonNullableRawType;
   InterfaceType _thisType;
+  ClassBuilder _patchBuilder;
 
   ClassBuilderImpl(
       List<MetadataBuilder> metadata,
@@ -437,6 +444,55 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   void forEach(void f(String name, Builder builder)) {
     scope.forEach(f);
+  }
+
+  void forEachDeclaredField(
+      void Function(String name, FieldBuilder fieldBuilder) callback) {
+    void callbackFilteringFieldBuilders(String name, Builder builder) {
+      if (builder is FieldBuilder) {
+        callback(name, builder);
+      }
+    }
+
+    // Currently, fields can't be patched, but can be injected.  When the fields
+    // will be made available for patching, the following code should iterate
+    // first over the fields from the patch and then -- over the fields in the
+    // original declaration, filtering out the patched fields.  For now, the
+    // assert checks that the names of the fields from the original declaration
+    // and from the patch don't intersect.
+    assert(
+        _patchBuilder == null ||
+            _patchBuilder.scope.localMembers
+                .where((b) => b is FieldBuilder)
+                .map((b) => (b as FieldBuilder).name)
+                .toSet()
+                .intersection(scope.localMembers
+                    .where((b) => b is FieldBuilder)
+                    .map((b) => (b as FieldBuilder).name)
+                    .toSet())
+                .isEmpty,
+        "Detected an attempt to patch a field.");
+    _patchBuilder?.scope?.forEach(callbackFilteringFieldBuilders);
+    scope.forEach(callbackFilteringFieldBuilders);
+  }
+
+  @override
+  void forEachDeclaredConstructor(
+      void Function(String name, ConstructorBuilder constructorBuilder)
+          callback) {
+    Set<String> visitedConstructorNames = {};
+    void callbackFilteringFieldBuilders(String name, Builder builder) {
+      if (builder is ConstructorBuilder &&
+          visitedConstructorNames.add(builder.name)) {
+        callback(name, builder);
+      }
+    }
+
+    // Constructors can be patched, so iterate first over constructors in the
+    // patch, and then over constructors in the original declaration skipping
+    // those with the names that are in the patch.
+    _patchBuilder?.constructors?.forEach(callbackFilteringFieldBuilders);
+    constructors.forEach(callbackFilteringFieldBuilders);
   }
 
   @override
@@ -1653,9 +1709,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   void applyPatch(Builder patch) {
     if (patch is ClassBuilder) {
       patch.actualOrigin = this;
-      if (retainDataForTesting) {
-        patchForTesting = patch;
-      }
+      _patchBuilder = patch;
       // TODO(ahe): Complain if `patch.supertype` isn't null.
       scope.forEachLocalMember((String name, Builder member) {
         Builder memberPatch =
