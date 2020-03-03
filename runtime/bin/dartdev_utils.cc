@@ -21,6 +21,7 @@ bool DartDevUtils::ShouldParseCommand(const char* script_uri) {
           (strncmp(script_uri, "http://", 7) != 0) &&
           (strncmp(script_uri, "https://", 8) != 0) &&
           (strncmp(script_uri, "file://", 7) != 0) &&
+          (strncmp(script_uri, "package:", 8) != 0) &&
           (strncmp(script_uri, "google3://", 10) != 0));
 }
 
