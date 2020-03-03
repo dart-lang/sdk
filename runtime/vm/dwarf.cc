@@ -13,8 +13,6 @@ namespace dart {
 
 #ifdef DART_PRECOMPILER
 
-static const intptr_t kTargetWordSize = sizeof(compiler::target::kWordSize);
-
 class InliningNode : public ZoneAllocated {
  public:
   InliningNode(const Function& function,
@@ -326,9 +324,9 @@ void Dwarf::WriteCompilationUnit() {
     cu_start = position();
   }
 
-  u2(2);                // DWARF version 2
-  u4(0);                // debug_abbrev_offset
-  u1(kTargetWordSize);  // address_size
+  u2(2);                            // DWARF version 2
+  u4(0);                            // debug_abbrev_offset
+  u1(compiler::target::kWordSize);  // address_size
 
   // Compilation Unit DIE. We describe the entire Dart program as a single
   // compilation unit. Note we write attributes in the same order we declared
@@ -797,8 +795,8 @@ void Dwarf::WriteLines() {
           // 4. Update LNP pc.
           if (previous_code_index < 0) {
             // This variant is relocatable.
-            u1(0);                    // This is an extended opcode
-            u1(1 + kTargetWordSize);  // that is 5 or 9 bytes long
+            u1(0);                                // This is an extended opcode
+            u1(1 + compiler::target::kWordSize);  // that is 5 or 9 bytes long
             u1(DW_LNE_set_address);
             if (asm_stream_ != nullptr) {
               PrintNamedAddressWithOffset(asm_name, current_pc_offset);
