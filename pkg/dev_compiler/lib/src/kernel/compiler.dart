@@ -649,7 +649,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js.call('(#) => { #; }', [jsFormals, deferredBaseClass]),
     ];
 
-    var genericCall = runtimeCall('generic(#)', [genericArgs]);
+    // FutureOr types have a runtime normalization step that will call
+    // generic() as needed.
+    var genericCall = c == _coreTypes.futureOrClass
+        ? runtimeCall('normalizeFutureOr(#)', [genericArgs])
+        : runtimeCall('generic(#)', [genericArgs]);
 
     var genericName = _emitTopLevelNameNoInterop(c, suffix: '\$');
     return js.statement('{ # = #; # = #(); }',
@@ -2617,10 +2621,53 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitNeverType(NeverType type) =>
-      _emitNullabilityWrapper(runtimeCall('Never'), type.nullability);
+      type.nullability == Nullability.nullable
+          ? visitInterfaceType(_coreTypes.nullType)
+          : _emitNullabilityWrapper(runtimeCall('Never'), type.nullability);
+
+  /// Normalizes `FutureOr` types and emits the normalized version.
+  js_ast.Expression _normalizeFutureOr(InterfaceType futureOr) {
+    var typeArgument = futureOr.typeArguments.single;
+    if (typeArgument is DynamicType) {
+      // FutureOr<dynamic> --> dynamic
+      return visitDynamicType(typeArgument);
+    }
+    if (typeArgument is VoidType) {
+      // FutureOr<void> --> void
+      return visitVoidType(typeArgument);
+    }
+
+    var normalizedType = futureOr;
+    if (typeArgument is InterfaceType &&
+        typeArgument.classNode == _coreTypes.objectClass) {
+      // Normalize FutureOr of Object, Object?, Object*.
+      normalizedType = typeArgument;
+    } else if (typeArgument is NeverType) {
+      // FutureOr<Never> --> Future<Never>
+      normalizedType = InterfaceType(
+          _coreTypes.futureClass, futureOr.nullability, [typeArgument]);
+    } else if (typeArgument is InterfaceType &&
+        typeArgument.classNode == _coreTypes.nullClass) {
+      // TODO(40266) Remove this workaround when we unfork dart:_runtime
+      var nullability = _options.enableNullSafety
+          ? Nullability.nullable
+          : currentLibrary.nullable;
+      // FutureOr<Null> --> Future<Null>?
+      normalizedType =
+          InterfaceType(_coreTypes.futureClass, nullability, [typeArgument]);
+    } else if (futureOr.nullability == Nullability.nullable &&
+        typeArgument.nullability == Nullability.nullable) {
+      // FutureOr<T?>? --> FutureOr<T?>
+      normalizedType = futureOr.withNullability(Nullability.nonNullable);
+    }
+    return _emitInterfaceType(normalizedType);
+  }
+
   @override
   js_ast.Expression visitInterfaceType(InterfaceType type) =>
-      _emitInterfaceType(type);
+      type.classNode == _coreTypes.futureOrClass
+          ? _normalizeFutureOr(type)
+          : _emitInterfaceType(type);
 
   /// Emits the representation of [type].
   ///
