@@ -7,6 +7,7 @@
 // Environment=ASAN_OPTIONS=handle_segv=0:detect_stack_use_after_return=1:allocator_may_return_null=1
 // Environment=LSAN_OPTIONS=handle_segv=0:detect_stack_use_after_return=1:allocator_may_return_null=1
 // Environment=MSAN_OPTIONS=handle_segv=0:detect_stack_use_after_return=1:allocator_may_return_null=1
+// Environment=TSAN_OPTIONS=handle_segv=0:detect_stack_use_after_return=1:allocator_may_return_null=1
 
 // Test that ensures correct exception when running out of memory for
 // really large transferable.

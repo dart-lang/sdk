@@ -33,6 +33,10 @@ cc/*: Skip # Many tests want see unoptimized code running
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 dart/kernel_determinism_test: SkipSlow
 
+[ $builder_tag == tsan ]
+dart/appjit_cha_deopt_test: SkipSlow
+dart/regress_40462_test: SkipSlow
+
 [ $compiler == app_jitk ]
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart/snapshot_version_test: RuntimeError
