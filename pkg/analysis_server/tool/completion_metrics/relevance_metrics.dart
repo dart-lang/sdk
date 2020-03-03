@@ -1426,7 +1426,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           distance++;
         }
       } else if (node is CatchClause) {
-        if (node.exceptionParameter.staticElement == variable ||
+        if (node.exceptionParameter?.staticElement == variable ||
             node.stackTraceParameter?.staticElement == variable) {
           return distance;
         }
