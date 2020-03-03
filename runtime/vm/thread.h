@@ -712,11 +712,13 @@ class Thread : public ThreadState {
   uword SetSafepointRequested(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
     if (value) {
+      // acquire pulls from the release in TryEnterSafepoint.
       return safepoint_state_.fetch_or(SafepointRequestedField::encode(true),
-                                       std::memory_order_relaxed);
+                                       std::memory_order_acquire);
     } else {
+      // release pushes to the acquire in TryExitSafepoint.
       return safepoint_state_.fetch_and(~SafepointRequestedField::encode(true),
-                                        std::memory_order_relaxed);
+                                        std::memory_order_release);
     }
   }
   static bool IsBlockedForSafepoint(uword state) {
@@ -766,7 +768,7 @@ class Thread : public ThreadState {
     uword old_state = 0;
     uword new_state = SetAtSafepoint(true, 0);
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
-                                                    std::memory_order_acq_rel);
+                                                    std::memory_order_release);
   }
 
   void EnterSafepoint() {
@@ -784,7 +786,7 @@ class Thread : public ThreadState {
     uword old_state = SetAtSafepoint(true, 0);
     uword new_state = 0;
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
-                                                    std::memory_order_acq_rel);
+                                                    std::memory_order_acquire);
   }
 
   void ExitSafepoint() {
