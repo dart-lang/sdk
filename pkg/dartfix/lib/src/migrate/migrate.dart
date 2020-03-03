@@ -27,6 +27,9 @@ class MigrateCommand extends Command {
   final LogProvider logProvider;
 
   @override
+  final bool hidden;
+
+  @override
   String get name => 'migrate';
 
   @override
@@ -38,7 +41,7 @@ class MigrateCommand extends Command {
     return '${super.invocation} [project or directory]';
   }
 
-  MigrateCommand({this.logProvider}) {
+  MigrateCommand({this.logProvider, this.hidden = false}) {
     MigrateOptions.defineOptions(argParser);
   }
 
