@@ -4104,8 +4104,14 @@ class Parser {
     token = parseExpression(token);
     token = ensureSemicolon(token);
     if (inPlainSync) {
+      // `yield` is only allowed in generators; A recoverable error is already
+      // reported in the "async" case in `parseStatementX`. Only the "sync" case
+      // needs to be handled here.
       codes.MessageCode errorCode = codes.messageYieldNotGenerator;
       reportRecoverableError(begin, errorCode);
+      // TODO(srawlins): Add tests in analyzer to ensure the AstBuilder
+      //  correctly handles invalid yields, and that the error message is
+      //  correctly plumbed through.
       listener.endInvalidYieldStatement(begin, starToken, token, errorCode);
     } else {
       listener.endYieldStatement(begin, starToken, token);
@@ -6134,48 +6140,14 @@ class Parser {
     return token;
   }
 
-  /// Determine if the following tokens look like an 'await' expression
-  /// and not a local variable or local function declaration.
-  bool looksLikeAwaitExpression(Token token) {
+  /// Determine if the following tokens look like an expression and not a local
+  /// variable or local function declaration.
+  bool looksLikeExpression(Token token) {
+    // TODO(srawlins): Consider parsing the potential expression once doing so
+    //  does not modify the token stream. For now, use simple look ahead and
+    //  ensure no false positives.
+
     token = token.next;
-    assert(optional('await', token));
-    token = token.next;
-
-    // TODO(danrubel): Consider parsing the potential expression following
-    // the `await` token once doing so does not modify the token stream.
-    // For now, use simple look ahead and ensure no false positives.
-
-    if (token.isIdentifier) {
-      token = token.next;
-      if (optional('(', token)) {
-        token = token.endGroup.next;
-        if (isOneOf(token, [';', '.', '..', '?', '?.'])) {
-          return true;
-        }
-      } else if (isOneOf(token, ['.', ')', ']'])) {
-        return true;
-      }
-      // TODO(srawlins): Also consider when `token` is `;`. There is still not
-      // good error recovery on `await x;`.
-    }
-    // TODO(srawlins): Consider whether the token following `yield` is `null`
-    //  (`token` would be `Keyword.NULL`) or is `<` as part of a type argument
-    //  list. There is still not good error recovery on `await null` and on
-    //  `await <int>[]`.
-    return false;
-  }
-
-  /// Determine if the following tokens look like a 'yield' expression and not a
-  /// local variable or local function declaration.
-  bool looksLikeYieldStatement(Token token) {
-    token = token.next;
-    assert(optional('yield', token));
-    token = token.next;
-
-    // TODO(srawlins): Consider parsing the potential expression following
-    // the `yield` token once doing so does not modify the token stream.
-    // For now, use simple look ahead and ensure no false positives.
-
     if (token.isIdentifier) {
       token = token.next;
       if (optional('(', token)) {
@@ -6193,10 +6165,31 @@ class Parser {
     } else if (token == Keyword.NULL) {
       return true;
     }
-    // TODO(srawlins): Consider whether the token following `yield` is `<` as
-    //  part of a type argument list. There is still not good error recovery on
+    // TODO(srawlins): Consider other possibilities for `token` which would
+    //  imply it looks like an expression, for example beginning with `<`, as
+    //  part of a collection literal type argument list, `(`, other literals,
+    //  etc. For example, there is still not good error recovery on
     //  `yield <int>[]`.
+
     return false;
+  }
+
+  /// Determine if the following tokens look like an 'await' expression
+  /// and not a local variable or local function declaration.
+  bool looksLikeAwaitExpression(Token token) {
+    token = token.next;
+    assert(optional('await', token));
+
+    return looksLikeExpression(token);
+  }
+
+  /// Determine if the following tokens look like a 'yield' expression and not a
+  /// local variable or local function declaration.
+  bool looksLikeYieldStatement(Token token) {
+    token = token.next;
+    assert(optional('yield', token));
+
+    return looksLikeExpression(token);
   }
 
   /// ```
