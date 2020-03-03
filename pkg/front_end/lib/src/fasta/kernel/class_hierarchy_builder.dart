@@ -2784,11 +2784,7 @@ class InterfaceConflict extends DelayedMember {
         }
         debug?.log("Combined Member Signature of ${fullNameForErrors}: "
             "added stub $stub");
-        if (classBuilder.isMixinApplication) {
-          return combinedMemberSignatureResult = bestMemberSoFar;
-        } else {
-          return combinedMemberSignatureResult = stub;
-        }
+        return combinedMemberSignatureResult = stub;
       }
     }
 
