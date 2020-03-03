@@ -12,12 +12,12 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryNullAwareCallTest);
+    defineReflectiveTests(InvalidNullAwareOperatorTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryNullAwareCallTest extends DriverResolutionTest {
+class InvalidNullAwareOperatorTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.fromEnableFlags(
@@ -47,8 +47,8 @@ f(int x) {
   x?..isEven;
 }
 ''', [
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 27, 3),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 14, 2),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 27, 3),
     ]);
   }
 
@@ -84,8 +84,8 @@ f(List<int> x) {
   x?..[0];
 }
 ''', [
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 20, 3),
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 30, 3),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 3),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 30, 3),
     ]);
   }
 
@@ -121,8 +121,8 @@ f(int x) {
   x?..round();
 }
 ''', [
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 28, 3),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 14, 2),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 28, 3),
     ]);
   }
 
@@ -131,6 +131,47 @@ f(int x) {
 f(int? x) {
   x?.round();
   x?..round();
+}
+''');
+  }
+
+  test_nonNullableSpread_nullableType() async {
+    await assertNoErrorsInCode('''
+f(List<int> x) {
+  [...x];
+}
+''');
+  }
+
+  test_nullableSpread_legacyType() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.5
+var x = <int>[];
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+f() {
+  [...?x];
+}
+''');
+  }
+
+  test_nullableSpread_nonNullableType() async {
+    await assertErrorsInCode('''
+f(List<int> x) {
+  [...?x];
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 4),
+    ]);
+  }
+
+  test_nullableSpread_nullableType() async {
+    await assertNoErrorsInCode('''
+f(List<int>? x) {
+  [...?x];
 }
 ''');
   }

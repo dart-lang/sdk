@@ -743,6 +743,7 @@ const List<ErrorCode> errorCodeValues = [
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.IMPORT_OF_NON_LIBRARY,
   StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS,
+  StaticWarningCode.INVALID_NULL_AWARE_OPERATOR,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
   StaticWarningCode.INVALID_USE_OF_NULL_VALUE,
@@ -792,8 +793,6 @@ const List<ErrorCode> errorCodeValues = [
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.UNDEFINED_NAMED_PARAMETER,
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
-  StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL,
-  StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD,
   StaticWarningCode.USE_OF_VOID_RESULT,
   StrongModeCode.COULD_NOT_INFER,
   StrongModeCode.DYNAMIC_INVOKE,

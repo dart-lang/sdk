@@ -197,6 +197,7 @@ import 'invalid_modifier_on_constructor_test.dart'
     as invalid_modifier_on_constructor;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
+import 'invalid_null_aware_operator_test.dart' as invalid_null_aware_operator;
 import 'invalid_override_different_default_values_named_test.dart'
     as invalid_override_different_default_values_named;
 import 'invalid_override_different_default_values_positional_test.dart'
@@ -470,9 +471,6 @@ import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
-import 'unnecessary_null_aware_call_test.dart' as unnecessary_null_aware_call;
-import 'unnecessary_null_aware_spread_test.dart'
-    as unnecessary_null_aware_spread;
 import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
 import 'unnecessary_type_check_test.dart' as unnecessary_type_check;
 import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
@@ -633,6 +631,7 @@ main() {
     invalid_literal_annotation.main();
     invalid_modifier_on_constructor.main();
     invalid_non_virtual_annotation.main();
+    invalid_null_aware_operator.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
     invalid_override_of_non_virtual_member.main();
@@ -820,8 +819,6 @@ main() {
     unnecessary_cast.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
-    unnecessary_null_aware_call.main();
-    unnecessary_null_aware_spread.main();
     unnecessary_null_comparison.main();
     unnecessary_type_check.main();
     unqualified_reference_to_static_member_of_extended_type.main();
