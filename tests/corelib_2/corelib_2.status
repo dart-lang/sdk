@@ -8,6 +8,9 @@ regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
 [ $mode == debug ]
 regexp/pcre_test: Slow, Pass # Issue 22008
 
+[ $runtime != none ]
+string_runes_test: Skip # See breaking change #40674
+
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
