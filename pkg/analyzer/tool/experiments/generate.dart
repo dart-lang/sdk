@@ -62,8 +62,10 @@ part of 'experiments.dart';
 
   _ExperimentsGenerator(this.experimentsYaml);
 
+  Map get features => experimentsYaml['features'];
+
   void generateFormatCode() {
-    keysSorted = experimentsYaml.keys.cast<String>().toList()..sort();
+    keysSorted = features.keys.cast<String>().toList()..sort();
     generateSection_KnownFeatures();
     generateSection_BuildExperimentalFlagsArray();
     generateSection_EnableString();
@@ -80,7 +82,7 @@ List<bool> _buildExperimentalFlagsArray() => <bool>[
 ''');
     for (var key in keysSorted) {
       var id = keyToIdentifier(key);
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       bool expired = entry['expired'];
       if (shipped || expired == true) {
@@ -157,8 +159,8 @@ class ExperimentalFeatures {
     int index = 0;
     for (var key in keysSorted) {
       var id = keyToIdentifier(key);
-      var help = (experimentsYaml[key] as YamlMap)['help'] ?? '';
-      var enabledIn = (experimentsYaml[key] as YamlMap)['enabledIn'];
+      var help = (features[key] as YamlMap)['help'] ?? '';
+      var enabledIn = (features[key] as YamlMap)['enabledIn'];
       out.write('''
 
       static const $id = ExperimentalFeature(
@@ -209,7 +211,7 @@ class ExperimentalFeatures {
 class IsEnabledByDefault {
 ''');
     for (var key in keysSorted) {
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       out.write('''
       /// Default state of the experiment "$key"
@@ -238,7 +240,7 @@ class IsEnabledByDefault {
 class IsExpired {
 ''');
     for (var key in keysSorted) {
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       bool expired = entry['expired'];
       out.write('''
