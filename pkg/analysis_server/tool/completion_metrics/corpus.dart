@@ -83,7 +83,8 @@ Future<CloneResult> _clone(String repo) async {
     result = await Process.run('git', ['pull'], workingDirectory: cloneDir);
   } else {
     print('Cloning $repo to $cloneDir');
-    result = await Process.run('git', ['clone', '$repo.git', cloneDir]);
+    result = await Process.run(
+        'git', ['clone', '--recurse-submodules', '$repo.git', cloneDir]);
   }
   return CloneResult(result.exitCode, cloneDir, msg: result.stderr);
 }
