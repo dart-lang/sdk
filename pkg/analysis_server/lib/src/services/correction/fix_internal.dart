@@ -4763,42 +4763,7 @@ class FixProcessor extends BaseProcessor {
           builder.write(name);
         });
         // append parameters
-        builder.write('(');
-        List<ParameterElement> parameters = functionType.parameters;
-        var parameterNames = <String>{};
-        for (int i = 0; i < parameters.length; i++) {
-          var name = parameters[i].name;
-          if (name.isNotEmpty) {
-            parameterNames.add(name);
-          }
-        }
-        for (int i = 0; i < parameters.length; i++) {
-          ParameterElement parameter = parameters[i];
-          // append separator
-          if (i != 0) {
-            builder.write(', ');
-          }
-          // append type name
-          DartType type = parameter.type;
-          if (!type.isDynamic) {
-            builder.addLinkedEdit('TYPE$i',
-                (DartLinkedEditBuilder innerBuilder) {
-              builder.writeType(type);
-              innerBuilder.addSuperTypesAsSuggestions(type);
-            });
-            builder.write(' ');
-          }
-          // append parameter name
-          builder.addLinkedEdit('ARG$i', (DartLinkedEditBuilder builder) {
-            var name = parameter.name;
-            if (name.isEmpty) {
-              name = _generateUniqueName(parameterNames, 'p');
-              parameterNames.add(name);
-            }
-            builder.write(name);
-          });
-        }
-        builder.write(')');
+        builder.writeParameters(functionType.parameters);
         // close method
         builder.write(' {$eol$prefix}');
         builder.write(sourceSuffix);
@@ -4874,18 +4839,6 @@ class FixProcessor extends BaseProcessor {
     var collector = _ElementReferenceCollector(element);
     root.accept(collector);
     return collector.references;
-  }
-
-  /// Generate a name that does not occur in [existingNames] that begins with
-  /// the given [prefix].
-  String _generateUniqueName(Set<String> existingNames, String prefix) {
-    var index = 1;
-    var name = '$prefix$index';
-    while (existingNames.contains(name)) {
-      index++;
-      name = '$prefix$index';
-    }
-    return name;
   }
 
   /// Return the class, enum or mixin declaration for the given [element].

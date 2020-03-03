@@ -199,8 +199,17 @@ abstract class DartEditBuilder implements EditBuilder {
   ///
   /// If a [type] is provided, then it will be used as the type of the
   /// parameter.
+  ///
+  /// If a [nameGroupName] is provided, then the name of the parameter will be
+  /// included in a linked edit.
+  ///
+  /// If a [type] and [typeGroupName] are both provided, then the type of the
+  /// parameter will be included in a linked edit.
   void writeParameter(String name,
-      {ExecutableElement methodBeingCopied, DartType type});
+      {ExecutableElement methodBeingCopied,
+      String nameGroupName,
+      DartType type,
+      String typeGroupName});
 
   /// Write the code for a parameter that would match the given [argument]. The
   /// name of the parameter will be generated based on the type of the argument,
