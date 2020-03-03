@@ -10,6 +10,7 @@ import 'dart:math' as math;
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show convertElementToElementKind, ElementKind;
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -290,6 +291,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The relevance data being collected.
   final RelevanceData data;
 
+  /// The object used to determine Flutter-specific features.
+  Flutter flutter;
+
   InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
@@ -301,6 +305,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// Initialize a newly created collector to add data points to the given
   /// [data].
   RelevanceDataCollector(this.data);
+
+  /// Initialize this collector prior to visiting the unit in the [result].
+  void initializeFrom(ResolvedUnitResult result) {
+    flutter = Flutter.of(result);
+  }
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -316,21 +325,26 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    String context = _argumentListContext(node);
+    var context = _argumentListContext(node);
+    var parent = node.parent;
+    var inWidgetConstructor = parent is InstanceCreationExpression &&
+        flutter.isWidgetType(parent.staticType);
     for (var argument in node.arguments) {
+      var realArgument = argument;
+      var argumentKind = 'unnamed';
       if (argument is NamedExpression) {
-        _recordDataForNode('ArgumentList (all, named)', argument.expression,
-            allowedKeywords: expressionKeywords);
+        realArgument = argument.expression;
+        argumentKind = 'named';
+      }
+      _recordDataForNode('ArgumentList (all, $argumentKind)', realArgument,
+          allowedKeywords: expressionKeywords);
+      _recordDataForNode('ArgumentList ($context, $argumentKind)', realArgument,
+          allowedKeywords: expressionKeywords);
+      _recordTypeMatch(realArgument);
+      if (inWidgetConstructor) {
         _recordDataForNode(
-            'ArgumentList ($context, named)', argument.expression,
+            'ArgumentList (widget constructor, $argumentKind)', realArgument,
             allowedKeywords: expressionKeywords);
-        _recordTypeMatch(argument.expression);
-      } else {
-        _recordDataForNode('ArgumentList (all, unnamed)', argument,
-            allowedKeywords: expressionKeywords);
-        _recordDataForNode('ArgumentList ($context, unnamed)', argument,
-            allowedKeywords: expressionKeywords);
-        _recordTypeMatch(argument);
       }
     }
     super.visitArgumentList(node);
@@ -1595,16 +1609,19 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         }
 
         int superclassDepth = getSuperclassDepth();
+        int interfaceDepth = getInterfaceDepth(targetClass);
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
           data.recordDistanceByDepth(getTargetDepth(), superclassDepth);
         } else {
-          int interfaceDepth = getInterfaceDepth(targetClass);
           if (interfaceDepth < notFound) {
             _recordDistance('member (interface)', interfaceDepth);
           } else {
             _recordDistance('member (not found)', 0);
           }
+        }
+        if (interfaceDepth < notFound) {
+          _recordDistance('member (shortest distance)', interfaceDepth);
         }
       }
     }
@@ -1835,6 +1852,7 @@ class RelevanceMetricsComputer {
                 continue;
               }
 
+              collector.initializeFrom(resolvedUnitResult);
               resolvedUnitResult.unit.accept(collector);
             } catch (exception, stacktrace) {
               print('Exception caught analyzing: "$filePath"');
@@ -1848,12 +1866,33 @@ class RelevanceMetricsComputer {
 
   /// Write a report of the metrics that were computed to the [sink].
   void writeMetrics(StringSink sink) {
+    var first = <String, Map<String, int>>{};
+    var whole = <String, Map<String, int>>{};
+    var rest = <String, Map<String, int>>{};
+    for (var entry in data.byTypeMatch.entries) {
+      var key = entry.key;
+      var firstLabel = ', first token';
+      var firstIndex = key.indexOf(firstLabel);
+      if (firstIndex > 0) {
+        first[key.replaceFirst(firstLabel, '')] = entry.value;
+      } else {
+        var wholeLabel = ', whole';
+        var wholeIndex = key.indexOf(wholeLabel);
+        if (wholeIndex > 0) {
+          whole[key.replaceFirst(wholeLabel, '')] = entry.value;
+        } else {
+          rest[key] = entry.value;
+        }
+      }
+    }
+
     sink.writeln('');
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);
     sink.writeln('');
     sink.writeln('Type relationships');
-    _writeContextMap(sink, data.byTypeMatch);
+    _writeSideBySide(sink, [first, whole], ['First Token', 'Whole Expression']);
+    _writeContextMap(sink, rest);
     sink.writeln('');
     sink.writeln('Structural indicators');
     _writeContextMap(sink, data.byDistance);
