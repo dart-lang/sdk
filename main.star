@@ -293,8 +293,7 @@ luci.cq_group(
 def dart_recipe(name):
     return luci.recipe(
         name="dart/" + name,
-        cipd_package=
-        "dart/recipe_bundles/dart.googlesource.com/recipes",
+        cipd_package="dart/recipe_bundles/dart.googlesource.com/recipes",
     )
 
 
@@ -665,6 +664,8 @@ dart_vm_extra_builder("vm-ffi-android-product-arm", category="vm|ffi|p32")
 dart_vm_extra_builder("vm-ffi-android-debug-arm64", category="vm|ffi|d64")
 dart_vm_extra_builder("vm-ffi-android-release-arm64", category="vm|ffi|r64")
 dart_vm_extra_builder("vm-ffi-android-product-arm64", category="vm|ffi|p64")
+dart_vm_extra_builder(
+    "vm-precomp-ffi-qemu-linux-release-arm", category="vm|ffi|qe")
 
 # pkg
 dart_ci_sandbox_builder("pkg-linux-release", category="pkg|l", on_cq=True)
