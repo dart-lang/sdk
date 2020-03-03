@@ -49,11 +49,13 @@ Run with '--verify' to validate that the web resource have been regenerated.
 
 final File dartSources = File(path.join('pkg', 'analysis_server', 'lib', 'src',
     'edit', 'nnbd_migration', 'web', 'migration.dart'));
+
 final javascriptOutput = File(path.join('pkg', 'analysis_server', 'lib', 'src',
     'edit', 'nnbd_migration', 'resources', 'migration.js'));
 
 final Directory resourceDir = Directory(path.join('pkg', 'analysis_server',
     'lib', 'src', 'edit', 'nnbd_migration', 'resources'));
+
 final File resourcesFile = File(path.join('pkg', 'analysis_server', 'lib',
     'src', 'edit', 'nnbd_migration', 'resources', 'resources.g.dart'));
 
@@ -103,7 +105,8 @@ void compileWebFrontEnd() async {
 }
 
 void createResourcesGDart() {
-  String content = generateResourceFile(resourceDir.listSync().where((entity) {
+  String content =
+      generateResourceFile(sortDir(resourceDir.listSync()).where((entity) {
     String name = path.basename(entity.path);
     return entity is File && resourceTypes.contains(path.extension(name));
   }).cast<File>());
@@ -174,7 +177,7 @@ String _decode(String data) {
       // Write out the crc for the dart code.
       StringBuffer sourceCode = StringBuffer();
       // collect the dart source code
-      for (FileSystemEntity entity in dartSources.parent.listSync()) {
+      for (FileSystemEntity entity in sortDir(dartSources.parent.listSync())) {
         if (entity.path.endsWith('.dart')) {
           sourceCode.write((entity as File).readAsStringSync());
         }
@@ -197,6 +200,12 @@ String md5String(String str) {
   return md5.convert(str.codeUnits).toString();
 }
 
+List<FileSystemEntity> sortDir(Iterable<FileSystemEntity> entities) {
+  var result = entities.toList();
+  result.sort((a, b) => a.path.compareTo(b.path));
+  return result;
+}
+
 void verifyResourcesGDartGenerated({
   VerificationFunction failVerification = failGenerate,
 }) {
@@ -212,7 +221,7 @@ void verifyResourcesGDartGenerated({
   }
 
   // For all resources (modulo compiled JS ones), verify the hash.
-  for (FileSystemEntity entity in resourceDir.listSync()) {
+  for (FileSystemEntity entity in sortDir(resourceDir.listSync())) {
     String name = path.basename(entity.path);
     if (!resourceTypes.contains(path.extension(name))) {
       continue;
@@ -236,7 +245,7 @@ void verifyResourcesGDartGenerated({
 
   // verify the compiled dart code
   StringBuffer sourceCode = StringBuffer();
-  for (FileSystemEntity entity in dartSources.parent.listSync()) {
+  for (FileSystemEntity entity in sortDir(dartSources.parent.listSync())) {
     if (entity.path.endsWith('.dart')) {
       sourceCode.write((entity as File).readAsStringSync());
     }

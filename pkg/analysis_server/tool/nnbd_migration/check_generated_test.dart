@@ -12,5 +12,5 @@ import 'generate_resources.dart' as generate_resources;
 void main() async {
   test('description', () {
     generate_resources.verifyResourcesGDartGenerated(failVerification: fail);
-  }, skip: 'https://github.com/dart-lang/sdk/issues/40505');
+  });
 }
