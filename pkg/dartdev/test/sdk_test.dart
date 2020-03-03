@@ -12,10 +12,6 @@ void main() {
 }
 
 void _sdk() {
-  test('can locate', () {
-    expectDirectoryExists(Sdk().dir);
-  });
-
   test('sdkPath', () {
     expectDirectoryExists(Sdk().sdkPath);
   });
