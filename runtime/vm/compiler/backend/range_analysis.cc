@@ -958,12 +958,21 @@ class BoundsCheckGeneralizer {
     return nullptr;
   }
 
+  // Returns true if x is invariant and is either based on a Smi definition
+  // or is a Smi constant.
+  static bool IsSmiInvariant(const InductionVar* x) {
+    return InductionVar::IsInvariant(x) && Smi::IsValid(x->offset()) &&
+           Smi::IsValid(x->mult()) &&
+           (x->mult() == 0 || x->def()->Type()->ToCid() == kSmiCid);
+  }
+
   // Only accept smi linear induction with unit stride.
   InductionVar* GetSmiInduction(LoopInfo* loop, Definition* def) {
     if (loop != nullptr && def->Type()->ToCid() == kSmiCid) {
       InductionVar* induc = loop->LookupInduction(def);
-      if (induc != nullptr && induc->kind() == InductionVar::kLinear &&
-          induc->next()->offset() == 1 && induc->next()->mult() == 0) {
+      int64_t stride;
+      if (induc != nullptr && InductionVar::IsLinear(induc, &stride) &&
+          stride == 1 && IsSmiInvariant(induc->initial())) {
         return induc;
       }
     }
