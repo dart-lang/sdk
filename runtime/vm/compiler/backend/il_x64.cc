@@ -2990,21 +2990,17 @@ LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_in(0, Location::RegisterLocation(R9));
   locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
 
 void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register context_value = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
+  ASSERT(locs()->in(0).reg() == R9);
+  ASSERT(locs()->out(0).reg() == RAX);
 
-  __ PushObject(Object::null_object());  // Make room for the result.
-  __ pushq(context_value);
-  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kCloneContextRuntimeEntry, 1, locs());
-  __ popq(result);  // Remove argument.
-  __ popq(result);  // Get result (cloned context).
+  compiler->GenerateCall(token_pos(), StubCode::CloneContext(),
+                         /*kind=*/RawPcDescriptors::kOther, locs());
 }
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,

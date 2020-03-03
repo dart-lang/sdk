@@ -1579,79 +1579,93 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+// Helper to generate space allocation of context stub.
+// This does not initialise the fields of the context.
+// Input:
+//   R1: number of context variables.
+// Output:
+//   R0: new allocated RawContext object.
+// Clobbered:
+//   R2, R3, R4, TMP
+static void GenerateAllocateContextSpaceStub(Assembler* assembler,
+                                             Label* slow_case) {
+  // First compute the rounded instance size.
+  // R1: number of context variables.
+  intptr_t fixed_size_plus_alignment_padding =
+      target::Context::header_size() +
+      target::ObjectAlignment::kObjectAlignment - 1;
+  __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
+  __ add(R2, R2, Operand(R1, LSL, 3));
+  ASSERT(kSmiTagShift == 1);
+  __ andi(R2, R2, Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
+
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, R4, slow_case));
+  // Now allocate the object.
+  // R1: number of context variables.
+  // R2: object size.
+  __ ldr(R0, Address(THR, target::Thread::top_offset()));
+  __ add(R3, R2, Operand(R0));
+  // Check if the allocation fits into the remaining space.
+  // R0: potential new object.
+  // R1: number of context variables.
+  // R2: object size.
+  // R3: potential next object start.
+  __ ldr(TMP, Address(THR, target::Thread::end_offset()));
+  __ CompareRegisters(R3, TMP);
+  if (FLAG_use_slow_path) {
+    __ b(slow_case);
+  } else {
+    __ b(slow_case, CS);  // Branch if unsigned higher or equal.
+  }
+
+  // Successfully allocated the object, now update top to point to
+  // next object start and initialize the object.
+  // R0: new object.
+  // R1: number of context variables.
+  // R2: object size.
+  // R3: next object start.
+  __ str(R3, Address(THR, target::Thread::top_offset()));
+  __ add(R0, R0, Operand(kHeapObjectTag));
+
+  // Calculate the size tag.
+  // R0: new object.
+  // R1: number of context variables.
+  // R2: object size.
+  const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
+                         target::ObjectAlignment::kObjectAlignmentLog2;
+  __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
+  // If no size tag overflow, shift R2 left, else set R2 to zero.
+  __ LslImmediate(TMP, R2, shift);
+  __ csel(R2, TMP, R2, LS);
+  __ csel(R2, ZR, R2, HI);
+
+  // Get the class index and insert it into the tags.
+  // R2: size and bit tags.
+  const uint32_t tags =
+      target::MakeTagWordForNewSpaceObject(kContextCid, /*instance_size=*/0);
+
+  __ LoadImmediate(TMP, tags);
+  __ orr(R2, R2, Operand(TMP));
+  __ StoreFieldToOffset(R2, R0, target::Object::tags_offset());
+
+  // Setup up number of context variables field.
+  // R0: new object.
+  // R1: number of context variables as integer value (not object).
+  __ StoreFieldToOffset(R1, R0, target::Context::num_variables_offset());
+}
+
 // Called for inline allocation of contexts.
 // Input:
 //   R1: number of context variables.
 // Output:
 //   R0: new allocated RawContext object.
+// Clobbered:
+//   R2, R3, R4, TMP
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   if (FLAG_inline_alloc) {
     Label slow_case;
-    // First compute the rounded instance size.
-    // R1: number of context variables.
-    intptr_t fixed_size_plus_alignment_padding =
-        target::Context::header_size() +
-        target::ObjectAlignment::kObjectAlignment - 1;
-    __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
-    __ add(R2, R2, Operand(R1, LSL, 3));
-    ASSERT(kSmiTagShift == 1);
-    __ andi(R2, R2,
-            Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
 
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, R4, &slow_case));
-    // Now allocate the object.
-    // R1: number of context variables.
-    // R2: object size.
-    const intptr_t cid = kContextCid;
-    __ ldr(R0, Address(THR, target::Thread::top_offset()));
-    __ add(R3, R2, Operand(R0));
-    // Check if the allocation fits into the remaining space.
-    // R0: potential new object.
-    // R1: number of context variables.
-    // R2: object size.
-    // R3: potential next object start.
-    __ ldr(TMP, Address(THR, target::Thread::end_offset()));
-    __ CompareRegisters(R3, TMP);
-    if (FLAG_use_slow_path) {
-      __ b(&slow_case);
-    } else {
-      __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
-    }
-
-    // Successfully allocated the object, now update top to point to
-    // next object start and initialize the object.
-    // R0: new object.
-    // R1: number of context variables.
-    // R2: object size.
-    // R3: next object start.
-    __ str(R3, Address(THR, target::Thread::top_offset()));
-    __ add(R0, R0, Operand(kHeapObjectTag));
-
-    // Calculate the size tag.
-    // R0: new object.
-    // R1: number of context variables.
-    // R2: object size.
-    const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
-                           target::ObjectAlignment::kObjectAlignmentLog2;
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
-    // If no size tag overflow, shift R2 left, else set R2 to zero.
-    __ LslImmediate(TMP, R2, shift);
-    __ csel(R2, TMP, R2, LS);
-    __ csel(R2, ZR, R2, HI);
-
-    // Get the class index and insert it into the tags.
-    // R2: size and bit tags.
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
-
-    __ LoadImmediate(TMP, tags);
-    __ orr(R2, R2, Operand(TMP));
-    __ StoreFieldToOffset(R2, R0, target::Object::tags_offset());
-
-    // Setup up number of context variables field.
-    // R0: new object.
-    // R1: number of context variables as integer value (not object).
-    __ StoreFieldToOffset(R1, R0, target::Context::num_variables_offset());
+    GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
     // Setup the parent field.
     // R0: new object.
@@ -1663,15 +1677,17 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R0: new object.
     // R1: number of context variables.
     // R2: raw null.
-    Label loop, done;
-    __ AddImmediate(R3, R0,
-                    target::Context::variable_offset(0) - kHeapObjectTag);
-    __ Bind(&loop);
-    __ subs(R1, R1, Operand(1));
-    __ b(&done, MI);
-    __ str(R2, Address(R3, R1, UXTX, Address::Scaled));
-    __ b(&loop, NE);  // Loop if R1 not zero.
-    __ Bind(&done);
+    {
+      Label loop, done;
+      __ AddImmediate(R3, R0,
+                      target::Context::variable_offset(0) - kHeapObjectTag);
+      __ Bind(&loop);
+      __ subs(R1, R1, Operand(1));
+      __ b(&done, MI);
+      __ str(R2, Address(R3, R1, UXTX, Address::Scaled));
+      __ b(&loop, NE);  // Loop if R1 not zero.
+      __ Bind(&done);
+    }
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1689,6 +1705,82 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ Drop(1);  // Pop number of context variables argument.
   __ Pop(R0);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+
+  // R0: new object
+  // Restore the frame pointer.
+  __ LeaveStubFrame();
+
+  __ ret();
+}
+
+// Called for clone of contexts.
+// Input:
+//   R5: context variable to clone.
+// Output:
+//   R0: new allocated RawContext object.
+// Clobbered:
+//   R1, (R2), R3, R4, (TMP)
+void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
+  {
+    Label slow_case;
+
+    // Load num. variable (int32) in the existing context.
+    __ ldr(R1, FieldAddress(R5, target::Context::num_variables_offset()),
+           kWord);
+
+    GenerateAllocateContextSpaceStub(assembler, &slow_case);
+
+    // Load parent in the existing context.
+    __ ldr(R3, FieldAddress(R5, target::Context::parent_offset()));
+    // Setup the parent field.
+    // R0: new context.
+    __ StoreIntoObjectNoBarrier(
+        R0, FieldAddress(R0, target::Context::parent_offset()), R3);
+
+    // Clone the context variables.
+    // R0: new context.
+    // R1: number of context variables.
+    {
+      Label loop, done;
+      // R3: Variable array address, new context.
+      __ AddImmediate(R3, R0,
+                      target::Context::variable_offset(0) - kHeapObjectTag);
+      // R4: Variable array address, old context.
+      __ AddImmediate(R4, R5,
+                      target::Context::variable_offset(0) - kHeapObjectTag);
+
+      __ Bind(&loop);
+      __ subs(R1, R1, Operand(1));
+      __ b(&done, MI);
+
+      __ ldr(R5, Address(R4, R1, UXTX, Address::Scaled));
+      __ str(R5, Address(R3, R1, UXTX, Address::Scaled));
+      __ b(&loop, NE);  // Loop if R1 not zero.
+
+      __ Bind(&done);
+    }
+
+    // Done allocating and initializing the context.
+    // R0: new object.
+    __ ret();
+
+    __ Bind(&slow_case);
+  }
+
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ PushPair(R5, NULL_REG);
+  __ CallRuntime(kCloneContextRuntimeEntry, 1);  // Clone context.
+  // Pop number of context variables argument.
+  // Pop the new context object.
+  __ PopPair(R1, R0);
 
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
