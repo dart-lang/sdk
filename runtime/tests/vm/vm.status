@@ -36,6 +36,7 @@ dart/kernel_determinism_test: SkipSlow
 [ $builder_tag == tsan ]
 dart/appjit_cha_deopt_test: SkipSlow
 dart/regress_40462_test: SkipSlow
+dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 
 [ $compiler == app_jitk ]
 dart/redirection_type_shuffling_test/none: RuntimeError
