@@ -2703,6 +2703,58 @@ main() {
     parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
   }
 
+  void test_bangBeforeFuctionCall1() {
+    // https://github.com/dart-lang/sdk/issues/39776
+    var unit = parseCompilationUnit('f() { Function? f1; f1!(42); }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement1 = body.block.statements[0] as VariableDeclarationStatement;
+    expect(statement1.toSource(), "Function? f1;");
+    var statement2 = body.block.statements[1] as ExpressionStatement;
+
+    // expression is "f1!(42)"
+    var expression = statement2.expression as FunctionExpressionInvocation;
+    expect(expression.toSource(), "f1!(42)");
+
+    var functionExpression = expression.function as PostfixExpression;
+    SimpleIdentifier identifier = functionExpression.operand;
+    expect(identifier.name, 'f1');
+    expect(functionExpression.operator.lexeme, '!');
+
+    expect(expression.typeArguments, null);
+
+    expect(expression.argumentList.arguments.length, 1);
+    IntegerLiteral argument = expression.argumentList.arguments.single;
+    expect(argument.value, 42);
+  }
+
+  void test_bangBeforeFuctionCall2() {
+    // https://github.com/dart-lang/sdk/issues/39776
+    var unit = parseCompilationUnit('f() { Function f2; f2!<int>(42); }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement1 = body.block.statements[0] as VariableDeclarationStatement;
+    expect(statement1.toSource(), "Function f2;");
+    var statement2 = body.block.statements[1] as ExpressionStatement;
+
+    // expression is "f2!<int>(42)"
+    var expression = statement2.expression as FunctionExpressionInvocation;
+    expect(expression.toSource(), "f2!<int>(42)");
+
+    var functionExpression = expression.function as PostfixExpression;
+    SimpleIdentifier identifier = functionExpression.operand;
+    expect(identifier.name, 'f2');
+    expect(functionExpression.operator.lexeme, '!');
+
+    expect(expression.typeArguments.arguments.length, 1);
+    TypeName typeArgument = expression.typeArguments.arguments.single;
+    expect(typeArgument.name.name, "int");
+
+    expect(expression.argumentList.arguments.length, 1);
+    IntegerLiteral argument = expression.argumentList.arguments.single;
+    expect(argument.value, 42);
+  }
+
   void test_binary_expression_statement() {
     final unit = parseCompilationUnit('D? foo(X? x) { X ?? x2; }');
     FunctionDeclaration funct = unit.declarations[0];
@@ -2945,6 +2997,146 @@ main() {
 ''');
   }
 
+  void test_nullableTypeInInitializerList_01() {
+    // http://dartbug.com/40834
+    var unit = parseCompilationUnit(r'''
+class Foo {
+  String? x;
+  int y;
+
+  Foo(Object? o) : x = o as String?, y = 0;
+}
+''');
+    ClassDeclaration classDeclaration = unit.declarations.first;
+    ConstructorDeclaration constructor = classDeclaration.getConstructor(null);
+
+    // Object? o
+    SimpleFormalParameter parameter = constructor.parameters.parameters.single;
+    expect(parameter.identifier.name, 'o');
+    TypeName type = parameter.type;
+    expect(type.question.lexeme, '?');
+    expect(type.name.name, 'Object');
+
+    expect(constructor.initializers.length, 2);
+
+    // o as String?
+    {
+      ConstructorFieldInitializer initializer = constructor.initializers[0];
+      expect(initializer.fieldName.name, 'x');
+      AsExpression expression = initializer.expression;
+      SimpleIdentifier identifier = expression.expression;
+      expect(identifier.name, 'o');
+      TypeName expressionType = expression.type;
+      expect(expressionType.question.lexeme, '?');
+      expect(expressionType.name.name, 'String');
+    }
+
+    // y = 0
+    {
+      ConstructorFieldInitializer initializer = constructor.initializers[1];
+      expect(initializer.fieldName.name, 'y');
+      IntegerLiteral expression = initializer.expression;
+      expect(expression.value, 0);
+    }
+  }
+
+  void test_nullableTypeInInitializerList_02() {
+    var unit = parseCompilationUnit(r'''
+class Foo {
+  String? x;
+  int y;
+
+  Foo(Object? o) : y = o is String? ? o.length : null, x = null;
+}
+''');
+    ClassDeclaration classDeclaration = unit.declarations.first;
+    ConstructorDeclaration constructor = classDeclaration.getConstructor(null);
+
+    // Object? o
+    SimpleFormalParameter parameter = constructor.parameters.parameters.single;
+    expect(parameter.identifier.name, 'o');
+    TypeName type = parameter.type;
+    expect(type.question.lexeme, '?');
+    expect(type.name.name, 'Object');
+
+    expect(constructor.initializers.length, 2);
+
+    // y = o is String? ? o.length : null
+    {
+      ConstructorFieldInitializer initializer = constructor.initializers[0];
+      expect(initializer.fieldName.name, 'y');
+      ConditionalExpression expression = initializer.expression;
+      IsExpression condition = expression.condition;
+      SimpleIdentifier identifier = condition.expression;
+      expect(identifier.name, 'o');
+      TypeName expressionType = condition.type;
+      expect(expressionType.question.lexeme, '?');
+      expect(expressionType.name.name, 'String');
+      PrefixedIdentifier thenExpression = expression.thenExpression;
+      expect(thenExpression.identifier.name, 'length');
+      expect(thenExpression.prefix.name, 'o');
+      NullLiteral elseExpression = expression.elseExpression;
+      expect(elseExpression, isNotNull);
+    }
+
+    // x = null
+    {
+      ConstructorFieldInitializer initializer = constructor.initializers[1];
+      expect(initializer.fieldName.name, 'x');
+      NullLiteral expression = initializer.expression;
+      expect(expression, isNotNull);
+    }
+  }
+
+  void test_nullableTypeInInitializerList_03() {
+    // As test_nullableTypeInInitializerList_02 but without ? on String in is.
+    var unit = parseCompilationUnit(r'''
+class Foo {
+  String? x;
+  int y;
+
+  Foo(Object? o) : y = o is String ? o.length : null, x = null;
+}
+''');
+    ClassDeclaration classDeclaration = unit.declarations.first;
+    ConstructorDeclaration constructor = classDeclaration.getConstructor(null);
+
+    // Object? o
+    SimpleFormalParameter parameter = constructor.parameters.parameters.single;
+    expect(parameter.identifier.name, 'o');
+    TypeName type = parameter.type;
+    expect(type.question.lexeme, '?');
+    expect(type.name.name, 'Object');
+
+    expect(constructor.initializers.length, 2);
+
+    // y = o is String ? o.length : null
+    {
+      ConstructorFieldInitializer initializer = constructor.initializers[0];
+      expect(initializer.fieldName.name, 'y');
+      ConditionalExpression expression = initializer.expression;
+      IsExpression condition = expression.condition;
+      SimpleIdentifier identifier = condition.expression;
+      expect(identifier.name, 'o');
+      TypeName expressionType = condition.type;
+      expect(expressionType.question, isNull);
+      expect(expressionType.name.name, 'String');
+      PrefixedIdentifier thenExpression = expression.thenExpression;
+      expect(thenExpression.identifier.name, 'length');
+      expect(thenExpression.prefix.name, 'o');
+      NullLiteral elseExpression = expression.elseExpression;
+      expect(elseExpression, isNotNull);
+    }
+
+    // x = null
+    {
+      ConstructorFieldInitializer initializer = constructor.initializers[1];
+      expect(initializer.fieldName.name, 'x');
+      NullLiteral expression = initializer.expression;
+      expect(expression, isNotNull);
+    }
+  }
+
   void test_nullCheck() {
     var unit = parseCompilationUnit('f(int? y) { var x = y!; }');
     FunctionDeclaration function = unit.declarations[0];
@@ -3155,58 +3347,6 @@ main() {
     expect(target.operator.lexeme, '!');
 
     expect(target.operand.toSource(), "foo");
-  }
-
-  void test_bangBeforeFuctionCall1() {
-    // https://github.com/dart-lang/sdk/issues/39776
-    var unit = parseCompilationUnit('f() { Function? f1; f1!(42); }');
-    var funct = unit.declarations[0] as FunctionDeclaration;
-    var body = funct.functionExpression.body as BlockFunctionBody;
-    var statement1 = body.block.statements[0] as VariableDeclarationStatement;
-    expect(statement1.toSource(), "Function? f1;");
-    var statement2 = body.block.statements[1] as ExpressionStatement;
-
-    // expression is "f1!(42)"
-    var expression = statement2.expression as FunctionExpressionInvocation;
-    expect(expression.toSource(), "f1!(42)");
-
-    var functionExpression = expression.function as PostfixExpression;
-    SimpleIdentifier identifier = functionExpression.operand;
-    expect(identifier.name, 'f1');
-    expect(functionExpression.operator.lexeme, '!');
-
-    expect(expression.typeArguments, null);
-
-    expect(expression.argumentList.arguments.length, 1);
-    IntegerLiteral argument = expression.argumentList.arguments.single;
-    expect(argument.value, 42);
-  }
-
-  void test_bangBeforeFuctionCall2() {
-    // https://github.com/dart-lang/sdk/issues/39776
-    var unit = parseCompilationUnit('f() { Function f2; f2!<int>(42); }');
-    var funct = unit.declarations[0] as FunctionDeclaration;
-    var body = funct.functionExpression.body as BlockFunctionBody;
-    var statement1 = body.block.statements[0] as VariableDeclarationStatement;
-    expect(statement1.toSource(), "Function f2;");
-    var statement2 = body.block.statements[1] as ExpressionStatement;
-
-    // expression is "f2!<int>(42)"
-    var expression = statement2.expression as FunctionExpressionInvocation;
-    expect(expression.toSource(), "f2!<int>(42)");
-
-    var functionExpression = expression.function as PostfixExpression;
-    SimpleIdentifier identifier = functionExpression.operand;
-    expect(identifier.name, 'f2');
-    expect(functionExpression.operator.lexeme, '!');
-
-    expect(expression.typeArguments.arguments.length, 1);
-    TypeName typeArgument = expression.typeArguments.arguments.single;
-    expect(typeArgument.name.name, "int");
-
-    expect(expression.argumentList.arguments.length, 1);
-    IntegerLiteral argument = expression.argumentList.arguments.single;
-    expect(argument.value, 42);
   }
 
   void test_nullCheckOnLiteral_disabled() {
