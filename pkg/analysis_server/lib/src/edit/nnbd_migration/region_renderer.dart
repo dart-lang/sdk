@@ -35,18 +35,18 @@ class RegionRenderer {
   EditDetails render() {
     var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
 
-    EditLink linkForTarget(NavigationTarget target) {
+    TargetLink linkForTarget(NavigationTarget target) {
       String relativePath = _relativePathToTarget(target, unitDir);
       String targetUri = _uriForRelativePath(relativePath, target);
-      return EditLink(
-        text: relativePath,
+      return TargetLink(
+        path: relativePath,
         href: targetUri,
         line: target.line,
       );
     }
 
     EditLink linkForEdit(EditDetail edit) => EditLink(
-        text: edit.description,
+        description: edit.description,
         href: Uri(
             scheme: 'http',
             path: pathContext.basename(unitInfo.path),

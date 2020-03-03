@@ -385,7 +385,7 @@ void populateEditDetails([EditDetails response]) {
 
         detailItem.append(Text(' ('));
         AnchorElement a = detailItem.append(document.createElement('a'));
-        a.append(Text("${detail.link.text}:$targetLine"));
+        a.append(Text("${detail.link.path}:$targetLine"));
 
         String relLink = detail.link.href;
         String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
@@ -401,7 +401,7 @@ void populateEditDetails([EditDetails response]) {
     for (var edit in response.edits) {
       Element editParagraph = editPanel.append(document.createElement('p'));
       Element a = editParagraph.append(document.createElement('a'));
-      a.append(Text(edit.text));
+      a.append(Text(edit.description));
       a.setAttribute('href', edit.href);
       a.classes.add('post-link');
     }

@@ -40,7 +40,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     var detail = response.details.single;
     expect(detail.description,
         equals("This variable is initialized to an explicit 'null'"));
-    expect(detail.link.text, equals('test.dart'));
+    expect(detail.link.path, equals('test.dart'));
     expect(detail.link.href, equals('test.dart?offset=8&line=1'));
   }
 
@@ -69,7 +69,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
         detail.description,
         equals('This value is unconditionally used in a '
             'non-nullable context'));
-    expect(detail.link.text, equals('test.dart'));
+    expect(detail.link.path, equals('test.dart'));
     expect(detail.link.href, equals('test.dart?offset=12&line=1'));
   }
 

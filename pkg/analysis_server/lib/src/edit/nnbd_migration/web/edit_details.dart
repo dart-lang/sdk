@@ -54,31 +54,25 @@ class EditDetails {
 }
 
 /// Information about a single link that should be included in the
-/// "Edit Details" view of the migration preview tool.
-///
-/// TODO(paulberry): consider splitting this into two classes corresponding to
-/// its two use cases.
+/// "Edit Details" view of the migration preview tool, where the purpose of the
+/// link is to allow the user to make a change to the source file (e.g. to add
+/// or remove a hint).
 class EditLink {
+  /// Description of the change to be performed.
+  final String description;
+
   /// The href to link to.
   final String href;
 
-  /// The line number of the link.  May be null.
-  final int line;
-
-  /// The link text.
-  final String text;
-
-  EditLink({@required this.href, this.line, @required this.text});
+  EditLink({@required this.description, @required this.href});
 
   EditLink.fromJson(dynamic json)
-      : href = json['href'],
-        line = json['line'],
-        text = json['text'];
+      : description = json['description'],
+        href = json['href'];
 
   Map<String, Object> toJson() => {
+        'description': description,
         'href': href,
-        if (line != null) 'line': line,
-        'text': text,
       };
 }
 
@@ -89,7 +83,7 @@ class EditRationale {
   final String description;
 
   /// Link the user may click to see the source code in question.  May be null.
-  final EditLink link;
+  final TargetLink link;
 
   EditRationale({@required this.description, this.link});
 
@@ -102,6 +96,34 @@ class EditRationale {
         if (link != null) 'link': link.toJson(),
       };
 
-  static EditLink _decodeLink(dynamic json) =>
-      json == null ? null : EditLink.fromJson(json);
+  static TargetLink _decodeLink(dynamic json) =>
+      json == null ? null : TargetLink.fromJson(json);
+}
+
+/// Information about a single link that should be included in the
+/// "Edit Details" view of the migration preview tool, where the purpose of the
+/// link is to allow the user to navigate to a source file containing
+/// information about the rationale for a change.
+class TargetLink {
+  /// The href to link to.
+  final String href;
+
+  /// The line number of the link.
+  final int line;
+
+  /// Relative path to the source file (intended for display).
+  final String path;
+
+  TargetLink({@required this.href, @required this.line, @required this.path});
+
+  TargetLink.fromJson(dynamic json)
+      : href = json['href'],
+        line = json['line'],
+        path = json['path'];
+
+  Map<String, Object> toJson() => {
+        'href': href,
+        'line': line,
+        'path': path,
+      };
 }
