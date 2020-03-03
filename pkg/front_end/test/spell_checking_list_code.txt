@@ -903,6 +903,7 @@ shadowed
 shallow
 shas
 shelf
+showing
 shrinking
 shru
 si

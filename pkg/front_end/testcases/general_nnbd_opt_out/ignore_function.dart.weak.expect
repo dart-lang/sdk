@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general_nnbd_opt_out/ignore_function.dart:16:15: Error: Can't infer a type for 'other' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   operator ==(other) => false;
-//               ^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -23,7 +15,7 @@ class B extends core::Object implements self::Function {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-  operator ==(invalid-type other) → core::bool*
+  operator ==(dynamic other) → core::bool*
     return false;
 }
 class Function extends core::Object {

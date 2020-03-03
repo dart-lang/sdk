@@ -28,8 +28,9 @@ main(List<String> args) async {
             runTestFor(const _InheritanceDataComputer(), [analyzerNnbdConfig]),
         skipMap: {
           analyzerMarker: [
-            // This is a CFE-centric test for an opt-in sdk.
-            'object_equals',
+            // These are CFE-centric tests for an opt-in/opt-out sdk.
+            'object_opt_in',
+            'object_opt_out',
           ]
         });
   });

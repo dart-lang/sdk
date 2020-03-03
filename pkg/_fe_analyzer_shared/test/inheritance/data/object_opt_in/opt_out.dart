@@ -11,7 +11,8 @@ class Class1 {
   /*member: Class1.noSuchMethod:dynamic Function(Invocation*)**/
   /*member: Class1.toString:String* Function()**/
 
-  /*member: Class1.==:bool Function(dynamic)**/
+  /*cfe|cfe:builder.member: Class1.==:bool* Function(dynamic)**/
+  /*analyzer.member: Class1.==:bool Function(dynamic)**/
   operator ==(other) => true;
 }
 

@@ -286,6 +286,7 @@ general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_generic_method_f_bounded: TextSerializationFailure # Was: Pass
 general/override_check_two_substitutions: TextSerializationFailure # Was: Pass
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_inference_for_getters_and_setters: TextSerializationFailure
 general/override_inference_for_setters: TextSerializationFailure
 general/override_inference_named_parameters_ordering: TextSerializationFailure
 general/override_setter_with_field: TypeCheckError
@@ -846,6 +847,7 @@ inference/infer_from_variables_in_non_cycle_imports_with_flag2: TextSerializatio
 inference/infer_from_variables_in_non_cycle_imports_with_flag2_a: TextSerializationFailure # Was: Pass
 inference/infer_from_variables_in_non_cycle_imports_with_flag: TextSerializationFailure # Was: Pass
 inference/infer_from_variables_in_non_cycle_imports_with_flag_a: TextSerializationFailure # Was: Pass
+inference/infer_generic_field_types: TextSerializationFailure
 inference/infer_generic_method_type_named: TextSerializationFailure # Was: Pass
 inference/infer_generic_method_type_positional2: TextSerializationFailure # Was: Pass
 inference/infer_generic_method_type_positional: TextSerializationFailure # Was: Pass

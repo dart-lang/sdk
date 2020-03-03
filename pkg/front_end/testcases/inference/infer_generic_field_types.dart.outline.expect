@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field self::A::X* field;
+  synthetic constructor •() → self::A<self::A::X*>*
+    ;
+}
+abstract class B<Y extends core::Object* = dynamic> extends core::Object implements self::A<self::B::Y*> {
+  synthetic constructor •() → self::B<self::B::Y*>*
+    ;
+  abstract get field() → self::B::Y*;
+  abstract set field(generic-covariant-impl self::B::Y* value) → void;
+}
+abstract class C extends core::Object implements self::A<core::int*> {
+  synthetic constructor •() → self::C*
+    ;
+  abstract get field() → core::int*;
+  abstract set field(generic-covariant-impl core::int* value) → void;
+}
+static method main() → dynamic
+  ;
