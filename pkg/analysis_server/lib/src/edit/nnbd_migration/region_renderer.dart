@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show jsonEncode;
-
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/web/edit_details.dart';
@@ -34,7 +32,7 @@ class RegionRenderer {
   /// Returns the path context used to manipulate paths.
   path.Context get pathContext => migrationInfo.pathContext;
 
-  String render() {
+  EditDetails render() {
     var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
 
     EditLink linkForTarget(NavigationTarget target) {
@@ -74,8 +72,8 @@ class RegionRenderer {
               for (var edit in region.edits) linkForEdit(edit),
             ]
           : null,
-    ).toJson();
-    return jsonEncode(response);
+    );
+    return response;
   }
 
   /// Returns the URL that will navigate to the given [target].

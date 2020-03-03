@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show jsonDecode;
-
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/region_renderer.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/edit_details.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +21,7 @@ void main() {
 class RegionRendererTest extends NnbdMigrationTestBase {
   /// Render the region at [offset], using a [MigrationInfo] which knows only
   /// about the library at `infos.single`.
-  String renderRegion(int offset) {
+  EditDetails renderRegion(int offset) {
     String packageRoot = convertPath('/package');
     MigrationInfo migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
@@ -36,51 +35,50 @@ class RegionRendererTest extends NnbdMigrationTestBase {
   Future<void> test_modifiedOutput_containsDetail() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
-    var response = jsonDecode(renderRegion(3));
-    expect(response['details'], hasLength(1));
-    var detail = response['details'].single;
-    expect(detail['description'],
+    var response = renderRegion(3);
+    expect(response.details, hasLength(1));
+    var detail = response.details.single;
+    expect(detail.description,
         equals("This variable is initialized to an explicit 'null'"));
-    expect(detail['link']['text'], equals('test.dart'));
-    expect(detail['link']['href'], equals('test.dart?offset=8&line=1'));
+    expect(detail.link.text, equals('test.dart'));
+    expect(detail.link.href, equals('test.dart?offset=8&line=1'));
   }
 
   Future<void> test_modifiedOutput_containsExplanation() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
-    var response = jsonDecode(renderRegion(3));
-    expect(
-        response['explanation'], equals("Changed type 'int' to be nullable"));
+    var response = renderRegion(3);
+    expect(response.explanation, equals("Changed type 'int' to be nullable"));
   }
 
   Future<void> test_modifiedOutput_containsPath() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
-    var response = jsonDecode(renderRegion(3));
-    expect(response['path'], equals(convertPath('/project/bin/test.dart')));
-    expect(response['line'], equals(1));
+    var response = renderRegion(3);
+    expect(response.path, equals(convertPath('/project/bin/test.dart')));
+    expect(response.line, equals(1));
   }
 
   Future<void> test_unmodifiedOutput_containsDetail() async {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int a) => a.isEven;');
-    var response = jsonDecode(renderRegion(2));
-    expect(response['details'], hasLength(1));
-    var detail = response['details'].single;
+    var response = renderRegion(2);
+    expect(response.details, hasLength(1));
+    var detail = response.details.single;
     expect(
-        detail['description'],
+        detail.description,
         equals('This value is unconditionally used in a '
             'non-nullable context'));
-    expect(detail['link']['text'], equals('test.dart'));
-    expect(detail['link']['href'], equals('test.dart?offset=12&line=1'));
+    expect(detail.link.text, equals('test.dart'));
+    expect(detail.link.href, equals('test.dart?offset=12&line=1'));
   }
 
   Future<void> test_unmodifiedOutput_containsExplanation() async {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int a) => a.isEven;');
-    var response = jsonDecode(renderRegion(2));
+    var response = renderRegion(2);
     expect(
-        response['explanation'],
+        response.explanation,
         equals(
             'This type is not changed; it is determined to be non-nullable'));
   }
@@ -88,8 +86,8 @@ class RegionRendererTest extends NnbdMigrationTestBase {
   Future<void> test_unmodifiedOutput_containsPath() async {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int a) => a.isEven;');
-    var response = jsonDecode(renderRegion(2));
-    expect(response['path'], equals(convertPath('/project/bin/test.dart')));
-    expect(response['line'], equals(1));
+    var response = renderRegion(2);
+    expect(response.path, equals(convertPath('/project/bin/test.dart')));
+    expect(response.line, equals(1));
   }
 }
