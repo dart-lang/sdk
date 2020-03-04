@@ -771,10 +771,13 @@ Type getRuntimeType(object) {
 Type createRuntimeType(Rti rti) {
   _Type? type = Rti._getCachedRuntimeType(rti);
   if (type != null) return type;
-  // TODO(fishythefish, https://github.com/dart-lang/language/issues/428) For
-  // NNBD transition, canonicalization may be needed. It might be possible to
-  // generate a star-free recipe from the canonical recipe and evaluate that.
-  type = _Type(rti);
+  String recipe = Rti._getCanonicalRecipe(rti);
+  String starErasedRecipe = JS('String', '#.replace(/\\*/g, "")', recipe);
+  if (starErasedRecipe == recipe) {
+    return _Type(rti);
+  }
+  Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
+  type = Rti._getCachedRuntimeType(starErasedRti) ?? _Type(starErasedRti);
   Rti._setCachedRuntimeType(rti, type);
   return type;
 }
@@ -787,15 +790,9 @@ Type typeLiteral(String recipe) {
 /// Implementation of [Type] based on Rti.
 class _Type implements Type {
   final Rti _rti;
-  int? _hashCode;
 
-  _Type(this._rti);
-
-  int get hashCode => _hashCode ??= Rti._getCanonicalRecipe(_rti).hashCode;
-
-  @pragma('dart2js:noInline')
-  bool operator ==(other) {
-    return (other is _Type) && identical(_rti, other._rti);
+  _Type(this._rti) : assert(Rti._getCachedRuntimeType(_rti) == null) {
+    Rti._setCachedRuntimeType(_rti, this);
   }
 
   @override
@@ -1196,13 +1193,8 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
 
   if (kind == Rti.kindStar) {
     Rti starArgument = Rti._getStarArgument(rti);
-    String s = _rtiToString(starArgument, genericContext);
-    int argumentKind = Rti._getKind(starArgument);
-    if (argumentKind == Rti.kindFunction ||
-        argumentKind == Rti.kindGenericFunction) {
-      s = '(' + s + ')';
-    }
-    return s + '*';
+    return _rtiToString(starArgument, genericContext);
+    // TODO(fishythefish): Add a flag to enable printing '*'.
   }
 
   if (kind == Rti.kindQuestion) {
