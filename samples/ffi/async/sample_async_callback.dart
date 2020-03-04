@@ -26,7 +26,7 @@ main() async {
   print("C T2 = Some C thread executing C.");
   print("C    = C T1 or C T2.");
   print("Dart: Setup.");
-  registerDart_PostCObject(NativeApi.nativeApiPostCObject);
+  registerDart_PostCObject(NativeApi.postCObject);
 
   final interactiveCppRequests = ReceivePort()..listen(requestExecuteCallback);
   final int nativePort = interactiveCppRequests.sendPort.nativePort;
