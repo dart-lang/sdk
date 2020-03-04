@@ -126,7 +126,7 @@ vars = {
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
   "shelf_static_rev": "v0.2.8",
-  "shelf_packages_handler_tag": "1.0.4",
+  "shelf_packages_handler_tag": "2.0.0",
   "shelf_tag": "0.7.3+3",
   "shelf_web_socket_tag": "0.2.2+3",
   "source_map_stack_trace_tag": "1.1.5",
