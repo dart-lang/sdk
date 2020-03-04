@@ -1799,6 +1799,57 @@ class TypeSystemImpl extends TypeSystem {
     }
   }
 
+  /// Defines the "remainder" of `T` when `S` has been removed from
+  /// consideration by an instance check.  This operation is used for type
+  /// promotion during flow analysis.
+  DartType factor(DartType T, DartType S) {
+    // * If T <: S then Never
+    if (isSubtypeOf2(T, S)) {
+      return NeverTypeImpl.instance;
+    }
+
+    var T_nullability = T.nullabilitySuffix;
+
+    // * Else if T is R? and Null <: S then factor(R, S)
+    // * Else if T is R? then factor(R, S)?
+    if (T_nullability == NullabilitySuffix.question) {
+      var R = (T as TypeImpl).withNullability(NullabilitySuffix.none);
+      var factor_RS = factor(R, S) as TypeImpl;
+      if (isSubtypeOf2(nullNone, S)) {
+        return factor_RS;
+      } else {
+        return factor_RS.withNullability(NullabilitySuffix.question);
+      }
+    }
+
+    // * Else if T is R* and Null <: S then factor(R, S)
+    // * Else if T is R* then factor(R, S)*
+    if (T_nullability == NullabilitySuffix.star) {
+      var R = (T as TypeImpl).withNullability(NullabilitySuffix.none);
+      var factor_RS = factor(R, S) as TypeImpl;
+      if (isSubtypeOf2(nullNone, S)) {
+        return factor_RS;
+      } else {
+        return factor_RS.withNullability(NullabilitySuffix.star);
+      }
+    }
+
+    // * Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
+    // * Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
+    if (T is InterfaceType && T.isDartAsyncFutureOr) {
+      var R = T.typeArguments[0];
+      var future_R = typeProvider.futureType2(R);
+      if (isSubtypeOf2(future_R, S)) {
+        return factor(R, S);
+      }
+      if (isSubtypeOf2(R, S)) {
+        return factor(future_R, S);
+      }
+    }
+
+    return T;
+  }
+
   /// Given a type t, if t is an interface type with a call method
   /// defined, return the function type for the call method, otherwise
   /// return null.
