@@ -862,7 +862,30 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void checkCanonicalName(CanonicalName node) {
     if (_knownCanonicalNameNonRootTops.contains(node.nonRootTop)) return;
     if (node == null || node.isRoot) return;
-    if (_reindexedCanonicalNames.contains(node)) return;
+    bool indexCheckContains;
+    {
+      if (node.index < 0) {
+        indexCheckContains = false;
+      } else if (node.index >= _canonicalNameList.length) {
+        indexCheckContains = false;
+      } else {
+        CanonicalName claim = _canonicalNameList[node.index];
+        if (node != claim) {
+          indexCheckContains = false;
+        } else {
+          indexCheckContains = true;
+        }
+      }
+    }
+
+    bool setContains = _reindexedCanonicalNames.contains(node);
+    if (setContains != indexCheckContains) {
+      throw "Unexpected difference between set and index";
+    }
+
+    if (_reindexedCanonicalNames.contains(node)) {
+      return;
+    }
 
     checkCanonicalName(node.parent);
     node.index = _canonicalNameList.length;
