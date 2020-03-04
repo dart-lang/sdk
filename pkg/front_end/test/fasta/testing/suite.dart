@@ -23,7 +23,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
+    show ExperimentalFlag, defaultExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -150,14 +150,14 @@ final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 const String experimentalFlagOptions = '--enable-experiment=';
 
 class TestOptions {
-  final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Map<ExperimentalFlag, bool> _experimentalFlags;
   final bool forceLateLowering;
   final bool forceNnbdChecks;
   final bool forceNoExplicitGetterCalls;
   final bool nnbdAgnosticMode;
   final String target;
 
-  TestOptions(this.experimentalFlags,
+  TestOptions(this._experimentalFlags,
       {this.forceLateLowering: false,
       this.forceNnbdChecks: false,
       this.forceNoExplicitGetterCalls: false,
@@ -171,7 +171,8 @@ class TestOptions {
 
   Map<ExperimentalFlag, bool> computeExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
-    Map<ExperimentalFlag, bool> flags = new Map.from(experimentalFlags);
+    Map<ExperimentalFlag, bool> flags = new Map.from(defaultExperimentalFlags);
+    flags.addAll(_experimentalFlags);
     flags.addAll(forcedExperimentalFlags);
     return flags;
   }
@@ -535,6 +536,8 @@ class Run extends Step<ComponentResult, int, FastaContext> {
 
   Future<Result<int>> run(ComponentResult result, FastaContext context) async {
     TestOptions testOptions = context.computeTestOptions(result.description);
+    Map<ExperimentalFlag, bool> experimentalFlags =
+        testOptions.computeExperimentalFlags(context.experimentalFlags);
     switch (testOptions.target) {
       case "vm":
         if (context.platformUri == null) {
@@ -544,6 +547,9 @@ class Run extends Step<ComponentResult, int, FastaContext> {
         StdioProcess process;
         try {
           var args = <String>[];
+          if (experimentalFlags[ExperimentalFlag.nonNullable]) {
+            args.add("--null-safety");
+          }
           args.add(generated.path);
           process = await StdioProcess.run(context.vm.toFilePath(), args);
           print(process.output);
