@@ -727,6 +727,16 @@ class HintCode extends AnalyzerErrorCode {
           correction: "Specify a Dart language version override with a comment "
               "like '// @dart = 2.0'.");
 
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION =
+      HintCodeWithUniqueName(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
+    "The language version override must be before any declaration or "
+        "directive.",
+    correction:
+        "Try moving the language version override to the top of the file.",
+  );
+
   /// Invalid Dart language version comments don't follow the specification [1].
   /// If a comment begins with "@dart" or "dart" (letters in any case),
   /// followed by optional whitespace, followed by optional non-alphanumeric,

@@ -7,20 +7,17 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-/// Instances of the class `InvalidLanguageVersionOverrideFinder` find invalid
-/// Dart language version override comments in Dart code.
-class InvalidLanguageVersionOverrideFinder {
-  /// The error reporter by which invalid Dart language version override
-  /// comments will be reported.
+/// Finds invalid, or misplaced language override comments.
+class LanguageVersionOverrideVerifier {
+  static final _overrideCommentLine = RegExp(r'@dart\s*=\s*\d+\.\d+');
+
   final ErrorReporter _errorReporter;
 
-  /// Initialize a finder to report invalid Dart language version override
-  /// comments to the given reporter.
-  InvalidLanguageVersionOverrideFinder(this._errorReporter);
+  LanguageVersionOverrideVerifier(this._errorReporter);
 
-  /// Search the comments at the top of the given compilation unit for language
-  /// version override comments and report an error for each.
-  void findIn(CompilationUnit unit) {
+  void verify(CompilationUnit unit) {
+    _verifyMisplaced(unit);
+
     Token beginToken = unit.beginToken;
     if (beginToken.type == TokenType.SCRIPT_TAG) {
       beginToken = beginToken.next;
@@ -265,5 +262,43 @@ class InvalidLanguageVersionOverrideFinder {
         offset,
         length);
     return false;
+  }
+
+  /// Verify that all language version overrides are before declarations.
+  void _verifyMisplaced(CompilationUnit unit) {
+    Token firstMeaningfulToken;
+    if (unit.directives.isNotEmpty) {
+      firstMeaningfulToken = unit.directives.first.beginToken;
+    } else if (unit.declarations.isNotEmpty) {
+      firstMeaningfulToken = unit.declarations.first.beginToken;
+    } else {
+      return;
+    }
+
+    var token = firstMeaningfulToken.next;
+    while (token != null) {
+      if (token.offset > firstMeaningfulToken.offset) {
+        var commentToken = token.precedingComments;
+        for (; commentToken != null; commentToken = commentToken.next) {
+          var lexeme = commentToken.lexeme;
+
+          var match = _overrideCommentLine.firstMatch(lexeme);
+          if (match != null) {
+            var atDartStart = lexeme.indexOf('@dart');
+            _errorReporter.reportErrorForOffset(
+              HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
+              commentToken.offset + atDartStart,
+              match.end - atDartStart,
+            );
+          }
+        }
+      }
+
+      if (token.next == token) {
+        break;
+      } else {
+        token = token.next;
+      }
+    }
   }
 }
