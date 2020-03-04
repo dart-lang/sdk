@@ -52,7 +52,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   List<CanonicalName> _canonicalNameList;
   Set<CanonicalName> _knownCanonicalNameNonRootTops = new Set<CanonicalName>();
-  Set<CanonicalName> _reindexedCanonicalNames = new Set<CanonicalName>();
 
   Library _currentLibrary;
 
@@ -862,35 +861,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void checkCanonicalName(CanonicalName node) {
     if (_knownCanonicalNameNonRootTops.contains(node.nonRootTop)) return;
     if (node == null || node.isRoot) return;
-    bool indexCheckContains;
-    {
-      if (node.index < 0) {
-        indexCheckContains = false;
-      } else if (node.index >= _canonicalNameList.length) {
-        indexCheckContains = false;
-      } else {
-        CanonicalName claim = _canonicalNameList[node.index];
-        if (node != claim) {
-          indexCheckContains = false;
-        } else {
-          indexCheckContains = true;
-        }
+    if (node.index >= 0 && node.index < _canonicalNameList.length) {
+      CanonicalName claim = _canonicalNameList[node.index];
+      if (node == claim) {
+        // Already has the claimed index.
+        return;
       }
     }
-
-    bool setContains = _reindexedCanonicalNames.contains(node);
-    if (setContains != indexCheckContains) {
-      throw "Unexpected difference between set and index";
-    }
-
-    if (_reindexedCanonicalNames.contains(node)) {
-      return;
-    }
-
     checkCanonicalName(node.parent);
     node.index = _canonicalNameList.length;
     _canonicalNameList.add(node);
-    _reindexedCanonicalNames.add(node);
   }
 
   void writeNullAllowedCanonicalNameReference(CanonicalName name) {

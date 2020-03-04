@@ -45,14 +45,6 @@ class LimitedBinaryPrinter extends BinaryPrinter {
   }
 
   @override
-  void writeNode(Node node) {
-    if (node is Library) {
-      throw "Internal error: writeNode should not see a Library.";
-    }
-    super.writeNode(node);
-  }
-
-  @override
   void writeComponentIndex(Component component, List<Library> libraries) {
     var librariesToWrite = libraries.where(predicate).toList();
     super.writeComponentIndex(component, librariesToWrite);
