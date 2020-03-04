@@ -5,8 +5,11 @@ import 'dart:html';
 import 'dart:async';
 
 main() {
-  test('supportsState', () {
+  test('supports_state', () {
     expect(History.supportsState, true);
   });
-}
 
+  test('supported_HashChangeEvent', () {
+    expect(HashChangeEvent.supported, true);
+  });
+}

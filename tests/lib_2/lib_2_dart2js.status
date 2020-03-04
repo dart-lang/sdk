@@ -55,7 +55,7 @@ html/dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPP
 html/file_sample_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on FireFox.
-html/history_test/history: Skip # Issue 22050
+html/history_test: Skip # Issue 22050
 html/request_animation_frame_test: Skip # Async test hangs.
 
 [ $compiler == dart2js && $runtime == safari ]
