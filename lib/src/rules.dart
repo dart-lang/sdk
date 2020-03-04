@@ -68,6 +68,7 @@ import 'rules/implementation_imports.dart';
 import 'rules/invariant_booleans.dart';
 import 'rules/iterable_contains_unrelated_type.dart';
 import 'rules/join_return_with_assignment.dart';
+import 'rules/leading_newlines_in_multiline_strings.dart';
 import 'rules/library_names.dart';
 import 'rules/library_prefixes.dart';
 import 'rules/lines_longer_than_80_chars.dart';
@@ -238,6 +239,7 @@ void registerLintRules() {
     ..register(InvariantBooleans())
     ..register(IterableContainsUnrelatedType())
     ..register(JoinReturnWithAssignment())
+    ..register(LeadingNewlinesInMultilineStrings())
     ..register(LibraryNames())
     ..register(LibraryPrefixes())
     ..register(LinesLongerThan80Chars())
