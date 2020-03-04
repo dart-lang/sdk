@@ -239,6 +239,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location of the kernel platform `.dill` files.
   Uri platformBinaries;
 
+  /// Whether to print legacy types as T* rather than T.
+  bool printLegacyStars = false;
+
   /// URI where the compiler should generate the output source map file.
   Uri sourceMapUri;
 
@@ -437,6 +440,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
+      ..printLegacyStars = _hasOption(options, Flags.printLegacyStars)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
       ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)

@@ -770,15 +770,19 @@ Type getRuntimeType(object) {
 Type createRuntimeType(Rti rti) {
   _Type type = Rti._getCachedRuntimeType(rti);
   if (type != null) return type;
-  String recipe = Rti._getCanonicalRecipe(rti);
-  String starErasedRecipe = JS('String', '#.replace(/\\*/g, "")', recipe);
-  if (starErasedRecipe == recipe) {
+  if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
     return _Type(rti);
+  } else {
+    String recipe = Rti._getCanonicalRecipe(rti);
+    String starErasedRecipe = JS('String', '#.replace(/\\*/g, "")', recipe);
+    if (starErasedRecipe == recipe) {
+      return _Type(rti);
+    }
+    Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
+    type = Rti._getCachedRuntimeType(starErasedRti) ?? _Type(starErasedRti);
+    Rti._setCachedRuntimeType(rti, type);
+    return type;
   }
-  Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
-  type = Rti._getCachedRuntimeType(starErasedRti) ?? _Type(starErasedRti);
-  Rti._setCachedRuntimeType(rti, type);
-  return type;
 }
 
 /// Called from generated code in the constant pool.
@@ -1192,8 +1196,17 @@ String _rtiToString(Rti rti, List<String> genericContext) {
 
   if (kind == Rti.kindStar) {
     Rti starArgument = Rti._getStarArgument(rti);
-    return _rtiToString(starArgument, genericContext);
-    // TODO(fishythefish): Add a flag to enable printing '*'.
+    String s = _rtiToString(starArgument, genericContext);
+    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
+      int argumentKind = Rti._getKind(starArgument);
+      if (argumentKind == Rti.kindFunction ||
+          argumentKind == Rti.kindGenericFunction) {
+        s = '(' + s + ')';
+      }
+      return s + '*';
+    } else {
+      return s;
+    }
   }
 
   if (kind == Rti.kindQuestion) {

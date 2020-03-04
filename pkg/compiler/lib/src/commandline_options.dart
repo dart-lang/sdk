@@ -65,6 +65,7 @@ class Flags {
   static const String noMinify = '--no-minify';
   static const String noSourceMaps = '--no-source-maps';
   static const String preserveUris = '--preserve-uris';
+  static const String printLegacyStars = '--debug-print-legacy-stars';
   static const String showPackageWarnings = '--show-package-warnings';
   static const String suppressHints = '--suppress-hints';
   static const String suppressWarnings = '--suppress-warnings';

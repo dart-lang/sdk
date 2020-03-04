@@ -34,7 +34,7 @@ class Listener extends DiagnosticReporter {
   DiagnosticMessage createMessage(spannable, messageKind,
       [arguments = const {}]) {
     return new DiagnosticMessage(null, spannable,
-        MessageTemplate.TEMPLATES[messageKind].message(arguments));
+        MessageTemplate.TEMPLATES[messageKind].message(arguments, null));
   }
 
   @override

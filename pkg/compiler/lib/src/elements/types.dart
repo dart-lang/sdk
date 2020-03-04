@@ -128,7 +128,10 @@ abstract class DartType {
   bool _equals(DartType other, _Assumptions assumptions);
 
   @override
-  String toString() => _DartTypeToStringVisitor().run(this);
+  String toString() => toStructuredText();
+
+  String toStructuredText({bool printLegacyStars = false}) =>
+      _DartTypeToStringVisitor(printLegacyStars).run(this);
 }
 
 /// Pairs of [FunctionTypeVariable]s that are currently assumed to be
@@ -1418,11 +1421,14 @@ class _DeferredName {
 }
 
 class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
+  final bool _printLegacyStars;
   final List _fragments = []; // Strings and _DeferredNames
   bool _lastIsIdentifier = false;
   List<FunctionTypeVariable> _boundVariables;
   Map<FunctionTypeVariable, _DeferredName> _variableToName;
   Set<FunctionType> _genericFunctions;
+
+  _DartTypeToStringVisitor(this._printLegacyStars);
 
   String run(DartType type) {
     _visit(type);
@@ -1484,7 +1490,10 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
     // We do not emit the '*' token for legacy types because this is a purely
     // internal notion. The language specification does not define a '*' token
     // in the type language, and no such token should be surfaced to users.
-    // TODO(fishythefish): Add a flag to enable printing '*'.
+    // For debugging, pass `--debug-print-legacy-stars` to emit the '*'.
+    if (_printLegacyStars) {
+      _token('*');
+    }
   }
 
   @override

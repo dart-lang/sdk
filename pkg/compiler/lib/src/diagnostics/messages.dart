@@ -19,6 +19,8 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show tokenToString;
 import 'generated/shared_messages.dart' as shared_messages;
 import '../constants/values.dart' show ConstantValue;
 import '../commandline_options.dart';
+import '../elements/types.dart';
+import '../options.dart';
 import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
@@ -667,8 +669,8 @@ become a compile-time error in the future."""),
   @override
   String toString() => template;
 
-  Message message([Map arguments = const {}, bool terse = false]) {
-    return new Message(this, arguments, terse);
+  Message message(Map arguments, CompilerOptions options) {
+    return new Message(this, arguments, options);
   }
 
   bool get hasHowToFix => howToFix != null && howToFix != DONT_KNOW_HOW_TO_FIX;
@@ -677,10 +679,12 @@ become a compile-time error in the future."""),
 class Message {
   final MessageTemplate template;
   final Map arguments;
-  final bool terse;
+  final CompilerOptions _options;
+  bool get terse => _options?.terseDiagnostics ?? false;
+  bool get _printLegacyStars => _options?.printLegacyStars ?? false;
   String message;
 
-  Message(this.template, this.arguments, this.terse) {
+  Message(this.template, this.arguments, this._options) {
     assert(() {
       computeMessage();
       return true;
@@ -725,8 +729,10 @@ class Message {
   @override
   int get hashCode => throw new UnsupportedError('Message.hashCode');
 
-  static String convertToString(value) {
-    if (value is ConstantValue) {
+  String convertToString(value) {
+    if (value is DartType) {
+      value = value.toStructuredText(printLegacyStars: _printLegacyStars);
+    } else if (value is ConstantValue) {
       value = value.toDartText();
     } else {
       value = tokenToString(value);

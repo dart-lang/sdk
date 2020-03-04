@@ -391,6 +391,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return options.useNullSafety;
       case 'LEGACY':
         return options.useLegacySubtyping;
+      case 'PRINT_LEGACY_STARS':
+        return options.printLegacyStars;
       default:
         return null;
     }

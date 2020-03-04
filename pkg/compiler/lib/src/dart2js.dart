@@ -418,6 +418,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.minify, passThrough),
     new OptionHandler(Flags.noMinify, passThrough),
     new OptionHandler(Flags.preserveUris, ignoreOption),
+    new OptionHandler(Flags.printLegacyStars, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler(Flags.disableDiagnosticColors, (_) {
       enableColors = false;

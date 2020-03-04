@@ -12,14 +12,14 @@ import 'element_map.dart';
 /// Support for subtype checks of kernel based [DartType]s.
 class KernelDartTypes extends DartTypes {
   final IrToElementMap elementMap;
-  @override
-  final bool useNullSafety;
-  @override
-  final bool useLegacySubtyping;
+  final CompilerOptions _options;
 
-  KernelDartTypes(this.elementMap, CompilerOptions options)
-      : useNullSafety = options.useNullSafety,
-        useLegacySubtyping = options.useLegacySubtyping;
+  KernelDartTypes(this.elementMap, this._options);
+
+  @override
+  bool get useNullSafety => _options.useNullSafety;
+  @override
+  bool get useLegacySubtyping => _options.useLegacySubtyping;
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
