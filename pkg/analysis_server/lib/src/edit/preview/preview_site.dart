@@ -17,6 +17,7 @@ import 'package:analysis_server/src/edit/preview/index_file_page.dart';
 import 'package:analysis_server/src/edit/preview/navigation_tree_page.dart';
 import 'package:analysis_server/src/edit/preview/not_found_page.dart';
 import 'package:analysis_server/src/edit/preview/region_page.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
@@ -205,7 +206,16 @@ class PreviewSite extends Site implements AbstractGetHandler {
       throw StateError('Cannot reapply migration.');
     }
 
+    final edits = migrationState.listener.sourceChange.edits;
+
+    // Eagerly mark the migration applied. If this throws, we cannot go back.
     migrationState.markApplied();
+    for (final fileEdit in edits) {
+      final file = pathMapper.provider.getFile(fileEdit.file);
+      String code = file.exists ? file.readAsStringSync() : '';
+      code = SourceEdit.applySequence(code, fileEdit.edits);
+      file.writeAsStringSync(code);
+    }
   }
 
   @override
