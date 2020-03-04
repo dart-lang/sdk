@@ -66,6 +66,7 @@ class CrashReportSender {
   Future sendReport(
     dynamic error,
     StackTrace stackTrace, {
+    List<CrashReportAttachment> attachments = const [],
     String comment,
   }) async {
     if (!shouldSend()) {
@@ -129,6 +130,15 @@ class CrashReportSender {
           _stackTraceFileField, chain.terse.toString(),
           filename: _stackTraceFilename));
 
+      for (var attachment in attachments) {
+        req.files.add(
+          new http.MultipartFile.fromString(
+            attachment._field,
+            attachment._value,
+          ),
+        );
+      }
+
       final http.StreamedResponse resp = await _httpClient.send(req);
 
       if (resp.statusCode != 200) {
@@ -150,6 +160,18 @@ class CrashReportSender {
   void dispose() {
     _httpClient.close();
   }
+}
+
+/// The additional attachment to be added to a crash report.
+class CrashReportAttachment {
+  final String _field;
+  final String _value;
+
+  CrashReportAttachment.string({
+    @required String field,
+    @required String value,
+  })  : _field = field,
+        _value = value;
 }
 
 /// A typedef to allow crash reporting to query as to whether it should send a
