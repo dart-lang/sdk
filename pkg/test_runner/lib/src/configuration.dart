@@ -63,7 +63,6 @@ class TestConfiguration {
       this.keepGeneratedFiles,
       this.sharedOptions,
       String packages,
-      this.packageRoot,
       this.suiteDirectory,
       this.outputDirectory,
       this.reproducingArguments,
@@ -170,15 +169,12 @@ class TestConfiguration {
 
   String get packages {
     // If the .packages file path wasn't given, find it.
-    if (packageRoot == null && _packages == null) {
-      _packages = Repository.uri.resolve('.packages').toFilePath();
-    }
+    _packages ??= Repository.uri.resolve('.packages').toFilePath();
 
     return _packages;
   }
 
   final String outputDirectory;
-  final String packageRoot;
   final String suiteDirectory;
   String get babel => configuration.babel;
   String get builderTag => configuration.builderTag;
@@ -431,8 +427,7 @@ class TestConfiguration {
   /// server for cross-domain tests can be found by calling
   /// `getCrossOriginPortNumber()`.
   Future startServers() {
-    _servers = TestingServers(
-        buildDirectory, isCsp, runtime, null, packageRoot, packages);
+    _servers = TestingServers(buildDirectory, isCsp, runtime, null, packages);
     var future = servers.startServers(localIP,
         port: testServerPort, crossOriginPort: testServerCrossOriginPort);
 

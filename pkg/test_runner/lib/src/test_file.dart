@@ -18,7 +18,6 @@ final _multitestRegExp = RegExp(r"\S *//[#/] \w+:(.*)");
 
 final _vmOptionsRegExp = RegExp(r"// VMOptions=(.*)");
 final _environmentRegExp = RegExp(r"// Environment=(.*)");
-final _packageRootRegExp = RegExp(r"// PackageRoot=(.*)");
 final _packagesRegExp = RegExp(r"// Packages=(.*)");
 final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z,-]+)$");
 
@@ -180,7 +179,6 @@ class TestFile extends _TestFileBase {
           dart2jsOptions: [],
           ddcOptions: [],
           dartOptions: [],
-          packageRoot: null,
           packages: null,
           hasSyntaxError: false,
           hasCompileError: false,
@@ -259,34 +257,17 @@ class TestFile extends _TestFileBase {
     }
 
     // Packages.
-    String packageRoot;
     String packages;
-    matches = _packageRootRegExp.allMatches(contents);
-    for (var match in matches) {
-      if (packageRoot != null || packages != null) {
-        throw Exception('More than one "// Package... line in test $filePath');
-      }
-      packageRoot = match[1];
-      if (packageRoot != 'none') {
-        // PackageRoot=none means that no packages or package-root option
-        // should be given. Any other value overrides package-root and
-        // removes any packages option.  Don't use with // Packages=.
-        packageRoot = Uri.file(filePath)
-            .resolveUri(Uri.directory(packageRoot))
-            .toFilePath();
-      }
-    }
 
     matches = _packagesRegExp.allMatches(contents);
     for (var match in matches) {
-      if (packages != null || packageRoot != null) {
+      if (packages != null) {
         throw Exception('More than one "// Package..." line in test $filePath');
       }
       packages = match[1];
       if (packages != 'none') {
-        // Packages=none means that no packages or package-root option
-        // should be given. Any other value overrides packages and removes
-        // any package-root option. Don't use with // PackageRoot=.
+        // Packages=none means that no packages option should be given. Any
+        // other value overrides packages.
         packages =
             Uri.file(filePath).resolveUri(Uri.file(packages)).toFilePath();
       }
@@ -338,7 +319,6 @@ class TestFile extends _TestFileBase {
     }
 
     return TestFile._(suiteDirectory, Path(filePath), errorExpectations,
-        packageRoot: packageRoot,
         packages: packages,
         environment: environment,
         isMultitest: isMultitest,
@@ -367,8 +347,7 @@ class TestFile extends _TestFileBase {
       this.hasRuntimeError,
       this.hasStaticWarning,
       this.hasCrash})
-      : packageRoot = null,
-        packages = null,
+      : packages = null,
         environment = null,
         isMultitest = false,
         isMultiHtmlTest = false,
@@ -385,8 +364,7 @@ class TestFile extends _TestFileBase {
         super(null, null, []);
 
   TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
-      {this.packageRoot,
-      this.packages,
+      {this.packages,
       this.environment,
       this.isMultitest,
       this.isMultiHtmlTest,
@@ -413,7 +391,6 @@ class TestFile extends _TestFileBase {
 
   String get multitestKey => "";
 
-  final String packageRoot;
   final String packages;
 
   final Map<String, String> environment;
@@ -465,7 +442,6 @@ class TestFile extends _TestFileBase {
           hasSyntaxError: hasSyntaxError ?? false);
 
   String toString() => """TestFile(
-  packageRoot: $packageRoot
   packages: $packages
   environment: $environment
   isMultitest: $isMultitest
@@ -514,7 +490,6 @@ class _MultitestFile extends _TestFileBase implements TestFile {
 
   Path get originPath => _origin.path;
 
-  String get packageRoot => _origin.packageRoot;
   String get packages => _origin.packages;
 
   List<Feature> get requirements => _origin.requirements;

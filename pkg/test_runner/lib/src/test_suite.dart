@@ -782,8 +782,7 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$compilationTempDir/$nameNoExt.js'));
         content = dart2jsHtml(testFile.path.toNativePath(), scriptPath);
       } else {
-        var packageRoot =
-            packagesArgument(configuration.packageRoot, configuration.packages);
+        var packageRoot = packagesArgument(configuration.packages);
         packageRoot =
             packageRoot == null ? nameNoExt : packageRoot.split("=").last;
         var nameFromModuleRoot =
@@ -860,7 +859,7 @@ class StandardTestSuite extends TestSuite {
   List<String> _commonArgumentsFromFile(TestFile testFile) {
     var args = configuration.standardOptions.toList();
 
-    var packages = packagesArgument(testFile.packageRoot, testFile.packages);
+    var packages = packagesArgument(testFile.packages);
     if (packages != null) {
       args.add(packages);
     }
@@ -880,25 +879,17 @@ class StandardTestSuite extends TestSuite {
     return args;
   }
 
-  String packagesArgument(String packageRoot, String packages) {
+  String packagesArgument(String packages) {
     // If this test is inside a package, we will check if there is a
     // pubspec.yaml file and if so, create a custom package root for it.
-    if (packageRoot == null && packages == null) {
-      if (configuration.packageRoot != null) {
-        packageRoot = Path(configuration.packageRoot).toNativePath();
-      }
-
-      if (configuration.packages != null) {
-        packages = Path(configuration.packages).toNativePath();
-      }
+    if (packages == null && configuration.packages != null) {
+      packages = Path(configuration.packages).toNativePath();
     }
 
-    if (packageRoot == 'none' || packages == 'none') {
+    if (packages == 'none') {
       return null;
     } else if (packages != null) {
       return '--packages=$packages';
-    } else if (packageRoot != null) {
-      return '--package-root=$packageRoot';
     } else {
       return null;
     }
