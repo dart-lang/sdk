@@ -656,7 +656,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.VAR_ENUM,
   ParserErrorCode.VAR_RETURN_TYPE,
   ParserErrorCode.VAR_TYPEDEF,
-  ParserErrorCode.VOID_WITH_TYPE_PARAMETERS,
+  ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.WITH_BEFORE_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,

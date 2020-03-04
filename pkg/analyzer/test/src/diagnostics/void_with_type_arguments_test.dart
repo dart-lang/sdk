@@ -9,23 +9,24 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(VoidTest);
+    defineReflectiveTests(VoidWithTypeArgumentsTest);
   });
 }
 
 @reflectiveTest
-class VoidTest extends DriverResolutionTest {
-  test_void_with_type_parameters() async {
+class VoidWithTypeArgumentsTest extends DriverResolutionTest {
+  test_noArguments() async {
+    await assertNoErrorsInCode('''
+void f() {}
+''');
+  }
+
+  test_withArguments() async {
     await assertErrorsInCode('''
 void<int> f() {}
 ''', [
-      error(ParserErrorCode.VOID_WITH_TYPE_PARAMETERS, 4, 1),
+      error(ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS, 4, 1),
     ]);
-  }
-
-  test_void_with_no_type_parameters() async {
-    await assertErrorsInCode('''
-void f() {}
-''', []);
+    assertTypeName(findNode.typeName('int>'), intElement, 'int');
   }
 }

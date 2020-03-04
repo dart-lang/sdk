@@ -881,7 +881,7 @@ class ParserErrorCode extends ErrorCode {
           correction: "Try removing the keyword 'var', or "
               "replacing it with the name of the return type.");
 
-  static const ParserErrorCode VOID_WITH_TYPE_PARAMETERS =
+  static const ParserErrorCode VOID_WITH_TYPE_ARGUMENTS =
       _VOID_WITH_TYPE_PARAMETERS;
 
   /**
