@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:path/path.dart' as p;
-import 'package:package_resolver/package_resolver.dart';
+import 'package:package_config/package_config.dart';
 import 'strong_components.dart';
 
 /// Produce a special bundle format for compiled JavaScript.
@@ -24,7 +24,7 @@ import 'strong_components.dart';
 /// only the updated libraries.
 class JavaScriptBundler {
   JavaScriptBundler(this._originalComponent, this._strongComponents,
-      this._fileSystemScheme, this._packageResolver)
+      this._fileSystemScheme, this._packageConfig)
       : compilers = <String, ProgramCompiler>{} {
     _summaries = <Component>[];
     _summaryUris = <Uri>[];
@@ -47,7 +47,7 @@ class JavaScriptBundler {
   final StrongComponents _strongComponents;
   final Component _originalComponent;
   final String _fileSystemScheme;
-  final PackageResolver _packageResolver;
+  final PackageConfig _packageConfig;
   final Map<String, ProgramCompiler> compilers;
 
   List<Component> _summaries;
@@ -127,7 +127,7 @@ class JavaScriptBundler {
         // make relative paths in the source map we get the absolute uri for
         // the module and make them relative to that.
         sourceMapBase =
-            p.dirname((await _packageResolver.resolveUri(moduleUri)).path);
+            p.dirname((await _packageConfig.resolve(moduleUri)).path);
       }
       final code = jsProgramToCode(
         jsModule,

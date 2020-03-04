@@ -24,7 +24,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
-import 'package:package_resolver/package_resolver.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
@@ -587,8 +587,8 @@ class FrontendCompiler implements CompilerInterface {
   /// Write a JavaScript bundle containg the provided component.
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme) async {
-    var packageResolver = await PackageResolver.loadConfig(
-        _compilerOptions.packagesFileUri ?? '.packages');
+    var packageConfig = await loadPackageConfigUri(
+        _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
     final Component component = results.component;
     // Compute strongly connected components.
     final strongComponents = StrongComponents(component,
@@ -603,7 +603,7 @@ class FrontendCompiler implements CompilerInterface {
       sourceFile.parent.createSync(recursive: true);
     }
     _bundler = JavaScriptBundler(
-        component, strongComponents, fileSystemScheme, packageResolver);
+        component, strongComponents, fileSystemScheme, packageConfig);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();

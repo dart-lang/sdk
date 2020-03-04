@@ -10,7 +10,7 @@ import 'package:frontend_server/src/strong_components.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:package_resolver/package_resolver.dart';
+import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 
 /// Additional indexed types required by the dev_compiler's NativeTypeSet.
@@ -73,7 +73,16 @@ void main() {
       ]),
   ];
 
-  final packageResolver = PackageResolver.config({'a': Uri.file('/pkg/a')});
+  final packageConfig = PackageConfig.parseJson({
+    'configVersion': 2,
+    'packages': [
+      {
+        'name': 'a',
+        'rootUri': 'file:///pkg/a',
+        'packagesUri': '',
+      }
+    ],
+  }, Uri.base);
   final multiRootScheme = 'org-dartlang-app';
 
   test('compiles JavaScript code', () async {
@@ -90,7 +99,7 @@ void main() {
         StrongComponents(testComponent, {}, Uri.file('/c.dart'));
     strongComponents.computeModules();
     final javaScriptBundler = JavaScriptBundler(
-        testComponent, strongComponents, multiRootScheme, packageResolver);
+        testComponent, strongComponents, multiRootScheme, packageConfig);
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
@@ -116,7 +125,7 @@ void main() {
 
   test('converts package: uris into /packages/ uris', () async {
     var importUri = Uri.parse('package:a/a.dart');
-    var fileUri = await packageResolver.resolveUri(importUri);
+    var fileUri = await packageConfig.resolve(importUri);
     final library = Library(
       importUri,
       fileUri: fileUri,
@@ -130,7 +139,7 @@ void main() {
     final strongComponents = StrongComponents(testComponent, {}, fileUri);
     strongComponents.computeModules();
     final javaScriptBundler = JavaScriptBundler(
-        testComponent, strongComponents, multiRootScheme, packageResolver);
+        testComponent, strongComponents, multiRootScheme, packageConfig);
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
@@ -170,7 +179,7 @@ void main() {
     final strongComponents = StrongComponents(testComponent, {}, fileUri);
     strongComponents.computeModules();
     final javaScriptBundler = JavaScriptBundler(
-        testComponent, strongComponents, multiRootScheme, packageResolver);
+        testComponent, strongComponents, multiRootScheme, packageConfig);
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
@@ -219,7 +228,7 @@ void main() {
         StrongComponents(testComponent, {}, Uri.file('/a.dart'));
     strongComponents.computeModules();
     final javaScriptBundler = JavaScriptBundler(
-        testComponent, strongComponents, multiRootScheme, packageResolver);
+        testComponent, strongComponents, multiRootScheme, packageConfig);
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
