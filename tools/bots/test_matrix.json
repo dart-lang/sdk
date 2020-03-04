@@ -1335,9 +1335,9 @@
             "-ndartkp-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 6
         },
-	{
+        {
           "name": "vm co19_2 tests",
           "arguments": [
             "-ndartkp-${system}-${mode}-${arch}",
