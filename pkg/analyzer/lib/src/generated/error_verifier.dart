@@ -2399,9 +2399,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     DartType iterableType = getStaticType(node.iterable);
-    if (iterableType.isDynamic) {
-      return false;
-    }
 
     // TODO(scheglov) use NullableDereferenceVerifier
     if (_isNonNullableByDefault) {

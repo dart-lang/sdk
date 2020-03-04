@@ -2126,6 +2126,46 @@ main() {
     await check(implicitCasts: false);
   }
 
+  test_implicitCasts_forEach() async {
+    addFile(r'''
+main(dynamic a) {
+  for (int v in a) {
+    v;
+  }
+}
+''');
+    await check();
+
+    addFile(r'''
+main(dynamic a) {
+  for (int v in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/a) {
+    v;
+  }
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_implicitCasts_forEach_async() async {
+    addFile(r'''
+main(dynamic a) async {
+  await for (int v in a) {
+    v;
+  }
+}
+''');
+    await check();
+
+    addFile(r'''
+main(dynamic a) async {
+  await for (int v in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/a) {
+    v;
+  }
+}
+''');
+    await check(implicitCasts: false);
+  }
+
   test_implicitCasts_functionCall() async {
     addFile('''num n;
                f(int i) => i;
