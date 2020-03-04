@@ -20,6 +20,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:path/path.dart' as path;
 
 import 'metrics_util.dart';
 import 'visitors.dart';
@@ -29,7 +30,9 @@ Future<void> main(List<String> args) async {
     print('Usage: a single absolute file path to analyze.');
     io.exit(1);
   }
-  await CompletionCoverageMetrics(args[0]).compute();
+  var corpus = args[0] == '--corpus';
+  var rootPath = corpus ? args[1] : args[0];
+  await CompletionCoverageMetrics(rootPath).compute(corpus: corpus);
   io.exit(0);
 }
 
@@ -61,7 +64,7 @@ abstract class AbstractCompletionMetricsComputer {
   /// The analysis root path that this CompletionMetrics class will be computed.
   String get rootPath => _rootPath;
 
-  void compute() async {
+  void compute({bool corpus = false}) async {
     print('Analyzing root: \"$_rootPath\"');
 
     if (!io.Directory(_rootPath).existsSync()) {
@@ -69,59 +72,64 @@ abstract class AbstractCompletionMetricsComputer {
       return;
     }
 
-    final collection = AnalysisContextCollection(
-      includedPaths: [_rootPath],
-      resourceProvider: PhysicalResourceProvider.INSTANCE,
-    );
+    var roots = _computeRootPaths(_rootPath, corpus);
+    for (var root in roots) {
+      final collection = AnalysisContextCollection(
+        includedPaths: [root],
+        resourceProvider: PhysicalResourceProvider.INSTANCE,
+      );
 
-    for (var context in collection.contexts) {
-      // Set the DeclarationsTracker, only call doWork to build up the available
-      // suggestions if doComputeCompletionsFromAnalysisServer is true.
-      var declarationsTracker = DeclarationsTracker(
-          MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
-      declarationsTracker.addContext(context);
-      if (doComputeCompletionsFromAnalysisServer) {
-        while (declarationsTracker.hasWork) {
-          declarationsTracker.doWork();
+      for (var context in collection.contexts) {
+        // Set the DeclarationsTracker, only call doWork to build up the available
+        // suggestions if doComputeCompletionsFromAnalysisServer is true.
+        var declarationsTracker = DeclarationsTracker(
+            MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
+        declarationsTracker.addContext(context);
+        if (doComputeCompletionsFromAnalysisServer) {
+          while (declarationsTracker.hasWork) {
+            declarationsTracker.doWork();
+          }
         }
-      }
 
-      // Loop through each file, resolve the file and call
-      // forEachExpectedCompletion
-      for (var filePath in context.contextRoot.analyzedFiles()) {
-        if (AnalysisEngine.isDartFileName(filePath)) {
-          _currentFilePath = filePath;
-          try {
-            _resolvedUnitResult =
-                await context.currentSession.getResolvedUnit(filePath);
+        // Loop through each file, resolve the file and call
+        // forEachExpectedCompletion
+        for (var filePath in context.contextRoot.analyzedFiles()) {
+          if (AnalysisEngine.isDartFileName(filePath)) {
+            _currentFilePath = filePath;
+            try {
+              _resolvedUnitResult =
+                  await context.currentSession.getResolvedUnit(filePath);
 
-            var error = getFirstErrorOrNull(resolvedUnitResult);
-            if (error != null) {
-              print('File $filePath skipped due to errors such as:');
-              print('  ${error.toString()}');
-              print('');
-              continue;
+              var error = getFirstErrorOrNull(resolvedUnitResult);
+              if (error != null) {
+                print('File $filePath skipped due to errors such as:');
+                print('  ${error.toString()}');
+                print('');
+                continue;
+              }
+
+              // Use the ExpectedCompletionsVisitor to compute the set of expected
+              // completions for this CompilationUnit.
+              final visitor = ExpectedCompletionsVisitor();
+              resolvedUnitResult.unit.accept(visitor);
+
+              for (var expectedCompletion in visitor.expectedCompletions) {
+                // Call forEachExpectedCompletion, passing in the computed
+                // suggestions only if doComputeCompletionsFromAnalysisServer is
+                // true:
+                forEachExpectedCompletion(
+                    expectedCompletion,
+                    doComputeCompletionsFromAnalysisServer
+                        ? await _computeCompletionSuggestions(
+                            resolvedUnitResult,
+                            expectedCompletion.offset,
+                            declarationsTracker)
+                        : null);
+              }
+            } catch (e) {
+              print('Exception caught analyzing: $filePath');
+              print(e.toString());
             }
-
-            // Use the ExpectedCompletionsVisitor to compute the set of expected
-            // completions for this CompilationUnit.
-            final visitor = ExpectedCompletionsVisitor();
-            resolvedUnitResult.unit.accept(visitor);
-
-            for (var expectedCompletion in visitor.expectedCompletions) {
-              // Call forEachExpectedCompletion, passing in the computed
-              // suggestions only if doComputeCompletionsFromAnalysisServer is
-              // true:
-              forEachExpectedCompletion(
-                  expectedCompletion,
-                  doComputeCompletionsFromAnalysisServer
-                      ? await _computeCompletionSuggestions(resolvedUnitResult,
-                          expectedCompletion.offset, declarationsTracker)
-                      : null);
-            }
-          } catch (e) {
-            print('Exception caught analyzing: $filePath');
-            print(e.toString());
           }
         }
       }
@@ -177,6 +185,20 @@ abstract class AbstractCompletionMetricsComputer {
 
     suggestions.sort(completionComparator);
     return suggestions;
+  }
+
+  List<String> _computeRootPaths(String rootPath, bool corpus) {
+    var roots = <String>[];
+    if (!corpus) {
+      roots.add(rootPath);
+    } else {
+      for (var child in io.Directory(rootPath).listSync()) {
+        if (child is io.Directory) {
+          roots.add(path.join(rootPath, child.path));
+        }
+      }
+    }
+    return roots;
   }
 
   /// Given some [ResolvedUnitResult] return the first error of high severity
