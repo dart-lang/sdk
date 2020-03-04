@@ -1021,8 +1021,22 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (library.Loaded()) return library.raw();
 
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
-  library.set_nnbd_compiled_mode(
-      library_helper.GetNonNullableByDefaultCompiledMode());
+  const NNBDCompiledMode mode =
+      library_helper.GetNonNullableByDefaultCompiledMode();
+  if (!FLAG_null_safety && mode == NNBDCompiledMode::kStrong) {
+    H.ReportError(
+        "Library '%s' was compiled with null safety (in strong mode) and it "
+        "requires --null-safety option at runtime",
+        String::Handle(library.url()).ToCString());
+  }
+  if (FLAG_null_safety && (mode == NNBDCompiledMode::kWeak ||
+                           mode == NNBDCompiledMode::kDisabled)) {
+    H.ReportError(
+        "Library '%s' was compiled without null safety (in weak mode) and it "
+        "cannot be used with --null-safety at runtime",
+        String::Handle(library.url()).ToCString());
+  }
+  library.set_nnbd_compiled_mode(mode);
 
   library_kernel_data_ = helper_.reader_.ExternalDataFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);

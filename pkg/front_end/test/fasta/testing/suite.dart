@@ -561,7 +561,10 @@ class Run extends Step<ComponentResult, int, FastaContext> {
         try {
           var args = <String>[];
           if (experimentalFlags[ExperimentalFlag.nonNullable]) {
-            args.add("--null-safety");
+            args.add("--enable-experiment=non-nullable");
+            if (!context.weak) {
+              args.add("--null-safety");
+            }
           }
           args.add(generated.path);
           process = await StdioProcess.run(context.vm.toFilePath(), args);
