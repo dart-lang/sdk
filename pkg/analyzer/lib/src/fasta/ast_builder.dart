@@ -2688,7 +2688,7 @@ class AstBuilder extends StackListener {
       }
     } else if (context == IdentifierContext.enumValueDeclaration) {
       List<Annotation> metadata = pop();
-      Comment comment = _findComment(null, token);
+      Comment comment = _findComment(metadata, token);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       push(identifier);
