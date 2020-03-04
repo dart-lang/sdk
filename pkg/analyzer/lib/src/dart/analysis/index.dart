@@ -23,6 +23,10 @@ Element declaredParameterElement(
   /// element model. But we want to index these parameter references
   /// as references to declared parameters.
   ParameterElement namedParameterElement(ExecutableElement executable) {
+    if (executable == null) {
+      return null;
+    }
+
     var parameterName = node.name;
     return executable.declaration.parameters.where((parameter) {
       return parameter.isNamed && parameter.name == parameterName;
@@ -40,16 +44,6 @@ Element declaredParameterElement(
           return namedParameterElement(invocation.staticElement);
         } else if (invocation is MethodInvocation) {
           var executable = invocation.methodName.staticElement;
-          if (executable == null) {
-            throw StateError(
-              '[invocation: $invocation]'
-              '[node: $node]'
-              '[namedExpression: $namedExpression]'
-              '[element: $element]'
-              '[staticInvokeType: ${invocation.staticInvokeType}]'
-              '[invocation.target.type: ${invocation?.realTarget?.staticType}]',
-            );
-          }
           return namedParameterElement(executable);
         }
       }
