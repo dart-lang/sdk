@@ -178,6 +178,9 @@ class MigrateCommand extends Command {
       logger.stdout(
           'Applied ${allEdits.length} ${pluralize('edit', allEdits.length)}.');
 
+      // Note: do not open the web preview if apply-changes is specified, as we
+      // currently cannot tell the web preview to disable the "apply migration"
+      // button.
       return 0;
     }
 
@@ -190,8 +193,8 @@ class MigrateCommand extends Command {
       // TODO(devoncarew): Open a browser automatically.
 
       logger.stdout('');
-      logger.stdout('To apply these changes, re-run the tool with '
-          '--${MigrateOptions.applyChangesOption}.');
+      logger.stdout('To apply these changes, open the web preview or re-run '
+          'the tool with --${MigrateOptions.applyChangesOption}.');
 
       logger.stdout('');
       logger.stdout('When finished with the preview, hit ctrl-c '
