@@ -311,8 +311,7 @@ class NativeFloat64x2List extends Object
 class NativeTypedData implements TypedData {
   /// Returns the byte buffer associated with this object.
   @Creates('NativeByteBuffer')
-  // May be Null for IE's CanvasPixelArray.
-  @Returns('NativeByteBuffer|Null')
+  @Returns('NativeByteBuffer')
   external ByteBuffer get buffer;
 
   /// Returns the length of this view, in bytes.

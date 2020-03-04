@@ -194,7 +194,7 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   // We cannot create the backing map on creation since hashCode interceptors
   // have not been defined when constants are created.
   Map<K, V> _getMap() {
-    LinkedHashMap<K, V> backingMap = JS('LinkedHashMap|Null', r'#.$map', this);
+    LinkedHashMap<K, V>? backingMap = JS('LinkedHashMap|Null', r'#.$map', this);
     if (backingMap == null) {
       backingMap = new JsLinkedHashMap<K, V>();
       fillLiteralMap(_jsData, backingMap);

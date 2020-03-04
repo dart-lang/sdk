@@ -110,7 +110,7 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   RegExpMatch? firstMatch(String string) {
-    JSArray m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp,
+    JSArray? m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp,
         checkString(string));
     if (m == null) return null;
     return new _MatchImplementation(this, m);
@@ -138,7 +138,7 @@ class JSSyntaxRegExp implements RegExp {
   RegExpMatch? _execGlobal(String string, int start) {
     Object regexp = _nativeGlobalVersion;
     JS('void', '#.lastIndex = #', regexp, start);
-    JSArray match = JS('JSExtendableArray|Null', '#.exec(#)', regexp, string);
+    JSArray? match = JS('JSExtendableArray|Null', '#.exec(#)', regexp, string);
     if (match == null) return null;
     return new _MatchImplementation(this, match);
   }
@@ -146,7 +146,7 @@ class JSSyntaxRegExp implements RegExp {
   RegExpMatch? _execAnchored(String string, int start) {
     Object regexp = _nativeAnchoredVersion;
     JS('void', '#.lastIndex = #', regexp, start);
-    JSArray match = JS('JSExtendableArray|Null', '#.exec(#)', regexp, string);
+    JSArray? match = JS('JSExtendableArray|Null', '#.exec(#)', regexp, string);
     if (match == null) return null;
     // If the last capture group participated, the original regexp did not
     // match at the start position.
@@ -194,14 +194,14 @@ class _MatchImplementation implements RegExpMatch {
 
   // The JS below changes the static type to avoid an implicit cast.
   // TODO(sra): Find a nicer way to do this, e.g. unsafeCast.
-  String group(int index) => JS('String|Null', '#', _match[index]);
+  String? group(int index) => JS('String|Null', '#', _match[index]);
 
-  String operator [](int index) => group(index);
+  String? operator [](int index) => group(index);
 
   int get groupCount => _match.length - 1;
 
-  List<String> groups(List<int> groups) {
-    List<String> out = [];
+  List<String?> groups(List<int> groups) {
+    List<String?> out = [];
     for (int i in groups) {
       out.add(group(i));
     }

@@ -128,8 +128,8 @@ String rawRtiToJsConstructorName(Object rti) {
 /// Given a raw constructor name, return the unminified name, if available,
 /// otherwise tag the name with `minified:`.
 String unminifyOrTag(String rawClassName) {
-  String preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
-  if (preserved is String) return preserved;
+  String? preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
+  if (preserved != null) return preserved;
   if (JS_GET_FLAG('MINIFIED')) return 'minified:${rawClassName}';
   return rawClassName;
 }
@@ -398,7 +398,7 @@ class JSInvocationMirror implements Invocation {
 
 class Primitives {
   static int objectHashCode(object) {
-    int hash = JS('int|Null', r'#.$identityHash', object);
+    int? hash = JS('int|Null', r'#.$identityHash', object);
     if (hash == null) {
       hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
       JS('void', r'#.$identityHash = #', object, hash);
@@ -786,7 +786,7 @@ class Primitives {
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
     var d = lazyAsJsDate(receiver);
-    List match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
+    List? match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
     if (match != null) return match[1];
 
     // Internet Explorer 10+ emits the zone name without parenthesis:
@@ -1575,7 +1575,7 @@ class TypeErrorDecoder {
     // Look for the special pattern \$camelCase\$ (all the $ symbols
     // have been escaped already), as we will soon be inserting
     // regular expression syntax that we want interpreted by RegExp.
-    List<String> match =
+    List<String>? match =
         JS('JSExtendableArray|Null', r'#.match(/\\\$[a-zA-Z]+\\\$/g)', message);
     if (match == null) match = [];
 
@@ -1926,7 +1926,7 @@ unwrapException(ex) {
   return ex;
 }
 
-String tryStringifyException(ex) {
+String? tryStringifyException(ex) {
   // Since this function is called from [unwrapException] which is called from
   // code injected into a catch-clause, use JavaScript try-catch to avoid a
   // potential loop if stringifying crashes.
@@ -1950,7 +1950,7 @@ StackTrace getTraceFromException(exception) {
     return exception.stackTrace;
   }
   if (exception == null) return new _StackTrace(exception);
-  _StackTrace trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
+  _StackTrace? trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
   if (trace != null) return trace;
   trace = new _StackTrace(exception);
   return JS('_StackTrace', r'#.$cachedTrace = #', exception, trace);
@@ -2095,7 +2095,7 @@ abstract class Closure implements Function {
   static fromTearOff(
     receiver,
     List functions,
-    int applyTrampolineIndex,
+    int? applyTrampolineIndex,
     var reflectionInfo,
     bool isStatic,
     bool isIntercepted,
@@ -2116,8 +2116,8 @@ abstract class Closure implements Function {
     // TODO(ahe): All the place below using \$ should be rewritten to go
     // through the namer.
     var function = JS('', '#[#]', functions, 0);
-    String name = JS('String|Null', '#.\$stubName', function);
-    String callName = JS('String|Null', '#[#]', function,
+    String? name = JS('String|Null', '#.\$stubName', function);
+    String? callName = JS('String|Null', '#[#]', function,
         JS_GET_NAME(JsGetName.CALL_NAME_PROPERTY));
 
     // This variable holds either an index into the types-table, or a function
@@ -2301,7 +2301,7 @@ abstract class Closure implements Function {
   }
 
   static cspForwardCall(
-      int arity, bool isSuperCall, String stubName, function) {
+      int arity, bool isSuperCall, String? stubName, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     // Handle intercepted stub-names with the default slow case.
     if (isSuperCall) arity = -1;
@@ -2383,7 +2383,7 @@ abstract class Closure implements Function {
 
   static forwardCallTo(receiver, function, bool isIntercepted) {
     if (isIntercepted) return forwardInterceptedCallTo(receiver, function);
-    String stubName = JS('String|Null', '#.\$stubName', function);
+    String? stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
     var lookedUpFunction = JS('', '#[#]', receiver, stubName);
     // The receiver[stubName] may not be equal to the function if we try to
@@ -2420,7 +2420,7 @@ abstract class Closure implements Function {
   }
 
   static cspForwardInterceptedCall(
-      int arity, bool isSuperCall, String name, function) {
+      int arity, bool isSuperCall, String? name, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
     // Handle intercepted stub-names with the default slow case.
@@ -2515,7 +2515,7 @@ abstract class Closure implements Function {
   static forwardInterceptedCallTo(receiver, function) {
     String selfField = BoundClosure.selfFieldName();
     String receiverField = BoundClosure.receiverFieldName();
-    String stubName = JS('String|Null', '#.\$stubName', function);
+    String? stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
     bool isCsp = JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
     var lookedUpFunction = JS('', '#[#]', receiver, stubName);
@@ -2587,7 +2587,7 @@ abstract class TearOffClosure extends Closure {}
 
 class StaticClosure extends TearOffClosure {
   String toString() {
-    String name =
+    String? name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
     if (name == null) return 'Closure of unknown static method';
     return "Closure '${unminifyOrTag(name)}'";
@@ -3241,7 +3241,7 @@ Future<Null> loadDeferredLibrary(String loadId) {
   // by an index. There are two arrays, one that maps the index into a Uri and
   // another that maps the index to a hash.
   var partsMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_PARTS);
-  List indexes = JS('JSExtendableArray|Null', '#[#]', partsMap, loadId);
+  List? indexes = JS('JSExtendableArray|Null', '#[#]', partsMap, loadId);
   if (indexes == null) return new Future.value(null);
   List<String> uris = <String>[];
   List<String> hashes = <String>[];
@@ -3323,7 +3323,7 @@ String? _cspNonce = _computeCspNonce();
 String? _computeCspNonce() {
   var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
   if (currentScript == null) return null;
-  String nonce = JS('String|Null', '#.nonce', currentScript);
+  String? nonce = JS('String|Null', '#.nonce', currentScript);
   return (nonce != null && nonce != '')
       ? nonce
       : JS('String|Null', '#.getAttribute("nonce")', currentScript);
