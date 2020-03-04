@@ -407,7 +407,7 @@ LXRvcDogM2VtICFpbXBvcnRhbnQ7Cn0K
 ''';
 
 String _migration_js;
-// migration_dart md5 is '92e41b045d06e490bbc16aff5920468f'
+// migration_dart md5 is 'f0ef9b1e43cf8833514ab7395cb0ef86'
 String _migration_js_base64 = '''
 KGZ1bmN0aW9uIGRhcnRQcm9ncmFtKCl7ZnVuY3Rpb24gY29weVByb3BlcnRpZXMoYSxiKXt2YXIgdD1P
 YmplY3Qua2V5cyhhKQpmb3IodmFyIHM9MDtzPHQubGVuZ3RoO3MrKyl7dmFyIHI9dFtzXQpiW3JdPWFb

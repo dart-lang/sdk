@@ -385,7 +385,7 @@ void populateEditDetails([EditDetails response]) {
 
         detailItem.append(Text(' ('));
         AnchorElement a = detailItem.append(document.createElement('a'));
-        a.append(Text("${detail.link.path}:$targetLine"));
+        a.append(Text('${detail.link.path}:$targetLine'));
 
         String relLink = detail.link.href;
         String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
