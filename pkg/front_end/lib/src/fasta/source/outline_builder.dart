@@ -1386,6 +1386,13 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    debugEvent("VoidKeyword");
+    /*List<TypeBuilder> arguments =*/ pop();
+    push(libraryBuilder.addVoidType(token.charOffset));
+  }
+
+  @override
   void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
       Token covariantToken, Token varFinalOrConst) {
     if (requiredToken != null && !libraryBuilder.isNonNullableByDefault) {

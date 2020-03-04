@@ -1551,6 +1551,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("VoidKeyword");
   }
 
+  /// The parser saw a void with type arguments (e.g. void<int>).
+  /// This is not valid - an error has already been emitted.
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    logEvent("handleVoidKeywordWithTypeArguments");
+  }
+
   void beginYieldStatement(Token token) {}
 
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {

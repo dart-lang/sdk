@@ -487,6 +487,7 @@ import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
 import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
 import 'use_of_void_result_test.dart' as use_of_void_result;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
+import 'void_test.dart' as void_test;
 import 'wrong_number_of_parameters_for_operator_test.dart'
     as wrong_number_of_parameters_for_operator;
 import 'wrong_number_of_parameters_for_setter_test.dart'
@@ -834,6 +835,7 @@ main() {
     uri_with_interpolation.main();
     use_of_void_result.main();
     variable_type_mismatch.main();
+    void_test.main();
     wrong_number_of_parameters_for_operator.main();
     wrong_number_of_parameters_for_setter.main();
     wrong_number_of_type_arguments.main();

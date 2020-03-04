@@ -971,6 +971,14 @@ InvalidVoid:
     - "void x; main() {}"
     - "foo(void x) {} main() { foo(null); }"
 
+VoidWithTypeParameters:
+  template: "Type 'void' can't have type parameters."
+  tip: "Try removing the type parameters."
+  index: 100
+  analyzerCode: ParserErrorCode.VOID_WITH_TYPE_PARAMETERS
+  script:
+    - "void<int> f() {}"
+
 # TODO(danrubel): Review where this error is generated and consider generating
 # FieldInitializedOutsideDeclaringClass instead of this in some situations.
 InvalidInitializer:

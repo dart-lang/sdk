@@ -3444,6 +3444,19 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleVoidKeywordWithTypeArguments(Token voidKeyword) {
+    assert(optional('void', voidKeyword));
+    debugEvent("VoidKeywordWithTypeArguments");
+    TypeArgumentList arguments = pop();
+
+    // TODO(paulberry): is this sufficient, or do we need to hook the "void"
+    // keyword up to an element?
+    handleIdentifier(voidKeyword, IdentifierContext.typeReference);
+    push(arguments);
+    handleType(voidKeyword, null);
+  }
+
+  @override
   dynamic internalProblem(Message message, int charOffset, Uri uri) {
     throw UnsupportedError(message.message);
   }

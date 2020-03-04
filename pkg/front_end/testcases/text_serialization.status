@@ -343,6 +343,8 @@ general/top_level_library_method: TextSerializationFailure # Was: Pass
 general/type_literal_as_metadata: TextSerializationFailure
 general/type_of_null: TextSerializationFailure
 general/type_parameter_type_named_int: TextSerializationFailure
+general/type_parameters_on_dynamic: TextSerializationFailure
+general/type_parameters_on_void: TextSerializationFailure
 general/type_variable_as_super: TextSerializationFailure # Was: RuntimeError
 general/type_variable_bound_access: TypeCheckError
 general/type_variable_prefix: TextSerializationFailure # Was: RuntimeError

@@ -1570,6 +1570,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    listener?.handleVoidKeywordWithTypeArguments(token);
+  }
+
+  @override
   void logEvent(String name) {
     listener?.logEvent(name);
   }

@@ -3185,6 +3185,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    assert(checkState(token, <ValueKind>[
+      /* arguments */ ValueKinds.TypeArgumentsOrNull,
+    ]));
+
+    debugEvent("handleVoidKeywordWithTypeArguments");
+    pop(); // arguments.
+    handleVoidKeyword(token);
+  }
+
+  @override
   void handleAsOperator(Token operator) {
     debugEvent("AsOperator");
     DartType type = buildDartType(pop());
