@@ -51,9 +51,13 @@ Iterable getOwnNamesAndSymbols(obj) {
   return JS('', '#.concat(#)', names, symbols);
 }
 
+/// Returns the value of field `name` on `obj`.
+///
+/// We use this instead of obj[name] since obj[name] checks the entire
+/// prototype chain instead of just `obj`.
 safeGetOwnProperty(obj, name) {
-  var desc = getOwnPropertyDescriptor(obj, name);
-  if (desc != null) return JS('', '#.value', desc);
+  if (JS<bool>('!', '#.hasOwnProperty(#)', obj, name))
+    return JS<Object>('', '#[#]', obj, name);
 }
 
 /// Defines a lazy static field.
