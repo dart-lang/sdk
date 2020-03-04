@@ -80,11 +80,9 @@ dynamic _createSpecificObject(
   if (json is List) {
     return json.map((e) => creator(e)).toList();
   } else if (json is Map) {
-    Map<String, dynamic> map = {};
-    for (dynamic key in json.keys) {
-      map[key as String] = json[key];
-    }
-    return creator(map);
+    return creator({
+      for (String key in json.keys) key: json[key],
+    });
   } else {
     // Handle simple types.
     return json;
@@ -1547,13 +1545,13 @@ class VmService implements VmServiceInterface {
     String scriptId,
     int line, {
     int column,
-  }) {
-    Map m = {'isolateId': isolateId, 'scriptId': scriptId, 'line': line};
-    if (column != null) {
-      m['column'] = column;
-    }
-    return _call('addBreakpoint', m);
-  }
+  }) =>
+      _call('addBreakpoint', {
+        'isolateId': isolateId,
+        'scriptId': scriptId,
+        'line': line,
+        if (column != null) 'column': column,
+      });
 
   @override
   Future<dynamic> addBreakpointWithScriptUri(
@@ -1561,24 +1559,23 @@ class VmService implements VmServiceInterface {
     String scriptUri,
     int line, {
     int column,
-  }) {
-    Map m = {'isolateId': isolateId, 'scriptUri': scriptUri, 'line': line};
-    if (column != null) {
-      m['column'] = column;
-    }
-    return _call('addBreakpointWithScriptUri', m);
-  }
+  }) =>
+      _call('addBreakpointWithScriptUri', {
+        'isolateId': isolateId,
+        'scriptUri': scriptUri,
+        'line': line,
+        if (column != null) 'column': column,
+      });
 
   @override
-  Future<dynamic> addBreakpointAtEntry(String isolateId, String functionId) {
-    return _call('addBreakpointAtEntry',
-        {'isolateId': isolateId, 'functionId': functionId});
-  }
+  Future<Breakpoint> addBreakpointAtEntry(
+          String isolateId, String functionId) =>
+      _call('addBreakpointAtEntry',
+          {'isolateId': isolateId, 'functionId': functionId});
 
   @override
-  Future<dynamic> clearCpuSamples(String isolateId) {
-    return _call('clearCpuSamples', {'isolateId': isolateId});
-  }
+  Future<Success> clearCpuSamples(String isolateId) =>
+      _call('clearCpuSamples', {'isolateId': isolateId});
 
   @override
   Future<Success> clearVMTimeline() => _call('clearVMTimeline');
@@ -1590,18 +1587,15 @@ class VmService implements VmServiceInterface {
     String selector,
     List<String> argumentIds, {
     bool disableBreakpoints,
-  }) {
-    Map m = {
-      'isolateId': isolateId,
-      'targetId': targetId,
-      'selector': selector,
-      'argumentIds': argumentIds
-    };
-    if (disableBreakpoints != null) {
-      m['disableBreakpoints'] = disableBreakpoints;
-    }
-    return _call('invoke', m);
-  }
+  }) =>
+      _call('invoke', {
+        'isolateId': isolateId,
+        'targetId': targetId,
+        'selector': selector,
+        'argumentIds': argumentIds,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   @override
   Future<dynamic> evaluate(
@@ -1610,20 +1604,15 @@ class VmService implements VmServiceInterface {
     String expression, {
     Map<String, String> scope,
     bool disableBreakpoints,
-  }) {
-    Map m = {
-      'isolateId': isolateId,
-      'targetId': targetId,
-      'expression': expression
-    };
-    if (scope != null) {
-      m['scope'] = scope;
-    }
-    if (disableBreakpoints != null) {
-      m['disableBreakpoints'] = disableBreakpoints;
-    }
-    return _call('evaluate', m);
-  }
+  }) =>
+      _call('evaluate', {
+        'isolateId': isolateId,
+        'targetId': targetId,
+        'expression': expression,
+        if (scope != null) 'scope': scope,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   @override
   Future<dynamic> evaluateInFrame(
@@ -1632,88 +1621,71 @@ class VmService implements VmServiceInterface {
     String expression, {
     Map<String, String> scope,
     bool disableBreakpoints,
-  }) {
-    Map m = {
-      'isolateId': isolateId,
-      'frameIndex': frameIndex,
-      'expression': expression
-    };
-    if (scope != null) {
-      m['scope'] = scope;
-    }
-    if (disableBreakpoints != null) {
-      m['disableBreakpoints'] = disableBreakpoints;
-    }
-    return _call('evaluateInFrame', m);
-  }
+  }) =>
+      _call('evaluateInFrame', {
+        'isolateId': isolateId,
+        'frameIndex': frameIndex,
+        'expression': expression,
+        if (scope != null) 'scope': scope,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   @override
-  Future<dynamic> getAllocationProfile(String isolateId,
-      {bool reset, bool gc}) {
-    Map m = {'isolateId': isolateId};
-    if (reset != null && reset) {
-      m['reset'] = reset;
-    }
-    if (gc != null && gc) {
-      m['gc'] = gc;
-    }
-    return _call('getAllocationProfile', m);
-  }
+  Future<AllocationProfile> getAllocationProfile(String isolateId,
+          {bool reset, bool gc}) =>
+      _call('getAllocationProfile', {
+        'isolateId': isolateId,
+        if (reset != null && reset) 'reset': reset,
+        if (gc != null && gc) 'gc': gc,
+      });
 
   @override
   Future<ClientName> getClientName() => _call('getClientName');
 
   @override
-  Future<dynamic> getCpuSamples(
-      String isolateId, int timeOriginMicros, int timeExtentMicros) {
-    return _call('getCpuSamples', {
-      'isolateId': isolateId,
-      'timeOriginMicros': timeOriginMicros,
-      'timeExtentMicros': timeExtentMicros
-    });
-  }
+  Future<CpuSamples> getCpuSamples(
+          String isolateId, int timeOriginMicros, int timeExtentMicros) =>
+      _call('getCpuSamples', {
+        'isolateId': isolateId,
+        'timeOriginMicros': timeOriginMicros,
+        'timeExtentMicros': timeExtentMicros
+      });
 
   @override
   Future<FlagList> getFlagList() => _call('getFlagList');
 
   @override
   Future<dynamic> getInboundReferences(
-      String isolateId, String targetId, int limit) {
-    return _call('getInboundReferences',
-        {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
-  }
+          String isolateId, String targetId, int limit) =>
+      _call('getInboundReferences',
+          {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
 
   @override
-  Future<dynamic> getInstances(String isolateId, String objectId, int limit) {
-    return _call('getInstances',
-        {'isolateId': isolateId, 'objectId': objectId, 'limit': limit});
-  }
+  Future<InstanceSet> getInstances(
+          String isolateId, String objectId, int limit) =>
+      _call('getInstances',
+          {'isolateId': isolateId, 'objectId': objectId, 'limit': limit});
 
   @override
-  Future<dynamic> getIsolate(String isolateId) {
-    return _call('getIsolate', {'isolateId': isolateId});
-  }
+  Future<dynamic> getIsolate(String isolateId) =>
+      _call('getIsolate', {'isolateId': isolateId});
 
   @override
-  Future<dynamic> getIsolateGroup(String isolateGroupId) {
-    return _call('getIsolateGroup', {'isolateGroupId': isolateGroupId});
-  }
+  Future<dynamic> getIsolateGroup(String isolateGroupId) =>
+      _call('getIsolateGroup', {'isolateGroupId': isolateGroupId});
 
   @override
-  Future<dynamic> getMemoryUsage(String isolateId) {
-    return _call('getMemoryUsage', {'isolateId': isolateId});
-  }
+  Future<dynamic> getMemoryUsage(String isolateId) =>
+      _call('getMemoryUsage', {'isolateId': isolateId});
 
   @override
-  Future<dynamic> getIsolateGroupMemoryUsage(String isolateGroupId) {
-    return _call(
-        'getIsolateGroupMemoryUsage', {'isolateGroupId': isolateGroupId});
-  }
+  Future<dynamic> getIsolateGroupMemoryUsage(String isolateGroupId) =>
+      _call('getIsolateGroupMemoryUsage', {'isolateGroupId': isolateGroupId});
 
   @override
-  Future<dynamic> getScripts(String isolateId) {
-    return _call('getScripts', {'isolateId': isolateId});
-  }
+  Future<ScriptList> getScripts(String isolateId) =>
+      _call('getScripts', {'isolateId': isolateId});
 
   @override
   Future<dynamic> getObject(
@@ -1721,28 +1693,23 @@ class VmService implements VmServiceInterface {
     String objectId, {
     int offset,
     int count,
-  }) {
-    Map m = {'isolateId': isolateId, 'objectId': objectId};
-    if (offset != null) {
-      m['offset'] = offset;
-    }
-    if (count != null) {
-      m['count'] = count;
-    }
-    return _call('getObject', m);
-  }
+  }) =>
+      _call('getObject', {
+        'isolateId': isolateId,
+        'objectId': objectId,
+        if (offset != null) 'offset': offset,
+        if (count != null) 'count': count,
+      });
 
   @override
-  Future<dynamic> getRetainingPath(
-      String isolateId, String targetId, int limit) {
-    return _call('getRetainingPath',
-        {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
-  }
+  Future<RetainingPath> getRetainingPath(
+          String isolateId, String targetId, int limit) =>
+      _call('getRetainingPath',
+          {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
 
   @override
-  Future<dynamic> getStack(String isolateId) {
-    return _call('getStack', {'isolateId': isolateId});
-  }
+  Future<Stack> getStack(String isolateId) =>
+      _call('getStack', {'isolateId': isolateId});
 
   @override
   Future<dynamic> getSourceReport(
@@ -1753,22 +1720,15 @@ class VmService implements VmServiceInterface {
     int tokenPos,
     int endTokenPos,
     bool forceCompile,
-  }) {
-    Map m = {'isolateId': isolateId, 'reports': reports};
-    if (scriptId != null) {
-      m['scriptId'] = scriptId;
-    }
-    if (tokenPos != null) {
-      m['tokenPos'] = tokenPos;
-    }
-    if (endTokenPos != null) {
-      m['endTokenPos'] = endTokenPos;
-    }
-    if (forceCompile != null) {
-      m['forceCompile'] = forceCompile;
-    }
-    return _call('getSourceReport', m);
-  }
+  }) =>
+      _call('getSourceReport', {
+        'isolateId': isolateId,
+        'reports': reports,
+        if (scriptId != null) 'scriptId': scriptId,
+        if (tokenPos != null) 'tokenPos': tokenPos,
+        if (endTokenPos != null) 'endTokenPos': endTokenPos,
+        if (forceCompile != null) 'forceCompile': forceCompile,
+      });
 
   @override
   Future<Version> getVersion() => _call('getVersion');
@@ -1777,16 +1737,12 @@ class VmService implements VmServiceInterface {
   Future<VM> getVM() => _call('getVM');
 
   @override
-  Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros}) {
-    Map m = {};
-    if (timeOriginMicros != null) {
-      m['timeOriginMicros'] = timeOriginMicros;
-    }
-    if (timeExtentMicros != null) {
-      m['timeExtentMicros'] = timeExtentMicros;
-    }
-    return _call('getVMTimeline', m);
-  }
+  Future<Timeline> getVMTimeline(
+          {int timeOriginMicros, int timeExtentMicros}) =>
+      _call('getVMTimeline', {
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
+      });
 
   @override
   Future<TimelineFlags> getVMTimelineFlags() => _call('getVMTimelineFlags');
@@ -1795,19 +1751,16 @@ class VmService implements VmServiceInterface {
   Future<Timestamp> getVMTimelineMicros() => _call('getVMTimelineMicros');
 
   @override
-  Future<dynamic> pause(String isolateId) {
-    return _call('pause', {'isolateId': isolateId});
-  }
+  Future<Success> pause(String isolateId) =>
+      _call('pause', {'isolateId': isolateId});
 
   @override
-  Future<dynamic> kill(String isolateId) {
-    return _call('kill', {'isolateId': isolateId});
-  }
+  Future<Success> kill(String isolateId) =>
+      _call('kill', {'isolateId': isolateId});
 
   @override
-  Future<Success> registerService(String service, String alias) {
-    return _call('registerService', {'service': service, 'alias': alias});
-  }
+  Future<Success> registerService(String service, String alias) =>
+      _call('registerService', {'service': service, 'alias': alias});
 
   @override
   Future<dynamic> reloadSources(
@@ -1816,114 +1769,82 @@ class VmService implements VmServiceInterface {
     bool pause,
     String rootLibUri,
     String packagesUri,
-  }) {
-    Map m = {'isolateId': isolateId};
-    if (force != null) {
-      m['force'] = force;
-    }
-    if (pause != null) {
-      m['pause'] = pause;
-    }
-    if (rootLibUri != null) {
-      m['rootLibUri'] = rootLibUri;
-    }
-    if (packagesUri != null) {
-      m['packagesUri'] = packagesUri;
-    }
-    return _call('reloadSources', m);
-  }
+  }) =>
+      _call('reloadSources', {
+        'isolateId': isolateId,
+        if (force != null) 'force': force,
+        if (pause != null) 'pause': pause,
+        if (rootLibUri != null) 'rootLibUri': rootLibUri,
+        if (packagesUri != null) 'packagesUri': packagesUri,
+      });
 
   @override
-  Future<dynamic> removeBreakpoint(String isolateId, String breakpointId) {
-    return _call('removeBreakpoint',
-        {'isolateId': isolateId, 'breakpointId': breakpointId});
-  }
+  Future<Success> removeBreakpoint(String isolateId, String breakpointId) =>
+      _call('removeBreakpoint',
+          {'isolateId': isolateId, 'breakpointId': breakpointId});
 
   @override
-  Future<dynamic> requestHeapSnapshot(String isolateId) {
-    return _call('requestHeapSnapshot', {'isolateId': isolateId});
-  }
+  Future<Success> requestHeapSnapshot(String isolateId) =>
+      _call('requestHeapSnapshot', {'isolateId': isolateId});
 
   @override
   Future<Success> requirePermissionToResume(
-      {bool onPauseStart, bool onPauseReload, bool onPauseExit}) {
-    Map m = {};
-    if (onPauseStart != null) {
-      m['onPauseStart'] = onPauseStart;
-    }
-    if (onPauseReload != null) {
-      m['onPauseReload'] = onPauseReload;
-    }
-    if (onPauseExit != null) {
-      m['onPauseExit'] = onPauseExit;
-    }
-    return _call('requirePermissionToResume', m);
-  }
+          {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
+      _call('requirePermissionToResume', {
+        if (onPauseStart != null) 'onPauseStart': onPauseStart,
+        if (onPauseReload != null) 'onPauseReload': onPauseReload,
+        if (onPauseExit != null) 'onPauseExit': onPauseExit,
+      });
 
   @override
-  Future<dynamic> resume(String isolateId,
-      {/*StepOption*/ String step, int frameIndex}) {
-    Map m = {'isolateId': isolateId};
-    if (step != null) {
-      m['step'] = step;
-    }
-    if (frameIndex != null) {
-      m['frameIndex'] = frameIndex;
-    }
-    return _call('resume', m);
-  }
+  Future<Success> resume(String isolateId,
+          {/*StepOption*/ String step, int frameIndex}) =>
+      _call('resume', {
+        'isolateId': isolateId,
+        if (step != null) 'step': step,
+        if (frameIndex != null) 'frameIndex': frameIndex,
+      });
 
   @override
-  Future<Success> setClientName(String name) {
-    return _call('setClientName', {'name': name});
-  }
+  Future<Success> setClientName(String name) =>
+      _call('setClientName', {'name': name});
 
   @override
-  Future<dynamic> setExceptionPauseMode(
-      String isolateId, /*ExceptionPauseMode*/ String mode) {
-    return _call(
-        'setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
-  }
+  Future<Success> setExceptionPauseMode(
+          String isolateId, /*ExceptionPauseMode*/ String mode) =>
+      _call('setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
 
   @override
-  Future<dynamic> setFlag(String name, String value) {
-    return _call('setFlag', {'name': name, 'value': value});
-  }
+  Future<dynamic> setFlag(String name, String value) =>
+      _call('setFlag', {'name': name, 'value': value});
 
   @override
-  Future<dynamic> setLibraryDebuggable(
-      String isolateId, String libraryId, bool isDebuggable) {
-    return _call('setLibraryDebuggable', {
-      'isolateId': isolateId,
-      'libraryId': libraryId,
-      'isDebuggable': isDebuggable
-    });
-  }
+  Future<Success> setLibraryDebuggable(
+          String isolateId, String libraryId, bool isDebuggable) =>
+      _call('setLibraryDebuggable', {
+        'isolateId': isolateId,
+        'libraryId': libraryId,
+        'isDebuggable': isDebuggable
+      });
 
   @override
-  Future<dynamic> setName(String isolateId, String name) {
-    return _call('setName', {'isolateId': isolateId, 'name': name});
-  }
+  Future<Success> setName(String isolateId, String name) =>
+      _call('setName', {'isolateId': isolateId, 'name': name});
 
   @override
-  Future<Success> setVMName(String name) {
-    return _call('setVMName', {'name': name});
-  }
+  Future<Success> setVMName(String name) => _call('setVMName', {'name': name});
 
   @override
-  Future<Success> setVMTimelineFlags(List<String> recordedStreams) {
-    return _call('setVMTimelineFlags', {'recordedStreams': recordedStreams});
-  }
+  Future<Success> setVMTimelineFlags(List<String> recordedStreams) =>
+      _call('setVMTimelineFlags', {'recordedStreams': recordedStreams});
 
   @override
-  Future<Success> streamCancel(String streamId) {
-    return _call('streamCancel', {'streamId': streamId});
-  }
+  Future<Success> streamCancel(String streamId) =>
+      _call('streamCancel', {'streamId': streamId});
 
   @override
-  Future<Success> streamListen(String streamId) {
-    return _call('streamListen', {'streamId': streamId});
-  }
+  Future<Success> streamListen(String streamId) =>
+      _call('streamListen', {'streamId': streamId});
 
   /// Call an arbitrary service protocol method. This allows clients to call
   /// methods not explicitly exposed by this library.

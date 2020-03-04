@@ -512,11 +512,10 @@ dynamic _createSpecificObject(dynamic json, dynamic creator(Map<String, dynamic>
   if (json is List) {
     return json.map((e) => creator(e)).toList();
   } else if (json is Map) {
-    Map<String, dynamic> map = {};
-    for (dynamic key in json.keys) {
-      map[key as String] = json[key];
-    }
-    return creator(map);
+    return creator({
+      for (String key in json.keys)
+        key: json[key],
+    });
   } else {
     // Handle simple types.
     return json;
@@ -1067,35 +1066,31 @@ class Method extends Member {
     if (!hasArgs) {
       gen.writeStatement("=> _call('${name}');");
     } else if (hasOptionalArgs) {
-      gen.writeStatement('{');
-      gen.write('Map m = {');
+      gen.writeStatement("=> _call('$name', {");
       gen.write(args
           .where((MethodArg a) => !a.optional)
-          .map((arg) => "'${arg.name}': ${arg.name}")
-          .join(', '));
-      gen.writeln('};');
+          .map((arg) => "'${arg.name}': ${arg.name},")
+          .join());
+
       args.where((MethodArg a) => a.optional).forEach((MethodArg arg) {
         String valueRef = arg.name;
         // Special case for `getAllocationProfile`. We do not want to add these
         // params if they are false.
         if (name == 'getAllocationProfile') {
-          gen.writeln("if (${arg.name} != null && ${arg.name}) {");
+          gen.writeln("if (${arg.name} != null && ${arg.name})");
         } else {
-          gen.writeln("if (${arg.name} != null) {");
+          gen.writeln("if (${arg.name} != null)");
         }
-        gen.writeln("m['${arg.name}'] = ${valueRef};");
-        gen.writeln("}");
+        gen.writeln("'${arg.name}': $valueRef,");
       });
-      gen.writeStatement("return _call('${name}', m);");
-      gen.writeStatement('}');
+
+      gen.writeln('});');
     } else {
-      gen.writeStatement('{');
-      gen.write("return _call('${name}', {");
+      gen.write("=> _call('${name}', {");
       gen.write(args.map((MethodArg arg) {
         return "'${arg.name}': ${arg.name}";
       }).join(', '));
       gen.writeStatement('});');
-      gen.writeStatement('}');
     }
   }
 
