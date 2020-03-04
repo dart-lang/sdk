@@ -1300,6 +1300,7 @@ nnbd/nullable_access: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/nullable_receiver: TextSerializationFailure
+nnbd/nullable_rhs_of_typedef: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
 nnbd/override_checks: TextSerializationFailure
 nnbd/platform_definite_assignment/main: TextSerializationFailure

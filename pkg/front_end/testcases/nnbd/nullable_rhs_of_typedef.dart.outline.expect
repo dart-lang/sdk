@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+typedef F = () →? void;
+static method foo(() → void x) → void
+  ;
+static method bar(() →? void x) → void
+  ;
+static method baz(() →? void x) → void
+  ;
+static method main() → dynamic
+  ;

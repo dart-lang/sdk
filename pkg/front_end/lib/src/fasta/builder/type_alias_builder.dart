@@ -4,8 +4,6 @@
 
 library fasta.function_type_alias_builder;
 
-import 'package:front_end/src/fasta/builder/fixed_type_builder.dart';
-import 'package:front_end/src/fasta/builder/named_type_builder.dart';
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -21,6 +19,8 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/type_algebra.dart'
     show FreshTypeParameters, getFreshTypeParameters, substitute;
 
+import 'package:kernel/src/future_or.dart';
+
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 
@@ -29,10 +29,12 @@ import '../problems.dart' show unhandled;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'class_builder.dart';
+import 'fixed_type_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_type_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
+import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
@@ -237,16 +239,23 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
     DartType thisType = buildThisType(library);
     if (thisType is InvalidType) return thisType;
+    // TODO(dmitryas): Remove the following comment when FutureOr has its own
+    // encoding and isn't represented as an InterfaceType.
+
+    // The following won't work if the right-hand side of the typedef is a
+    // FutureOr.
+    Nullability rhsNullability = thisType.nullability;
     if (typedef.typeParameters.isEmpty && arguments == null) {
       Nullability nullability = isNullAlias
           ? Nullability.nullable
           : nullabilityBuilder.build(library);
-      return thisType.withNullability(nullability);
+      return thisType
+          .withNullability(uniteNullabilities(rhsNullability, nullability));
     }
     // Otherwise, substitute.
     return buildTypesWithBuiltArguments(
         library,
-        nullabilityBuilder.build(library),
+        uniteNullabilities(rhsNullability, nullabilityBuilder.build(library)),
         buildTypeArguments(library, arguments));
   }
 
