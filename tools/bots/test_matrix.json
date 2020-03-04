@@ -1315,10 +1315,44 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp linux release builders. (includes co19_2 testing)"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        },
+	{
+          "name": "vm co19_2 tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-linux-product-x64",
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
-        "vm-kernel-precomp-linux-release-x64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-win-release-x64"
       ],
