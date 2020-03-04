@@ -13,9 +13,11 @@ import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 import 'package:nnbd_migration/src/utilities/multi_future_tracker.dart';
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
+import 'package:path/path.dart' as path;
 
 class FantasyWorkspaceError extends Error {
   final String message;
+
   FantasyWorkspaceError(this.message);
 
   @override
@@ -35,7 +37,7 @@ class FantasyWorkspaceDependencies {
       Future<FantasyRepo> Function(FantasyRepoSettings, String, bool,
               {FantasyRepoDependencies fantasyRepoDependencies})
           buildGitRepoFrom,
-      List<String> dartfixExec})
+      List<String> dartdevExec})
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE,
         launcher = launcher ?? SubprocessLauncher('fantasy-workspace'),
@@ -67,16 +69,19 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
   Map<FantasySubPackageSettings, FantasySubPackage> subPackages = {};
 
   File _packagesFile;
+
   File get packagesFile => _packagesFile ??= _external.resourceProvider.getFile(
       _external.resourceProvider.pathContext
           .join(workspaceRootPath, '.packages'));
 
   File _packageConfigJson;
+
   File get packageConfigJson => _packageConfigJson ??=
       _external.resourceProvider.getFile(_external.resourceProvider.pathContext
           .join(workspaceRootPath, '.dart_tool', 'package_config.json'));
 
   File _migratedPackagesFile;
+
   // TODO(jcollins-g): Remove this hack once a good way of determining whether
   // a package is already migrated is available. (and our front-end implements it)
   File get migratedPackagesFile => _migratedPackagesFile ??=
@@ -84,6 +89,7 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
           .join(workspaceRootPath, '.steamroller_already_migrated'));
 
   Set<String> _migratedPackagePaths;
+
   Set<String> get migratedPackagePaths =>
       _migratedPackagePaths ??= migratedPackagesFile.exists
           ? migratedPackagesFile.readAsStringSync().split('\n').toSet()
@@ -128,15 +134,14 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
   Future<bool> forceMigratePackages(
       Iterable<FantasySubPackage> subPackages,
       Iterable<FantasySubPackage> subPackagesLibOnly,
-      String sdkPath,
-      List<String> dartfixExec) async {
-    String dartfix_bin = dartfixExec.first;
-    List<String> args = dartfixExec.sublist(1);
+      List<String> dartdevExec) async {
+    String dartdevBin = dartdevExec.first;
+    List<String> args = dartdevExec.sublist(1);
     args.addAll(
-        ['upgrade', 'sdk', '--no-preview', '--force', '--sdk=$sdkPath']);
+        ['migrate', '--no-web-preview', '--apply-changes', '--ignore-errors']);
     bool migrationNecessary = false;
     // TODO(jcollins-g): consider using the package graph to break up and
-    // parallelize dartfix runs
+    // parallelize dartdev migrate runs
     for (FantasySubPackage subPackage in subPackages) {
       if (!migratedPackagePaths.contains(subPackage.packageRoot.path)) {
         args.add(subPackage.packageRoot.path);
@@ -151,7 +156,7 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
     }
     if (migrationNecessary) {
       await _external.launcher
-          .runStreamed(dartfix_bin, args, instance: 'dartfix');
+          .runStreamed(dartdevBin, args, instance: 'dartdev');
     }
     // Update the file once we're sure it has completed successfully.
     packagesMigrated(subPackages);
@@ -163,8 +168,9 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
   Future<void> analyzePackages(
       Iterable<FantasySubPackage> subPackages,
       Iterable<FantasySubPackage> subPackagesLibOnly,
-      String sdkPath,
       List<String> dartanalyzerExec) async {
+    var sdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
+
     var analyzers = <Future>[];
     String dartanalyzer_bin = dartanalyzerExec.first;
     List<String> baseArgs = dartanalyzerExec.sublist(1);

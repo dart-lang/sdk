@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:mockito/mockito.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -33,19 +36,20 @@ class FantasyWorkspaceTest extends FilesystemTestBase {
             workspaceDependencies: workspaceDependencies);
     await testWorkspace.analyzePackages(
         testWorkspace.subPackages.values.where((p) => p.name == 'test_package'),
-        // We are forcing extra_package_1 to be treated as migrated with 'lib_only'
-        // for the purpose of testing.  This would not be the case in normal
-        // steamroll_ecosystem.dart runs.
+        // We are forcing extra_package_1 to be treated as migrated with
+        // 'lib_only' for the purpose of testing.  This would not be the case in
+        // normal steamroll_ecosystem.dart runs.
         testWorkspace.subPackages.values
             .where((p) => p.name == 'extra_package_1'),
-        convertPath('/path/to/a/sdk'),
         ['dart', 'really_the_analyzer.dart']);
+
+    var sdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
     verify(mockLauncher.runStreamed(
         'dart',
         [
           'really_the_analyzer.dart',
           '--enable-experiment=non-nullable',
-          '--dart-sdk=${convertPath("/path/to/a/sdk")}',
+          '--dart-sdk=$sdkPath',
           '.'
         ],
         workingDirectory: convertPath('/fantasyland/_repo/test_package'),
@@ -56,7 +60,7 @@ class FantasyWorkspaceTest extends FilesystemTestBase {
         [
           'really_the_analyzer.dart',
           '--enable-experiment=non-nullable',
-          '--dart-sdk=${convertPath("/path/to/a/sdk")}',
+          '--dart-sdk=$sdkPath',
           'lib'
         ],
         workingDirectory: convertPath('/fantasyland/_repo/extra_package_1'),

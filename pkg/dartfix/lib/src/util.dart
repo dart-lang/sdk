@@ -56,3 +56,14 @@ String toSentenceFragment(String message) {
       ? message.substring(0, message.length - 1)
       : message;
 }
+
+String pluralize(String word, int count) => count == 1 ? word : '${word}s';
+
+List<SourceEdit> sortEdits(SourceFileEdit sourceFileEdit) {
+  // Sort edits in reverse offset order.
+  List<SourceEdit> edits = sourceFileEdit.edits.toList();
+  edits.sort((a, b) {
+    return b.offset - a.offset;
+  });
+  return edits;
+}

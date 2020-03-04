@@ -63,7 +63,7 @@ class NullabilityFixDescription {
           'Changed a null-aware access into an ordinary access, because the target cannot be null',
       kind: NullabilityFixKind.removeNullAwareness);
 
-  /// A message used by dartfix to indicate a fix has been applied.
+  /// A message used to indicate a fix has been applied.
   final String appliedMessage;
 
   /// The kind of fix described.

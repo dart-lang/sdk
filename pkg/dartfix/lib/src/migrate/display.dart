@@ -41,9 +41,21 @@ class SourcePrinter {
 
   SourcePrinter(this.source);
 
-  void deleteRange(int offset, int length) {
-    // \u001b[31m - red
+  void applyEdits(List<SourceEdit> edits) {
+    for (SourceEdit edit in edits) {
+      if (edit.replacement.isNotEmpty) {
+        // an addition
+        insertText(edit.offset + edit.length, edit.replacement);
+      }
 
+      if (edit.length != 0) {
+        // a removal
+        deleteRange(edit.offset, edit.length);
+      }
+    }
+  }
+
+  void deleteRange(int offset, int length) {
     source = source.substring(0, offset) +
         red +
         reversed +

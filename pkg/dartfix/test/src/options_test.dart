@@ -139,29 +139,6 @@ void main() {
   test('verbose', () {
     parse(['--verbose', 'foo'], verbose: true);
   });
-
-  group('upgrade', () {
-    group('sdk', () {
-      test('no target', () {
-        var options = parse(['upgrade', 'sdk'], includeFixes: ['non-nullable']);
-        expect(options.targets, hasLength(1));
-      });
-
-      test('target', () {
-        var target = p('/pkg/foo');
-        var options =
-            parse(['upgrade', 'sdk', target], includeFixes: ['non-nullable']);
-        expect(options.targets, [target]);
-      });
-
-      test('dependencies', () {
-        var options = parse(
-            ['upgrade', 'sdk', '--migrate-dependencies', p('/pkg/foo')],
-            includeFixes: ['non-nullable']);
-        expect(options.upgradeOptions.dependencies, isTrue);
-      });
-    });
-  });
 }
 
 void expectContains(Iterable<String> collection, String suffix) {
@@ -171,10 +148,4 @@ void expectContains(Iterable<String> collection, String suffix) {
     }
   }
   fail('Expected one of $collection\n  to end with "$suffix"');
-}
-
-void expectOneFileTarget(Options options, String fileName) {
-  expect(options.targets, hasLength(1));
-  final target = options.targets[0];
-  expect(target.endsWith(fileName), isTrue);
 }

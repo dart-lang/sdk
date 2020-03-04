@@ -16,7 +16,11 @@ import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:dartfix/src/options.dart';
 import 'package:dartfix/src/util.dart';
+import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
+
+import 'migrate/display.dart';
+import 'util.dart';
 
 class Driver {
   Context context;
@@ -140,20 +144,7 @@ class Driver {
 
   /// Return `true` if the changes should be applied.
   bool shouldApplyFixes(EditDartfixResult result) {
-    if (result.edits.isEmpty) {
-      logger.stdout('');
-      logger.stdout(result.otherSuggestions.isNotEmpty
-          ? 'None of the recommended changes can be automatically applied.'
-          : 'There are no recommended changes.');
-      return false;
-    }
-    if (overwrite || force) {
-      return true;
-    }
-    logger.stdout('');
-    logger.stdout('Would you like to apply these changes? (yes/no)');
-    var response = stdin.readLineSync();
-    return response.toLowerCase() == 'yes';
+    return overwrite || force;
   }
 
   void showDescriptions(String title, List<DartFixSuggestion> suggestions) {
@@ -241,8 +232,6 @@ These fixes can be enabled using --$includeFixOption:''');
     Progress progress;
     if (options.showHelp) {
       progress = logger.progress('${ansi.emphasized('Listing fixes')}');
-    } else if (options.isUpgrade) {
-      progress = logger.progress('${ansi.emphasized('Calculating changes')}');
     } else {
       progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
     }
@@ -280,57 +269,28 @@ These fixes can be enabled using --$includeFixOption:''');
         editCount += fileEdit.edits.length;
       }
       logger.stdout('Found $editCount changes in ${fileEdits.length} files.');
+
+      previewFixes(logger, result);
+
       //
-      // Print instructions for opening the preview tool.
+      // Stop the server.
       //
-      var urls = result.urls;
-      if (urls != null) {
-        // Server has already started the preview server.
-        if (result.hasErrors) {
-          // TODO(brianwilkerson) When we have previews for fixes, tailor the
-          //  message to be appropriate for fixes.
-          logger.stdout('');
-          String warning = ansi.emphasized('WARNING');
-          logger.stdout('$warning: The unmodified code contains errors that '
-              'might affect the accuracy of the upgrade.');
-          options.overwrite = false;
-        }
-        if (options.isUpgrade && options.upgradeOptions.preview) {
-          logger.stdout('');
-          String open;
-          if (urls.length == 1) {
-            open = ansi.emphasized('Please open this URL');
-          } else {
-            open = ansi.emphasized('Please open these URLs');
-          }
-          logger.stdout('$open in your browser to see the changes:');
-          for (var url in urls) {
-            logger.stdout('  $url');
-          }
-          logger.stdout('');
-          String enter = ansi.emphasized('ENTER');
-          logger.stdout('When done previewing, press $enter.');
-          stdin.readLineSync();
-        }
-        //
-        // Stop the server.
-        //
-        serverStopped = server.stop();
-        if (shouldApplyFixes(result)) {
-          applyFixes();
-          logger.stdout('Changes have been applied.');
-        } else {
-          logger.stdout('No changes applied.');
-        }
-        await serverStopped;
+      serverStopped = server.stop();
+
+      logger.stdout('');
+
+      // Check if we should apply fixes.
+      if (result.edits.isEmpty) {
+        logger.stdout(result.otherSuggestions.isNotEmpty
+            ? 'None of the recommended changes can be automatically applied.'
+            : 'There are no recommended changes.');
+      } else if (shouldApplyFixes(result)) {
+        applyFixes();
+        logger.stdout('Changes have been applied.');
       } else {
-        //
-        // Stop the server.
-        //
-        serverStopped = server.stop();
-        await printAndApplyFixes();
-        await serverStopped;
+        logger.stdout('Re-run with --overwrite to apply the above changes.');
       }
+      await serverStopped;
     } finally {
       // If we didn't already try to stop the server, then stop it now.
       if (serverStopped == null) {
@@ -398,6 +358,53 @@ analysis server
 The --$option option is not supported by analysis server version $version.
 Please upgrade to a newer version of the Dart SDK to use this option.''');
   }
+
+  void previewFixes(
+    Logger logger,
+    EditDartfixResult results,
+  ) {
+    final Ansi ansi = logger.ansi;
+
+    Map<String, List<DartFixSuggestion>> fileSuggestions = {};
+    for (DartFixSuggestion suggestion in results.suggestions) {
+      String file = suggestion.location.file;
+      fileSuggestions.putIfAbsent(file, () => <DartFixSuggestion>[]);
+      fileSuggestions[file].add(suggestion);
+    }
+
+    // present a diff-like view
+    for (SourceFileEdit sourceFileEdit in results.edits) {
+      String file = sourceFileEdit.file;
+      String relPath = path.relative(file);
+      int count = sourceFileEdit.edits.length;
+
+      logger.stdout('');
+      logger.stdout('${ansi.emphasized(relPath)} '
+          '($count ${pluralize('change', count)}):');
+
+      String source;
+      try {
+        source = File(file).readAsStringSync();
+      } catch (_) {}
+
+      if (source == null) {
+        logger.stdout('  (unable to retrieve source for file)');
+      } else {
+        SourcePrinter sourcePrinter = SourcePrinter(source);
+
+        List<SourceEdit> edits = sortEdits(sourceFileEdit);
+
+        // Apply edits.
+        sourcePrinter.applyEdits(edits);
+
+        // Render the changed lines.
+        sourcePrinter.processChangedLines((lineNumber, lineText) {
+          String prefix = '  line ${lineNumber.toString().padRight(3)} •';
+          logger.stdout('$prefix ${lineText.trim()}');
+        });
+      }
+    }
+  }
 }
 
 class _Handler
@@ -454,15 +461,15 @@ class _Handler
     if (version > expectedVersion) {
       logger.stdout('''
 This version of dartfix is incompatible with the current Dart SDK.
-Try installing a newer version of dartfix by running
+Try installing a newer version of dartfix by running:
 
     pub global activate dartfix
 ''');
     } else {
       logger.stdout('''
-This version of dartfix is too new to be used with the current Dart SDK.
-Try upgrading the Dart SDK to a newer version
-or installing an older version of dartfix using
+This version of dartfix is too new to be used with the current Dart SDK. Try
+upgrading the Dart SDK to a newer version or installing an older version of
+dartfix using:
 
     pub global activate dartfix <version>
 ''');

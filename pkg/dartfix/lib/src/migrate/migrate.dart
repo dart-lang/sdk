@@ -13,6 +13,7 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
+import '../util.dart';
 import 'apply.dart';
 import 'display.dart';
 import 'options.dart';
@@ -106,7 +107,7 @@ class MigrateCommand extends Command {
       int issueCount =
           fileErrors.values.map((list) => list.length).reduce((a, b) => a + b);
       logger.stdout(
-          '$issueCount analysis ${_pluralize('issue', issueCount)} found:');
+          '$issueCount analysis ${pluralize('issue', issueCount)} found:');
       _displayIssues(
         logger,
         options.directory,
@@ -163,8 +164,8 @@ class MigrateCommand extends Command {
         migrationResults.edits.map((edit) => edit.file).toList();
 
     logger.stdout('Found ${allEdits.length} '
-        'suggested ${_pluralize('change', allEdits.length)} in '
-        '${files.length} ${_pluralize('file', files.length)}.');
+        'suggested ${pluralize('change', allEdits.length)} in '
+        '${files.length} ${pluralize('file', files.length)}.');
 
     logger.stdout('');
 
@@ -175,7 +176,7 @@ class MigrateCommand extends Command {
 
       logger.stdout('');
       logger.stdout(
-          'Applied ${allEdits.length} ${_pluralize('edit', allEdits.length)}.');
+          'Applied ${allEdits.length} ${pluralize('edit', allEdits.length)}.');
 
       return 0;
     }
@@ -284,7 +285,7 @@ class MigrateCommand extends Command {
 
       logger.stdout('');
       logger.stdout('${ansi.emphasized(relPath)} '
-          '($count ${_pluralize('change', count)}):');
+          '($count ${pluralize('change', count)}):');
 
       String source;
       try {
@@ -296,24 +297,10 @@ class MigrateCommand extends Command {
       } else {
         SourcePrinter sourcePrinter = SourcePrinter(source);
 
-        // Sort edits in reverse offset order.
-        List<SourceEdit> edits = sourceFileEdit.edits;
-        edits.sort((a, b) {
-          return b.offset - a.offset;
-        });
+        List<SourceEdit> edits = sortEdits(sourceFileEdit);
 
-        for (SourceEdit edit in sourceFileEdit.edits) {
-          if (edit.replacement.isNotEmpty) {
-            // an addition
-            sourcePrinter.insertText(
-                edit.offset + edit.length, edit.replacement);
-          }
-
-          if (edit.length != 0) {
-            // a removal
-            sourcePrinter.deleteRange(edit.offset, edit.length);
-          }
-        }
+        // Apply edits.
+        sourcePrinter.applyEdits(edits);
 
         // Render the changed lines.
         sourcePrinter.processChangedLines((lineNumber, lineText) {
@@ -333,7 +320,7 @@ class MigrateCommand extends Command {
     for (SourceFileEdit sourceFileEdit in migrationResults.edits) {
       String relPath = path.relative(sourceFileEdit.file, from: directory);
       int count = sourceFileEdit.edits.length;
-      logger.stdout('  $relPath ($count ${_pluralize('change', count)})');
+      logger.stdout('  $relPath ($count ${pluralize('change', count)})');
 
       String source;
       try {
@@ -441,5 +428,3 @@ String get _dartSdkVersion {
 
   return version;
 }
-
-String _pluralize(String word, int count) => count == 1 ? word : '${word}s';
