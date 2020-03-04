@@ -11,7 +11,7 @@ html/async_test: SkipByDesign
 html/custom/document_register_basic_test: Slow, Pass
 html/custom/document_register_type_extensions_test/construction: Slow, Pass
 html/custom/document_register_type_extensions_test/registration: Slow, Pass
-html/custom/entered_left_view_test/shadow_dom: Slow, Pass
+html/custom/entered_left_view/shadow_dom_test: Slow, Pass
 html/custom/js_custom_test: Skip # mirrors not supported, delete this test.
 html/custom/mirrors_2_test: Skip # mirrors not supported, delete this test.
 html/custom/mirrors_test: Skip # mirrors not supported, delete this test.
