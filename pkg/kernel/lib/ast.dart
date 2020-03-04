@@ -73,6 +73,8 @@ export 'visitor.dart';
 import 'canonical_name.dart' show CanonicalName;
 export 'canonical_name.dart' show CanonicalName;
 
+import 'default_language_version.dart';
+
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
 import 'core_types.dart';
@@ -328,10 +330,6 @@ class Library extends NamedNode
 
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
-
-  // TODO(jensj): Do we have a better option than this?
-  static int defaultLanguageVersionMajor = 2;
-  static int defaultLanguageVersionMinor = 8;
 
   int _languageVersionMajor;
   int _languageVersionMinor;

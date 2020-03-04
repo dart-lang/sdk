@@ -7,7 +7,8 @@ library front_end.compiler_options;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 
-import 'package:kernel/ast.dart' as kernel show Library;
+import 'package:kernel/default_language_version.dart' as kernel
+    show defaultLanguageVersionMajor, defaultLanguageVersionMinor;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -243,9 +244,9 @@ class CompilerOptions {
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
   /// For instance used for language versioning (specifying the maximum
   /// version).
-  String currentSdkVersion = "${kernel.Library.defaultLanguageVersionMajor}"
+  String currentSdkVersion = "${kernel.defaultLanguageVersionMajor}"
       "."
-      "${kernel.Library.defaultLanguageVersionMinor}";
+      "${kernel.defaultLanguageVersionMinor}";
 }
 
 /// Parse experimental flag arguments of the form 'flag' or 'no-flag' into a map

@@ -19,6 +19,25 @@ enum ExperimentalFlag {
   variance,
 }
 
+const int enableConstantUpdate2018MajorVersion = 2;
+const int enableConstantUpdate2018MinorVersion = 4;
+const int enableControlFlowCollectionsMajorVersion = 2;
+const int enableControlFlowCollectionsMinorVersion = 2;
+const int enableExtensionMethodsMajorVersion = 2;
+const int enableExtensionMethodsMinorVersion = 6;
+const int enableNonNullableMajorVersion = 2;
+const int enableNonNullableMinorVersion = 8;
+const int enableNonfunctionTypeAliasesMajorVersion = 2;
+const int enableNonfunctionTypeAliasesMinorVersion = 8;
+const int enableSetLiteralsMajorVersion = 2;
+const int enableSetLiteralsMinorVersion = 2;
+const int enableSpreadCollectionsMajorVersion = 2;
+const int enableSpreadCollectionsMinorVersion = 2;
+const int enableTripleShiftMajorVersion = 2;
+const int enableTripleShiftMinorVersion = 8;
+const int enableVarianceMajorVersion = 2;
+const int enableVarianceMinorVersion = 8;
+
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {
     case "constant-update-2018":
