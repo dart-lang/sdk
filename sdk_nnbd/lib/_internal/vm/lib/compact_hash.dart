@@ -464,7 +464,10 @@ class _CompactIterator<E> implements Iterator<E> {
     }
   }
 
-  E get current => _current as E;
+  E get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as E;
+  }
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
