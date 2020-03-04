@@ -200,7 +200,13 @@ class PreviewSite extends Site implements AbstractGetHandler {
   }
 
   /// Perform the migration.
-  void performApply() {}
+  void performApply() {
+    if (migrationState.hasBeenApplied) {
+      throw StateError('Cannot reapply migration.');
+    }
+
+    migrationState.markApplied();
+  }
 
   @override
   Future<void> respond(HttpRequest request, Page page,

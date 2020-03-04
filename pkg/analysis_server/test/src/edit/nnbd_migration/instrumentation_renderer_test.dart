@@ -19,13 +19,14 @@ void main() {
 @reflectiveTest
 class InstrumentationRendererTest extends NnbdMigrationTestBase {
   /// Render the instrumentation view for [files].
-  Future<String> renderViewForTestFiles(Map<String, String> files) async {
+  Future<String> renderViewForTestFiles(Map<String, String> files,
+      {bool applied = false}) async {
     var packageRoot = convertPath('/project');
     await buildInfoForTestFiles(files, includedRoot: packageRoot);
     var migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
-    var instrumentationRenderer =
-        InstrumentationRenderer(migrationInfo, PathMapper(resourceProvider));
+    var instrumentationRenderer = InstrumentationRenderer(
+        migrationInfo, PathMapper(resourceProvider), applied);
     return instrumentationRenderer.render();
   }
 
@@ -34,5 +35,19 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
         {convertPath('/project/lib/a.dart'): 'int a = null;'});
     var expectedPath = convertPath('/project');
     expect(renderedView, contains('<p class="root">$expectedPath</p>'));
+  }
+
+  Future<void> test_notAppliedStyle() async {
+    var renderedView = await renderViewForTestFiles(
+        {convertPath('/project/lib/a.dart'): 'int a = null;'},
+        applied: false);
+    expect(renderedView, contains('<body class="proposed">'));
+  }
+
+  Future<void> test_appliedStyle() async {
+    var renderedView = await renderViewForTestFiles(
+        {convertPath('/project/lib/a.dart'): 'int a = null;'},
+        applied: true);
+    expect(renderedView, contains('<body class="applied">'));
   }
 }
