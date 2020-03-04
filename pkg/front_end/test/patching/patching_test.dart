@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
 import 'package:front_end/src/fasta/builder/class_builder.dart';
@@ -25,9 +26,10 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const PatchingDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe with libraries specification',
+        new TestConfigWithLanguageVersion(
+            cfeMarker, 'cfe with libraries specification',
             librariesSpecificationUri: createUriForFileName('libraries.json')),
-        new TestConfig(cfeWithNnbdMarker,
+        new TestConfigWithLanguageVersion(cfeWithNnbdMarker,
             'cfe with libraries specification and non-nullable',
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             experimentalFlags: {ExperimentalFlag.nonNullable: true})
@@ -40,6 +42,20 @@ main(List<String> args) async {
           'opt_out_patch',
         ]
       });
+}
+
+class TestConfigWithLanguageVersion extends TestConfig {
+  TestConfigWithLanguageVersion(String marker, String name,
+      {Uri librariesSpecificationUri,
+      Map<ExperimentalFlag, bool> experimentalFlags = const {}})
+      : super(marker, name,
+            librariesSpecificationUri: librariesSpecificationUri,
+            experimentalFlags: experimentalFlags);
+
+  @override
+  void customizeCompilerOptions(CompilerOptions options) {
+    options.currentSdkVersion = "2.9999";
+  }
 }
 
 class PatchingDataComputer extends DataComputer<Features> {
