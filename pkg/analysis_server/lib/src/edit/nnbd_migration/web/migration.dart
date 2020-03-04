@@ -26,6 +26,13 @@ void main() {
         pushState(path, offset, lineNumber);
       });
     }
+
+    final applyMigrationButton = document.querySelector('.apply-migration');
+    applyMigrationButton.onClick.listen((event) {
+      document.body.classes
+        ..remove('proposed')
+        ..add('applied');
+    });
   });
 
   window.addEventListener('popstate', (event) {

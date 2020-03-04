@@ -7,11 +7,14 @@
     <link rel="stylesheet" href="{{ highlightStylePath }}">
     <style>{{ dartPageStyle }}</style>
 </head>
-<body>
+<body class="proposed">
 <p class="root">{{ root }}</p>
 <header class="elevation-z4">
-    <h1>Proposed null safety changes</h1>
+    <h1 class="before-apply">Proposed null safety changes</h1>
+    <h1 class="after-apply">&#10003; Null safety migration applied</h1>
     <h2 id="unit-name">&nbsp;</h2>
+    <button class="apply-migration before-apply">&#9998; Apply Migration</button>
+    <button class="apply-migration after-apply" disabled>&#9998; Apply Migration</button>
 </header>
 <div class="panels horizontal">
     <div class="nav-panel">

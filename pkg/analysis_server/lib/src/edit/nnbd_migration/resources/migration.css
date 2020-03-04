@@ -19,6 +19,14 @@ body {
   overflow: hidden;
 }
 
+.proposed .after-apply {
+  display: none;
+}
+
+.applied .before-apply {
+  display: none;
+}
+
 header {
   background-color: #1c2834;
   height: 48px;
@@ -41,6 +49,12 @@ h1 {
 
 header h2 {
   font-size: 1.2em;
+}
+
+header .apply-migration {
+  right: 0px;
+  float: right;
+  margin: 10px;
 }
 
 footer {
@@ -355,6 +369,28 @@ a {
 a:hover {
   color: #fff;
   fill: #fff;
+}
+
+button {
+  background-color: #33ccff;
+  border: 2px solid #37aedc;
+  border-radius: 3px;
+  padding: 6px 10px;
+  font-weight: bold;
+  color: #282828;
+}
+
+button:hover {
+  background-color: #80dfff;
+  border: 2px solid #52b8e0;
+  cursor: pointer;
+}
+
+button[disabled] {
+  background-color: #7aa8b8;
+  color: #507177;
+  border: 2px solid #507177;
+  cursor: not-allowed;
 }
 
 .placeholder {
