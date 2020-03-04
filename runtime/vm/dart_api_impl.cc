@@ -430,6 +430,10 @@ Dart_Isolate Api::CastIsolate(Isolate* isolate) {
   return reinterpret_cast<Dart_Isolate>(isolate);
 }
 
+Dart_IsolateGroup Api::CastIsolateGroup(IsolateGroup* isolate_group) {
+  return reinterpret_cast<Dart_IsolateGroup>(isolate_group);
+}
+
 Dart_Handle Api::NewError(const char* format, ...) {
   Thread* T = Thread::Current();
   CHECK_API_SCOPE(T);
@@ -994,11 +998,12 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
 }
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
-  ApiState* state = isolate->group()->api_state();
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
+  ASSERT(state->IsActivePersistentHandle(object));
   PersistentHandle* ref = PersistentHandle::Cast(object);
   ASSERT(!state->IsProtectedHandle(ref));
   if (!state->IsProtectedHandle(ref)) {
@@ -1007,16 +1012,15 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
 }
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
-    Dart_Isolate current_isolate,
     Dart_WeakPersistentHandle object) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(current_isolate);
-  CHECK_ISOLATE(isolate);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
-  ASSERT(isolate == Isolate::Current());
-  ApiState* state = isolate->group()->api_state();
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
+  ASSERT(state->IsActiveWeakPersistentHandle(object));
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->EnsureFreeExternal(isolate->group());
+  weak_ref->EnsureFreeExternal(isolate_group);
   state->FreeWeakPersistentHandle(weak_ref);
 }
 
@@ -1469,11 +1473,15 @@ DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
   return reinterpret_cast<Isolate*>(isolate)->init_callback_data();
 }
 
+DART_EXPORT Dart_IsolateGroup Dart_CurrentIsolateGroup() {
+  return Api::CastIsolateGroup(IsolateGroup::Current());
+}
+
 DART_EXPORT void* Dart_CurrentIsolateGroupData() {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
-  return isolate->group()->embedder_data();
+  return isolate_group->embedder_data();
 }
 
 DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {

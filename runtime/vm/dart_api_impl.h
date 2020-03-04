@@ -28,6 +28,17 @@ const char* CanonicalFunction(const char* func);
 
 #define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
+// Checks that the current isolate group is not NULL.
+#define CHECK_ISOLATE_GROUP(isolate_group)                                     \
+  do {                                                                         \
+    if ((isolate_group) == NULL) {                                             \
+      FATAL1(                                                                  \
+          "%s expects there to be a current isolate group. Did you "           \
+          "forget to call Dart_CreateIsolateGroup or Dart_EnterIsolate?",      \
+          CURRENT_FUNC);                                                       \
+    }                                                                          \
+  } while (0)
+
 // Checks that the current isolate is not NULL.
 #define CHECK_ISOLATE(isolate)                                                 \
   do {                                                                         \
@@ -172,6 +183,10 @@ class Api : AllStatic {
 
   // Casts the internal Isolate* type to the external Dart_Isolate type.
   static Dart_Isolate CastIsolate(Isolate* isolate);
+
+  // Casts the internal IsolateGroup* type to the external Dart_IsolateGroup
+  // type.
+  static Dart_IsolateGroup CastIsolateGroup(IsolateGroup* isolate);
 
   // Gets the handle used to designate successful return.
   static Dart_Handle Success() { return Api::True(); }

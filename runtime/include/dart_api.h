@@ -79,6 +79,7 @@
  * set by any call to Dart_CreateIsolateGroup or Dart_EnterIsolate.
  */
 typedef struct _Dart_Isolate* Dart_Isolate;
+typedef struct _Dart_IsolateGroup* Dart_IsolateGroup;
 
 /**
  * An object reference managed by the Dart VM garbage collector.
@@ -441,8 +442,6 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
 
 /**
  * Deallocates a persistent handle.
- *
- * Requires there to be a current isolate.
  */
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 
@@ -456,13 +455,16 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  * calling Dart_DeleteWeakPersistentHandle.
  *
  * If the object becomes unreachable the callback is invoked with the weak
- * persistent handle and the peer as arguments. The callback is invoked on the
- * thread that has entered the isolate at the time of garbage collection. This
- * gives the embedder the ability to cleanup data associated with the object and
- * clear out any cached references to the handle. All references to this handle
- * after the callback will be invalid. It is illegal to call into the VM from
- * the callback. If the handle is deleted before the object becomes unreachable,
- * the callback is never invoked.
+ * persistent handle and the peer as arguments. The callback can be executed
+ * on any thread, will not have a current isolate, and can only call
+ * Dart_DeletePersistentHandle or Dart_DeleteWeakPersistentHandle. The callback
+ * must not call Dart_DeleteWeakPersistentHandle for the handle being finalized,
+ * as it is automatically deleted by the VM after the callback returns.
+ * This gives the embedder the ability to cleanup data associated with the
+ * object and clear out any cached references to the handle. All references to
+ * this handle after the callback will be invalid. It is illegal to call into
+ * the VM from the callback. If the handle is deleted before the object becomes
+ * unreachable, the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
@@ -485,7 +487,6 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
                              Dart_WeakPersistentHandleFinalizer callback);
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
-    Dart_Isolate isolate,
     Dart_WeakPersistentHandle object);
 
 /*
@@ -990,6 +991,12 @@ DART_EXPORT void* Dart_CurrentIsolateData();
  * data was set when the isolate got created or initialized.
  */
 DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate);
+
+/**
+ * Returns the current isolate group. Will return NULL if there is no
+ * current isolate group.
+ */
+DART_EXPORT Dart_IsolateGroup Dart_CurrentIsolateGroup();
 
 /**
  * Returns the callback data associated with the current isolate group. This

@@ -476,7 +476,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  private:
   friend class Heap;
   friend class StackFrame;  // For `[isolates_].First()`.
-  friend class RunFinalizersScope;  // For `[isolates_].First()`.
 
 #define ISOLATE_GROUP_FLAG_BITS(V) V(CompactionInProgress)
 

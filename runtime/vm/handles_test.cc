@@ -116,7 +116,6 @@ TEST_CASE(CheckHandleValidity) {
   EXPECT(!Api::IsValid(handle));
 
   // Check validity using persistent handle.
-  Isolate* isolate = Isolate::Current();
   Dart_Handle scoped_handle;
   {
     TransitionNativeToVM transition(thread);
@@ -137,7 +136,6 @@ TEST_CASE(CheckHandleValidity) {
   EXPECT_VALID(handle);
 
   Dart_DeleteWeakPersistentHandle(
-      reinterpret_cast<Dart_Isolate>(isolate),
       reinterpret_cast<Dart_WeakPersistentHandle>(handle));
   EXPECT(!Api::IsValid(handle));
 }

@@ -196,7 +196,7 @@ class File : public ReferenceCounted<File> {
   // when the file is explicitly closed and the finalizer is no longer
   // needed.
   void DeleteWeakHandle(Dart_Isolate isolate) {
-    Dart_DeleteWeakPersistentHandle(isolate, weak_handle_);
+    Dart_DeleteWeakPersistentHandle(weak_handle_);
     weak_handle_ = NULL;
   }
 

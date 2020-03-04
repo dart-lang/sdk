@@ -772,7 +772,6 @@ bool Scavenger::IsUnreachable(RawObject** p) {
 
 void Scavenger::IterateWeakRoots(IsolateGroup* isolate_group,
                                  HandleVisitor* visitor) {
-  RunFinalizersScope tcis(Thread::Current());
   isolate_group->VisitWeakPersistentHandles(visitor);
 }
 
