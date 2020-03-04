@@ -37,8 +37,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final BytesSink _constantsBytesSink;
   BufferedSink _constantsSink;
   BufferedSink _sink;
-  bool includeSources;
-  bool includeOffsets;
+  final bool includeSources;
+  final bool includeOffsets;
+  final LibraryFilter libraryFilter;
 
   List<int> libraryOffsets;
   List<int> classOffsets;
@@ -60,7 +61,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
   /// one.
   BinaryPrinter(Sink<List<int>> sink,
-      {StringIndexer stringIndexer,
+      {this.libraryFilter,
+      StringIndexer stringIndexer,
       this.includeSources = true,
       this.includeOffsets = true})
       : _mainSink = new BufferedSink(sink),
@@ -503,9 +505,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _canonicalNameList = <CanonicalName>[];
     for (int i = 0; i < component.libraries.length; ++i) {
       Library library = component.libraries[i];
-      if (!shouldWriteLibraryCanonicalNames(library)) continue;
-      _indexLinkTableInternal(library.canonicalName);
-      _knownCanonicalNameNonRootTops.add(library.canonicalName);
+      if (libraryFilter == null || libraryFilter(library)) {
+        _indexLinkTableInternal(library.canonicalName);
+        _knownCanonicalNameNonRootTops.add(library.canonicalName);
+      }
     }
   }
 
@@ -522,14 +525,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   /// Compute canonical names for the whole component or parts of it.
   void computeCanonicalNames(Component component) {
-    component.computeCanonicalNames();
+    for (int i = 0; i < component.libraries.length; ++i) {
+      Library library = component.libraries[i];
+      if (libraryFilter == null || libraryFilter(library)) {
+        component.computeCanonicalNamesForLibrary(library);
+      }
+    }
   }
-
-  /// Return `true` if all canonical names of the [library] should be written
-  /// into the link table.  If some libraries of the component are skipped,
-  /// then all the additional names referenced by the libraries that are written
-  /// by [writeLibraries] are automatically added.
-  bool shouldWriteLibraryCanonicalNames(Library library) => true;
 
   void writeCanonicalNameEntry(CanonicalName node) {
     CanonicalName parent = node.parent;
@@ -564,7 +566,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       _writeMetadataSection(component);
       writeStringTable(stringIndexer);
       writeConstantTable(_constantIndexer);
-      writeComponentIndex(component, component.libraries);
+      List<Library> libraries = component.libraries;
+      if (libraryFilter != null) {
+        List<Library> librariesNew = new List<Library>();
+        for (int i = 0; i < libraries.length; i++) {
+          Library library = libraries[i];
+          if (libraryFilter(library)) librariesNew.add(library);
+        }
+        libraries = librariesNew;
+      }
+      writeComponentIndex(component, libraries);
 
       _flush();
     });
@@ -702,7 +713,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   /// Write all of some of the libraries of the [component].
   void writeLibraries(Component component) {
     for (int i = 0; i < component.libraries.length; ++i) {
-      writeLibraryNode(component.libraries[i]);
+      Library library = component.libraries[i];
+      if (libraryFilter == null || libraryFilter(library)) {
+        writeLibraryNode(library);
+      }
     }
   }
 

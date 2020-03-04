@@ -39,8 +39,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-import 'package:kernel/binary/limited_ast_to_binary.dart'
-    show LimitedBinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
@@ -660,11 +658,9 @@ Future writeOutputSplitByPackages(
         }
       }
 
-      final BinaryPrinter printer = new LimitedBinaryPrinter(
-          sink,
-          (lib) =>
-              packageFor(lib, compilationResults.loadedLibraries) == package,
-          false /* excludeUriToSource */);
+      final BinaryPrinter printer = new BinaryPrinter(sink,
+          libraryFilter: (lib) =>
+              packageFor(lib, compilationResults.loadedLibraries) == package);
       printer.writeComponentFile(partComponent);
 
       await sink.close();

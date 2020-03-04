@@ -21,7 +21,6 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
@@ -298,8 +297,7 @@ abstract class ProgramTransformer {
 class BinaryPrinterFactory {
   /// Creates new [BinaryPrinter] to write to [targetSink].
   BinaryPrinter newBinaryPrinter(Sink<List<int>> targetSink) {
-    return LimitedBinaryPrinter(targetSink, (_) => true /* predicate */,
-        false /* excludeUriToSource */);
+    return BinaryPrinter(targetSink);
   }
 }
 
@@ -670,10 +668,9 @@ class FrontendCompiler implements CompilerInterface {
         final IOSink sink = file.openWrite();
         final Set<Library> loadedLibraries = results.loadedLibraries;
         final BinaryPrinter printer = filterExternal
-            ? LimitedBinaryPrinter(
-                sink,
-                (lib) => !loadedLibraries.contains(lib),
-                true /* excludeUriToSource */)
+            ? BinaryPrinter(sink,
+                libraryFilter: (lib) => !loadedLibraries.contains(lib),
+                includeSources: false)
             : printerFactory.newBinaryPrinter(sink);
 
         sortComponent(component);
@@ -686,8 +683,9 @@ class FrontendCompiler implements CompilerInterface {
       final IOSink sink = File(filename).openWrite();
       final Set<Library> loadedLibraries = results.loadedLibraries;
       final BinaryPrinter printer = filterExternal
-          ? LimitedBinaryPrinter(sink, (lib) => !loadedLibraries.contains(lib),
-              true /* excludeUriToSource */)
+          ? BinaryPrinter(sink,
+              libraryFilter: (lib) => !loadedLibraries.contains(lib),
+              includeSources: false)
           : printerFactory.newBinaryPrinter(sink);
 
       sortComponent(component);
@@ -814,10 +812,9 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     final byteSink = ByteSink();
-    final BinaryPrinter printer = LimitedBinaryPrinter(
-        byteSink,
-        (lib) => packageFor(lib, result.loadedLibraries) == package,
-        false /* excludeUriToSource */);
+    final BinaryPrinter printer = BinaryPrinter(byteSink,
+        libraryFilter: (lib) =>
+            packageFor(lib, result.loadedLibraries) == package);
     printer.writeComponentFile(partComponent);
 
     final bytes = byteSink.builder.takeBytes();

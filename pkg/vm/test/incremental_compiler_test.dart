@@ -10,7 +10,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show CompilerOptions, DiagnosticMessage, computePlatformBinariesLocation;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
@@ -309,18 +308,14 @@ main() {
       new BinaryPrinter(new DevNullSink<List<int>>())
           .writeComponentFile(component);
       IOSink sink = mainDill.openWrite();
-      BinaryPrinter printer = new LimitedBinaryPrinter(
-          sink,
-          (lib) => lib.fileUri.path.endsWith("main.dart"),
-          false /* excludeUriToSource */);
+      BinaryPrinter printer = new BinaryPrinter(sink,
+          libraryFilter: (lib) => lib.fileUri.path.endsWith("main.dart"));
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
       sink = libDill.openWrite();
-      printer = new LimitedBinaryPrinter(
-          sink,
-          (lib) => lib.fileUri.path.endsWith("lib.dart"),
-          false /* excludeUriToSource */);
+      printer = new BinaryPrinter(sink,
+          libraryFilter: (lib) => lib.fileUri.path.endsWith("lib.dart"));
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
@@ -550,26 +545,20 @@ main() {
       new BinaryPrinter(new DevNullSink<List<int>>())
           .writeComponentFile(component);
       IOSink sink = mainDill.openWrite();
-      BinaryPrinter printer = new LimitedBinaryPrinter(
-          sink,
-          (lib) => lib.fileUri.path.endsWith("main.dart"),
-          false /* excludeUriToSource */);
+      BinaryPrinter printer = new BinaryPrinter(sink,
+          libraryFilter: (lib) => lib.fileUri.path.endsWith("main.dart"));
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
       sink = lib1Dill.openWrite();
-      printer = new LimitedBinaryPrinter(
-          sink,
-          (lib) => lib.fileUri.path.endsWith("lib1.dart"),
-          false /* excludeUriToSource */);
+      printer = new BinaryPrinter(sink,
+          libraryFilter: (lib) => lib.fileUri.path.endsWith("lib1.dart"));
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
       sink = lib2Dill.openWrite();
-      printer = new LimitedBinaryPrinter(
-          sink,
-          (lib) => lib.fileUri.path.endsWith("lib2.dart"),
-          false /* excludeUriToSource */);
+      printer = new BinaryPrinter(sink,
+          libraryFilter: (lib) => lib.fileUri.path.endsWith("lib2.dart"));
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
@@ -790,8 +779,7 @@ main() {
 
 _writeProgramToFile(Component component, File outputFile) async {
   final IOSink sink = outputFile.openWrite();
-  final BinaryPrinter printer = new LimitedBinaryPrinter(
-      sink, (_) => true /* predicate */, false /* excludeUriToSource */);
+  final BinaryPrinter printer = new BinaryPrinter(sink);
   printer.writeComponentFile(component);
   await sink.flush();
   await sink.close();

@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:vm/kernel_front_end.dart';
 
 main() async {
@@ -44,8 +44,8 @@ main() async {
     // Load the dart2js.dart.dill and write the unlinked version.
     final component = loadComponentFromBinary(dillFile);
     final IOSink sink = new File(unlinkedDillFile).openWrite();
-    final printer = new LimitedBinaryPrinter(
-        sink, (lib) => lib.importUri.scheme != 'dart', false);
+    final printer = new BinaryPrinter(sink,
+        libraryFilter: (lib) => lib.importUri.scheme != 'dart');
     printer.writeComponentFile(component);
     await sink.close();
 
