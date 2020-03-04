@@ -2704,6 +2704,23 @@ int? g(C c) => c.f();
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40871')
+  Future<void> test_insert_type_with_prefix() async {
+    var content = '''
+import 'dart:async' as a;
+a.Future f(Object o) {
+  return o;
+}
+''';
+    var expected = '''
+import 'dart:async' as a;
+a.Future f(Object o) {
+  return o as a.Future;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38469')
   Future<void> test_inserted_nodes_properly_wrapped() async {
     addMetaPackage();
