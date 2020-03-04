@@ -15,10 +15,30 @@ class Foo {
   }
 }
 
+int baz(
+    {required String a,
+    required String b,
+    required String c,
+    required String d}) {
+  return a.length + b.length + c.length + d.length;
+}
+
 main() {
   Expect.equals(8, Foo().foo(a: "aa", b: "bb", c: "cc", d: "dd"));
 
   // Test that we throw a NoSuchMethodError, not a TypeError due to c.length.
   dynamic f = Foo();
   Expect.throwsNoSuchMethodError(() => f.foo(a: "aa", b: "bb", d: "dd"));
+
+  dynamic tearOff = baz;
+  Expect.throwsNoSuchMethodError(() => tearOff(a: "aa", c: "cc", d: "dd"));
+
+  dynamic closure = (
+      {required String a,
+      required String b,
+      required String c,
+      required String d}) {
+    return a.length + b.length + c.length + d.length;
+  };
+  Expect.throwsNoSuchMethodError(() => closure(a: "aa", c: "cc", d: "dd"));
 }

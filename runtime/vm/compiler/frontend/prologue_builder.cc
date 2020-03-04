@@ -340,9 +340,12 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
         good += Goto(join);
       }
 
-      // We had no match, let's just load the default constant.
+      // We had no match. If the param is required, throw a NoSuchMethod error.
+      // Otherwise just load the default constant.
       Fragment not_good(missing);
-      {
+      if (FLAG_null_safety && function_.IsRequiredAt(opt_param_position[i])) {
+        not_good += Goto(nsm);
+      } else {
         not_good += Constant(
             DefaultParameterValueAt(opt_param_position[i] - num_fixed_params));
 
