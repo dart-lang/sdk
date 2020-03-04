@@ -1475,7 +1475,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (supertype != null) {
       return true;
     }
-    return data.callType is FunctionType;
+    return data.callType?.withoutNullability is FunctionType;
   }
 
   @override
