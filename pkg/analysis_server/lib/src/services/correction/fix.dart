@@ -409,6 +409,8 @@ class DartFixKind {
           "Use != null instead of 'is! Null' everywhere in file");
   static const USE_RETHROW =
       FixKind('USE_RETHROW', 50, 'Replace throw with rethrow');
+  static const WRAP_IN_FUTURE =
+      FixKind('WRAP_IN_FUTURE', 50, "Wrap in 'Future.value'");
 }
 
 /// An enumeration of quick fix kinds for the errors found in an Android
