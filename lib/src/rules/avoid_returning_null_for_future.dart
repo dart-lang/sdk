@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       throw StateError('unexpected type');
     }
     if (returnType != null && returnType.isDartAsyncFuture && !isAsync) {
-      rule.reportLint(node);
+      rule.reportLint(expression);
     }
   }
 }
