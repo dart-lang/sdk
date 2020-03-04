@@ -69,14 +69,14 @@ html/interactive_geolocation_test: Skip # Requires allowing geo location.
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Slow, Pass # Issue 12029.
-html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
+html/js_function_getter_trust_types/function_test: Skip # --trust-type-annotations incompatible with --checked
 
 [ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
 html/event_customevent_test: SkipByDesign
 html/js_array_test: SkipByDesign
 html/js_dart_to_string_test: SkipByDesign
 html/js_function_getter_test: SkipByDesign
-html/js_function_getter_trust_types_test: SkipByDesign
+html/js_function_getter_trust_types/function_test: SkipByDesign
 html/js_interop_1_test: SkipByDesign
 html/js_typed_interop_bind_this_test: SkipByDesign
 html/js_typed_interop_callable_object_test: SkipByDesign

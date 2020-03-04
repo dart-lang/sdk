@@ -9,11 +9,8 @@ library js_function_getter_trust_types_test;
 import 'dart:html';
 
 import 'package:js/js.dart';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
-import 'package:unittest/html_individual_config.dart';
 
-_injectJs() {
+injectJs() {
   document.body.append(new ScriptElement()
     ..type = 'text/javascript'
     ..innerHtml = r"""
@@ -49,22 +46,3 @@ abstract class Foo {
 
 @JS()
 external Foo get foo;
-
-main() {
-  _injectJs();
-
-  useHtmlIndividualConfiguration();
-
-  test('static nonFunctionStatic', () {
-    expect(() => foo.bar.nonFunctionStatic(), throws);
-    expect(() => foo.bar.nonFunctionStatic(0), throws);
-    expect(() => foo.bar.nonFunctionStatic(0, 0), throws);
-    expect(() => foo.bar.nonFunctionStatic(0, 0, 0, 0, 0, 0), throws);
-  });
-
-  test('typedef function', () {
-    expect(() => foo.bar.add(4), throws);
-    expect(() => foo.bar.add(4, 5, 10), throws);
-    expect(foo.bar.add(4, 5), equals(9));
-  });
-}
