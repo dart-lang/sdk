@@ -2867,20 +2867,22 @@
           "name": "analyze nnbd strong tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
+            "corelib",
             "ffi",
             "language",
-            "lib/mirrors",
-            "standalone/io"
+            "lib",
+            "standalone"
           ]
         },
         {
           "name": "analyze nnbd weak tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
+            "corelib",
             "ffi",
             "language",
-            "lib/mirrors",
-            "standalone/io"
+            "lib",
+            "standalone"
           ]
         },
         {
