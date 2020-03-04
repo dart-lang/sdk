@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
@@ -29,9 +30,15 @@ void main() {
 
     final applyMigrationButton = document.querySelector('.apply-migration');
     applyMigrationButton.onClick.listen((event) {
-      document.body.classes
-        ..remove('proposed')
-        ..add('applied');
+      doPost('/apply-migration').then((xhr) {
+        document.body.classes
+          ..remove('proposed')
+          ..add('applied');
+      }).catchError((e, st) {
+        logError('apply migration error: $e', st);
+
+        window.alert('Could not apply migration ($e).');
+      });
     });
   });
 
@@ -114,6 +121,19 @@ void addClickHandlers(String selector) {
   });
 }
 
+Future<HttpRequest> doPost(String path) => HttpRequest.request(
+      path,
+      method: 'GET', // TODO(mfairhurst): change to 'POST',
+      requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
+    ).then((HttpRequest xhr) {
+      if (xhr.status == 200) {
+        // Request OK.
+        return xhr;
+      } else {
+        throw 'Request failed; status of ${xhr.status}';
+      }
+    });
+
 int getLine(String location) {
   String str = Uri.parse(location).queryParameters['line'];
   return str == null ? null : int.tryParse(str);
@@ -164,17 +184,7 @@ void handlePostLinkClick(MouseEvent event) {
 
   // Directing the server to produce an edit; request it, then do work with the
   // response.
-  HttpRequest.request(
-    path,
-    method: 'POST',
-    requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
-  ).then((HttpRequest xhr) {
-    if (xhr.status == 200) {
-      // Likely request new navigation and file content.
-    } else {
-      window.alert('Request failed; status of ${xhr.status}');
-    }
-  }).catchError((e, st) {
+  doPost(path).catchError((e, st) {
     logError('handlePostLinkClick: $e', st);
 
     window.alert('Could not load $path ($e).');

@@ -31,6 +31,8 @@ class PreviewSite extends Site implements AbstractGetHandler {
 
   static const navigationTreePath = '/_preview/navigationTree.json';
 
+  static const applyMigrationPath = '/apply-migration';
+
   /// The state of the migration being previewed.
   final MigrationState migrationState;
 
@@ -120,7 +122,14 @@ class PreviewSite extends Site implements AbstractGetHandler {
         // Note: `return await` needed due to
         // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, IndexFilePage(this));
+      } else if (path == applyMigrationPath) {
+        // TODO(mfairhurst): We should only perform work on a 'POST' request.
+        performApply();
+
+        respondOk(request);
+        return;
       }
+
       UnitInfo unitInfo = unitInfoMap[path];
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
@@ -189,6 +198,9 @@ class PreviewSite extends Site implements AbstractGetHandler {
     //
     //migrationState.refresh();
   }
+
+  /// Perform the migration.
+  void performApply() {}
 
   @override
   Future<void> respond(HttpRequest request, Page page,
