@@ -2369,7 +2369,8 @@ class TypeInferrerImpl implements TypeInferrer {
             argMessage.messageObject, argMessage.charOffset, argMessage.length);
       } else {
         // Argument counts and names match. Compare types.
-        int numPositionalArgs = arguments.positional.length;
+        int positionalShift = isImplicitExtensionMember ? 1 : 0;
+        int numPositionalArgs = arguments.positional.length - positionalShift;
         for (int i = 0; i < formalTypes.length; i++) {
           DartType formalType = formalTypes[i];
           DartType expectedType = substitution != null
@@ -2379,7 +2380,7 @@ class TypeInferrerImpl implements TypeInferrer {
           Expression expression;
           NamedExpression namedExpression;
           if (i < numPositionalArgs) {
-            expression = arguments.positional[i];
+            expression = arguments.positional[positionalShift + i];
             positionalArgumentTypes.add(actualType);
           } else {
             namedExpression = arguments.named[i - numPositionalArgs];
@@ -2393,7 +2394,8 @@ class TypeInferrerImpl implements TypeInferrer {
               // invocations.
               errorTemplate: templateArgumentTypeNotAssignable);
           if (namedExpression == null) {
-            arguments.positional[i] = expression..parent = arguments;
+            arguments.positional[positionalShift + i] = expression
+              ..parent = arguments;
           } else {
             namedExpression.value = expression..parent = namedExpression;
           }

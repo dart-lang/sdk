@@ -57,6 +57,7 @@ extensions/issue38750: TextSerializationFailure
 extensions/issue38755: TextSerializationFailure
 extensions/issue38915: TextSerializationFailure
 extensions/issue39938/issue39938: TextSerializationFailure
+extensions/issue40816: TextSerializationFailure
 extensions/missing_toplevel: TextSerializationFailure
 extensions/nested_on_types: TextSerializationFailure
 extensions/null_aware: TextSerializationFailure

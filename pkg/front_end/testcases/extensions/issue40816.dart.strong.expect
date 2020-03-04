@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+}
+extension _extension#0 on self::A* {
+  method foo = self::_extension#0|foo;
+  tearoff foo = self::_extension#0|get#foo;
+}
+static method _extension#0|foo(final self::A* #this, self::A* a, self::B* b) → void {}
+static method _extension#0|get#foo(final self::A* #this) → (self::A*, self::B*) →* void
+  return (self::A* a, self::B* b) → void => self::_extension#0|foo(#this, a, b);
+static method main() → void {
+  dynamic a = new self::A::•();
+  dynamic b = new self::B::•();
+  self::_extension#0|foo(new self::A::•(), a as{TypeError,ForDynamic} self::A*, b as{TypeError,ForDynamic} self::B*);
+}
