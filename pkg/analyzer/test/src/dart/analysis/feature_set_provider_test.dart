@@ -35,124 +35,114 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     _createSourceFactory();
   }
 
-  test_jsonConfig_defaultNonNullable() {
-    var jsonConfigPath = '/test/.dart_tool/package_config.json';
-    var jsonConfigFile = newFile(jsonConfigPath, content: '''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "test",
-      "rootUri": "../",
-      "packageUri": "lib/"
-    },
-    {
-      "name": "aaa",
-      "rootUri": "${toUriStr('/packages/aaa')}",
-      "packageUri": "lib/",
-      "languageVersion": "2.7"
-    },
-    {
-      "name": "bbb",
-      "rootUri": "${toUriStr('/packages/bbb')}",
-      "packageUri": "lib/"
-    }
-  ]
-}
-''');
-
-    var packages = parsePackageConfigJsonFile(
-      resourceProvider,
-      jsonConfigFile,
+  test_packages() {
+    var packages = Packages(
+      {
+        'aaa': Package(
+          name: 'aaa',
+          rootFolder: newFolder('/packages/aaa'),
+          libFolder: newFolder('/packages/aaa/lib'),
+          languageVersion: null,
+        ),
+        'bbb': Package(
+          name: 'bbb',
+          rootFolder: newFolder('/packages/bbb'),
+          libFolder: newFolder('/packages/bbb/lib'),
+          languageVersion: Version(2, 7, 0),
+        ),
+        'ccc': Package(
+          name: 'ccc',
+          rootFolder: newFolder('/packages/ccc'),
+          libFolder: newFolder('/packages/ccc/lib'),
+          languageVersion: Version(2, 8, 0),
+        ),
+      },
     );
+
     _createSourceFactory(
       packageUriResolver: _createPackageMapUriResolver(packages),
     );
 
-    _simulateNonNullableSdk();
-    _buildProvider(['non-nullable']);
-
-    _assertNonNullableForPath('/test/a.dart', true);
-    _assertNonNullableForPath('/test/lib/b.dart', true);
-    _assertNonNullableForPath('/test/test/c.dart', true);
+    provider = FeatureSetProvider.build(
+      resourceProvider: resourceProvider,
+      packages: packages,
+      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
 
     _assertNonNullableForPath('/packages/aaa/a.dart', false);
     _assertNonNullableForPath('/packages/aaa/lib/b.dart', false);
     _assertNonNullableForPath('/packages/aaa/test/c.dart', false);
 
-    _assertNonNullableForPath('/packages/bbb/a.dart', true);
-    _assertNonNullableForPath('/packages/bbb/lib/b.dart', true);
-    _assertNonNullableForPath('/packages/bbb/test/c.dart', true);
+    _assertNonNullableForPath('/packages/bbb/a.dart', false);
+    _assertNonNullableForPath('/packages/bbb/lib/b.dart', false);
+    _assertNonNullableForPath('/packages/bbb/test/c.dart', false);
 
-    _assertNonNullableForPath('/other/file.dart', true);
+    _assertNonNullableForPath('/packages/ccc/a.dart', false);
+    _assertNonNullableForPath('/packages/ccc/lib/b.dart', false);
+    _assertNonNullableForPath('/packages/ccc/test/c.dart', false);
+
+    _assertNonNullableForPath('/other/file.dart', false);
   }
 
-  test_nonPackageDefaultFeatureSet() {
-    newFile('/test/.packages', content: '''
-test:lib/
-''');
-    _simulateNonNullableSdk();
-    _buildProvider(['non-nullable']);
+  test_packages_enabledExperiment_nonNullable() {
+    var packages = Packages(
+      {
+        'aaa': Package(
+          name: 'aaa',
+          rootFolder: newFolder('/packages/aaa'),
+          libFolder: newFolder('/packages/aaa/lib'),
+          languageVersion: null,
+        ),
+        'bbb': Package(
+          name: 'bbb',
+          rootFolder: newFolder('/packages/bbb'),
+          libFolder: newFolder('/packages/bbb/lib'),
+          languageVersion: Version(2, 7, 0),
+        ),
+        'ccc': Package(
+          name: 'ccc',
+          rootFolder: newFolder('/packages/ccc'),
+          libFolder: newFolder('/packages/ccc/lib'),
+          languageVersion: Version(2, 8, 0),
+        ),
+      },
+    );
+
+    _createSourceFactory(
+      packageUriResolver: _createPackageMapUriResolver(packages),
+    );
 
     provider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
-      packages: Packages(
-        {
-          'aaa': Package(
-            name: 'aaa',
-            rootFolder: newFolder('/packages/aaa'),
-            libFolder: newFolder('/packages/aaa/lib'),
-            languageVersion: null,
-          ),
-          'bbb': Package(
-            name: 'bbb',
-            rootFolder: newFolder('/packages/bbb'),
-            libFolder: newFolder('/packages/bbb/lib'),
-            languageVersion: Version(2, 7, 0),
-          ),
-        },
-      ),
-      sourceFactory: sourceFactory,
+      packages: packages,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags(['non-nullable']),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
     );
 
-    _assertNonNullableForPath('/packages/aaa/lib/a.dart', true);
-    _assertNonNullableForPath('/packages/aaa/test/b.dart', true);
+    _assertNonNullableForPath('/packages/aaa/a.dart', true);
+    _assertNonNullableForPath('/packages/aaa/lib/b.dart', true);
+    _assertNonNullableForPath('/packages/aaa/test/c.dart', true);
 
-    _assertNonNullableForPath('/packages/bbb/lib/a.dart', false);
-    _assertNonNullableForPath('/packages/bbb/test/b.dart', false);
+    _assertNonNullableForPath('/packages/bbb/a.dart', false);
+    _assertNonNullableForPath('/packages/bbb/lib/b.dart', false);
+    _assertNonNullableForPath('/packages/bbb/test/c.dart', false);
 
-    _assertNonNullableForPath('/foo/bar.dart', false);
+    _assertNonNullableForPath('/packages/ccc/a.dart', true);
+    _assertNonNullableForPath('/packages/ccc/lib/b.dart', true);
+    _assertNonNullableForPath('/packages/ccc/test/c.dart', true);
+
+    _assertNonNullableForPath('/other/file.dart', false);
   }
 
-  test_sdk_defaultLegacy_sdkLegacy() {
-    newFile('/test/.packages', content: '''
-test:lib/
-''');
-    _simulateLegacySdk();
+  test_sdk() {
     _buildProvider([]);
 
     var featureSet = _getSdkFeatureSet();
     expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
   }
 
-  test_sdk_defaultNonNullable_sdkLegacy() {
-    newFile('/test/.packages', content: '''
-test:lib/
-''');
-    _simulateLegacySdk();
-    _buildProvider(['non-nullable']);
-
-    var featureSet = _getSdkFeatureSet();
-    expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
-  }
-
-  test_sdk_defaultNonNullable_sdkNonNullable() {
-    newFile('/test/.packages', content: '''
-test:lib/
-''');
-    _simulateNonNullableSdk();
+  test_sdk_enabledExperiment_nonNullable() {
     _buildProvider(['non-nullable']);
 
     var featureSet = _getSdkFeatureSet();
@@ -169,7 +159,6 @@ test:lib/
     provider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
-      sourceFactory: sourceFactory,
       packageDefaultFeatureSet: featureSet,
       nonPackageDefaultFeatureSet: featureSet,
     );
@@ -207,18 +196,5 @@ test:lib/
     var mathUri = Uri.parse('dart:math');
     var mathPath = sourceFactory.forUri2(mathUri).fullName;
     return provider.getFeatureSet(mathPath, mathUri);
-  }
-
-  void _replaceDartCoreObject(String content) {
-    var path = sourceFactory.forUri('dart:core').fullName;
-    newFile(path, content: content);
-  }
-
-  void _simulateLegacySdk() {
-    _replaceDartCoreObject('// no marker');
-  }
-
-  void _simulateNonNullableSdk() {
-    _replaceDartCoreObject('// bool operator ==(Object other)');
   }
 }

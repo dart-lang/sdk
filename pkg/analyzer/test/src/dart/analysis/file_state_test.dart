@@ -63,7 +63,6 @@ class FileSystemStateTest with ResourceProviderMixin {
     var featureSetProvider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
       packages: Packages.empty,
-      sourceFactory: sourceFactory,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
     );

@@ -1473,7 +1473,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var featureSetProvider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
       packages: _packages,
-      sourceFactory: _sourceFactory,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,
       nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
     );
