@@ -39,7 +39,18 @@ Element declaredParameterElement(
         if (invocation is InstanceCreationExpression) {
           return namedParameterElement(invocation.staticElement);
         } else if (invocation is MethodInvocation) {
-          return namedParameterElement(invocation.methodName.staticElement);
+          var executable = invocation.methodName.staticElement;
+          if (executable == null) {
+            throw StateError(
+              '[invocation: $invocation]'
+              '[node: $node]'
+              '[namedExpression: $namedExpression]'
+              '[element: $element]'
+              '[staticInvokeType: ${invocation.staticInvokeType}]'
+              '[invocation.target.type: ${invocation?.realTarget?.staticType}]',
+            );
+          }
+          return namedParameterElement(executable);
         }
       }
     }
