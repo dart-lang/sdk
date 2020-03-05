@@ -582,7 +582,7 @@
         "host-checked": true
       }
     },
-    "dart2js-hostasserts-weak-(linux|mac|win)-x64-d8": {
+    "dart2js-hostasserts-weak-(linux|mac|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
         "enable-experiment": [
@@ -2550,6 +2550,26 @@
             "corelib_2",
             "dart2js_extra",
             "dart2js_native"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js legacy weak lib tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-linux-x64-chrome",
+            "--dart2js-batch",
+            "lib_2"
+          ],
+          "shards": 3,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js legacy weak co19 tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-linux-x64-chrome",
+            "--dart2js-batch",
+            "co19_2"
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
