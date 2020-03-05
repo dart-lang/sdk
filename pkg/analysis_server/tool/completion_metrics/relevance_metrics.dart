@@ -22,16 +22,22 @@ import 'package:analyzer/dart/element/element.dart'
         Element,
         ExecutableElement,
         ExtensionElement,
+        FieldElement,
         LibraryElement,
         LocalVariableElement,
-        ParameterElement;
+        ParameterElement,
+        PropertyAccessorElement;
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+
+import 'features.dart';
 
 Future<void> main(List<String> args) async {
   var out = io.stdout;
@@ -52,13 +58,347 @@ Future<void> main(List<String> args) async {
   var computer = RelevanceMetricsComputer();
   var stopwatch = Stopwatch();
   stopwatch.start();
-  await computer.compute(rootPath, corpus: corpus);
+  // TODO(brianwilkerson) Add a `--verbose` flag to enable verbose output.
+  await computer.compute(rootPath, corpus: corpus, verbose: false);
   stopwatch.stop();
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
   out.writeln('  Metrics computed in $duration');
   computer.writeMetrics(out);
   await out.flush();
   io.exit(0);
+}
+
+/// An object used to compute metrics for a single file or directory.
+class ContextTypeVisitor extends SimpleAstVisitor<DartType> {
+  final TypeProvider typeProvider;
+
+  AstNode childNode;
+
+  ContextTypeVisitor(this.typeProvider, this.childNode);
+
+  @override
+  DartType visitAdjacentStrings(AdjacentStrings node) {
+    if (childNode == node.strings[0]) {
+      return _visitParent(node);
+    }
+    return typeProvider.stringType;
+  }
+
+  @override
+  DartType visitArgumentList(ArgumentList node) {
+    return (childNode as Expression).staticParameterElement?.type;
+  }
+
+  @override
+  DartType visitAssertInitializer(AssertInitializer node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitAssertStatement(AssertStatement node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitAssignmentExpression(AssignmentExpression node) {
+    if (childNode == node.rightHandSide) {
+      return node.leftHandSide.staticType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitAwaitExpression(AwaitExpression node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType visitBinaryExpression(BinaryExpression node) {
+    if (childNode == node.rightOperand) {
+      return (childNode as Expression).staticParameterElement?.type;
+    }
+    return _visitParent(node);
+  }
+
+  @override
+  DartType visitCascadeExpression(CascadeExpression node) {
+    if (childNode == node.target) {
+      return _visitParent(node);
+    }
+    return null;
+  }
+
+  @override
+  DartType visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (childNode == node.expression) {
+      var element = node.fieldName.staticElement;
+      if (element is FieldElement) {
+        return element.type;
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (childNode == node.defaultValue) {
+      return node.parameter.declaredElement.type;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitDoStatement(DoStatement node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    if (childNode == node.iterable) {
+      var parent = node.parent;
+      if ((parent is ForStatement && parent.awaitKeyword != null) ||
+          (parent is ForElement && parent.awaitKeyword != null)) {
+        return typeProvider.streamDynamicType;
+      }
+      return typeProvider.iterableDynamicType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    if (childNode == node.iterable) {
+      var parent = node.parent;
+      if ((parent is ForStatement && parent.awaitKeyword != null) ||
+          (parent is ForElement && parent.awaitKeyword != null)) {
+        return typeProvider.streamDynamicType;
+      }
+      return typeProvider.iterableDynamicType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitForPartsWithExpression(ForPartsWithExpression node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    if (childNode == node.function) {
+      return _visitParent(node);
+    }
+    return null;
+  }
+
+  @override
+  DartType visitIfElement(IfElement node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitIfStatement(IfStatement node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitIndexExpression(IndexExpression node) {
+    if (childNode == node.index) {
+      var parameters = node.staticElement?.parameters;
+      if (parameters != null && parameters.length == 1) {
+        return parameters[0].type;
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType visitListLiteral(ListLiteral node) {
+    var typeArguments = node.typeArguments?.arguments;
+    if (typeArguments != null && typeArguments.length == 1) {
+      return typeArguments[0].type;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitMapLiteralEntry(MapLiteralEntry node) {
+    var typeArguments =
+        node.thisOrAncestorOfType<SetOrMapLiteral>()?.typeArguments;
+    if (typeArguments != null && typeArguments.length == 2) {
+      if (childNode == node.key) {
+        return typeArguments.arguments[0].type;
+      } else {
+        return typeArguments.arguments[1].type;
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType visitMethodInvocation(MethodInvocation node) {
+    if (childNode == node.target) {
+      return _visitParent(node);
+    }
+    return null;
+  }
+
+  @override
+  DartType visitParenthesizedExpression(ParenthesizedExpression node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType visitPostfixExpression(PostfixExpression node) {
+    return (childNode as Expression).staticParameterElement?.type;
+  }
+
+  @override
+  DartType visitPrefixExpression(PrefixExpression node) {
+    return (childNode as Expression).staticParameterElement?.type;
+  }
+
+  @override
+  DartType visitPropertyAccess(PropertyAccess node) {
+    if (childNode == node.target) {
+      return _visitParent(node);
+    }
+    return null;
+  }
+
+  @override
+  DartType visitReturnStatement(ReturnStatement node) {
+    if (childNode == node.expression) {
+      return _returnType(node);
+    }
+    return null;
+  }
+
+  @override
+  DartType visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isSet) {
+      var typeArguments = node.typeArguments?.arguments;
+      if (typeArguments != null && typeArguments.length == 1) {
+        return typeArguments[0].type;
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType visitSpreadElement(SpreadElement node) {
+    if (childNode == node.expression) {
+      var currentNode = node.parent;
+      while (currentNode != null) {
+        if (currentNode is ListLiteral) {
+          return typeProvider.iterableDynamicType;
+        } else if (currentNode is SetOrMapLiteral) {
+          if (currentNode.isSet) {
+            return typeProvider.iterableDynamicType;
+          }
+          return typeProvider.mapType2(
+              typeProvider.dynamicType, typeProvider.dynamicType);
+        }
+        currentNode = currentNode.parent;
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType visitVariableDeclaration(VariableDeclaration node) {
+    if (childNode == node.initializer) {
+      var parent = node.parent;
+      if (parent is VariableDeclarationList && parent.type != null) {
+        return parent.type.type;
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType visitWhileStatement(WhileStatement node) {
+    if (childNode == node.condition) {
+      return typeProvider.boolType;
+    }
+    return null;
+  }
+
+  @override
+  DartType visitYieldStatement(YieldStatement node) {
+    if (childNode == node.expression) {
+      return _returnType(node);
+    }
+    return null;
+  }
+
+  DartType _returnType(AstNode node) {
+    DartType unwrap(DartType returnType, FunctionBody body) {
+      // TODO(brianwilkerson) Unwrap in an async, async* or sync* method.
+      if (body.isAsynchronous) {
+        if (body.isGenerator) {
+          // async*
+          return null;
+        } else {
+          // async
+          return null;
+        }
+      } else if (body.isGenerator) {
+        // sync*
+        return null;
+      }
+      return returnType;
+    }
+
+    var parent = node.parent;
+    while (parent != null) {
+      if (parent is MethodDeclaration) {
+        return unwrap(parent.declaredElement.returnType, parent.body);
+      } else if (parent is ConstructorDeclaration) {
+        return parent.declaredElement.returnType;
+      } else if (parent is FunctionDeclaration) {
+        return unwrap(
+            parent.declaredElement.returnType, parent.functionExpression.body);
+      }
+      parent = parent.parent;
+    }
+    return null;
+  }
+
+  DartType _visitParent(AstNode node) {
+    if (node.parent != null) {
+      childNode = node;
+      return node.parent.accept(this);
+    }
+    return null;
+  }
 }
 
 /// An object that records the data used to compute the metrics.
@@ -87,6 +427,9 @@ class RelevanceData {
   /// A table mapping distances from an identifier to the nearest previous token
   /// with the same lexeme to the number of times that distance was found.
   Map<int, int> tokenDistances = {};
+
+  Timer contextTypeTimer = Timer();
+  Timer inheritanceDepthTimer = Timer();
 
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
@@ -299,6 +642,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The library containing the compilation unit being visited.
   LibraryElement enclosingLibrary;
 
+  /// The type provider associated with the current compilation unit.
+  TypeProvider typeProvider;
+
   /// The type system associated with the current compilation unit.
   TypeSystem typeSystem;
 
@@ -503,6 +849,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     enclosingLibrary = node.declaredElement.library;
+    typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
     inheritanceManager = InheritanceManager3();
 
@@ -517,6 +864,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     super.visitCompilationUnit(node);
 
     typeSystem = null;
+    typeProvider = null;
     enclosingLibrary = null;
     inheritanceManager = null;
   }
@@ -775,6 +1123,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // There are no completions.
+    var contextType = _contextType(node);
+    if (contextType != null) {
+      var memberType = _returnType(node.staticElement);
+      if (memberType != null) {
+        _recordTypeRelationships(
+            'function expression invocation', contextType, memberType);
+      }
+    }
     super.visitFunctionExpressionInvocation(node);
   }
 
@@ -969,7 +1325,18 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _recordMemberDepth(node.target?.staticType, node.methodName.staticElement);
+    var member = node.methodName.staticElement;
+    _recordMemberDepth(node.target?.staticType, member);
+    if (node.target != null) {
+      var contextType = _contextType(node);
+      if (contextType != null) {
+        var memberType = _returnType(member);
+        if (memberType != null) {
+          _recordTypeRelationships(
+              'method invocation', contextType, memberType);
+        }
+      }
+    }
     super.visitMethodInvocation(node);
   }
 
@@ -1064,8 +1431,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    _recordMemberDepth(
-        node.target?.staticType, node.propertyName.staticElement);
+    var member = node.propertyName.staticElement;
+    _recordMemberDepth(node.target?.staticType, member);
+    if (!(member is PropertyAccessorElement && member.isSetter)) {
+      var contextType = _contextType(node);
+      if (contextType != null) {
+        var memberType = _returnType(member);
+        if (memberType != null) {
+          _recordTypeRelationships('property access', contextType, memberType);
+        }
+      }
+    }
     super.visitPropertyAccess(node);
   }
 
@@ -1320,6 +1696,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     return 'unknown';
   }
 
+  /// Return the type imposed on the given [node] based on its context, or
+  /// `null` if the context does not impose any type.
+  DartType _contextType(AstNode node) {
+    data.contextTypeTimer.start();
+    var type = node.parent?.accept(ContextTypeVisitor(typeProvider, node));
+    data.contextTypeTimer.stop();
+////    if (type == null) {
+////      node.parent?.accept(ContextTypeVisitor(typeProvider, node));
+////    }
+    if (type == null || type.isDynamic) {
+      return null;
+    }
+    return type;
+  }
+
   /// Return the depth of the given [element]. For example:
   /// 0: imported
   /// 1: prefix
@@ -1536,6 +1927,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// Record the distance between the static type of the target (the
   /// [targetType]) and the [member] to which the reference was resolved.
   void _recordMemberDepth(DartType targetType, Element member) {
+    if (member == null) {
+      return;
+    }
     if (targetType is InterfaceType) {
       var targetClass = targetType.element;
       var extension = member.thisOrAncestorOfType<ExtensionElement>();
@@ -1581,47 +1975,22 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           return depth;
         }
 
-        const notFound = 0xFFFF;
-
-        /// Return the minimum distance from the [currentClass] to the
-        /// [memberClass] along any inheritance chain (including interfaces).
-        /// This includes paths introduced by mixins.
-        int getInterfaceDepth(ClassElement currentClass) {
-          if (currentClass == null) {
-            return notFound;
-          } else if (currentClass == memberClass) {
-            return 0;
-          }
-          var minDepth = getInterfaceDepth(currentClass.supertype?.element);
-          for (var mixin in currentClass.mixins) {
-            var depth = getInterfaceDepth(mixin.element);
-            if (depth < minDepth) {
-              minDepth = depth;
-            }
-          }
-          for (var interface in currentClass.interfaces) {
-            var depth = getInterfaceDepth(interface.element);
-            if (depth < minDepth) {
-              minDepth = depth;
-            }
-          }
-          return minDepth + 1;
-        }
-
         int superclassDepth = getSuperclassDepth();
-        int interfaceDepth = getInterfaceDepth(targetClass);
+        data.inheritanceDepthTimer.start();
+        int interfaceDepth = inheritanceDistance(targetClass, memberClass);
+        data.inheritanceDepthTimer.stop();
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
-          data.recordDistanceByDepth(getTargetDepth(), superclassDepth);
+        } else if (interfaceDepth >= 0) {
+          _recordDistance('member (interface)', interfaceDepth);
         } else {
-          if (interfaceDepth < notFound) {
-            _recordDistance('member (interface)', interfaceDepth);
-          } else {
-            _recordDistance('member (not found)', 0);
-          }
+          // This shouldn't happen, so it's worth investigating the cause when
+          // it does.
+          _recordDistance('member (not found)', 0);
         }
-        if (interfaceDepth < notFound) {
+        if (interfaceDepth >= 0) {
           _recordDistance('member (shortest distance)', interfaceDepth);
+          data.recordDistanceByDepth(getTargetDepth(), interfaceDepth);
         }
       }
     }
@@ -1802,6 +2171,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       data.recordTypeMatch('$descriptor', 'unrelated');
     }
   }
+
+  /// Return the return type of the [element], or `null` if the element doesn't
+  /// have a return type.
+  DartType _returnType(Element element) {
+    if (element is ExecutableElement) {
+      return element.returnType;
+    }
+    return null;
+  }
 }
 
 /// An object used to compute metrics for a single file or directory.
@@ -1816,7 +2194,8 @@ class RelevanceMetricsComputer {
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
-  void compute(String rootPath, {bool corpus}) async {
+  void compute(String rootPath,
+      {@required bool corpus, @required bool verbose}) async {
     final collector = RelevanceDataCollector(data);
     var roots = _computeRootPaths(rootPath, corpus);
     for (var root in roots) {
@@ -1835,20 +2214,28 @@ class RelevanceMetricsComputer {
               //
               if (resolvedUnitResult == null) {
                 print('File $filePath skipped because resolved unit was null.');
-                print('');
+                if (verbose) {
+                  print('');
+                }
                 continue;
               } else if (resolvedUnitResult.state != ResultState.VALID) {
                 print(
                     'File $filePath skipped because it could not be analyzed.');
-                print('');
+                if (verbose) {
+                  print('');
+                }
                 continue;
               } else if (hasError(resolvedUnitResult)) {
-                print('File $filePath skipped due to errors:');
-                for (var error in resolvedUnitResult.errors
-                    .where((e) => e.severity == Severity.error)) {
-                  print('  ${error.toString()}');
+                if (verbose) {
+                  print('File $filePath skipped due to errors:');
+                  for (var error in resolvedUnitResult.errors
+                      .where((e) => e.severity == Severity.error)) {
+                    print('  ${error.toString()}');
+                  }
+                  print('');
+                } else {
+                  print('File $filePath skipped due to analysis errors.');
                 }
-                print('');
                 continue;
               }
 
@@ -1856,6 +2243,7 @@ class RelevanceMetricsComputer {
               resolvedUnitResult.unit.accept(collector);
             } catch (exception, stacktrace) {
               print('Exception caught analyzing: "$filePath"');
+              print(exception);
               print(stacktrace);
             }
           }
@@ -1874,18 +2262,29 @@ class RelevanceMetricsComputer {
       var firstLabel = ', first token';
       var firstIndex = key.indexOf(firstLabel);
       if (firstIndex > 0) {
-        first[key.replaceFirst(firstLabel, '')] = entry.value;
+        first['  ${key.replaceFirst(firstLabel, '')}'] =
+            entry.value.map((key, value) => MapEntry('  $key', value));
       } else {
         var wholeLabel = ', whole';
         var wholeIndex = key.indexOf(wholeLabel);
         if (wholeIndex > 0) {
-          whole[key.replaceFirst(wholeLabel, '')] = entry.value;
+          whole['  ${key.replaceFirst(wholeLabel, '')}'] =
+              entry.value.map((key, value) => MapEntry('  $key', value));
         } else {
           rest[key] = entry.value;
         }
       }
     }
 
+    void writeTimer(String label, Timer timer) {
+      var totalTime = timer.totalTime;
+      var count = timer.count;
+      var averageTime = timer.averageTime;
+      sink.writeln('    $label: $totalTime / $count = $averageTime ms');
+    }
+
+    writeTimer('Context type', data.contextTypeTimer);
+    writeTimer('Inheritance depth', data.inheritanceDepthTimer);
     sink.writeln('');
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);
@@ -2025,7 +2424,11 @@ class RelevanceMetricsComputer {
   void _writeContextMap(
       StringSink sink, Map<String, Map<String, int>> contextMap) {
     var contexts = contextMap.keys.toList()..sort();
-    for (var context in contexts) {
+    for (var i = 0; i < contexts.length; i++) {
+      if (i > 0) {
+        sink.writeln();
+      }
+      var context = contexts[i];
       var lines = _convertMap(context, contextMap[context]);
       for (var line in lines) {
         sink.writeln('  $line');
@@ -2139,5 +2542,26 @@ class RelevanceMetricsComputer {
       }
     }
     return false;
+  }
+}
+
+class Timer {
+  Stopwatch stopwatch = Stopwatch();
+
+  int count = 0;
+
+  Timer();
+
+  double get averageTime => count == 0 ? 0 : totalTime / count;
+
+  int get totalTime => stopwatch.elapsedMilliseconds;
+
+  void start() {
+    stopwatch.start();
+  }
+
+  void stop() {
+    stopwatch.stop();
+    count++;
   }
 }
