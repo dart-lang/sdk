@@ -52,6 +52,24 @@ class NoActiveIsolateScope {
   Isolate* saved_isolate_;
 };
 
+RunFinalizersScope::RunFinalizersScope(Thread* thread) : thread_(thread) {
+  if (!FLAG_enable_isolate_groups) {
+    ASSERT(thread->IsAtSafepoint() ||
+           (thread->task_kind() == Thread::kMarkerTask));
+    IsolateGroup* isolate_group = thread->isolate_group();
+    Isolate* isolate = isolate_group->isolates_.First();
+    ASSERT(isolate == isolate_group->isolates_.Last());
+    saved_isolate_ = thread->isolate_;
+    thread->isolate_ = isolate;
+  }
+}
+
+RunFinalizersScope::~RunFinalizersScope() {
+  if (!FLAG_enable_isolate_groups) {
+    thread_->isolate_ = saved_isolate_;
+  }
+}
+
 Heap::Heap(IsolateGroup* isolate_group,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)
@@ -460,8 +478,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 }
 
 void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
-  // TODO(40836) : Uncomment this line once the issue is fixed.
-  // NoActiveIsolateScope no_active_isolate_scope;
+  NoActiveIsolateScope no_active_isolate_scope;
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
   if (thread->isolate_group() == Dart::vm_isolate()->group()) {
     // The vm isolate cannot safely collect garbage due to unvisited read-only
@@ -495,8 +512,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   GCType type,
                                   GCReason reason) {
-  // TODO(40836) : Uncomment this line once the issue is fixed.
-  // NoActiveIsolateScope no_active_isolate_scope;
+  NoActiveIsolateScope no_active_isolate_scope;
 
   ASSERT(reason != kNewSpace);
   ASSERT(type != kScavenge);

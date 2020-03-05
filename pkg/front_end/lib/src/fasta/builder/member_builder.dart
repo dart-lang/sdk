@@ -254,5 +254,5 @@ abstract class BuilderClassMember implements ClassMember {
   }
 
   @override
-  String toString() => '$runtimeType($memberBuilder)';
+  String toString() => '$runtimeType($fullName)';
 }

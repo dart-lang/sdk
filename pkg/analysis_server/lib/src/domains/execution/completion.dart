@@ -88,6 +88,7 @@ class RuntimeCompletionComputer {
     CompletionRequestImpl request = CompletionRequestImpl(
       targetResult,
       targetOffset,
+      false,
       CompletionPerformance(),
     );
     var suggestions = await contributor.computeSuggestions(request);

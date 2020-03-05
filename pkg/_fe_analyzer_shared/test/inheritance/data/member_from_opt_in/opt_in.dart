@@ -15,3 +15,8 @@ abstract class Interface {
   /*member: Interface.method:int? Function(int)*/
   int? method(int i);
 }
+
+/*class: Class2:Class2,Interface,Object*/
+abstract class Class2 implements Interface {
+  /*member: Class2.method:int? Function(int)*/
+}

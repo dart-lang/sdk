@@ -124,6 +124,49 @@ final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
 
+/// Normalizes `FutureOr` types when they are constructed at runtime.
+///
+/// This normalization should mirror the normalization performed at compile time
+/// in the method named `_normalizeFutureOr()`.
+///
+/// **NOTE** Normalization of FutureOr<T?>? --> FutureOr<T?> is handled in
+/// [nullable].
+normalizeFutureOr(typeConstructor, setBaseClass) {
+  // The canonical version of the generic FutureOr type constructor.
+  var genericFutureOrType =
+      JS('!', '#', generic(typeConstructor, setBaseClass));
+
+  normalize(typeArg) {
+    // Normalize raw FutureOr --> dynamic
+    if (JS<bool>('!', '# == void 0', typeArg)) return _dynamic;
+
+    // FutureOr<dynamic|void|Object?|Object*> --> dynamic|void|Object?|Object*
+    if (_isTop(typeArg) ||
+        (_isLegacy(typeArg) &&
+            JS<bool>('!', '#.type === #', typeArg, Object))) {
+      return typeArg;
+    }
+
+    // FutureOr<Never> --> Future<Never>
+    if (typeArg == never_) {
+      return JS('!', '#(#)', getGenericClass(Future), typeArg);
+    }
+    // FutureOr<Null> --> Future<Null>?
+    if (typeArg == unwrapType(Null)) {
+      return nullable(JS('!', '#(#)', getGenericClass(Future), typeArg));
+    }
+    // Otherwise, create the FutureOr<T> type as a normal generic type.
+    var genericType = JS('!', '#(#)', genericFutureOrType, typeArg);
+    // Overwrite the original declaration so that it correctly points back to
+    // this method. This ensures that the we can test a type value returned here
+    // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
+    JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
+    return genericType;
+  }
+
+  return normalize;
+}
+
 /// Memoize a generic type constructor function.
 generic(typeConstructor, setBaseClass) => JS('', '''(() => {
   let length = $typeConstructor.length;

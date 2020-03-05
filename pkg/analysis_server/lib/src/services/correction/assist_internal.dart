@@ -222,7 +222,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
-      {List args}) {
+      {List<Object> args}) {
     if (builder == null) {
       return;
     }
@@ -249,57 +249,44 @@ class AssistProcessor extends BaseProcessor {
       return;
     }
 
-    Future<void> compute(CorrectionProducer producer, AssistKind kind) async {
+    Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
 
       var builder = _newDartChangeBuilder();
       await producer.compute(builder);
 
-      _addAssistFromBuilder(builder, kind);
+      _addAssistFromBuilder(builder, producer.assistKind,
+          args: producer.assistArguments);
     }
 
     Future<void> computeIfNotErrorCode(
       CorrectionProducer producer,
-      AssistKind kind,
       Set<String> errorCodes,
     ) async {
       if (!_containsErrorCode(errorCodes)) {
-        await compute(producer, kind);
+        await compute(producer);
       }
     }
 
     await computeIfNotErrorCode(
       ConvertToListLiteral(),
-      DartAssistKind.CONVERT_TO_LIST_LITERAL,
       {LintNames.prefer_collection_literals},
     );
     await computeIfNotErrorCode(
       ConvertToMapLiteral(),
-      DartAssistKind.CONVERT_TO_MAP_LITERAL,
       {LintNames.prefer_collection_literals},
     );
     await computeIfNotErrorCode(
       ConvertToNullAware(),
-      DartAssistKind.CONVERT_TO_NULL_AWARE,
       {LintNames.prefer_null_aware_operators},
     );
     await computeIfNotErrorCode(
       ConvertToSetLiteral(),
-      DartAssistKind.CONVERT_TO_SET_LITERAL,
       {LintNames.prefer_collection_literals},
     );
-    await compute(
-      ExchangeOperands(),
-      DartAssistKind.EXCHANGE_OPERANDS,
-    );
-    await compute(
-      ShadowField(),
-      DartAssistKind.SHADOW_FIELD,
-    );
-    await compute(
-      SplitAndCondition(),
-      DartAssistKind.SPLIT_AND_CONDITION,
-    );
+    await compute(ExchangeOperands());
+    await compute(ShadowField());
+    await compute(SplitAndCondition());
   }
 
   Future<void> _addProposal_addDiagnosticPropertyReference() async {

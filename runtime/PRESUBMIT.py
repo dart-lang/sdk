@@ -59,10 +59,11 @@ def CheckFormatted(input_api, output_api):
     def convert_warning_to_error(presubmit_result):
         if not presubmit_result.fatal:
             # Convert this warning to an error.
-            stream = StringIO.StringIO()
-            presubmit_result.handle(stream)
-            message = stream.getvalue()
-            return output_api.PresubmitError(message)
+            result_json = presubmit_result.json_format()
+            return output_api.PresubmitError(
+                message=result_json['message'],
+                items=result_json['items'],
+                long_text=result_json['long_text'])
         return presubmit_result
 
     results = input_api.canned_checks.CheckPatchFormatted(input_api, output_api)

@@ -30,6 +30,20 @@ class ServiceEvent;
 class TimelineEventScope;
 class VirtualMemory;
 
+// Temporarily enter the only isolate in the group before running weak handle
+// finalizers to keep existing embedder code working. Remove once embedders
+// are updated to think in terms of isolate groups.
+// TODO(https://github.com/dart-lang/sdk/issues/40836): Remove.
+class RunFinalizersScope {
+ public:
+  explicit RunFinalizersScope(Thread* thread);
+  ~RunFinalizersScope();
+
+ private:
+  Thread* thread_;
+  Isolate* saved_isolate_;
+};
+
 class Heap {
  public:
   enum Space {

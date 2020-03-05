@@ -1581,29 +1581,14 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       result = _makeCall(
           node, new DynamicSelector(CallKind.Method, node.name), args);
     } else {
-      // TODO(dartbug.com/34497): Once front-end desugars calls via
-      // fields/getters, handling of field and getter targets here
-      // can be turned into assertions.
-      if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-        // Call via field/getter.
-        final value = _makeCall(
-            null,
-            (receiverNode is ThisExpression)
-                ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
-                : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
-            new Args<TypeExpr>([receiver]));
-        _makeCall(
-            null, DynamicSelector.kCall, new Args.withReceiver(args, value));
-        result = _staticType(node);
-      } else {
-        // TODO(alexmarkov): overloaded arithmetic operators
-        result = _makeCall(
-            node,
-            (node.receiver is ThisExpression)
-                ? new VirtualSelector(target)
-                : new InterfaceSelector(target),
-            args);
-      }
+      assertx(target is Procedure && !target.isGetter);
+      // TODO(alexmarkov): overloaded arithmetic operators
+      result = _makeCall(
+          node,
+          (node.receiver is ThisExpression)
+              ? new VirtualSelector(target)
+              : new InterfaceSelector(target),
+          args);
     }
     _updateReceiverAfterCall(receiverNode, receiver, node.name);
     return result;
@@ -1681,21 +1666,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     if (target == null) {
       return const EmptyType();
     } else {
-      if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-        // Call via field/getter.
-        // TODO(alexmarkov): Consider cleaning up this code as it duplicates
-        // processing in DirectInvocation.
-        final fieldValue = _makeCall(
-            node,
-            new DirectSelector(target, callKind: CallKind.PropertyGet),
-            new Args<TypeExpr>([_receiver]));
-        _makeCall(null, DynamicSelector.kCall,
-            new Args.withReceiver(args, fieldValue));
-        return _staticType(node);
-      } else {
-        _entryPointsListener.recordMemberCalledViaThis(target);
-        return _makeCall(node, new DirectSelector(target), args);
-      }
+      assertx(target is Procedure && !target.isGetter);
+      _entryPointsListener.recordMemberCalledViaThis(target);
+      return _makeCall(node, new DirectSelector(target), args);
     }
   }
 

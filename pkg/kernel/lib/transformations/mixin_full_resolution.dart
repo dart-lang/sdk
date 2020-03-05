@@ -192,14 +192,15 @@ class MixinFullResolution {
         referenceFrom =
             indexedClass?.lookupProcedureNotSetter(procedure.name.name);
       }
-      Procedure clone = cloner.cloneProcedure(procedure, referenceFrom);
+
       // Linear search for a forwarding stub with the same name.
+      int originalIndex;
       for (int i = 0; i < originalLength; ++i) {
         var originalProcedure = class_.procedures[i];
-        if (originalProcedure.name == clone.name &&
-            originalProcedure.kind == clone.kind) {
+        if (originalProcedure.name == procedure.name &&
+            originalProcedure.kind == procedure.kind) {
           FunctionNode src = originalProcedure.function;
-          FunctionNode dst = clone.function;
+          FunctionNode dst = procedure.function;
 
           if (src.positionalParameters.length !=
                   dst.positionalParameters.length ||
@@ -208,27 +209,35 @@ class MixinFullResolution {
             // and don't add several procedures with the same name to the class.
             continue outer;
           }
-
-          assert(src.typeParameters.length == dst.typeParameters.length);
-          for (int j = 0; j < src.typeParameters.length; ++j) {
-            dst.typeParameters[j].flags = src.typeParameters[j].flags;
-          }
-          for (int j = 0; j < src.positionalParameters.length; ++j) {
-            dst.positionalParameters[j].flags =
-                src.positionalParameters[j].flags;
-          }
-          // TODO(kernel team): The named parameters are not sorted,
-          // this might not be correct.
-          for (int j = 0; j < src.namedParameters.length; ++j) {
-            dst.namedParameters[j].flags = src.namedParameters[j].flags;
-          }
-
-          originalProcedure.canonicalName?.unbind();
-          class_.procedures[i] = clone;
-          continue outer;
+          originalIndex = i;
+          break;
         }
       }
-      class_.addMember(clone);
+      if (originalIndex != null) {
+        referenceFrom ??= class_.procedures[originalIndex];
+      }
+      Procedure clone = cloner.cloneProcedure(procedure, referenceFrom);
+      if (originalIndex != null) {
+        Procedure originalProcedure = class_.procedures[originalIndex];
+        FunctionNode src = originalProcedure.function;
+        FunctionNode dst = clone.function;
+        assert(src.typeParameters.length == dst.typeParameters.length);
+        for (int j = 0; j < src.typeParameters.length; ++j) {
+          dst.typeParameters[j].flags = src.typeParameters[j].flags;
+        }
+        for (int j = 0; j < src.positionalParameters.length; ++j) {
+          dst.positionalParameters[j].flags = src.positionalParameters[j].flags;
+        }
+        // TODO(kernel team): The named parameters are not sorted,
+        // this might not be correct.
+        for (int j = 0; j < src.namedParameters.length; ++j) {
+          dst.namedParameters[j].flags = src.namedParameters[j].flags;
+        }
+
+        class_.procedures[originalIndex] = clone;
+      } else {
+        class_.addMember(clone);
+      }
     }
     assert(class_.constructors.isNotEmpty);
 

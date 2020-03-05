@@ -47,15 +47,17 @@ Run with '--verify' to validate that the web resource have been regenerated.
   }
 }
 
-final Directory resourceDir = Directory(path.join('pkg', 'analysis_server',
-    'lib', 'src', 'edit', 'nnbd_migration', 'resources'));
-final File resourcesFile = File(path.join('pkg', 'analysis_server', 'lib',
-    'src', 'edit', 'nnbd_migration', 'resources', 'resources.g.dart'));
-
 final File dartSources = File(path.join('pkg', 'analysis_server', 'lib', 'src',
     'edit', 'nnbd_migration', 'web', 'migration.dart'));
+
 final javascriptOutput = File(path.join('pkg', 'analysis_server', 'lib', 'src',
     'edit', 'nnbd_migration', 'resources', 'migration.js'));
+
+final Directory resourceDir = Directory(path.join('pkg', 'analysis_server',
+    'lib', 'src', 'edit', 'nnbd_migration', 'resources'));
+
+final File resourcesFile = File(path.join('pkg', 'analysis_server', 'lib',
+    'src', 'edit', 'nnbd_migration', 'resources', 'resources.g.dart'));
 
 final List<String> resourceTypes = [
   '.css',
@@ -63,68 +65,72 @@ final List<String> resourceTypes = [
   '.js',
 ];
 
-typedef VerificationFunction = void Function(String);
+String base64Encode(List<int> bytes) {
+  String encoded = base64.encode(bytes);
 
-void verifyResourcesGDartGenerated({
-  VerificationFunction failVerification = failGenerate,
-}) {
-  print('Verifying that ${path.basename(resourcesFile.path)} is up-to-date...');
+  // Logic to cut lines into 80-character chunks.
+  var lines = <String>[];
+  var index = 0;
 
-  // Find the hashes for the last generated version of resources.g.dart.
-  Map<String, String> resourceHashes = {};
-  // highlight_css md5 is 'fb012626bafd286510d32da815dae448'
-  RegExp hashPattern = RegExp(r"// (\S+) md5 is '(\S+)'");
-  for (RegExpMatch match
-      in hashPattern.allMatches(resourcesFile.readAsStringSync())) {
-    resourceHashes[match.group(1)] = match.group(2);
+  while (index < encoded.length) {
+    var line = encoded.substring(index, math.min(index + 80, encoded.length));
+    lines.add(line);
+    index += line.length;
   }
 
-  // For all resources (modulo compiled JS ones), verify the hash.
-  for (FileSystemEntity entity in resourceDir.listSync()) {
-    String name = path.basename(entity.path);
-    if (!resourceTypes.contains(path.extension(name))) {
-      continue;
-    }
+  return lines.join('\n');
+}
 
-    if (name == 'migration.js') {
-      // skip the compiled js
-      continue;
-    }
+void compileWebFrontEnd() async {
+  String sdkBinDir = path.dirname(Platform.resolvedExecutable);
+  String dart2jsPath = path.join(sdkBinDir, 'dart2js');
 
-    String key = name.replaceAll('.', '_');
-    if (!resourceHashes.containsKey(key)) {
-      failVerification('No entry on resources.g.dart for $name');
-    } else {
-      String hash = md5String((entity as File).readAsStringSync());
-      if (hash != resourceHashes[key]) {
-        failVerification('$name not up to date in resources.g.dart');
-      }
-    }
+  const minified = true;
+
+  // dart2js -m -o output source
+  Process process = await Process.start(dart2jsPath, [
+    if (minified) '-m',
+    '--no-frequency-based-minification',
+    '-o',
+    javascriptOutput.path,
+    dartSources.path,
+  ]);
+  process.stdout.listen((List<int> data) => stdout.add(data));
+  process.stderr.listen((List<int> data) => stderr.add(data));
+  int exitCode = await process.exitCode;
+
+  if (exitCode != 0) {
+    fail('Failed compiling ${dartSources.path}.');
   }
-
-  // verify the compiled dart code
-  StringBuffer sourceCode = StringBuffer();
-  for (FileSystemEntity entity in dartSources.parent.listSync()) {
-    if (entity.path.endsWith('.dart')) {
-      sourceCode.write((entity as File).readAsStringSync());
-    }
-  }
-  String hash = md5String(sourceCode.toString());
-  if (hash != resourceHashes['migration_dart']) {
-    failVerification('Compiled javascript not up to date in resources.g.dart');
-  }
-
-  print('Generated resources up to date.');
 }
 
 void createResourcesGDart() {
-  String content = generateResourceFile(resourceDir.listSync().where((entity) {
+  String content =
+      generateResourceFile(sortDir(resourceDir.listSync()).where((entity) {
     String name = path.basename(entity.path);
     return entity is File && resourceTypes.contains(path.extension(name));
   }).cast<File>());
 
   // write the content
   resourcesFile.writeAsStringSync(content);
+}
+
+void fail(String message) {
+  stderr.writeln(message);
+  exit(1);
+}
+
+/// Fail the script, and print out a message indicating how to regenerate the
+/// resources file.
+void failGenerate(String message) {
+  stderr.writeln('$message.');
+  stderr.writeln();
+  stderr.writeln('''
+To re-generate lib/src/edit/nnbd_migration/resources/resources.g.dart, run:
+
+  dart pkg/analysis_server/tool/nnbd_migration/generate_resources.dart
+''');
+  exit(1);
 }
 
 String generateResourceFile(Iterable<File> resources) {
@@ -171,7 +177,7 @@ String _decode(String data) {
       // Write out the crc for the dart code.
       StringBuffer sourceCode = StringBuffer();
       // collect the dart source code
-      for (FileSystemEntity entity in dartSources.parent.listSync()) {
+      for (FileSystemEntity entity in sortDir(dartSources.parent.listSync())) {
         if (entity.path.endsWith('.dart')) {
           sourceCode.write((entity as File).readAsStringSync());
         }
@@ -194,59 +200,62 @@ String md5String(String str) {
   return md5.convert(str.codeUnits).toString();
 }
 
-String base64Encode(List<int> bytes) {
-  String encoded = base64.encode(bytes);
+List<FileSystemEntity> sortDir(Iterable<FileSystemEntity> entities) {
+  var result = entities.toList();
+  result.sort((a, b) => a.path.compareTo(b.path));
+  return result;
+}
 
-  // Logic to cut lines into 80-character chunks.
-  var lines = <String>[];
-  var index = 0;
+void verifyResourcesGDartGenerated({
+  VerificationFunction failVerification = failGenerate,
+}) {
+  print('Verifying that ${path.basename(resourcesFile.path)} is up-to-date...');
 
-  while (index < encoded.length) {
-    var line = encoded.substring(index, math.min(index + 80, encoded.length));
-    lines.add(line);
-    index += line.length;
+  // Find the hashes for the last generated version of resources.g.dart.
+  Map<String, String> resourceHashes = {};
+  // highlight_css md5 is 'fb012626bafd286510d32da815dae448'
+  RegExp hashPattern = RegExp(r"// (\S+) md5 is '(\S+)'");
+  for (RegExpMatch match
+      in hashPattern.allMatches(resourcesFile.readAsStringSync())) {
+    resourceHashes[match.group(1)] = match.group(2);
   }
 
-  return lines.join('\n');
-}
+  // For all resources (modulo compiled JS ones), verify the hash.
+  for (FileSystemEntity entity in sortDir(resourceDir.listSync())) {
+    String name = path.basename(entity.path);
+    if (!resourceTypes.contains(path.extension(name))) {
+      continue;
+    }
 
-void compileWebFrontEnd() async {
-  String sdkBinDir = path.dirname(Platform.resolvedExecutable);
-  String dart2jsPath = path.join(sdkBinDir, 'dart2js');
+    if (name == 'migration.js') {
+      // skip the compiled js
+      continue;
+    }
 
-  const minified = true;
-
-  // dart2js -m -o output source
-  Process process = await Process.start(dart2jsPath, [
-    if (minified) '-m',
-    '--no-frequency-based-minification',
-    '-o',
-    javascriptOutput.path,
-    dartSources.path,
-  ]);
-  process.stdout.listen((List<int> data) => stdout.add(data));
-  process.stderr.listen((List<int> data) => stderr.add(data));
-  int exitCode = await process.exitCode;
-
-  if (exitCode != 0) {
-    fail('Failed compiling ${dartSources.path}.');
+    String key = name.replaceAll('.', '_');
+    if (!resourceHashes.containsKey(key)) {
+      failVerification('No entry on resources.g.dart for $name');
+    } else {
+      String hash = md5String((entity as File).readAsStringSync());
+      if (hash != resourceHashes[key]) {
+        failVerification('$name not up to date in resources.g.dart');
+      }
+    }
   }
+
+  // verify the compiled dart code
+  StringBuffer sourceCode = StringBuffer();
+  for (FileSystemEntity entity in sortDir(dartSources.parent.listSync())) {
+    if (entity.path.endsWith('.dart')) {
+      sourceCode.write((entity as File).readAsStringSync());
+    }
+  }
+  String hash = md5String(sourceCode.toString());
+  if (hash != resourceHashes['migration_dart']) {
+    failVerification('Compiled javascript not up to date in resources.g.dart');
+  }
+
+  print('Generated resources up to date.');
 }
 
-void fail(String message) {
-  stderr.writeln(message);
-  exit(1);
-}
-
-/// Fail the script, and print out a message indicating how to regenerate the
-/// resources file.
-void failGenerate(String message) {
-  stderr.writeln('$message.');
-  stderr.writeln();
-  stderr.writeln('''
-To re-generate lib/src/edit/nnbd_migration/resources/resources.g.dart, run:
-
-  dart pkg/analysis_server/tool/nnbd_migration/generate_resources.dart
-''');
-  exit(1);
-}
+typedef VerificationFunction = void Function(String);

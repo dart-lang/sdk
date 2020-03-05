@@ -269,11 +269,19 @@ final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
 /// Returns a nullable (question, ?) version of [type].
 ///
 /// The resulting type returned in a normalized form based on the rules from the
-/// normalization doc: https://github.com/dart-lang/language/pull/456
-// TODO(nshahan): Update after the normalization doc PR lands.
+/// normalization doc:
+/// https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 @notNull
 Object nullable(type) {
-  if (_isNullable(type) || _isTop(type) || _isNullType(type)) return type;
+  if (_isNullable(type) ||
+      _isTop(type) ||
+      _isNullType(type) ||
+      // Normalize FutureOr<T?>? --> FutureOr<T?>
+      // All other runtime FutureOr normalization is in `normalizeFutureOr()`.
+      (_isFutureOr(type)) &&
+          _isNullable(JS<Object>('!', '#[0]', getGenericArgs(type)))) {
+    return type;
+  }
   if (type == never_) return unwrapType(Null);
   if (_isLegacy(type)) type = JS<Object>('', '#.type', type);
 
@@ -290,8 +298,8 @@ Object nullable(type) {
 /// Returns a legacy (star, *) version of [type].
 ///
 /// The resulting type returned in a normalized form based on the rules from the
-/// normalization doc: https://github.com/dart-lang/language/pull/456
-// TODO(nshahan): Update after the normalization doc PR lands.
+/// normalization doc:
+/// https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 @notNull
 Object legacy(type) {
   if (_isLegacy(type) || _isNullable(type) || _isTop(type) || _isNullType(type))
@@ -1223,15 +1231,11 @@ final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 bool _isBottom(type, strictMode) => JS(
     '!', '# === # || (!# && # === #)', type, never_, strictMode, type, bottom);
 
-// TODO(nshahan): Add support for strict/weak mode.
 @notNull
 bool _isTop(type) {
-  // TODO(nshahan): Handle Object* in a way that ensures
-  // instanceOf(null, Object*) returns true.
-  if (_isFutureOr(type)) return _isTop(JS('', '#[0]', getGenericArgs(type)));
-  if (_isNullable(type)) return (JS('!', '# == #', type.type, Object));
+  if (_isNullable(type)) return JS('!', '# === #', type.type, Object);
 
-  return JS('!', '# == # || # == #', type, dynamic, type, void_);
+  return JS('!', '# === # || # === #', type, dynamic, type, void_);
 }
 
 /// Returns `true` if [type] represents a nullable (question, ?) type.

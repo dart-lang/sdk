@@ -1638,9 +1638,9 @@ Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
   instructions += LoadFunctionTypeArguments();
   Value* function_type_args = Pop();
 
-  AssertSubtypeInstr* instr = new (Z) AssertSubtypeInstr(
-      position, instantiator_type_args, function_type_args, sub_type,
-      super_type, dst_name, GetNextDeoptId(), nnbd_mode());
+  AssertSubtypeInstr* instr = new (Z)
+      AssertSubtypeInstr(position, instantiator_type_args, function_type_args,
+                         sub_type, super_type, dst_name, GetNextDeoptId());
   instructions += Fragment(instr);
 
   return instructions;

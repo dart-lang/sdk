@@ -229,6 +229,24 @@ class NotNullableError<T> extends Error implements TypeError {
       "Null is not a valid value for the parameter '$_name' of type '$T'";
 }
 
+/// A function that returns the value or default value (if invoked with `null`
+/// value) for non-nullable function parameters in Null safety enabled code.
+///
+/// Because Dart does not have full null safety
+/// until all legacy code has been removed from a program,
+/// a non-nullable parameter can still end up with a `null` value.
+/// This function can be used to get a default value for a parameter
+/// when a `null` value is passed in for a non-nullable parameter.
+///
+/// TODO(40810) - Remove uses of this function when Dart has full null safety.
+T valueOfNonNullableParamWithDefault<T extends Object>(T value, T defaultVal) {
+  if ((value as dynamic) == null) {
+    return defaultVal;
+  } else {
+    return value;
+  }
+}
+
 /**
  * HTTP status codes.  Exported in dart:io and dart:html.
  */

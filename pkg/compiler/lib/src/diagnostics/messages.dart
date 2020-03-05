@@ -79,7 +79,6 @@ enum MessageKind {
   JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_INTEROP_FIELD_NOT_SUPPORTED,
-  JS_INTEROP_INDEX_NOT_SUPPORTED,
   JS_INTEROP_NON_EXTERNAL_MEMBER,
   JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
@@ -200,38 +199,6 @@ class MessageTemplate {
                 new Bar();
               }
               """
-          ]),
-
-      MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED: const MessageTemplate(
-          MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED,
-          "Js-interop does not support [] and []= operator methods.",
-          howToFix: "Try replacing [] and []= operator methods with normal "
-              "methods.",
-          examples: const [
-            """
-        import 'package:js/js.dart';
-
-        @JS()
-        class Foo {
-          external operator [](arg);
-        }
-
-        main() {
-          new Foo()[0];
-        }
-        """,
-            """
-        import 'package:js/js.dart';
-
-        @JS()
-        class Foo {
-          external operator []=(arg, value);
-        }
-
-        main() {
-          new Foo()[0] = 1;
-        }
-        """
           ]),
 
       MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:

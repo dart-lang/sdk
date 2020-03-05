@@ -229,22 +229,6 @@ class InterpreterHelpers {
     return Class::ClassFinalizedBits::decode(cls->ptr()->state_bits_) ==
            RawClass::kFinalized;
   }
-
-  DART_FORCE_INLINE static RawSmi* NnbdMode(RawObject** FP) {
-    RawFunction* function =
-        static_cast<RawFunction*>(FP[kKBCFunctionSlotFromFp]);
-    ASSERT(function != Function::null());
-    RawObject* origin = function->ptr()->owner_;
-    if (InterpreterHelpers::GetClassId(origin) != kClassCid) {
-      ASSERT(InterpreterHelpers::GetClassId(origin) == kPatchClassCid);
-      origin = PatchClass::RawCast(origin)->ptr()->origin_class_;
-    }
-    RawLibrary* library = Class::RawCast(origin)->ptr()->library_;
-    return Smi::New(static_cast<intptr_t>(
-        RawLibrary::NnbdBit::decode(library->ptr()->flags_)
-            ? NNBDMode::kOptedInLib
-            : NNBDMode::kLegacyLib));
-  }
 };
 
 DART_FORCE_INLINE static const KBCInstr* SavedCallerPC(RawObject** FP) {
@@ -1242,14 +1226,11 @@ AssertAssignableCallRuntime:
   // args[2]: Instantiator type args.
   // args[3]: Function type args.
   // args[4]: Name.
-  // args[5]: NNBD mode.
-  RawObject* nnbd_mode = args[5];
   args[5] = cache;
   args[6] = Smi::New(kTypeCheckFromInline);
-  args[7] = nnbd_mode;
-  args[8] = 0;  // Unused result.
-  Exit(thread, FP, args + 9, pc);
-  NativeArguments native_args(thread, 8, args, args + 8);
+  args[7] = 0;  // Unused result.
+  Exit(thread, FP, args + 8, pc);
+  NativeArguments native_args(thread, 7, args, args + 7);
   return InvokeRuntime(thread, this, DRT_TypeCheck, native_args);
 }
 
@@ -1264,17 +1245,17 @@ bool Interpreter::AssertAssignableField(Thread* thread,
   RawAbstractType* field_type = field->ptr()->type_;
   // Perform type test of value if field type is not one of dynamic, object,
   // or void, and if the value is not null.
-  // TODO(regis): Provide nnbd mode to check field and revisit top type test.
   if (field_type->GetClassId() == kTypeCid) {
     classid_t cid = Smi::Value(reinterpret_cast<RawSmi*>(
         Type::RawCast(field_type)->ptr()->type_class_id_));
+    // TODO(regis): Revisit shortcut for NNBD.
     if (cid == kDynamicCid || cid == kInstanceCid || cid == kVoidCid) {
       return true;
     }
   }
   RawObject* null_value = Object::null();
   if (value == null_value) {
-    // TODO(regis): Provide nnbd mode to check field and revisit null shortcut.
+    // TODO(regis): Revisit null shortcut for NNBD.
     return true;
   }
 
@@ -1309,8 +1290,7 @@ bool Interpreter::AssertAssignableField(Thread* thread,
   SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
   SP[4] = null_value;  // Implicit setters cannot be generic.
   SP[5] = is_getter ? Symbols::FunctionResult().raw() : field->ptr()->name_;
-  SP[6] = Smi::New(static_cast<intptr_t>(NNBDMode::kLegacyLib));
-  return AssertAssignable(thread, pc, FP, /* call_top */ SP + 6,
+  return AssertAssignable(thread, pc, FP, /* call_top */ SP + 5,
                           /* args */ SP + 1, cache);
 }
 
@@ -1762,11 +1742,10 @@ SwitchDispatch:
     SP[1] = type;
     SP[2] = SP[-1];
     SP[3] = SP[0];
-    SP[4] = InterpreterHelpers::NnbdMode(FP);
-    Exit(thread, FP, SP + 5, pc);
+    Exit(thread, FP, SP + 4, pc);
     {
       INVOKE_RUNTIME(DRT_InstantiateType,
-                     NativeArguments(thread, 4, SP + 1, SP - 1));
+                     NativeArguments(thread, 3, SP + 1, SP - 1));
     }
     SP -= 1;
     DISPATCH();
@@ -1780,7 +1759,6 @@ SwitchDispatch:
 
     RawObject* instantiator_type_args = SP[-1];
     RawObject* function_type_args = SP[0];
-    RawObject* nnbd_mode_as_smi = InterpreterHelpers::NnbdMode(FP);
     // If both instantiators are null and if the type argument vector
     // instantiated from null becomes a vector of dynamic, then use null as
     // the type arguments.
@@ -1798,10 +1776,7 @@ SwitchDispatch:
              instantiator_type_args) &&
             (instantiations->ptr()->data()
                  [i + TypeArguments::Instantiation::kFunctionTypeArgsIndex] ==
-             function_type_args) &&
-            (instantiations->ptr()
-                 ->data()[i + TypeArguments::Instantiation::kNnbdModeIndex] ==
-             nnbd_mode_as_smi)) {
+             function_type_args)) {
           // Found in the cache.
           SP[-1] =
               instantiations->ptr()->data()[i + TypeArguments::Instantiation::
@@ -1814,11 +1789,10 @@ SwitchDispatch:
       SP[1] = type_arguments;
       SP[2] = instantiator_type_args;
       SP[3] = function_type_args;
-      SP[4] = nnbd_mode_as_smi;
 
-      Exit(thread, FP, SP + 5, pc);
+      Exit(thread, FP, SP + 4, pc);
       INVOKE_RUNTIME(DRT_InstantiateTypeArguments,
-                     NativeArguments(thread, 4, SP + 1, SP - 1));
+                     NativeArguments(thread, 3, SP + 1, SP - 1));
     }
 
   InstantiateTypeArgumentsTOSDone:
@@ -2637,8 +2611,7 @@ SwitchDispatch:
       RawSubtypeTestCache* cache =
           static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rE));
 
-      SP[1] = InterpreterHelpers::NnbdMode(FP);
-      if (!AssertAssignable(thread, pc, FP, SP + 1, args, cache)) {
+      if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -2660,19 +2633,16 @@ SwitchDispatch:
     //     args[3]  super_type
     //     args[4]  name
 
-    SP++;
-    SP[0] = InterpreterHelpers::NnbdMode(FP);
-
     // This is unused, since the negative case throws an exception.
     SP++;
     RawObject** result_slot = SP;
 
     Exit(thread, FP, SP + 1, pc);
     INVOKE_RUNTIME(DRT_SubtypeCheck,
-                   NativeArguments(thread, 6, args, result_slot));
+                   NativeArguments(thread, 5, args, result_slot));
 
     // Drop result slot and all arguments.
-    SP -= 7;
+    SP -= 6;
 
     DISPATCH();
   }
@@ -3570,8 +3540,6 @@ SwitchDispatch:
     RawInstance* receiver =
         Instance::RawCast(FrameArguments(FP, argc)[receiver_idx]);
     SP[5] = InterpreterHelpers::GetTypeArguments(thread, receiver);
-    // TODO(regis): Provide correct nnbd mode.
-    RawSmi* nnbd_mode = Smi::New(static_cast<intptr_t>(NNBDMode::kLegacyLib));
 
     if (type_args_len > 0) {
       SP[6] = FrameArguments(FP, argc)[0];
@@ -3582,10 +3550,9 @@ SwitchDispatch:
         SP[7] = SP[6];       // type_arguments
         SP[8] = SP[5];       // instantiator_type_args
         SP[9] = null_value;  // function_type_args
-        SP[10] = nnbd_mode;
-        Exit(thread, FP, SP + 11, pc);
+        Exit(thread, FP, SP + 10, pc);
         INVOKE_RUNTIME(DRT_InstantiateTypeArguments,
-                       NativeArguments(thread, 4, SP + 7, SP + 7));
+                       NativeArguments(thread, 3, SP + 7, SP + 7));
         SP[6] = SP[7];
       }
     }
@@ -3605,8 +3572,7 @@ SwitchDispatch:
         // SP[5]: Instantiator type args.
         // SP[6]: Function type args.
         SP[7] = check->ptr()->name_;
-        SP[8] = nnbd_mode;
-        if (!AssertAssignable(thread, pc, FP, SP + 8, SP + 3,
+        if (!AssertAssignable(thread, pc, FP, SP + 7, SP + 3,
                               check->ptr()->cache_)) {
           HANDLE_EXCEPTION;
         }
@@ -3618,11 +3584,10 @@ SwitchDispatch:
         SP[7] = check->ptr()->param_;
         SP[8] = check->ptr()->type_or_bound_;
         SP[9] = check->ptr()->name_;
-        SP[10] = nnbd_mode;
-        SP[11] = 0;
-        Exit(thread, FP, SP + 12, pc);
+        SP[10] = 0;
+        Exit(thread, FP, SP + 11, pc);
         INVOKE_RUNTIME(DRT_SubtypeCheck,
-                       NativeArguments(thread, 6, SP + 5, SP + 11));
+                       NativeArguments(thread, 5, SP + 5, SP + 10));
       }
 
       checks = Array::RawCast(SP[1]);  // Reload after runtime call.

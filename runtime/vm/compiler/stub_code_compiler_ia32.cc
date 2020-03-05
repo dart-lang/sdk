@@ -1167,88 +1167,102 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ ret();
 }
 
+// Helper to generate space allocation of context stub.
+// This does not initialise the fields of the context.
+// Input:
+// EDX: number of context variables.
+// Output:
+// EAX: new allocated RawContext object.
+// Clobbered:
+// EBX
+static void GenerateAllocateContextSpaceStub(Assembler* assembler,
+                                             Label* slow_case) {
+  // First compute the rounded instance size.
+  // EDX: number of context variables.
+  intptr_t fixed_size_plus_alignment_padding =
+      (target::Context::header_size() +
+       target::ObjectAlignment::kObjectAlignment - 1);
+  __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
+  __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
+
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, EAX, slow_case,
+                                         Assembler::kFarJump));
+
+  // Now allocate the object.
+  // EDX: number of context variables.
+  __ movl(EAX, Address(THR, target::Thread::top_offset()));
+  __ addl(EBX, EAX);
+  // Check if the allocation fits into the remaining space.
+  // EAX: potential new object.
+  // EBX: potential next object start.
+  // EDX: number of context variables.
+  __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
+  if (FLAG_use_slow_path) {
+    __ jmp(slow_case);
+  } else {
+#if defined(DEBUG)
+    static const bool kJumpLength = Assembler::kFarJump;
+#else
+    static const bool kJumpLength = Assembler::kNearJump;
+#endif  // DEBUG
+    __ j(ABOVE_EQUAL, slow_case, kJumpLength);
+  }
+
+  // Successfully allocated the object, now update top to point to
+  // next object start and initialize the object.
+  // EAX: new object.
+  // EBX: next object start.
+  // EDX: number of context variables.
+  __ movl(Address(THR, target::Thread::top_offset()), EBX);
+  // EBX: Size of allocation in bytes.
+  __ subl(EBX, EAX);
+  __ addl(EAX, Immediate(kHeapObjectTag));
+  // Generate isolate-independent code to allow sharing between isolates.
+
+  // Calculate the size tag.
+  // EAX: new object.
+  // EDX: number of context variables.
+  {
+    Label size_tag_overflow, done;
+    __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
+    __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
+    __ cmpl(EBX, Immediate(target::RawObject::kSizeTagMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shll(EBX, Immediate(target::RawObject::kTagBitsSizeTagPos -
+                           target::ObjectAlignment::kObjectAlignmentLog2));
+    __ jmp(&done);
+
+    __ Bind(&size_tag_overflow);
+    // Set overflow size tag value.
+    __ movl(EBX, Immediate(0));
+
+    __ Bind(&done);
+    // EAX: new object.
+    // EDX: number of context variables.
+    // EBX: size and bit tags.
+    uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
+    __ orl(EBX, Immediate(tags));
+    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
+  }
+
+  // Setup up number of context variables field.
+  // EAX: new object.
+  // EDX: number of context variables as integer value (not object).
+  __ movl(FieldAddress(EAX, target::Context::num_variables_offset()), EDX);
+}
+
 // Called for inline allocation of contexts.
 // Input:
 // EDX: number of context variables.
 // Output:
 // EAX: new allocated RawContext object.
-// EBX and EDX are destroyed.
+// Clobbered:
+// EBX, EDX
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   if (FLAG_inline_alloc) {
     Label slow_case;
-    // First compute the rounded instance size.
-    // EDX: number of context variables.
-    intptr_t fixed_size_plus_alignment_padding =
-        (target::Context::header_size() +
-         target::ObjectAlignment::kObjectAlignment - 1);
-    __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
-    __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
-    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, EAX, &slow_case,
-                                           Assembler::kFarJump));
-
-    // Now allocate the object.
-    // EDX: number of context variables.
-    const intptr_t cid = kContextCid;
-    __ movl(EAX, Address(THR, target::Thread::top_offset()));
-    __ addl(EBX, EAX);
-    // Check if the allocation fits into the remaining space.
-    // EAX: potential new object.
-    // EBX: potential next object start.
-    // EDX: number of context variables.
-    __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
-    if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
-    } else {
-#if defined(DEBUG)
-      static const bool kJumpLength = Assembler::kFarJump;
-#else
-      static const bool kJumpLength = Assembler::kNearJump;
-#endif  // DEBUG
-      __ j(ABOVE_EQUAL, &slow_case, kJumpLength);
-    }
-
-    // Successfully allocated the object, now update top to point to
-    // next object start and initialize the object.
-    // EAX: new object.
-    // EBX: next object start.
-    // EDX: number of context variables.
-    __ movl(Address(THR, target::Thread::top_offset()), EBX);
-    // EBX: Size of allocation in bytes.
-    __ subl(EBX, EAX);
-    __ addl(EAX, Immediate(kHeapObjectTag));
-    // Generate isolate-independent code to allow sharing between isolates.
-
-    // Calculate the size tag.
-    // EAX: new object.
-    // EDX: number of context variables.
-    {
-      Label size_tag_overflow, done;
-      __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
-      __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
-      __ cmpl(EBX, Immediate(target::RawObject::kSizeTagMaxSizeTag));
-      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(EBX, Immediate(target::RawObject::kTagBitsSizeTagPos -
-                             target::ObjectAlignment::kObjectAlignmentLog2));
-      __ jmp(&done);
-
-      __ Bind(&size_tag_overflow);
-      // Set overflow size tag value.
-      __ movl(EBX, Immediate(0));
-
-      __ Bind(&done);
-      // EAX: new object.
-      // EDX: number of context variables.
-      // EBX: size and bit tags.
-      uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
-      __ orl(EBX, Immediate(tags));
-      __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
-    }
-
-    // Setup up number of context variables field.
-    // EAX: new object.
-    // EDX: number of context variables as integer value (not object).
-    __ movl(FieldAddress(EAX, target::Context::num_variables_offset()), EDX);
+    GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
     // Setup the parent field.
     // EAX: new object.
@@ -1288,6 +1302,80 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ SmiTag(EDX);
   __ pushl(EDX);
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
+  __ popl(EAX);  // Pop number of context variables argument.
+  __ popl(EAX);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+
+  // EAX: new object
+  // Restore the frame pointer.
+  __ LeaveFrame();
+
+  __ ret();
+}
+
+// Called for clone of contexts.
+// Input:
+//   ECX: context variable.
+// Output:
+//   EAX: new allocated RawContext object.
+// Clobbered:
+//   EBX, ECX, EDX
+void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
+  {
+    Label slow_case;
+
+    // Load num. variable in the existing context.
+    __ movl(EDX, FieldAddress(ECX, target::Context::num_variables_offset()));
+
+    GenerateAllocateContextSpaceStub(assembler, &slow_case);
+
+    // Setup the parent field.
+    // EAX: new object.
+    // ECX: old object to clone.
+    __ movl(EBX, FieldAddress(ECX, target::Context::parent_offset()));
+    __ StoreIntoObjectNoBarrier(
+        EAX, FieldAddress(EAX, target::Context::parent_offset()), EBX);
+
+    // Initialize the context variables.
+    // EAX: new context.
+    // ECX: context to clone.
+    // EDX: number of context variables.
+    {
+      Label loop, entry;
+      __ jmp(&entry, Assembler::kNearJump);
+
+      __ Bind(&loop);
+      __ decl(EDX);
+
+      __ movl(EBX, FieldAddress(ECX, EDX, TIMES_4,
+                                target::Context::variable_offset(0)));
+      __ StoreIntoObjectNoBarrier(
+          EAX,
+          FieldAddress(EAX, EDX, TIMES_4, target::Context::variable_offset(0)),
+          EBX);
+
+      __ Bind(&entry);
+      __ cmpl(EDX, Immediate(0));
+      __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+    }
+
+    // Done allocating and initializing the context.
+    // EAX: new object.
+    __ ret();
+
+    __ Bind(&slow_case);
+  }
+
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ pushl(Immediate(0));  // Setup space on stack for return value.
+  __ pushl(ECX);
+  __ CallRuntime(kCloneContextRuntimeEntry, 1);  // Allocate context.
   __ popl(EAX);  // Pop number of context variables argument.
   __ popl(EAX);  // Pop the new context object.
 

@@ -535,17 +535,42 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameter(String name,
-      {ExecutableElement methodBeingCopied, DartType type}) {
+      {ExecutableElement methodBeingCopied,
+      String nameGroupName,
+      DartType type,
+      String typeGroupName}) {
+    bool writeType() {
+      if (typeGroupName != null) {
+        bool hasType;
+        addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
+          hasType = _writeType(type, methodBeingCopied: methodBeingCopied);
+          builder.addSuperTypesAsSuggestions(type);
+        });
+        return hasType;
+      }
+      return _writeType(type, methodBeingCopied: methodBeingCopied);
+    }
+
+    void writeName() {
+      if (nameGroupName != null) {
+        addLinkedEdit(nameGroupName, (DartLinkedEditBuilder builder) {
+          write(name);
+        });
+      } else {
+        write(name);
+      }
+    }
+
     if (type != null) {
-      bool hasType = _writeType(type, methodBeingCopied: methodBeingCopied);
+      bool hasType = writeType();
       if (name.isNotEmpty) {
         if (hasType) {
           write(' ');
         }
-        write(name);
+        writeName();
       }
     } else {
-      write(name);
+      writeName();
     }
   }
 
@@ -576,6 +601,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
       {ExecutableElement methodBeingCopied}) {
+    var parameterNames = <String>{};
+    for (int i = 0; i < parameters.length; i++) {
+      var name = parameters.elementAt(i).name;
+      if (name.isNotEmpty) {
+        parameterNames.add(name);
+      }
+    }
+
     write('(');
     bool sawNamed = false;
     bool sawPositional = false;
@@ -597,8 +630,16 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       }
       // parameter
-      writeParameter(parameter.name,
-          methodBeingCopied: methodBeingCopied, type: parameter.type);
+      var name = parameter.name;
+      if (name.isEmpty) {
+        name = _generateUniqueName(parameterNames, 'p');
+        parameterNames.add(name);
+      }
+      writeParameter(name,
+          methodBeingCopied: methodBeingCopied,
+          nameGroupName: 'PARAM$i',
+          type: parameter.type,
+          typeGroupName: 'TYPE$i');
       // default value
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
@@ -801,6 +842,18 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         _addSuperTypeProposals(builder, interfaceType, alreadyAdded);
       }
     }
+  }
+
+  /// Generate a name that does not occur in [existingNames] that begins with
+  /// the given [prefix].
+  String _generateUniqueName(Set<String> existingNames, String prefix) {
+    var index = 1;
+    var name = '$prefix$index';
+    while (existingNames.contains(name)) {
+      index++;
+      name = '$prefix$index';
+    }
+    return name;
   }
 
   String _getBaseNameFromExpression(Expression expression) {

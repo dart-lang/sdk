@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show jsonEncode;
+
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/region_renderer.dart';
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
@@ -27,6 +29,6 @@ class RegionPage extends PreviewPage {
     var region = unitInfo.regionAt(int.parse(params['offset']));
     var renderer =
         RegionRenderer(region, unitInfo, site.migrationInfo, site.pathMapper);
-    buf.write(renderer.render());
+    buf.write(jsonEncode(renderer.render().toJson()));
   }
 }

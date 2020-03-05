@@ -208,9 +208,6 @@ class BytecodeFlowGraphBuilder {
   }
   const Function& function() const { return parsed_function()->function(); }
 
-  // The NNBD mode to use when compiling type tests.
-  NNBDMode nnbd_mode() const { return function().nnbd_mode(); }
-
   BaseFlowGraphBuilder* flow_graph_builder_;
   Zone* zone_;
   bool is_generating_interpreter_;

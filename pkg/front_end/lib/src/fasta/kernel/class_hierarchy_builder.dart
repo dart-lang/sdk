@@ -643,18 +643,7 @@ class ClassHierarchyNodeBuilder {
     } else if (a.isSetter) {
       return inferSetterType(hierarchy, a, b);
     }
-    bool hadTypesInferred = a.hadTypesInferred;
-    ClassBuilder aClassBuilder = a.classBuilder;
-    Substitution aSubstitution;
-    if (classBuilder != aClassBuilder) {
-      assert(
-          substitutions.containsKey(aClassBuilder.cls),
-          "${classBuilder.fullNameForErrors} "
-          "${aClassBuilder.fullNameForErrors}");
-      aSubstitution = substitutions[aClassBuilder.cls];
-      debug?.log("${classBuilder.fullNameForErrors} -> "
-          "${aClassBuilder.fullNameForErrors} $aSubstitution");
-    }
+    int hadTypesInferredFrom = a.hadTypesInferredFrom;
     ClassBuilder bClassBuilder = b.classBuilder;
     Substitution bSubstitution;
     if (classBuilder != bClassBuilder) {
@@ -708,10 +697,6 @@ class ClassHierarchyNodeBuilder {
       }
     }
 
-    DartType aReturnType = aFunction.returnType;
-    if (aSubstitution != null) {
-      aReturnType = aSubstitution.substituteType(aReturnType);
-    }
     DartType bReturnType = bFunction.returnType;
     if (bSubstitution != null) {
       bReturnType = bSubstitution.substituteType(bReturnType);
@@ -719,7 +704,7 @@ class ClassHierarchyNodeBuilder {
     if (substitution != null) {
       bReturnType = substitution.substituteType(bReturnType);
     }
-    bool result = true;
+    bool hasSameSignature = true;
     if (aFunction.requiredParameterCount > bFunction.requiredParameterCount) {
       debug?.log("Giving up 4");
       return false;
@@ -731,47 +716,50 @@ class ClassHierarchyNodeBuilder {
       return false;
     }
 
-    if (aReturnType != bReturnType) {
-      if (a.classBuilder == classBuilder && a.returnType == null) {
-        result = inferReturnType(
-            classBuilder, a, bReturnType, hadTypesInferred, hierarchy);
-      } else {
-        debug?.log("Giving up 6");
-        result = false;
-      }
+    if (a.classBuilder == classBuilder && a.returnType == null) {
+      hasSameSignature = inferReturnType(
+          classBuilder,
+          a,
+          bReturnType,
+          hadTypesInferredFrom,
+          SourceProcedureMember.inferredTypesFromMethod,
+          hierarchy);
+    } else {
+      debug?.log("Giving up 6");
+      hasSameSignature = false;
     }
 
     for (int i = 0; i < bPositional.length; i++) {
       VariableDeclaration aParameter = aPositional[i];
       VariableDeclaration bParameter = bPositional[i];
       copyParameterCovariance(a.classBuilder, aParameter, bParameter);
-      DartType aType = aParameter.type;
-      if (aSubstitution != null) {
-        aType = aSubstitution.substituteType(aType);
-      }
-      DartType bType = bParameter.type;
-      if (bSubstitution != null) {
-        bType = bSubstitution.substituteType(bType);
-      }
-      if (substitution != null) {
-        bType = substitution.substituteType(bType);
-      }
-      if (hierarchy
-              .coreTypes.objectClass.enclosingLibrary.isNonNullableByDefault &&
-          !a.classBuilder.library.isNonNullableByDefault &&
-          bProcedure == hierarchy.coreTypes.objectEquals) {
-        // In legacy code we special case `Object.==` to infer `dynamic` instead
-        // `Object!`.
-        bType = const DynamicType();
-      }
-      if (aType != bType) {
-        if (a.classBuilder == classBuilder && a.formals[i].type == null) {
-          result = inferParameterType(classBuilder, a, a.formals[i], bType,
-              hadTypesInferred, hierarchy);
-        } else {
-          debug?.log("Giving up 8");
-          result = false;
+      if (a.classBuilder == classBuilder && a.formals[i].type == null) {
+        DartType bType = bParameter.type;
+        if (bSubstitution != null) {
+          bType = bSubstitution.substituteType(bType);
         }
+        if (substitution != null) {
+          bType = substitution.substituteType(bType);
+        }
+        if (hierarchy.coreTypes.objectClass.enclosingLibrary
+                .isNonNullableByDefault &&
+            !a.classBuilder.library.isNonNullableByDefault &&
+            bProcedure == hierarchy.coreTypes.objectEquals) {
+          // In legacy code we special case `Object.==` to infer `dynamic`
+          // instead `Object!`.
+          bType = const DynamicType();
+        }
+        hasSameSignature &= inferParameterType(
+            classBuilder,
+            a,
+            a.formals[i],
+            bType,
+            hadTypesInferredFrom,
+            SourceProcedureMember.inferredTypesFromMethod,
+            hierarchy);
+      } else {
+        debug?.log("Giving up 8");
+        hasSameSignature = false;
       }
     }
 
@@ -781,13 +769,13 @@ class ClassHierarchyNodeBuilder {
     if (aNamed.isNotEmpty || bNamed.isNotEmpty) {
       if (aPositional.length != bPositional.length) {
         debug?.log("Giving up 9");
-        result = false;
+        hasSameSignature = false;
         break named;
       }
       if (aFunction.requiredParameterCount !=
           bFunction.requiredParameterCount) {
         debug?.log("Giving up 10");
-        result = false;
+        hasSameSignature = false;
         break named;
       }
 
@@ -801,54 +789,74 @@ class ClassHierarchyNodeBuilder {
         }
         if (aCount == aNamed.length) {
           debug?.log("Giving up 11");
-          result = false;
+          hasSameSignature = false;
           break named;
+        }
+        FormalParameterBuilder parameter;
+        for (int i = aPositional.length; i < a.formals.length; ++i) {
+          if (a.formals[i].name == name) {
+            parameter = a.formals[i];
+            break;
+          }
         }
         VariableDeclaration aParameter = aNamed[aCount];
         VariableDeclaration bParameter = bNamed[bCount];
         copyParameterCovariance(a.classBuilder, aParameter, bParameter);
-        DartType aType = aParameter.type;
-        if (aSubstitution != null) {
-          aType = aSubstitution.substituteType(aType);
-        }
-        DartType bType = bParameter.type;
-        if (bSubstitution != null) {
-          bType = bSubstitution.substituteType(bType);
-        }
-        if (substitution != null) {
-          bType = substitution.substituteType(bType);
-        }
-        if (aType != bType) {
-          FormalParameterBuilder parameter;
-          for (int i = aPositional.length; i < a.formals.length; ++i) {
-            if (a.formals[i].name == name) {
-              parameter = a.formals[i];
-              break;
-            }
+
+        if (a.classBuilder == classBuilder && parameter.type == null) {
+          DartType bType = bParameter.type;
+          if (bSubstitution != null) {
+            bType = bSubstitution.substituteType(bType);
           }
-          if (a.classBuilder == classBuilder && parameter.type == null) {
-            result = inferParameterType(
-                classBuilder, a, parameter, bType, hadTypesInferred, hierarchy);
-          } else {
-            debug?.log("Giving up 12");
-            result = false;
+          if (substitution != null) {
+            bType = substitution.substituteType(bType);
           }
+          hasSameSignature &= inferParameterType(
+              classBuilder,
+              a,
+              parameter,
+              bType,
+              hadTypesInferredFrom,
+              SourceProcedureMember.inferredTypesFromMethod,
+              hierarchy);
+        } else {
+          debug?.log("Giving up 12");
+          hasSameSignature = false;
         }
       }
     }
     debug?.log("Inferring types for ${a.fullName} based on ${b.fullName} " +
-        (result ? "succeeded." : "failed."));
-    return result;
+        (hasSameSignature ? "succeeded." : "failed."));
+    return hasSameSignature;
   }
 
   bool inferGetterType(
       ClassHierarchyBuilder hierarchy, SourceProcedureMember a, ClassMember b) {
     debug?.log(
         "Inferring getter types for ${a.fullName} based on ${b.fullName}");
+    int hadTypesInferredFrom = a.hadTypesInferredFrom;
+    ClassBuilder bClassBuilder = b.classBuilder;
+    Substitution bSubstitution;
+    if (classBuilder != bClassBuilder) {
+      assert(
+          substitutions.containsKey(bClassBuilder.cls),
+          "No substitution found for '${classBuilder.fullNameForErrors}' as "
+          "instance of '${bClassBuilder.fullNameForErrors}'. Substitutions "
+          "available for: ${substitutions.keys}");
+      bSubstitution = substitutions[bClassBuilder.cls];
+      debug?.log("${classBuilder.fullNameForErrors} -> "
+          "${bClassBuilder.fullNameForErrors} $bSubstitution");
+    }
     Member bTarget = b.getMember(hierarchy);
     DartType bType;
+    int inferTypesFrom;
     if (bTarget is Field) {
       bType = bTarget.type;
+      if (bType is ImplicitFieldType) {
+        debug?.log("Giving up (type may be inferred)");
+        return false;
+      }
+      inferTypesFrom = SourceProcedureMember.inferredTypesFromField;
     } else if (bTarget is Procedure) {
       if (b.isSetter) {
         VariableDeclaration bParameter =
@@ -858,12 +866,14 @@ class ClassHierarchyNodeBuilder {
           debug?.log("Giving up (type may be inferred)");
           return false;
         }
+        inferTypesFrom = SourceProcedureMember.inferredTypesFromSetter;
       } else if (b.isGetter) {
         bType = bTarget.function.returnType;
         if (!b.hasExplicitReturnType) {
           debug?.log("Giving up (return type may be inferred)");
           return false;
         }
+        inferTypesFrom = SourceProcedureMember.inferredTypesFromGetter;
       } else {
         debug?.log("Giving up (not accessor: ${bTarget.kind})");
         return false;
@@ -872,40 +882,65 @@ class ClassHierarchyNodeBuilder {
       debug?.log("Giving up (not field/procedure: ${bTarget.runtimeType})");
       return false;
     }
-    Procedure procedure = a.getMember(hierarchy);
-    return procedure.function.returnType == bType;
+    if (a.classBuilder == classBuilder && a.returnType == null) {
+      if (bSubstitution != null) {
+        bType = bSubstitution.substituteType(bType);
+      }
+      return inferReturnType(classBuilder, a, bType, hadTypesInferredFrom,
+          inferTypesFrom, hierarchy);
+    }
+    return false;
   }
 
   bool inferSetterType(
       ClassHierarchyBuilder hierarchy, SourceProcedureMember a, ClassMember b) {
     debug?.log(
         "Inferring setter types for ${a.fullName} based on ${b.fullName}");
+    int hadTypesInferredFrom = a.hadTypesInferredFrom;
+    ClassBuilder bClassBuilder = b.classBuilder;
+    Substitution bSubstitution;
+    if (classBuilder != bClassBuilder) {
+      assert(
+          substitutions.containsKey(bClassBuilder.cls),
+          "No substitution found for '${classBuilder.fullNameForErrors}' as "
+          "instance of '${bClassBuilder.fullNameForErrors}'. Substitutions "
+          "available for: ${substitutions.keys}");
+      bSubstitution = substitutions[bClassBuilder.cls];
+      debug?.log("${classBuilder.fullNameForErrors} -> "
+          "${bClassBuilder.fullNameForErrors} $bSubstitution");
+    }
     Member bTarget = b.getMember(hierarchy);
     Procedure aProcedure = a.getMember(hierarchy);
     VariableDeclaration aParameter =
         aProcedure.function.positionalParameters.single;
     DartType bType;
+    int inferTypesFrom;
     if (bTarget is Field) {
       bType = bTarget.type;
       copyParameterCovarianceFromField(a.classBuilder, aParameter, bTarget);
-    }
-    if (bTarget is Procedure) {
+      if (bType is ImplicitFieldType) {
+        debug?.log("Giving up (type may be inferred)");
+        return false;
+      }
+      inferTypesFrom = SourceProcedureMember.inferredTypesFromField;
+    } else if (bTarget is Procedure) {
       if (b.isSetter) {
         VariableDeclaration bParameter =
             bTarget.function.positionalParameters.single;
         bType = bParameter.type;
         copyParameterCovariance(a.classBuilder, aParameter, bParameter);
-        if (!b.hasExplicitlyTypedFormalParameter(0) ||
-            !a.hasExplicitlyTypedFormalParameter(0)) {
+        if (!b.hasExplicitlyTypedFormalParameter(0)) {
           debug?.log("Giving up (type may be inferred)");
           return false;
         }
+        inferTypesFrom = SourceProcedureMember.inferredTypesFromSetter;
       } else if (b.isGetter) {
         bType = bTarget.function.returnType;
         if (!b.hasExplicitReturnType) {
           debug?.log("Giving up (return type may be inferred)");
           return false;
         }
+        inferTypesFrom = SourceProcedureMember.inferredTypesFromGetter;
       } else {
         debug?.log("Giving up (not accessor: ${bTarget.kind})");
         return false;
@@ -914,7 +949,15 @@ class ClassHierarchyNodeBuilder {
       debug?.log("Giving up (not field/procedure: ${bTarget.runtimeType})");
       return false;
     }
-    return aParameter.type == bType;
+    FormalParameterBuilder parameter = a.formals.first;
+    if (a.classBuilder == classBuilder && parameter.type == null) {
+      if (bSubstitution != null) {
+        bType = bSubstitution.substituteType(bType);
+      }
+      return inferParameterType(classBuilder, a, parameter, bType,
+          hadTypesInferredFrom, inferTypesFrom, hierarchy);
+    }
+    return false;
   }
 
   void checkValidOverride(ClassMember a, ClassMember b) {
@@ -2219,16 +2262,20 @@ class DelayedOverrideCheck {
     if (classBuilder == a.classBuilder) {
       if (a is SourceProcedureMember) {
         if (a.isGetter && !a.hasExplicitReturnType) {
+          int inferTypesFrom;
           DartType type;
           if (b.isGetter) {
             Procedure bTarget = bMember;
             type = bTarget.function.returnType;
+            inferTypesFrom = SourceProcedureMember.inferredTypesFromGetter;
           } else if (b.isSetter) {
             Procedure bTarget = bMember;
             type = bTarget.function.positionalParameters.single.type;
+            inferTypesFrom = SourceProcedureMember.inferredTypesFromSetter;
           } else if (b.isField) {
             Field bTarget = bMember;
             type = bTarget.type;
+            inferTypesFrom = SourceProcedureMember.inferredTypesFromField;
           }
           if (type != null) {
             type = Substitution.fromInterfaceType(
@@ -2238,22 +2285,24 @@ class DelayedOverrideCheck {
                         bMember.enclosingClass,
                         classBuilder.library.library))
                 .substituteType(type);
-            if (!a.hadTypesInferred || !b.isSetter) {
-              inferReturnType(
-                  classBuilder, a, type, a.hadTypesInferred, hierarchy);
-            }
+            inferReturnType(classBuilder, a, type, a.hadTypesInferredFrom,
+                inferTypesFrom, hierarchy);
           }
         } else if (a.isSetter && !a.hasExplicitlyTypedFormalParameter(0)) {
+          int inferTypesFrom;
           DartType type;
           if (b.isGetter) {
             Procedure bTarget = bMember;
             type = bTarget.function.returnType;
+            inferTypesFrom = SourceProcedureMember.inferredTypesFromGetter;
           } else if (b.isSetter) {
             Procedure bTarget = bMember;
             type = bTarget.function.positionalParameters.single.type;
+            inferTypesFrom = SourceProcedureMember.inferredTypesFromSetter;
           } else if (b.isField) {
             Field bTarget = bMember;
             type = bTarget.type;
+            inferTypesFrom = SourceProcedureMember.inferredTypesFromField;
           }
           if (type != null) {
             type = Substitution.fromInterfaceType(
@@ -2263,13 +2312,10 @@ class DelayedOverrideCheck {
                         bMember.enclosingClass,
                         classBuilder.library.library))
                 .substituteType(type);
-            if (!a.hadTypesInferred || !b.isGetter) {
-              inferParameterType(classBuilder, a, a.formals.single, type,
-                  a.hadTypesInferred, hierarchy);
-            }
+            inferParameterType(classBuilder, a, a.formals.single, type,
+                a.hadTypesInferredFrom, inferTypesFrom, hierarchy);
           }
         }
-        a.hadTypesInferred = true;
       } else if (a is SourceFieldMember && a.type == null) {
         DartType type;
         if (b.isGetter) {
@@ -2608,23 +2654,48 @@ class InterfaceConflict extends DelayedMember {
       return combinedMemberSignatureResult =
           declarations.first.getMember(hierarchy);
     }
+    bool isNonNullableByDefault = classBuilder.library.isNonNullableByDefault;
     DartType thisType = hierarchy.coreTypes
         .thisInterfaceType(classBuilder.cls, classBuilder.library.nonNullable);
+    List<DartType> candidateTypes = new List<DartType>(declarations.length);
     ClassMember bestSoFar;
+    int bestSoFarIndex;
     DartType bestTypeSoFar;
-    for (int i = declarations.length - 1; i >= 0; i--) {
-      ClassMember candidate = declarations[i];
+    Map<DartType, int> mutualSubtypes;
+    for (int candidateIndex = declarations.length - 1;
+        candidateIndex >= 0;
+        candidateIndex--) {
+      ClassMember candidate = declarations[candidateIndex];
       Member target = candidate.getMember(hierarchy);
       assert(target != null,
           "No member computed for ${candidate} (${candidate.runtimeType})");
       DartType candidateType = computeMemberType(hierarchy, thisType, target);
+      if (!isNonNullableByDefault) {
+        candidateType = legacyErasure(hierarchy.coreTypes, candidateType);
+      }
+      candidateTypes[candidateIndex] = candidateType;
       if (bestSoFar == null) {
         bestSoFar = candidate;
         bestTypeSoFar = candidateType;
+        bestSoFarIndex = candidateIndex;
       } else {
         if (isMoreSpecific(hierarchy, candidateType, bestTypeSoFar)) {
           debug?.log("Combined Member Signature: ${candidate.fullName} "
               "${candidateType} <: ${bestSoFar.fullName} ${bestTypeSoFar}");
+          if (isNonNullableByDefault &&
+              isMoreSpecific(hierarchy, bestTypeSoFar, candidateType)) {
+            if (mutualSubtypes == null) {
+              mutualSubtypes = {
+                bestTypeSoFar: bestSoFarIndex,
+                candidateType: candidateIndex
+              };
+            } else {
+              mutualSubtypes[candidateType] = candidateIndex;
+            }
+          } else {
+            mutualSubtypes = null;
+          }
+          bestSoFarIndex = candidateIndex;
           bestSoFar = candidate;
           bestTypeSoFar = candidateType;
         } else {
@@ -2635,10 +2706,11 @@ class InterfaceConflict extends DelayedMember {
     }
     if (bestSoFar != null) {
       debug?.log("Combined Member Signature bestSoFar: ${bestSoFar.fullName}");
-      for (int i = 0; i < declarations.length; i++) {
-        ClassMember candidate = declarations[i];
-        Member target = candidate.getMember(hierarchy);
-        DartType candidateType = computeMemberType(hierarchy, thisType, target);
+      for (int candidateIndex = 0;
+          candidateIndex < declarations.length;
+          candidateIndex++) {
+        ClassMember candidate = declarations[candidateIndex];
+        DartType candidateType = candidateTypes[candidateIndex];
         if (!isMoreSpecific(hierarchy, bestTypeSoFar, candidateType)) {
           debug?.log("Combined Member Signature: "
               "${bestSoFar.fullName} !<: ${candidate.fullName}");
@@ -2653,6 +2725,7 @@ class InterfaceConflict extends DelayedMember {
           } else {
             bestSoFar = null;
             bestTypeSoFar = null;
+            mutualSubtypes = null;
           }
           break;
         }
@@ -2694,7 +2767,13 @@ class InterfaceConflict extends DelayedMember {
       debug?.log("Combined Member Signature of ${fullNameForErrors}: new "
           "ForwardingNode($classBuilder, $bestSoFar, $declarations, $kind)");
       Member stub = new ForwardingNode(
-              hierarchy, classBuilder, bestSoFar, declarations, kind)
+              hierarchy,
+              classBuilder,
+              bestSoFar,
+              bestSoFarIndex,
+              declarations,
+              kind,
+              mutualSubtypes?.values?.toSet())
           .finalize();
       if (classBuilder.cls == stub.enclosingClass) {
         classBuilder.cls.addMember(stub);
@@ -2705,11 +2784,7 @@ class InterfaceConflict extends DelayedMember {
         }
         debug?.log("Combined Member Signature of ${fullNameForErrors}: "
             "added stub $stub");
-        if (classBuilder.isMixinApplication) {
-          return combinedMemberSignatureResult = bestMemberSoFar;
-        } else {
-          return combinedMemberSignatureResult = stub;
-        }
+        return combinedMemberSignatureResult = stub;
       }
     }
 
@@ -2797,8 +2872,8 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
     if (modifyKernel) {
       // This call will add a body to the abstract method if needed for
       // isGenericCovariantImpl checks.
-      new ForwardingNode(
-              hierarchy, classBuilder, abstractMember, declarations, kind)
+      new ForwardingNode(hierarchy, classBuilder, abstractMember, 1,
+              declarations, kind, null)
           .finalize();
     }
     return abstractMember.getMember(hierarchy);
@@ -2862,35 +2937,58 @@ bool inferParameterType(
     SourceProcedureMember memberBuilder,
     FormalParameterBuilder parameterBuilder,
     DartType type,
-    bool hadTypesInferred,
+    int hadTypesInferredFrom,
+    int inferTypesFrom,
     ClassHierarchyBuilder hierarchy) {
+  if ((hadTypesInferredFrom & SourceProcedureMember.inferredTypesFromSetter) !=
+          0 &&
+      (inferTypesFrom & SourceProcedureMember.inferredTypesFromSetter) == 0) {
+    // Parameter type already inferred from setter; disregard getters.
+    return false;
+  }
+
   debug?.log("Inferred type ${type} for ${parameterBuilder}");
 
   if (classBuilder.library.isNonNullableByDefault) {
-    if (hadTypesInferred) {
+    if ((hadTypesInferredFrom & inferTypesFrom) != 0) {
       type = nnbdTopMerge(
-          hierarchy.coreTypes, parameterBuilder.variable.type, type);
+          hierarchy.coreTypes,
+          norm(hierarchy.coreTypes, parameterBuilder.variable.type),
+          norm(hierarchy.coreTypes, type));
       if (type != null) {
         // The nnbd top merge exists so [type] is the inferred type.
         parameterBuilder.variable.type = type;
-        return true;
+        return false;
       }
       // The nnbd top merge doesn't exist. An error will be reported below.
     }
   } else {
     type = legacyErasure(hierarchy.coreTypes, type);
+    if ((hadTypesInferredFrom & inferTypesFrom) != 0) {
+      if (parameterBuilder.variable.type is DynamicType &&
+          type == hierarchy.coreTypes.objectLegacyRawType) {
+        return false;
+      } else if (type is DynamicType &&
+          parameterBuilder.variable.type ==
+              hierarchy.coreTypes.objectLegacyRawType) {
+        parameterBuilder.variable.type = const DynamicType();
+        return false;
+      }
+    }
   }
 
-  if (type == parameterBuilder.variable.type) return true;
-  bool result = true;
-  if (hadTypesInferred) {
+  if ((hadTypesInferredFrom & inferTypesFrom) != 0) {
+    if (type == parameterBuilder.variable.type) {
+      return true;
+    }
     reportCantInferParameterType(classBuilder, parameterBuilder, hierarchy);
-    type = const InvalidType();
-    result = false;
+    parameterBuilder.variable.type = const InvalidType();
+    return false;
+  } else {
+    parameterBuilder.variable.type = type;
+    memberBuilder.hadTypesInferredFrom |= inferTypesFrom;
+    return true;
   }
-  parameterBuilder.variable.type = type;
-  memberBuilder.hadTypesInferred = true;
-  return result;
 }
 
 void reportCantInferParameterType(ClassBuilder cls,
@@ -2903,20 +3001,62 @@ void reportCantInferParameterType(ClassBuilder cls,
       wasHandled: true);
 }
 
-bool inferReturnType(ClassBuilder cls, SourceProcedureMember procedureBuilder,
-    DartType type, bool hadTypesInferred, ClassHierarchyBuilder hierarchy) {
-  Procedure procedure = procedureBuilder.getMember(hierarchy);
-  if (type == procedure.function.returnType) return true;
-  bool result = true;
-  if (hadTypesInferred) {
-    reportCantInferReturnType(cls, procedureBuilder, hierarchy);
-    type = const InvalidType();
-    result = false;
-  } else {
-    procedureBuilder.hadTypesInferred = true;
+bool inferReturnType(
+    ClassBuilder classBuilder,
+    SourceProcedureMember procedureBuilder,
+    DartType type,
+    int hadTypesInferredFrom,
+    int inferTypesFrom,
+    ClassHierarchyBuilder hierarchy) {
+  if ((hadTypesInferredFrom & SourceProcedureMember.inferredTypesFromGetter) !=
+          0 &&
+      (inferTypesFrom & SourceProcedureMember.inferredTypesFromGetter) == 0) {
+    // Return type already inferred from getter; disregard setters.
+    return false;
   }
-  procedure.function.returnType = type;
-  return result;
+
+  Procedure procedure = procedureBuilder.getMember(hierarchy);
+
+  if (classBuilder.library.isNonNullableByDefault) {
+    if ((hadTypesInferredFrom & inferTypesFrom) != 0) {
+      type = nnbdTopMerge(
+          hierarchy.coreTypes,
+          norm(hierarchy.coreTypes, procedure.function.returnType),
+          norm(hierarchy.coreTypes, type));
+      if (type != null) {
+        // The nnbd top merge exists so [type] is the inferred type.
+        procedure.function.returnType = type;
+        return false;
+      }
+      // The nnbd top merge doesn't exist. An error will be reported below.
+    }
+  } else {
+    type = legacyErasure(hierarchy.coreTypes, type);
+    if ((hadTypesInferredFrom & inferTypesFrom) != 0) {
+      if (procedure.function.returnType is DynamicType &&
+          type == hierarchy.coreTypes.objectLegacyRawType) {
+        return false;
+      } else if (type is DynamicType &&
+          procedure.function.returnType ==
+              hierarchy.coreTypes.objectLegacyRawType) {
+        procedure.function.returnType = const DynamicType();
+        return false;
+      }
+    }
+  }
+
+  if ((hadTypesInferredFrom & inferTypesFrom) != 0) {
+    if (type == procedure.function.returnType) {
+      return true;
+    }
+    reportCantInferReturnType(classBuilder, procedureBuilder, hierarchy);
+    procedure.function.returnType = const InvalidType();
+    return false;
+  } else {
+    procedureBuilder.hadTypesInferredFrom |= inferTypesFrom;
+    procedure.function.returnType = type;
+    return true;
+  }
 }
 
 void reportCantInferReturnType(

@@ -36,7 +36,6 @@ void f(List<int> l) {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40578')
   Future<void> test_named_withArgs() async {
     await resolveTestUnit('''
 void f(String s) {
@@ -45,7 +44,7 @@ void f(String s) {
 ''');
     await assertHasFix('''
 void f(String s) {
-  s.splitMapJoin('', onNonMatch: (String nonMatch) => null);
+  s.splitMapJoin('', onNonMatch: (String p1) => null);
 }
 ''');
   }

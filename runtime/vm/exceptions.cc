@@ -390,6 +390,101 @@ void CatchEntryMove::WriteTo(WriteStream* stream) {
 }
 #endif
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+const char* CatchEntryMove::ToCString() const {
+  char from[256];
+
+  switch (source_kind()) {
+    case SourceKind::kConstant:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "pp[%" Pd "]", src_slot());
+      break;
+
+    case SourceKind::kTaggedSlot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "fp[%" Pd "]", src_slot());
+      break;
+
+    case SourceKind::kDoubleSlot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f64 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kFloat32x4Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f32x4 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kFloat64x2Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f64x2 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kInt32x4Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i32x4 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kInt64PairSlot:
+      Utils::SNPrint(from, ARRAY_SIZE(from),
+                     "i64 ([fp + %" Pd "], [fp + %" Pd "])",
+                     src_lo_slot() * compiler::target::kWordSize,
+                     src_hi_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kInt64Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i64 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kInt32Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i32 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    case SourceKind::kUint32Slot:
+      Utils::SNPrint(from, ARRAY_SIZE(from), "u32 [fp + %" Pd "]",
+                     src_slot() * compiler::target::kWordSize);
+      break;
+
+    default:
+      UNREACHABLE();
+  }
+
+  return Thread::Current()->zone()->PrintToString("fp[%" Pd "] <- %s",
+                                                  dest_slot(), from);
+}
+
+void CatchEntryMovesMapReader::PrintEntries() {
+  NoSafepointScope no_safepoint;
+
+  using Reader = ReadStream::Raw<sizeof(intptr_t), intptr_t>;
+
+  ReadStream stream(static_cast<uint8_t*>(bytes_.DataAddr(0)), bytes_.Length());
+
+  while (stream.PendingBytes() > 0) {
+    const intptr_t stream_position = stream.Position();
+    const intptr_t target_pc_offset = Reader::Read(&stream);
+    const intptr_t prefix_length = Reader::Read(&stream);
+    const intptr_t suffix_length = Reader::Read(&stream);
+    const intptr_t length = prefix_length + suffix_length;
+    Reader::Read(&stream);  // Skip suffix_offset
+    for (intptr_t j = 0; j < prefix_length; j++) {
+      CatchEntryMove::ReadFrom(&stream);
+    }
+
+    ReadStream inner_stream(static_cast<uint8_t*>(bytes_.DataAddr(0)),
+                            bytes_.Length());
+    CatchEntryMoves* moves = ReadCompressedCatchEntryMovesSuffix(
+        &inner_stream, stream_position, length);
+    THR_Print("  [code+0x%08" Px "]: (% " Pd " moves)\n", target_pc_offset,
+              moves->count());
+    for (intptr_t i = 0; i < moves->count(); i++) {
+      THR_Print("    %s\n", moves->At(i).ToCString());
+    }
+    CatchEntryMoves::Free(moves);
+  }
+}
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
 CatchEntryMoves* CatchEntryMovesMapReader::ReadMovesForPcOffset(
     intptr_t pc_offset) {
   NoSafepointScope no_safepoint;

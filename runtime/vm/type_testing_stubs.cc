@@ -269,8 +269,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
         /*exclude_null=*/!Instance::NullIsAssignableTo(type));
 
     const Type& int_type = Type::Handle(Type::IntType());
-    const bool smi_is_ok =
-        int_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kNew);
+    const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     instance_reg, smi_is_ok);
@@ -358,7 +357,7 @@ void TypeTestingStubGenerator::
   // uncommon because most Dart code in 2.0 will be strongly typed)!
   __ CompareObject(instance_type_args_reg, Object::null_object());
   const Type& rare_type = Type::Handle(Type::RawCast(type_class.RareType()));
-  if (rare_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kNew)) {
+  if (rare_type.IsSubtypeOf(type, Heap::kNew)) {
     compiler::Label process_done;
     __ BranchIf(NOT_EQUAL, &process_done);
     __ Ret();
@@ -463,12 +462,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
   // We don't need to check nullability of LHS for nullable and legacy RHS
   // ("Right Legacy", "Right Nullable" rules).
   if (FLAG_null_safety && !type_arg.IsNullable() && !type_arg.IsLegacy()) {
-    ASSERT((type_arg.IsTypeParameter() && type_arg.IsUndetermined()) ||
-           type_arg.IsNonNullable());
-
     compiler::Label skip_nullable_check;
-    if (type_arg.IsUndetermined()) {
-      ASSERT(type_arg.IsTypeParameter());
+    if (type_arg.IsTypeParameter()) {
       // Skip the nullability check if actual RHS is nullable or legacy.
       // TODO(dartbug.com/40736): Allocate register for own_type_arg_reg
       //  which is not clobbered and avoid reloading own_type_arg_reg.
@@ -501,7 +496,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
                                   compiler::target::Nullability::kNullable);
     __ BranchIf(EQUAL, check_failed);
 
-    if (type_arg.IsUndetermined()) {
+    if (type_arg.IsTypeParameter()) {
       __ Bind(&skip_nullable_check);
     }
   }

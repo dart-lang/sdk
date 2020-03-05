@@ -1112,6 +1112,22 @@ void g(List<int> x) {
         checkable: false);
   }
 
+  Future<void> test_assignment_code_reference() async {
+    await analyze('''
+void f(int i) {
+  int j = i;
+}
+''');
+    var edge = assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int j').node,
+        hard: true);
+    var codeReference = edge.codeReference;
+    expect(codeReference, isNotNull);
+    expect(codeReference.path, contains('test.dart'));
+    expect(codeReference.line, 2);
+    expect(codeReference.column, 11);
+  }
+
   Future<void> test_assignmentExpression_compound_dynamic() async {
     await analyze('''
 void f(dynamic x, int y) {
@@ -7111,6 +7127,9 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
 
 class _TestEdgeOrigin implements EdgeOrigin {
   const _TestEdgeOrigin();
+
+  @override
+  CodeReference get codeReference => null;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

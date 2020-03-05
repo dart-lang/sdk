@@ -284,11 +284,15 @@ int? f([num? a]) {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C<T extends Object> {}
 
-C<int/*?*/> c;
+void f() {
+  C<int/*?*/> c = null;
+}
 ''', migratedContent: '''
 class C<T extends Object?> {}
 
-C<int?/*?*/>? c;
+void f() {
+  C<int?/*?*/>? c = null;
+}
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(3));
@@ -490,6 +494,7 @@ void g() {
         details: ['This is later required to accept null.']);
   }
 
+  @FailingTest(issue: 'https://dartbug.com/40587')
   Future<void> test_exactNullable_exactNullable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void g(List<int> list1, List<int> list2) {
@@ -507,8 +512,6 @@ void g(List<int?> list1, List<int?> list2) {
     // regions[0] is the hard edge that list1 is unconditionally indexed
     assertRegion(region: regions[1], offset: 15, details: [
       "An explicit 'null' is assigned in the function 'g'",
-      // TODO(mfairhurst): Fix this bug.
-      'exact nullable node with no info (Substituted(type(32), migrated))'
     ]);
     // regions[2] is the hard edge that list2 is unconditionally indexed
     assertRegion(
@@ -853,27 +856,25 @@ class C {
   Future<void> test_insertedRequired_parameter() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
-  int level;
+  int level = 0;
   bool f({int lvl}) => lvl >= level;
 }
 ''', migratedContent: '''
 class C {
-  int? level;
-  bool f({required int lvl}) => lvl >= level!;
+  int level = 0;
+  bool f({required int lvl}) => lvl >= level;
 }
 ''');
     List<RegionInfo> regions = unit.fixRegions;
-    expect(regions, hasLength(3));
-    // regions[0] is the `int? s` fix.
-    var region = regions[1];
+    expect(regions, hasLength(1));
+    var region = regions[0];
     var edits = region.edits;
-    assertRegion(region: region, offset: 34, length: 9, details: [
+    assertRegion(region: region, offset: 37, length: 9, details: [
       'This parameter is non-nullable, so cannot have an implicit default '
           "value of 'null'"
     ]);
     assertEdit(
-        edit: edits[0], offset: 33, length: 0, replacement: '@required ');
-    // regions[2] is the `level!` fix.
+        edit: edits[0], offset: 37, length: 0, replacement: '@required ');
   }
 
   Future<void> test_insertParens() async {
@@ -1334,6 +1335,7 @@ class B extends A {
         details: ['A nullable value is assigned']);
   }
 
+  @FailingTest(issue: 'https://dartbug.com/40773')
   Future<void> test_parameter_fromOverriddenField_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
@@ -1355,8 +1357,8 @@ void f(A a) => a.m = null;
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(region: regions[0], offset: 15, details: [
-      // TODO(srawlins): I suspect this should be removed...
-      'A nullable value is assigned',
+      // TODO(mfairhurst): Implement something similar to this error message
+      'No initializer is given',
       "An explicit 'null' is assigned in the function 'f'",
     ]);
     assertRegion(region: regions[1], offset: 61, details: [
@@ -1496,7 +1498,7 @@ void f(num n, int?/*?*/ i) {
     assertRegion(
         region: regions[2],
         offset: migratedContent.indexOf('! + 1'),
-        details: ['node with no info (never)']);
+        details: ['This value must be null-checked before use here.']);
   }
 
   Future<void> test_return_fromOverriden() async {
@@ -1743,6 +1745,26 @@ class C {
     assertDetail(detail: region.details[0], offset: 25, length: 1);
     assertDetail(detail: region.details[1], offset: 34, length: 3);
     assertDetail(detail: region.details[2], offset: 70, length: 3);
+  }
+
+  @FailingTest(issue: 'https://dartbug.com/40773')
+  Future<void> test_uninitializedMember() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int level;
+}
+''', migratedContent: '''
+class C {
+  int? level;
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    expect(regions[0].details, isNotEmpty);
+    // disabled so that it won't interfere with @FailingTest annotation.
+    //assertRegion(region: regions[0], offset: 15, length: 1, details: [
+    //  'This field is not initialized and is therefore made nullable'
+    //]);
   }
 
   Future<void> test_uninitializedVariable_notLate_uninitializedUse() async {

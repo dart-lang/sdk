@@ -40,12 +40,12 @@ void main() {
   checkSubtype(generic1(Invariant, Object), generic1(Invariant, dynamic));
 
   // Invariant<FutureOr<dynamic>> <:> Invariant<dynamic>
-  checkSubtype(generic1(Invariant, generic1(FutureOr, dynamic)), generic1(Invariant, dynamic));
-  checkSubtype(generic1(Invariant, dynamic), generic1(Invariant, generic1(FutureOr, dynamic)));
+  checkSubtype(generic1(Invariant, futureOrOf(dynamic)), generic1(Invariant, dynamic));
+  checkSubtype(generic1(Invariant, dynamic), generic1(Invariant, futureOrOf(dynamic)));
 
   // Invariant<FutureOr<Null>> <:> Invariant<Future<Null>>
-  checkSubtype(generic1(Invariant, generic1(FutureOr, Null)), generic1(Invariant, generic1(Future, Null)));
-  checkSubtype(generic1(Invariant, generic1(Future, Null)), generic1(Invariant, generic1(FutureOr, Null)));
+  checkSubtype(generic1(Invariant, futureOrOf(Null)), generic1(Invariant, generic1(Future, Null)));
+  checkSubtype(generic1(Invariant, generic1(Future, Null)), generic1(Invariant, futureOrOf(Null)));
 
   // LegacyCovariant<Lower> <: LegacyCovariant<Middle>
   checkProperSubtype(generic1(LegacyCovariant, Lower), generic1(LegacyCovariant, Middle));

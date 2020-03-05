@@ -4692,12 +4692,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     ErrorCode errorCode;
-    if (operator.type == TokenType.QUESTION_PERIOD ||
-        operator.type == TokenType.QUESTION_PERIOD_PERIOD ||
-        operator.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
-      errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL;
+    List<Object> arguments = const [];
+    if (operator.type == TokenType.QUESTION_PERIOD) {
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      arguments = [operator.lexeme, '.'];
+    } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      arguments = [operator.lexeme, '..'];
+    } else if (operator.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      arguments = [operator.lexeme, '['];
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
-      errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD;
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      arguments = [operator.lexeme, '...'];
     } else if (operator.type == TokenType.BANG) {
       errorCode = StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION;
     } else {
@@ -4705,7 +4712,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_typeSystem.isStrictlyNonNullable(target.staticType)) {
-      _errorReporter.reportErrorForToken(errorCode, operator, []);
+      _errorReporter.reportErrorForToken(errorCode, operator, arguments);
     }
   }
 

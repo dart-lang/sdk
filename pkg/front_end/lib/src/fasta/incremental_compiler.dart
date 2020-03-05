@@ -88,6 +88,12 @@ import 'source/source_class_builder.dart' show SourceClassBuilder;
 
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
+import 'util/experiment_environment_getter.dart'
+    show
+        getExperimentEnvironment,
+        enableExperimentKeyInvalidation,
+        enableExperimentKeyInvalidationSerialization;
+
 import 'util/textual_outline.dart' show textualOutline;
 
 import 'fasta_codes.dart'
@@ -143,6 +149,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<Component> modulesToLoad;
   IncrementalSerializer incrementalSerializer;
   bool useExperimentalInvalidation = false;
+  bool useExperimentalInvalidationSerialization = false;
 
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
@@ -156,7 +163,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       : ticker = context.options.ticker,
         initializeFromDillUri = null,
         this.outlineOnly = outlineOnly ?? false,
-        this.incrementalSerializer = incrementalSerializer;
+        this.incrementalSerializer = incrementalSerializer {
+    enableExperimentsBasedOnEnvironment();
+  }
 
   IncrementalCompiler(this.context,
       [this.initializeFromDillUri,
@@ -165,7 +174,23 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       : ticker = context.options.ticker,
         componentToInitializeFrom = null,
         this.outlineOnly = outlineOnly ?? false,
-        this.incrementalSerializer = incrementalSerializer;
+        this.incrementalSerializer = incrementalSerializer {
+    enableExperimentsBasedOnEnvironment();
+  }
+
+  void enableExperimentsBasedOnEnvironment() {
+    // Note that these are all experimental. Use at your own risk.
+    Set<String> enabledExperiments = getExperimentEnvironment();
+    if (enabledExperiments.contains(enableExperimentKeyInvalidation)) {
+      useExperimentalInvalidation = true;
+    }
+    if (useExperimentalInvalidation) {
+      if (enabledExperiments
+          .contains(enableExperimentKeyInvalidationSerialization)) {
+        useExperimentalInvalidationSerialization = true;
+      }
+    }
+  }
 
   @override
   Future<Component> computeDelta(
@@ -435,13 +460,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<Library> compiledLibraries,
       Map<Uri, Source> uriToSource) {
     if (experimentalInvalidation != null) {
-      // Make sure "compiledLibraries" contains what it would have, had we not
-      // only re-done the bodies, but invalidated everything.
-      experimentalInvalidation.originalNotReusedLibraries
-          .removeAll(experimentalInvalidation.rebuildBodies);
-      for (LibraryBuilder builder
-          in experimentalInvalidation.originalNotReusedLibraries) {
-        compiledLibraries.add(builder.library);
+      if (!useExperimentalInvalidationSerialization) {
+        // Make sure "compiledLibraries" contains what it would have, had we not
+        // only re-done the bodies, but invalidated everything.
+        experimentalInvalidation.originalNotReusedLibraries
+            .removeAll(experimentalInvalidation.rebuildBodies);
+        for (LibraryBuilder builder
+            in experimentalInvalidation.originalNotReusedLibraries) {
+          compiledLibraries.add(builder.library);
+        }
       }
 
       // uriToSources are created in the outline stage which we skipped for

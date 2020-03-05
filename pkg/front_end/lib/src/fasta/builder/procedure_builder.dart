@@ -45,8 +45,6 @@ abstract class ProcedureBuilder implements FunctionBuilder {
 
   Procedure get actualProcedure;
 
-  bool hadTypesInferred;
-
   @override
   ProcedureBuilder get origin;
 
@@ -77,9 +75,6 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
 
   @override
   Procedure get actualProcedure => _procedure;
-
-  @override
-  bool hadTypesInferred = false;
 
   /// If this is an extension instance method then [_extensionTearOff] holds
   /// the synthetically created tear off function.
@@ -533,11 +528,22 @@ class SourceProcedureMember extends BuilderClassMember {
 
   TypeBuilder get returnType => memberBuilder.returnType;
 
-  bool get hadTypesInferred => memberBuilder.hadTypesInferred;
+  static const int inferredTypesFromMethod = 3;
+  static const int inferredTypesFromField = 3;
+  static const int inferredTypesFromGetter = 1;
+  static const int inferredTypesFromSetter = 2;
 
-  void set hadTypesInferred(bool value) {
-    memberBuilder.hadTypesInferred = value;
-  }
+  /// Bit mask showing where types have been inferred from.
+  ///
+  /// The mask uses the values [inferredTypesFromMethod],
+  /// [inferredTypesFromField], [inferredTypesFromGetter],
+  /// [inferredTypesFromSetter].
+  ///
+  /// It is used to detect whether types have already been inferred and in
+  /// getter type inference to favor types from getters over types from
+  /// setters, and in setter type inference to favor types from setters over
+  /// types from getters.
+  int hadTypesInferredFrom = 0;
 
   @override
   bool get hasExplicitReturnType {

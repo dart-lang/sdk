@@ -709,7 +709,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       return 0;
     }
     if (_status != connectedStatus) return 0;
-    offset ??= 0;
     bytes ??= data.length - offset;
 
     int written =

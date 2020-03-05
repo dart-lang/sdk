@@ -632,6 +632,9 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     offset = parameterized_function.NumParentTypeParameters();
     nnbd_mode = parameterized_function.nnbd_mode();
   }
+  const Nullability nullability = (nnbd_mode == NNBDMode::kOptedInLib)
+                                      ? Nullability::kNonNullable
+                                      : Nullability::kLegacy;
 
   // First setup the type parameters, so if any of the following code uses it
   // (in a recursive way) we're fine.
@@ -645,9 +648,10 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   for (intptr_t i = 0; i < num_type_params; ++i) {
     name ^= ReadObject();
     ASSERT(name.IsSymbol());
-    parameter = TypeParameter::New(
-        parameterized_class, parameterized_function, i, name, bound,
-        /* is_generic_covariant_impl = */ false, TokenPosition::kNoSource);
+    parameter = TypeParameter::New(parameterized_class, parameterized_function,
+                                   i, name, bound,
+                                   /* is_generic_covariant_impl = */ false,
+                                   nullability, TokenPosition::kNoSource);
     parameter.set_index(offset + i);
     parameter.SetIsFinalized();
     type_parameters.SetTypeAt(i, parameter);
@@ -682,19 +686,6 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     // when function subtyping is fixed.
     if (bound.IsDynamicType()) {
       bound = I->object_store()->object_type();
-      if (nnbd_mode == NNBDMode::kOptedInLib) {
-        parameter =
-            parameter.ToNullability(Nullability::kUndetermined, Heap::kOld);
-        type_parameters.SetTypeAt(i, parameter);
-      }
-    } else {
-      if (nnbd_mode == NNBDMode::kOptedInLib) {
-        parameter = parameter.ToNullability(bound.IsNullable()
-                                                ? Nullability::kUndetermined
-                                                : Nullability::kNonNullable,
-                                            Heap::kOld);
-        type_parameters.SetTypeAt(i, parameter);
-      }
     }
     parameter.set_bound(bound);
   }
@@ -1536,7 +1527,8 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     case kType: {
       const intptr_t tag = (flags & kTagMask) / kFlagBit0;
       const Nullability nullability =
-          static_cast<Nullability>((flags & kNullabilityMask) / kFlagBit4);
+          Reader::ConvertNullability(static_cast<KernelNullability>(
+              (flags & kNullabilityMask) / kFlagBit4));
       return ReadType(tag, nullability);
     }
     default:

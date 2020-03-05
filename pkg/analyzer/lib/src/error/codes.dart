@@ -8110,6 +8110,19 @@ class StaticWarningCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
+   * Parameters:
+   * 0: The null-aware operator that is invalid
+   * 1: The non-null-aware operator that can replace the invalid operator
+   */
+  static const StaticWarningCode INVALID_NULL_AWARE_OPERATOR =
+      StaticWarningCode(
+          'INVALID_NULL_AWARE_OPERATOR',
+          "The target expression can't be null, so the null-aware operator "
+              "'{0}' can't be used.",
+          correction: "Try replace the operator '{0}' with '{1}'.",
+          errorSeverity: ErrorSeverity.WARNING);
+
+  /**
    * 7.1 Instance Methods: It is a static warning if an instance method
    * <i>m1</i> overrides an instance member <i>m2</i>, the signature of
    * <i>m2</i> explicitly specifies a default value for a formal parameter
@@ -9124,28 +9137,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
           "The '!' will have no effect because the target expression cannot be"
               " null.",
           correction: "Try removing the '!' operator here.",
-          errorSeverity: ErrorSeverity.WARNING);
-
-  /**
-   * When the '?.' operator is used on a target that we know to be non-null,
-   * it is unnecessary.
-   */
-  static const StaticWarningCode UNNECESSARY_NULL_AWARE_CALL =
-      StaticWarningCode('UNNECESSARY_NULL_AWARE_CALL',
-          "The target expression can't be null, and so '?.' isn't necessary.",
-          correction: "Try replacing the '?.' with a '.' in the invocation.",
-          errorSeverity: ErrorSeverity.WARNING);
-
-  /**
-   * When the '...?' operator is used on a value that we know to be non-null,
-   * it is unnecessary.
-   */
-  static const StaticWarningCode UNNECESSARY_NULL_AWARE_SPREAD =
-      StaticWarningCode(
-          'UNNECESSARY_NULL_AWARE_SPREAD',
-          "The target expression can't be null, so it isn't necessary to use "
-              "the null-aware spread operator '...?'.",
-          correction: "Try replacing the '...?' with a '...' in the spread.",
           errorSeverity: ErrorSeverity.WARNING);
 
   /**

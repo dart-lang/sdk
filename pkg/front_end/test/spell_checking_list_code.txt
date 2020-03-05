@@ -862,6 +862,7 @@ rf
 rhs
 ri
 rightmost
+risk
 rn
 rnystrom
 role
@@ -902,6 +903,7 @@ shadowed
 shallow
 shas
 shelf
+showing
 shrinking
 shru
 si
@@ -942,6 +944,7 @@ spend
 spuriously
 sq
 sra
+srawlins
 src
 st
 stability

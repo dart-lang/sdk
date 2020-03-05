@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
+import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
@@ -41,6 +42,12 @@ class InfoBuilder {
   /// The listener used to gather the changes to be applied.
   final DartFixListener listener;
 
+  /// The dartfix adapter, which can be used to report exceptions that occur.
+  final NullabilityMigrationAdapter adapter;
+
+  /// The [NullabilityMigration] instance for this migration.
+  final NullabilityMigration migration;
+
   /// A flag indicating whether types that were not changed (because they should
   /// be non-nullable) should be explained.
   final bool explainNonNullableTypes;
@@ -51,6 +58,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
+      this.adapter, this.migration,
       // TODO(srawlins): Re-enable once
       //  https://github.com/dart-lang/sdk/issues/40253 is fixed.
       {this.explainNonNullableTypes = false});
@@ -272,6 +280,7 @@ class InfoBuilder {
       return capitalize(
           '$nullableValue is assigned in $enclosingMemberDescription');
     } else {
+      assert(false, 'no enclosing member description');
       return capitalize('$nullableValue is assigned');
     }
   }
@@ -395,9 +404,10 @@ class InfoBuilder {
                   _proximateTargetForNode(
                       nodeInfo.filePath, nodeInfo.astNode)));
             } else {
-              details.add(RegionDetail(
-                  'exact nullable node with no info ($exactNullableDownstream)',
-                  null));
+              final description =
+                  'exact nullable node with no info ($exactNullableDownstream)';
+              assert(false, description);
+              details.add(RegionDetail(description, null));
             }
           }
         }
@@ -408,23 +418,29 @@ class InfoBuilder {
             details.add(
                 _buildDetailForOrigin(origin, edge, fixInfo.description.kind));
           } else {
-            details.add(
-                RegionDetail('upstream edge with no origin ($edge)', null));
+            final description = 'upstream edge with no origin ($edge)';
+            assert(false, description);
+            details.add(RegionDetail(description, null));
           }
         }
       } else if (reason is EdgeInfo) {
         NullabilityNodeInfo destination = reason.destinationNode;
         NodeInformation nodeInfo = info.nodeInfoFor(destination);
-        if (nodeInfo != null && nodeInfo.astNode != null) {
+        EdgeOriginInfo edge = info.edgeOrigin[reason];
+        if (destination == info.never) {
+          details.add(RegionDetail(_describeNonNullEdge(edge), null));
+        } else if (nodeInfo != null && nodeInfo.astNode != null) {
           NavigationTarget target;
-          if (destination != info.never && destination != info.always) {
+          if (destination != info.always) {
             target =
                 _proximateTargetForNode(nodeInfo.filePath, nodeInfo.astNode);
           }
-          EdgeOriginInfo edge = info.edgeOrigin[reason];
           details.add(RegionDetail(_describeNonNullEdge(edge), target));
         } else {
-          details.add(RegionDetail('node with no info ($destination)', null));
+          // Likely an assignment to a migrated type.
+          final description = 'node with no info ($destination)';
+          assert(false, description);
+          details.add(RegionDetail(description, null));
         }
       } else {
         throw UnimplementedError(
@@ -504,6 +520,7 @@ class InfoBuilder {
       if (origin == null) {
         // TODO(srawlins): I think this shouldn't happen? But it does on the
         //  collection and path packages.
+        assert(false, 'edge with no origin $edge');
         continue;
       }
       NavigationTarget target =
@@ -606,7 +623,18 @@ class InfoBuilder {
         String explanation = info?.description?.appliedMessage;
         List<EditDetail> edits =
             info != null ? _computeEdits(info, sourceOffset) : [];
-        List<RegionDetail> details = _computeDetails(edit);
+        List<RegionDetail> details;
+        try {
+          details = _computeDetails(edit);
+        } catch (e, st) {
+          // TODO(mfairhurst): get the correct Source, and an AstNode.
+          if (migration.isPermissive) {
+            adapter.reportException(result.libraryElement.source, null, e, st);
+            details = [];
+          } else {
+            rethrow;
+          }
+        }
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         if (explanation != null) {
           if (length > 0) {

@@ -39,7 +39,18 @@ main(List<String> args) {
       suffix: '<id>',
       help: 'Print details about a node',
       argParser: ArgParser(),
-    )
+    ),
+    Subcommand(
+      name: 'trace',
+      suffix: '<id>',
+      help: 'Print a trace of why a node was made nullable/non-nullable',
+      argParser: ArgParser(),
+    ),
+    Subcommand(
+      name: 'trace_lengths',
+      help: 'Print the lengths of all traces',
+      argParser: ArgParser(),
+    ),
   ];
 
   for (var subcommand in subcommands) {
@@ -75,11 +86,39 @@ main(List<String> args) {
       reader.graph.debugDump();
       break;
     case 'steps':
-      for (var step in reader.upstreamPropagationSteps) {
+      for (var step in reader.propagationSteps) {
         print(step.toString(idMapper: reader.idMapper));
       }
-      for (var step in reader.downstreamPropagationSteps) {
-        print(step.toString(idMapper: reader.idMapper));
+      break;
+    case 'trace':
+      var nodes = command.rest;
+      if (nodes.length != 1) {
+        print('Must specify exactly one node id after "node"');
+        exit(1);
+      }
+      var id = int.parse(nodes[0]);
+      var node = reader.deserializer.nodeForId(id);
+      for (var step in reader.propagationSteps) {
+        if (step is DownstreamPropagationStep &&
+            identical(node, step.targetNode)) {
+          print('Trace');
+          int i = 0;
+          while (step != null) {
+            var codeReference = step.codeReference;
+            var codeReferencePrefix =
+                codeReference == null ? '' : '$codeReference: ';
+            print('#${i++}\t$codeReferencePrefix$step');
+            step = step.principalCause;
+          }
+        }
+      }
+      break;
+    case 'trace_lengths':
+      for (var step in reader.propagationSteps) {
+        if (step is DownstreamPropagationStep) {
+          print('trace length ${_traceLength(step)} for node id '
+              '${reader.deserializer.idForNode(step.targetNode)}');
+        }
       }
       break;
     case 'files':
@@ -132,10 +171,27 @@ main(List<String> args) {
             (edge as NullabilityEdge).toString(idMapper: reader.idMapper);
         print('  $description');
       }
+      if (node is NullabilityNodeCompound) {
+        var componentsByName = node.componentsByName;
+        print('Components:');
+        for (var entry in componentsByName.entries) {
+          var description = entry.value.toString(idMapper: reader.idMapper);
+          print('  ${entry.key}: $description');
+        }
+      }
       break;
     default:
       throw StateError('Unrecognized command: $command');
   }
+}
+
+int _traceLength(PropagationStep step) {
+  int traceLength = 0;
+  while (step != null) {
+    traceLength++;
+    step = step.principalCause;
+  }
+  return traceLength;
 }
 
 class Subcommand {

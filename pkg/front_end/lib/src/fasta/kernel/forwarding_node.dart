@@ -32,6 +32,7 @@ import "package:kernel/type_algebra.dart" show Substitution;
 
 import "package:kernel/src/legacy_erasure.dart";
 import "package:kernel/src/nnbd_top_merge.dart";
+import "package:kernel/src/norm.dart";
 
 import "../source/source_class_builder.dart";
 
@@ -51,14 +52,27 @@ class ForwardingNode {
 
   final ClassMember combinedMemberSignatureResult;
 
+  /// The index of [combinedMemberSignatureResult] in [_candidates].
+  final int _combinedMemberIndex;
+
   final ProcedureKind kind;
 
   /// A list containing the directly implemented and directly inherited
   /// procedures of the class in question.
   final List<ClassMember> _candidates;
 
-  ForwardingNode(this.hierarchy, this.classBuilder,
-      this.combinedMemberSignatureResult, this._candidates, this.kind);
+  /// The indices of the [_candidates] whose types need to be merged to compute
+  /// the resulting member type.
+  final Set<int> _mergeIndices;
+
+  ForwardingNode(
+      this.hierarchy,
+      this.classBuilder,
+      this.combinedMemberSignatureResult,
+      this._combinedMemberIndex,
+      this._candidates,
+      this.kind,
+      this._mergeIndices);
 
   Name get name => combinedMemberSignatureResult.name;
 
@@ -171,36 +185,51 @@ class ForwardingNode {
         : substitution.substituteType(type).accept(needsCheckVisitor);
     bool isNonNullableByDefault = classBuilder.library.isNonNullableByDefault;
 
-    DartType initialType(DartType a) {
-      if (!isNonNullableByDefault) {
-        a = legacyErasure(hierarchy.coreTypes, a);
+    DartType initialType(int candidateIndex, DartType a) {
+      if (isNonNullableByDefault) {
+        if (_mergeIndices != null && _mergeIndices.contains(candidateIndex)) {
+          return norm(hierarchy.coreTypes, a);
+        } else {
+          return a;
+        }
+      } else {
+        return legacyErasure(hierarchy.coreTypes, a);
       }
-      return a;
     }
 
-    DartType mergeTypes(DartType a, DartType b) {
+    DartType mergeTypes(int index, DartType a, DartType b) {
       if (a == null) return null;
-      if (!isNonNullableByDefault) {
-        b = legacyErasure(hierarchy.coreTypes, b);
+      if (isNonNullableByDefault &&
+          _mergeIndices != null &&
+          _mergeIndices.contains(index)) {
+        return nnbdTopMerge(
+            hierarchy.coreTypes, a, norm(hierarchy.coreTypes, b));
+      } else {
+        return a;
       }
-      return nnbdTopMerge(hierarchy.coreTypes, a, b);
     }
 
-    for (int i = 0; i < interfacePositionalParameters.length; i++) {
-      VariableDeclaration parameter = interfacePositionalParameters[i];
+    for (int parameterIndex = 0;
+        parameterIndex < interfacePositionalParameters.length;
+        parameterIndex++) {
+      VariableDeclaration parameter =
+          interfacePositionalParameters[parameterIndex];
       DartType parameterType = substitution.substituteType(parameter.type);
-      DartType type = initialType(parameterType);
+      DartType type = initialType(_combinedMemberIndex, parameterType);
       bool isGenericCovariantImpl =
           parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       bool isCovariant = parameter.isCovariant;
       VariableDeclaration superParameter = parameter;
-      for (int j = 0; j < _candidates.length; j++) {
-        Member otherMember = getCandidateAt(j);
+      for (int candidateIndex = 0;
+          candidateIndex < _candidates.length;
+          candidateIndex++) {
+        Member otherMember = getCandidateAt(candidateIndex);
         List<VariableDeclaration> otherPositionalParameters =
             getPositionalParameters(otherMember);
-        if (otherPositionalParameters.length <= i) continue;
-        VariableDeclaration otherParameter = otherPositionalParameters[i];
-        if (j == 0) superParameter = otherParameter;
+        if (otherPositionalParameters.length <= parameterIndex) continue;
+        VariableDeclaration otherParameter =
+            otherPositionalParameters[parameterIndex];
+        if (candidateIndex == 0) superParameter = otherParameter;
         if (identical(otherMember, interfaceMember)) continue;
         if (otherParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
@@ -208,8 +237,8 @@ class ForwardingNode {
         if (otherParameter.isCovariant) {
           isCovariant = true;
         }
-        type = mergeTypes(
-            type, substitutions[j].substituteType(otherParameter.type));
+        type = mergeTypes(candidateIndex, type,
+            substitutions[candidateIndex].substituteType(otherParameter.type));
       }
       if (isGenericCovariantImpl) {
         if (!superParameter.isGenericCovariantImpl) {
@@ -217,7 +246,8 @@ class ForwardingNode {
         }
         if (!parameter.isGenericCovariantImpl) {
           createStubIfNeeded();
-          stub.function.positionalParameters[i].isGenericCovariantImpl = true;
+          stub.function.positionalParameters[parameterIndex]
+              .isGenericCovariantImpl = true;
         }
       }
       if (isCovariant) {
@@ -226,31 +256,35 @@ class ForwardingNode {
         }
         if (!parameter.isCovariant) {
           createStubIfNeeded();
-          stub.function.positionalParameters[i].isCovariant = true;
+          stub.function.positionalParameters[parameterIndex].isCovariant = true;
         }
       }
       if (type != null && type != parameterType) {
         // TODO(johnniwinther): Report an error when [type] is null; this
         // means that nnbd-top-merge was not defined.
         createStubIfNeeded(forMemberSignature: true);
-        stub.function.positionalParameters[i].type = type;
+        stub.function.positionalParameters[parameterIndex].type = type;
       }
     }
-    for (int i = 0; i < interfaceNamedParameters.length; i++) {
-      VariableDeclaration parameter = interfaceNamedParameters[i];
+    for (int parameterIndex = 0;
+        parameterIndex < interfaceNamedParameters.length;
+        parameterIndex++) {
+      VariableDeclaration parameter = interfaceNamedParameters[parameterIndex];
       DartType parameterType = substitution.substituteType(parameter.type);
-      DartType type = initialType(parameterType);
+      DartType type = initialType(_combinedMemberIndex, parameterType);
       bool isGenericCovariantImpl =
           parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       bool isCovariant = parameter.isCovariant;
       VariableDeclaration superParameter = parameter;
-      for (int j = 0; j < _candidates.length; j++) {
-        Member otherMember = getCandidateAt(j);
+      for (int candidateIndex = 0;
+          candidateIndex < _candidates.length;
+          candidateIndex++) {
+        Member otherMember = getCandidateAt(candidateIndex);
         if (otherMember is ForwardingNode) continue;
         VariableDeclaration otherParameter =
             getNamedFormal(otherMember.function, parameter.name);
         if (otherParameter == null) continue;
-        if (j == 0) superParameter = otherParameter;
+        if (candidateIndex == 0) superParameter = otherParameter;
         if (identical(otherMember, interfaceMember)) continue;
         if (otherParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
@@ -258,8 +292,8 @@ class ForwardingNode {
         if (otherParameter.isCovariant) {
           isCovariant = true;
         }
-        type = mergeTypes(
-            type, substitutions[j].substituteType(otherParameter.type));
+        type = mergeTypes(candidateIndex, type,
+            substitutions[candidateIndex].substituteType(otherParameter.type));
       }
       if (isGenericCovariantImpl) {
         if (!superParameter.isGenericCovariantImpl) {
@@ -267,7 +301,8 @@ class ForwardingNode {
         }
         if (!parameter.isGenericCovariantImpl) {
           createStubIfNeeded();
-          stub.function.namedParameters[i].isGenericCovariantImpl = true;
+          stub.function.namedParameters[parameterIndex].isGenericCovariantImpl =
+              true;
         }
       }
       if (isCovariant) {
@@ -276,29 +311,33 @@ class ForwardingNode {
         }
         if (!parameter.isCovariant) {
           createStubIfNeeded();
-          stub.function.namedParameters[i].isCovariant = true;
+          stub.function.namedParameters[parameterIndex].isCovariant = true;
         }
       }
       if (type != null && type != parameterType) {
         // TODO(johnniwinther): Report an error when [type] is null; this
         // means that nnbd-top-merge was not defined.
         createStubIfNeeded(forMemberSignature: true);
-        stub.function.namedParameters[i].type = type;
+        stub.function.namedParameters[parameterIndex].type = type;
       }
     }
-    for (int i = 0; i < interfaceTypeParameters.length; i++) {
-      TypeParameter typeParameter = interfaceTypeParameters[i];
+    for (int parameterIndex = 0;
+        parameterIndex < interfaceTypeParameters.length;
+        parameterIndex++) {
+      TypeParameter typeParameter = interfaceTypeParameters[parameterIndex];
       bool isGenericCovariantImpl = typeParameter.isGenericCovariantImpl ||
           needsCheck(typeParameter.bound);
       TypeParameter superTypeParameter = typeParameter;
-      for (int j = 0; j < _candidates.length; j++) {
-        Member otherMember = getCandidateAt(j);
+      for (int candidateIndex = 0;
+          candidateIndex < _candidates.length;
+          candidateIndex++) {
+        Member otherMember = getCandidateAt(candidateIndex);
         if (otherMember is ForwardingNode) continue;
         List<TypeParameter> otherTypeParameters =
             otherMember.function.typeParameters;
-        if (otherTypeParameters.length <= i) continue;
-        TypeParameter otherTypeParameter = otherTypeParameters[i];
-        if (j == 0) superTypeParameter = otherTypeParameter;
+        if (otherTypeParameters.length <= parameterIndex) continue;
+        TypeParameter otherTypeParameter = otherTypeParameters[parameterIndex];
+        if (candidateIndex == 0) superTypeParameter = otherTypeParameter;
         if (identical(otherMember, interfaceMember)) continue;
         if (otherTypeParameter.isGenericCovariantImpl) {
           isGenericCovariantImpl = true;
@@ -310,17 +349,23 @@ class ForwardingNode {
         }
         if (!typeParameter.isGenericCovariantImpl) {
           createStubIfNeeded();
-          stub.function.typeParameters[i].isGenericCovariantImpl = true;
+          stub.function.typeParameters[parameterIndex].isGenericCovariantImpl =
+              true;
         }
       }
     }
     DartType returnType =
         substitution.substituteType(getReturnType(interfaceMember));
-    DartType type = initialType(returnType);
-    for (int j = 0; j < _candidates.length; j++) {
-      Member otherMember = getCandidateAt(j);
+    DartType type = initialType(_combinedMemberIndex, returnType);
+    for (int candidateIndex = 0;
+        candidateIndex < _candidates.length;
+        candidateIndex++) {
+      Member otherMember = getCandidateAt(candidateIndex);
       type = mergeTypes(
-          type, substitutions[j].substituteType(getReturnType(otherMember)));
+          candidateIndex,
+          type,
+          substitutions[candidateIndex]
+              .substituteType(getReturnType(otherMember)));
     }
     if (type != null && type != returnType) {
       // TODO(johnniwinther): Report an error when [type] is null; this

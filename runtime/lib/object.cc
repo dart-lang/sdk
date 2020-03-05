@@ -133,7 +133,7 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
       .raw();
 }
 
-DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 5) {
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
@@ -142,11 +142,9 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 5) {
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(2));
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
-  const NNBDMode nnbd_mode = static_cast<NNBDMode>(
-      Smi::CheckedHandle(zone, arguments->NativeArgAt(4)).Value());
   ASSERT(type.IsFinalized());
   const bool is_instance_of = instance.IsInstanceOf(
-      nnbd_mode, type, instantiator_type_arguments, function_type_arguments);
+      type, instantiator_type_arguments, function_type_arguments);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::PrintErr("Native Object.instanceOf: result %s\n", result_str);
@@ -169,18 +167,8 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 0, 2) {
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(1));
   ASSERT(type.IsFinalized());
   ASSERT(type.IsInstantiated());
-  // If the instance is not null, the result of _simpleInstanceOf does not
-  // depend on the nnbd mode, because we only check against a rare type,
-  // i.e. a class. However, we need to determine the correct nnbd mode when
-  // the instance is null.
-  // Since type literals are not imported, a legacy type indicates that the
-  // call originated in a legacy library. Note that the type test against a
-  // non-legacy type (even in a legacy library) such as dynamic, void, or Null
-  // yield the same result independently of the mode used.
-  NNBDMode mode =
-      type.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib;
   const bool is_instance_of = instance.IsInstanceOf(
-      mode, type, Object::null_type_arguments(), Object::null_type_arguments());
+      type, Object::null_type_arguments(), Object::null_type_arguments());
   return Bool::Get(is_instance_of).raw();
 }
 
@@ -247,8 +235,8 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
-            cur_cls.nnbd_mode(), instance_type_args,
-            Object::null_type_arguments(), kNoneFree, NULL, Heap::kNew);
+            instance_type_args, Object::null_type_arguments(), kNoneFree, NULL,
+            Heap::kNew);
       }
       if (ExtractInterfaceTypeArgs(zone, cur_interface_cls,
                                    cur_interface_type_args, interface_cls,
@@ -401,10 +389,8 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
     ASSERT(!supertype.IsNull());
 
     // The supertype may not be instantiated.
-    // TODO(regis): What is the correct nnbd mode to use here?
     if (!AbstractType::InstantiateAndTestSubtype(
-            NNBDMode::kLegacyLib, &subtype, &supertype, instantiator_type_args,
-            function_type_args)) {
+            &subtype, &supertype, instantiator_type_args, function_type_args)) {
       // Throw a dynamic type error.
       TokenPosition location;
       {

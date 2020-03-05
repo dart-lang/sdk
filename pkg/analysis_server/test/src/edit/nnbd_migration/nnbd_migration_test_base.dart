@@ -78,8 +78,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     // Run the migration engine.
     DartFixListener listener = DartFixListener(server);
     InstrumentationListener instrumentationListener = InstrumentationListener();
-    NullabilityMigration migration = NullabilityMigration(
-        NullabilityMigrationAdapter(listener),
+    NullabilityMigrationAdapter adapter = NullabilityMigrationAdapter(listener);
+    NullabilityMigration migration = NullabilityMigration(adapter,
         permissive: false,
         instrumentation: instrumentationListener,
         removeViaComments: removeViaComments);
@@ -101,7 +101,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;
     InfoBuilder builder = InfoBuilder(
-        resourceProvider, includedRoot, info, listener,
+        resourceProvider, includedRoot, info, listener, adapter, migration,
         explainNonNullableTypes: true);
     infos = await builder.explainMigration();
   }

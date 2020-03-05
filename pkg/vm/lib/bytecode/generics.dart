@@ -299,9 +299,3 @@ bool isUncheckedClosureCall(MethodInvocation node,
     node.name.name == 'call' &&
     getStaticType(node.receiver, staticTypeContext) is FunctionType &&
     !options.avoidClosureCallInstructions;
-
-/// Returns true if [MethodInvocation] node with given [interfaceTarget] is
-/// a call through field or getter.
-bool isCallThroughGetter(Member interfaceTarget) =>
-    interfaceTarget is Field ||
-    interfaceTarget is Procedure && interfaceTarget.isGetter;

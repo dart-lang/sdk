@@ -16,7 +16,8 @@ import 'dart:collection'
         UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
-import 'dart:_internal' show Since, HttpStatus;
+import 'dart:_internal'
+    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
 import 'dart:math';
 import 'dart:io';
 import 'dart:typed_data';
@@ -1473,7 +1474,8 @@ abstract class HttpClient {
   ///
   /// Default is `false`.
   static set enableTimelineLogging(bool value) {
-    _enableTimelineLogging = value ?? false;
+    _enableTimelineLogging =
+        valueOfNonNullableParamWithDefault<bool>(value, false);
   }
 
   /// Current state of HTTP request logging from all [HttpClient]s to the

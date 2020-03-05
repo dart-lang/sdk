@@ -40,9 +40,10 @@ Future<void> main(List<String> args) async {
     if (clone.exitCode != 0) {
       print('Error cloning $repo: ${clone.msg}');
     } else {
-      await _runPub(clone.directory);
+      final cloneDir = Directory(clone.directory);
+      await _runPubGet(cloneDir);
       if (recurseForDependencies) {
-        for (var dir in Directory(clone.directory).listSync(recursive: true)) {
+        for (var dir in cloneDir.listSync(recursive: true)) {
           await _runPubGet(dir);
         }
       }
@@ -82,7 +83,8 @@ Future<CloneResult> _clone(String repo) async {
     result = await Process.run('git', ['pull'], workingDirectory: cloneDir);
   } else {
     print('Cloning $repo to $cloneDir');
-    result = await Process.run('git', ['clone', '$repo.git', cloneDir]);
+    result = await Process.run(
+        'git', ['clone', '--recurse-submodules', '$repo.git', cloneDir]);
   }
   return CloneResult(result.exitCode, cloneDir, msg: result.stderr);
 }
@@ -103,7 +105,7 @@ Future<void> _runPubGet(FileSystemEntity dir) async {
     final packageFile = path.join(dir.path, _package_config);
     if (!File(packageFile).existsSync() || forcePubUpdate) {
       print(
-          'Updating pub dependencies for "${path.relative(dir.path, from: _appDir)}"...');
+          'Getting pub dependencies for "${path.relative(dir.path, from: _appDir)}"...');
       final pubRun = await _runPub(dir.path);
       if (pubRun.exitCode != 0) {
         print('Error: ' + pubRun.stderr);

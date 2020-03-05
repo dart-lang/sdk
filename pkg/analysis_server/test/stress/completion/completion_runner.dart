@@ -104,7 +104,7 @@ class CompletionRunner {
 
           timer.start();
           CompletionRequestImpl request =
-              CompletionRequestImpl(result, offset, performance);
+              CompletionRequestImpl(result, offset, false, performance);
           List<CompletionSuggestion> suggestions =
               await contributor.computeSuggestions(request);
           timer.stop();

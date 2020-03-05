@@ -424,6 +424,9 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return context.driver.sourceFactory;
   }
 
+  @override
+  bool get useNewRelevance => _originalRequest.useNewRelevance;
+
   /// Throw [AbortCompletion] if the completion request has been aborted.
   @override
   void checkAborted() {

@@ -3342,14 +3342,12 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
                      const AbstractType& sub_type,
                      const AbstractType& super_type,
                      const String& dst_name,
-                     intptr_t deopt_id,
-                     NNBDMode mode)
+                     intptr_t deopt_id)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
         sub_type_(AbstractType::ZoneHandle(sub_type.raw())),
         super_type_(AbstractType::ZoneHandle(super_type.raw())),
-        dst_name_(String::ZoneHandle(dst_name.raw())),
-        nnbd_mode_(mode) {
+        dst_name_(String::ZoneHandle(dst_name.raw())) {
     ASSERT(!super_type.IsNull());
     ASSERT(!super_type.IsTypeRef());
     ASSERT(!sub_type.IsNull());
@@ -3368,7 +3366,6 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
   const AbstractType& super_type() const { return super_type_; }
   const AbstractType& sub_type() const { return sub_type_; }
   const String& dst_name() const { return dst_name_; }
-  NNBDMode nnbd_mode() const { return nnbd_mode_; }
 
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
@@ -3385,7 +3382,6 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
   AbstractType& sub_type_;
   AbstractType& super_type_;
   const String& dst_name_;
-  const NNBDMode nnbd_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);
 };
@@ -3412,13 +3408,11 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
                         const AbstractType& dst_type,
                         const String& dst_name,
                         intptr_t deopt_id,
-                        NNBDMode mode,
                         Kind kind = kUnknown)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name),
-        nnbd_mode_(mode),
         kind_(kind) {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
@@ -3446,7 +3440,6 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     dst_type_ = dst_type.raw();
   }
   const String& dst_name() const { return dst_name_; }
-  NNBDMode nnbd_mode() const { return nnbd_mode_; }
 
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
@@ -3469,7 +3462,6 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   const TokenPosition token_pos_;
   AbstractType& dst_type_;
   const String& dst_name_;
-  const NNBDMode nnbd_mode_;
   const Kind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
@@ -5430,12 +5422,8 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
                   Value* instantiator_type_arguments,
                   Value* function_type_arguments,
                   const AbstractType& type,
-                  intptr_t deopt_id,
-                  NNBDMode mode)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
-        type_(type),
-        nnbd_mode_(mode) {
+                  intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
@@ -5451,7 +5439,6 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
-  NNBDMode nnbd_mode() const { return nnbd_mode_; }
 
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
@@ -5464,7 +5451,6 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
   Value* value_;
   Value* type_arguments_;
   const AbstractType& type_;
-  const NNBDMode nnbd_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceOfInstr);
 };
@@ -5968,12 +5954,8 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
                        const AbstractType& type,
                        Value* instantiator_type_arguments,
                        Value* function_type_arguments,
-                       intptr_t deopt_id,
-                       NNBDMode mode)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
-        type_(type),
-        nnbd_mode_(mode) {
+                       intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
@@ -5984,7 +5966,6 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   Value* instantiator_type_arguments() const { return inputs_[0]; }
   Value* function_type_arguments() const { return inputs_[1]; }
   const AbstractType& type() const { return type_; }
-  NNBDMode nnbd_mode() const { return nnbd_mode_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
@@ -5996,7 +5977,6 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
  private:
   const TokenPosition token_pos_;
   const AbstractType& type_;
-  const NNBDMode nnbd_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
@@ -6009,14 +5989,12 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
                                 const Function& function,
                                 Value* instantiator_type_arguments,
                                 Value* function_type_arguments,
-                                intptr_t deopt_id,
-                                NNBDMode mode)
+                                intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class),
-        function_(function),
-        nnbd_mode_(mode) {
+        function_(function) {
     ASSERT(type_arguments.IsZoneHandle());
     ASSERT(instantiator_class.IsZoneHandle());
     ASSERT(function.IsZoneHandle());
@@ -6031,7 +6009,6 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
   const Function& function() const { return function_; }
-  NNBDMode nnbd_mode() const { return nnbd_mode_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
@@ -6047,7 +6024,6 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
   const Function& function_;
-  const NNBDMode nnbd_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };

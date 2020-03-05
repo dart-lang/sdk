@@ -897,14 +897,14 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
         }
       }
 
-      InsertBefore(instr,
-                   new (Z) AssertAssignableInstr(
-                       instr->token_pos(), new (Z) Value(instr->ArgumentAt(1)),
-                       new (Z) Value(instantiator_type_args),
-                       new (Z) Value(function_type_args), dst_type,
-                       String::ZoneHandle(zone(), field.name()),
-                       instr->deopt_id(), target.nnbd_mode()),
-                   instr->env(), FlowGraph::kEffect);
+      InsertBefore(
+          instr,
+          new (Z) AssertAssignableInstr(
+              instr->token_pos(), new (Z) Value(instr->ArgumentAt(1)),
+              new (Z) Value(instantiator_type_args),
+              new (Z) Value(function_type_args), dst_type,
+              String::ZoneHandle(zone(), field.name()), instr->deopt_id()),
+          instr->env(), FlowGraph::kEffect);
     }
   }
 
@@ -1061,7 +1061,6 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 // An instance-of test returning all same results can be converted to a class
 // check.
 RawBool* CallSpecializer::InstanceOfAsBool(
-    NNBDMode mode,
     const ICData& ic_data,
     const AbstractType& type,
     ZoneGrowableArray<intptr_t>* results) const {
@@ -1106,13 +1105,12 @@ RawBool* CallSpecializer::InstanceOfAsBool(
       // It is also an instance of FutureOr<T> if it is an instance of T.
       const AbstractType& unwrapped_type =
           AbstractType::Handle(type.UnwrapFutureOr());
-      ASSERT(unwrapped_type.IsInstantiated() &&
-             !unwrapped_type.IsUndetermined());
+      ASSERT(unwrapped_type.IsInstantiated());
       is_subtype = unwrapped_type.IsTopType() || unwrapped_type.IsNullable() ||
                    (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType());
     } else {
-      is_subtype = Class::IsSubtypeOf(mode, cls, Object::null_type_arguments(),
-                                      type, Heap::kOld);
+      is_subtype = Class::IsSubtypeOf(cls, Object::null_type_arguments(), type,
+                                      Heap::kOld);
     }
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
@@ -1128,8 +1126,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
 }
 
 // Returns true if checking against this type is a direct class id comparison.
-bool CallSpecializer::TypeCheckAsClassEquality(NNBDMode mode,
-                                               const AbstractType& type) {
+bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
@@ -1193,7 +1190,6 @@ bool CallSpecializer::TryReplaceInstanceOfWithRangeCheck(
 }
 
 bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
-    NNBDMode mode,
     InstanceCallInstr* call,
     const AbstractType& type) {
   ASSERT(I->can_use_strong_mode_types());
@@ -1224,7 +1220,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   // If the static type of the receiver is a subtype of the tested type,
   // replace 'receiver is type' with 'receiver == null' if type is Null
   // or with 'receiver != null' otherwise.
-  if (left_value->Type()->IsSubtypeOf(mode, type)) {
+  if (left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
         (unwrapped_type.IsNullType() || unwrapped_type.IsNeverType())
@@ -1252,33 +1248,25 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   Definition* instantiator_type_args = NULL;
   Definition* function_type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
-  NNBDMode nnbd_mode;
   ASSERT(call->type_args_len() == 0);
   if (call->ArgumentCount() == 2) {
     instantiator_type_args = flow_graph()->constant_null();
     function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
     type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
-    // Since type literals are not imported, a legacy type indicates that the
-    // call originated in a legacy library. Note that the type test against a
-    // non-legacy type (even in a legacy library) such as dynamic, void, or Null
-    // yield the same result independently of the mode used.
-    nnbd_mode = type.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib;
   } else {
-    ASSERT(call->ArgumentCount() == 5);
+    ASSERT(call->ArgumentCount() == 4);
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
     type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
-    nnbd_mode = static_cast<NNBDMode>(
-        Smi::Cast(call->ArgumentAt(4)->AsConstant()->value()).Value());
   }
 
   if (I->can_use_strong_mode_types() &&
-      TryOptimizeInstanceOfUsingStaticTypes(nnbd_mode, call, type)) {
+      TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
     return;
   }
 
-  if (TypeCheckAsClassEquality(nnbd_mode, type)) {
+  if (TypeCheckAsClassEquality(type)) {
     LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
     InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
     const intptr_t type_cid = Class::Handle(Z, type.type_class()).id();
@@ -1302,8 +1290,8 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   if (number_of_checks > 0 && number_of_checks <= FLAG_max_polymorphic_checks) {
     ZoneGrowableArray<intptr_t>* results =
         new (Z) ZoneGrowableArray<intptr_t>(number_of_checks * 2);
-    const Bool& as_bool = Bool::ZoneHandle(
-        Z, InstanceOfAsBool(nnbd_mode, unary_checks, type, results));
+    const Bool& as_bool =
+        Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
     if (as_bool.IsNull() || FLAG_precompiled_mode) {
       if (results->length() == number_of_checks * 2) {
         const bool can_deopt = SpecializeTestCidsForNumericTypes(results, type);
@@ -1334,7 +1322,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
       call->token_pos(), new (Z) Value(left),
       new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
-      type, call->deopt_id(), nnbd_mode);
+      type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 
@@ -1459,9 +1447,8 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   const ClassTable& class_table = *Isolate::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
-    const bool smi_is_subtype =
-        Class::IsSubtypeOf(NNBDMode::kLegacyLib, smi_class,
-                           Object::null_type_arguments(), type, Heap::kOld);
+    const bool smi_is_subtype = Class::IsSubtypeOf(
+        smi_class, Object::null_type_arguments(), type, Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1588,9 +1575,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
     auto& type_class = Class::Handle(zone_);
 #define TRY_INLINE(iface, member_name, type, cid)                              \
   if (!member_name.IsNull()) {                                                 \
-    const NNBDMode mode =                                                      \
-        member_name.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib; \
-    if (receiver_type->IsAssignableTo(mode, member_name)) {                    \
+    if (receiver_type->IsAssignableTo(member_name)) {                          \
       if (is_length_getter) {                                                  \
         type_class = member_name.type_class();                                 \
         ReplaceWithLengthGetter(call);                                         \
@@ -1600,7 +1585,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
         ReplaceWithIndexGet(call, cid);                                        \
       } else {                                                                 \
         if (!index_type->IsNullableInt()) return;                              \
-        if (!value_type->IsAssignableTo(mode, type)) return;                   \
+        if (!value_type->IsAssignableTo(type)) return;                         \
         type_class = member_name.type_class();                                 \
         ReplaceWithIndexSet(call, cid);                                        \
       }                                                                        \

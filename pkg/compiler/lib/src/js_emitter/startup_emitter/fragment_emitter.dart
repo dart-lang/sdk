@@ -13,17 +13,7 @@ part of dart2js.js_emitter.startup_emitter.model_emitter;
 /// name of the static function, but not the name of the function's getter. We
 /// store the getter-function on the static function itself, which allows us to
 /// find it easily.
-const String tearOffPropertyName = r'$tearOff';
-
-/// The name of the property that stores the list of fields on a constructor.
-///
-/// This property is only used when isolates are used.
-///
-/// When serializing objects we extract all fields from any given object.
-/// We extract the names of all fields from a fresh empty object. This list
-/// is cached on the constructor in this property to to avoid too many
-/// allocations.
-const String cachedClassFieldNames = r'$cachedFieldNames';
+const String _tearOffPropertyName = r'$tearOff';
 
 /// The fast startup emitter's goal is to minimize the amount of work that the
 /// JavaScript engine has to do before it can start running user code.
@@ -54,7 +44,7 @@ const String cachedClassFieldNames = r'$cachedFieldNames';
 // JavaScript variables (like `Array`) we are free to chose whatever variable
 // names we want. Furthermore, the pretty-printer minifies local variables, thus
 // reducing their size.
-const String mainBoilerplate = '''
+const String _mainBoilerplate = '''
 (function dartProgram() {
 // Copies the own properties from [from] to [to].
 function copyProperties(from, to) {
@@ -243,7 +233,7 @@ function installTearOff(
       tearOff(funs, applyIndex || 0, reflectionInfo, isStatic, name, isIntercepted);
   container[getterName] = getterFunction;
   if (isStatic) {
-    fun.$tearOffPropertyName = getterFunction;
+    fun.$_tearOffPropertyName = getterFunction;
   }
 }
 
@@ -449,7 +439,7 @@ var #staticStateDeclaration = {};
 #constants;
 
 // Adds to the embedded globals. A few globals refer to constants.
-#embeddedGlobalsPart2; 
+#embeddedGlobalsPart2;
 
 // Initializes the static non-final fields (with their constant values).
 #staticNonFinalFields;
@@ -474,7 +464,7 @@ convertToFastObject(#staticState);
 
 /// An expression that returns `true` if `__proto__` can be assigned to stitch
 /// together a prototype chain, and the performance is good.
-const String directAccessTestExpression = r'''
+const String _directAccessTestExpression = r'''
   (function () {
     var cls = function () {};
     cls.prototype = {'p': {}};
@@ -511,7 +501,7 @@ const String directAccessTestExpression = r'''
 /// the main holders.
 ///
 /// This template is used for Dart 2.
-const String deferredBoilerplateDart2 = '''
+const String _deferredBoilerplate = '''
 function(hunkHelpers, #embeddedGlobalsObject, holdersList, #staticState) {
 
 // Builds the holders. They only contain the data for new holders.
@@ -564,7 +554,7 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 /// However, they don't contribute anything to global namespace, but just
 /// initialize existing classes. For example, they update the inheritance
 /// hierarchy, and add methods the prototypes.
-const String softDeferredBoilerplate = '''
+const String _softDeferredBoilerplate = '''
 #deferredGlobal[#softId] =
   function(holdersList, #embeddedGlobalsObject, #staticState,
            hunkHelpers) {
@@ -669,10 +659,10 @@ class FragmentEmitter {
     HolderCode holderCode =
         emitHolders(program.holders, fragment, initializeEmptyHolders: true);
 
-    js.Statement mainCode = js.js.statement(mainBoilerplate, {
+    js.Statement mainCode = js.js.statement(_mainBoilerplate, {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
       'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
-      'directAccessTestExpression': js.js(directAccessTestExpression),
+      'directAccessTestExpression': js.js(_directAccessTestExpression),
       'cyclicThrow': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
@@ -723,7 +713,7 @@ class FragmentEmitter {
     });
     if (program.hasSoftDeferredClasses) {
       mainCode = js.Block([
-        js.js.statement(softDeferredBoilerplate, {
+        js.js.statement(_softDeferredBoilerplate, {
           'deferredGlobal': ModelEmitter.deferredInitializersGlobal,
           'softId': js.string(softDeferredId),
           // TODO(floitsch): don't just reference 'init'.
@@ -819,7 +809,7 @@ class FragmentEmitter {
       return null;
     }
 
-    js.Expression code = js.js(deferredBoilerplateDart2, {
+    js.Expression code = js.js(_deferredBoilerplate, {
       // TODO(floitsch): don't just reference 'init'.
       'embeddedGlobalsObject': new js.Parameter('init'),
       'staticState': new js.Parameter(_namer.staticStateHolder),

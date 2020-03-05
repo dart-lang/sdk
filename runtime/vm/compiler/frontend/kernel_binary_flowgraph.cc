@@ -1636,8 +1636,8 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
   while (!iterate_klass.IsNull()) {
     function = iterate_klass.LookupDynamicFunctionAllowPrivate(name);
     if (!function.IsNull()) {
-      if (function.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
-                                     argument_count, argument_names,
+      if (function.AreValidArguments(type_args_len, argument_count,
+                                     argument_names,
                                      /* error_message = */ NULL)) {
         return function;
       }
@@ -3335,8 +3335,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   instructions +=
       BuildArguments(&argument_names, NULL /* arg count */,
                      NULL /* positional arg count */);  // read arguments.
-  ASSERT(target.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
-                                  argument_count, argument_names, NULL));
+  ASSERT(target.AreValidArguments(type_args_len, argument_count, argument_names,
+                                  NULL));
 
   // Special case identical(x, y) call.
   // Note: similar optimization is performed in bytecode flow graph builder -
@@ -3620,14 +3620,10 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  NNBDMode nnbd_mode;
   if (translation_helper_.info().kernel_binary_version() >= 38) {
-    const uint8_t flags = ReadFlags();  // read flags.
-    nnbd_mode = ((flags & kIsExpressionFlagForNonNullableByDefault) != 0)
-                    ? NNBDMode::kOptedInLib
-                    : NNBDMode::kLegacyLib;
-  } else {
-    nnbd_mode = NNBDMode::kLegacyLib;
+    // We do not use the library mode for the type test, which is indicated by
+    // the flag kIsExpressionFlagForNonNullableByDefault.
+    ReadFlags();
   }
 
   Fragment instructions = BuildExpression();  // read operand.
@@ -3666,11 +3662,9 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
 
     instructions += Constant(type);
 
-    instructions += IntConstant(static_cast<intptr_t>(nnbd_mode));
-
     instructions += InstanceCall(
         position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
-        Token::kIS, 5);
+        Token::kIS, 4);
   }
   return instructions;
 }
@@ -4785,12 +4779,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
 
       catch_body += Constant(*type_guard);
 
-      const NNBDMode nnbd_mode = parsed_function()->function().nnbd_mode();
-      catch_body += IntConstant(static_cast<intptr_t>(nnbd_mode));
-
       catch_body += InstanceCall(
           position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
-          Token::kIS, 5);
+          Token::kIS, 4);
 
       TargetEntryInstr* catch_entry;
       TargetEntryInstr* next_catch_entry;

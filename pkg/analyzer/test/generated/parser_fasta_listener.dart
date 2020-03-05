@@ -921,6 +921,13 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    end('InvalidYieldStatement');
+    super.endInvalidYieldStatement(beginToken, starToken, endToken, errorCode);
+  }
+
+  @override
   void endLabeledStatement(int labelCount) {
     end('LabeledStatement');
     super.endLabeledStatement(labelCount);

@@ -1779,9 +1779,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   // At this point the nullabilities are different, so they can only be
   // syntactically equivalent if they're both either kNonNullable or kLegacy.
   // These are the two largest values of the enum, so we can just do a < check.
-  ASSERT(target::Nullability::kUndetermined <
-             target::Nullability::kNonNullable &&
-         target::Nullability::kNullable < target::Nullability::kNonNullable &&
+  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
          target::Nullability::kNonNullable < target::Nullability::kLegacy);
   __ Bind(&check_legacy);
   __ cmpq(RCX, Immediate(target::Nullability::kNonNullable));

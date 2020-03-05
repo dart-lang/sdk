@@ -286,6 +286,7 @@ general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_generic_method_f_bounded: TextSerializationFailure # Was: Pass
 general/override_check_two_substitutions: TextSerializationFailure # Was: Pass
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_inference_for_getters_and_setters: TextSerializationFailure
 general/override_inference_for_setters: TextSerializationFailure
 general/override_inference_named_parameters_ordering: TextSerializationFailure
 general/override_setter_with_field: TypeCheckError
@@ -846,6 +847,7 @@ inference/infer_from_variables_in_non_cycle_imports_with_flag2: TextSerializatio
 inference/infer_from_variables_in_non_cycle_imports_with_flag2_a: TextSerializationFailure # Was: Pass
 inference/infer_from_variables_in_non_cycle_imports_with_flag: TextSerializationFailure # Was: Pass
 inference/infer_from_variables_in_non_cycle_imports_with_flag_a: TextSerializationFailure # Was: Pass
+inference/infer_generic_field_types: TextSerializationFailure
 inference/infer_generic_method_type_named: TextSerializationFailure # Was: Pass
 inference/infer_generic_method_type_positional2: TextSerializationFailure # Was: Pass
 inference/infer_generic_method_type_positional: TextSerializationFailure # Was: Pass
@@ -1196,6 +1198,7 @@ instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
 late_lowering/initializer_rewrite: TextSerializationFailure
+late_lowering/injected_late_field_checks/main: TextSerializationFailure
 late_lowering/instance_field_with_initializer: TextSerializationFailure
 late_lowering/instance_field_without_initializer: TextSerializationFailure
 late_lowering/instance_final_field_without_initializer: TextSerializationFailure
@@ -1226,12 +1229,14 @@ late_lowering/later: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
 late_lowering/override_getter_setter: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
+late_lowering/uninitialized_non_nullable_late_fields: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/bounds_checks: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/constants: TextSerializationFailure
+nnbd/covariant_nnbd_top_merge: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
 nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
@@ -1247,6 +1252,7 @@ nnbd/infer_if_null: TextSerializationFailure
 nnbd/infer_in_legacy_from_opted_in: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
+nnbd/injected_late_field_checks/main: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
 nnbd/issue39659: TextSerializationFailure
 nnbd/issue39822: TextSerializationFailure
@@ -1312,6 +1318,7 @@ nnbd/switch_redesign_fall_over: TextSerializationFailure
 nnbd/switch_redesign_types: TextSerializationFailure
 nnbd/tearoff_from_nullable_receiver: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
+nnbd/uninitialized_non_nullable_late_fields: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_one_defined: TextSerializationFailure # Was: Pass

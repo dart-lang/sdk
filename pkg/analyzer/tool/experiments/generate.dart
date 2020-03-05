@@ -62,8 +62,11 @@ part of 'experiments.dart';
 
   _ExperimentsGenerator(this.experimentsYaml);
 
+  Map get features => experimentsYaml['features'];
+
   void generateFormatCode() {
-    keysSorted = experimentsYaml.keys.cast<String>().toList()..sort();
+    keysSorted = features.keys.cast<String>().toList()..sort();
+    generateSection_CurrentVersion();
     generateSection_KnownFeatures();
     generateSection_BuildExperimentalFlagsArray();
     generateSection_EnableString();
@@ -80,7 +83,7 @@ List<bool> _buildExperimentalFlagsArray() => <bool>[
 ''');
     for (var key in keysSorted) {
       var id = keyToIdentifier(key);
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       bool expired = entry['expired'];
       if (shipped || expired == true) {
@@ -123,6 +126,16 @@ mixin _CurrentState {
 }''');
   }
 
+  void generateSection_CurrentVersion() {
+    var version = _versionNumberAsString(experimentsYaml['current-version']);
+    out.write('''
+
+/// The current version of the Dart language (or, for non-stable releases, the
+/// version of the language currently in the process of being developed).
+const _currentVersion = '$version';
+    ''');
+  }
+
   void generateSection_EnableString() {
     out.write('''
 
@@ -157,8 +170,8 @@ class ExperimentalFeatures {
     int index = 0;
     for (var key in keysSorted) {
       var id = keyToIdentifier(key);
-      var help = (experimentsYaml[key] as YamlMap)['help'] ?? '';
-      var enabledIn = (experimentsYaml[key] as YamlMap)['enabledIn'];
+      var help = (features[key] as YamlMap)['help'] ?? '';
+      var enabledIn = (features[key] as YamlMap)['enabledIn'];
       out.write('''
 
       static const $id = ExperimentalFeature(
@@ -169,9 +182,7 @@ class ExperimentalFeatures {
       '$help'
     ''');
       if (enabledIn != null) {
-        if (enabledIn is double) {
-          enabledIn = '$enabledIn.0';
-        }
+        enabledIn = _versionNumberAsString(enabledIn);
         out.write(",firstSupportedVersion: '$enabledIn'");
       }
       out.writeln(');');
@@ -209,7 +220,7 @@ class ExperimentalFeatures {
 class IsEnabledByDefault {
 ''');
     for (var key in keysSorted) {
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       out.write('''
       /// Default state of the experiment "$key"
@@ -238,7 +249,7 @@ class IsEnabledByDefault {
 class IsExpired {
 ''');
     for (var key in keysSorted) {
-      var entry = experimentsYaml[key] as YamlMap;
+      var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
       bool expired = entry['expired'];
       out.write('''
@@ -281,5 +292,13 @@ const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.bogus_enabled: ExperimentalFeatures.bogus_enabled,
 };
 ''');
+  }
+
+  String _versionNumberAsString(dynamic enabledIn) {
+    if (enabledIn is double) {
+      return '$enabledIn.0';
+    } else {
+      return enabledIn.toString();
+    }
   }
 }

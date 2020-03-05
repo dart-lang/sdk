@@ -3468,6 +3468,50 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
   }
 }
 
+static void AssertingFinalizer(void* isolate_callback_data,
+                               Dart_WeakPersistentHandle handle,
+                               void* peer) {
+  Dart_Isolate expected_isolate = reinterpret_cast<Dart_Isolate>(peer);
+  EXPECT_EQ(expected_isolate, Dart_CurrentIsolate());
+}
+
+// TODO(https://github.com/dart-lang/sdk/issues/40836): Remove.
+TEST_CASE(DartAPI_WeakPersistentHandleFinalizerCurrentIsolate) {
+  {
+    Dart_EnterScope();
+
+    Dart_Handle obj = AllocateNewString("ABC");
+    void* peer = Dart_CurrentIsolate();
+    EXPECT_NOTNULL(peer);
+    intptr_t external_size = 0;
+    Dart_NewWeakPersistentHandle(obj, peer, external_size, AssertingFinalizer);
+
+    Dart_ExitScope();
+  }
+
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+  }
+
+  {
+    Dart_EnterScope();
+
+    Dart_Handle obj = AllocateOldString("ABC");
+    void* peer = Dart_CurrentIsolate();
+    EXPECT_NOTNULL(peer);
+    intptr_t external_size = 0;
+    Dart_NewWeakPersistentHandle(obj, peer, external_size, AssertingFinalizer);
+
+    Dart_ExitScope();
+  }
+
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+  }
+}
+
 static Dart_WeakPersistentHandle weak1 = NULL;
 static Dart_WeakPersistentHandle weak2 = NULL;
 static Dart_WeakPersistentHandle weak3 = NULL;

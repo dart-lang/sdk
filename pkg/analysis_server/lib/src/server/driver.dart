@@ -283,6 +283,10 @@ class Driver implements ServerStarter {
   /// A directory to analyze in order to train an analysis server snapshot.
   static const String TRAIN_USING = 'train-using';
 
+  /// A flag indicating that the new code completion relevance computation
+  /// should be used to compute relevance scores.
+  static const String USE_NEW_RELEVANCE = 'use-new-relevance';
+
   /// The instrumentation service that is to be used by the analysis server.
   InstrumentationService instrumentationService;
 
@@ -316,6 +320,7 @@ class Driver implements ServerStarter {
     }
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
     final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
     analysisServerOptions.completionModelFolder =
@@ -742,6 +747,11 @@ class Driver implements ServerStarter {
     parser.addOption(TRAIN_USING,
         help: 'Pass in a directory to analyze for purposes of training an '
             'analysis server snapshot.');
+    //
+    // Temporary flags.
+    //
+    parser.addFlag(USE_NEW_RELEVANCE,
+        help: 'Use the new relevance computation for code completion.');
 
     return parser;
   }

@@ -378,10 +378,11 @@ mixin _IntListMixin implements List<int> {
   }
 
   void fillRange(int start, int end, [int? fillValue]) {
-    if (fillValue == null && start < end) {
+    RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
       throw ArgumentError.notNull("fillValue");
     }
-    RangeError.checkValidRange(start, end, this.length);
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -736,10 +737,11 @@ mixin _DoubleListMixin implements List<double> {
 
   void fillRange(int start, int end, [double? fillValue]) {
     // TODO(eernst): Could use zero as default and not throw; issue .
-    if (fillValue == null && start < end) {
+    RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
       throw ArgumentError.notNull("fillValue");
     }
-    RangeError.checkValidRange(start, end, this.length);
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -1174,10 +1176,11 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   }
 
   void fillRange(int start, int end, [Float32x4? fillValue]) {
-    if (fillValue == null && start < end) {
+    RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
       throw ArgumentError.notNull("fillValue");
     }
-    RangeError.checkValidRange(start, end, this.length);
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -1532,10 +1535,11 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   }
 
   void fillRange(int start, int end, [Int32x4? fillValue]) {
-    if (fillValue == null && start < end) {
+    RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
       throw ArgumentError.notNull("fillValue");
     }
-    RangeError.checkValidRange(start, end, this.length);
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -1891,10 +1895,11 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   }
 
   void fillRange(int start, int end, [Float64x2? fillValue]) {
-    if (fillValue == null && start < end) {
+    RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
       throw ArgumentError.notNull("fillValue");
     }
-    RangeError.checkValidRange(start, end, this.length);
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }

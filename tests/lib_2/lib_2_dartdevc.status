@@ -38,7 +38,7 @@ html/custom/document_register_type_extensions_test/parsing: Skip # Issue 31577
 html/custom/document_register_type_extensions_test/registration: Skip # Issue 31577
 html/custom/document_register_type_extensions_test/single-parameter createElement: Skip # Issue 31577
 html/custom/element_upgrade_test: Skip # Issue 31577
-html/custom/entered_left_view_test: Skip # Issue 31577
+html/custom/entered_left_view/.*: Skip # Issue 31577
 html/custom/mirrors_2_test: Skip # Issue 31577
 html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922

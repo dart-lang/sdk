@@ -1424,9 +1424,6 @@ static void EnsureEqualImagePages(HeapPage* pages, HeapPage* other_pages) {
 }
 
 void PageSpace::MergeOtherPageSpace(PageSpace* other) {
-  MutexLocker ml(&pages_lock_);
-  MutexLocker ml2(&other->pages_lock_);
-
   other->AbandonBumpAllocation();
 
   ASSERT(other->bump_top_ == 0 && other->bump_end_ == 0);
@@ -1442,6 +1439,12 @@ void PageSpace::MergeOtherPageSpace(PageSpace* other) {
     freelist_[i].MergeOtherFreelist(&other->freelist_[i], is_protected);
     other->freelist_[i].Reset();
   }
+
+  // The freelist locks will be taken in MergeOtherFreelist above, and the
+  // locking order is the freelist locks are taken before the page list locks,
+  // so don't take the pages lock until after MergeOtherFreelist.
+  MutexLocker ml(&pages_lock_);
+  MutexLocker ml2(&other->pages_lock_);
 
   AppendList(&pages_, &pages_tail_, &other->pages_, &other->pages_tail_);
   AppendList(&exec_pages_, &exec_pages_tail_, &other->exec_pages_,

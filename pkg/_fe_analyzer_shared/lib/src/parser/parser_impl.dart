@@ -424,6 +424,7 @@ class Parser {
           token = parsePartOrPartOf(keyword, directiveState);
         } else if (identical(value, ';')) {
           token = start;
+          listener.handleDirectivesOnly();
         } else {
           listener.handleDirectivesOnly();
           break;
@@ -2413,7 +2414,11 @@ class Parser {
     if (externalToken != null) {
       reportRecoverableError(externalToken, codes.messageExternalField);
     }
-    if (covariantToken != null) {
+    // Covariant affects only the setter and final fields do not have a setter,
+    // unless it's a late field (dartbug.com/40805).
+    // Field that are covariant late final with initializers are checked further
+    // down.
+    if (covariantToken != null && lateToken == null) {
       if (varFinalOrConst != null && optional('final', varFinalOrConst)) {
         reportRecoverableError(covariantToken, codes.messageFinalAndCovariant);
         covariantToken = null;
@@ -2436,6 +2441,18 @@ class Parser {
         ? IdentifierContext.topLevelVariableDeclaration
         : IdentifierContext.fieldDeclaration;
     Token firstName = name = ensureIdentifier(token, context);
+
+    // Check for covariant late final with initializer.
+    if (covariantToken != null && lateToken != null) {
+      if (varFinalOrConst != null && optional('final', varFinalOrConst)) {
+        Token next = name.next;
+        if (optional('=', next)) {
+          reportRecoverableError(covariantToken,
+              codes.messageFinalAndCovariantLateWithInitializer);
+          covariantToken = null;
+        }
+      }
+    }
 
     int fieldCount = 1;
     token =
@@ -4026,6 +4043,12 @@ class Parser {
           if (optional(':', token.next.next)) {
             return parseLabeledStatement(token);
           }
+          if (looksLikeYieldStatement(token)) {
+            // Recovery: looks like an expression preceded by `yield` but not
+            // inside an Async or AsyncStar context. parseYieldStatement will
+            // report the error.
+            return parseYieldStatement(token);
+          }
           return parseExpressionStatementOrDeclaration(token);
 
         case AsyncModifier.SyncStar:
@@ -4080,7 +4103,19 @@ class Parser {
     }
     token = parseExpression(token);
     token = ensureSemicolon(token);
-    listener.endYieldStatement(begin, starToken, token);
+    if (inPlainSync) {
+      // `yield` is only allowed in generators; A recoverable error is already
+      // reported in the "async" case in `parseStatementX`. Only the "sync" case
+      // needs to be handled here.
+      codes.MessageCode errorCode = codes.messageYieldNotGenerator;
+      reportRecoverableError(begin, errorCode);
+      // TODO(srawlins): Add tests in analyzer to ensure the AstBuilder
+      //  correctly handles invalid yields, and that the error message is
+      //  correctly plumbed through.
+      listener.endInvalidYieldStatement(begin, starToken, token, errorCode);
+    } else {
+      listener.endYieldStatement(begin, starToken, token);
+    }
     return token;
   }
 
@@ -4264,10 +4299,17 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
-    TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
+    Token bangToken = token;
+    if (optional('!', token.next)) {
+      bangToken = token.next;
+    }
+    TypeParamOrArgInfo typeArg = computeMethodTypeArguments(bangToken);
     if (typeArg != noTypeParamOrArg) {
       // For example a(b)<T>(c), where token is before '<'.
-      token = typeArg.parseArguments(token, this);
+      if (optional('!', bangToken)) {
+        listener.handleNonNullAssertExpression(bangToken);
+      }
+      token = typeArg.parseArguments(bangToken, this);
       assert(optional('(', token.next));
     }
     Token next = token.next;
@@ -4315,6 +4357,20 @@ class Parser {
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
             listener.endBinaryExpression(operator);
+
+            Token bangToken = token;
+            if (optional('!', token.next)) {
+              bangToken = token.next;
+            }
+            typeArg = computeMethodTypeArguments(bangToken);
+            if (typeArg != noTypeParamOrArg) {
+              // For example e.f<T>(c), where token is before '<'.
+              if (optional('!', bangToken)) {
+                listener.handleNonNullAssertExpression(bangToken);
+              }
+              token = typeArg.parseArguments(bangToken, this);
+              assert(optional('(', token.next));
+            }
           } else if (identical(type, TokenType.OPEN_PAREN) ||
               identical(type, TokenType.OPEN_SQUARE_BRACKET) ||
               identical(type, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
@@ -4543,10 +4599,17 @@ class Parser {
         }
         listener.handleIndexedExpression(question, openSquareBracket, next);
         token = next;
-        typeArg = computeMethodTypeArguments(token);
+        Token bangToken = token;
+        if (optional('!', token.next)) {
+          bangToken = token.next;
+        }
+        typeArg = computeMethodTypeArguments(bangToken);
         if (typeArg != noTypeParamOrArg) {
           // For example a[b]<T>(c), where token is before '<'.
-          token = typeArg.parseArguments(token, this);
+          if (optional('!', bangToken)) {
+            listener.handleNonNullAssertExpression(bangToken);
+          }
+          token = typeArg.parseArguments(bangToken, this);
           assert(optional('(', token.next));
         }
         next = token.next;
@@ -4556,10 +4619,17 @@ class Parser {
         }
         token = parseArguments(token);
         listener.handleSend(beginToken, token);
-        typeArg = computeMethodTypeArguments(token);
+        Token bangToken = token;
+        if (optional('!', token.next)) {
+          bangToken = token.next;
+        }
+        typeArg = computeMethodTypeArguments(bangToken);
         if (typeArg != noTypeParamOrArg) {
           // For example a(b)<T>(c), where token is before '<'.
-          token = typeArg.parseArguments(token, this);
+          if (optional('!', bangToken)) {
+            listener.handleNonNullAssertExpression(bangToken);
+          }
+          token = typeArg.parseArguments(bangToken, this);
           assert(optional('(', token.next));
         }
         next = token.next;
@@ -5262,20 +5332,15 @@ class Parser {
     return token;
   }
 
-  /// Calls handleNonNullAssertExpression when the token points to `!<`.
-  /// Returns the input token if it doesn't point to `!<`, or the next token
-  /// (ready for parsing by e.g. computeMethodTypeArguments) if it does.
-  Token parseBangBeforeTypeArguments(Token token) {
-    if (optional('!', token.next) && optional('<', token.next.next)) {
-      token = token.next;
-      listener.handleNonNullAssertExpression(token);
-    }
-    return token;
-  }
-
   Token parseSend(Token token, IdentifierContext context) {
     Token beginToken = token = ensureIdentifier(token, context);
-    token = parseBangBeforeTypeArguments(token);
+    // Notice that we don't parse the bang (!) here as we do in many other
+    // instances where we call computeMethodTypeArguments.
+    // The reason is, that on a method call like "e.f!<int>()" we need the
+    // "e.f" to become a "single unit" before processing the bang (!),
+    // the type arguments and the arguments.
+    // By not handling bang here we don't parse any of it, and the parser will
+    // parse it correctly in a different recursion step.
     TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);
@@ -5402,7 +5467,8 @@ class Parser {
     TypeInfo typeInfo = computeType(token, true);
     if (typeInfo.isNullable) {
       Token next = typeInfo.skipType(token).next;
-      if (!isOneOfOrEof(next, const [')', '?', '??', ';', 'is', 'as'])) {
+      if (!isOneOfOrEof(
+          next, const [')', '?', '??', ',', ';', ':', 'is', 'as'])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
         // rather than the start of a conditional expression.
@@ -6074,17 +6140,14 @@ class Parser {
     return token;
   }
 
-  /// Determine if the following tokens look like an 'await' expression
-  /// and not a local variable or local function declaration.
-  bool looksLikeAwaitExpression(Token token) {
-    token = token.next;
-    assert(optional('await', token));
-    token = token.next;
+  /// Determine if the following tokens look like an expression and not a local
+  /// variable or local function declaration.
+  bool looksLikeExpression(Token token) {
+    // TODO(srawlins): Consider parsing the potential expression once doing so
+    //  does not modify the token stream. For now, use simple look ahead and
+    //  ensure no false positives.
 
-    // TODO(danrubel): Consider parsing the potential expression following
-    // the `await` token once doing so does not modify the token stream.
-    // For now, use simple look ahead and ensure no false positives.
-
+    token = token.next;
     if (token.isIdentifier) {
       token = token.next;
       if (optional('(', token)) {
@@ -6093,10 +6156,40 @@ class Parser {
           return true;
         }
       } else if (isOneOf(token, ['.', ')', ']'])) {
+        // TODO(srawlins): Also consider when `token` is `;`. There is still not
+        // good error recovery on `yield x;`. This would also require
+        // modification to analyzer's
+        // test_parseCompilationUnit_pseudo_asTypeName.
         return true;
       }
+    } else if (token == Keyword.NULL) {
+      return true;
     }
+    // TODO(srawlins): Consider other possibilities for `token` which would
+    //  imply it looks like an expression, for example beginning with `<`, as
+    //  part of a collection literal type argument list, `(`, other literals,
+    //  etc. For example, there is still not good error recovery on
+    //  `yield <int>[]`.
+
     return false;
+  }
+
+  /// Determine if the following tokens look like an 'await' expression
+  /// and not a local variable or local function declaration.
+  bool looksLikeAwaitExpression(Token token) {
+    token = token.next;
+    assert(optional('await', token));
+
+    return looksLikeExpression(token);
+  }
+
+  /// Determine if the following tokens look like a 'yield' expression and not a
+  /// local variable or local function declaration.
+  bool looksLikeYieldStatement(Token token) {
+    token = token.next;
+    assert(optional('yield', token));
+
+    return looksLikeExpression(token);
   }
 
   /// ```

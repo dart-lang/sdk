@@ -31,8 +31,7 @@ L1:
   PushNull
   PushNull
   PushConstant         CP#6
-  PushInt              0
-  InterfaceCall        CP#7, 5
+  InterfaceCall        CP#7, 4
   JumpIfFalse          L2
   PushConstant         CP#9
   DirectCall           CP#4, 1
@@ -54,7 +53,7 @@ ConstantPool {
   [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [5] = Reserved
   [6] = Type #lib::C < dart:core::String, dart:core::int, dart:core::Object, dynamic >
-  [7] = InterfaceCall 'dart:core::Object::_instanceOf', ArgDesc num-args 5, num-type-args 0, names []
+  [7] = InterfaceCall 'dart:core::Object::_instanceOf', ArgDesc num-args 4, num-type-args 0, names []
   [8] = Reserved
   [9] = ObjectRef '12'
   [10] = Type #lib::A < dart:core::int >
@@ -222,8 +221,7 @@ Bytecode {
   LoadTypeArgumentsField CP#0
   PushNull
   PushConstant         CP#1
-  PushInt              0
-  InterfaceCall        CP#2, 5
+  InterfaceCall        CP#2, 4
   JumpIfFalse          L1
   PushConstant         CP#4
   DirectCall           CP#5, 1
@@ -234,8 +232,7 @@ L1:
   LoadTypeArgumentsField CP#0
   PushNull
   PushConstant         CP#7
-  PushInt              0
-  InterfaceCall        CP#2, 5
+  InterfaceCall        CP#2, 4
   JumpIfFalse          L2
   PushConstant         CP#8
   DirectCall           CP#5, 1
@@ -257,7 +254,7 @@ L2:
 ConstantPool {
   [0] = TypeArgumentsField #lib::D
   [1] = Type #lib::A < #lib::D::TypeParam/0 >
-  [2] = InterfaceCall 'dart:core::Object::_instanceOf', ArgDesc num-args 5, num-type-args 0, names []
+  [2] = InterfaceCall 'dart:core::Object::_instanceOf', ArgDesc num-args 4, num-type-args 0, names []
   [3] = Reserved
   [4] = ObjectRef '21'
   [5] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
@@ -285,8 +282,7 @@ Bytecode {
   PushNull
   Push                 r0
   PushConstant         CP#0
-  PushInt              0
-  InterfaceCall        CP#1, 5
+  InterfaceCall        CP#1, 4
   JumpIfFalse          L1
   PushConstant         CP#3
   DirectCall           CP#4, 1
@@ -297,8 +293,7 @@ L1:
   LoadTypeArgumentsField CP#6
   Push                 r0
   PushConstant         CP#7
-  PushInt              0
-  InterfaceCall        CP#1, 5
+  InterfaceCall        CP#1, 4
   JumpIfFalse          L2
   PushConstant         CP#8
   DirectCall           CP#4, 1
@@ -316,7 +311,7 @@ L2:
 }
 ConstantPool {
   [0] = Type #lib::A < #lib::D::foo3::TypeParam/0 >
-  [1] = InterfaceCall 'dart:core::Object::_instanceOf', ArgDesc num-args 5, num-type-args 0, names []
+  [1] = InterfaceCall 'dart:core::Object::_instanceOf', ArgDesc num-args 4, num-type-args 0, names []
   [2] = Reserved
   [3] = ObjectRef '31'
   [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []

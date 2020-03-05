@@ -22,7 +22,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
     for (int i = 0; i < node.typeParameters.length; i++) {
       TypeParameter typeParameter = node.typeParameters[i];
       DartType newBound = typeParameter.bound.accept(this);
-      DartType newDefaultType = typeParameter.defaultType.accept(this);
+      DartType newDefaultType = typeParameter.defaultType?.accept(this);
       if (newBound != null || newDefaultType != null) {
         newTypeParameters ??= node.typeParameters.toList(growable: false);
         newTypeParameters[i] = new TypeParameter(

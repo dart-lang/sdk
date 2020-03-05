@@ -263,13 +263,13 @@ namespace target {
 #if defined(TARGET_ARCH_IS_32_BIT)
 typedef int32_t word;
 typedef uint32_t uword;
-static constexpr word kWordSize = 4;
-static constexpr word kWordSizeLog2 = 2;
+static constexpr int kWordSize = 4;
+static constexpr int kWordSizeLog2 = 2;
 #elif defined(TARGET_ARCH_IS_64_BIT)
 typedef int64_t word;
 typedef uint64_t uword;
-static constexpr word kWordSize = 8;
-static constexpr word kWordSizeLog2 = 3;
+static constexpr int kWordSize = 8;
+static constexpr int kWordSizeLog2 = 3;
 #else
 #error "Unsupported architecture"
 #endif
@@ -608,7 +608,6 @@ class TypeRef : public AllStatic {
 
 class Nullability : public AllStatic {
  public:
-  static const int8_t kUndetermined;
   static const int8_t kNullable;
   static const int8_t kNonNullable;
   static const int8_t kLegacy;

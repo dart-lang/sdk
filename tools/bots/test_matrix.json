@@ -1238,6 +1238,46 @@
     },
     {
       "builders": [
+        "vm-precomp-ffi-qemu-linux-release-arm"
+      ],
+      "meta": {
+        "description": "This configuration is used for running FFI tests on qemu."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--use-qemu"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart_precompiled_runtime",
+            "runtime_kernel"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simarm_x64",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "ffi tests",
+          "arguments": [
+            "-ndartkp-linux-${mode}-arm-qemu",
+            "ffi_2"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-nnbd-linux-release-x64"
       ],
       "meta": {

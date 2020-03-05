@@ -1,0 +1,13 @@
+Future<int> f() => Future.value(7);
+
+List<int> g() {
+yield f();
+}
+
+
+Future[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] f[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] Future[StringToken].[SimpleToken]value[StringToken]([BeginToken]7[StringToken])[SimpleToken];[SimpleToken]
+
+List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] g[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+yield[KeywordToken] f[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

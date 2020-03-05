@@ -2225,8 +2225,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == EDX);  // Instantiator type arguments.
   ASSERT(locs()->in(2).reg() == ECX);  // Function type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), nnbd_mode(),
-                               locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == EAX);
 }
 
@@ -2491,11 +2490,9 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(type());
   __ pushl(instantiator_type_args_reg);  // Push instantiator type arguments.
   __ pushl(function_type_args_reg);      // Push function type arguments.
-  __ pushl(compiler::Immediate(
-      reinterpret_cast<int32_t>(Smi::New(static_cast<intptr_t>(nnbd_mode())))));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeRuntimeEntry, 4, locs());
-  __ Drop(4);           // Drop mode, 2 type vectors, and uninstantiated type.
+                                kInstantiateTypeRuntimeEntry, 3, locs());
+  __ Drop(3);           // Drop 2 type vectors, and uninstantiated type.
   __ popl(result_reg);  // Pop instantiated type.
   ASSERT(instantiator_type_args_reg == result_reg);
 }
@@ -2563,12 +2560,6 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
                    EDI, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
                             kWordSize));
   __ cmpl(EBX, function_type_args_reg);
-  __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
-  __ movl(EBX,
-          compiler::Address(
-              EDI, TypeArguments::Instantiation::kNnbdModeIndex * kWordSize));
-  __ cmpl(EBX, compiler::Immediate(
-                   Smi::RawValue(static_cast<intptr_t>(nnbd_mode()))));
   __ j(EQUAL, &found, compiler::Assembler::kNearJump);
   __ Bind(&next);
   __ addl(EDI, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
@@ -2591,12 +2582,10 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ PushObject(type_arguments());
   __ pushl(instantiator_type_args_reg);  // Push instantiator type arguments.
   __ pushl(function_type_args_reg);      // Push function type arguments.
-  __ pushl(
-      compiler::Immediate(Smi::RawValue(static_cast<intptr_t>(nnbd_mode()))));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry, 4,
+                                kInstantiateTypeArgumentsRuntimeEntry, 3,
                                 locs());
-  __ Drop(4);           // Drop mode, 2 type vectors, and uninstantiated args.
+  __ Drop(3);           // Drop 2 type vectors, and uninstantiated args.
   __ popl(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
 }
@@ -2757,21 +2746,17 @@ LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_in(0, Location::RegisterLocation(ECX));
   locs->set_out(0, Location::RegisterLocation(EAX));
   return locs;
 }
 
 void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register context_value = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
+  ASSERT(locs()->in(0).reg() == ECX);
+  ASSERT(locs()->out(0).reg() == EAX);
 
-  __ PushObject(Object::null_object());  // Make room for the result.
-  __ pushl(context_value);
-  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kCloneContextRuntimeEntry, 1, locs());
-  __ popl(result);  // Remove argument.
-  __ popl(result);  // Get result (cloned context).
+  compiler->GenerateCall(token_pos(), StubCode::CloneContext(),
+                         /*kind=*/RawPcDescriptors::kOther, locs());
 }
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,

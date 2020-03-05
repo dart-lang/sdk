@@ -134,7 +134,7 @@ class CallSpecializer : public FlowGraphVisitor {
   const bool should_clone_fields_;
 
  private:
-  bool TypeCheckAsClassEquality(NNBDMode mode, const AbstractType& type);
+  bool TypeCheckAsClassEquality(const AbstractType& type);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,
@@ -155,13 +155,11 @@ class CallSpecializer : public FlowGraphVisitor {
 
   bool TryInlineImplicitInstanceGetter(InstanceCallInstr* call);
 
-  RawBool* InstanceOfAsBool(NNBDMode mode,
-                            const ICData& ic_data,
+  RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type,
                             ZoneGrowableArray<intptr_t>* results) const;
 
-  bool TryOptimizeInstanceOfUsingStaticTypes(NNBDMode mode,
-                                             InstanceCallInstr* call,
+  bool TryOptimizeInstanceOfUsingStaticTypes(InstanceCallInstr* call,
                                              const AbstractType& type);
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,

@@ -68,6 +68,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("InvalidAwaitExpression");
   }
 
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    logEvent("InvalidYieldStatement");
+  }
+
   void beginBlock(Token token, BlockKind blockKind) {}
 
   void endBlock(

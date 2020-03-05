@@ -801,6 +801,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    listener?.endInvalidYieldStatement(
+        beginToken, starToken, endToken, errorCode);
+  }
+
+  @override
   void endLabeledStatement(int labelCount) {
     listener?.endLabeledStatement(labelCount);
   }

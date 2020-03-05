@@ -763,7 +763,7 @@ class _NeverTypeHandle extends _TypeHandle {
       other is _NeverTypeHandle && this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => 'Never';
 }
 
@@ -803,7 +803,7 @@ class _SimpleTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '$class_';
 }
 
@@ -857,7 +857,7 @@ class _TypeParameterHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '$parent::TypeParam/$indexInParent';
 }
 
@@ -903,7 +903,7 @@ class _GenericTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '$class_ $typeArgs';
 }
 
@@ -956,7 +956,7 @@ class _RecursiveGenericTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '(recursive #$id) $class_ $typeArgs';
 }
 
@@ -1009,7 +1009,7 @@ class NameAndType {
       this.type == other.type;
 
   @override
-  // TODO(regis): Print nullability, always or only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() => '$type ${name.name}';
 }
 
@@ -1152,7 +1152,7 @@ class _FunctionTypeHandle extends _TypeHandle {
       this.returnType == other.returnType;
 
   @override
-  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
+  // TODO(regis): Print nullability.
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('FunctionType');

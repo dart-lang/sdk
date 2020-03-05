@@ -154,6 +154,10 @@ class Server {
   ///
   /// If [serverPath] is specified, then that analysis server will be launched,
   /// otherwise the analysis server snapshot in the SDK will be launched.
+  ///
+  /// If [enableAsserts] is specified, then asserts will be enabled in the new
+  /// dart process for that server. This is typically just useful to enable
+  /// locally for debugging.
   Future start({
     String clientId,
     String clientVersion,
@@ -165,6 +169,7 @@ class Server {
     int servicesPort,
     bool suppressAnalytics = true,
     bool useAnalysisHighlight2 = false,
+    bool enableAsserts = false,
   }) async {
     if (_process != null) {
       throw Exception('Process already started');
@@ -201,6 +206,9 @@ class Server {
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
+    }
+    if (enableAsserts) {
+      arguments.add('--enable-asserts');
     }
     //
     // Add the server executable.

@@ -45,7 +45,9 @@ Future<String> generateMessagesFile() async {
 // 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
 ''');
 
-  List<String> keys = yaml.keys.cast<String>().toList()..sort();
+  Map<dynamic, dynamic> features = yaml['features'];
+
+  List<String> keys = features.keys.cast<String>().toList()..sort();
 
   sb.write('''
 
@@ -71,8 +73,8 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 ''');
   for (var key in keys) {
-    var expired = (yaml[key] as YamlMap)['expired'];
-    bool shipped = (yaml[key] as YamlMap)['enabledIn'] != null;
+    var expired = (features[key] as YamlMap)['expired'];
+    bool shipped = (features[key] as YamlMap)['enabledIn'] != null;
     sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${shipped},');
     if (shipped) {
       if (expired == false) {
@@ -86,7 +88,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
 ''');
   for (var key in keys) {
-    bool expired = (yaml[key] as YamlMap)['expired'] == true;
+    bool expired = (features[key] as YamlMap)['expired'] == true;
     sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${expired},');
   }
   sb.writeln('};');

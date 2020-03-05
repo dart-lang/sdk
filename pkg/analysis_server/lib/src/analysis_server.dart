@@ -735,6 +735,10 @@ class AnalysisServerOptions {
   /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
 
+  /// Return `true` if the new relevance computations should be used when
+  /// computing code completion suggestions.
+  bool useNewRelevance = false;
+
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();
 }

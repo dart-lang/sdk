@@ -407,7 +407,7 @@ abstract class WebSocket
           "explicitly to WebSocket.fromUpgradedSocket.");
     }
     return new _WebSocketImpl._fromSocket(
-        socket, protocol, compression, serverSide ?? false);
+        socket, protocol, compression, serverSide);
   }
 
   /**

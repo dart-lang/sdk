@@ -858,9 +858,6 @@ bool _isBottom(type) => JS('!', '# == # || # == #', type, bottom, type, Null);
 
 @notNull
 bool _isTop(type) {
-  if (_isFutureOr(type)) {
-    return _isTop(JS('', '#[0]', getGenericArgs(type)));
-  }
   return JS('!', '# == # || # == # || # == #', type, Object, type, dynamic,
       type, void_);
 }

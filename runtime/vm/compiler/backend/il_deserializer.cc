@@ -893,9 +893,6 @@ AssertAssignableInstr* FlowGraphDeserializer::DeserializeAssertAssignable(
   auto const dst_name_sexp = Retrieve(sexp, "name");
   if (!ParseDartValue(dst_name_sexp, &dst_name)) return nullptr;
 
-  // TODO(regis): Serialize/deserialize nnbd_mode.
-  auto nnbd_mode = NNBDMode::kLegacyLib;
-
   auto kind = AssertAssignableInstr::Kind::kUnknown;
   if (auto const kind_sexp = CheckSymbol(sexp->ExtraLookupValue("kind"))) {
     if (!AssertAssignableInstr::ParseKind(kind_sexp->value(), &kind)) {
@@ -906,7 +903,7 @@ AssertAssignableInstr* FlowGraphDeserializer::DeserializeAssertAssignable(
 
   return new (zone())
       AssertAssignableInstr(info.token_pos, val, inst_type_args, func_type_args,
-                            dst_type, dst_name, info.deopt_id, nnbd_mode, kind);
+                            dst_type, dst_name, info.deopt_id, kind);
 }
 
 AssertBooleanInstr* FlowGraphDeserializer::DeserializeAssertBoolean(

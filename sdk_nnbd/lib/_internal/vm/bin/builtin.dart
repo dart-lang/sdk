@@ -33,15 +33,15 @@ void _print(arg) {
 _getPrintClosure() => _print;
 
 // The current working directory when the embedder was launched.
-Uri _workingDirectory;
+late Uri _workingDirectory;
 
 // The URI that the root script was loaded from. Remembered so that
 // package imports can be resolved relative to it. The root script is the basis
 // for the root library in the VM.
-Uri _rootScript;
+Uri? _rootScript;
 
 // packagesConfig specified for the isolate.
-Uri _packagesConfigUri;
+Uri? _packagesConfigUri;
 
 // Packages are either resolved looking up in a map or resolved from within a
 // package root.
@@ -50,11 +50,11 @@ bool get _packagesReady => (_packageMap != null) || (_packageError != null);
 // Error string set if there was an error resolving package configuration.
 // For example not finding a .packages file or packages/ directory, malformed
 // .packages file or any other related error.
-String _packageError = null;
+String? _packageError = null;
 
 // The map describing how certain package names are mapped to Uris.
-Uri _packageConfig = null;
-Map<String, Uri> _packageMap = null;
+Uri? _packageConfig = null;
+Map<String, Uri>? _packageMap = null;
 
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
@@ -128,11 +128,12 @@ Uri _resolvePackageUri(Uri uri) {
     _log('Resolving package with uri path: ${uri.path}');
   }
   var resolvedUri;
-  if (_packageError != null) {
+  final error = _packageError;
+  if (error != null) {
     if (_traceLoading) {
-      _log("Resolving package with pending resolution error: $_packageError");
+      _log("Resolving package with pending resolution error: $error");
     }
-    throw _packageError;
+    throw error;
   } else {
     if (packageNameEnd < 0) {
       // Package URIs must have a path after the package name, even if it's
@@ -141,7 +142,7 @@ Uri _resolvePackageUri(Uri uri) {
           "'package:${uri.path}/', not 'package:${uri.path}'";
     }
     var packageName = uri.path.substring(0, packageNameEnd);
-    var mapping = _packageMap[packageName];
+    final mapping = _packageMap![packageName];
     if (_traceLoading) {
       _log("Mapped '$packageName' package to '$mapping'");
     }
@@ -162,14 +163,14 @@ Uri _resolvePackageUri(Uri uri) {
   return resolvedUri;
 }
 
-void _requestPackagesMap(Uri packageConfig) {
+void _requestPackagesMap(Uri? packageConfig) {
   var msg = null;
   if (packageConfig != null) {
     // Explicitly specified .packages path.
     msg = _handlePackagesRequest(_traceLoading, -2, packageConfig);
   } else {
     // Search for .packages starting at the root script.
-    msg = _handlePackagesRequest(_traceLoading, -1, _rootScript);
+    msg = _handlePackagesRequest(_traceLoading, -1, _rootScript!);
   }
   if (_traceLoading) {
     _log("Requested packages map for '$_rootScript'.");
@@ -186,10 +187,11 @@ void _requestPackagesMap(Uri packageConfig) {
     assert(msg.length >= 2);
     assert(msg[1] == null);
     _packageConfig = Uri.parse(msg[0]);
-    _packageMap = new Map<String, Uri>();
+    final pmap = new Map<String, Uri>();
+    _packageMap = pmap;
     for (var i = 2; i < msg.length; i += 2) {
       // TODO(iposva): Complain about duplicate entries.
-      _packageMap[msg[i]] = Uri.parse(msg[i + 1]);
+      pmap[msg[i]] = Uri.parse(msg[i + 1]);
     }
     if (_traceLoading) {
       _log("Setup package map: $_packageMap");
@@ -591,9 +593,6 @@ String _setPackagesMap(String packagesParam) {
   if (_traceLoading) {
     _log("Resolving packages map: $packagesParam");
   }
-  if (_workingDirectory == null) {
-    throw 'No current working directory set.';
-  }
   var packagesName = _sanitizeWindowsPath(packagesParam);
   var packagesUri = Uri.parse(packagesName);
   if (packagesUri.scheme == '') {
@@ -615,9 +614,6 @@ String _setPackagesMap(String packagesParam) {
 String _resolveScriptUri(String scriptName) {
   if (_traceLoading) {
     _log("Resolving script: $scriptName");
-  }
-  if (_workingDirectory == null) {
-    throw 'No current working directory set.';
   }
   scriptName = _sanitizeWindowsPath(scriptName);
 
@@ -657,7 +653,7 @@ Future<Uri> _getPackageConfigFuture() {
   return Future.value(_packageConfig);
 }
 
-Future<Uri> _resolvePackageUriFuture(Uri packageUri) {
+Future<Uri?> _resolvePackageUriFuture(Uri packageUri) {
   if (_traceLoading) {
     _log("Request for package Uri resolution from user code: $packageUri");
   }
@@ -671,7 +667,7 @@ Future<Uri> _resolvePackageUriFuture(Uri packageUri) {
   if (!_packagesReady) {
     _requestPackagesMap(_packagesConfigUri);
   }
-  Uri resolvedUri;
+  Uri? resolvedUri;
   try {
     resolvedUri = _resolvePackageUri(packageUri);
   } catch (e, s) {

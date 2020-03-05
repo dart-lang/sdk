@@ -2117,4 +2117,22 @@ abstract class DartTypes {
   DartType getTypeVariableBound(TypeVariableEntity element);
 
   List<Variance> getTypeVariableVariances(ClassEntity cls);
+
+  DartType getTearOffParameterType(
+      DartType type, bool isCovariant, bool isNonNullableByDefaultLibrary) {
+    if (isCovariant) {
+      // A covariant parameter has type `Object` in the method signature.
+      var objectType = commonElements.objectType;
+      if (useNullSafety) {
+        if (isNonNullableByDefaultLibrary) {
+          return nullableType(objectType);
+        } else {
+          return legacyType(objectType);
+        }
+      } else {
+        return objectType;
+      }
+    }
+    return type;
+  }
 }

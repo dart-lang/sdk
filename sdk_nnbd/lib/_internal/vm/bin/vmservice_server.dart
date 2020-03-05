@@ -383,11 +383,11 @@ class Server {
     client.onRequest(message); // exception free, no need to try catch
   }
 
-  Future<void> _dumpServiceInfoToFile() async {
+  Future<void> _dumpServiceInfoToFile(String serviceInfoFilenameLocal) async {
     final serviceInfo = <String, dynamic>{
       'uri': serverAddress.toString(),
     };
-    final file = File.fromUri(Uri.parse(_serviceInfoFilename));
+    final file = File.fromUri(Uri.parse(serviceInfoFilenameLocal));
     return file.writeAsString(json.encode(serviceInfo));
   }
 
@@ -456,7 +456,7 @@ class Server {
     final serviceInfoFilenameLocal = _serviceInfoFilename;
     if (serviceInfoFilenameLocal != null &&
         serviceInfoFilenameLocal.isNotEmpty) {
-      await _dumpServiceInfoToFile();
+      await _dumpServiceInfoToFile(serviceInfoFilenameLocal);
     }
     // Server is up and running.
     _notifyServerState(serverAddress.toString());

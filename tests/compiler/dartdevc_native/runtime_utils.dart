@@ -5,7 +5,12 @@
 import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 
+import 'dart:async';
 import 'package:expect/expect.dart';
+
+// Function type used to extract the FutureOr now that a raw FutureOr gets
+// normalized away.
+typedef _futureOrReturn = FutureOr<int> Function();
 
 // The runtime representation of the void type.
 final voidType = dart.wrapType(dart.void_);
@@ -19,6 +24,14 @@ Object unwrap(Type t) {
     return t;
   }
   return dart.unwrapType(t);
+}
+
+Type futureOrOf(Type tWrapped) {
+  var t = unwrap(tWrapped);
+  var f = unwrap(_futureOrReturn);
+  // Extract a raw FutureOr from an existing use.
+  var futureOrGeneric = dart.getGenericClass(JS('', '#.returnType', f));
+  return dart.wrapType(JS('', '#(#)', futureOrGeneric, t));
 }
 
 // Returns sWrapped<tWrapped> as a wrapped type.

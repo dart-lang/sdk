@@ -1474,88 +1474,103 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+// Helper to generate space allocation of context stub.
+// This does not initialise the fields of the context.
+// Input:
+//   R10: number of context variables.
+// Output:
+//   RAX: new, uinitialised allocated RawContext object.
+// Clobbered:
+//   R13
+static void GenerateAllocateContextSpaceStub(Assembler* assembler,
+                                             Label* slow_case) {
+  // First compute the rounded instance size.
+  // R10: number of context variables.
+  intptr_t fixed_size_plus_alignment_padding =
+      (target::Context::header_size() +
+       target::ObjectAlignment::kObjectAlignment - 1);
+  __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
+  __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
+
+  // Check for allocation tracing.
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(kContextCid, slow_case, Assembler::kFarJump));
+
+  // Now allocate the object.
+  // R10: number of context variables.
+  __ movq(RAX, Address(THR, target::Thread::top_offset()));
+  __ addq(R13, RAX);
+  // Check if the allocation fits into the remaining space.
+  // RAX: potential new object.
+  // R13: potential next object start.
+  // R10: number of context variables.
+  __ cmpq(R13, Address(THR, target::Thread::end_offset()));
+  if (FLAG_use_slow_path) {
+    __ jmp(slow_case);
+  } else {
+    __ j(ABOVE_EQUAL, slow_case);
+  }
+
+  // Successfully allocated the object, now update top to point to
+  // next object start and initialize the object.
+  // RAX: new object.
+  // R13: next object start.
+  // R10: number of context variables.
+  __ movq(Address(THR, target::Thread::top_offset()), R13);
+  // R13: Size of allocation in bytes.
+  __ subq(R13, RAX);
+  __ addq(RAX, Immediate(kHeapObjectTag));
+  // Generate isolate-independent code to allow sharing between isolates.
+
+  // Calculate the size tag.
+  // RAX: new object.
+  // R10: number of context variables.
+  {
+    Label size_tag_overflow, done;
+    __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
+    __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
+    __ cmpq(R13, Immediate(target::RawObject::kSizeTagMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shlq(R13, Immediate(target::RawObject::kTagBitsSizeTagPos -
+                           target::ObjectAlignment::kObjectAlignmentLog2));
+    __ jmp(&done);
+
+    __ Bind(&size_tag_overflow);
+    // Set overflow size tag value.
+    __ LoadImmediate(R13, Immediate(0));
+
+    __ Bind(&done);
+    // RAX: new object.
+    // R10: number of context variables.
+    // R13: size and bit tags.
+    uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
+    __ orq(R13, Immediate(tags));
+    __ movq(FieldAddress(RAX, target::Object::tags_offset()), R13);  // Tags.
+  }
+
+  // Setup up number of context variables field.
+  // RAX: new object.
+  // R10: number of context variables as integer value (not object).
+  __ movq(FieldAddress(RAX, target::Context::num_variables_offset()), R10);
+}
+
 // Called for inline allocation of contexts.
 // Input:
-// R10: number of context variables.
+//   R10: number of context variables.
 // Output:
-// RAX: new allocated RawContext object.
+//   RAX: new allocated RawContext object.
+// Clobbered:
+//   R9, R13
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ LoadObject(R9, NullObject());
   if (FLAG_inline_alloc) {
     Label slow_case;
-    // First compute the rounded instance size.
-    // R10: number of context variables.
-    intptr_t fixed_size_plus_alignment_padding =
-        (target::Context::header_size() +
-         target::ObjectAlignment::kObjectAlignment - 1);
-    __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
-    __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
-    // Check for allocation tracing.
-    NOT_IN_PRODUCT(
-        __ MaybeTraceAllocation(kContextCid, &slow_case, Assembler::kFarJump));
-
-    // Now allocate the object.
-    // R10: number of context variables.
-    const intptr_t cid = kContextCid;
-    __ movq(RAX, Address(THR, target::Thread::top_offset()));
-    __ addq(R13, RAX);
-    // Check if the allocation fits into the remaining space.
-    // RAX: potential new object.
-    // R13: potential next object start.
-    // R10: number of context variables.
-    __ cmpq(R13, Address(THR, target::Thread::end_offset()));
-    if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
-    } else {
-      __ j(ABOVE_EQUAL, &slow_case);
-    }
-
-    // Successfully allocated the object, now update top to point to
-    // next object start and initialize the object.
-    // RAX: new object.
-    // R13: next object start.
-    // R10: number of context variables.
-    __ movq(Address(THR, target::Thread::top_offset()), R13);
-    // R13: Size of allocation in bytes.
-    __ subq(R13, RAX);
-    __ addq(RAX, Immediate(kHeapObjectTag));
-    // Generate isolate-independent code to allow sharing between isolates.
-
-    // Calculate the size tag.
-    // RAX: new object.
-    // R10: number of context variables.
-    {
-      Label size_tag_overflow, done;
-      __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
-      __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
-      __ cmpq(R13, Immediate(target::RawObject::kSizeTagMaxSizeTag));
-      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(R13, Immediate(target::RawObject::kTagBitsSizeTagPos -
-                             target::ObjectAlignment::kObjectAlignmentLog2));
-      __ jmp(&done);
-
-      __ Bind(&size_tag_overflow);
-      // Set overflow size tag value.
-      __ LoadImmediate(R13, Immediate(0));
-
-      __ Bind(&done);
-      // RAX: new object.
-      // R10: number of context variables.
-      // R13: size and bit tags.
-      uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
-      __ orq(R13, Immediate(tags));
-      __ movq(FieldAddress(RAX, target::Object::tags_offset()), R13);  // Tags.
-    }
-
-    // Setup up number of context variables field.
-    // RAX: new object.
-    // R10: number of context variables as integer value (not object).
-    __ movq(FieldAddress(RAX, target::Context::num_variables_offset()), R10);
+    GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
     // Setup the parent field.
     // RAX: new object.
-    // R10: number of context variables.
+    // R9: Parent object, initialised to null.
     // No generational barrier needed, since we are storing null.
     __ StoreIntoObjectNoBarrier(
         RAX, FieldAddress(RAX, target::Context::parent_offset()), R9);
@@ -1595,6 +1610,77 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ popq(RAX);  // Pop number of context variables argument.
   __ popq(RAX);  // Pop the new context object.
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+
+  // RAX: new object
+  // Restore the frame pointer.
+  __ LeaveStubFrame();
+
+  __ ret();
+}
+
+// Called for inline clone of contexts.
+// Input:
+//   R9: context to clone.
+// Output:
+//   RAX: new allocated RawContext object.
+// Clobbered:
+//   R10, R13
+void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
+  {
+    Label slow_case;
+
+    // Load num. variable (int32_t) in the existing context.
+    __ movsxd(R10, FieldAddress(R9, target::Context::num_variables_offset()));
+
+    // Allocate new context of same size.
+    GenerateAllocateContextSpaceStub(assembler, &slow_case);
+
+    // Load parent in the existing context.
+    __ movq(R13, FieldAddress(R9, target::Context::parent_offset()));
+    // Setup the parent field.
+    // RAX: new object.
+    // R9: Old parent object.
+    __ StoreIntoObjectNoBarrier(
+        RAX, FieldAddress(RAX, target::Context::parent_offset()), R13);
+
+    // Clone the context variables.
+    // RAX: new context clone.
+    // R10: number of context variables.
+    {
+      Label loop, entry;
+      __ jmp(&entry, Assembler::kNearJump);
+      __ Bind(&loop);
+      __ decq(R10);
+      __ movq(R13, FieldAddress(R9, R10, TIMES_8,
+                                target::Context::variable_offset(0)));
+      __ StoreIntoObjectNoBarrier(
+          RAX,
+          FieldAddress(RAX, R10, TIMES_8, target::Context::variable_offset(0)),
+          R13);
+      __ Bind(&entry);
+      __ cmpq(R10, Immediate(0));
+      __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+    }
+
+    // Done allocating and initializing the context.
+    // RAX: new object.
+    __ ret();
+
+    __ Bind(&slow_case);
+  }
+
+  // Create a stub frame.
+  __ EnterStubFrame();
+
+  __ PushObject(NullObject());  // Make space on stack for the return value.
+  __ pushq(R9);                 // Push context.
+  __ CallRuntime(kCloneContextRuntimeEntry, 1);  // Clone context.
+  __ popq(RAX);                                  // Pop context argument.
+  __ popq(RAX);                                  // Pop the new context object.
 
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
@@ -1604,6 +1690,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   // RAX: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
+
   __ ret();
 }
 
@@ -2991,11 +3078,8 @@ static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
   __ PushObject(NullObject());
   __ pushq(kSubtypeTestCacheReg);
   __ PushImmediate(Immediate(target::ToRawSmi(mode)));
-  // TODO(regis): Pass nnbd mode in a register from call site.
-  __ PushImmediate(
-      Immediate(target::ToRawSmi(static_cast<intptr_t>(NNBDMode::kLegacyLib))));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 8);
-  __ Drop(2);  // mode and nnbd_mode
+  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
+  __ Drop(1);  // mode
   __ popq(kSubtypeTestCacheReg);
   __ Drop(1);
   __ popq(kFunctionTypeArgumentsReg);

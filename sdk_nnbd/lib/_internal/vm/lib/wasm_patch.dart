@@ -105,11 +105,12 @@ class _NativeWasmImports extends NativeFieldWrapperClass1
 }
 
 class _NativeWasmMemory extends NativeFieldWrapperClass1 implements WasmMemory {
-  int _pages;
-  Uint8List _buffer;
+  late int _pages;
+  late Uint8List _buffer;
 
-  _NativeWasmMemory(int initialPages, int? maxPages) : _pages = initialPages {
+  _NativeWasmMemory(int initialPages, int? maxPages) {
     _buffer = _init(initialPages, maxPages);
+    _pages = initialPages;
   }
 
   _NativeWasmMemory.fromInstance(_NativeWasmInstance inst) {

@@ -48,6 +48,7 @@ part 'test.dart';
     CompletionRequestImpl baseRequest = CompletionRequestImpl(
         await session.getResolvedUnit(testFile),
         completionOffset,
+        false,
         CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
         Completer<DartCompletionRequest>();

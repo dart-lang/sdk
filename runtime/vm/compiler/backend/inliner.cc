@@ -2600,7 +2600,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
           token_pos, new (Z) Value(stored_value), new (Z) Value(type_args),
           new (Z)
               Value(flow_graph->constant_null()),  // Function type arguments.
-          value_type, Symbols::Value(), call->deopt_id(), target.nnbd_mode());
+          value_type, Symbols::Value(), call->deopt_id());
       cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
                                     FlowGraph::kValue);
     }

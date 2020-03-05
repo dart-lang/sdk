@@ -87,7 +87,9 @@ abstract class NavigationRegion {
   final int length;
 
   /// Initialize a newly created link.
-  NavigationRegion(this.offset, this.line, this.length);
+  NavigationRegion(int offset, this.line, this.length)
+      : assert(offset >= 0),
+        offset = offset < 0 ? 0 : offset;
 }
 
 /// A location from which a user might want to navigate.

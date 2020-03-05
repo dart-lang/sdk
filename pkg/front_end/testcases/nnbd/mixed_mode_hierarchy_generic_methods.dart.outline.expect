@@ -10,7 +10,7 @@ import "dart:async";
 class B extends core::Object implements mix::A<core::int*> {
   synthetic constructor •() → self::B*
     ;
-  method then<B extends core::Object* = dynamic>() → asy::Future<self::B::then::B%>
+  method then<B extends core::Object* = dynamic>() → asy::Future<self::B::then::B*>*
     ;
 }
 static method main() → dynamic

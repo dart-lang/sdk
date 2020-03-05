@@ -1256,7 +1256,7 @@ import 'a.dart' as p;
   }
 
   Future<void> test_writeType_function_parameters_noName() async {
-    await _assertWriteType('int Function(double, String)');
+    await _assertWriteType('int Function(double p1, String p2)');
   }
 
   Future<void> test_writeType_function_parameters_positional() async {

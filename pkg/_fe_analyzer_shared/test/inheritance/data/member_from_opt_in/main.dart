@@ -22,3 +22,8 @@ abstract class LegacyInterface implements Interface {
 class LegacySubClass extends LegacyClass implements LegacyInterface {
   /*member: LegacySubClass.method:int* Function(int*)**/
 }
+
+/*class: LegacyClass2:Class2,Interface,LegacyClass2,Object*/
+abstract class LegacyClass2 extends Class2 {
+  /*member: LegacyClass2.method:int* Function(int*)**/
+}

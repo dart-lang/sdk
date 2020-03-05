@@ -344,8 +344,7 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
     uint8_t* buffer = NULL;
     Dart_Handle result = IOBuffer::Allocate(length, &buffer);
     if (Dart_IsNull(result)) {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-      return;
+      Dart_ThrowException(DartUtils::NewDartOSError());
     }
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
@@ -359,8 +358,7 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       uint8_t* new_buffer = NULL;
       Dart_Handle new_result = IOBuffer::Allocate(bytes_read, &new_buffer);
       if (Dart_IsNull(new_result)) {
-        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-        return;
+        Dart_ThrowException(DartUtils::NewDartOSError());
       }
       if (Dart_IsError(new_result)) {
         Dart_PropagateError(new_result);
@@ -374,11 +372,11 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       Dart_SetReturnValue(args, Dart_Null());
     } else {
       ASSERT(bytes_read == -1);
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      Dart_ThrowException(DartUtils::NewDartOSError());
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_ThrowException(DartUtils::NewDartOSError(&os_error));
   }
 }
 
@@ -407,8 +405,7 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   }
   if (bytes_read < 0) {
     ASSERT(bytes_read == -1);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    return;
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 
   // Datagram data read. Copy into buffer of the exact size,
@@ -416,8 +413,7 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   uint8_t* data_buffer = NULL;
   Dart_Handle data = IOBuffer::Allocate(bytes_read, &data_buffer);
   if (Dart_IsNull(data)) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    return;
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
   if (Dart_IsError(data)) {
     Dart_PropagateError(data);
@@ -497,9 +493,13 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
     }
   } else {
     // Extract OSError before we release data, as it may override the error.
-    OSError os_error;
-    Dart_TypedDataReleaseData(buffer_obj);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_Handle error;
+    {
+      OSError os_error;
+      Dart_TypedDataReleaseData(buffer_obj);
+      error = DartUtils::NewDartOSError(&os_error);
+    }
+    Dart_ThrowException(error);
   }
 }
 
@@ -533,28 +533,30 @@ void FUNCTION_NAME(Socket_SendTo)(Dart_NativeArguments args) {
     Dart_SetIntegerReturnValue(args, bytes_written);
   } else {
     // Extract OSError before we release data, as it may override the error.
-    OSError os_error;
-    Dart_TypedDataReleaseData(buffer_obj);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    Dart_Handle error;
+    {
+      OSError os_error;
+      Dart_TypedDataReleaseData(buffer_obj);
+      error = DartUtils::NewDartOSError(&os_error);
+    }
+    Dart_ThrowException(error);
   }
 }
 
 void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
-  OSError os_error;
   intptr_t port = SocketBase::GetPort(socket->fd());
   if (port > 0) {
     Dart_SetIntegerReturnValue(args, port);
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
 void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
-  OSError os_error;
   intptr_t port = 0;
   SocketAddress* addr = SocketBase::GetRemotePeer(socket->fd(), &port);
   if (addr != NULL) {
@@ -572,7 +574,7 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, list);
     delete addr;
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -657,10 +659,8 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
     Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 1), new_socket,
                                    Socket::kFinalizerNormal);
     Dart_SetReturnValue(args, Dart_True());
-  } else if (new_socket == ServerSocket::kTemporaryFailure) {
-    Dart_SetReturnValue(args, Dart_False());
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_SetReturnValue(args, Dart_False());
   }
 }
 
@@ -840,7 +840,7 @@ void FUNCTION_NAME(Socket_GetOption)(Dart_NativeArguments args) {
   }
   // In case of failure the return value is not set above.
   if (!ok) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -881,10 +881,8 @@ void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
       Dart_PropagateError(Dart_NewApiError("Value outside expected range"));
       break;
   }
-  if (result) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!result) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -910,10 +908,8 @@ void FUNCTION_NAME(Socket_SetRawOption)(Dart_NativeArguments args) {
 
   Dart_TypedDataReleaseData(data_obj);
 
-  if (result) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!result) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -938,11 +934,8 @@ void FUNCTION_NAME(Socket_GetRawOption)(Dart_NativeArguments args) {
                             static_cast<int>(option), data, &int_length);
 
   Dart_TypedDataReleaseData(data_obj);
-
-  if (result) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!result) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -999,11 +992,9 @@ void FUNCTION_NAME(Socket_JoinMulticast)(Dart_NativeArguments args) {
   }
   int interfaceIndex =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  if (SocketBase::JoinMulticast(socket->fd(), addr, interface,
-                                interfaceIndex)) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!SocketBase::JoinMulticast(socket->fd(), addr, interface,
+                                 interfaceIndex)) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 
@@ -1018,11 +1009,9 @@ void FUNCTION_NAME(Socket_LeaveMulticast)(Dart_NativeArguments args) {
   }
   int interfaceIndex =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  if (SocketBase::LeaveMulticast(socket->fd(), addr, interface,
-                                 interfaceIndex)) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (!SocketBase::LeaveMulticast(socket->fd(), addr, interface,
+                                  interfaceIndex)) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 

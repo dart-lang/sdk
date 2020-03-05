@@ -54,7 +54,7 @@ class Pointer<T extends NativeType> extends NativeType {
   /// [dynamic].
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]);
+      [Object? exceptionalReturn]);
 
   /// Access to the raw pointer value.
   /// On 32-bit systems, the upper 32-bits of the result are 0.

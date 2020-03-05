@@ -27,6 +27,26 @@ void help() {
     expect(result.stdout, contains('Usage: dart <command> [arguments]'));
     expect(result.stdout, contains('Global options:'));
     expect(result.stdout, contains('Available commands:'));
+    expect(result.stdout, contains('analyze '));
+    expect(result.stdout, contains('create '));
+    expect(result.stdout, contains('format '));
+    expect(result.stdout, isNot(contains('migrate ')));
+  });
+
+  test('--help --verbose', () {
+    p = project();
+    var result = p.runSync('--help', ['--verbose']);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('migrate '));
+  });
+
+  test('--help -v', () {
+    p = project();
+    var result = p.runSync('--help', ['-v']);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('migrate '));
   });
 
   // For each command description, assert that the values are not empty, don't

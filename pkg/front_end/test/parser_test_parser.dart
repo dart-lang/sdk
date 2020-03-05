@@ -1498,14 +1498,6 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseBangBeforeTypeArguments(Token token) {
-    doPrint('parseBangBeforeTypeArguments(' '$token)');
-    indent++;
-    var result = super.parseBangBeforeTypeArguments(token);
-    indent--;
-    return result;
-  }
-
   Token parseSend(Token token, IdentifierContext context) {
     doPrint('parseSend(' '$token, ' '$context)');
     indent++;

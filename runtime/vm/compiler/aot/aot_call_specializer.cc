@@ -1310,7 +1310,7 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
   const AbstractType& target_type =
       AbstractType::Handle(Class::Handle(interface_target.Owner()).RareType());
   const bool receiver_can_be_smi =
-      CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, target_type);
+      CompileType::Smi().IsAssignableTo(target_type);
   auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z), kUntagged,
                                            receiver_can_be_smi);
   InsertBefore(call, load_cid, call->env(), FlowGraph::kValue);

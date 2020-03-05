@@ -493,11 +493,12 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     List<DartType> optionalParameterTypes = <DartType>[];
 
     DartType getParameterType(ir.VariableDeclaration variable) {
-      if (variable.isCovariant || variable.isGenericCovariantImpl) {
-        // A covariant parameter has type `Object` in the method signature.
-        return commonElements.objectType;
-      }
-      return getDartType(variable.type);
+      // isCovariant implies this FunctionNode is a class Procedure.
+      var isCovariant = variable.isCovariant || variable.isGenericCovariantImpl;
+      var isFromNonNullableByDefaultLibrary = isCovariant &&
+          (node.parent as ir.Procedure).enclosingLibrary.isNonNullableByDefault;
+      return types.getTearOffParameterType(getDartType(variable.type),
+          isCovariant, isFromNonNullableByDefaultLibrary);
     }
 
     for (ir.VariableDeclaration variable in node.positionalParameters) {

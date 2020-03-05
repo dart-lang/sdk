@@ -5,25 +5,9 @@
 import 'dart:convert' as convert;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:nnbd_migration/nullability_state.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/variables.dart';
-
-/// Representation of a single step in the downstream propagation algorithm.
-class DownstreamPropagationStep extends PropagationStep<Nullability> {
-  DownstreamPropagationStep(NullabilityNode node, Nullability newState,
-      {NullabilityNode causeNode, NullabilityEdge causeEdge})
-      : super(node, newState, causeNode: causeNode, causeEdge: causeEdge);
-
-  DownstreamPropagationStep.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : super.fromJson(
-            json, deserializer, (json) => Nullability.fromJson(json));
-
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) =>
-      toJsonInternal(serializer, (state) => state.toJson());
-}
 
 /// Helper class for reading a postmortem file.
 class PostmortemFileReader {
@@ -31,30 +15,22 @@ class PostmortemFileReader {
 
   final NullabilityGraph graph;
 
-  final List<UpstreamPropagationStep> upstreamPropagationSteps;
-
-  final List<DownstreamPropagationStep> downstreamPropagationSteps;
+  final List<PropagationStep> propagationSteps;
 
   final Map<String, Map<int, Map<String, NullabilityNode>>> fileDecorations;
 
   factory PostmortemFileReader.read(File file) {
     var json = convert.json.decode(file.readAsStringSync());
+    List<PropagationStep> deserializedSteps = [];
     var deserializer = NullabilityGraphDeserializer(
         json['graph']['nodes'] as List<dynamic>,
-        json['graph']['edges'] as List<dynamic>);
-    return PostmortemFileReader._(json, deserializer);
+        json['graph']['edges'] as List<dynamic>,
+        deserializedSteps);
+    return PostmortemFileReader._(json, deserializer, deserializedSteps);
   }
 
-  PostmortemFileReader._(dynamic json, this.deserializer)
+  PostmortemFileReader._(dynamic json, this.deserializer, this.propagationSteps)
       : graph = NullabilityGraph.fromJson(json['graph'], deserializer),
-        upstreamPropagationSteps = [
-          for (var step in json['upstreamPropagationSteps'])
-            UpstreamPropagationStep.fromJson(step, deserializer)
-        ],
-        downstreamPropagationSteps = [
-          for (var step in json['downstreamPropagationSteps'])
-            DownstreamPropagationStep.fromJson(step, deserializer)
-        ],
         fileDecorations = {
           for (var fileEntry
               in (json['fileDecorations'] as Map<String, dynamic>).entries)
@@ -69,7 +45,9 @@ class PostmortemFileReader {
                         deserializer.nodeForId(roleEntry.value as int)
                 }
             }
-        };
+        } {
+    _decodePropagationSteps(json['propagationSteps']);
+  }
 
   NodeToIdMapper get idMapper => deserializer;
 
@@ -88,6 +66,14 @@ class PostmortemFileReader {
       }
     }
   }
+
+  void _decodePropagationSteps(dynamic json) {
+    for (var serializedStep in json) {
+      var step = PropagationStep.fromJson(serializedStep, deserializer);
+      deserializer.recordStepId(step, propagationSteps.length);
+      propagationSteps.add(step);
+    }
+  }
 }
 
 /// Helper class for writing to a postmortem file.
@@ -96,14 +82,20 @@ class PostmortemFileWriter {
 
   NullabilityGraph graph;
 
-  final List<DownstreamPropagationStep> downstreamPropagationSteps = [];
-
-  final List<UpstreamPropagationStep> upstreamPropagationSteps = [];
+  final List<PropagationStep> _propagationSteps = [];
 
   final Map<String, Map<int, Map<String, NullabilityNode>>> _fileDecorations =
       {};
 
   PostmortemFileWriter(this.file);
+
+  void addPropagationStep(PropagationStep step) {
+    _propagationSteps.add(step);
+  }
+
+  void clearPropagationSteps() {
+    _propagationSteps.clear();
+  }
 
   void storeFileDecorations(
       String path, int location, DecoratedType decoratedType) {
@@ -116,12 +108,12 @@ class PostmortemFileWriter {
     var json = <String, Object>{};
     var serializer = NullabilityGraphSerializer();
     json['graph'] = graph.toJson(serializer);
-    json['upstreamPropagationSteps'] = [
-      for (var step in upstreamPropagationSteps) step.toJson(serializer)
-    ];
-    json['downstreamPropagationSteps'] = [
-      for (var step in downstreamPropagationSteps) step.toJson(serializer)
-    ];
+    List<Object> serializedPropagationSteps = [];
+    for (var step in _propagationSteps) {
+      serializer.recordStepId(step, serializedPropagationSteps.length);
+      serializedPropagationSteps.add(step.toJson(serializer));
+    }
+    json['propagationSteps'] = serializedPropagationSteps;
     json['fileDecorations'] = {
       for (var fileEntry in _fileDecorations.entries)
         fileEntry.key: {
@@ -134,80 +126,4 @@ class PostmortemFileWriter {
     };
     file.writeAsStringSync(convert.json.encode(json));
   }
-}
-
-class PropagationStep<State> {
-  /// The node whose state was changed.
-  final NullabilityNode node;
-
-  /// The new state.
-  final State newState;
-
-  /// The cause of the state change (if the cause was a node), otherwise `null`.
-  final NullabilityNode causeNode;
-
-  /// The cause of the state change (if the cause was an edge), otherwise
-  /// `null`.
-  final NullabilityEdge causeEdge;
-
-  PropagationStep(this.node, this.newState, {this.causeNode, this.causeEdge});
-
-  PropagationStep.fromJson(
-      dynamic json,
-      NullabilityGraphDeserializer deserializer,
-      State Function(dynamic) deserializeState)
-      : node = deserializer.nodeForId(json['node'] as int),
-        newState = deserializeState(json['newState']),
-        causeNode = json['causeNode'] == null
-            ? null
-            : deserializer.nodeForId(json['causeNode'] as int),
-        causeEdge = json['causeEdge'] == null
-            ? null
-            : deserializer.edgeForId(json['causeEdge'] as int);
-
-  Map<String, Object> toJsonInternal(NullabilityGraphSerializer serializer,
-      String Function(State) serializeState) {
-    var json = <String, Object>{};
-    json['node'] = serializer.idForNode(node);
-    json['newState'] = serializeState(newState);
-    if (causeNode != null) {
-      json['causeNode'] = serializer.idForNode(causeNode);
-    }
-    if (causeEdge != null) {
-      json['causeEdge'] = serializer.idForEdge(causeEdge);
-    }
-    return json;
-  }
-
-  @override
-  String toString({NodeToIdMapper idMapper}) =>
-      '${node.toString(idMapper: idMapper)} becomes $newState due to '
-      '${_computeCause(idMapper: idMapper)}';
-
-  String _computeCause({NodeToIdMapper idMapper}) {
-    var causes = <String>[
-      if (causeNode != null) causeNode.toString(idMapper: idMapper),
-      if (causeEdge != null) causeEdge.toString(idMapper: idMapper)
-    ];
-    if (causes.isEmpty) {
-      return 'NO CAUSE';
-    } else {
-      return causes.join(', ');
-    }
-  }
-}
-
-/// Representation of a single step in the upstream propagation algorithm.
-class UpstreamPropagationStep extends PropagationStep<NonNullIntent> {
-  UpstreamPropagationStep(NullabilityNode node, NonNullIntent newState,
-      {NullabilityNode causeNode, NullabilityEdge causeEdge})
-      : super(node, newState, causeNode: causeNode, causeEdge: causeEdge);
-
-  UpstreamPropagationStep.fromJson(
-      dynamic json, NullabilityGraphDeserializer deserializer)
-      : super.fromJson(
-            json, deserializer, (json) => NonNullIntent.fromJson(json));
-
-  Map<String, Object> toJson(NullabilityGraphSerializer serializer) =>
-      toJsonInternal(serializer, (state) => state.toJson());
 }

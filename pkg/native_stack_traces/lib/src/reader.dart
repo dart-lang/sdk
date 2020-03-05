@@ -129,7 +129,8 @@ class Reader {
     }
   }
 
-  String dumpCurrentReaderPosition({int maxSize = 0, int bytesPerLine = 16}) {
+  void writeCurrentReaderPosition(StringBuffer buffer,
+      {int maxSize = 0, int bytesPerLine = 16}) {
     var baseData = ByteData.view(bdata.buffer, 0, bdata.buffer.lengthInBytes);
     var startOffset = 0;
     var endOffset = baseData.lengthInBytes;
@@ -142,18 +143,40 @@ class Reader {
       startOffset = max(startOffset, lowerWindow);
       endOffset = min(endOffset, upperWindow);
     }
-    var ret = "";
     for (int i = startOffset; i < endOffset; i += bytesPerLine) {
-      ret += "0x" + paddedHex(i, 8) + " ";
+      buffer..write("0x")..write(paddedHex(i, 8))..write(" ");
       for (int j = 0; j < bytesPerLine && i + j < endOffset; j++) {
         var byte = baseData.getUint8(i + j);
-        ret += (i + j == currentOffset) ? "|" : " ";
-        ret += paddedHex(byte, 1);
+        buffer
+          ..write(i + j == currentOffset ? "|" : " ")
+          ..write(paddedHex(byte, 1));
       }
-      ret += "\n";
+      buffer.writeln();
     }
-    return ret;
   }
 
-  String toString() => dumpCurrentReaderPosition();
+  String toString() {
+    final buffer = new StringBuffer();
+    buffer
+      ..write("Start:  0x")
+      ..write(paddedHex(start, wordSize))
+      ..write(" (")
+      ..write(start)
+      ..writeln(")");
+    buffer
+      ..write("Offset: 0x")
+      ..write(paddedHex(offset, wordSize))
+      ..write(" (")
+      ..write(offset)
+      ..writeln(")");
+    buffer
+      ..write("Length: 0x")
+      ..write(paddedHex(length, wordSize))
+      ..write(" (")
+      ..write(length)
+      ..writeln(")");
+    buffer..writeln("Bytes around current position:");
+    writeCurrentReaderPosition(buffer, maxSize: 256);
+    return buffer.toString();
+  }
 }

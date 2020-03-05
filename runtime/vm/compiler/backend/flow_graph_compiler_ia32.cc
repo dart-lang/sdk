@@ -258,8 +258,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   ASSERT(type_class.NumTypeArguments() > 0);
   const Register kInstanceReg = EAX;
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
-  const bool smi_is_ok =
-      smi_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kOld);
+  const bool smi_is_ok = smi_type.IsSubtypeOf(type, Heap::kOld);
   __ testl(kInstanceReg, compiler::Immediate(kSmiTagMask));
   if (smi_is_ok) {
     // Fast case for type = FutureOr<int/num/top-type>.
@@ -294,8 +293,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     if (tp_argument.IsType()) {
       // Check if type argument is dynamic, Object, or void.
       const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-      if (object_type.IsSubtypeOf(NNBDMode::kLegacyLib, tp_argument,
-                                  Heap::kOld)) {
+      if (object_type.IsSubtypeOf(tp_argument, Heap::kOld)) {
         // Instance class test only necessary.
         return GenerateSubtype1TestCacheLookup(
             token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -343,8 +341,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ testl(kInstanceReg, compiler::Immediate(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
-  if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, smi_class,
-                         Object::null_type_arguments(), type, Heap::kOld)) {
+  if (Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type,
+                         Heap::kOld)) {
     // Fast case for type = int/num/top-type.
     __ j(ZERO, is_instance_lbl);
   } else {
@@ -594,7 +592,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
-                                           NNBDMode mode,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsTopType());  // Already checked.
@@ -640,12 +637,10 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     __ pushl(ECX);                         // Function type arguments.
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
-    __ PushObject(
-        Smi::ZoneHandle(zone(), Smi::New(static_cast<intptr_t>(mode))));
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 6, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(6);
+    __ Drop(5);
     __ popl(EAX);
     __ jmp(&done, compiler::Assembler::kNearJump);
   }
@@ -676,7 +671,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
-                                                 NNBDMode mode,
                                                  LocationSummary* locs) {
   ASSERT(!token_pos.IsClassifying());
   ASSERT(!dst_type.IsNull());
@@ -714,11 +708,10 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
   __ PushObject(Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-  __ PushObject(Smi::ZoneHandle(zone(), Smi::New(static_cast<intptr_t>(mode))));
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 8, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(8);
+  __ Drop(7);
   __ popl(EAX);
 
   __ Bind(&is_assignable);

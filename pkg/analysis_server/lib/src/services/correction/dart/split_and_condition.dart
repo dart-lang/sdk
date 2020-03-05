@@ -2,15 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class SplitAndCondition extends CorrectionProducer {
+  @override
+  AssistKind get assistKind => DartAssistKind.SPLIT_AND_CONDITION;
+
   @override
   Future<void> compute(DartChangeBuilder builder) async {
     // check that user invokes quick assist on binary expression

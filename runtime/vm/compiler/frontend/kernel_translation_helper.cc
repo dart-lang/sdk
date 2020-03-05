@@ -3185,6 +3185,13 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   TypeParameter& parameter = TypeParameter::Handle(Z);
   const Type& null_bound = Type::Handle(Z);
 
+  const NNBDMode nnbd_mode = set_on.IsClass()
+                                 ? Class::Cast(set_on).nnbd_mode()
+                                 : Function::Cast(set_on).nnbd_mode();
+  const Nullability nullability = (nnbd_mode == NNBDMode::kOptedInLib)
+                                      ? Nullability::kNonNullable
+                                      : Nullability::kLegacy;
+
   // Step a) Create array of [TypeParameter] objects (without bound).
   type_parameters = TypeArguments::New(type_parameter_count);
   const Library& lib = Library::Handle(Z, active_class->klass->library());
@@ -3197,19 +3204,16 @@ void TypeTranslator::LoadAndSetupTypeParameters(
           set_on_class ? *active_class->klass : Class::Handle(Z),
           parameterized_function, i,
           H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
-          null_bound, helper.IsGenericCovariantImpl(),
+          null_bound, helper.IsGenericCovariantImpl(), nullability,
           TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);
     }
   }
 
-  NNBDMode nnbd_mode;
   if (set_on.IsClass()) {
     Class::Cast(set_on).set_type_parameters(type_parameters);
-    nnbd_mode = Class::Cast(set_on).nnbd_mode();
   } else {
     Function::Cast(set_on).set_type_parameters(type_parameters);
-    nnbd_mode = Function::Cast(set_on).nnbd_mode();
   }
 
   const Function* enclosing = NULL;
@@ -3230,21 +3234,9 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     if (tag == kDynamicType) {
       helper_->SkipDartType();  // read ith bound.
       parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
-      if (nnbd_mode == NNBDMode::kOptedInLib) {
-        parameter =
-            parameter.ToNullability(Nullability::kUndetermined, Heap::kOld);
-        type_parameters.SetTypeAt(i, parameter);
-      }
     } else {
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
       parameter.set_bound(bound);
-      if (nnbd_mode == NNBDMode::kOptedInLib) {
-        parameter = parameter.ToNullability(bound.IsNullable()
-                                                ? Nullability::kUndetermined
-                                                : Nullability::kNonNullable,
-                                            Heap::kOld);
-        type_parameters.SetTypeAt(i, parameter);
-      }
     }
 
     helper.Finish();

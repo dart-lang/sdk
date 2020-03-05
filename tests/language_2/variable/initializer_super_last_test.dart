@@ -37,8 +37,6 @@ class C extends S {
       : assert(x == x),
         super.named();
   C.cc09(int x)
-//^
-// [cfe] Final field 'x' is not initialized by this constructor.
       : //
         super(),
 //      ^^^^^^^
@@ -46,8 +44,6 @@ class C extends S {
 // [cfe] Can't have initializers after 'super'.
         x = x;
   C.cc10(int x)
-//^
-// [cfe] Final field 'x' is not initialized by this constructor.
       : //
         super.named(),
 //      ^^^^^^^^^^^^^
@@ -71,8 +67,6 @@ class C extends S {
 // [cfe] Can't have initializers after 'super'.
         assert(x == x);
   C.cc13(int x)
-//^
-// [cfe] Final field 'x' is not initialized by this constructor.
       : //
         super(),
 //      ^^^^^^^
@@ -81,8 +75,6 @@ class C extends S {
         x = x,
         assert(x == x);
   C.cc14(int x)
-//^
-// [cfe] Final field 'x' is not initialized by this constructor.
       : //
         super.named(),
 //      ^^^^^^^^^^^^^
@@ -130,8 +122,6 @@ class C extends S {
       : assert(x == x),
         super.named();
   const C.cc25(int x)
-  //    ^
-  // [cfe] Final field 'x' is not initialized by this constructor.
       : //
         super(),
 //      ^^^^^^^
@@ -139,8 +129,6 @@ class C extends S {
 // [cfe] Can't have initializers after 'super'.
         x = x;
   const C.cc26(int x)
-  //    ^
-  // [cfe] Final field 'x' is not initialized by this constructor.
       : //
         super.named(),
 //      ^^^^^^^^^^^^^
@@ -164,8 +152,6 @@ class C extends S {
 // [cfe] Can't have initializers after 'super'.
         assert(x == x);
   const C.cc29(int x)
-  //    ^
-  // [cfe] Final field 'x' is not initialized by this constructor.
       : //
         super(),
 //      ^^^^^^^
@@ -174,8 +160,6 @@ class C extends S {
         x = x,
         assert(x == x);
   const C.cc30(int x)
-  //    ^
-  // [cfe] Final field 'x' is not initialized by this constructor.
       : //
         super.named(),
 //      ^^^^^^^^^^^^^

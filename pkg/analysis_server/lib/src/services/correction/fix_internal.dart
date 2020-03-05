@@ -20,6 +20,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_set_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -4674,7 +4675,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args, bool importsOnly = false}) {
+      {List<Object> args, bool importsOnly = false}) {
     if (builder == null) return;
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty && !importsOnly) {
@@ -4697,56 +4698,35 @@ class FixProcessor extends BaseProcessor {
       return;
     }
 
-    Future<void> compute(CorrectionProducer producer, FixKind kind) async {
+    Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
 
       var builder = _newDartChangeBuilder();
       await producer.compute(builder);
 
-      _addFixFromBuilder(builder, kind);
+      _addFixFromBuilder(builder, producer.fixKind,
+          args: producer.fixArguments);
     }
 
     var errorCode = error.errorCode;
     if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
-      await compute(
-        RemoveDeadIfNull(),
-        DartFixKind.REMOVE_IF_NULL_OPERATOR,
-      );
+      await compute(RemoveDeadIfNull());
     } else if (errorCode is LintCode) {
       String name = errorCode.name;
       if (name == LintNames.prefer_collection_literals) {
-        await compute(
-          ConvertToListLiteral(),
-          DartFixKind.CONVERT_TO_LIST_LITERAL,
-        );
-        await compute(
-          ConvertToMapLiteral(),
-          DartFixKind.CONVERT_TO_MAP_LITERAL,
-        );
-        await compute(
-          ConvertToSetLiteral(),
-          DartFixKind.CONVERT_TO_SET_LITERAL,
-        );
+        await compute(ConvertToListLiteral());
+        await compute(ConvertToMapLiteral());
+        await compute(ConvertToSetLiteral());
       } else if (name == LintNames.prefer_contains) {
-        await compute(
-          ConvertToContains(),
-          DartFixKind.CONVERT_TO_CONTAINS,
-        );
+        await compute(ConvertToContains());
       } else if (name == LintNames.prefer_iterable_whereType) {
-        await compute(
-          ConvertToWhereType(),
-          DartFixKind.CONVERT_TO_WHERE_TYPE,
-        );
+        await compute(ConvertToWhereType());
       } else if (name == LintNames.prefer_null_aware_operators) {
-        await compute(
-          ConvertToNullAware(),
-          DartFixKind.CONVERT_TO_NULL_AWARE,
-        );
+        await compute(ConvertToNullAware());
       } else if (name == LintNames.unnecessary_null_in_if_null_operators) {
-        await compute(
-          RemoveIfNullOperator(),
-          DartFixKind.REMOVE_IF_NULL_OPERATOR,
-        );
+        await compute(RemoveIfNullOperator());
+      } else if (name == LintNames.use_full_hex_values_for_flutter_colors) {
+        await compute(ReplaceWithEightDigitHex());
       }
     }
   }
@@ -4783,42 +4763,7 @@ class FixProcessor extends BaseProcessor {
           builder.write(name);
         });
         // append parameters
-        builder.write('(');
-        List<ParameterElement> parameters = functionType.parameters;
-        var parameterNames = <String>{};
-        for (int i = 0; i < parameters.length; i++) {
-          var name = parameters[i].name;
-          if (name.isNotEmpty) {
-            parameterNames.add(name);
-          }
-        }
-        for (int i = 0; i < parameters.length; i++) {
-          ParameterElement parameter = parameters[i];
-          // append separator
-          if (i != 0) {
-            builder.write(', ');
-          }
-          // append type name
-          DartType type = parameter.type;
-          if (!type.isDynamic) {
-            builder.addLinkedEdit('TYPE$i',
-                (DartLinkedEditBuilder innerBuilder) {
-              builder.writeType(type);
-              innerBuilder.addSuperTypesAsSuggestions(type);
-            });
-            builder.write(' ');
-          }
-          // append parameter name
-          builder.addLinkedEdit('ARG$i', (DartLinkedEditBuilder builder) {
-            var name = parameter.name;
-            if (name.isEmpty) {
-              name = _generateUniqueName(parameterNames, 'p');
-              parameterNames.add(name);
-            }
-            builder.write(name);
-          });
-        }
-        builder.write(')');
+        builder.writeParameters(functionType.parameters);
         // close method
         builder.write(' {$eol$prefix}');
         builder.write(sourceSuffix);
@@ -4894,18 +4839,6 @@ class FixProcessor extends BaseProcessor {
     var collector = _ElementReferenceCollector(element);
     root.accept(collector);
     return collector.references;
-  }
-
-  /// Generate a name that does not occur in [existingNames] that begins with
-  /// the given [prefix].
-  String _generateUniqueName(Set<String> existingNames, String prefix) {
-    var index = 1;
-    var name = '$prefix$index';
-    while (existingNames.contains(name)) {
-      index++;
-      name = '$prefix$index';
-    }
-    return name;
   }
 
   /// Return the class, enum or mixin declaration for the given [element].
