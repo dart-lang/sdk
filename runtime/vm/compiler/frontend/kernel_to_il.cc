@@ -566,8 +566,7 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   if (is_static) {
     instructions += StoreStaticField(position, field);
   } else {
-    instructions += StoreInstanceFieldGuarded(
-        field, StoreInstanceFieldInstr::Kind::kInitializing);
+    instructions += StoreInstanceFieldGuarded(field);
   }
 
   return instructions;
