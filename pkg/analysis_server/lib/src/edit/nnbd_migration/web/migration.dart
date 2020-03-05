@@ -62,15 +62,6 @@ void main() {
 
 String get rootPath => querySelector('.root').text.trim();
 
-/// Return the absolute path of [path], assuming [path] is relative to [root].
-String absolutePath(String path) {
-  if (path[0] != '/') {
-    return '$rootPath/$path';
-  } else {
-    return path;
-  }
-}
-
 void addArrowClickHandler(Element arrow) {
   Element childList =
       (arrow.parentNode as Element).querySelector(':scope > ul');
@@ -177,10 +168,6 @@ void handleNavLinkClick(
 
 void handlePostLinkClick(MouseEvent event) {
   String path = (event.currentTarget as Element).getAttribute('href');
-  // TODO(devoncarew): Validate that this path logic is correct.
-  // This is only called by .post-link elements - the 'edits' / incremental
-  // workflow code path.
-  path = absolutePath(path);
 
   // Directing the server to produce an edit; request it, then do work with the
   // response.
@@ -189,6 +176,9 @@ void handlePostLinkClick(MouseEvent event) {
 
     window.alert('Could not load $path ($e).');
   });
+
+  // Don't navigate on link click.
+  event.preventDefault();
 }
 
 void highlightAllCode() {
