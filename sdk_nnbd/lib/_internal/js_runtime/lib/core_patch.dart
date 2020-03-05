@@ -451,6 +451,18 @@ class List<E> {
   }
 
   @patch
+  factory List.generate(int length, E generator(int index),
+      {bool growable = true}) {
+    final result = growable
+        ? new JSArray<E>.growable(length)
+        : new JSArray<E>.fixed(length);
+    for (int i = 0; i < length; i++) {
+      result[i] = generator(i);
+    }
+    return result;
+  }
+
+  @patch
   factory List.unmodifiable(Iterable elements) {
     var result = List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
