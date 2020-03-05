@@ -22,9 +22,12 @@ void main() {
 @reflectiveTest
 class PreviewSiteTest {
   PreviewSite site;
-  ResourceProvider resourceProvider;
+  MemoryResourceProvider resourceProvider;
   DartFixListener dartfixListener;
   MigrationState state;
+
+  File getFile(String path) =>
+      resourceProvider.getFile(resourceProvider.convertPath(path));
 
   void setUp() {
     dartfixListener = DartFixListener(null);
@@ -37,10 +40,9 @@ class PreviewSiteTest {
   }
 
   void test_applyChangesEmpty() {
-    resourceProvider.getFile('/test.dart').writeAsStringSync('void main() {}');
+    getFile('/test.dart').writeAsStringSync('void main() {}');
     site.performApply();
-    expect(resourceProvider.getFile('/test.dart').readAsStringSync(),
-        'void main() {}');
+    expect(getFile('/test.dart').readAsStringSync(), 'void main() {}');
     expect(state.hasBeenApplied, true);
   }
 
@@ -50,7 +52,7 @@ class PreviewSiteTest {
   }
 
   void test_applyMultipleChanges() {
-    resourceProvider.getFile('/test.dart').writeAsStringSync('void main() {}');
+    getFile('/test.dart').writeAsStringSync('void main() {}');
     dartfixListener.addSourceChange(
         "test change",
         Location('/test.dart', 10, 0, 1, 10),
@@ -61,7 +63,7 @@ class PreviewSiteTest {
           ])
         ]));
     site.performApply();
-    expect(resourceProvider.getFile('/test.dart').readAsStringSync(), '''
+    expect(getFile('/test.dart').readAsStringSync(), '''
 void main(List args) {
   print(args);
 }''');
@@ -69,7 +71,7 @@ void main(List args) {
   }
 
   void test_applySingleChange() {
-    resourceProvider.getFile('/test.dart').writeAsStringSync('void main() {}');
+    getFile('/test.dart').writeAsStringSync('void main() {}');
     dartfixListener.addSourceChange(
         "test change",
         Location('/test.dart', 10, 0, 1, 10),
@@ -78,8 +80,7 @@ void main(List args) {
               edits: [SourceEdit(10, 0, 'List args')])
         ]));
     site.performApply();
-    expect(resourceProvider.getFile('/test.dart').readAsStringSync(),
-        'void main(List args) {}');
+    expect(getFile('/test.dart').readAsStringSync(), 'void main(List args) {}');
     expect(state.hasBeenApplied, true);
   }
 }
