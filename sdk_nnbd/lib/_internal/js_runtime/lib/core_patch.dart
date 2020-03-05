@@ -45,7 +45,7 @@ Map<String, dynamic>? _symbolMapToStringMap(Map<Symbol, dynamic>? map) {
 }
 
 @patch
-int identityHashCode(Object object) => objectHashCode(object);
+int identityHashCode(Object? object) => objectHashCode(object);
 
 // Patch for Object implementation.
 @patch
