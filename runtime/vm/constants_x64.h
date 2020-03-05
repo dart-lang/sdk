@@ -151,6 +151,11 @@ enum ScaleFactor {
   TIMES_2 = 1,
   TIMES_4 = 2,
   TIMES_8 = 3,
+  // Note that Intel addressing does not support this addressing.
+  // > Scale factor — A value of 2, 4, or 8 that is multiplied by the index
+  // > value.
+  // https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4
+  // 3.7.5 Specifying an Offset
   TIMES_16 = 4,
   TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };

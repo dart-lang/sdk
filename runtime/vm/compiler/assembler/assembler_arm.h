@@ -1145,6 +1145,7 @@ class Assembler : public AssemblerBase {
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
+                                    bool index_unboxed,
                                     Register array,
                                     Register index);
 
@@ -1153,6 +1154,7 @@ class Assembler : public AssemblerBase {
                                      bool is_external,
                                      intptr_t cid,
                                      intptr_t index_scale,
+                                     bool index_unboxed,
                                      Register array,
                                      Register index);
 

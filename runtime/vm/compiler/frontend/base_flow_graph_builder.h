@@ -159,7 +159,9 @@ class BaseFlowGraphBuilder {
   Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
   // Takes a [class_id] valid for StoreIndexed.
-  Fragment LoadIndexedTypedData(classid_t class_id);
+  Fragment LoadIndexedTypedData(classid_t class_id,
+                                intptr_t index_scale,
+                                bool index_unboxed);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
@@ -199,7 +201,9 @@ class BaseFlowGraphBuilder {
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StoreIndexed(classid_t class_id);
   // Takes a [class_id] valid for StoreIndexed.
-  Fragment StoreIndexedTypedData(classid_t class_id);
+  Fragment StoreIndexedTypedData(classid_t class_id,
+                                 intptr_t index_scale,
+                                 bool index_unboxed);
 
   void Push(Definition* definition);
   Definition* Peek(intptr_t depth = 0);

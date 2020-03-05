@@ -329,23 +329,24 @@ Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
 Fragment BaseFlowGraphBuilder::LoadIndexed(intptr_t index_scale) {
   Value* index = Pop();
   Value* array = Pop();
-  LoadIndexedInstr* instr = new (Z)
-      LoadIndexedInstr(array, index, index_scale, kArrayCid, kAlignedAccess,
-                       DeoptId::kNone, TokenPosition::kNoSource);
+  LoadIndexedInstr* instr = new (Z) LoadIndexedInstr(
+      array, index, /*index_unboxed=*/false, index_scale, kArrayCid,
+      kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
   Push(instr);
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::LoadIndexedTypedData(classid_t class_id) {
+Fragment BaseFlowGraphBuilder::LoadIndexedTypedData(classid_t class_id,
+                                                    intptr_t index_scale,
+                                                    bool index_unboxed) {
   // We use C behavior when dereferencing pointers, we assume alignment.
   const AlignmentType alignment = kAlignedAccess;
-  const intptr_t scale = compiler::target::Instance::ElementSizeFor(class_id);
 
   Value* index = Pop();
   Value* c_pointer = Pop();
-  LoadIndexedInstr* instr =
-      new (Z) LoadIndexedInstr(c_pointer, index, scale, class_id, alignment,
-                               DeoptId::kNone, TokenPosition::kNoSource);
+  LoadIndexedInstr* instr = new (Z)
+      LoadIndexedInstr(c_pointer, index, index_unboxed, index_scale, class_id,
+                       alignment, DeoptId::kNone, TokenPosition::kNoSource);
   Push(instr);
   return Fragment(instr);
 }
@@ -561,23 +562,25 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
       value->BindsToConstant() ? kNoStoreBarrier : kEmitStoreBarrier;
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
-      index, value, emit_store_barrier,
+      index, value, emit_store_barrier, /*index_unboxed=*/false,
+
       compiler::target::Instance::ElementSizeFor(class_id), class_id,
       kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
   return Fragment(store);
 }
 
-Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id) {
+Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
+                                                     intptr_t index_scale,
+                                                     bool index_unboxed) {
   // We use C behavior when dereferencing pointers, we assume alignment.
   const AlignmentType alignment = kAlignedAccess;
-  const intptr_t scale = compiler::target::Instance::ElementSizeFor(class_id);
 
   Value* value = Pop();
   Value* index = Pop();
   Value* c_pointer = Pop();
   StoreIndexedInstr* instr = new (Z) StoreIndexedInstr(
-      c_pointer, index, value, kNoStoreBarrier, scale, class_id, alignment,
-      DeoptId::kNone, TokenPosition::kNoSource,
+      c_pointer, index, value, kNoStoreBarrier, index_unboxed, index_scale,
+      class_id, alignment, DeoptId::kNone, TokenPosition::kNoSource,
       Instruction::SpeculativeMode::kNotSpeculative);
   return Fragment(instr);
 }

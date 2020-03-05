@@ -1767,23 +1767,24 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Address element_address(kNoRegister);
   if (directly_addressable) {
-    element_address = index.IsRegister()
-                          ? __ ElementAddressForRegIndex(
-                                true,  // Load.
-                                IsExternal(), class_id(), index_scale(), array,
-                                index.reg())
-                          : __ ElementAddressForIntIndex(
-                                true,  // Load.
-                                IsExternal(), class_id(), index_scale(), array,
-                                compiler::target::SmiValue(index.constant()),
-                                IP);  // Temp register.
+    element_address =
+        index.IsRegister()
+            ? __ ElementAddressForRegIndex(true,  // Load.
+                                           IsExternal(), class_id(),
+                                           index_scale(), index_unboxed_, array,
+                                           index.reg())
+            : __ ElementAddressForIntIndex(
+                  true,  // Load.
+                  IsExternal(), class_id(), index_scale(), array,
+                  compiler::target::SmiValue(index.constant()),
+                  IP);  // Temp register.
     // Warning: element_address may use register IP as base.
   } else {
     if (index.IsRegister()) {
       __ LoadElementAddressForRegIndex(address,
                                        true,  // Load.
                                        IsExternal(), class_id(), index_scale(),
-                                       array, index.reg());
+                                       index_unboxed_, array, index.reg());
     } else {
       __ LoadElementAddressForIntIndex(
           address,
@@ -1934,7 +1935,14 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // Array can be a Dart object or a pointer to external data.
   if (idx == 0) return kNoRepresentation;  // Flexible input representation.
-  if (idx == 1) return kTagged;            // Index is a smi.
+  if (idx == 1) {
+    if (index_unboxed_) {
+      // TODO(dartbug.com/39432): kUnboxedInt32 || kUnboxedUint32.
+      return kNoRepresentation;
+    } else {
+      return kTagged;  // Index is a smi.
+    }
+  }
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
@@ -2072,7 +2080,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         index.IsRegister()
             ? __ ElementAddressForRegIndex(false,  // Store.
                                            IsExternal(), class_id(),
-                                           index_scale(), array,
+                                           index_scale(), index_unboxed_, array,
                                            index.reg())
             : __ ElementAddressForIntIndex(
                   false,  // Store.
@@ -2083,7 +2091,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadElementAddressForRegIndex(temp,
                                        false,  // Store.
                                        IsExternal(), class_id(), index_scale(),
-                                       array, index.reg());
+                                       index_unboxed_, array, index.reg());
     } else {
       __ LoadElementAddressForIntIndex(
           temp,
@@ -2578,7 +2586,8 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   compiler::Address element_address = __ ElementAddressForRegIndex(
-      true, IsExternal(), class_id(), index_scale(), str, index.reg());
+      true, IsExternal(), class_id(), index_scale(), /*index_unboxed=*/false,
+      str, index.reg());
   // Warning: element_address may use register IP as base.
 
   if (representation() == kUnboxedInt64) {

@@ -1762,23 +1762,26 @@ void Assembler::ComputeElementAddressForIntIndex(Register address,
 Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
+                                             bool index_unboxed,
                                              Register array,
                                              Register index,
                                              Register temp) {
-  return ElementAddressForRegIndexWithSize(is_external, cid,
-                                           Address::OperandSizeFor(cid),
-                                           index_scale, array, index, temp);
+  return ElementAddressForRegIndexWithSize(
+      is_external, cid, Address::OperandSizeFor(cid), index_scale,
+      index_unboxed, array, index, temp);
 }
 
 Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
                                                      intptr_t cid,
                                                      OperandSize size,
                                                      intptr_t index_scale,
+                                                     bool index_unboxed,
                                                      Register array,
                                                      Register index,
                                                      Register temp) {
-  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
-  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  // If unboxed, index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   const int32_t offset = HeapDataOffset(is_external, cid);
   ASSERT(array != temp);
   ASSERT(index != temp);
@@ -1798,10 +1801,12 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
                                                  bool is_external,
                                                  intptr_t cid,
                                                  intptr_t index_scale,
+                                                 bool index_unboxed,
                                                  Register array,
                                                  Register index) {
-  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
-  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  // If unboxed, index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   const int32_t offset = HeapDataOffset(is_external, cid);
   if (shift == 0) {
     add(address, array, Operand(index));

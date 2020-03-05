@@ -5204,6 +5204,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
  public:
   LoadIndexedInstr(Value* array,
                    Value* index,
+                   bool index_unboxed,
                    intptr_t index_scale,
                    intptr_t class_id,
                    AlignmentType alignment,
@@ -5220,7 +5221,16 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
     ASSERT(idx == 0 || idx == 1);
     // The array may be tagged or untagged (for external arrays).
     if (idx == 0) return kNoRepresentation;
-    return kTagged;
+
+    if (index_unboxed_) {
+#if defined(TARGET_ARCH_IS_64_BIT)
+      return kUnboxedInt64;
+#else
+      return kUnboxedUint32;
+#endif
+    } else {
+      return kTagged;  // Index is a smi.
+    }
   }
 
   bool IsExternal() const {
@@ -5245,6 +5255,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
+  const bool index_unboxed_;
   const intptr_t index_scale_;
   const intptr_t class_id_;
   const AlignmentType alignment_;
@@ -5409,6 +5420,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
                     Value* index,
                     Value* value,
                     StoreBarrierType emit_store_barrier,
+                    bool index_unboxed,
                     intptr_t index_scale,
                     intptr_t class_id,
                     AlignmentType alignment,
@@ -5469,6 +5481,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   }
 
   const StoreBarrierType emit_store_barrier_;
+  const bool index_unboxed_;
   const intptr_t index_scale_;
   const intptr_t class_id_;
   const AlignmentType alignment_;

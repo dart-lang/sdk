@@ -342,6 +342,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
                    /*external=*/false,
                    /*array_cid=*/kArrayCid,
                    /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                   /*index_unboxed=*/false,
                    /*array=*/TMP,
                    /*index=*/RAX));
   __ movq(TMP, compiler::FieldAddress(

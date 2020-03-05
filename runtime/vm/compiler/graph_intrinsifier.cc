@@ -195,9 +195,9 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   }
 
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(array), new Value(index),
-      target::Instance::ElementSizeFor(array_cid),  // index scale
-      array_cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      new Value(array), new Value(index), /*index_unboxed=*/false,
+      /*index_scale=*/target::Instance::ElementSizeFor(array_cid), array_cid,
+      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
 
   // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
   // following boxing instruction about a more precise range we attach it here
@@ -378,8 +378,9 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
          RawObject::IsTypedDataClassId(array_cid));
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kNoStoreBarrier,
-      target::Instance::ElementSizeFor(array_cid),  // index scale
-      array_cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      /*index_unboxed=*/false,
+      /*index_scale=*/target::Instance::ElementSizeFor(array_cid), array_cid,
+      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
@@ -513,8 +514,9 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   }
 
   Definition* load = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(str), new Value(index), target::Instance::ElementSizeFor(cid),
-      cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      new Value(str), new Value(index), /*index_unboxed=*/false,
+      target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
+      DeoptId::kNone, builder.TokenPos()));
 
   // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
   // following boxing instruction about a more precise range we attach it here
@@ -740,9 +742,9 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
       new LoadFieldInstr(new Value(growable_array),
                          Slot::GrowableObjectArray_data(), builder.TokenPos()));
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(backing_store), new Value(index),
-      target::Instance::ElementSizeFor(kArrayCid),  // index scale
-      kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      new Value(backing_store), new Value(index), /*index_unboxed=*/false,
+      /*index_scale=*/target::Instance::ElementSizeFor(kArrayCid), kArrayCid,
+      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   result = CreateUnboxedResultIfNeeded(&builder, result);
   builder.AddReturn(new Value(result));
   return true;
@@ -771,8 +773,9 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
 
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kEmitStoreBarrier,
-      target::Instance::ElementSizeFor(kArrayCid),  // index scale
-      kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      /*index_unboxed=*/false,
+      /*index_scale=*/target::Instance::ElementSizeFor(kArrayCid), kArrayCid,
+      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
@@ -805,9 +808,9 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
 
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(backing_store), new Value(index), new Value(value),
-      kEmitStoreBarrier,
-      target::Instance::ElementSizeFor(kArrayCid),  // index scale
-      kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      kEmitStoreBarrier, /*index_unboxed=*/false,
+      /*index_scale=*/target::Instance::ElementSizeFor(kArrayCid), kArrayCid,
+      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));

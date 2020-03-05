@@ -1696,9 +1696,9 @@ Definition* TypedDataSpecializer::AppendLoadIndexed(TemplateDartCall<0>* call,
                         compiler::target::TypedDataBase::data_field_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
-  Definition* load = new (Z)
-      LoadIndexedInstr(new (Z) Value(data), new (Z) Value(index), index_scale,
-                       cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
+  Definition* load = new (Z) LoadIndexedInstr(
+      new (Z) Value(data), new (Z) Value(index), /*index_unboxed=*/false,
+      index_scale, cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
   flow_graph_->InsertBefore(call, load, call->env(), FlowGraph::kValue);
 
   if (cid == kTypedDataFloat32ArrayCid) {
@@ -1776,8 +1776,9 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
 
   auto store = new (Z) StoreIndexedInstr(
       new (Z) Value(data), new (Z) Value(index), new (Z) Value(value),
-      kNoStoreBarrier, index_scale, cid, kAlignedAccess, DeoptId::kNone,
-      call->token_pos(), Instruction::kNotSpeculative);
+      kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
+      kAlignedAccess, DeoptId::kNone, call->token_pos(),
+      Instruction::kNotSpeculative);
   flow_graph_->InsertBefore(call, store, call->env(), FlowGraph::kEffect);
 }
 

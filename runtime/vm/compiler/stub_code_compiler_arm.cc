@@ -441,6 +441,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
                  /*external=*/false,
                  /*array_cid=*/kArrayCid,
                  /*index_scale, smi-tagged=*/compiler::target::kWordSize * 2,
+                 /*index_unboxed=*/false,
                  /*array=*/R5,
                  /*index=*/R4));
   __ LoadFieldFromOffset(kWord, R5, R5,

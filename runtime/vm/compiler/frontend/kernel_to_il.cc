@@ -1220,15 +1220,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
                                  String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
       body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += ConvertIntptrToUntagged();
       body += LoadLocal(arg_offset);
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body +=
-          BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /* truncate= */ true);
-      body += ConvertIntptrToUntagged();
-      body += IntConstant(0);
-      body += LoadIndexedTypedData(typed_data_cid);
+      body += LoadIndexedTypedData(typed_data_cid, /*index_scale=*/1,
+                                   /*index_unboxed=*/true);
       if (kind == MethodRecognizer::kFfiLoadFloat ||
           kind == MethodRecognizer::kFfiLoadDouble) {
         if (kind == MethodRecognizer::kFfiLoadFloat) {
@@ -1334,14 +1332,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
                                  String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
       body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += ConvertIntptrToUntagged();
       body += LoadLocal(arg_offset);  // Offset.
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body +=
-          BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /* truncate= */ true);
-      body += ConvertIntptrToUntagged();
-      body += IntConstant(0);
       body += LoadLocal(arg_value);  // Value.
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
@@ -1356,7 +1351,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       } else {
         body += UnboxTruncate(native_rep.AsRepresentationOverApprox(zone_));
       }
-      body += StoreIndexedTypedData(typed_data_cid);
+      body += StoreIndexedTypedData(typed_data_cid, /*index_scale=*/1,
+                                    /*index_unboxed=*/true);
       body += NullConstant();
     } break;
     case MethodRecognizer::kFfiFromAddress: {

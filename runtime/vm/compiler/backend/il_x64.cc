@@ -1483,14 +1483,14 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   compiler::Address element_address =
-      index.IsRegister()
-          ? compiler::Assembler::ElementAddressForRegIndex(
-                IsExternal(), class_id(), index_scale(), array, index.reg())
-          : compiler::Assembler::ElementAddressForIntIndex(
-                IsExternal(), class_id(), index_scale(), array,
-                Smi::Cast(index.constant()).Value());
+      index.IsRegister() ? compiler::Assembler::ElementAddressForRegIndex(
+                               IsExternal(), class_id(), index_scale(),
+                               index_unboxed_, array, index.reg())
+                         : compiler::Assembler::ElementAddressForIntIndex(
+                               IsExternal(), class_id(), index_scale(), array,
+                               Smi::Cast(index.constant()).Value());
 
-  if (index_scale() == 1) {
+  if (index_scale() == 1 && !index_unboxed_) {
     if (index.IsRegister()) {
       __ SmiUntag(index.reg());
     } else {
@@ -1585,7 +1585,8 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Address element_address =
       compiler::Assembler::ElementAddressForRegIndex(
-          IsExternal(), class_id(), index_scale(), str, index.reg());
+          IsExternal(), class_id(), index_scale(), /*index_unboxed=*/false, str,
+          index.reg());
 
   if ((index_scale() == 1)) {
     __ SmiUntag(index.reg());
@@ -1632,7 +1633,13 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   if (idx == 0) return kNoRepresentation;
-  if (idx == 1) return kTagged;
+  if (idx == 1) {
+    if (index_unboxed_) {
+      return kUnboxedInt64;
+    } else {
+      return kTagged;  // Index is a smi.
+    }
+  }
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
@@ -1743,14 +1750,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   compiler::Address element_address =
-      index.IsRegister()
-          ? compiler::Assembler::ElementAddressForRegIndex(
-                IsExternal(), class_id(), index_scale(), array, index.reg())
-          : compiler::Assembler::ElementAddressForIntIndex(
-                IsExternal(), class_id(), index_scale(), array,
-                Smi::Cast(index.constant()).Value());
+      index.IsRegister() ? compiler::Assembler::ElementAddressForRegIndex(
+                               IsExternal(), class_id(), index_scale(),
+                               index_unboxed_, array, index.reg())
+                         : compiler::Assembler::ElementAddressForIntIndex(
+                               IsExternal(), class_id(), index_scale(), array,
+                               Smi::Cast(index.constant()).Value());
 
-  if ((index_scale() == 1) && index.IsRegister()) {
+  if ((index_scale() == 1) && index.IsRegister() && !index_unboxed_) {
     __ SmiUntag(index.reg());
   }
   switch (class_id()) {

@@ -1531,13 +1531,13 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   compiler::Address element_address(TMP);  // Bad address.
-  element_address =
-      index.IsRegister()
-          ? __ ElementAddressForRegIndex(IsExternal(), class_id(),
-                                         index_scale(), array, index.reg(), TMP)
-          : __ ElementAddressForIntIndex(IsExternal(), class_id(),
-                                         index_scale(), array,
-                                         Smi::Cast(index.constant()).Value());
+  element_address = index.IsRegister()
+                        ? __ ElementAddressForRegIndex(
+                              IsExternal(), class_id(), index_scale(),
+                              index_unboxed_, array, index.reg(), TMP)
+                        : __ ElementAddressForIntIndex(
+                              IsExternal(), class_id(), index_scale(), array,
+                              Smi::Cast(index.constant()).Value());
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4) ||
@@ -1666,7 +1666,8 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   // Warning: element_address may use register TMP as base.
   compiler::Address element_address = __ ElementAddressForRegIndexWithSize(
-      IsExternal(), class_id(), sz, index_scale(), str, index.reg(), TMP);
+      IsExternal(), class_id(), sz, index_scale(), /*index_unboxed=*/false, str,
+      index.reg(), TMP);
   __ ldr(result, element_address, sz);
 
   __ SmiTag(result);
@@ -1676,7 +1677,13 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // Array can be a Dart object or a pointer to external data.
   if (idx == 0) return kNoRepresentation;  // Flexible input representation.
-  if (idx == 1) return kTagged;            // Index is a smi.
+  if (idx == 1) {
+    if (index_unboxed_) {
+      return kNoRepresentation;  // Index can be any unboxed representation.
+    } else {
+      return kTagged;  // Index is a smi.
+    }
+  }
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
@@ -1777,7 +1784,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (class_id() == kArrayCid && ShouldEmitStoreBarrier()) {
     if (index.IsRegister()) {
       __ ComputeElementAddressForRegIndex(temp, IsExternal(), class_id(),
-                                          index_scale(), array, index.reg());
+                                          index_scale(), index_unboxed_, array,
+                                          index.reg());
     } else {
       __ ComputeElementAddressForIntIndex(temp, IsExternal(), class_id(),
                                           index_scale(), array,
@@ -1789,14 +1797,13 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  element_address =
-      index.IsRegister()
-          ? __ ElementAddressForRegIndex(IsExternal(), class_id(),
-                                         index_scale(), array,
-                                         index.reg(), temp)
-          : __ ElementAddressForIntIndex(IsExternal(), class_id(),
-                                         index_scale(), array,
-                                         Smi::Cast(index.constant()).Value());
+  element_address = index.IsRegister()
+                        ? __ ElementAddressForRegIndex(
+                              IsExternal(), class_id(), index_scale(),
+                              index_unboxed_, array, index.reg(), temp)
+                        : __ ElementAddressForIntIndex(
+                              IsExternal(), class_id(), index_scale(), array,
+                              Smi::Cast(index.constant()).Value());
 
   switch (class_id()) {
     case kArrayCid:

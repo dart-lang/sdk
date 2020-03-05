@@ -2454,8 +2454,9 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   // Array load and return.
   intptr_t index_scale = compiler::target::Instance::ElementSizeFor(array_cid);
   LoadIndexedInstr* load = new (Z) LoadIndexedInstr(
-      new (Z) Value(array), new (Z) Value(index), index_scale, array_cid,
-      kAlignedAccess, deopt_id, call->token_pos(), ResultType(call));
+      new (Z) Value(array), new (Z) Value(index), /*index_unboxed=*/false,
+      index_scale, array_cid, kAlignedAccess, deopt_id, call->token_pos(),
+      ResultType(call));
 
   *last = load;
   cursor = flow_graph->AppendTo(cursor, load,
@@ -2676,8 +2677,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       compiler::target::Instance::ElementSizeFor(array_cid);
   *last = new (Z) StoreIndexedInstr(
       new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
-      needs_store_barrier, index_scale, array_cid, kAlignedAccess,
-      call->deopt_id(), call->token_pos());
+      needs_store_barrier, /*index_unboxed=*/false, index_scale, array_cid,
+      kAlignedAccess, call->deopt_id(), call->token_pos());
   flow_graph->AppendTo(cursor, *last, call->env(), FlowGraph::kEffect);
   // We need a return value to replace uses of the original definition. However,
   // the final instruction is a use of 'void operator[]=()', so we use null.
@@ -2941,11 +2942,10 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
 
   // Fill out the generated template with loads.
   // Load from either external or internal.
-  LoadIndexedInstr* load =
-      new (Z) LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index),
-                               1,  // Index scale
-                               view_cid, kUnalignedAccess, DeoptId::kNone,
-                               call->token_pos(), ResultType(call));
+  LoadIndexedInstr* load = new (Z) LoadIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index),
+      /*index_unboxed=*/false, /*index_scale=*/1, view_cid, kUnalignedAccess,
+      DeoptId::kNone, call->token_pos(), ResultType(call));
   flow_graph->AppendTo(
       cursor, load, call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
       FlowGraph::kValue);
@@ -2968,8 +2968,9 @@ static StoreIndexedInstr* NewStore(FlowGraph* flow_graph,
                                    intptr_t view_cid) {
   return new (Z) StoreIndexedInstr(
       new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
-      kNoStoreBarrier, 1,  // Index scale
-      view_cid, kUnalignedAccess, call->deopt_id(), call->token_pos());
+      kNoStoreBarrier, /*index_unboxed=*/false,
+      /*index_scale=*/1, view_cid, kUnalignedAccess, call->deopt_id(),
+      call->token_pos());
 }
 
 static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
@@ -3216,10 +3217,10 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   }
 
-  LoadIndexedInstr* load_indexed = new (Z)
-      LoadIndexedInstr(new (Z) Value(str), new (Z) Value(index),
-                       compiler::target::Instance::ElementSizeFor(cid), cid,
-                       kAlignedAccess, DeoptId::kNone, call->token_pos());
+  LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
+      new (Z) Value(str), new (Z) Value(index), /*index_unboxed=*/false,
+      compiler::target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
+      DeoptId::kNone, call->token_pos());
   cursor = flow_graph->AppendTo(cursor, load_indexed, NULL, FlowGraph::kValue);
 
   auto box = BoxInstr::Create(kUnboxedIntPtr, new Value(load_indexed));
@@ -4232,12 +4233,11 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       value->AsUnboxInteger()->mark_truncating();
       flow_graph->AppendTo(*entry, value, env, FlowGraph::kValue);
 
-      *last =
-          new (Z) StoreIndexedInstr(new (Z) Value(str), new (Z) Value(index),
-                                    new (Z) Value(value), kNoStoreBarrier,
-                                    1,  // Index scale
-                                    kOneByteStringCid, kAlignedAccess,
-                                    call->deopt_id(), call->token_pos());
+      *last = new (Z) StoreIndexedInstr(
+          new (Z) Value(str), new (Z) Value(index), new (Z) Value(value),
+          kNoStoreBarrier, /*index_unboxed=*/false,
+          /*index_scale=*/1, kOneByteStringCid, kAlignedAccess,
+          call->deopt_id(), call->token_pos());
       flow_graph->AppendTo(value, *last, env, FlowGraph::kEffect);
 
       // We need a return value to replace uses of the original definition.
