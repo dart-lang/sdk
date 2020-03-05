@@ -10,7 +10,6 @@ import 'dart:js';
 import 'package:js/js.dart';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 
 @JS()
@@ -26,20 +25,11 @@ class HTMLDivElement {
 confuse(x) => x;
 
 main() {
-  useHtmlIndividualConfiguration();
-
-  test('dom-is-dom', () {
-    var e = confuse(new html.DivElement());
-    expect(e is html.DivElement, isTrue);
-  });
-
-  test('js-is-dom', () {
-    var e = confuse(makeDiv('hello'));
-    expect(e is html.DivElement, isFalse);
-  });
-
-  test('js-is-js', () {
-    var e = confuse(makeDiv('hello'));
-    expect(e is HTMLDivElement, isTrue);
+  test('String-is-not-js', () {
+    var e = confuse('kombucha');
+    // A String should not be a JS interop type. The type test flags are added
+    // to Interceptor, but should be added to the class that implements all
+    // the JS-interop methods.
+    expect(e is HTMLDivElement, isFalse);
   });
 }

@@ -10,7 +10,6 @@ import 'dart:js';
 import 'package:js/js.dart';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 
 @JS()
@@ -26,13 +25,23 @@ class HTMLDivElement {
 confuse(x) => x;
 
 main() {
-  useHtmlIndividualConfiguration();
+  test('js-call-js-method', () {
+    var e = confuse(makeDiv('hello'));
+    expect(e.bar(), equals('hello'));
+  });
 
-  test('dom-is-js', () {
+  test('dom-call-js-method', () {
     var e = confuse(new html.DivElement());
-    // Currently, HTML types are not [JavaScriptObject]s. We could change that
-    // by having HTML types extend JavaScriptObject, in which case we would
-    // change this expectation.
-    expect(e is HTMLDivElement, isFalse);
+    expect(() => e.bar(), throws);
+  });
+
+  test('js-call-dom-method', () {
+    var e = confuse(makeDiv('hello'));
+    expect(() => e.clone(false), throws);
+  });
+
+  test('dom-call-dom-method', () {
+    var e = confuse(new html.DivElement());
+    expect(e.clone(false), new isInstanceOf<html.DivElement>());
   });
 }

@@ -10,7 +10,6 @@ import 'dart:js';
 import 'package:js/js.dart';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 
 @JS()
@@ -26,13 +25,11 @@ class HTMLDivElement {
 confuse(x) => x;
 
 main() {
-  useHtmlIndividualConfiguration();
-
-  test('String-is-not-js', () {
-    var e = confuse('kombucha');
-    // A String should not be a JS interop type. The type test flags are added
-    // to Interceptor, but should be added to the class that implements all
-    // the JS-interop methods.
+  test('dom-is-js', () {
+    var e = confuse(new html.DivElement());
+    // Currently, HTML types are not [JavaScriptObject]s. We could change that
+    // by having HTML types extend JavaScriptObject, in which case we would
+    // change this expectation.
     expect(e is HTMLDivElement, isFalse);
   });
 }

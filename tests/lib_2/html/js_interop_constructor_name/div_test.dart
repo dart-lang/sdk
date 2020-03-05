@@ -10,7 +10,6 @@ import 'dart:js';
 import 'package:js/js.dart';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 
 @JS()
@@ -26,25 +25,18 @@ class HTMLDivElement {
 confuse(x) => x;
 
 main() {
-  useHtmlIndividualConfiguration();
-
-  test('js-call-js-method', () {
-    var e = confuse(makeDiv('hello'));
-    expect(e.bar(), equals('hello'));
-  });
-
-  test('dom-call-js-method', () {
+  test('dom-is-dom', () {
     var e = confuse(new html.DivElement());
-    expect(() => e.bar(), throws);
+    expect(e is html.DivElement, isTrue);
   });
 
-  test('js-call-dom-method', () {
+  test('js-is-dom', () {
     var e = confuse(makeDiv('hello'));
-    expect(() => e.clone(false), throws);
+    expect(e is html.DivElement, isFalse);
   });
 
-  test('dom-call-dom-method', () {
-    var e = confuse(new html.DivElement());
-    expect(e.clone(false), new isInstanceOf<html.DivElement>());
+  test('js-is-js', () {
+    var e = confuse(makeDiv('hello'));
+    expect(e is HTMLDivElement, isTrue);
   });
 }
