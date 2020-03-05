@@ -517,9 +517,13 @@ class GrowableObjectArray : public AllStatic {
   static word NextFieldOffset();
 };
 
-class TypedDataBase : public AllStatic {
+class PointerBase : public AllStatic {
  public:
   static word data_field_offset();
+};
+
+class TypedDataBase : public PointerBase {
+ public:
   static word length_offset();
   static word InstanceSize();
   static word NextFieldOffset();
@@ -578,9 +582,8 @@ class ArgumentsDescriptor : public AllStatic {
   static word positional_count_offset();
 };
 
-class Pointer : public AllStatic {
+class Pointer : public PointerBase {
  public:
-  static word data_offset();
   static word type_arguments_offset();
   static word InstanceSize();
   static word NextFieldOffset();

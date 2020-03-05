@@ -193,14 +193,13 @@ namespace dart {
   F(WeakProperty, value_)                                                      \
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
-  F(Pointer, data_)                                                            \
+  F(PointerBase, data_)                                                        \
   F(Pointer, type_arguments_)                                                  \
   F(DynamicLibrary, handle_)                                                   \
   F(FfiTrampolineData, signature_type_)                                        \
   F(FfiTrampolineData, c_signature_)                                           \
   F(FfiTrampolineData, callback_target_)                                       \
   F(FfiTrampolineData, callback_exceptional_return_)                           \
-  F(TypedDataBase, data_)                                                      \
   F(TypedDataBase, length_)                                                    \
   F(TypedDataView, typed_data_)                                                \
   F(TypedDataView, offset_in_bytes_)                                           \

@@ -2451,8 +2451,12 @@ class RawTwoByteString : public RawString {
   friend class String;
 };
 
-// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
-class RawTypedDataBase : public RawInstance {
+// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
+// Pointer.
+//
+// TypedData extends this with a length field, while Pointer extends this with
+// TypeArguments field.
+class RawPointerBase : public RawInstance {
  protected:
   // The contents of [data_] depends on what concrete subclass is used:
   //
@@ -2460,12 +2464,20 @@ class RawTypedDataBase : public RawInstance {
   //  - RawExternalTypedData: Start of the C-heap payload.
   //  - RawTypedDataView: The [data_] field of the backing store for the view
   //    plus the [offset_in_bytes_] the view has.
+  //  - RawPointer: Pointer into C memory (no length specified).
   //
   // During allocation or snapshot reading the [data_] can be temporarily
   // nullptr (which is the case for views which just got created but haven't
   // gotten the backing store set).
   uint8_t* data_;
 
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(PointerBase);
+};
+
+// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
+class RawTypedDataBase : public RawPointerBase {
+ protected:
   // The length of the view in element sizes (obtainable via
   // [TypedDataBase::ElementSizeInBytes]).
   RawSmi* length_;
@@ -2730,9 +2742,9 @@ class RawExternalTypedData : public RawTypedDataBase {
   friend class RawBytecode;
 };
 
-class RawPointer : public RawInstance {
+class RawPointer : public RawPointerBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
-  uint8_t* data_;
+
   VISIT_FROM(RawCompressed, type_arguments_)
   RawTypeArguments* type_arguments_;
   VISIT_TO(RawCompressed, type_arguments_)

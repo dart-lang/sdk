@@ -58,7 +58,6 @@ class ParsedFunction;
   V(Closure, hash, Context, VAR)                                               \
   V(GrowableObjectArray, length, Smi, VAR)                                     \
   V(GrowableObjectArray, data, Array, VAR)                                     \
-  V(TypedDataBase, data_field, Dynamic, FINAL)                                 \
   V(TypedDataBase, length, Smi, FINAL)                                         \
   V(TypedDataView, offset_in_bytes, Smi, FINAL)                                \
   V(TypedDataView, data, Dynamic, FINAL)                                       \
@@ -72,7 +71,7 @@ class ParsedFunction;
   V(ArgumentsDescriptor, positional_count, Smi, FINAL)                         \
   V(ArgumentsDescriptor, count, Smi, FINAL)                                    \
   V(ArgumentsDescriptor, size, Smi, FINAL)                                     \
-  V(Pointer, data, Dynamic, FINAL)                                             \
+  V(PointerBase, data_field, Dynamic, FINAL)                                   \
   V(Type, arguments, TypeArguments, FINAL)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)

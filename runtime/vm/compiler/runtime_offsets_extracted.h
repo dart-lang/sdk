@@ -175,7 +175,7 @@ static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 60;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     140;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word Pointer_data_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -351,8 +351,6 @@ static constexpr dart::compiler::target::word Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
-static constexpr dart::compiler::target::word TypedDataBase_data_field_offset =
-    4;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
 static constexpr dart::compiler::target::word
@@ -641,7 +639,7 @@ static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 120;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     280;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word Pointer_data_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -820,8 +818,6 @@ static constexpr dart::compiler::target::word Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
-static constexpr dart::compiler::target::word TypedDataBase_data_field_offset =
-    8;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
 static constexpr dart::compiler::target::word
@@ -1110,7 +1106,7 @@ static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 60;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     140;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word Pointer_data_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -1286,8 +1282,6 @@ static constexpr dart::compiler::target::word Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
-static constexpr dart::compiler::target::word TypedDataBase_data_field_offset =
-    4;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
 static constexpr dart::compiler::target::word
@@ -1573,7 +1567,7 @@ static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 120;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     280;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word Pointer_data_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -1752,8 +1746,6 @@ static constexpr dart::compiler::target::word Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
-static constexpr dart::compiler::target::word TypedDataBase_data_field_offset =
-    8;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
 static constexpr dart::compiler::target::word
@@ -2042,7 +2034,7 @@ static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 60;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     140;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word Pointer_data_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -2218,8 +2210,6 @@ static constexpr dart::compiler::target::word Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
-static constexpr dart::compiler::target::word TypedDataBase_data_field_offset =
-    4;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
 static constexpr dart::compiler::target::word
@@ -2502,7 +2492,7 @@ static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 120;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     280;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word Pointer_data_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -2681,8 +2671,6 @@ static constexpr dart::compiler::target::word Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
-static constexpr dart::compiler::target::word TypedDataBase_data_field_offset =
-    8;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
 static constexpr dart::compiler::target::word
@@ -2965,7 +2953,7 @@ static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 60;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     140;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
-static constexpr dart::compiler::target::word Pointer_data_offset = 4;
+static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
@@ -3141,8 +3129,6 @@ static constexpr dart::compiler::target::word Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
-static constexpr dart::compiler::target::word TypedDataBase_data_field_offset =
-    4;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 8;
 static constexpr dart::compiler::target::word TypedDataView_data_offset = 12;
 static constexpr dart::compiler::target::word
@@ -3422,7 +3408,7 @@ static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 120;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     280;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
-static constexpr dart::compiler::target::word Pointer_data_offset = 8;
+static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -3601,8 +3587,6 @@ static constexpr dart::compiler::target::word Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
-static constexpr dart::compiler::target::word TypedDataBase_data_field_offset =
-    8;
 static constexpr dart::compiler::target::word TypedDataBase_length_offset = 16;
 static constexpr dart::compiler::target::word TypedDataView_data_offset = 24;
 static constexpr dart::compiler::target::word
@@ -3901,7 +3885,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 140;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
-static constexpr dart::compiler::target::word AOT_Pointer_data_offset = 4;
+static constexpr dart::compiler::target::word
+    AOT_PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
@@ -4090,8 +4075,6 @@ static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 4;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
-static constexpr dart::compiler::target::word
-    AOT_TypedDataBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
 static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
@@ -4410,7 +4393,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 280;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word AOT_Pointer_data_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -4600,8 +4584,6 @@ static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 8;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_TypedDataBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
@@ -4925,7 +4907,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 280;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word AOT_Pointer_data_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -5115,8 +5098,6 @@ static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 8;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_TypedDataBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
@@ -5436,7 +5417,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 140;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
-static constexpr dart::compiler::target::word AOT_Pointer_data_offset = 4;
+static constexpr dart::compiler::target::word
+    AOT_PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
@@ -5625,8 +5607,6 @@ static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 4;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
-static constexpr dart::compiler::target::word
-    AOT_TypedDataBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     8;
 static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
@@ -5938,7 +5918,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 280;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word AOT_Pointer_data_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -6128,8 +6109,6 @@ static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 8;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_TypedDataBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
@@ -6446,7 +6425,8 @@ static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 280;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
-static constexpr dart::compiler::target::word AOT_Pointer_data_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
@@ -6636,8 +6616,6 @@ static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 8;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_TypedDataBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
     16;
 static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =

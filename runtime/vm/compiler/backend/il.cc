@@ -2607,7 +2607,6 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArgumentsDescriptor_count:
     case Slot::Kind::kArgumentsDescriptor_size:
     case Slot::Kind::kTypeArguments:
-    case Slot::Kind::kTypedDataBase_data_field:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kGrowableObjectArray_data:
@@ -2620,7 +2619,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
-    case Slot::Kind::kPointer_data:
+    case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
       return false;

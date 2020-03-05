@@ -9500,14 +9500,17 @@ class Float64x2 : public Instance {
   friend class Class;
 };
 
-class TypedDataBase : public Instance {
+class PointerBase : public Instance {
+ public:
+  static intptr_t data_field_offset() {
+    return OFFSET_OF(RawPointerBase, data_);
+  }
+};
+
+class TypedDataBase : public PointerBase {
  public:
   static intptr_t length_offset() {
     return OFFSET_OF(RawTypedDataBase, length_);
-  }
-
-  static intptr_t data_field_offset() {
-    return OFFSET_OF(RawTypedDataBase, data_);
   }
 
   RawSmi* length() const { return raw_ptr()->length_; }
@@ -9581,7 +9584,7 @@ class TypedDataBase : public Instance {
       (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 3 + 1;
   static const intptr_t element_size_table[kNumElementSizes];
 
-  HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, Instance);
+  HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, PointerBase);
 };
 
 class TypedData : public TypedDataBase {
@@ -9925,8 +9928,6 @@ class Pointer : public Instance {
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawPointer, type_arguments_);
   }
-
-  static intptr_t data_offset() { return OFFSET_OF(RawPointer, data_); }
 
   static intptr_t NextFieldOffset() { return sizeof(RawPointer); }
 
