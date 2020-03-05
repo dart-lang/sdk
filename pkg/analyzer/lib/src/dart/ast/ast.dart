@@ -5853,6 +5853,7 @@ class IndexExpressionImpl extends ExpressionImpl
 
   @override
   bool get isNullAware =>
+      question != null ||
       leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
       (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
           period != null &&

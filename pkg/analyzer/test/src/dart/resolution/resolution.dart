@@ -94,10 +94,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertAssignment(
     AssignmentExpression node, {
-    @required ExecutableElement operatorElement,
+    @required Object operatorElement,
     @required String type,
   }) {
-    expect(node.staticElement, same(operatorElement));
+    assertElement(node.staticElement, operatorElement);
     assertType(node, type);
   }
 
@@ -304,22 +304,29 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertIndexExpression(
     IndexExpression node, {
-    @required MethodElement readElement,
-    @required MethodElement writeElement,
+    @required Object readElement,
+    @required Object writeElement,
     @required String type,
   }) {
     var isRead = node.inGetterContext();
     var isWrite = node.inSetterContext();
     if (isRead && isWrite) {
-      expect(node.auxiliaryElements?.staticElement, readElement);
-      expect(node.staticElement, writeElement);
+      assertElement(node.auxiliaryElements?.staticElement, readElement);
+      assertElement(node.staticElement, writeElement);
     } else if (isRead) {
-      expect(node.staticElement, readElement);
+      assertElement(node.staticElement, readElement);
     } else {
       expect(isWrite, isTrue);
-      expect(node.staticElement, writeElement);
+      assertElement(node.staticElement, writeElement);
     }
-    assertType(node, type);
+
+    if (isRead) {
+      assertType(node, type);
+    } else {
+      // TODO(scheglov) enforce this
+//      expect(type, isNull);
+//      assertTypeNull(node);
+    }
   }
 
   void assertInstanceCreation(InstanceCreationExpression creation,
