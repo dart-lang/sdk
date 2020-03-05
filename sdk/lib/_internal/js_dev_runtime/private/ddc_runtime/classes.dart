@@ -556,6 +556,11 @@ addTypeTests(ctor, isClass) {
       cast);
 }
 
+/// Pre-initializes types with empty type caches.
+///
+/// Required for the null-safe SDK. Stubbed here.
+addTypeCaches(type) => null;
+
 // TODO(jmesserly): should we do this for all interfaces?
 
 /// The well known symbol for testing `is Future`

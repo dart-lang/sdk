@@ -5,6 +5,7 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
+@notNull
 bool _strictSubtypeChecks = false;
 
 /// Sets the mode of the runtime subtype checks.
@@ -74,6 +75,11 @@ class DartType implements Type {
 
   @JSExportName('_check')
   check_T(object) => cast(object, this, true);
+
+  DartType() {
+    // Every instance of a DartType requires a set of type caches.
+    JS('', '#(this)', addTypeCaches);
+  }
 }
 
 class DynamicType extends DartType {
@@ -273,26 +279,34 @@ final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
 /// https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 @notNull
 Object nullable(type) {
+  // Check if a nullable version of this type has already been created.
+  var cached = JS<Object>('', '#[#]', type, _cachedNullable);
+  if (JS<bool>('!', '# !== void 0', cached)) {
+    return cached;
+  }
+
+  // Cache a canonical nullable version of this type on this type.
+  Object cachedType = _computeNullable(type);
+  JS('', '#[#] = #', type, _cachedNullable, cachedType);
+  return cachedType;
+}
+
+Object _computeNullable(type) {
+  // *? normalizes to ?.
+  if (_isLegacy(type)) {
+    return nullable(JS<Object>('', '#.type', type));
+  }
   if (_isNullable(type) ||
       _isTop(type) ||
       _isNullType(type) ||
       // Normalize FutureOr<T?>? --> FutureOr<T?>
       // All other runtime FutureOr normalization is in `normalizeFutureOr()`.
-      (_isFutureOr(type)) &&
-          _isNullable(JS<Object>('!', '#[0]', getGenericArgs(type)))) {
+      ((_isFutureOr(type)) &&
+          _isNullable(JS<Object>('!', '#[0]', getGenericArgs(type))))) {
     return type;
   }
   if (type == never_) return unwrapType(Null);
-  if (_isLegacy(type)) type = JS<Object>('', '#.type', type);
-
-  // Check if a nullable version of this type has already been created.
-  if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedNullable)) {
-    return JS<NullableType>('!', '#[#]', type, _cachedNullable);
-  }
-  // Cache a canonical nullable version of this type on this type.
-  var cachedType = NullableType(JS<Type>('!', '#', type));
-  JS('', '#[#] = #', type, _cachedNullable, cachedType);
-  return cachedType;
+  return NullableType(type);
 }
 
 /// Returns a legacy (star, *) version of [type].
@@ -302,17 +316,27 @@ Object nullable(type) {
 /// https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 @notNull
 Object legacy(type) {
-  if (_isLegacy(type) || _isNullable(type) || _isTop(type) || _isNullType(type))
-    return type;
-
   // Check if a legacy version of this type has already been created.
-  if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedLegacy)) {
-    return JS<LegacyType>('!', '#[#]', type, _cachedLegacy);
+  var cached = JS<Object>('', '#[#]', type, _cachedLegacy);
+  if (JS<bool>('!', '# !== void 0', cached)) {
+    return cached;
   }
+
   // Cache a canonical legacy version of this type on this type.
-  var cachedType = LegacyType(JS<Type>('!', '#', type));
+  Object cachedType = _computeLegacy(type);
   JS('', '#[#] = #', type, _cachedLegacy, cachedType);
   return cachedType;
+}
+
+Object _computeLegacy(type) {
+  // Note: ?* normalizes to ?, so we cache type? at type?[_cachedLegacy].
+  if (_isLegacy(type) ||
+      _isNullable(type) ||
+      _isTop(type) ||
+      _isNullType(type)) {
+    return type;
+  }
+  return LegacyType(JS<Type>('!', '#', type));
 }
 
 /// A wrapper to identify a nullable (question, ?) type of the form [type]?.

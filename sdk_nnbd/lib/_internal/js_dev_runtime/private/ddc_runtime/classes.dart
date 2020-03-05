@@ -161,6 +161,7 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
     // this method. This ensures that the we can test a type value returned here
     // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
     JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
+    JS('!', '#(#)', addTypeCaches, genericType);
     return genericType;
   }
 
@@ -216,6 +217,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     return value;
   }
   makeGenericType[$_genericTypeCtor] = $typeConstructor;
+  $addTypeCaches(makeGenericType);
   return makeGenericType;
 })()''');
 
@@ -566,6 +568,16 @@ addTypeTests(ctor, isClass) {
       ctor,
       isClass,
       cast);
+}
+
+/// Pre-initializes types with empty type caches.
+///
+/// Allows us to perform faster lookups on local caches without having to
+/// filter out the prototype chain. Also allows types to remain relatively
+/// monomorphic, which results in faster execution in V8.
+addTypeCaches(type) {
+  JS('', '#[#] = void 0', type, _cachedLegacy);
+  JS('', '#[#] = void 0', type, _cachedNullable);
 }
 
 // TODO(jmesserly): should we do this for all interfaces?

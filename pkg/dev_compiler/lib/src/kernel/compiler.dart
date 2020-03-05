@@ -588,6 +588,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var finishGenericTypeTest = _emitClassTypeTests(c, className, body);
 
+    // Attach caches on all canonicalized types not in our runtime.
+    // Types in the runtime will have caches attached in their constructors.
+    if (!isSdkInternalRuntime(_currentLibrary)) {
+      body.add(runtimeStatement('addTypeCaches(#)', [className]));
+    }
+
     _emitVirtualFieldSymbols(c, body);
     _emitClassSignature(c, className, body);
     _initExtensionSymbols(c);
