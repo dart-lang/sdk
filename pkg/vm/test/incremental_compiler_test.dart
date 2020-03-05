@@ -31,7 +31,7 @@ main() {
     return new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..target = new VmTarget(new TargetFlags())
-      ..linkedDependencies = <Uri>[platformKernel]
+      ..additionalDills = <Uri>[platformKernel]
       ..onDiagnostic = (DiagnosticMessage message) {
         fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
       }

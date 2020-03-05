@@ -19,7 +19,7 @@ main() {
             new Dart2jsTarget('dart2js', new TargetFlags()),
             Uri.base
                 .resolve('sdk/lib/libraries.json'), // librariesSpecificationUri
-            [], // linkedDependencies
+            [], // additionalDills
             Uri.base.resolve('.packages'), // packagesFileUri
             experimentalFlags: experimentalFlags,
             verify: true);

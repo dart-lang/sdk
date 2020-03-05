@@ -283,6 +283,7 @@ diffs
 digest
 digests
 dijkstra's
+dills
 directed
 directions
 dirtify

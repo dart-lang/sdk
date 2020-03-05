@@ -205,9 +205,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri packagesUri = packages != null ? resolveInputUri(packages) : null;
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
-  final List<Uri> linkedDependencies = <Uri>[];
+  final List<Uri> additionalDills = <Uri>[];
   if (aot || linkPlatform) {
-    linkedDependencies.add(platformKernelUri);
+    additionalDills.add(platformKernelUri);
   }
 
   Uri mainUri = resolveInputUri(input);
@@ -222,7 +222,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..sdkSummary = platformKernelUri
     ..target = target
     ..fileSystem = fileSystem
-    ..linkedDependencies = linkedDependencies
+    ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
@@ -234,7 +234,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..embedSourceText = embedSources;
 
   final results = await compileToKernel(mainUri, compilerOptions,
-      includePlatform: linkedDependencies.isNotEmpty,
+      includePlatform: additionalDills.isNotEmpty,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,

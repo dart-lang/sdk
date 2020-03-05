@@ -138,7 +138,7 @@ main() {
       sources['a.dill'] = serializeComponent(unitA);
 
       var unitBC = await compileUnit(['b.dart', 'c.dart'], sources,
-          inputSummaries: ['a.dill']);
+          additionalDills: ['a.dill']);
 
       // Pretend that the compiled code is a summary
       sources['bc.dill'] = serializeComponent(unitBC);
@@ -155,11 +155,11 @@ main() {
       }
 
       var unitD1 = await compileUnit(['d.dart'], sources,
-          inputSummaries: ['a.dill', 'bc.dill']);
+          additionalDills: ['a.dill', 'bc.dill']);
       checkDCallsC(unitD1);
 
       var unitD2 = await compileUnit(['d.dart'], sources,
-          inputSummaries: ['bc.dill', 'a.dill']);
+          additionalDills: ['bc.dill', 'a.dill']);
       checkDCallsC(unitD2);
     });
 

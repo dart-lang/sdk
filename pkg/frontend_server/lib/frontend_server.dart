@@ -459,7 +459,7 @@ class FrontendCompiler implements CompilerInterface {
 
     final String importDill = options['import-dill'];
     if (importDill != null) {
-      compilerOptions.inputSummaries = <Uri>[
+      compilerOptions.additionalDills = <Uri>[
         Uri.base.resolveUri(Uri.file(importDill))
       ];
     }
@@ -501,7 +501,7 @@ class FrontendCompiler implements CompilerInterface {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
         // into VM snapshot and http://dartbug.com/30111 is fixed.
-        compilerOptions.linkedDependencies = <Uri>[
+        compilerOptions.additionalDills = <Uri>[
           sdkRoot.resolve(platformKernelDill)
         ];
       }

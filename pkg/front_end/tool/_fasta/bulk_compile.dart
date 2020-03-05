@@ -37,7 +37,7 @@ class BulkCompiler {
       : options = new ProcessedOptions(
             options: options
               ..packagesFileUri ??= Uri.base.resolve(".packages")
-              ..linkedDependencies = <Uri>[
+              ..additionalDills = <Uri>[
                 computePlatformBinariesLocation(forceBuildDir: true)
                     .resolve("vm_platform_strong.dill")
               ]

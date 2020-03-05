@@ -109,17 +109,13 @@ class ProcessedOptions {
   /// types unless legacy mode is enabled.
   Component _sdkSummaryComponent;
 
-  /// The summary for each uri in `options.inputSummaries`.
+  /// The component for each uri in `options.additionalDills`.
   ///
   /// A summary, also referred to as "outline" internally, is a [Component]
   /// where all method bodies are left out. In essence, it contains just API
   /// signatures and constants. The summaries should include inferred top-level
   /// types unless legacy mode is enabled.
-  List<Component> _inputSummariesComponents;
-
-  /// Other components that are meant to be linked and compiled with the input
-  /// sources.
-  List<Component> _linkedDependencies;
+  List<Component> _additionalDillComponents;
 
   /// The location of the SDK, or `null` if the location hasn't been determined
   /// yet.
@@ -288,7 +284,7 @@ class ProcessedOptions {
       return false;
     }
 
-    for (Uri source in _raw.linkedDependencies) {
+    for (Uri source in _raw.additionalDills) {
       // TODO(ahe): Remove this check, the compiler itself should handle and
       // recover from this.
       if (!await fileSystem.entityForUri(source).exists()) {
@@ -360,42 +356,27 @@ class ProcessedOptions {
     _sdkSummaryComponent = platform;
   }
 
-  /// Get the summary programs for each of the underlying `inputSummaries`
+  /// Get the components for each of the underlying `additionalDill`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Component>> loadInputSummaries(CanonicalName nameRoot) async {
-    if (_inputSummariesComponents == null) {
-      List<Uri> uris = _raw.inputSummaries;
+  Future<List<Component>> loadAdditionalDills(CanonicalName nameRoot) async {
+    if (_additionalDillComponents == null) {
+      List<Uri> uris = _raw.additionalDills;
       if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent operations.
       List<List<int>> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
-      _inputSummariesComponents =
+      _additionalDillComponents =
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
-    return _inputSummariesComponents;
+    return _additionalDillComponents;
   }
 
-  void set inputSummariesComponents(List<Component> components) {
-    if (_inputSummariesComponents != null) {
-      throw new StateError("inputSummariesComponents already loaded.");
+  void set loadAdditionalDillsComponents(List<Component> components) {
+    if (_additionalDillComponents != null) {
+      throw new StateError("inputAdditionalDillsComponents already loaded.");
     }
-    _inputSummariesComponents = components;
-  }
-
-  /// Load each of the [CompilerOptions.linkedDependencies] components.
-  // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Component>> loadLinkDependencies(CanonicalName nameRoot) async {
-    if (_linkedDependencies == null) {
-      List<Uri> uris = _raw.linkedDependencies;
-      if (uris == null || uris.isEmpty) return const <Component>[];
-      // TODO(sigmund): throttle # of concurrent operations.
-      List<List<int>> allBytes = await Future.wait(
-          uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
-      _linkedDependencies =
-          allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
-    }
-    return _linkedDependencies;
+    _additionalDillComponents = components;
   }
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
@@ -709,8 +690,7 @@ class ProcessedOptions {
     sb.writeln('FileSystem: ${_fileSystem.runtimeType} '
         '(provided: ${_raw.fileSystem.runtimeType})');
 
-    writeList('Input Summaries', _raw.inputSummaries);
-    writeList('Linked Dependencies', _raw.linkedDependencies);
+    writeList('Additional Dills', _raw.additionalDills);
 
     sb.writeln('Packages uri: ${_raw.packagesFileUri}');
     sb.writeln('Packages: ${_packages}');
