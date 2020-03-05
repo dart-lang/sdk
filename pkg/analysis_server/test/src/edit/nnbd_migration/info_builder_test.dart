@@ -6,6 +6,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -235,6 +236,14 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
       expect(region.details.map((detail) => detail.description),
           unorderedEquals(details));
     }
+  }
+
+  void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo, int offset) {
+    var lineInfo = LineInfo.fromContent(unit.content);
+    var expectedLocation = lineInfo.getLocation(offset);
+    expect(entryInfo.target.filePath, unit.path);
+    expect(entryInfo.target.line, expectedLocation.lineNumber);
+    expect(entryInfo.target.offset, expectedLocation.columnNumber);
   }
 
   Future<void> test_asExpression() async {
@@ -1708,6 +1717,73 @@ int? _f2 = _f;
         region: regions[1],
         offset: 19,
         details: ['This variable is initialized to a nullable value']);
+  }
+
+  Future<void> test_trace_deadCode() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(int/*!*/ i) {
+  if (i == null) return;
+}
+''', migratedContent: '''
+void f(int/*!*/ i) {
+  /* if (i == null) return; */
+}
+''');
+    var region = unit.regions
+        .where(
+            (regionInfo) => regionInfo.offset == unit.content.indexOf('/* if'))
+        .single;
+    // The reason data associated with dead code removal is a non-nullable node,
+    // and we don't currently generate a trace for non-nullable nodes.
+    expect(region.traces, isEmpty);
+  }
+
+  Future<void> test_trace_nullableType() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(int i) {} // f
+void g(int i) { // g
+  f(i);
+}
+void h() {
+  g(null);
+}
+''', migratedContent: '''
+void f(int? i) {} // f
+void g(int? i) { // g
+  f(i);
+}
+void h() {
+  g(null);
+}
+''');
+    var region = unit.regions
+        .where((regionInfo) =>
+            regionInfo.offset == unit.content.indexOf('? i) {} // f'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var entries = region.traces.single.entries;
+    expect(entries, hasLength(3));
+    // Entry 0 is the edge from g's argument to f's argument, due to g's call to
+    // f.
+    assertTraceEntry(unit, entries[0], unit.content.indexOf('i);'));
+    // Entry 1 is the edge from null to g's argument, due to h's call to g.
+    assertTraceEntry(unit, entries[1], unit.content.indexOf('null'));
+    // Entry 2 is the edge from always to null.
+    assertTraceEntry(unit, entries[2], unit.content.indexOf('null'));
+  }
+
+  Future<void> test_trace_nullCheck() async {
+    UnitInfo unit = await buildInfoForSingleTestFile(
+        'int f(int/*?*/ i) => i + 1;',
+        migratedContent: 'int f(int?/*?*/ i) => i! + 1;');
+    var region = unit.regions
+        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('! +'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var entries = region.traces.single.entries;
+    expect(entries, hasLength(1));
+    // Entry 0 is the edge from always to the type of i.
+    assertTraceEntry(unit, entries[0], unit.content.indexOf('int?'));
   }
 
   Future<void> test_uninitializedField() async {

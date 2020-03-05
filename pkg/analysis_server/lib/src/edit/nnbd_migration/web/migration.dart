@@ -397,18 +397,10 @@ void populateEditDetails([EditDetails response]) {
     for (var detail in response.details) {
       var detailItem = detailList.append(document.createElement('li'));
       detailItem.append(Text(detail.description));
-      if (detail.link != null) {
-        int targetLine = detail.link.line;
-
+      var link = detail.link;
+      if (link != null) {
         detailItem.append(Text(' ('));
-        AnchorElement a = detailItem.append(document.createElement('a'));
-        a.append(Text('${detail.link.path}:$targetLine'));
-
-        String relLink = detail.link.href;
-        String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
-
-        a.setAttribute('href', fullPath);
-        a.classes.add('nav-link');
+        detailItem.append(_aElementForLink(link, parentDirectory));
         detailItem.append(Text(')'));
       }
     }
@@ -421,6 +413,24 @@ void populateEditDetails([EditDetails response]) {
       a.append(Text(edit.description));
       a.setAttribute('href', edit.href);
       a.classes.add('post-link');
+    }
+  }
+
+  for (var trace in response.traces) {
+    var traceParagraph = editPanel.append(document.createElement('p'));
+    traceParagraph.append(Text(trace.description));
+    var ul = traceParagraph.append(document.createElement('ul'));
+    for (var entry in trace.entries) {
+      var li = ul.append(document.createElement('li'));
+      li.append(Text(entry.function));
+      var link = entry.link;
+      if (link != null) {
+        li.append(Text(' ('));
+        li.append(_aElementForLink(link, parentDirectory));
+        li.append(Text(')'));
+      }
+      li.append(Text(': '));
+      li.append(Text(entry.description));
     }
   }
 }
@@ -565,6 +575,19 @@ void writeNavigationSubtree(Element parentElement, dynamic tree) {
       }
     }
   }
+}
+
+AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
+  int targetLine = link.line;
+  AnchorElement a = document.createElement('a');
+  a.append(Text('${link.path}:$targetLine'));
+
+  String relLink = link.href;
+  String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
+
+  a.setAttribute('href', fullPath);
+  a.classes.add('nav-link');
+  return a;
 }
 
 class _PermissiveNodeValidator implements NodeValidator {

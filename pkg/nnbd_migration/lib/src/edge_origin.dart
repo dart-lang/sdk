@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
-import 'package:nnbd_migration/src/nullability_node.dart';
 
 /// Edge origin resulting from a type in already-migrated code.
 ///

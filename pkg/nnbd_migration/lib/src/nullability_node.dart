@@ -10,33 +10,6 @@ import 'package:nnbd_migration/src/postmortem_file.dart';
 
 import 'edge_origin.dart';
 
-/// Data structure used by the nullability migration engine to refer to a
-/// specific location in source code.
-class CodeReference {
-  final String path;
-
-  final int line;
-
-  final int column;
-
-  CodeReference(this.path, this.line, this.column);
-
-  CodeReference.fromJson(dynamic json)
-      : path = json['path'] as String,
-        line = json['line'] as int,
-        column = json['col'] as int;
-
-  Map<String, Object> toJson() {
-    return {'path': path, 'line': line, 'col': column};
-  }
-
-  @override
-  String toString() {
-    var pathAsUri = Uri.file(path);
-    return 'unknown ($pathAsUri:$line:$column)';
-  }
-}
-
 /// Base class for steps that occur as part of downstream propagation, where the
 /// nullability of a node is changed to a new state.
 abstract class DownstreamPropagationStep extends PropagationStep {
@@ -992,6 +965,8 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
 
   NonNullIntent _nonNullIntent;
 
+  DownstreamPropagationStep _whyNullable;
+
   NullabilityNodeMutable.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
       : _nullability = json['nullability'] == null
@@ -1021,9 +996,13 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   NonNullIntent get nonNullIntent => _nonNullIntent;
 
   @override
+  PropagationStepInfo get whyNullable => _whyNullable;
+
+  @override
   void resetState() {
     _nullability = Nullability.nonNullable;
     _nonNullIntent = NonNullIntent.none;
+    _whyNullable = null;
   }
 
   @override
@@ -1052,7 +1031,7 @@ class PropagationResult {
 }
 
 /// Class representing a step taken by the nullability propagation algorithm.
-abstract class PropagationStep {
+abstract class PropagationStep implements PropagationStepInfo {
   PropagationStep();
 
   factory PropagationStep.fromJson(
@@ -1276,6 +1255,9 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   @override
   NonNullIntent get nonNullIntent =>
       isNullable ? NonNullIntent.none : NonNullIntent.direct;
+
+  @override
+  PropagationStepInfo get whyNullable => null;
 
   @override
   String get _jsonKind => 'immutable';
@@ -1534,6 +1516,7 @@ class _PropagationState {
     node._nullability = newState;
     _postmortemFileWriter?.addPropagationStep(step);
     if (!oldState.isNullable) {
+      node._whyNullable = step;
       // Was not previously nullable, so we need to propagate.
       for (var edge in node._downstreamEdges) {
         _pendingDownstreamSteps

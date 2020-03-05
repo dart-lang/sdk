@@ -511,6 +511,47 @@ class InfoBuilder {
     }).toList();
   }
 
+  TraceEntryInfo _computeTraceEntry(PropagationStepInfo step) {
+    var codeReference = step.codeReference;
+    var length = 1; // TODO(paulberry): figure out the correct value.
+    var description = step.toString(); // TODO(paulberry): improve this message.
+    return TraceEntryInfo(
+        description,
+        codeReference == null
+            ? null
+            : NavigationTarget(codeReference.path, codeReference.column,
+                codeReference.line, length));
+  }
+
+  TraceInfo _computeTraceInfo(NullabilityNodeInfo node) {
+    List<TraceEntryInfo> entries = [];
+    var step = node.whyNullable;
+    while (step != null) {
+      entries.add(_computeTraceEntry(step));
+      step = step.principalCause;
+    }
+    var description = node.toString(); // TODO(paulberry): improve this message.
+    return TraceInfo(description, entries);
+  }
+
+  List<TraceInfo> _computeTraces(List<FixReasonInfo> fixReasons) {
+    var nodes = <NullabilityNodeInfo>[];
+    for (var reason in fixReasons) {
+      if (reason is NullabilityNodeInfo) {
+        if (reason.isNullable) {
+          nodes.add(reason);
+        }
+      } else if (reason is EdgeInfo) {
+        assert(reason.sourceNode.isNullable);
+        assert(!reason.destinationNode.isNullable);
+        nodes.add(reason.sourceNode);
+      } else {
+        assert(false, 'Unrecognized reason type: ${reason.runtimeType}');
+      }
+    }
+    return [for (var node in nodes) _computeTraceInfo(node)];
+  }
+
   /// Compute details about [edgeInfos] which are upstream triggered.
   List<RegionDetail> _computeUpstreamTriggeredDetails(
       Iterable<EdgeInfo> edgeInfos) {
@@ -636,15 +677,16 @@ class InfoBuilder {
           }
         }
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
+        var traces = info == null ? const [] : _computeTraces(info.fixReasons);
         if (explanation != null) {
           if (length > 0) {
             regions.add(RegionInfo(RegionType.remove, offset, length,
                 lineNumber, explanation, details,
-                edits: edits));
+                edits: edits, traces: traces));
           } else {
             regions.add(RegionInfo(RegionType.add, offset, replacement.length,
                 lineNumber, explanation, details,
-                edits: edits));
+                edits: edits, traces: traces));
           }
         }
         offset += replacement.length;

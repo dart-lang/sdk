@@ -163,10 +163,14 @@ class RegionInfo {
   /// A list of the edits that are related to this range.
   List<EditDetail> edits;
 
+  /// A list of the nullability propagation traces that are related to this
+  /// range.
+  List<TraceInfo> traces;
+
   /// Initialize a newly created region.
   RegionInfo(this.regionType, this.offset, this.length, this.lineNumber,
       this.explanation, this.details,
-      {this.edits = const []});
+      {this.edits = const [], this.traces = const []});
 }
 
 /// Different types of regions that are called out.
@@ -180,6 +184,29 @@ enum RegionType {
   /// This is a region of code that was unchanged in migration; likely a type
   /// that was declared non-nullable in migration.
   unchanged,
+}
+
+/// Information about a single entry in a nullability trace.
+class TraceEntryInfo {
+  /// Text description of the entry.
+  final String description;
+
+  /// Source code location associated with the entry, or `null` if no source
+  /// code location is known.
+  final NavigationTarget target;
+
+  TraceEntryInfo(this.description, this.target);
+}
+
+/// Information about a nullability trace.
+class TraceInfo {
+  /// Text description of the trace.
+  final String description;
+
+  /// List of trace entries.
+  final List<TraceEntryInfo> entries;
+
+  TraceInfo(this.description, this.entries);
 }
 
 /// The migration information associated with a single compilation unit.

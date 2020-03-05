@@ -8,6 +8,33 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
+/// Data structure used by the nullability migration engine to refer to a
+/// specific location in source code.
+class CodeReference {
+  final String path;
+
+  final int line;
+
+  final int column;
+
+  CodeReference(this.path, this.line, this.column);
+
+  CodeReference.fromJson(dynamic json)
+      : path = json['path'] as String,
+        line = json['line'] as int,
+        column = json['col'] as int;
+
+  Map<String, Object> toJson() {
+    return {'path': path, 'line': line, 'col': column};
+  }
+
+  @override
+  String toString() {
+    var pathAsUri = Uri.file(path);
+    return 'unknown ($pathAsUri:$line:$column)';
+  }
+}
+
 /// Information exposed to the migration client about the set of nullability
 /// nodes decorating a type in the program being migrated.
 abstract class DecoratedTypeInfo {
@@ -267,6 +294,14 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
 
   /// The edges that caused this node to have the nullability that it has.
   Iterable<EdgeInfo> get upstreamEdges;
+
+  PropagationStepInfo get whyNullable;
+}
+
+abstract class PropagationStepInfo {
+  CodeReference get codeReference;
+
+  PropagationStepInfo get principalCause;
 }
 
 /// Information exposed to the migration client about a node in the nullability
