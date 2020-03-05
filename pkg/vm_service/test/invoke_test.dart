@@ -31,7 +31,7 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolateRef) async {
     final isolate = await service.getIsolate(isolateRef.id);
-    final lib = await service.getObject(isolate.id, isolate.rootLib.id);
+    final Library lib = await service.getObject(isolate.id, isolate.rootLib.id);
     final cls = lib.classes.singleWhere((cls) => cls.name == "Klass");
     FieldRef fieldRef =
         lib.variables.singleWhere((field) => field.name == "instance");

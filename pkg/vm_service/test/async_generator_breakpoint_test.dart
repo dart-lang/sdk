@@ -48,7 +48,7 @@ testeeDo() {
 
 Future testAsync(VmService service, IsolateRef isolateRef) async {
   final isolate = await service.getIsolate(isolateRef.id);
-  final lib = await service.getObject(isolate.id, isolate.rootLib.id);
+  final Library lib = await service.getObject(isolate.id, isolate.rootLib.id);
   final script = lib.scripts[0];
 
   final bp1 = await service.addBreakpoint(isolate.id, script.id, 11);
@@ -77,10 +77,10 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
   // ignore: unawaited_futures
   service
       .evaluate(isolate.id, lib.id, 'testerReady = true')
-      .then((result) async {
-    result = await service.getObject(isolate.id, result.id);
-    print(result);
-    expect((result as Instance).valueAsString, equals('true'));
+      .then((Response result) async {
+    Obj res = await service.getObject(isolate.id, (result as InstanceRef).id);
+    print(res);
+    expect((res as Instance).valueAsString, equals('true'));
   });
 
   final stream = service.onDebugEvent;

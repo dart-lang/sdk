@@ -1,7 +1,14 @@
 # Changelog
 
+## 4.0.0
+- **breaking**: RPCs which can return a `Sentinel` will now throw the `Sentinel`
+  it is received as a response.
+- **breaking**: RPCs which can return multiple values now return
+  `Future<Response>` rather than `Future<dynamic>`.
+- `RPCError` now implements `Exception`.
+
 ## 3.0.0
-**breaking**: RPCs which have an isolateId parameter now return
+- **breaking**: RPCs which have an isolateId parameter now return
   `Future<dynamic>` as a `Sentinel` can be returned if the target isolate no
   longer exists.
 

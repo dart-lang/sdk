@@ -45,7 +45,7 @@ var tests = <IsolateTest>[
     // Make sure we are in the right place.
     expect(stack.frames.length, greaterThanOrEqualTo(2));
     expect(stack.frames[0].function.name, 'method');
-    expect(stack.frames[0].function.owner.name, 'MyClass');
+    expect((stack.frames[0].function.owner as ClassRef).name, 'MyClass');
 
     final LibraryRef lib = isolate.rootLib;
     final ClassRef cls = stack.frames[0].function.owner;
@@ -81,11 +81,12 @@ var tests = <IsolateTest>[
     // Make sure we are in the right place.
     expect(stack.frames.length, greaterThanOrEqualTo(2));
     expect(stack.frames[0].function.name, 'foo');
-    expect(stack.frames[0].function.owner.name, '_MyClass');
+    expect((stack.frames[0].function.owner as ClassRef).name, '_MyClass');
 
     final ClassRef cls = stack.frames[0].function.owner;
 
-    final result = await service.evaluate(isolate.id, cls.id, "1+1");
+    final InstanceRef result =
+        await service.evaluate(isolate.id, cls.id, "1+1");
     print(result);
     expect(result.valueAsString, "2");
   }

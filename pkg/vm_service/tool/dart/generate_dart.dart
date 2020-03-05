@@ -210,7 +210,9 @@ final String _implCode = r'''
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
       String type = result['type'];
-      if (_typeFactories[type] == null) {
+      if (type == 'Sentinel') {
+        completer.completeError(SentinelException.parse(methodName, result));
+      } else if (_typeFactories[type] == null) {
         completer.complete(Response.parse(result));
       } else {
         completer.complete(createServiceObject(result, returnTypes));
@@ -265,7 +267,7 @@ final String _rpcError = r'''
 
 typedef DisposeHandler = Future Function();
 
-class RPCError {
+class RPCError implements Exception {
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
@@ -286,6 +288,17 @@ class RPCError {
       return '${message} (${code}) from ${callingMethod}():\n${details}';
     }
   }
+}
+
+/// Thrown when an RPC response is a [Sentinel].
+class SentinelException implements Exception {
+  final String callingMethod;
+  final Sentinel sentinel;
+
+  SentinelException.parse(this.callingMethod, Map<String, dynamic> data) :
+    sentinel = Sentinel.parse(data);
+
+  String toString() => '$sentinel from ${callingMethod}()';
 }
 
 /// An `ExtensionData` is an arbitrary map that can have any contents.
@@ -1110,6 +1123,11 @@ class Method extends Member {
             '${joinLast(returnType.types.map((t) => '[${t}]'), ', ', ' or ')}.';
         _docs = _docs.trim();
       }
+      if (returnType.canReturnSentinel) {
+        _docs +=
+            '\n\nThis method will throw a [SentinelException] in the case a [Sentinel] is returned.';
+        _docs = _docs.trim();
+      }
       if (_docs.isNotEmpty) gen.writeDocs(_docs);
     }
     if (withOverrides) gen.writeln('@override');
@@ -1147,10 +1165,11 @@ class MemberType extends Member {
 
   MemberType();
 
-  void parse(Parser parser) {
+  void parse(Parser parser, {bool isReturnType = false}) {
     // foo|bar[]|baz
     // (@Instance|Sentinel)[]
     bool loop = true;
+    this.isReturnType = isReturnType;
 
     while (loop) {
       if (parser.consume('(')) {
@@ -1172,7 +1191,11 @@ class MemberType extends Member {
           parser.expect(']');
           ref.arrayDepth++;
         }
-        types.add(ref);
+        if (isReturnType && ref.name == 'Sentinel') {
+          canReturnSentinel = true;
+        } else {
+          types.add(ref);
+        }
       }
 
       loop = parser.consume('|');
@@ -1182,8 +1205,12 @@ class MemberType extends Member {
   String get name {
     if (types.isEmpty) return '';
     if (types.length == 1) return types.first.ref;
+    if (isReturnType) return 'Response';
     return 'dynamic';
   }
+
+  bool isReturnType = false;
+  bool canReturnSentinel = false;
 
   bool get isMultipleReturns => types.length > 1;
 
@@ -1923,7 +1950,7 @@ class MethodParser extends Parser {
     // method is return type, name, (, args )
     // args is type name, [optional], comma
 
-    method.returnType.parse(this);
+    method.returnType.parse(this, isReturnType: true);
 
     Token t = expectName();
     validate(
