@@ -205,6 +205,9 @@ class BaseFlowGraphBuilder {
                                  intptr_t index_scale,
                                  bool index_unboxed);
 
+  // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
+  Fragment Box(Representation from);
+
   void Push(Definition* definition);
   Definition* Peek(intptr_t depth = 0);
   Value* Pop();

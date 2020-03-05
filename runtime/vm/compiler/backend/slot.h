@@ -72,7 +72,7 @@ class ParsedFunction;
   V(ArgumentsDescriptor, positional_count, Smi, FINAL)                         \
   V(ArgumentsDescriptor, count, Smi, FINAL)                                    \
   V(ArgumentsDescriptor, size, Smi, FINAL)                                     \
-  V(Pointer, c_memory_address, Dynamic, FINAL)                                 \
+  V(Pointer, data, Dynamic, FINAL)                                             \
   V(Type, arguments, TypeArguments, FINAL)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)

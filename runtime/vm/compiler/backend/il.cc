@@ -2620,7 +2620,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
-    case Slot::Kind::kPointer_c_memory_address:
+    case Slot::Kind::kPointer_data:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
       return false;
@@ -3025,6 +3025,9 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
   // Find a more precise box instruction.
   if (auto conv = value()->definition()->AsIntConverter()) {
     Definition* replacement;
+    if (conv->from() == kUntagged) {
+      return this;
+    }
     switch (conv->from()) {
       case kUnboxedInt32:
         replacement = new BoxInt32Instr(conv->value()->CopyWithType());
@@ -3169,6 +3172,14 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
       return this;
     }
+
+#if defined(TARGET_ARCH_IS_32_BIT)
+    // Do not erase extending conversions from 32-bit untagged to 64-bit values
+    // because untagged does not specify whether it is signed or not.
+    if ((box_defn->from() == kUntagged) && to() == kUnboxedInt64) {
+      return this;
+    }
+#endif
 
     if (box_defn->from() == to()) {
       return box_defn->value()->definition();

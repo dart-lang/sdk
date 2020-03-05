@@ -190,9 +190,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // target representation.
   Fragment UnboxTruncate(Representation to);
 
-  // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
-  Fragment Box(Representation from);
-
   // Creates an ffi.Pointer holding a given address (TOS).
   Fragment FfiPointerFromAddress(const Type& result_type);
 

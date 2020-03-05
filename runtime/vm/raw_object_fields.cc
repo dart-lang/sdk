@@ -193,8 +193,8 @@ namespace dart {
   F(WeakProperty, value_)                                                      \
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
+  F(Pointer, data_)                                                            \
   F(Pointer, type_arguments_)                                                  \
-  F(Pointer, c_memory_address_)                                                \
   F(DynamicLibrary, handle_)                                                   \
   F(FfiTrampolineData, signature_type_)                                        \
   F(FfiTrampolineData, c_signature_)                                           \

@@ -133,7 +133,7 @@
   FIELD(ObjectStore, int_type_offset)                                          \
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(OneByteString, data_offset)                                            \
-  FIELD(Pointer, c_memory_address_offset)                                      \
+  FIELD(Pointer, data_offset)                                                  \
   FIELD(Pointer, type_arguments_offset)                                        \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \

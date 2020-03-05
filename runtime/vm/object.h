@@ -9914,22 +9914,19 @@ class Pointer : public Instance {
   static bool IsPointer(const Instance& obj);
 
   size_t NativeAddress() const {
-    return Integer::Handle(raw_ptr()->c_memory_address_).AsInt64Value();
+    return reinterpret_cast<size_t>(raw_ptr()->data_);
   }
 
   void SetNativeAddress(size_t address) const {
-    const auto& address_boxed = Integer::Handle(Integer::New(address));
-    NoSafepointScope no_safepoint_scope;
-    StorePointer(&raw_ptr()->c_memory_address_, address_boxed.raw());
+    uint8_t* value = reinterpret_cast<uint8_t*>(address);
+    StoreNonPointer(&raw_ptr()->data_, value);
   }
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawPointer, type_arguments_);
   }
 
-  static intptr_t c_memory_address_offset() {
-    return OFFSET_OF(RawPointer, c_memory_address_);
-  }
+  static intptr_t data_offset() { return OFFSET_OF(RawPointer, data_); }
 
   static intptr_t NextFieldOffset() { return sizeof(RawPointer); }
 

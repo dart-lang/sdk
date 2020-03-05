@@ -911,6 +911,12 @@ Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
   return Fragment(allocate);
 }
 
+Fragment BaseFlowGraphBuilder::Box(Representation from) {
+  BoxInstr* box = BoxInstr::Create(from, Pop());
+  Push(box);
+  return Fragment(box);
+}
+
 Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
     const TypeArguments& signatures) {
   ASSERT(signatures.IsInstantiated());
@@ -926,8 +932,9 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
           Function::Handle(Z, Type::Cast(native_type).signature())));
 
   Fragment code;
-  code += LoadNativeField(Slot::Pointer_c_memory_address());
-  LocalVariable* address = MakeTemporary();
+  // Store the pointer in the context, we cannot load the untagged address
+  // here as these can be unoptimized call sites.
+  LocalVariable* pointer = MakeTemporary();
 
   auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       /*context_id=*/0, /*num_variables=*/1);
@@ -935,7 +942,7 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   LocalVariable* context = MakeTemporary();
 
   code += LoadLocal(context);
-  code += LoadLocal(address);
+  code += LoadLocal(pointer);
   code += StoreInstanceField(TokenPosition::kNoSource, *context_slots[0]);
 
   code += AllocateClosure(TokenPosition::kNoSource, target);

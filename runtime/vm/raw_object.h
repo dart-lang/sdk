@@ -2732,8 +2732,8 @@ class RawExternalTypedData : public RawTypedDataBase {
 
 class RawPointer : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
-  VISIT_FROM(RawCompressed, c_memory_address_)
-  RawInteger* c_memory_address_;
+  uint8_t* data_;
+  VISIT_FROM(RawCompressed, type_arguments_)
   RawTypeArguments* type_arguments_;
   VISIT_TO(RawCompressed, type_arguments_)
 

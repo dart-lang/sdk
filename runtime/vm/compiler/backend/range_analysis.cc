@@ -2703,7 +2703,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
-    case Slot::Kind::kPointer_c_memory_address:
+    case Slot::Kind::kPointer_data:
     case Slot::Kind::kTypedDataBase_data_field:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kType_arguments:

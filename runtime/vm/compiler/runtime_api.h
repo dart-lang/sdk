@@ -580,7 +580,7 @@ class ArgumentsDescriptor : public AllStatic {
 
 class Pointer : public AllStatic {
  public:
-  static word c_memory_address_offset();
+  static word data_offset();
   static word type_arguments_offset();
   static word InstanceSize();
   static word NextFieldOffset();
