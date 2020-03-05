@@ -364,7 +364,7 @@ class VoidType implements TypeInfo {
       if (typeParam != noTypeParamOrArg) {
         hasTypeArguments = true;
         parser.reportRecoverableError(
-            token.next, codes.messageVoidWithTypeParameters);
+            token.next, codes.messageVoidWithTypeArguments);
         token = typeParam.parseArguments(token, parser);
       }
     }

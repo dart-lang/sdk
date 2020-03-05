@@ -971,11 +971,11 @@ InvalidVoid:
     - "void x; main() {}"
     - "foo(void x) {} main() { foo(null); }"
 
-VoidWithTypeParameters:
-  template: "Type 'void' can't have type parameters."
-  tip: "Try removing the type parameters."
+VoidWithTypeArguments:
+  template: "Type 'void' can't have type arguments."
+  tip: "Try removing the type arguments."
   index: 100
-  analyzerCode: ParserErrorCode.VOID_WITH_TYPE_PARAMETERS
+  analyzerCode: ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS
   script:
     - "void<int> f() {}"
 

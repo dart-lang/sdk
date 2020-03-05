@@ -8682,14 +8682,14 @@ const MessageCode messageVoidExpression = const MessageCode("VoidExpression",
     message: r"""This expression has type 'void' and can't be used.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeVoidWithTypeParameters = messageVoidWithTypeParameters;
+const Code<Null> codeVoidWithTypeArguments = messageVoidWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageVoidWithTypeParameters = const MessageCode(
-    "VoidWithTypeParameters",
+const MessageCode messageVoidWithTypeArguments = const MessageCode(
+    "VoidWithTypeArguments",
     index: 100,
-    message: r"""Type 'void' can't have type parameters.""",
-    tip: r"""Try removing the type parameters.""");
+    message: r"""Type 'void' can't have type arguments.""",
+    tip: r"""Try removing the type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

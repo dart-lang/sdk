@@ -882,7 +882,7 @@ class ParserErrorCode extends ErrorCode {
               "replacing it with the name of the return type.");
 
   static const ParserErrorCode VOID_WITH_TYPE_ARGUMENTS =
-      _VOID_WITH_TYPE_PARAMETERS;
+      _VOID_WITH_TYPE_ARGUMENTS;
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

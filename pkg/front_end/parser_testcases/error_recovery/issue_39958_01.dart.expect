@@ -1,6 +1,6 @@
 Problems reported:
 
-parser/error_recovery/issue_39958_01:1:5: Type 'void' can't have type parameters.
+parser/error_recovery/issue_39958_01:1:5: Type 'void' can't have type arguments.
 void<int> f() {}
     ^
 
@@ -9,7 +9,7 @@ beginCompilationUnit(void)
   endMetadataStar(0)
   beginTopLevelMember(void)
     beginTopLevelMethod(, null)
-      handleRecoverableError(VoidWithTypeParameters, <, <)
+      handleRecoverableError(VoidWithTypeArguments, <, <)
       beginTypeArguments(<)
         handleIdentifier(int, typeReference)
         handleNoTypeArguments(>)
