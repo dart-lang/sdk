@@ -402,7 +402,7 @@ void populateEditDetails([EditDetails response]) {
       Element a = editParagraph.append(document.createElement('a'));
       a.append(Text(edit.description));
       a.setAttribute('href', edit.href);
-      a.classes.add('post-link');
+      a.classes = ['post-link', 'before-apply'];
     }
   }
 
