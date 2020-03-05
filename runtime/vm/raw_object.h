@@ -2732,10 +2732,10 @@ class RawExternalTypedData : public RawTypedDataBase {
 
 class RawPointer : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
-  VISIT_FROM(RawCompressed, type_arguments_)
-  RawTypeArguments* type_arguments_;
+  VISIT_FROM(RawCompressed, c_memory_address_)
   RawInteger* c_memory_address_;
-  VISIT_TO(RawCompressed, c_memory_address_)
+  RawTypeArguments* type_arguments_;
+  VISIT_TO(RawCompressed, type_arguments_)
 
   friend class Pointer;
 };
