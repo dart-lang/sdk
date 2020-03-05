@@ -93,7 +93,7 @@ class TestingServers {
         : Uri.base.resolveUri(Uri.directory(dartDirectory));
     var packagesUri = packages == null
         ? dartDirectoryUri.resolve('.packages')
-        : Uri.base.resolve(packages);
+        : Uri.file(packages);
     return TestingServers._(useContentSecurityPolicy, buildDirectoryUri,
         dartDirectoryUri, packagesUri, runtime);
   }
