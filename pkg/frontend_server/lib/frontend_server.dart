@@ -19,7 +19,7 @@ import 'package:dev_compiler/dev_compiler.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
@@ -160,7 +160,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Name of the subdirectory of //data for output files')
   ..addOption('far-manifest', help: 'Path to output Fuchsia package manifest')
   ..addOption('libraries-spec',
-      help: 'A path or uri to the libraries specification JSON file');
+      help: 'A path or uri to the libraries specification JSON file')
+  ..addFlag('debugger-module-names',
+      help: 'Use debugger-friendly modules names', defaultsTo: false);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -306,7 +308,8 @@ class FrontendCompiler implements CompilerInterface {
       {this.printerFactory,
       this.transformer,
       this.unsafePackageSerialization,
-      this.incrementalSerialization: true}) {
+      this.incrementalSerialization: true,
+      this.useDebuggerModuleNames: false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -315,6 +318,7 @@ class FrontendCompiler implements CompilerInterface {
   BinaryPrinterFactory printerFactory;
   bool unsafePackageSerialization;
   bool incrementalSerialization;
+  bool useDebuggerModuleNames;
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
@@ -492,6 +496,7 @@ class FrontendCompiler implements CompilerInterface {
 
       incrementalSerializer = _generator.incrementalSerializer;
       _component = component;
+      _component.computeCanonicalNames();
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -603,7 +608,8 @@ class FrontendCompiler implements CompilerInterface {
       sourceFile.parent.createSync(recursive: true);
     }
     _bundler = JavaScriptBundler(
-        component, strongComponents, fileSystemScheme, packageConfig);
+        component, strongComponents, fileSystemScheme, packageConfig,
+        useDebuggerModuleNames: useDebuggerModuleNames);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
@@ -904,6 +910,11 @@ class FrontendCompiler implements CompilerInterface {
 
     if (_bundler != null) {
       var kernel2jsCompiler = _bundler.compilers[moduleName];
+      if (kernel2jsCompiler == null) {
+        throw Exception('Cannot find kernel2js compiler for $moduleName. '
+            'Compilers are avaiable for modules: '
+            '\n\t${_bundler.compilers.keys.toString()}');
+      }
       assert(kernel2jsCompiler != null);
 
       var evaluator = new ExpressionCompiler(
@@ -914,7 +925,7 @@ class FrontendCompiler implements CompilerInterface {
       var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
           column, jsModules, jsFrameValues, moduleName, expression);
 
-      var result = procedure ?? errors[0];
+      var result = errors.length > 0 ? errors[0] : procedure;
 
       // TODO(annagrin): kernelBinaryFilename is too specific
       // rename to _outputFileName?
@@ -1117,15 +1128,15 @@ class _CompileExpressionToJsRequest {
 
 /// Listens for the compilation commands on [input] stream.
 /// This supports "interactive" recompilation mode of execution.
-void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
-    ArgResults options, Completer<int> completer,
+StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
+    Stream<List<int>> input, ArgResults options, Completer<int> completer,
     {IncrementalCompiler generator}) {
   _State state = _State.READY_FOR_INSTRUCTION;
   _CompileExpressionRequest compileExpressionRequest;
   _CompileExpressionToJsRequest compileExpressionToJsRequest;
   String boundaryKey;
   String recompileEntryPoint;
-  input
+  return input
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((String string) async {
@@ -1195,7 +1206,9 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
         } else if (string == 'reset') {
           compiler.resetIncrementalCompiler();
         } else if (string == 'quit') {
-          completer.complete(0);
+          if (!completer.isCompleted) {
+            completer.complete(0);
+          }
         }
         break;
       case _State.RECOMPILE_LIST:
@@ -1362,7 +1375,8 @@ Future<int> starter(
   compiler ??= FrontendCompiler(output,
       printerFactory: binaryPrinterFactory,
       unsafePackageSerialization: options["unsafe-package-serialization"],
-      incrementalSerialization: options["incremental-serialization"]);
+      incrementalSerialization: options["incremental-serialization"],
+      useDebuggerModuleNames: options['debugger-module-names']);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,
@@ -1372,7 +1386,8 @@ Future<int> starter(
   }
 
   Completer<int> completer = Completer<int>();
-  listenAndCompile(compiler, input ?? stdin, options, completer,
+  var subscription = listenAndCompile(
+      compiler, input ?? stdin, options, completer,
       generator: generator);
-  return completer.future;
+  return completer.future..then((value) => subscription.cancel());
 }

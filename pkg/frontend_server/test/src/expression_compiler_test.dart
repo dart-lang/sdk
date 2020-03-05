@@ -137,7 +137,8 @@ class TestCompiler {
     // create expression compiler
     var evaluator = new ExpressionCompiler(
         compiler, kernel2jsCompiler, component,
-        verbose: false, onDiagnostic: setup.options.onDiagnostic);
+        verbose: setup.options.verbose,
+        onDiagnostic: setup.options.onDiagnostic);
 
     // collect all module names and paths
     Map<Uri, Module> moduleInfo = _collectModules(component);
@@ -163,9 +164,6 @@ class TestCompiler {
 
       return TestCompilationResult(jsExpression, false);
     }
-
-    // use to generate expected test results
-    //print("\njsExpression: ${jsExpression}");
 
     return TestCompilationResult(jsExpression, true);
   }

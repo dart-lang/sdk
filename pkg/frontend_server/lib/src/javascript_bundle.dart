@@ -24,11 +24,13 @@ import 'strong_components.dart';
 /// only the updated libraries.
 class JavaScriptBundler {
   JavaScriptBundler(this._originalComponent, this._strongComponents,
-      this._fileSystemScheme, this._packageConfig)
+      this._fileSystemScheme, this._packageConfig,
+      {this.useDebuggerModuleNames = false})
       : compilers = <String, ProgramCompiler>{} {
     _summaries = <Component>[];
     _summaryUris = <Uri>[];
     _moduleImportForSummary = <Uri, String>{};
+    _moduleImportNameForSummary = <Uri, String>{};
     _uriToComponent = <Uri, Component>{};
     for (Uri uri in _strongComponents.modules.keys) {
       final List<Library> libraries = _strongComponents.modules[uri].toList();
@@ -39,7 +41,13 @@ class JavaScriptBundler {
       );
       _summaries.add(summaryComponent);
       _summaryUris.add(uri);
-      _moduleImportForSummary[uri] = '${urlForComponentUri(uri)}.lib.js';
+
+      var baseName = urlForComponentUri(uri);
+      _moduleImportForSummary[uri] = '$baseName.lib.js';
+      if (useDebuggerModuleNames) {
+        _moduleImportNameForSummary[uri] = makeDebuggerModuleName(baseName);
+      }
+
       _uriToComponent[uri] = summaryComponent;
     }
   }
@@ -48,11 +56,13 @@ class JavaScriptBundler {
   final Component _originalComponent;
   final String _fileSystemScheme;
   final PackageConfig _packageConfig;
+  final bool useDebuggerModuleNames;
   final Map<String, ProgramCompiler> compilers;
 
   List<Component> _summaries;
   List<Uri> _summaryUris;
   Map<Uri, String> _moduleImportForSummary;
+  Map<Uri, String> _moduleImportNameForSummary;
   Map<Uri, Component> _uriToComponent;
 
   /// Compile each component into a single JavaScript module.
@@ -72,7 +82,10 @@ class JavaScriptBundler {
     final summaryToModule = Map<Component, String>.identity();
     for (var i = 0; i < _summaries.length; i++) {
       var summary = _summaries[i];
-      var moduleImport = _moduleImportForSummary[_summaryUris[i]];
+      var moduleImport = useDebuggerModuleNames
+          // debugger loads modules by modules names, not paths
+          ? _moduleImportNameForSummary[_summaryUris[i]]
+          : _moduleImportForSummary[_summaryUris[i]];
       for (var l in summary.libraries) {
         assert(!importToSummary.containsKey(l));
         importToSummary[l] = summary;
@@ -95,10 +108,15 @@ class JavaScriptBundler {
       final summaryComponent = _uriToComponent[moduleUri];
 
       // module name to use in trackLibraries
-      // use full path for tracking if module uri is not a package uri
-      final String moduleName = moduleUri.scheme == 'package'
-          ? '/packages/${moduleUri.path}'
-          : moduleUri.path;
+      // use full path for tracking if module uri is not a package uri.
+      String moduleName = urlForComponentUri(moduleUri);
+      if (useDebuggerModuleNames) {
+        // Skip the leading '/' as module names are used to require
+        // modules using module paths mape in RequireJS, which treats
+        // names with leading '/' or '.js' extensions specially
+        // and tries to load them without mapping.
+        moduleName = makeDebuggerModuleName(moduleName);
+      }
 
       var compiler = ProgramCompiler(
         _originalComponent,
@@ -160,3 +178,7 @@ class JavaScriptBundler {
 String urlForComponentUri(Uri componentUri) => componentUri.scheme == 'package'
     ? '/packages/${componentUri.path}'
     : componentUri.path;
+
+String makeDebuggerModuleName(String name) {
+  return name.startsWith('/') ? name.substring(1) : name;
+}
