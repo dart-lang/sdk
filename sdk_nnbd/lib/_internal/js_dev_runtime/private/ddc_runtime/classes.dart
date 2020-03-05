@@ -301,11 +301,6 @@ getSetterType(type, name) {
   if (setters != null) {
     var type = JS('', '#[#]', setters, name);
     if (type != null) {
-      if (JS('!', '# instanceof Array', type)) {
-        // The type has metadata attached.  Pull out just the type.
-        // TODO(jmesserly): remove when we remove mirrors
-        return JS('', '#[0]', type);
-      }
       return type;
     }
   }

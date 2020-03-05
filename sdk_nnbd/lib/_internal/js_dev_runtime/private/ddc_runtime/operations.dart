@@ -300,10 +300,6 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     return $f.apply($obj, $args);
   }
 
-  // TODO(vsm): Remove when we no longer need mirrors metadata.
-  // An array is used to encode annotations attached to the type.
-  if ($ftype instanceof Array) $ftype = $ftype[0];
-
   // Apply type arguments
   if ($ftype instanceof $GenericFunctionType) {
     let formalCount = $ftype.formalCount;

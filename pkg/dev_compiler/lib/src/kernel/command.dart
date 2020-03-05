@@ -348,10 +348,6 @@ Future<CompilerResult> _compile(List<String> args,
     if (!librariesFromDill.contains(lib)) compiledLibraries.libraries.add(lib);
   }
 
-  if (!options.emitMetadata && _checkForDartMirrorsImport(compiledLibraries)) {
-    return CompilerResult(1, kernelState: compilerState);
-  }
-
   // Output files can be written in parallel, so collect the futures.
   var outFiles = <Future>[];
   if (argResults['summarize'] as bool) {
@@ -630,21 +626,6 @@ final defaultSdkSummaryPath =
     p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
-
-bool _checkForDartMirrorsImport(Component component) {
-  for (var library in component.libraries) {
-    if (library.importUri.scheme == 'dart') continue;
-    for (var dep in library.dependencies) {
-      var uri = dep.targetLibrary.importUri;
-      if (uri.scheme == 'dart' && uri.path == 'mirrors') {
-        print('${library.importUri}: Error: Cannot import "dart:mirrors" '
-            'in web applications (https://goo.gl/R1anEs).');
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 /// Returns the absolute path to the default `.packages` file, or `null` if one
 /// could not be found.
