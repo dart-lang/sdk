@@ -1220,7 +1220,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
                                  String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body += ConvertIntptrToUntagged();
+      body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
       body += LoadLocal(arg_offset);
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
@@ -1332,7 +1332,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
                                  String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body += ConvertIntptrToUntagged();
+      body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
       body += LoadLocal(arg_offset);  // Offset.
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
@@ -1440,11 +1440,11 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
   body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
-  body += ConvertUntaggedToIntptr();
+  body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
   body += LoadLocal(offset_in_bytes);
   body += UnboxSmiToIntptr();
   body += AddIntptrIntegers();
-  body += ConvertIntptrToUntagged();
+  body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
   body += StoreUntagged(compiler::target::TypedDataBase::data_field_offset());
 
   return body;

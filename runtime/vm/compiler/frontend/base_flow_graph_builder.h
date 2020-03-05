@@ -165,8 +165,8 @@ class BaseFlowGraphBuilder {
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
-  Fragment ConvertUntaggedToIntptr();
-  Fragment ConvertIntptrToUntagged();
+  Fragment ConvertUntaggedToUnboxed(Representation to);
+  Fragment ConvertUnboxedToUntagged(Representation from);
   Fragment UnboxSmiToIntptr();
   Fragment FloatToDouble();
   Fragment DoubleToFloat();
