@@ -406,8 +406,8 @@ class KernelLoader : public ValueObject {
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   KernelReaderHelper helper_;
-  TypeTranslator type_translator_;
   ConstantReader constant_reader_;
+  TypeTranslator type_translator_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   BytecodeMetadataHelper bytecode_metadata_helper_;
 

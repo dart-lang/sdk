@@ -31,7 +31,8 @@ namespace dart {
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
-LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
+LocationSummary* Instruction::MakeCallSummary(Zone* zone,
+                                              const Instruction* instr) {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)
@@ -42,6 +43,7 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
 
 DEFINE_BACKEND(LoadIndexedUnsafe, (Register out, Register index)) {
   ASSERT(instr->RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
+  ASSERT(instr->representation() == kTagged);
   __ movl(out, compiler::Address(instr->base_reg(), index, TIMES_2,
                                  instr->offset()));
 
@@ -76,6 +78,7 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  ASSERT(representation() == kTagged);
   locs->set_in(0, LocationAnyOrConstant(value()));
   return locs;
 }
@@ -101,6 +104,7 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  ASSERT(representation() == kTagged);
   locs->set_in(0, Location::RegisterLocation(EAX));
   return locs;
 }
@@ -1176,8 +1180,10 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(array);
   const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
+  constexpr int kSizeOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
+                          kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);
@@ -4890,8 +4896,10 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
   const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
+  constexpr int kSizeOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
+                          kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);

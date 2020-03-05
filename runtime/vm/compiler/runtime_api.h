@@ -300,6 +300,9 @@ inline intptr_t RoundedAllocationSize(intptr_t size) {
 // Information about frame_layout that compiler should be targeting.
 extern FrameLayout frame_layout;
 
+constexpr intptr_t kIntSpillFactor = sizeof(int64_t) / kWordSize;
+constexpr intptr_t kDoubleSpillFactor = sizeof(double) / kWordSize;
+
 // Returns the FP-relative index where [variable] can be found (assumes
 // [variable] is not captured), in bytes.
 inline int FrameOffsetInBytesForVariable(const LocalVariable* variable) {
@@ -570,6 +573,7 @@ class ArgumentsDescriptor : public AllStatic {
   static word position_offset();
   static word name_offset();
   static word count_offset();
+  static word size_offset();
   static word type_args_len_offset();
   static word positional_count_offset();
 };

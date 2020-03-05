@@ -6,6 +6,7 @@
 
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
@@ -1690,7 +1691,8 @@ InferredTypeMetadataHelper::InferredTypeMetadataHelper(
       constant_reader_(constant_reader) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
-    intptr_t node_offset) {
+    intptr_t node_offset,
+    bool read_constant) {
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
   if (md_offset < 0) {
     return InferredTypeMetadata(kDynamicCid,
@@ -1706,8 +1708,10 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   const Object* constant_value = &Object::null_object();
   if ((flags & InferredTypeMetadata::kFlagConstant) != 0) {
     const intptr_t constant_offset = helper_->ReadUInt();
-    constant_value = &Object::ZoneHandle(
-        H.zone(), constant_reader_->ReadConstant(constant_offset));
+    if (read_constant) {
+      constant_value = &Object::ZoneHandle(
+          H.zone(), constant_reader_->ReadConstant(constant_offset));
+    }
   }
 
   if (H.IsRoot(kernel_name)) {
@@ -2777,13 +2781,16 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 }
 
 TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
+                               ConstantReader* constant_reader,
                                ActiveClass* active_class,
                                bool finalize,
                                bool apply_legacy_erasure)
     : helper_(helper),
+      constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       type_parameter_scope_(NULL),
+      inferred_type_metadata_helper_(helper_, constant_reader_),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
@@ -3278,12 +3285,59 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
   return type;
 }
 
+void TypeTranslator::ReadInferredType(const Function& function,
+                                      intptr_t param_index,
+                                      intptr_t correction) {
+  const intptr_t param_pos =
+      param_index + (function.HasThisParameter() ? 1 : 0);
+
+  const intptr_t kernel_offset = helper_->ReaderOffset() - correction;
+
+  if (FLAG_precompiled_mode && function.can_unbox_parameters()) {
+    const InferredTypeMetadata type =
+        inferred_type_metadata_helper_.GetInferredType(kernel_offset,
+                                                       /*read_constant=*/false);
+    if (param_pos < function.maximum_unboxed_parameter_count() &&
+        !type.IsNullable()) {
+      if (type.IsInt() && FlowGraphCompiler::SupportsUnboxedInt64()) {
+        function.set_unboxed_integer_parameter_at(param_pos);
+      }
+      if (type.cid == kDoubleCid &&
+          FlowGraphCompiler::SupportsUnboxedDoubles()) {
+        function.set_unboxed_double_parameter_at(param_pos);
+      }
+    }
+  }
+}
+
+void TypeTranslator::ReadInferredResultType(const Function& function,
+                                            intptr_t library_kernel_offset) {
+  const intptr_t kernel_offset =
+      function.kernel_offset() + library_kernel_offset;
+
+  if (FLAG_precompiled_mode && function.can_unbox_result()) {
+    const InferredTypeMetadata type =
+        inferred_type_metadata_helper_.GetInferredType(kernel_offset,
+                                                       /*read_constant=*/false);
+    if (!type.IsNullable()) {
+      if (type.IsInt() && FlowGraphCompiler::SupportsUnboxedInt64()) {
+        function.set_unboxed_integer_return();
+      }
+      if (type.cid == kDoubleCid &&
+          FlowGraphCompiler::SupportsUnboxedDoubles()) {
+        function.set_unboxed_double_return();
+      }
+    }
+  }
+}
+
 void TypeTranslator::SetupFunctionParameters(
     const Class& klass,
     const Function& function,
     bool is_method,
     bool is_closure,
-    FunctionNodeHelper* function_node_helper) {
+    FunctionNodeHelper* function_node_helper,
+    intptr_t correction) {
   ASSERT(!(is_method && is_closure));
   bool is_factory = function.IsFactory();
   intptr_t extra_parameters = (is_method || is_closure || is_factory) ? 1 : 0;
@@ -3343,6 +3397,10 @@ void TypeTranslator::SetupFunctionParameters(
 
   const Library& lib = Library::Handle(Z, active_class_->klass->library());
   for (intptr_t i = 0; i < positional_parameter_count; ++i, ++pos) {
+    if (i < required_parameter_count) {
+      // Only required parameters can be unboxed.
+      ReadInferredType(function, i, correction);
+    }
     // Read ith variable declaration.
     VariableDeclarationHelper helper(helper_);
     helper.ReadUntilExcluding(VariableDeclarationHelper::kType);

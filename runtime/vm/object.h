@@ -1951,6 +1951,8 @@ class ICData : public Object {
 
   intptr_t CountWithoutTypeArgs() const;
 
+  intptr_t SizeWithoutTypeArgs() const;
+
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -3071,6 +3073,128 @@ class Function : public Object {
   const char* ToLibNamePrefixedQualifiedCString() const;
 
   const char* ToQualifiedCString() const;
+
+  static constexpr intptr_t maximum_unboxed_parameter_count() {
+    // Subtracts one that represents the return value
+    return RawFunction::UnboxedParameterBitmap::kCapacity - 1;
+  }
+
+  bool can_unbox_parameters() const {
+    return !IsImplicitStaticClosureFunction() && !is_native() &&
+           (IsStaticFunction() || IsGenerativeConstructor());
+  }
+
+  bool can_unbox_result() const {
+    return !IsImplicitStaticClosureFunction() && !is_native() &&
+           IsStaticFunction();
+  }
+
+  void reset_unboxed_parameters_and_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StoreNonPointer(&raw_ptr()->unboxed_parameters_info_,
+                    RawFunction::UnboxedParameterBitmap());
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  void set_unboxed_integer_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0 && index < maximum_unboxed_parameter_count());
+    index++;  // position 0 is reserved for the return value
+    const_cast<RawFunction::UnboxedParameterBitmap*>(
+        &raw_ptr()->unboxed_parameters_info_)
+        ->SetUnboxedInteger(index);
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  void set_unboxed_double_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0 && index < maximum_unboxed_parameter_count());
+    index++;  // position 0 is reserved for the return value
+    const_cast<RawFunction::UnboxedParameterBitmap*>(
+        &raw_ptr()->unboxed_parameters_info_)
+        ->SetUnboxedDouble(index);
+
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  void set_unboxed_integer_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    const_cast<RawFunction::UnboxedParameterBitmap*>(
+        &raw_ptr()->unboxed_parameters_info_)
+        ->SetUnboxedInteger(0);
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  void set_unboxed_double_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    const_cast<RawFunction::UnboxedParameterBitmap*>(
+        &raw_ptr()->unboxed_parameters_info_)
+        ->SetUnboxedDouble(0);
+
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool is_unboxed_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0);
+    index++;  // position 0 is reserved for the return value
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxed(index);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool is_unboxed_integer_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0);
+    index++;  // position 0 is reserved for the return value
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxedInteger(index);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool is_unboxed_double_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0);
+    index++;  // position 0 is reserved for the return value
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxedDouble(index);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool has_unboxed_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxed(0);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool has_unboxed_integer_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxedInteger(0);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool has_unboxed_double_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxedDouble(0);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.

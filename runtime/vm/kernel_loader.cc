@@ -204,8 +204,11 @@ KernelLoader::KernelLoader(Program* program,
               program_->kernel_data(),
               program_->kernel_data_size(),
               0),
-      type_translator_(&helper_, &active_class_, /* finalize= */ false),
       constant_reader_(&helper_, &active_class_),
+      type_translator_(&helper_,
+                       &constant_reader_,
+                       &active_class_,
+                       /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
@@ -453,8 +456,11 @@ KernelLoader::KernelLoader(const Script& script,
           KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
       translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_, &translation_helper_, script, kernel_data, 0),
-      type_translator_(&helper_, &active_class_, /* finalize= */ false),
       constant_reader_(&helper_, &active_class_),
+      type_translator_(&helper_,
+                       &constant_reader_,
+                       &active_class_,
+                       /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
@@ -942,7 +948,8 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
 void KernelLoader::ReadInferredType(const Field& field,
                                     intptr_t kernel_offset) {
   const InferredTypeMetadata type =
-      inferred_type_metadata_helper_.GetInferredType(kernel_offset);
+      inferred_type_metadata_helper_.GetInferredType(kernel_offset,
+                                                     /*read_constant=*/false);
   if (type.IsTrivial()) {
     return;
   }
@@ -1673,7 +1680,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     T.SetupFunctionParameters(klass, function,
                               true,   // is_method
                               false,  // is_closure
-                              &function_node_helper);
+                              &function_node_helper,
+                              correction_offset_ - library_kernel_offset_);
 
     if (library.is_dart_scheme() &&
         H.IsPrivate(constructor_helper.canonical_name_)) {
@@ -2017,7 +2025,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
   T.SetupFunctionParameters(owner, function, is_method,
                             false,  // is_closure
-                            &function_node_helper);
+                            &function_node_helper,
+                            correction_offset_ - library_kernel_offset_);
 
   // Everything else is skipped implicitly, and procedure_helper and
   // function_node_helper are no longer used.
@@ -2041,6 +2050,8 @@ void KernelLoader::LoadProcedure(const Library& library,
       library.GetMetadata(function);
     }
   }
+
+  T.ReadInferredResultType(function, library_kernel_offset_);
 }
 
 const Object& KernelLoader::ClassForScriptAt(const Class& klass,

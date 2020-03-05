@@ -51,6 +51,7 @@
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
   FIELD(ArgumentsDescriptor, count_offset)                                     \
+  FIELD(ArgumentsDescriptor, size_offset)                                      \
   FIELD(ArgumentsDescriptor, first_named_entry_offset)                         \
   FIELD(ArgumentsDescriptor, named_entry_size)                                 \
   FIELD(ArgumentsDescriptor, name_offset)                                      \

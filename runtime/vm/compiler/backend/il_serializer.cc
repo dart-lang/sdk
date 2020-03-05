@@ -931,6 +931,9 @@ void BranchInstr::AddOperandsToSExpression(SExpList* sexp,
 void ParameterInstr::AddOperandsToSExpression(SExpList* sexp,
                                               FlowGraphSerializer* s) const {
   s->AddInteger(sexp, index());
+  s->AddExtraInteger(sexp, "param_offset", param_offset());
+  s->AddExtraSymbol(sexp, "representation",
+                    Location::RepresentationToCString(representation()));
 }
 
 void SpecialParameterInstr::AddOperandsToSExpression(

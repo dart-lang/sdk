@@ -3,27 +3,27 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → self::A*
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → self::B*
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::B*
     : super self::A::•()
     ;
-[@vm.procedure-attributes.metadata=hasThisUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → core::int*
+[@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=hasThisUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → core::int*
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=! (skip check)] 1.{core::num::+}([@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult().foo() as{TypeError,ForDynamic} core::num*) as{TypeError} core::int*;
 }
 class TearOffDynamicMethod extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field dynamic bazz;
-  constructor •(dynamic arg) → self::TearOffDynamicMethod*
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  constructor •(dynamic arg) → self::TearOffDynamicMethod*
     : self::TearOffDynamicMethod::bazz = arg.foo, super core::Object::•() {
     [@vm.call-site-attributes.metadata=receiverType:dynamic] [@vm.direct-call.metadata=#lib::TearOffDynamicMethod::bazz] this.{self::TearOffDynamicMethod::bazz}.call();
   }
 }
-static method knownResult() → dynamic
+[@vm.inferred-type.metadata=#lib::B]static method knownResult() → dynamic
   return new self::B::•();
-static method main(core::List<core::String*>* args) → dynamic {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method main(core::List<core::String*>* args) → dynamic {
   core::Function* closure = () → self::B* => new self::B::•();
   new self::TearOffDynamicMethod::•([@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] closure.call());
 }

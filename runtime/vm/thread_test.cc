@@ -488,7 +488,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   Function& owner = *CreateFunction("DummyFunction");
   String& name = String::Handle(String::New("foo"));
   const Array& args_desc =
-      Array::Handle(ArgumentsDescriptor::New(0, 0, Object::empty_array()));
+      Array::Handle(ArgumentsDescriptor::NewBoxed(0, 0, Object::empty_array()));
   for (intptr_t i = 0; i < kNumICData; i++) {
     ic_data = ICData::New(owner, name, args_desc, /*deopt_id=*/0,
                           /*num_args_tested=*/1, ICData::kInstance,

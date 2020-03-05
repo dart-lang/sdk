@@ -295,7 +295,7 @@ static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -312,7 +312,7 @@ static RawObject* Send1Arg(const Instance& receiver,
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 2;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -3119,7 +3119,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+      Array::Handle(Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Z, Resolver::ResolveDynamic(instance, name, args_desc));
   if (function.IsNull()) {
@@ -3212,7 +3212,7 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
       const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 2;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -3270,7 +3270,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
       const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 3;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -3455,7 +3455,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+        Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z,
         Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
@@ -3541,8 +3541,8 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   if (!instance.IsNull()) {
     const int kTypeArgsLen = 0;
     const int kNumArgs = 3;
-    ArgumentsDescriptor args_desc(
-        Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+    ArgumentsDescriptor args_desc(Array::Handle(
+        Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                     args_desc));

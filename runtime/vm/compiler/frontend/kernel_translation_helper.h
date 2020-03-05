@@ -940,13 +940,15 @@ struct InferredTypeMetadata {
     return (cid == kDynamicCid) && (flags == kFlagNullable);
   }
   bool IsNullable() const { return (flags & kFlagNullable) != 0; }
-  bool IsInt() const { return (flags & kFlagInt) != 0; }
+  bool IsInt() const {
+    return (flags & kFlagInt) != 0 || cid == kMintCid || cid == kSmiCid;
+  }
   bool IsSkipCheck() const { return (flags & kFlagSkipCheck) != 0; }
   bool IsConstant() const { return (flags & kFlagConstant) != 0; }
   bool ReceiverNotInt() const { return (flags & kFlagReceiverNotInt) != 0; }
 
   CompileType ToCompileType(Zone* zone) const {
-    if (IsInt()) {
+    if (IsInt() && cid == kDynamicCid) {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(zone, Type::IntType()), IsNullable());
     } else {
@@ -963,7 +965,8 @@ class InferredTypeMetadataHelper : public MetadataHelper {
   explicit InferredTypeMetadataHelper(KernelReaderHelper* helper,
                                       ConstantReader* constant_reader);
 
-  InferredTypeMetadata GetInferredType(intptr_t node_offset);
+  InferredTypeMetadata GetInferredType(intptr_t node_offset,
+                                       bool read_constant = true);
 
  private:
   ConstantReader* constant_reader_;
@@ -1371,6 +1374,7 @@ class ActiveTypeParametersScope {
 class TypeTranslator {
  public:
   TypeTranslator(KernelReaderHelper* helper,
+                 ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
                  bool apply_legacy_erasure = false);
@@ -1395,9 +1399,18 @@ class TypeTranslator {
                                const Function& function,
                                bool is_method,
                                bool is_closure,
-                               FunctionNodeHelper* function_node_helper);
+                               FunctionNodeHelper* function_node_helper,
+                               intptr_t correction);
 
  private:
+  // Correction is used to adjust the global offset from the offset relative to
+  // the library.
+  void ReadInferredType(const Function& function,
+                        intptr_t param_index,
+                        intptr_t correction);
+  void ReadInferredResultType(const Function& function,
+                              intptr_t library_kernel_offset);
+
   void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
@@ -1430,9 +1443,11 @@ class TypeTranslator {
   };
 
   KernelReaderHelper* helper_;
+  ConstantReader* constant_reader_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
   TypeParameterScope* type_parameter_scope_;
+  InferredTypeMetadataHelper inferred_type_metadata_helper_;
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;

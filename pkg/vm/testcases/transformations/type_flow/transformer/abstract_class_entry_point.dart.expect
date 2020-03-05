@@ -5,4 +5,4 @@ import "dart:core" as core;
 @#C3
 abstract class AbstractEmptyClass extends core::Object {
 }
-static method main() → dynamic {}
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method main() → dynamic {}

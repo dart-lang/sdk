@@ -252,7 +252,9 @@ class BaseFlowGraphBuilder {
   Fragment BinaryIntegerOp(Token::Kind op,
                            Representation representation,
                            bool is_truncating = false);
-  Fragment LoadFpRelativeSlot(intptr_t offset, CompileType result_type);
+  Fragment LoadFpRelativeSlot(intptr_t offset,
+                              CompileType result_type,
+                              Representation representation = kTagged);
   Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-static method isPrime([@vm.inferred-type.metadata=int] dynamic n) → core::bool* {
+[@vm.inferred-type.metadata=dart.core::bool]static method isPrime([@vm.inferred-type.metadata=int] dynamic n) → core::bool* {
   if(_in::unsafeCast<core::bool*>([@vm.direct-call.metadata=dart.core::_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool] n.<(2)))
     return false;
   for (core::int* i = 2; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<=] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation::*] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::*}(i).{core::num::<=}(_in::unsafeCast<core::num*>(n)); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
@@ -12,7 +12,7 @@ static method isPrime([@vm.inferred-type.metadata=int] dynamic n) → core::bool
   }
   return true;
 }
-static method nThPrimeNumber([@vm.inferred-type.metadata=dart.core::_Smi (value: 50000)] core::int* n) → core::int* {
+[@vm.inferred-type.metadata=int?]static method nThPrimeNumber([@vm.inferred-type.metadata=dart.core::_Smi (value: 50000)] core::int* n) → core::int* {
   core::int* counter = 0;
   for (core::int* i = 1; ; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
     if([@vm.inferred-type.metadata=dart.core::bool] self::isPrime(i))
@@ -22,14 +22,14 @@ static method nThPrimeNumber([@vm.inferred-type.metadata=dart.core::_Smi (value:
     }
   }
 }
-static method run() → void {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method run() → void {
   core::int* e = 611953;
   core::int* p = [@vm.inferred-type.metadata=int?] self::nThPrimeNumber(50000);
   if(![@vm.inferred-type.metadata=dart.core::bool] p.{core::num::==}(e)) {
     throw core::Exception::•("Unexpected result: ${p} != ${e}");
   }
 }
-static method main(core::List<core::String*>* args) → dynamic {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method main(core::List<core::String*>* args) → dynamic {
   core::Stopwatch* timer = let final core::Stopwatch* #t1 = new core::Stopwatch::•() in let final void #t2 = [@vm.direct-call.metadata=dart.core::Stopwatch::start] [@vm.inferred-type.metadata=!? (skip check)] #t1.{core::Stopwatch::start}() in #t1;
   for (core::int* i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
     self::run();

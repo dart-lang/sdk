@@ -193,9 +193,18 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position,
 
   Value* value = Pop();
   ASSERT(stack_ == nullptr);
-
-  ReturnInstr* return_instr =
-      new (Z) ReturnInstr(position, value, GetNextDeoptId(), yield_index);
+  const Function& function = parsed_function_->function();
+  Representation representation;
+  if (function.has_unboxed_integer_return()) {
+    representation = kUnboxedInt64;
+  } else if (function.has_unboxed_double_return()) {
+    representation = kUnboxedDouble;
+  } else {
+    ASSERT(!function.has_unboxed_return());
+    representation = kTagged;
+  }
+  ReturnInstr* return_instr = new (Z) ReturnInstr(
+      position, value, GetNextDeoptId(), yield_index, representation);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;
@@ -777,10 +786,15 @@ Fragment BaseFlowGraphBuilder::BinaryIntegerOp(Token::Kind kind,
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(intptr_t offset,
-                                                  CompileType result_type) {
-  LoadIndexedUnsafeInstr* instr =
-      new (Z) LoadIndexedUnsafeInstr(Pop(), offset, result_type);
+Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(
+    intptr_t offset,
+    CompileType result_type,
+    Representation representation) {
+  if (representation != kTagged) {
+    ASSERT(!result_type.is_nullable());
+  }
+  LoadIndexedUnsafeInstr* instr = new (Z)
+      LoadIndexedUnsafeInstr(Pop(), offset, result_type, representation);
   Push(instr);
   return Fragment(instr);
 }

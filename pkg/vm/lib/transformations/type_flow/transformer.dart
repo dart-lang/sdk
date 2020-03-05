@@ -301,6 +301,9 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
               skipCheck: uncheckedParameters.contains(param));
         }
 
+        Type resultType = _typeFlowAnalysis.getSummary(member).resultType;
+        _setInferredType(member, resultType);
+
         // TODO(alexmarkov): figure out how to pass receiver type.
       }
     } else if (!member.isAbstract) {

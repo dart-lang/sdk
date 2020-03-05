@@ -55,8 +55,10 @@ static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
     16;
+static constexpr dart::compiler::target::word ArgumentsDescriptor_size_offset =
+    20;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_first_named_entry_offset = 24;
+    ArgumentsDescriptor_first_named_entry_offset = 28;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_named_entry_size = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
@@ -64,7 +66,7 @@ static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_position_offset = 4;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_positional_count_offset = 20;
+    ArgumentsDescriptor_positional_count_offset = 24;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_type_args_len_offset = 12;
 static constexpr dart::compiler::target::word Array_data_offset = 12;
@@ -410,7 +412,7 @@ static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
 static constexpr dart::compiler::target::word Field_InstanceSize = 64;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
-static constexpr dart::compiler::target::word Function_InstanceSize = 88;
+static constexpr dart::compiler::target::word Function_InstanceSize = 96;
 static constexpr dart::compiler::target::word FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     16;
@@ -520,8 +522,10 @@ static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
     32;
+static constexpr dart::compiler::target::word ArgumentsDescriptor_size_offset =
+    40;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_first_named_entry_offset = 48;
+    ArgumentsDescriptor_first_named_entry_offset = 56;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_named_entry_size = 16;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
@@ -529,7 +533,7 @@ static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_position_offset = 8;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_positional_count_offset = 40;
+    ArgumentsDescriptor_positional_count_offset = 48;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_type_args_len_offset = 24;
 static constexpr dart::compiler::target::word Array_data_offset = 24;
@@ -878,7 +882,7 @@ static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
 static constexpr dart::compiler::target::word Field_InstanceSize = 112;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
-static constexpr dart::compiler::target::word Function_InstanceSize = 144;
+static constexpr dart::compiler::target::word Function_InstanceSize = 152;
 static constexpr dart::compiler::target::word FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     32;
@@ -987,8 +991,10 @@ static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
     16;
+static constexpr dart::compiler::target::word ArgumentsDescriptor_size_offset =
+    20;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_first_named_entry_offset = 24;
+    ArgumentsDescriptor_first_named_entry_offset = 28;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_named_entry_size = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
@@ -996,7 +1002,7 @@ static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_position_offset = 4;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_positional_count_offset = 20;
+    ArgumentsDescriptor_positional_count_offset = 24;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_type_args_len_offset = 12;
 static constexpr dart::compiler::target::word Array_data_offset = 12;
@@ -1339,7 +1345,7 @@ static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
 static constexpr dart::compiler::target::word Field_InstanceSize = 64;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
-static constexpr dart::compiler::target::word Function_InstanceSize = 88;
+static constexpr dart::compiler::target::word Function_InstanceSize = 96;
 static constexpr dart::compiler::target::word FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     16;
@@ -1449,8 +1455,10 @@ static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
     32;
+static constexpr dart::compiler::target::word ArgumentsDescriptor_size_offset =
+    40;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_first_named_entry_offset = 48;
+    ArgumentsDescriptor_first_named_entry_offset = 56;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_named_entry_size = 16;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
@@ -1458,7 +1466,7 @@ static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_position_offset = 8;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_positional_count_offset = 40;
+    ArgumentsDescriptor_positional_count_offset = 48;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_type_args_len_offset = 24;
 static constexpr dart::compiler::target::word Array_data_offset = 24;
@@ -1808,7 +1816,7 @@ static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
 static constexpr dart::compiler::target::word Field_InstanceSize = 112;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
-static constexpr dart::compiler::target::word Function_InstanceSize = 144;
+static constexpr dart::compiler::target::word Function_InstanceSize = 152;
 static constexpr dart::compiler::target::word FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     32;
@@ -1919,8 +1927,10 @@ static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
     16;
+static constexpr dart::compiler::target::word ArgumentsDescriptor_size_offset =
+    20;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_first_named_entry_offset = 24;
+    ArgumentsDescriptor_first_named_entry_offset = 28;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_named_entry_size = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
@@ -1928,7 +1938,7 @@ static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_position_offset = 4;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_positional_count_offset = 20;
+    ArgumentsDescriptor_positional_count_offset = 24;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_type_args_len_offset = 12;
 static constexpr dart::compiler::target::word Array_data_offset = 12;
@@ -2268,7 +2278,7 @@ static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
 static constexpr dart::compiler::target::word Field_InstanceSize = 64;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
-static constexpr dart::compiler::target::word Function_InstanceSize = 88;
+static constexpr dart::compiler::target::word Function_InstanceSize = 96;
 static constexpr dart::compiler::target::word FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     16;
@@ -2378,8 +2388,10 @@ static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
     32;
+static constexpr dart::compiler::target::word ArgumentsDescriptor_size_offset =
+    40;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_first_named_entry_offset = 48;
+    ArgumentsDescriptor_first_named_entry_offset = 56;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_named_entry_size = 16;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
@@ -2387,7 +2399,7 @@ static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_position_offset = 8;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_positional_count_offset = 40;
+    ArgumentsDescriptor_positional_count_offset = 48;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_type_args_len_offset = 24;
 static constexpr dart::compiler::target::word Array_data_offset = 24;
@@ -2730,7 +2742,7 @@ static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
 static constexpr dart::compiler::target::word Field_InstanceSize = 112;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
-static constexpr dart::compiler::target::word Function_InstanceSize = 144;
+static constexpr dart::compiler::target::word Function_InstanceSize = 152;
 static constexpr dart::compiler::target::word FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     32;
@@ -2839,8 +2851,10 @@ static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 4;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
     16;
+static constexpr dart::compiler::target::word ArgumentsDescriptor_size_offset =
+    20;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_first_named_entry_offset = 24;
+    ArgumentsDescriptor_first_named_entry_offset = 28;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_named_entry_size = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
@@ -2848,7 +2862,7 @@ static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_position_offset = 4;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_positional_count_offset = 20;
+    ArgumentsDescriptor_positional_count_offset = 24;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_type_args_len_offset = 12;
 static constexpr dart::compiler::target::word Array_data_offset = 12;
@@ -3185,7 +3199,7 @@ static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
 static constexpr dart::compiler::target::word Field_InstanceSize = 64;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
-static constexpr dart::compiler::target::word Function_InstanceSize = 88;
+static constexpr dart::compiler::target::word Function_InstanceSize = 96;
 static constexpr dart::compiler::target::word FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     16;
@@ -3295,8 +3309,10 @@ static constexpr dart::compiler::target::word
     AbstractType_type_test_stub_entry_point_offset = 8;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_count_offset =
     32;
+static constexpr dart::compiler::target::word ArgumentsDescriptor_size_offset =
+    40;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_first_named_entry_offset = 48;
+    ArgumentsDescriptor_first_named_entry_offset = 56;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_named_entry_size = 16;
 static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
@@ -3304,7 +3320,7 @@ static constexpr dart::compiler::target::word ArgumentsDescriptor_name_offset =
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_position_offset = 8;
 static constexpr dart::compiler::target::word
-    ArgumentsDescriptor_positional_count_offset = 40;
+    ArgumentsDescriptor_positional_count_offset = 48;
 static constexpr dart::compiler::target::word
     ArgumentsDescriptor_type_args_len_offset = 24;
 static constexpr dart::compiler::target::word Array_data_offset = 24;
@@ -3648,7 +3664,7 @@ static constexpr dart::compiler::target::word FfiTrampolineData_InstanceSize =
 static constexpr dart::compiler::target::word Field_InstanceSize = 112;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
-static constexpr dart::compiler::target::word Function_InstanceSize = 144;
+static constexpr dart::compiler::target::word Function_InstanceSize = 152;
 static constexpr dart::compiler::target::word FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     32;
@@ -3766,7 +3782,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_count_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_first_named_entry_offset = 24;
+    AOT_ArgumentsDescriptor_size_offset = 20;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 28;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_named_entry_size = 8;
 static constexpr dart::compiler::target::word
@@ -3774,7 +3792,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_position_offset = 4;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_positional_count_offset = 20;
+    AOT_ArgumentsDescriptor_positional_count_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_type_args_len_offset = 12;
 static constexpr dart::compiler::target::word AOT_Array_data_offset = 12;
@@ -4274,7 +4292,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_count_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_first_named_entry_offset = 48;
+    AOT_ArgumentsDescriptor_size_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 56;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_named_entry_size = 16;
 static constexpr dart::compiler::target::word
@@ -4282,7 +4302,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_position_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_positional_count_offset = 40;
+    AOT_ArgumentsDescriptor_positional_count_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_type_args_len_offset = 24;
 static constexpr dart::compiler::target::word AOT_Array_data_offset = 24;
@@ -4788,7 +4808,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_count_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_first_named_entry_offset = 48;
+    AOT_ArgumentsDescriptor_size_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 56;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_named_entry_size = 16;
 static constexpr dart::compiler::target::word
@@ -4796,7 +4818,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_position_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_positional_count_offset = 40;
+    AOT_ArgumentsDescriptor_positional_count_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_type_args_len_offset = 24;
 static constexpr dart::compiler::target::word AOT_Array_data_offset = 24;
@@ -5302,7 +5324,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_count_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_first_named_entry_offset = 24;
+    AOT_ArgumentsDescriptor_size_offset = 20;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 28;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_named_entry_size = 8;
 static constexpr dart::compiler::target::word
@@ -5310,7 +5334,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_position_offset = 4;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_positional_count_offset = 20;
+    AOT_ArgumentsDescriptor_positional_count_offset = 24;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_type_args_len_offset = 12;
 static constexpr dart::compiler::target::word AOT_Array_data_offset = 12;
@@ -5803,7 +5827,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_count_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_first_named_entry_offset = 48;
+    AOT_ArgumentsDescriptor_size_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 56;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_named_entry_size = 16;
 static constexpr dart::compiler::target::word
@@ -5811,7 +5837,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_position_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_positional_count_offset = 40;
+    AOT_ArgumentsDescriptor_positional_count_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_type_args_len_offset = 24;
 static constexpr dart::compiler::target::word AOT_Array_data_offset = 24;
@@ -6310,7 +6336,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_count_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_first_named_entry_offset = 48;
+    AOT_ArgumentsDescriptor_size_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 56;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_named_entry_size = 16;
 static constexpr dart::compiler::target::word
@@ -6318,7 +6346,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_position_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_ArgumentsDescriptor_positional_count_offset = 40;
+    AOT_ArgumentsDescriptor_positional_count_offset = 48;
 static constexpr dart::compiler::target::word
     AOT_ArgumentsDescriptor_type_args_len_offset = 24;
 static constexpr dart::compiler::target::word AOT_Array_data_offset = 24;

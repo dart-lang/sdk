@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A*
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
-static method foo() → core::Object*
+[@vm.inferred-type.metadata=#lib::A]static method foo() → core::Object*
   return new self::A::•();
-static method main(core::List<core::String*>* args) → dynamic {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method main(core::List<core::String*>* args) → dynamic {
   core::print([@vm.inferred-type.metadata=#lib::A] self::foo());
 }

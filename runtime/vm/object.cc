@@ -4037,15 +4037,15 @@ RawObject* Class::Invoke(const String& function_name,
       }
       call_args.SetAt(0, getter_result);
       const Array& call_args_descriptor_array = Array::Handle(
-          zone, ArgumentsDescriptor::New(kTypeArgsLen, call_args.Length(),
-                                         arg_names, Heap::kNew));
+          zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, call_args.Length(),
+                                              arg_names, Heap::kNew));
       // Call the closure.
       return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
     }
   }
-  const Array& args_descriptor_array =
-      Array::Handle(zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(),
-                                                   arg_names, Heap::kNew));
+  const Array& args_descriptor_array = Array::Handle(
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
+                                          arg_names, Heap::kNew));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
@@ -7405,7 +7405,7 @@ bool Function::AreValidArguments(intptr_t num_type_arguments,
                                  intptr_t num_arguments,
                                  const Array& argument_names,
                                  String* error_message) const {
-  const Array& args_desc_array = Array::Handle(ArgumentsDescriptor::New(
+  const Array& args_desc_array = Array::Handle(ArgumentsDescriptor::NewBoxed(
       num_type_arguments, num_arguments, argument_names, Heap::kNew));
   ArgumentsDescriptor args_desc(args_desc_array);
   return AreValidArguments(args_desc, error_message);
@@ -8000,6 +8000,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
+  result.reset_unboxed_parameters_and_return();
   result.SetInstructionsSafe(StubCode::LazyCompile());
   if (kind == RawFunction::kClosureFunction ||
       kind == RawFunction::kImplicitClosureFunction) {
@@ -12133,15 +12134,16 @@ RawObject* Library::Invoke(const String& function_name,
       }
       call_args.SetAt(0, getter_result);
       const Array& call_args_descriptor_array =
-          Array::Handle(ArgumentsDescriptor::New(
+          Array::Handle(ArgumentsDescriptor::NewBoxed(
               kTypeArgsLen, call_args.Length(), arg_names, Heap::kNew));
       // Call closure.
       return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
     }
   }
 
-  const Array& args_descriptor_array = Array::Handle(ArgumentsDescriptor::New(
-      kTypeArgsLen, args.Length(), arg_names, Heap::kNew));
+  const Array& args_descriptor_array =
+      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
+                                                  arg_names, Heap::kNew));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
@@ -12270,7 +12272,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
     }
 
     const Array& args_desc =
-        Array::Handle(zone, ArgumentsDescriptor::New(
+        Array::Handle(zone, ArgumentsDescriptor::NewBoxed(
                                 num_type_args, arguments.Length(), Heap::kNew));
     result = DartEntry::InvokeFunction(callee, real_arguments, args_desc);
   }
@@ -14143,6 +14145,11 @@ intptr_t ICData::CountWithTypeArgs() const {
 intptr_t ICData::CountWithoutTypeArgs() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.Count();
+}
+
+intptr_t ICData::SizeWithoutTypeArgs() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.Size();
 }
 
 uint32_t ICData::DeoptReasons() const {
@@ -17039,7 +17046,8 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
   const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, *this);
   const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), Heap::kNew));
+      zone,
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), Heap::kNew));
 
   return InvokeInstanceFunction(*this, function, internal_getter_name, args,
                                 args_descriptor, respect_reflectable,
@@ -17085,7 +17093,8 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
   args.SetAt(0, *this);
   args.SetAt(1, value);
   const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), Heap::kNew));
+      zone,
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), Heap::kNew));
 
   return InvokeInstanceFunction(*this, setter, internal_setter_name, args,
                                 args_descriptor, respect_reflectable,
@@ -17110,9 +17119,9 @@ RawObject* Instance::Invoke(const String& function_name,
 
   // TODO(regis): Support invocation of generic functions with type arguments.
   const int kTypeArgsLen = 0;
-  const Array& args_descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(),
-                                                   arg_names, Heap::kNew));
+  const Array& args_descriptor = Array::Handle(
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
+                                          arg_names, Heap::kNew));
 
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
@@ -17134,8 +17143,8 @@ RawObject* Instance::Invoke(const String& function_name,
       const Array& getter_args = Array::Handle(zone, Array::New(kNumArgs));
       getter_args.SetAt(0, *this);
       const Array& getter_args_descriptor = Array::Handle(
-          zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length(),
-                                         Heap::kNew));
+          zone, ArgumentsDescriptor::NewBoxed(
+                    kTypeArgsLen, getter_args.Length(), Heap::kNew));
       const Object& getter_result = Object::Handle(
           zone, InvokeInstanceFunction(*this, function, getter_name,
                                        getter_args, getter_args_descriptor,

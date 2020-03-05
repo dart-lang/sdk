@@ -1871,7 +1871,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   // it in.
   const intptr_t receiver_index = descriptor.TypeArgsLen() > 0 ? 1 : 0;
   body += Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
-  body += IntConstant(receiver_index + descriptor.Count());
+  body += IntConstant(receiver_index + descriptor.Size());
   body += CreateArray();
   LocalVariable* array = MakeTemporary();
   if (receiver_index > 0) {
@@ -1914,7 +1914,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
 
   const int kTypeArgsLen = 0;
   ArgumentsDescriptor two_arguments(
-      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, 2)));
+      Array::Handle(Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, 2)));
   Function& no_such_method =
       Function::ZoneHandle(Z, Resolver::ResolveDynamicForReceiverClass(
                                   Class::Handle(Z, function.Owner()),
@@ -2056,7 +2056,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   if (is_implicit_closure_function && !function.is_static()) {
     if (parsed_function_->has_arg_desc_var()) {
       body += LoadArgDescriptor();
-      body += LoadNativeField(Slot::ArgumentsDescriptor_count());
+      body += LoadNativeField(Slot::ArgumentsDescriptor_size());
       body += LoadLocal(parsed_function_->current_context_var());
       body += LoadNativeField(Slot::GetContextVariableSlotFor(
           thread_, *parsed_function_->receiver_var()));
@@ -2096,7 +2096,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
   if (function.HasOptionalParameters()) {
     body += LoadArgDescriptor();
-    body += LoadNativeField(Slot::ArgumentsDescriptor_count());
+    body += LoadNativeField(Slot::ArgumentsDescriptor_size());
   } else {
     body += IntConstant(function.NumParameters());
   }
@@ -2214,7 +2214,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     // If there is no variable for the arguments descriptor (this function's
     // signature doesn't require it), then we need to create one.
     Array& args_desc = Array::ZoneHandle(
-        Z, ArgumentsDescriptor::New(0, function.NumParameters()));
+        Z, ArgumentsDescriptor::NewBoxed(0, function.NumParameters()));
     body += Constant(args_desc);
   } else {
     body += LoadArgDescriptor();

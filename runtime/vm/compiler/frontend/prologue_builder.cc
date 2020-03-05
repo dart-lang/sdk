@@ -23,9 +23,11 @@ namespace kernel {
 
 // Returns static type of the parameter if it can be trusted (was type checked
 // by caller) and dynamic otherwise.
-static CompileType ParameterType(LocalVariable* param) {
+static CompileType ParameterType(LocalVariable* param,
+                                 Representation representation = kTagged) {
   return param->was_type_checked_by_caller()
-             ? CompileType::FromAbstractType(param->type())
+             ? CompileType::FromAbstractType(param->type(),
+                                             representation == kTagged)
              : CompileType::Dynamic();
 }
 
@@ -145,6 +147,9 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
   ASSERT(function_.NumParameters() == num_params);
+  const intptr_t fixed_params_size =
+      FlowGraph::ParameterOffsetAt(function_, num_params, /*last_slot=*/false) -
+      num_opt_named_params - num_opt_pos_params;
 
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
@@ -187,13 +192,34 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
 
   // Copy mandatory parameters down.
   intptr_t param = 0;
+  intptr_t param_offset = -1;
+
+  const auto update_param_offset = [&param_offset](const Function& function,
+                                                   intptr_t param_id) {
+    // update parameter offset
+    if (function.is_unboxed_integer_parameter_at(param_id)) {
+      param_offset += compiler::target::kIntSpillFactor;
+    } else if (function.is_unboxed_double_parameter_at(param_id)) {
+      param_offset += compiler::target::kDoubleSpillFactor;
+    } else {
+      ASSERT(!function.is_unboxed_parameter_at(param_id));
+      // Tagged parameters always occupy one word
+      param_offset++;
+    }
+  };
+
   for (; param < num_fixed_params; ++param) {
+    update_param_offset(function_, param);
+    const auto representation =
+        FlowGraph::ParameterRepresentationAt(function_, param);
+
     copy_args_prologue += LoadLocal(optional_count_var);
     copy_args_prologue += LoadFpRelativeSlot(
         compiler::target::kWordSize *
             (compiler::target::frame_layout.param_end_from_fp +
-             num_fixed_params - param),
-        ParameterType(ParameterVariable(param)));
+             fixed_params_size - param_offset),
+        ParameterType(ParameterVariable(param), representation),
+        representation);
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
     copy_args_prologue += Drop();
@@ -203,6 +229,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   if (num_opt_pos_params > 0) {
     JoinEntryInstr* next_missing = NULL;
     for (intptr_t opt_param = 1; param < num_params; ++param, ++opt_param) {
+      update_param_offset(function_, param);
+
       TargetEntryInstr *supplied, *missing;
       copy_args_prologue += IntConstant(opt_param);
       copy_args_prologue += LoadLocal(optional_count_var);
@@ -214,7 +242,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
       good += LoadFpRelativeSlot(
           compiler::target::kWordSize *
               (compiler::target::frame_layout.param_end_from_fp +
-               num_fixed_params - param),
+               fixed_params_size - param_offset),
           ParameterType(ParameterVariable(param)));
       good += StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
       good += Drop();
@@ -429,7 +457,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
 
   Fragment store_type_args;
   store_type_args += LoadArgDescriptor();
-  store_type_args += LoadNativeField(Slot::ArgumentsDescriptor_count());
+  store_type_args += LoadNativeField(Slot::ArgumentsDescriptor_size());
   store_type_args += LoadFpRelativeSlot(
       compiler::target::kWordSize *
           (1 + compiler::target::frame_layout.param_end_from_fp),

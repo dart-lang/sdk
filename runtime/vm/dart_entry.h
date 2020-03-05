@@ -27,10 +27,11 @@ class RawString;
 class String;
 
 // An arguments descriptor array consists of the type argument vector length (0
-// if none); total argument count (not counting type argument vector); the
-// positional argument count; a sequence of (name, position) pairs, sorted
-// by name, for each named optional argument; and a terminating null to
-// simplify iterating in generated code.
+// if none); total argument count (not counting type argument vector); total
+// arguments size (not counting type argument vector); the positional argument
+// count; a sequence of (name, position) pairs, sorted by name, for each named
+// optional argument; and a terminating null to simplify iterating in generated
+// code.
 class ArgumentsDescriptor : public ValueObject {
  public:
   explicit ArgumentsDescriptor(const Array& array);
@@ -40,6 +41,7 @@ class ArgumentsDescriptor : public ValueObject {
   intptr_t FirstArgIndex() const { return TypeArgsLen() > 0 ? 1 : 0; }
   intptr_t CountWithTypeArgs() const { return FirstArgIndex() + Count(); }
   intptr_t Count() const;            // Excluding type arguments vector.
+  intptr_t Size() const;             // Excluding type arguments vector.
   intptr_t PositionalCount() const;  // Excluding type arguments vector.
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
   RawString* NameAt(intptr_t i) const;
@@ -55,6 +57,8 @@ class ArgumentsDescriptor : public ValueObject {
 
   static intptr_t count_offset() { return Array::element_offset(kCountIndex); }
 
+  static intptr_t size_offset() { return Array::element_offset(kSizeIndex); }
+
   static intptr_t positional_count_offset() {
     return Array::element_offset(kPositionalCountIndex);
   }
@@ -67,6 +71,20 @@ class ArgumentsDescriptor : public ValueObject {
   static intptr_t position_offset() { return kPositionOffset * kWordSize; }
   static intptr_t named_entry_size() { return kNamedEntrySize * kWordSize; }
 
+  // Constructs an argument descriptor where all arguments are boxed and
+  // therefore number of parameters equals parameter size.
+  //
+  // Right now this is for example the case for all closure functions.
+  // Functions marked as entry-points may also be created by NewUnboxed because
+  // we rely that TFA will mark the arguments as nullable for such cases.
+  static RawArray* NewBoxed(intptr_t type_args_len,
+                            intptr_t num_arguments,
+                            const Array& optional_arguments_names,
+                            Heap::Space space = Heap::kOld) {
+    return New(type_args_len, num_arguments, num_arguments,
+               optional_arguments_names, space);
+  }
+
   // Allocate and return an arguments descriptor.  The first
   // (num_arguments - optional_arguments_names.Length()) arguments are
   // positional and the remaining ones are named optional arguments.
@@ -74,8 +92,19 @@ class ArgumentsDescriptor : public ValueObject {
   // num_arguments) is indicated by a non-zero type_args_len.
   static RawArray* New(intptr_t type_args_len,
                        intptr_t num_arguments,
+                       intptr_t size_arguments,
                        const Array& optional_arguments_names,
                        Heap::Space space = Heap::kOld);
+
+  // Constructs an argument descriptor where all arguments are boxed and
+  // therefore number of parameters equals parameter size.
+  //
+  // Right now this is for example the case for all closure functions.
+  static RawArray* NewBoxed(intptr_t type_args_len,
+                            intptr_t num_arguments,
+                            Heap::Space space = Heap::kOld) {
+    return New(type_args_len, num_arguments, num_arguments, space);
+  }
 
   // Allocate and return an arguments descriptor that has no optional
   // arguments. All arguments are positional. The presence of a type argument
@@ -83,6 +112,7 @@ class ArgumentsDescriptor : public ValueObject {
   // by a non-zero type_args_len.
   static RawArray* New(intptr_t type_args_len,
                        intptr_t num_arguments,
+                       intptr_t size_arguments,
                        Heap::Space space = Heap::kOld);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
@@ -99,6 +129,7 @@ class ArgumentsDescriptor : public ValueObject {
   enum {
     kTypeArgsLenIndex,
     kCountIndex,
+    kSizeIndex,
     kPositionalCountIndex,
     kFirstNamedEntryIndex,
   };
@@ -122,6 +153,7 @@ class ArgumentsDescriptor : public ValueObject {
 
   static RawArray* NewNonCached(intptr_t type_args_len,
                                 intptr_t num_arguments,
+                                intptr_t size_arguments,
                                 bool canonicalize,
                                 Heap::Space space);
 

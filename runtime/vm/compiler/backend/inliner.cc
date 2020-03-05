@@ -875,7 +875,8 @@ class CallSiteInliner : public ValueObject {
     if (constant != NULL) {
       return new (Z) ConstantInstr(constant->value());
     } else {
-      ParameterInstr* param = new (Z) ParameterInstr(i, graph->graph_entry());
+      ParameterInstr* param = new (Z)
+          ParameterInstr(i, -1, graph->graph_entry(), kNoRepresentation);
       param->UpdateType(*argument->Type());
       return param;
     }

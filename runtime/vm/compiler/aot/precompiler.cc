@@ -614,8 +614,13 @@ void Precompiler::CollectCallbackFields() {
         if (FLAG_trace_precompiler) {
           THR_Print("Found callback field %s\n", field_name.ToCString());
         }
-        args_desc = ArgumentsDescriptor::New(0,  // No type argument vector.
-                                             function.num_fixed_parameters());
+
+        // TODO(dartbug.com/33549): Update this code to use the size of the
+        // parameters when supporting calls to non-static methods with
+        // unboxed parameters.
+        args_desc =
+            ArgumentsDescriptor::NewBoxed(0,  // No type argument vector.
+                                          function.num_fixed_parameters());
         cids.Clear();
         if (CHA::ConcreteSubclasses(cls, &cids)) {
           for (intptr_t j = 0; j < cids.length(); ++j) {

@@ -154,6 +154,29 @@ static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
   return safe_index;
 }
 
+static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
+                                             Definition* value,
+                                             Representation representation) {
+  const auto& function = builder->function();
+  if (function.has_unboxed_return()) {
+    return value;
+  } else {
+    return builder->AddDefinition(
+        BoxInstr::Create(representation, new Value(value)));
+  }
+}
+
+static Definition* CreateUnboxedResultIfNeeded(BlockBuilder* builder,
+                                               Definition* value) {
+  const auto& function = builder->function();
+  if (function.has_unboxed_return() && value->representation() == kTagged) {
+    return builder->AddUnboxInstr(FlowGraph::ReturnRepresentationOf(function),
+                                  new Value(value), /* is_checked = */ true);
+  } else {
+    return value;
+  }
+}
+
 static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -204,33 +227,27 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   switch (array_cid) {
     case kTypedDataInt32ArrayCid:
     case kExternalTypedDataInt32ArrayCid:
-      result = builder.AddDefinition(
-          BoxInstr::Create(kUnboxedInt32, new Value(result)));
+      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedInt32);
       break;
     case kTypedDataUint32ArrayCid:
     case kExternalTypedDataUint32ArrayCid:
-      result = builder.AddDefinition(
-          BoxInstr::Create(kUnboxedUint32, new Value(result)));
+      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedUint32);
       break;
     case kTypedDataFloat32ArrayCid:
       result = builder.AddDefinition(
           new FloatToDoubleInstr(new Value(result), DeoptId::kNone));
       FALL_THROUGH;
     case kTypedDataFloat64ArrayCid:
-      result = builder.AddDefinition(
-          BoxInstr::Create(kUnboxedDouble, new Value(result)));
+      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedDouble);
       break;
     case kTypedDataFloat32x4ArrayCid:
-      result = builder.AddDefinition(
-          BoxInstr::Create(kUnboxedFloat32x4, new Value(result)));
+      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedFloat32x4);
       break;
     case kTypedDataInt32x4ArrayCid:
-      result = builder.AddDefinition(
-          BoxInstr::Create(kUnboxedInt32x4, new Value(result)));
+      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedInt32x4);
       break;
     case kTypedDataFloat64x2ArrayCid:
-      result = builder.AddDefinition(
-          BoxInstr::Create(kUnboxedFloat64x2, new Value(result)));
+      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedFloat64x2);
       break;
     case kArrayCid:
     case kImmutableArrayCid:
@@ -243,21 +260,20 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
     case kTypedDataUint16ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
-      result = builder.AddDefinition(
-          BoxInstr::Create(kUnboxedIntPtr, new Value(result)));
+      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedIntPtr);
       break;
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
-      result = builder.AddDefinition(
-          BoxInstr::Create(kUnboxedInt64, new Value(result)));
+      result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedInt64);
       break;
     default:
       UNREACHABLE();
       break;
   }
-  if (clear_environment) {
+  if (result->IsBoxInteger() && clear_environment) {
     result->AsBoxInteger()->ClearEnv();
   }
+  result = CreateUnboxedResultIfNeeded(&builder, result);
   builder.AddReturn(new Value(result));
   return true;
 }
@@ -509,8 +525,11 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   load->set_range(range);
 
   Definition* result =
-      builder.AddDefinition(BoxInstr::Create(kUnboxedIntPtr, new Value(load)));
-  result->AsBoxInteger()->ClearEnv();
+      CreateBoxedResultIfNeeded(&builder, load, kUnboxedIntPtr);
+
+  if (result->IsBoxInteger()) {
+    result->AsBoxInteger()->ClearEnv();
+  }
 
   builder.AddReturn(new Value(result));
   return true;
@@ -560,8 +579,8 @@ static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   Definition* unboxed_result = builder.AddDefinition(SimdOpInstr::Create(
       SimdOpInstr::KindForOperator(cid, kind), new Value(left_simd),
       new Value(right_simd), DeoptId::kNone));
-  Definition* result =
-      builder.AddDefinition(BoxInstr::Create(rep, new Value(unboxed_result)));
+  Definition* result = CreateBoxedResultIfNeeded(&builder, unboxed_result, rep);
+
   builder.AddReturn(new Value(result));
   return true;
 }
@@ -610,15 +629,19 @@ static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
 
   Definition* receiver = builder.AddParameter(0, /*with_frame=*/false);
 
+  const auto& function = flow_graph->function();
   Definition* unboxed_receiver =
-      builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(receiver),
-                            /* is_checked = */ true);
+      !function.is_unboxed_parameter_at(0)
+          ? builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(receiver),
+                                  /* is_checked = */ true)
+          : receiver;
 
   Definition* unboxed_result = builder.AddDefinition(
       SimdOpInstr::Create(kind, new Value(unboxed_receiver), DeoptId::kNone));
 
-  Definition* result = builder.AddDefinition(
-      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
+  Definition* result =
+      CreateBoxedResultIfNeeded(&builder, unboxed_result, kUnboxedDouble);
+
   builder.AddReturn(new Value(result));
   return true;
 }
@@ -652,6 +675,8 @@ static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
 
   Definition* length = builder.AddDefinition(
       new LoadFieldInstr(new Value(array), field, builder.TokenPos()));
+
+  length = CreateUnboxedResultIfNeeded(&builder, length);
   builder.AddReturn(new Value(length));
   return true;
 }
@@ -695,6 +720,7 @@ bool GraphIntrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
       new Value(array), Slot::GrowableObjectArray_data(), builder.TokenPos()));
   Definition* capacity = builder.AddDefinition(new LoadFieldInstr(
       new Value(backing_store), Slot::Array_length(), builder.TokenPos()));
+  capacity = CreateUnboxedResultIfNeeded(&builder, capacity);
   builder.AddReturn(new Value(capacity));
   return true;
 }
@@ -717,6 +743,7 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
       new Value(backing_store), new Value(index),
       target::Instance::ElementSizeFor(kArrayCid),  // index scale
       kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+  result = CreateUnboxedResultIfNeeded(&builder, result);
   builder.AddReturn(new Value(result));
   return true;
 }
@@ -827,6 +854,26 @@ bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   return true;
 }
 
+static Definition* ConvertOrUnboxDoubleParameter(BlockBuilder* builder,
+                                                 Definition* value,
+                                                 intptr_t index,
+                                                 bool is_checked) {
+  const auto& function = builder->function();
+  if (function.is_unboxed_double_parameter_at(index)) {
+    return value;
+  } else if (function.is_unboxed_integer_parameter_at(index)) {
+    if (compiler::target::kWordSize == 4) {
+      // Int64ToDoubleInstr is not implemented in 32-bit platforms
+      return nullptr;
+    }
+    auto to_double = new Int64ToDoubleInstr(new Value(value), DeoptId::kNone);
+    return builder->AddDefinition(to_double);
+  } else {
+    ASSERT(!function.is_unboxed_parameter_at(index));
+    return builder->AddUnboxInstr(kUnboxedDouble, value, is_checked);
+  }
+}
+
 bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
     return false;
@@ -836,19 +883,22 @@ bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   BlockBuilder builder(flow_graph, normal_entry);
 
   Definition* receiver = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* unboxed_value =
-      builder.AddUnboxInstr(kUnboxedDouble, new Value(receiver),
-                            /* is_checked = */ true);
+  Definition* unboxed_value = ConvertOrUnboxDoubleParameter(
+      &builder, receiver, 0, /* is_checked = */ true);
+  if (unboxed_value == nullptr) {
+    return false;
+  }
   Definition* unboxed_result = builder.AddDefinition(new UnaryDoubleOpInstr(
       Token::kNEGATE, new Value(unboxed_value), DeoptId::kNone));
-  Definition* result = builder.AddDefinition(
-      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
+  Definition* result =
+      CreateBoxedResultIfNeeded(&builder, unboxed_result, kUnboxedDouble);
   builder.AddReturn(new Value(result));
   return true;
 }
 
 static bool BuildInvokeMathCFunction(BlockBuilder* builder,
                                      MethodRecognizer::Kind kind,
+                                     FlowGraph* flow_graph,
                                      intptr_t num_parameters = 1) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
     return false;
@@ -858,17 +908,19 @@ static bool BuildInvokeMathCFunction(BlockBuilder* builder,
 
   for (intptr_t i = 0; i < num_parameters; i++) {
     Definition* value = builder->AddParameter(i, /*with_frame=*/false);
-    Definition* unboxed_value =
-        builder->AddUnboxInstr(kUnboxedDouble, value, /* is_checked = */ false);
+    Definition* unboxed_value = ConvertOrUnboxDoubleParameter(
+        builder, value, i, /* is_checked = */ false);
+    if (unboxed_value == nullptr) {
+      return false;
+    }
     args->Add(new Value(unboxed_value));
   }
 
   Definition* unboxed_result =
       builder->AddDefinition(new InvokeMathCFunctionInstr(
           args, DeoptId::kNone, kind, builder->TokenPos()));
-  Definition* result = builder->AddDefinition(
-      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
-
+  Definition* result =
+      CreateBoxedResultIfNeeded(builder, unboxed_result, kUnboxedDouble);
   builder->AddReturn(new Value(result));
 
   return true;
@@ -881,7 +933,8 @@ bool GraphIntrinsifier::Build_MathSin(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathSin);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathSin,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_MathCos(FlowGraph* flow_graph) {
@@ -891,7 +944,8 @@ bool GraphIntrinsifier::Build_MathCos(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathCos);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathCos,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_MathTan(FlowGraph* flow_graph) {
@@ -901,7 +955,8 @@ bool GraphIntrinsifier::Build_MathTan(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathTan);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathTan,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_MathAsin(FlowGraph* flow_graph) {
@@ -911,7 +966,8 @@ bool GraphIntrinsifier::Build_MathAsin(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAsin);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAsin,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_MathAcos(FlowGraph* flow_graph) {
@@ -921,7 +977,8 @@ bool GraphIntrinsifier::Build_MathAcos(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAcos);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAcos,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_MathAtan(FlowGraph* flow_graph) {
@@ -931,7 +988,8 @@ bool GraphIntrinsifier::Build_MathAtan(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAtan);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAtan,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_MathAtan2(FlowGraph* flow_graph) {
@@ -942,6 +1000,7 @@ bool GraphIntrinsifier::Build_MathAtan2(FlowGraph* flow_graph) {
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAtan2,
+                                  flow_graph,
                                   /* num_parameters = */ 2);
 }
 
@@ -953,6 +1012,7 @@ bool GraphIntrinsifier::Build_DoubleMod(FlowGraph* flow_graph) {
   BlockBuilder builder(flow_graph, normal_entry);
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleMod,
+                                  flow_graph,
                                   /* num_parameters = */ 2);
 }
 
@@ -966,7 +1026,8 @@ bool GraphIntrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleCeil);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleCeil,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
@@ -979,7 +1040,8 @@ bool GraphIntrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleFloor);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleFloor,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
@@ -992,7 +1054,8 @@ bool GraphIntrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleTruncate);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleTruncate,
+                                  flow_graph);
 }
 
 bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
@@ -1002,7 +1065,8 @@ bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound);
+  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound,
+                                  flow_graph);
 }
 
 }  // namespace compiler

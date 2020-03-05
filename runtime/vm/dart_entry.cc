@@ -31,8 +31,8 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments) {
   ASSERT(Thread::Current()->IsMutatorThread());
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
-  const Array& arguments_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length()));
+  const Array& arguments_descriptor = Array::Handle(
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, arguments.Length()));
   return InvokeFunction(function, arguments, arguments_descriptor);
 }
 
@@ -185,8 +185,10 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 
 RawObject* DartEntry::InvokeClosure(const Array& arguments) {
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
-  const Array& arguments_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length()));
+
+  // Closures always have boxed parameters
+  const Array& arguments_descriptor = Array::Handle(
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, arguments.Length()));
   return InvokeClosure(arguments, arguments_descriptor);
 }
 
@@ -289,8 +291,8 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   // Now use the invocation mirror object and invoke NoSuchMethod.
   const int kTypeArgsLen = 0;
   const int kNumArguments = 2;
-  ArgumentsDescriptor nsm_args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+  ArgumentsDescriptor nsm_args_desc(Array::Handle(
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   Function& function = Function::Handle(Resolver::ResolveDynamic(
       receiver, Symbols::NoSuchMethod(), nsm_args_desc));
   if (function.IsNull()) {
@@ -317,6 +319,10 @@ intptr_t ArgumentsDescriptor::TypeArgsLen() const {
 
 intptr_t ArgumentsDescriptor::Count() const {
   return Smi::Value(Smi::RawCast(array_.At(kCountIndex)));
+}
+
+intptr_t ArgumentsDescriptor::Size() const {
+  return Smi::Value(Smi::RawCast(array_.At(kSizeIndex)));
 }
 
 intptr_t ArgumentsDescriptor::PositionalCount() const {
@@ -364,12 +370,14 @@ RawArray* ArgumentsDescriptor::GetArgumentNames() const {
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
+                                   intptr_t size_arguments,
                                    const Array& optional_arguments_names,
                                    Heap::Space space) {
   const intptr_t num_named_args =
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   if (num_named_args == 0) {
-    return ArgumentsDescriptor::New(type_args_len, num_arguments, space);
+    return ArgumentsDescriptor::New(type_args_len, num_arguments,
+                                    size_arguments, space);
   }
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
@@ -389,6 +397,8 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   descriptor.SetAt(kTypeArgsLenIndex, Smi::Handle(Smi::New(type_args_len)));
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, Smi::Handle(Smi::New(num_arguments)));
+  // Set total number of passed arguments.
+  descriptor.SetAt(kSizeIndex, Smi::Handle(Smi::New(size_arguments)));
 
   // Set number of positional arguments.
   descriptor.SetAt(kPositionalCountIndex, Smi::Handle(Smi::New(num_pos_args)));
@@ -434,18 +444,22 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
+                                   intptr_t size_arguments,
                                    Heap::Space space) {
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
 
-  if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount)) {
+  if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount) &&
+      (num_arguments == size_arguments)) {
     return cached_args_descriptors_[num_arguments];
   }
-  return NewNonCached(type_args_len, num_arguments, true, space);
+  return NewNonCached(type_args_len, num_arguments, size_arguments, true,
+                      space);
 }
 
 RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
                                             intptr_t num_arguments,
+                                            intptr_t size_arguments,
                                             bool canonicalize,
                                             Heap::Space space) {
   // Build the arguments descriptor array, which consists of the length of the
@@ -456,6 +470,7 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   const intptr_t descriptor_len = LengthFor(0);
   Array& descriptor = Array::Handle(zone, Array::New(descriptor_len, space));
   const Smi& arg_count = Smi::Handle(zone, Smi::New(num_arguments));
+  const Smi& arg_size = Smi::Handle(zone, Smi::New(size_arguments));
 
   // Set type argument vector length.
   descriptor.SetAt(kTypeArgsLenIndex,
@@ -463,6 +478,9 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
 
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, arg_count);
+
+  // Set total size of passed arguments.
+  descriptor.SetAt(kSizeIndex, arg_size);
 
   // Set number of positional arguments.
   descriptor.SetAt(kPositionalCountIndex, arg_count);
@@ -486,7 +504,7 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
 void ArgumentsDescriptor::Init() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
     cached_args_descriptors_[i] =
-        NewNonCached(/*type_args_len=*/0, i, false, Heap::kOld);
+        NewNonCached(/*type_args_len=*/0, i, i, false, Heap::kOld);
   }
 }
 
@@ -532,8 +550,8 @@ RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
 RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;  // Receiver.
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+  ArgumentsDescriptor args_desc(Array::Handle(
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver, Symbols::toString(), args_desc));
   ASSERT(!function.IsNull());
@@ -548,8 +566,8 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 RawObject* DartLibraryCalls::HashCode(const Instance& receiver) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;  // Receiver.
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+  ArgumentsDescriptor args_desc(Array::Handle(
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver, Symbols::hashCode(), args_desc));
   ASSERT(!function.IsNull());
@@ -565,8 +583,8 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 2;
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+  ArgumentsDescriptor args_desc(Array::Handle(
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(left, Symbols::EqualOperator(), args_desc));
   ASSERT(!function.IsNull());
@@ -696,8 +714,8 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& value) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 3;
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+  ArgumentsDescriptor args_desc(Array::Handle(
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(map, Symbols::AssignIndexToken(), args_desc));
   ASSERT(!function.IsNull());

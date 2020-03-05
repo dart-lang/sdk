@@ -167,6 +167,12 @@ class InterpreterHelpers {
         Array::element_offset(ArgumentsDescriptor::kCountIndex)));
   }
 
+  DART_FORCE_INLINE static intptr_t ArgDescArgSize(RawArray* argdesc) {
+    return Smi::Value(*reinterpret_cast<RawSmi**>(
+        reinterpret_cast<uword>(argdesc->ptr()) +
+        Array::element_offset(ArgumentsDescriptor::kSizeIndex)));
+  }
+
   DART_FORCE_INLINE static intptr_t ArgDescPosCount(RawArray* argdesc) {
     return Smi::Value(*reinterpret_cast<RawSmi**>(
         reinterpret_cast<uword>(argdesc->ptr()) +
@@ -2122,7 +2128,7 @@ SwitchDispatch:
           SP[0] = Smi::New(0);  // Patch null length with zero length.
           SP[1] = thread->isolate()->object_store()->growable_list_factory();
           // Change the ArgumentsDescriptor of the call with a new cached one.
-          argdesc_ = ArgumentsDescriptor::New(
+          argdesc_ = ArgumentsDescriptor::NewBoxed(
               0, KernelBytecode::kNativeCallToGrowableListArgc);
           // Replace PC to the return trampoline so ReturnTOS would see
           // a call bytecode at return address and will be able to get argc

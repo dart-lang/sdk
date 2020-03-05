@@ -30,21 +30,76 @@
 namespace dart {
 
 // Generic summary for call instructions that have all arguments pushed
-// on the stack and return the result in a fixed register RAX.
-LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
+// on the stack and return the result in a fixed register RAX (or XMM0 if
+// the return type is double).
+LocationSummary* Instruction::MakeCallSummary(Zone* zone,
+                                              const Instruction* instr) {
   LocationSummary* result =
       new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
-  result->set_out(0, Location::RegisterLocation(RAX));
+  const auto representation = instr->representation();
+  switch (representation) {
+    case kTagged:
+    case kUnboxedInt64:
+      result->set_out(
+          0, Location::RegisterLocation(CallingConventions::kReturnReg));
+      break;
+    case kUnboxedDouble:
+      result->set_out(
+          0, Location::FpuRegisterLocation(CallingConventions::kReturnFpuReg));
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
   return result;
 }
 
-DEFINE_BACKEND(LoadIndexedUnsafe, (Register out, Register index)) {
-  ASSERT(instr->RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
-  __ movq(out, compiler::Address(instr->base_reg(), index, TIMES_4,
-                                 instr->offset()));
+LocationSummary* LoadIndexedUnsafeInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
+  locs->set_in(0, Location::RequiresRegister());
+  switch (representation()) {
+    case kTagged:
+    case kUnboxedInt64:
+      locs->set_out(0, Location::RequiresRegister());
+      break;
+    case kUnboxedDouble:
+      locs->set_out(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  return locs;
+}
+
+void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
   ASSERT(kSmiTag == 0);
   ASSERT(kSmiTagSize == 1);
+
+  const Register index = locs()->in(0).reg();
+
+  switch (representation()) {
+    case kTagged:
+    case kUnboxedInt64: {
+      const auto out = locs()->out(0).reg();
+      __ movq(out, compiler::Address(base_reg(), index, TIMES_4, offset()));
+      break;
+    }
+    case kUnboxedDouble: {
+      const auto out = locs()->out(0).fpu_reg();
+      __ movsd(out, compiler::Address(base_reg(), index, TIMES_4, offset()));
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
 }
 
 DEFINE_BACKEND(StoreIndexedUnsafe,
@@ -76,7 +131,13 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, LocationAnyOrConstant(value()));
+  if (representation() == kUnboxedDouble) {
+    locs->set_in(0, Location::RequiresFpuRegister());
+  } else if (representation() == kUnboxedInt64) {
+    locs->set_in(0, Location::RequiresRegister());
+  } else {
+    locs->set_in(0, LocationAnyOrConstant(value()));
+  }
   return locs;
 }
 
@@ -89,6 +150,9 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ pushq(value.reg());
     } else if (value.IsConstant()) {
       __ PushObject(value.constant());
+    } else if (value.IsFpuRegister()) {
+      __ AddImmediate(RSP, compiler::Immediate(-kDoubleSize));
+      __ movsd(compiler::Address(RSP, 0), value.fpu_reg());
     } else {
       ASSERT(value.IsStackSlot());
       __ pushq(LocationToStackSlotAddress(value));
@@ -101,7 +165,20 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterLocation(RAX));
+  switch (representation()) {
+    case kTagged:
+    case kUnboxedInt64:
+      locs->set_in(0,
+                   Location::RegisterLocation(CallingConventions::kReturnReg));
+      break;
+    case kUnboxedDouble:
+      locs->set_in(
+          0, Location::FpuRegisterLocation(CallingConventions::kReturnFpuReg));
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
   return locs;
 }
 
@@ -109,8 +186,14 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 // The entry needs to be patchable, no inlined objects are allowed in the area
 // that will be overwritten by the patch instruction: a jump).
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->in(0).reg();
-  ASSERT(result == RAX);
+  if (locs()->in(0).IsRegister()) {
+    const Register result = locs()->in(0).reg();
+    ASSERT(result == CallingConventions::kReturnReg);
+  } else {
+    ASSERT(locs()->in(0).IsFpuRegister());
+    const FpuRegister result = locs()->in(0).fpu_reg();
+    ASSERT(result == CallingConventions::kReturnFpuReg);
+  }
 
   if (compiler->intrinsic_mode()) {
     // Intrinsics don't have a frame.
@@ -1240,8 +1323,10 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushq(array);
   const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
+  constexpr int kSizeOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
+                          kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);
@@ -3293,8 +3378,9 @@ class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
     __ pushq(locs->in(0).reg());
     __ pushq(locs->in(1).reg());
     const auto& selector = String::Handle(instruction()->call()->Selector());
-    const auto& arguments_descriptor = Array::Handle(
-        ArgumentsDescriptor::New(/*type_args_len=*/0, /*num_arguments=*/2));
+    const auto& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::NewBoxed(
+            /*type_args_len=*/0, /*num_arguments=*/2));
     compiler->EmitMegamorphicInstanceCall(
         selector, arguments_descriptor, instruction()->call()->deopt_id(),
         instruction()->token_pos(), locs, try_index_, kNumSlowPathArgs);
@@ -3466,8 +3552,9 @@ class CheckedSmiComparisonSlowPath
     __ pushq(locs->in(1).reg());
 
     const auto& selector = String::Handle(instruction()->call()->Selector());
-    const auto& arguments_descriptor = Array::Handle(
-        ArgumentsDescriptor::New(/*type_args_len=*/0, /*num_arguments=*/2));
+    const auto& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::NewBoxed(
+            /*type_args_len=*/0, /*num_arguments=*/2));
 
     compiler->EmitMegamorphicInstanceCall(
         selector, arguments_descriptor, instruction()->call()->deopt_id(),
@@ -5055,8 +5142,10 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
   const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
+  constexpr int kSizeOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
+                          kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);

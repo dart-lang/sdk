@@ -5,19 +5,19 @@ import "dart:core" as core;
 abstract class A extends core::Object {
 }
 class B extends core::Object {
-  constructor •() → self::B*
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  constructor •() → self::B*
     : super core::Object::•() {
     core::print("B");
   }
 }
 class C extends core::Object {
 [@vm.inferred-type.metadata=#lib::B?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field self::B* instanceField = new self::B::•();
-  synthetic constructor •() → self::C*
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
 }
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field self::A* field = throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
-static method main() → void {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method main() → void {
   self::field = null;
   [@vm.direct-call.metadata=#lib::C::instanceField] [@vm.inferred-type.metadata=!? (skip check)] new self::C::•().{self::C::instanceField} = null;
 }

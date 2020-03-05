@@ -71,6 +71,7 @@ class ParsedFunction;
   V(ArgumentsDescriptor, type_args_len, Smi, FINAL)                            \
   V(ArgumentsDescriptor, positional_count, Smi, FINAL)                         \
   V(ArgumentsDescriptor, count, Smi, FINAL)                                    \
+  V(ArgumentsDescriptor, size, Smi, FINAL)                                     \
   V(Pointer, c_memory_address, Dynamic, FINAL)                                 \
   V(Type, arguments, TypeArguments, FINAL)
 

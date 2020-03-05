@@ -1103,7 +1103,8 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   }
 
   const Array& args_desc_array = Array::Handle(
-      Z, ArgumentsDescriptor::New(/*type_args_len=*/0, /*num_arguments=*/1));
+      Z,
+      ArgumentsDescriptor::NewBoxed(/*type_args_len=*/0, /*num_arguments=*/1));
   ArgumentsDescriptor args_desc(args_desc_array);
   target = Resolver::ResolveDynamicForReceiverClass(
       receiver_class, getter_name, args_desc, /*allow_add=*/false);

@@ -579,9 +579,11 @@ void FlowGraphCompiler::VisitBlocks() {
     BeginCodeSourceRange();
     ASSERT(pending_deoptimization_env_ == NULL);
     pending_deoptimization_env_ = entry->env();
+    set_current_instruction(entry);
     StatsBegin(entry);
     entry->EmitNativeCode(this);
     StatsEnd(entry);
+    set_current_instruction(nullptr);
     pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
 
@@ -593,7 +595,9 @@ void FlowGraphCompiler::VisitBlocks() {
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
+      set_current_instruction(instr);
       StatsBegin(instr);
+
       // Compose intervals.
       code_source_map_builder_->StartInliningInterval(assembler()->CodeSize(),
                                                       instr->inlining_id());
@@ -628,6 +632,7 @@ void FlowGraphCompiler::VisitBlocks() {
       }
 #endif
       StatsEnd(instr);
+      set_current_instruction(nullptr);
 
       if (auto indirect_goto = instr->AsIndirectGoto()) {
         indirect_gotos_.Add(indirect_goto);
@@ -700,11 +705,13 @@ void FlowGraphCompiler::GenerateDeferredCode() {
     const CombinedCodeStatistics::EntryCounter stats_tag =
         CombinedCodeStatistics::SlowPathCounterFor(
             slow_path->instruction()->tag());
+    set_current_instruction(slow_path->instruction());
     SpecialStatsBegin(stats_tag);
     BeginCodeSourceRange();
     slow_path->GenerateCode(this);
     EndCodeSourceRange(slow_path->instruction()->token_pos());
     SpecialStatsEnd(stats_tag);
+    set_current_instruction(nullptr);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     BeginCodeSourceRange();
@@ -863,13 +870,57 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
     // registers to the bitmap. This is why the second call to RecordSafepoint
     // with the same instruction (and same location summary) sees a bitmap that
     // is larger that StackSize(). It will never be larger than StackSize() +
-    // live_registers_size.
+    // unboxed_arg_bits_count + live_registers_size.
     // The first safepoint will grow the bitmap to be the size of
     // spill_area_size but the second safepoint will truncate the bitmap and
-    // append the live registers to it again. The bitmap produced by both calls
-    // will be the same.
-    ASSERT(bitmap->Length() <= (spill_area_size + saved_registers_size));
+    // append the bits for arguments and live registers to it again.
+    const intptr_t bitmap_previous_length = bitmap->Length();
     bitmap->SetLength(spill_area_size);
+
+    intptr_t unboxed_arg_bits_count = 0;
+
+    auto instr = current_instruction();
+    const intptr_t args_count = instr->ArgumentCount();
+    bool pushed_unboxed = false;
+
+    for (intptr_t i = 0; i < args_count; i++) {
+      auto push_arg =
+          instr->ArgumentValueAt(i)->instruction()->AsPushArgument();
+      switch (push_arg->representation()) {
+        case kUnboxedInt64:
+          bitmap->SetRange(
+              bitmap->Length(),
+              bitmap->Length() + compiler::target::kIntSpillFactor - 1, false);
+          unboxed_arg_bits_count += compiler::target::kIntSpillFactor;
+          pushed_unboxed = true;
+          break;
+        case kUnboxedDouble:
+          bitmap->SetRange(
+              bitmap->Length(),
+              bitmap->Length() + compiler::target::kDoubleSpillFactor - 1,
+              false);
+          unboxed_arg_bits_count += compiler::target::kDoubleSpillFactor;
+          pushed_unboxed = true;
+          break;
+        case kTagged:
+          if (!pushed_unboxed) {
+            // GC considers everything to be tagged between prefix of stack
+            // frame (spill area size) and postfix of stack frame (e.g. slow
+            // path arguments, shared pushed registers).
+            // From the first unboxed argument on we will include bits in the
+            // postfix.
+            continue;
+          }
+          bitmap->Set(bitmap->Length(), true);
+          unboxed_arg_bits_count++;
+          break;
+        default:
+          UNREACHABLE();
+          break;
+      }
+    }
+    ASSERT(bitmap_previous_length <=
+           (spill_area_size + unboxed_arg_bits_count + saved_registers_size));
 
     ASSERT(slow_path_argument_count == 0 || !using_shared_stub);
 
@@ -1389,11 +1440,15 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                : ic_data.arguments_descriptor());
   ASSERT(ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() ==
          args_info.type_args_len);
+  ASSERT(ArgumentsDescriptor(arguments_descriptor).Count() ==
+         args_info.count_without_type_args);
+  ASSERT(ArgumentsDescriptor(arguments_descriptor).Size() ==
+         args_info.size_without_type_args);
   // Force-optimized functions lack the deopt info which allows patching of
   // optimized static calls.
   if (is_optimizing() && (!ForcedOptimization() || FLAG_precompiled_mode)) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
-                            args_info.count_with_type_args, deopt_id, token_pos,
+                            args_info.size_with_type_args, deopt_id, token_pos,
                             locs, entry_kind);
   } else {
     ICData& call_ic_data = ICData::ZoneHandle(zone(), ic_data.raw());
@@ -1406,7 +1461,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
       call_ic_data = call_ic_data.Original();
     }
     AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
-    EmitUnoptimizedStaticCall(args_info.count_with_type_args, deopt_id,
+    EmitUnoptimizedStaticCall(args_info.size_with_type_args, deopt_id,
                               token_pos, locs, call_ic_data, entry_kind);
   }
 }

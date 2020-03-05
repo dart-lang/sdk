@@ -222,8 +222,20 @@ void FlowGraphDeserializer::AllUnhandledInstructions(
        block_it.Advance()) {
     auto const entry = block_it.Current();
     if (!IsHandledInstruction(entry)) unhandled->Add(entry);
-    // Don't check the Phi definitions in JoinEntrys, as those are now handled
-    // and also parsed differently from other definitions.
+    // Check that the Phi instructions in JoinEntrys do not have pair
+    // representation.
+    if (auto const join_block = entry->AsJoinEntry()) {
+      auto const phis = join_block->phis();
+      auto const length = ((phis == nullptr) ? 0 : phis->length());
+      for (intptr_t i = 0; i < length; i++) {
+        auto const current = phis->At(i);
+        for (intptr_t j = 0; j < current->InputCount(); j++) {
+          if (current->InputAt(j)->definition()->HasPairRepresentation()) {
+            unhandled->Add(current);
+          }
+        }
+      }
+    }
     if (auto const def_block = entry->AsBlockEntryWithInitialDefs()) {
       auto const defs = def_block->initial_definitions();
       for (intptr_t i = 0; i < defs->length(); i++) {
@@ -1134,7 +1146,19 @@ ParameterInstr* FlowGraphDeserializer::DeserializeParameter(
     const InstrInfo& info) {
   ASSERT(current_block_ != nullptr);
   if (auto const index_sexp = CheckInteger(Retrieve(sexp, 1))) {
-    return new (zone()) ParameterInstr(index_sexp->value(), current_block_);
+    const auto param_offset_sexp =
+        CheckInteger(sexp->ExtraLookupValue("param_offset"));
+    ASSERT(param_offset_sexp != nullptr);
+    const auto representation_sexp =
+        CheckSymbol(sexp->ExtraLookupValue("representation"));
+    Representation representation;
+    if (!Location::ParseRepresentation(representation_sexp->value(),
+                                       &representation)) {
+      StoreError(representation_sexp, "unknown parameter representation");
+    }
+    return new (zone())
+        ParameterInstr(index_sexp->value(), param_offset_sexp->value(),
+                       current_block_, representation);
   }
   return nullptr;
 }
