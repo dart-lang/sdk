@@ -1013,8 +1013,11 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitExpressionStatement(ir.ExpressionStatement node) {
-    visitNode(node.expression);
-    return null;
+    if (completes(visitNode(node.expression))) {
+      return null;
+    } else {
+      return const DoesNotCompleteType();
+    }
   }
 
   void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {}
