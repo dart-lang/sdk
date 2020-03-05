@@ -355,8 +355,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Add assert locations
     _uriMap.forEach((location, id) {
-      moduleItems
-          .add(js.statement('var # = #;', [id, js.escapedString(location)]));
+      moduleItems.insert(_constTableInsertionIndex,
+          js.statement('var # = #;', [id, js.escapedString(location)]));
     });
 
     moduleItems.addAll(afterClassDefItems);
