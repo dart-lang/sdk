@@ -123,7 +123,7 @@ void addClickHandlers(String selector) {
 
 Future<HttpRequest> doPost(String path) => HttpRequest.request(
       path,
-      method: 'GET', // TODO(mfairhurst): change to 'POST',
+      method: 'POST',
       requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
     ).then((HttpRequest xhr) {
       if (xhr.status == 200) {

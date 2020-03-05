@@ -14,6 +14,12 @@ abstract class AbstractGetHandler {
   Future<void> handleGetRequest(HttpRequest request);
 }
 
+/// Instances of the class [AbstractPostHandler] handle POST requests.
+abstract class AbstractPostHandler {
+  /// Handle a POST request received by the HTTP server.
+  Future<void> handlePostRequest(HttpRequest request);
+}
+
 /// Instances of the class [HttpPreviewServer] implement a simple HTTP server
 /// that serves up dartfix preview pages.
 class HttpPreviewServer {
@@ -22,6 +28,9 @@ class HttpPreviewServer {
 
   /// An object that can handle GET requests.
   AbstractGetHandler getHandler;
+
+  /// An object that can handle POST requests.
+  AbstractPostHandler postHandler;
 
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer> _serverFuture;
@@ -68,12 +77,20 @@ class HttpPreviewServer {
     await getHandler.handleGetRequest(request);
   }
 
+  /// Handle a POST request received by the HTTP server.
+  Future<void> _handlePostRequest(HttpRequest request) async {
+    postHandler ??= PreviewSite(migrationState);
+    await postHandler.handlePostRequest(request);
+  }
+
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
     httpServer.listen((HttpRequest request) async {
       List<String> updateValues = request.headers[HttpHeaders.upgradeHeader];
       if (request.method == 'GET') {
         await _handleGetRequest(request);
+      } else if (request.method == 'POST') {
+        await _handlePostRequest(request);
       } else if (updateValues != null && updateValues.contains('websocket')) {
         // We do not support serving analysis server communications over
         // WebSocket connections.
