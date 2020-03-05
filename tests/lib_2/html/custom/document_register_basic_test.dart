@@ -7,7 +7,6 @@ library document_register_basic_test;
 import 'dart:html';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 
 import 'utils.dart';
 
@@ -42,8 +41,6 @@ abstract class BadC extends HtmlElement {
 }
 
 main() {
-  useHtmlConfiguration();
-
   // Adapted from Blink's fast/dom/custom/document-register-basic test.
 
   setUp(() => customElementsReady);
