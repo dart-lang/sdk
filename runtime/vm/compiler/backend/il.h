@@ -61,7 +61,7 @@ class UnboxIntegerInstr;
 namespace compiler {
 class BlockBuilder;
 struct TableSelector;
-}
+}  // namespace compiler
 
 class Value : public ZoneAllocated {
  public:
@@ -239,9 +239,7 @@ class HierarchyInfo : public ThreadStackResource {
     thread->set_hierarchy_info(this);
   }
 
-  ~HierarchyInfo() {
-    thread()->set_hierarchy_info(NULL);
-  }
+  ~HierarchyInfo() { thread()->set_hierarchy_info(NULL); }
 
   const CidRangeVector& SubtypeRangesForClass(const Class& klass,
                                               bool include_abstract,
@@ -3854,6 +3852,8 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   // interface target, CompileType and hints from TFA.
   void UpdateReceiverSminess(Zone* zone);
 
+  bool HasNonSmiAssignableInterface(Zone* zone) const;
+
  protected:
   friend class CallSpecializer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
@@ -7047,6 +7047,10 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
                     TemplateDartCall<0>* call)
       : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
     ASSERT(call->type_args_len() == 0);
+    ASSERT(!call->IsInstanceCallBase() ||
+           !call->AsInstanceCallBase()->HasNonSmiAssignableInterface(
+               Thread::Current()->zone()));
+
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -7086,6 +7090,10 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
         call_(call),
         is_negated_(false) {
     ASSERT(call->type_args_len() == 0);
+    ASSERT(!call->IsInstanceCallBase() ||
+           !call->AsInstanceCallBase()->HasNonSmiAssignableInterface(
+               Thread::Current()->zone()));
+
     SetInputAt(0, left);
     SetInputAt(1, right);
   }

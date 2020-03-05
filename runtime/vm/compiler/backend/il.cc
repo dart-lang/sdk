@@ -4287,6 +4287,17 @@ static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   }
 }
 
+bool InstanceCallBaseInstr::HasNonSmiAssignableInterface(Zone* zone) const {
+  if (!interface_target().IsNull()) {
+    const AbstractType& target_type = AbstractType::Handle(
+        zone, Class::Handle(zone, interface_target().Owner()).RareType());
+    if (!CompileType::Smi().IsAssignableTo(target_type)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
   if (FLAG_precompiled_mode && !receiver_is_not_smi()) {
     if (Receiver()->Type()->IsNotSmi()) {
@@ -4294,12 +4305,8 @@ void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
       return;
     }
 
-    if (!interface_target().IsNull()) {
-      const AbstractType& target_type = AbstractType::Handle(
-          zone, Class::Handle(zone, interface_target().Owner()).RareType());
-      if (!CompileType::Smi().IsAssignableTo(target_type)) {
-        set_receiver_is_not_smi(true);
-      }
+    if (HasNonSmiAssignableInterface(zone)) {
+      set_receiver_is_not_smi(true);
     }
   }
 }

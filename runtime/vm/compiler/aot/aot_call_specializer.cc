@@ -220,6 +220,13 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
 
 static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
   ASSERT(instr->type_args_len() == 0);
+
+  // If Smi is not assignable to the interface target of the call, the receiver
+  // is definitely not a Smi.
+  if (instr->HasNonSmiAssignableInterface(Thread::Current()->zone())) {
+    return false;
+  }
+
   // Phis with at least one known smi are // guessed to be likely smi as well.
   for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
     PhiInstr* phi = instr->ArgumentAt(i)->AsPhi();
@@ -472,8 +479,14 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     CompileType* right_type = right_value->Type();
 
     const bool is_equality_op = Token::IsEqualityOperator(op_kind);
-    const bool has_nullable_int_args =
+    bool has_nullable_int_args =
         left_type->IsNullableInt() && right_type->IsNullableInt();
+
+    if (auto* call = instr->AsInstanceCall()) {
+      if (call->HasNonSmiAssignableInterface(zone())) {
+        has_nullable_int_args = false;
+      }
+    }
 
     // NOTE: We cannot use strict comparisons if the receiver has an overridden
     // == operator or if either side can be a double, since 1.0 == 1.
