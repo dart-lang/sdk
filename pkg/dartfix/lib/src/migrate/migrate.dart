@@ -187,16 +187,19 @@ class MigrateCommand extends Command {
     if (options.webPreview) {
       String url = migrationResults.urls.first;
 
-      logger.stdout(ansi.emphasized('Migration results available:'));
-      logger.stdout('Visit $url to see the migration results.');
+      logger.stdout(ansi.emphasized('View migration results:'));
 
       // TODO(devoncarew): Open a browser automatically.
+      logger.stdout('''
+Visit:
+  
+  ${ansi.emphasized(url)}
 
-      logger.stdout('');
-      logger.stdout('To apply these changes, open the web preview or re-run '
-          'the tool with --${MigrateOptions.applyChangesOption}.');
+to see the migration results. Use the interactive web view to review, improve, or apply
+the results (alternatively, to apply the results without using the web preview, re-run
+the tool with --${MigrateOptions.applyChangesOption}).
+''');
 
-      logger.stdout('');
       logger.stdout('When finished with the preview, hit ctrl-c '
           'to terminate this process.');
 

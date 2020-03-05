@@ -38,7 +38,7 @@ analyzer:
 Then, run the migration tool from the top-level of the package directory:
 
 ```
-<sdk-repo>/xcodebuild/ReleaseX64NNBD/dart <sdk-repo>/pkg/dartdev/bin/dartdev.dart migrate .
+<sdk-repo>/xcodebuild/ReleaseX64NNBD/dart migrate .
 ```
 
 The migration tool will run, print the proposed changes to the console, and
