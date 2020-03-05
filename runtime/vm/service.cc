@@ -2808,7 +2808,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  if (!KernelIsolate::IsRunning()) {
+  if (!KernelIsolate::IsRunning() && !KernelIsolate::Start()) {
     // Assume we are in dart1 mode where separate compilation is not required.
     // 0-length kernelBytes signals that we should evaluate expression in dart1
     // mode.

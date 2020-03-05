@@ -43,6 +43,7 @@ class DillLoader extends Loader {
       {bool filter(Uri uri), int byteCount: 0}) {
     List<Library> componentLibraries = component.libraries;
     List<Uri> requestedLibraries = <Uri>[];
+    List<Uri> requestedLibrariesFileUri = <Uri>[];
     DillTarget target = this.target;
     for (int i = 0; i < componentLibraries.length; i++) {
       Library library = componentLibraries[i];
@@ -51,11 +52,13 @@ class DillLoader extends Loader {
         libraries.add(library);
         target.addLibrary(library);
         requestedLibraries.add(uri);
+        requestedLibrariesFileUri.add(library.fileUri);
       }
     }
     List<DillLibraryBuilder> result = <DillLibraryBuilder>[];
     for (int i = 0; i < requestedLibraries.length; i++) {
-      result.add(read(requestedLibraries[i], -1));
+      result.add(read(requestedLibraries[i], -1,
+          fileUri: requestedLibrariesFileUri[i]));
     }
     target.uriToSource.addAll(component.uriToSource);
     this.byteCount += byteCount;

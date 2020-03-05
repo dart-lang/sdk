@@ -26,14 +26,19 @@ main() {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   final sdkRoot = computePlatformBinariesLocation();
-  final options = new CompilerOptions()
-    ..sdkRoot = sdkRoot
-    ..target = new VmTarget(new TargetFlags())
-    ..linkedDependencies = <Uri>[platformKernel]
-    ..onDiagnostic = (DiagnosticMessage message) {
-      fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
-    }
-    ..environmentDefines = const {};
+
+  CompilerOptions getFreshOptions() {
+    return new CompilerOptions()
+      ..sdkRoot = sdkRoot
+      ..target = new VmTarget(new TargetFlags())
+      ..linkedDependencies = <Uri>[platformKernel]
+      ..onDiagnostic = (DiagnosticMessage message) {
+        fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
+      }
+      ..environmentDefines = const {};
+  }
+
+  final options = getFreshOptions();
 
   group('basic', () {
     Directory mytest;
@@ -69,13 +74,8 @@ main() {
     });
 
     test('compile exclude sources', () async {
-      CompilerOptions optionsExcludeSources = new CompilerOptions()
-        ..sdkRoot = options.sdkRoot
-        ..target = options.target
-        ..linkedDependencies = options.linkedDependencies
-        ..onDiagnostic = options.onDiagnostic
-        ..embedSourceText = false
-        ..environmentDefines = options.environmentDefines;
+      CompilerOptions optionsExcludeSources = getFreshOptions()
+        ..embedSourceText = false;
       IncrementalCompiler compiler =
           new IncrementalCompiler(optionsExcludeSources, main.uri);
       Component component = await compiler.compile();
@@ -97,15 +97,11 @@ main() {
 
     test('compile expressions errors are not re-reported', () async {
       var errorsReported = 0;
-      CompilerOptions optionsAcceptErrors = new CompilerOptions()
-        ..sdkRoot = options.sdkRoot
-        ..target = options.target
-        ..linkedDependencies = options.linkedDependencies
+      CompilerOptions optionsAcceptErrors = getFreshOptions()
         ..onDiagnostic = (DiagnosticMessage message) {
           errorsReported++;
           message.plainTextFormatted.forEach(print);
-        }
-        ..environmentDefines = options.environmentDefines;
+        };
       IncrementalCompiler compiler =
           new IncrementalCompiler(optionsAcceptErrors, main.uri);
       await compiler.compile();
@@ -616,9 +612,22 @@ main() {
   });
 
   group('reload', () {
+    Directory mytest;
+
+    setUpAll(() {
+      mytest = Directory.systemTemp.createTempSync('incremental');
+    });
+
+    tearDownAll(() {
+      try {
+        mytest.deleteSync(recursive: true);
+      } catch (_) {
+        // Ignore errors;
+      }
+    });
+
     test('picks up after rejected delta', () async {
-      var systemTempDir = Directory.systemTemp;
-      var file = new File('${systemTempDir.path}/foo.dart')..createSync();
+      var file = new File('${mytest.path}/foo.dart')..createSync();
       file.writeAsStringSync("import 'bar.dart';\n"
           "import 'baz.dart';\n"
           "main() {\n"
@@ -626,17 +635,17 @@ main() {
           "  openReceivePortSoWeWontDie();"
           "}\n");
 
-      var fileBar = new File('${systemTempDir.path}/bar.dart')..createSync();
+      var fileBar = new File('${mytest.path}/bar.dart')..createSync();
       fileBar.writeAsStringSync("class A<T> { int _a; }\n");
 
-      var fileBaz = new File('${systemTempDir.path}/baz.dart')..createSync();
+      var fileBaz = new File('${mytest.path}/baz.dart')..createSync();
       fileBaz.writeAsStringSync("import 'dart:isolate';\n"
           "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n");
 
       IncrementalCompiler compiler = new IncrementalCompiler(options, file.uri);
       Component component = await compiler.compile();
 
-      File outputFile = new File('${systemTempDir.path}/foo.dart.dill');
+      File outputFile = new File('${mytest.path}/foo.dart.dill');
       await _writeProgramToFile(component, outputFile);
 
       final List<String> vmArgs = [
@@ -744,9 +753,11 @@ main() {
           "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n");
 
       Uri packageEntry = Uri.parse('package:foo/foo.dart');
-      options.packagesFileUri = packageUri;
+
+      CompilerOptions optionsModified = getFreshOptions()
+        ..packagesFileUri = packageUri;
       IncrementalCompiler compiler =
-          new IncrementalCompiler(options, packageEntry);
+          new IncrementalCompiler(optionsModified, packageEntry);
       {
         Component component = await compiler.compile(entryPoint: packageEntry);
         File outputFile = new File('${mytest.path}/foo.dart.dill');
@@ -775,6 +786,471 @@ main() {
       }
     });
   });
+
+  group('expression evaluation', () {
+    Directory mytest;
+    Process vm;
+
+    setUpAll(() {
+      mytest = Directory.systemTemp.createTempSync('expression_evaluation');
+    });
+
+    tearDownAll(() {
+      try {
+        mytest.deleteSync(recursive: true);
+      } catch (_) {
+        // Ignore errors;
+      }
+      try {
+        vm.kill();
+      } catch (_) {
+        // Ignore errors;
+      }
+    });
+
+    launchBreakAndEvaluate(File scriptOrDill, String scriptUriToBreakIn,
+        int lineToBreakAt, List<String> expressionsAndExpectedResults,
+        {Future Function(RemoteVm remoteVm) callback}) async {
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        "--pause-isolates-on-start",
+        "--enable-vm-service:0",
+        "--disable-service-auth-codes",
+        scriptOrDill.path
+      ]);
+
+      const kObservatoryListening = 'Observatory listening on ';
+      final RegExp observatoryPortRegExp =
+          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)/");
+      int port;
+      final splitter = new LineSplitter();
+      Completer<String> portLineCompleter = new Completer<String>();
+      vm.stdout
+          .transform(utf8.decoder)
+          .transform(splitter)
+          .listen((String s) async {
+        print("vm stdout: $s");
+        if (s.startsWith(kObservatoryListening)) {
+          expect(observatoryPortRegExp.hasMatch(s), isTrue);
+          final match = observatoryPortRegExp.firstMatch(s);
+          port = int.parse(match.group(1));
+          RemoteVm remoteVm = new RemoteVm(port);
+
+          // Wait for the script to have loaded.
+          while (true) {
+            Map isolate = await remoteVm.getIsolate();
+            Map pauseEvent = isolate["pauseEvent"];
+            if (pauseEvent["kind"] == "PauseStart") break;
+          }
+
+          var breakpoint = await findScriptAndBreak(
+              remoteVm, scriptUriToBreakIn, lineToBreakAt);
+          await remoteVm.resume();
+          await waitForScriptToHavePaused(remoteVm);
+          await evaluateExpressions(expressionsAndExpectedResults, remoteVm);
+          await deletePossibleBreakpoint(remoteVm, breakpoint);
+
+          if (callback != null) {
+            await callback(remoteVm);
+          }
+
+          await remoteVm.resume();
+
+          if (!portLineCompleter.isCompleted) {
+            portLineCompleter.complete("done");
+          }
+        }
+      });
+      bool gotStdErrOutput = false;
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+        gotStdErrOutput = true;
+      });
+      await portLineCompleter.future;
+      int exitCode = await vm.exitCode;
+      print("Compiler terminated with ${exitCode} exit code");
+      expect(exitCode, equals(0));
+      expect(gotStdErrOutput, isFalse);
+    }
+
+    test('from source', () async {
+      Directory dir = mytest.createTempSync();
+      File mainFile = new File.fromUri(dir.uri.resolve("main.dart"));
+      mainFile.writeAsStringSync(r"""
+        var hello = "Hello";
+        main() {
+          var s = "$hello world!";
+          print(s);
+        }
+        int extra() { return 22; }
+      """);
+
+      await launchBreakAndEvaluate(mainFile, mainFile.uri.toString(), 4, [
+        // 1st expression
+        "s.length",
+        "12",
+
+        // 2nd expression
+        "s",
+        "Hello world!",
+
+        // 3rd expression
+        "hello",
+        "Hello",
+
+        // 4th expression
+        "extra()",
+        "22",
+      ]);
+    });
+
+    test('from dill', () async {
+      Directory dir = mytest.createTempSync();
+      File mainFile = new File.fromUri(dir.uri.resolve("main.dart"));
+      mainFile.writeAsStringSync(r"""
+        var hello = "Hello";
+        main() {
+          var s = "$hello world!";
+          print(s);
+        }
+        int extra() { return 22; }
+      """);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, mainFile.uri);
+      Component component = await compiler.compile();
+      File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
+      IOSink sink = mainDill.openWrite();
+      new BinaryPrinter(sink).writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+
+      mainFile.deleteSync();
+
+      await launchBreakAndEvaluate(mainDill, mainFile.uri.toString(), 4, [
+        // 1st expression
+        "s.length",
+        "12",
+
+        // 2nd expression
+        "s",
+        "Hello world!",
+
+        // 3rd expression
+        "hello",
+        "Hello",
+
+        // 4th expression
+        "extra()",
+        "22",
+      ]);
+    });
+
+    test('from dill with reload', () async {
+      Directory dir = mytest.createTempSync();
+      File mainFile = new File.fromUri(dir.uri.resolve("main.dart"));
+      mainFile.writeAsStringSync(r"""
+        import 'dart:async';
+        import 'helper.dart';
+        main() {
+          int latestReloadTime;
+          int noChangeCount = 0;
+          int numChanges = 0;
+          new Timer.periodic(new Duration(milliseconds: 5), (timer) async {
+            var result = reloadTime();
+            if (latestReloadTime != result) {
+              latestReloadTime = result;
+              numChanges++;
+              helperMethod();
+            } else {
+              noChangeCount++;
+            }
+            if (latestReloadTime == 42) {
+              timer.cancel();
+            }
+            if (numChanges > 20) {
+              timer.cancel();
+            }
+            if (noChangeCount >= 400) {
+              // ~2 seconds with no change.
+              throw "Expected to be done but wasn't";
+            }
+          });
+        }
+      """);
+      File helperFile = new File.fromUri(dir.uri.resolve("helper.dart"));
+      helperFile.writeAsStringSync(r"""
+        int reloadTime() {
+          return 0;
+        }
+        void helperMethod() {
+          var hello = "Hello";
+          var s = "$hello world!";
+          print(s);
+        }
+      """);
+      IncrementalCompiler compiler =
+          new IncrementalCompiler(options, mainFile.uri);
+      Component component = await compiler.compile();
+      File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
+      IOSink sink = mainDill.openWrite();
+      new BinaryPrinter(sink).writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      print("=> Notice main file has size ${mainDill.lengthSync()}");
+
+      helperFile.writeAsStringSync(r"""
+        int reloadTime() {
+          return 1;
+        }
+        void helperMethod() {
+          var hello = "Hello";
+          var s = "$hello world!!!";
+          print(s);
+        }
+        int helperMethod2() {
+          return 42;
+        }
+      """);
+      compiler.invalidate(helperFile.uri);
+      component = await compiler.compile();
+      File partial1Dill =
+          new File.fromUri(mainFile.uri.resolve("partial1.dill"));
+      sink = partial1Dill.openWrite();
+      new BinaryPrinter(sink).writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      print("=> Notice partial file #1 has size ${partial1Dill.lengthSync()}");
+
+      helperFile.writeAsStringSync(r"""
+        int reloadTime() {
+          return 2;
+        }
+        void helperMethod() {
+          var hello = "Hello";
+          var s = "$hello world!!!!";
+          print(s);
+        }
+        int helperMethod2() {
+          return 21;
+        }
+        int helperMethod3() {
+          return 84;
+        }
+      """);
+      compiler.invalidate(helperFile.uri);
+      component = await compiler.compile();
+      File partial2Dill =
+          new File.fromUri(mainFile.uri.resolve("partial2.dill"));
+      sink = partial2Dill.openWrite();
+      new BinaryPrinter(sink).writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      print("=> Notice partial file #2 has size ${partial2Dill.lengthSync()}");
+
+      mainFile.deleteSync();
+      helperFile.deleteSync();
+
+      await launchBreakAndEvaluate(mainDill, helperFile.uri.toString(), 7, [
+        // 1st expression
+        "s.length",
+        "12",
+
+        // 2nd expression
+        "s",
+        "Hello world!",
+
+        // 3rd expression
+        "hello",
+        "Hello",
+
+        // 4th expression
+        "reloadTime()",
+        "0",
+      ], callback: (RemoteVm remoteVm) async {
+        for (int q = 0; q < 10; q++) {
+          var reloadResult = await remoteVm.reload(partial1Dill.uri);
+          expect(reloadResult is Map, isTrue);
+          expect(reloadResult["success"], equals(true));
+
+          await remoteVm.forceGc();
+
+          var breakpoint =
+              await findScriptAndBreak(remoteVm, helperFile.uri.toString(), 7);
+          await remoteVm.resume();
+          await waitForScriptToHavePaused(remoteVm);
+          await evaluateExpressions([
+            // 1st expression
+            "s.length",
+            "14",
+
+            // 2nd expression
+            "s",
+            "Hello world!!!",
+
+            // 3rd expression
+            "hello",
+            "Hello",
+
+            // 4th expression
+            "reloadTime()",
+            "1",
+
+            // 5th expression
+            "helperMethod2()",
+            "42",
+          ], remoteVm);
+          await deletePossibleBreakpoint(remoteVm, breakpoint);
+
+          reloadResult = await remoteVm.reload(partial2Dill.uri);
+          expect(reloadResult is Map, isTrue);
+          expect(reloadResult["success"], equals(true));
+
+          await remoteVm.forceGc();
+
+          breakpoint =
+              await findScriptAndBreak(remoteVm, helperFile.uri.toString(), 7);
+          await remoteVm.resume();
+          await waitForScriptToHavePaused(remoteVm);
+          await evaluateExpressions([
+            // 1st expression
+            "s.length",
+            "15",
+
+            // 2nd expression
+            "s",
+            "Hello world!!!!",
+
+            // 3rd expression
+            "hello",
+            "Hello",
+
+            // 4th expression
+            "reloadTime()",
+            "2",
+
+            // 5th expression
+            "helperMethod2()",
+            "21",
+
+            // 6th expression
+            "helperMethod3()",
+            "84",
+          ], remoteVm);
+          await deletePossibleBreakpoint(remoteVm, breakpoint);
+        }
+      });
+    });
+
+    test('from dill with package uri', () async {
+      // 2 iterations: One where the .packages file is deleted, and one where
+      // it is not.
+      for (int i = 0; i < 2; i++) {
+        Directory dir = mytest.createTempSync();
+        File mainFile = new File.fromUri(dir.uri.resolve("main.dart"));
+        mainFile.writeAsStringSync(r"""
+          var hello = "Hello";
+          main() {
+            var s = "$hello world!";
+            print(s);
+          }
+          int extra() { return 22; }
+        """);
+
+        File packagesFile = new File.fromUri(dir.uri.resolve(".packages"));
+        packagesFile.writeAsStringSync("foo:.");
+
+        Uri mainUri = Uri.parse("package:foo/main.dart");
+
+        CompilerOptions optionsModified = getFreshOptions()
+          ..packagesFileUri = packagesFile.uri;
+        IncrementalCompiler compiler =
+            new IncrementalCompiler(optionsModified, mainUri);
+
+        Component component = await compiler.compile();
+        File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
+        IOSink sink = mainDill.openWrite();
+        new BinaryPrinter(sink).writeComponentFile(component);
+        await sink.flush();
+        await sink.close();
+
+        mainFile.deleteSync();
+        if (i == 0) {
+          packagesFile.deleteSync();
+        }
+
+        await launchBreakAndEvaluate(mainDill, mainUri.toString(), 4, [
+          // 1st expression
+          "s.length",
+          "12",
+
+          // 2nd expression
+          "s",
+          "Hello world!",
+
+          // 3rd expression
+          "hello",
+          "Hello",
+
+          // 4th expression
+          "extra()",
+          "22",
+        ]);
+
+        try {
+          dir.deleteSync(recursive: true);
+        } catch (e) {
+          // ignore.
+        }
+      }
+    });
+  });
+}
+
+Future evaluateExpressions(
+    List<String> expressionsAndExpectedResults, RemoteVm remoteVm) async {
+  for (int i = 0; i < expressionsAndExpectedResults.length; i += 2) {
+    String expression = expressionsAndExpectedResults[i];
+    String expectedResult = expressionsAndExpectedResults[i + 1];
+
+    print("Evaluating $expression (expecting $expectedResult)");
+    var result = await remoteVm.evaluateInFrame(expression);
+    expect(result is Map, isTrue);
+    expect(result["type"], equals("@Instance"));
+    expect(result["valueAsString"], equals(expectedResult));
+  }
+}
+
+Future waitForScriptToHavePaused(RemoteVm remoteVm) async {
+  // Wait for the script to have paused.
+  while (true) {
+    Map isolate = await remoteVm.getIsolate();
+    Map pauseEvent = isolate["pauseEvent"];
+    if (pauseEvent["kind"] == "PauseBreakpoint") break;
+  }
+}
+
+Future findScriptAndBreak(
+    RemoteVm remoteVm, String scriptUriToBreakIn, int lineToBreakAt) async {
+  Map scriptsMap = await remoteVm.getScripts();
+  List scripts = scriptsMap["scripts"];
+  String scriptId;
+  for (int i = 0; i < scripts.length; i++) {
+    Map script = scripts[i];
+    String scriptUri = script["uri"];
+    if (scriptUri == scriptUriToBreakIn) {
+      scriptId = script["id"];
+      break;
+    }
+  }
+  expect(scriptId, isNotNull);
+
+  return await remoteVm.addBreakpoint(scriptId, lineToBreakAt);
+}
+
+Future deletePossibleBreakpoint(
+    RemoteVm remoteVm, dynamic possibleBreakpoint) async {
+  if (possibleBreakpoint is Map && possibleBreakpoint["id"] is String) {
+    return await remoteVm.removeBreakpoint(possibleBreakpoint["id"]);
+  }
 }
 
 _writeProgramToFile(Component component, File outputFile) async {
@@ -889,6 +1365,46 @@ class RemoteVm {
       'isolateId': id,
       'objectId': objectId,
     });
+  }
+
+  Future addBreakpoint(String scriptId, int line) async {
+    var id = await mainId;
+    return await rpc.sendRequest('addBreakpoint', {
+      'isolateId': id,
+      'scriptId': scriptId,
+      'line': line,
+    });
+  }
+
+  Future removeBreakpoint(String breakpointId) async {
+    var id = await mainId;
+    return await rpc.sendRequest('removeBreakpoint', {
+      'isolateId': id,
+      'breakpointId': breakpointId,
+    });
+  }
+
+  Future evaluateInFrame(String expression) async {
+    var id = await mainId;
+    var frameIndex = 0;
+    return await rpc.sendRequest('evaluateInFrame', {
+      'isolateId': id,
+      "frameIndex": frameIndex,
+      'expression': expression,
+    });
+  }
+
+  Future forceGc() async {
+    int expectGcAfter = new DateTime.now().millisecondsSinceEpoch;
+    while (true) {
+      var id = await mainId;
+      Map result = await rpc.sendRequest('getAllocationProfile', {
+        'isolateId': id,
+        "gc": true,
+      });
+      String lastGc = result["dateLastServiceGC"];
+      if (lastGc != null && int.parse(lastGc) >= expectGcAfter) return;
+    }
   }
 
   /// Close any connections used to communicate with the VM.

@@ -439,6 +439,27 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CloseNativePort(port_);
   }
 
+  intptr_t setDillData(Dart_CObject** dills_array,
+                       intptr_t dill_num,
+                       const uint8_t* buffer,
+                       intptr_t buffer_size) {
+    if (buffer != nullptr) {
+      dills_array[dill_num] = new Dart_CObject;
+      dills_array[dill_num]->type = Dart_CObject_kExternalTypedData;
+      dills_array[dill_num]->value.as_external_typed_data.type =
+          Dart_TypedData_kUint8;
+      dills_array[dill_num]->value.as_external_typed_data.length = buffer_size;
+      dills_array[dill_num]->value.as_external_typed_data.data =
+          const_cast<uint8_t*>(buffer);
+      dills_array[dill_num]->value.as_external_typed_data.peer =
+          const_cast<uint8_t*>(buffer);
+      dills_array[dill_num]->value.as_external_typed_data.callback =
+          PassThroughFinalizer;
+      dill_num++;
+    }
+    return dill_num;
+  }
+
   Dart_KernelCompilationResult SendAndWaitForResponse(
       Dart_Port kernel_port,
       const char* expression,
@@ -517,6 +538,86 @@ class KernelCompilationRequest : public ValueObject {
     isolate_id.value.as_int64 =
         isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
 
+    IsolateGroupSource* source = Isolate::Current()->source();
+    intptr_t num_dills = 0;
+    if (source->kernel_buffer != nullptr) {
+      num_dills++;
+    }
+    if (source->script_kernel_buffer != nullptr) {
+      num_dills++;
+    }
+    Array& hot_reload_blobs = Array::Handle();
+    if (source->hot_reload_blobs_ != nullptr) {
+      hot_reload_blobs = source->hot_reload_blobs_;
+      WeakProperty& weak_property = WeakProperty::Handle();
+      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
+        weak_property ^= hot_reload_blobs.At(i);
+        if (weak_property.key() != ExternalTypedData::null()) {
+          num_dills++;
+        }
+      }
+    }
+    // TODO(jensj): Get the platform somehow. Currently the dart side simply
+    // loads the dill from file.
+
+    Dart_CObject dills_object;
+    dills_object.type = Dart_CObject_kArray;
+    dills_object.value.as_array.length = num_dills;
+
+    Dart_CObject** dills_array = new Dart_CObject*[num_dills];
+    intptr_t dill_num = 0;
+    dill_num = setDillData(dills_array, dill_num, source->kernel_buffer,
+                           source->kernel_buffer_size);
+    dill_num = setDillData(dills_array, dill_num, source->script_kernel_buffer,
+                           source->script_kernel_size);
+    if (!hot_reload_blobs.IsNull()) {
+      WeakProperty& weak_property = WeakProperty::Handle();
+      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
+        weak_property ^= hot_reload_blobs.At(i);
+        if (weak_property.key() != ExternalTypedData::null()) {
+          ExternalTypedData& externalTypedData = ExternalTypedData::Handle(
+              thread->zone(), ExternalTypedData::RawCast(weak_property.key()));
+          NoSafepointScope no_safepoint(thread);
+          const uint8_t* data = const_cast<uint8_t*>(
+              reinterpret_cast<uint8_t*>(externalTypedData.DataAddr(0)));
+          dill_num = setDillData(dills_array, dill_num, data,
+                                 externalTypedData.Length());
+        }
+      }
+    }
+    dills_object.value.as_array.values = dills_array;
+
+    Dart_CObject hot_reload_count;
+    hot_reload_count.type = Dart_CObject_kInt64;
+    hot_reload_count.value.as_int64 = source->num_hot_reloads_;
+
+    Dart_CObject suppress_warnings;
+    suppress_warnings.type = Dart_CObject_kBool;
+    suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
+
+    Dart_CObject enable_asserts;
+    enable_asserts.type = Dart_CObject_kBool;
+    enable_asserts.value.as_bool =
+        isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
+
+    intptr_t num_experimental_flags = experimental_flags->length();
+    Dart_CObject** experimental_flags_array =
+        new Dart_CObject*[num_experimental_flags];
+    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
+      experimental_flags_array[i] = new Dart_CObject;
+      experimental_flags_array[i]->type = Dart_CObject_kString;
+      experimental_flags_array[i]->value.as_string = (*experimental_flags)[i];
+    }
+    Dart_CObject experimental_flags_object;
+    experimental_flags_object.type = Dart_CObject_kArray;
+    experimental_flags_object.value.as_array.values = experimental_flags_array;
+    experimental_flags_object.value.as_array.length = num_experimental_flags;
+
+    Dart_CObject bytecode;
+    bytecode.type = Dart_CObject_kBool;
+    bytecode.value.as_bool =
+        FLAG_enable_interpreter || FLAG_use_bytecode_compiler;
+
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
     Dart_CObject* message_arr[] = {&tag,
@@ -527,7 +628,13 @@ class KernelCompilationRequest : public ValueObject {
                                    &type_definitions_object,
                                    &library_uri_object,
                                    &class_object,
-                                   &is_static_object};
+                                   &is_static_object,
+                                   &dills_object,
+                                   &hot_reload_count,
+                                   &suppress_warnings,
+                                   &enable_asserts,
+                                   &experimental_flags_object,
+                                   &bytecode};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
 
@@ -554,6 +661,16 @@ class KernelCompilationRequest : public ValueObject {
       delete type_definitions_array[i];
     }
     delete[] type_definitions_array;
+
+    for (intptr_t i = 0; i < num_dills; ++i) {
+      delete dills_array[i];
+    }
+    delete[] dills_array;
+
+    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
+      delete experimental_flags_array[i];
+    }
+    delete[] experimental_flags_array;
 
     return result_;
   }

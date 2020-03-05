@@ -628,6 +628,62 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
+    ExternalTypedData& external_typed_data =
+        ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->raw());
+    IsolateGroupSource* source = Isolate::Current()->source();
+    Array& hot_reload_blobs = Array::Handle();
+    bool saved_external_typed_data = false;
+    if (source->hot_reload_blobs_ != nullptr) {
+      hot_reload_blobs = source->hot_reload_blobs_;
+
+      // Walk the array, and (if stuff was removed) compact and reuse the space.
+      // Note that the space has to be compacted as the ordering is important.
+      WeakProperty& weak_property = WeakProperty::Handle();
+      WeakProperty& weak_property_tmp = WeakProperty::Handle();
+      ExternalTypedData& existing_entry = ExternalTypedData::Handle(Z);
+      intptr_t next_entry_index = 0;
+      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
+        weak_property ^= hot_reload_blobs.At(i);
+        if (weak_property.key() != ExternalTypedData::null()) {
+          if (i != next_entry_index) {
+            existing_entry = ExternalTypedData::RawCast(weak_property.key());
+            weak_property_tmp ^= hot_reload_blobs.At(next_entry_index);
+            weak_property_tmp.set_key(existing_entry);
+          }
+          next_entry_index++;
+        }
+      }
+      if (next_entry_index < hot_reload_blobs.Length()) {
+        // There's now space to re-use.
+        weak_property ^= hot_reload_blobs.At(next_entry_index);
+        weak_property.set_key(external_typed_data);
+        next_entry_index++;
+        saved_external_typed_data = true;
+      }
+      if (next_entry_index < hot_reload_blobs.Length()) {
+        ExternalTypedData& nullExternalTypedData = ExternalTypedData::Handle(Z);
+        while (next_entry_index < hot_reload_blobs.Length()) {
+          // Null out any extra spaces.
+          weak_property ^= hot_reload_blobs.At(next_entry_index);
+          weak_property.set_key(nullExternalTypedData);
+          next_entry_index++;
+        }
+      }
+    }
+    if (!saved_external_typed_data) {
+      const WeakProperty& weak_property =
+          WeakProperty::Handle(WeakProperty::New(Heap::kOld));
+      weak_property.set_key(external_typed_data);
+
+      intptr_t length =
+          hot_reload_blobs.IsNull() ? 0 : hot_reload_blobs.Length();
+      Array& new_array =
+          Array::Handle(Array::Grow(hot_reload_blobs, length + 1, Heap::kOld));
+      new_array.SetAt(length, weak_property);
+      source->hot_reload_blobs_ = new_array.raw();
+    }
+    source->num_hot_reloads_++;
+
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(
         kernel_program.get(), first_isolate_, modified_libs_, force_reload,

@@ -198,7 +198,9 @@ class IsolateGroupSource {
         kernel_buffer_size(kernel_buffer_size),
         flags(flags),
         script_kernel_buffer(nullptr),
-        script_kernel_size(-1) {}
+        script_kernel_size(-1),
+        hot_reload_blobs_(nullptr),
+        num_hot_reloads_(0) {}
   ~IsolateGroupSource() { free(name); }
 
   // The arguments used for spawning in
@@ -219,6 +221,10 @@ class IsolateGroupSource {
   // invoking the "main" script.
   // Any newly spawned isolates need to use this permutation map.
   std::unique_ptr<intptr_t[]> cid_permutation_map;
+
+  // List of weak pointers to external typed data for hot reload blobs.
+  RawArray* hot_reload_blobs_;
+  intptr_t num_hot_reloads_;
 };
 
 // Tracks idle time and notifies heap when idle time expired.
