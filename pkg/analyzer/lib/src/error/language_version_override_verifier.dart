@@ -9,7 +9,7 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// Finds invalid, or misplaced language override comments.
 class LanguageVersionOverrideVerifier {
-  static final _overrideCommentLine = RegExp(r'@dart\s*=\s*\d+\.\d+');
+  static final _overrideCommentLine = RegExp(r'^\s*//\s*@dart\s*=\s*\d+\.\d+');
 
   final ErrorReporter _errorReporter;
 

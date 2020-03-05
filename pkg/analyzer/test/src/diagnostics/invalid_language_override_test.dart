@@ -77,16 +77,14 @@ int i = 0;
 ''');
   }
 
-  test_location_afterClass_multiline() async {
+  test_location_afterClass() async {
     await assertErrorsInCode(r'''
 class A {
-  /**
-   * @dart = 2.5
-   */
+  // @dart = 2.5
   void test() {}
 }
 ''', [
-      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 21, 11),
+      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 15, 11),
     ]);
   }
 
@@ -116,6 +114,17 @@ class A {}
     await assertNoErrorsInCode(r'''
 // @dart = 2.5
 class A {}
+''');
+  }
+
+  test_location_notLineStart() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  /**
+   * For example '// @dart = 2.1'.
+   */
+  void test() {}
+}
 ''');
   }
 
