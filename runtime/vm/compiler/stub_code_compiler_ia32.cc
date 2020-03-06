@@ -711,7 +711,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ j(NOT_EQUAL, call_target_function);
   __ EnterStubFrame();
   // Load the receiver.
-  __ movl(EDI, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ movl(EDI, FieldAddress(EDX, target::ArgumentsDescriptor::size_offset()));
   __ movl(EAX,
           Address(EBP, EDI, TIMES_HALF_WORD_SIZE,
                   target::frame_layout.param_end_from_fp * target::kWordSize));
@@ -744,7 +744,7 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Load the receiver into EAX.  The argument count in the arguments
   // descriptor in EDX is a smi.
-  __ movl(EAX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ movl(EAX, FieldAddress(EDX, target::ArgumentsDescriptor::size_offset()));
   // Two words (saved fp, stub's pc marker) in the stack above the return
   // address.
   __ movl(EAX, Address(ESP, EAX, TIMES_2, 2 * target::kWordSize));
@@ -1670,7 +1670,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ movl(EDI, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ movl(EDI, FieldAddress(EDX, target::ArgumentsDescriptor::size_offset()));
   __ movl(EAX,
           Address(EBP, EDI, TIMES_2,
                   target::frame_layout.param_end_from_fp * target::kWordSize));

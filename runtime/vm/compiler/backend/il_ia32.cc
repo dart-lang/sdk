@@ -32,7 +32,10 @@ namespace dart {
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
 LocationSummary* Instruction::MakeCallSummary(Zone* zone,
-                                              const Instruction* instr) {
+                                              const Instruction* instr,
+                                              LocationSummary* locs) {
+  // This is unused on ia32.
+  ASSERT(locs == nullptr);
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)

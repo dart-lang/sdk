@@ -33,9 +33,13 @@ namespace dart {
 // on the stack and return the result in a fixed register R0 (or V0 if
 // the return type is double).
 LocationSummary* Instruction::MakeCallSummary(Zone* zone,
-                                              const Instruction* instr) {
+                                              const Instruction* instr,
+                                              LocationSummary* locs) {
+  ASSERT(locs == nullptr || locs->always_calls());
   LocationSummary* result =
-      new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
+      ((locs == nullptr)
+           ? (new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall))
+           : locs);
   const auto representation = instr->representation();
   switch (representation) {
     case kTagged:
@@ -394,8 +398,7 @@ LocationSummary* DispatchTableCallInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // ClassId
-  summary->set_out(0, Location::RegisterLocation(R0));
-  return summary;
+  return MakeCallSummary(zone, this, summary);
 }
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
@@ -405,8 +408,7 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // Function.
-  summary->set_out(0, Location::RegisterLocation(R0));
-  return summary;
+  return MakeCallSummary(zone, this, summary);
 }
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

@@ -2191,7 +2191,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     const Function& function = *targets.TargetAt(smi_case)->target;
     GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
                            locs, function, entry_kind);
-    __ Drop(args_info.count_with_type_args);
+    __ Drop(args_info.size_with_type_args);
     if (match_found != NULL) {
       __ Jump(match_found);
     }
@@ -2241,7 +2241,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     const Function& function = *targets.TargetAt(i)->target;
     GenerateStaticDartCall(deopt_id, token_index, RawPcDescriptors::kOther,
                            locs, function, entry_kind);
-    __ Drop(args_info.count_with_type_args);
+    __ Drop(args_info.size_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);
     }

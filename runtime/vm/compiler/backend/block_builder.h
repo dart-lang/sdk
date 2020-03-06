@@ -121,6 +121,9 @@ class BlockBuilder : public ValueObject {
 
   void AddPhi(PhiInstr* phi) {
     phi->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    if (FlowGraph::NeedsPairLocation(phi->representation())) {
+      flow_graph_->alloc_ssa_temp_index();
+    }
     phi->mark_alive();
     entry_->AsJoinEntry()->InsertPhi(phi);
   }

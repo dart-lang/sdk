@@ -42,6 +42,7 @@ class ArgumentsDescriptor : public ValueObject {
   intptr_t CountWithTypeArgs() const { return FirstArgIndex() + Count(); }
   intptr_t Count() const;            // Excluding type arguments vector.
   intptr_t Size() const;             // Excluding type arguments vector.
+  intptr_t SizeWithTypeArgs() const { return FirstArgIndex() + Size(); }
   intptr_t PositionalCount() const;  // Excluding type arguments vector.
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
   RawString* NameAt(intptr_t i) const;

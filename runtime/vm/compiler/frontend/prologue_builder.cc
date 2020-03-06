@@ -28,7 +28,9 @@ static CompileType ParameterType(LocalVariable* param,
   return param->was_type_checked_by_caller()
              ? CompileType::FromAbstractType(param->type(),
                                              representation == kTagged)
-             : CompileType::Dynamic();
+             : ((representation == kTagged)
+                    ? CompileType::Dynamic()
+                    : CompileType::FromCid(kDynamicCid).CopyNonNullable());
 }
 
 bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
@@ -196,6 +198,12 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
 
   const auto update_param_offset = [&param_offset](const Function& function,
                                                    intptr_t param_id) {
+    if (param_id < 0) {
+      // Type arguments of Factory constructor is processed with parameters
+      param_offset++;
+      return;
+    }
+
     // update parameter offset
     if (function.is_unboxed_integer_parameter_at(param_id)) {
       param_offset += compiler::target::kIntSpillFactor;
@@ -209,9 +217,13 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   };
 
   for (; param < num_fixed_params; ++param) {
-    update_param_offset(function_, param);
+    const intptr_t param_index = param - (function_.IsFactory() ? 1 : 0);
+    update_param_offset(function_, param_index);
+
     const auto representation =
-        FlowGraph::ParameterRepresentationAt(function_, param);
+        ((param_index >= 0)
+             ? FlowGraph::ParameterRepresentationAt(function_, param_index)
+             : kTagged);
 
     copy_args_prologue += LoadLocal(optional_count_var);
     copy_args_prologue += LoadFpRelativeSlot(
@@ -229,7 +241,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   if (num_opt_pos_params > 0) {
     JoinEntryInstr* next_missing = NULL;
     for (intptr_t opt_param = 1; param < num_params; ++param, ++opt_param) {
-      update_param_offset(function_, param);
+      const intptr_t param_index = param - (function_.IsFactory() ? 1 : 0);
+      update_param_offset(function_, param_index);
 
       TargetEntryInstr *supplied, *missing;
       copy_args_prologue += IntConstant(opt_param);

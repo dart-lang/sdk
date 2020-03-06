@@ -877,6 +877,8 @@ class MetadataHelper {
   TranslationHelper& translation_helper_;
 
  private:
+  MetadataHelper();
+
   void SetMetadataMappings(intptr_t mappings_offset, intptr_t mappings_num);
   void ScanMetadataMappings();
 
@@ -1077,6 +1079,42 @@ class TableSelectorMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadataHelper);
 };
 
+// Information about a function regarding unboxed parameters and return value.
+class UnboxingInfoMetadata : public ZoneAllocated {
+ public:
+  enum UnboxingInfoTag {
+    kBoxed = 0,
+    kUnboxedIntCandidate = 1 << 0,
+    kUnboxedDoubleCandidate = 1 << 1,
+    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate,
+  };
+
+  UnboxingInfoMetadata() : unboxed_args_info(0) { return_info = kBoxed; }
+
+  void SetArgsCount(intptr_t num_args) {
+    ASSERT(unboxed_args_info.is_empty());
+    unboxed_args_info.SetLength(num_args);
+    unboxed_args_info.FillWith(kBoxed, 0, num_args);
+  }
+
+  GrowableArray<UnboxingInfoTag> unboxed_args_info;
+  UnboxingInfoTag return_info;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadata);
+};
+
+// Helper class which provides access to unboxing information metadata.
+class UnboxingInfoMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.unboxing-info.metadata"; }
+
+  explicit UnboxingInfoMetadataHelper(KernelReaderHelper* helper);
+
+  UnboxingInfoMetadata* GetUnboxingInfoMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadataHelper);
+};
+
 class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
@@ -1215,6 +1253,7 @@ class KernelReaderHelper {
   friend class TableSelectorMetadataHelper;
   friend class TypeParameterHelper;
   friend class TypeTranslator;
+  friend class UnboxingInfoMetadataHelper;
   friend class VariableDeclarationHelper;
   friend class ObfuscationProhibitionsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
@@ -1399,17 +1438,11 @@ class TypeTranslator {
                                const Function& function,
                                bool is_method,
                                bool is_closure,
-                               FunctionNodeHelper* function_node_helper,
-                               intptr_t correction);
+                               FunctionNodeHelper* function_node_helper);
 
  private:
-  // Correction is used to adjust the global offset from the offset relative to
-  // the library.
-  void ReadInferredType(const Function& function,
-                        intptr_t param_index,
-                        intptr_t correction);
-  void ReadInferredResultType(const Function& function,
-                              intptr_t library_kernel_offset);
+  void SetupUnboxingInfoMetadata(const Function& function,
+                                 intptr_t library_kernel_offset);
 
   void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
@@ -1448,6 +1481,7 @@ class TypeTranslator {
   ActiveClass* const active_class_;
   TypeParameterScope* type_parameter_scope_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
+  UnboxingInfoMetadataHelper unboxing_info_metadata_helper_;
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;

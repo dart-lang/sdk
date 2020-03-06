@@ -71,7 +71,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   RawArray* GetOptionalParameterNames(const Function& function);
 
   // Generate fragment which pushes all explicit parameters of [function].
-  Fragment PushExplicitParameters(const Function& function);
+  Fragment PushExplicitParameters(
+      const Function& function,
+      const Function& target = Function::null_function());
 
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);

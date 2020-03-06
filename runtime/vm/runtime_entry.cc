@@ -1323,6 +1323,7 @@ static RawFunction* InlineCacheMissHandler(
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(1));
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
@@ -1340,6 +1341,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& other = Instance::CheckedHandle(zone, arguments.ArgAt(1));
   const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(2));
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
   GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&other);

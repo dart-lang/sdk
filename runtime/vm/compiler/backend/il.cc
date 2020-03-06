@@ -4298,6 +4298,34 @@ bool InstanceCallBaseInstr::HasNonSmiAssignableInterface(Zone* zone) const {
   return false;
 }
 
+Representation InstanceCallBaseInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  // The first input is the array of types
+  // for generic functions
+  if (type_args_len() > 0) {
+    if (idx == 0) {
+      return kTagged;
+    }
+    idx--;
+  }
+  return FlowGraph::ParameterRepresentationAt(interface_target(), idx);
+}
+
+intptr_t InstanceCallBaseInstr::ArgumentsSize() const {
+  if (interface_target().IsNull()) {
+    return ArgumentCountWithoutTypeArgs() + ((type_args_len() > 0) ? 1 : 0);
+  }
+
+  return FlowGraph::ParameterOffsetAt(interface_target(),
+                                      ArgumentCountWithoutTypeArgs(),
+                                      /*last_slot=*/false) +
+         ((type_args_len() > 0) ? 1 : 0);
+}
+
+Representation InstanceCallBaseInstr::representation() const {
+  return FlowGraph::ReturnRepresentationOf(interface_target());
+}
+
 void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
   if (FLAG_precompiled_mode && !receiver_is_not_smi()) {
     if (Receiver()->Type()->IsNotSmi()) {
@@ -4410,6 +4438,38 @@ const BinaryFeedback& InstanceCallInstr::BinaryFeedback() {
   return *binary_;
 }
 
+Representation DispatchTableCallInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  if (idx == (InputCount() - 1)) {
+    return kUntagged;
+  }
+
+  // The first input is the array of types
+  // for generic functions
+  if (type_args_len() > 0) {
+    if (idx == 0) {
+      return kTagged;
+    }
+    idx--;
+  }
+  return FlowGraph::ParameterRepresentationAt(interface_target(), idx);
+}
+
+intptr_t DispatchTableCallInstr::ArgumentsSize() const {
+  if (interface_target().IsNull()) {
+    return ArgumentCountWithoutTypeArgs() + ((type_args_len() > 0) ? 1 : 0);
+  }
+
+  return FlowGraph::ParameterOffsetAt(interface_target(),
+                                      ArgumentCountWithoutTypeArgs(),
+                                      /*last_slot=*/false) +
+         ((type_args_len() > 0) ? 1 : 0);
+}
+
+Representation DispatchTableCallInstr::representation() const {
+  return FlowGraph::ReturnRepresentationOf(interface_target());
+}
+
 DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
     Zone* zone,
     const InstanceCallBaseInstr* call,
@@ -4449,7 +4509,7 @@ void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->AddNullCheck(token_pos(), function_name);
     }
   }
-  __ Drop(ArgumentCount());
+  __ Drop(ArgumentsSize());
 
   compiler->AddDispatchTableCallTarget(selector());
 }

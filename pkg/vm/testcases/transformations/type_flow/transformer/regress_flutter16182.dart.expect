@@ -7,107 +7,107 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 class T1 extends core::Object {
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::T1*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T1*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method doTest1() → void {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method doTest1() → void {
     self::ok = true;
   }
 }
 class A1 extends core::Object {
 [@vm.inferred-type.metadata=#lib::T1?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field self::T1* foo = null;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::A1*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::A1*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method call([dynamic a1 = #C1, dynamic a2 = #C1, dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = #C1, [@vm.inferred-type.metadata=#lib::T1?] dynamic a5 = #C1]) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method call([dynamic a1 = #C1, dynamic a2 = #C1, dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = #C1, [@vm.inferred-type.metadata=#lib::T1?] dynamic a5 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A1::foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A1::foo} = _in::unsafeCast<self::T1*>(a5);
   }
 }
 class B1 extends core::Object {
 [@vm.inferred-type.metadata=#lib::A1] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  field self::A1* aa1 = new self::A1::•();
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::B1*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::B1*
     : super core::Object::•()
     ;
 }
 class T2 extends core::Object {
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::T2*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T2*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method doTest2() → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method doTest2() → void {
     self::ok = true;
   }
 }
 class A2 extends core::Object {
 [@vm.inferred-type.metadata=#lib::T2?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field dynamic foo = null;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::A2*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::A2*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method call([dynamic a1 = #C1, dynamic a2 = #C1, dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = #C1, [@vm.inferred-type.metadata=#lib::T2?] dynamic a6 = #C1]) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method call([dynamic a1 = #C1, dynamic a2 = #C1, dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = #C1, [@vm.inferred-type.metadata=#lib::T2?] dynamic a6 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A2::foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A2::foo} = a6;
   }
 }
 abstract class B2Base extends core::Object {
 [@vm.inferred-type.metadata=#lib::A2] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:12,getterSelectorId:13]  field dynamic _aa = new self::A2::•();
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::B2Base*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::B2Base*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=#lib::A2] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:11]  get aa2() → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:11]  get aa2() → dynamic
     return [@vm.direct-call.metadata=#lib::B2Base::_aa] [@vm.inferred-type.metadata=#lib::A2] this.{self::B2Base::_aa};
 }
 class B2 extends self::B2Base {
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::B2*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::B2*
     : super self::B2Base::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:14,getterSelectorId:15]  method doSuperCall() → void {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:14,getterSelectorId:15] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method doSuperCall() → void {
     [@vm.call-site-attributes.metadata=receiverType:dynamic] [@vm.direct-call.metadata=#lib::A2::call] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::A2] super.{self::B2Base::aa2}.call(1, 2, 3, 4, 5, new self::T2::•());
   }
 }
 class T3 extends core::Object {
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::T3*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T3*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:16,getterSelectorId:17]  method doTest3() → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:16,getterSelectorId:17] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method doTest3() → void {
     self::ok = true;
   }
 }
 class A3 extends core::Object {
 [@vm.inferred-type.metadata=#lib::T3?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field dynamic foo = null;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::A3*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::A3*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method call([dynamic a1 = #C1, dynamic a2 = #C1, dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a6 = #C1, [@vm.inferred-type.metadata=#lib::T3?] dynamic a7 = #C1]) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method call([dynamic a1 = #C1, dynamic a2 = #C1, dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a6 = #C1, [@vm.inferred-type.metadata=#lib::T3?] dynamic a7 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A3::foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A3::foo} = a7;
   }
 }
 class B3 extends core::Object {
 [@vm.inferred-type.metadata=#lib::A3] [@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:18,getterSelectorId:19]  field self::A3* aa3 = new self::A3::•();
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::B3*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::B3*
     : super core::Object::•()
     ;
 }
 class T4 extends core::Object {
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::T4*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T4*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:20,getterSelectorId:21]  method doTest4() → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:20,getterSelectorId:21] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method doTest4() → void {
     self::ok = true;
   }
 }
 class A4 extends core::Object {
 [@vm.inferred-type.metadata=#lib::T4?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field dynamic foo = null;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::A4*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::A4*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method call([dynamic a1 = #C1, dynamic a2 = #C1, dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a6 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a7 = #C1, [@vm.inferred-type.metadata=#lib::T4?] dynamic a8 = #C1]) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method call([dynamic a1 = #C1, dynamic a2 = #C1, dynamic a3 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a4 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a5 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a6 = #C1, [@vm.inferred-type.metadata=dart.core::_Smi?] dynamic a7 = #C1, [@vm.inferred-type.metadata=#lib::T4?] dynamic a8 = #C1]) → void {
     [@vm.direct-call.metadata=#lib::A4::foo] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A4::foo} = a8;
   }
 }
 class B4 extends core::Object {
 [@vm.inferred-type.metadata=#lib::A4] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:12,getterSelectorId:13]  field dynamic _aa = new self::A4::•();
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]  synthetic constructor •() → self::B4*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::B4*
     : super core::Object::•()
     ;
-[@vm.inferred-type.metadata=#lib::A4] [@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false,getterSelectorId:22]  get aa4() → dynamic
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false,getterSelectorId:22]  get aa4() → dynamic
     return [@vm.direct-call.metadata=#lib::B4::_aa] [@vm.inferred-type.metadata=#lib::A4] this.{self::B4::_aa};
 }
 [@vm.inferred-type.metadata=dart.core::bool?]static field core::bool* ok;
@@ -115,37 +115,37 @@ class B4 extends core::Object {
 [@vm.inferred-type.metadata=dart.core::_Closure?]static field core::Function* unknown3 = () → dynamic => self::bb3;
 [@vm.inferred-type.metadata=#lib::B4?]static field dynamic bb4 = new self::B4::•();
 [@vm.inferred-type.metadata=dart.core::_Closure?]static field core::Function* unknown4 = () → dynamic => self::bb4;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method test1() → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method test1() → void {
   self::B1* bb = new self::B1::•();
   let final self::B1* #t1 = bb in let final core::int* #t2 = 1 in let final core::int* #t3 = 2 in let final core::int* #t4 = 3 in let final core::int* #t5 = 4 in let final self::T1* #t6 = new self::T1::•() in [@vm.call-site-attributes.metadata=receiverType:#lib::A1*] [@vm.direct-call.metadata=#lib::A1::call] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::B1::aa1] [@vm.inferred-type.metadata=#lib::A1] #t1.{self::B1::aa1}.{self::A1::call}(#t2, #t3, #t4, #t5, #t6);
   self::ok = false;
   [@vm.direct-call.metadata=#lib::T1::doTest1??] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::A1::foo] [@vm.inferred-type.metadata=#lib::T1?] [@vm.direct-call.metadata=#lib::B1::aa1] [@vm.inferred-type.metadata=#lib::A1] bb.{self::B1::aa1}.{self::A1::foo}.{self::T1::doTest1}();
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method test2() → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method test2() → void {
   self::B2* bb = new self::B2::•();
   [@vm.direct-call.metadata=#lib::B2::doSuperCall] [@vm.inferred-type.metadata=!? (skip check)] bb.{self::B2::doSuperCall}();
   self::ok = false;
   [@vm.direct-call.metadata=#lib::T2::doTest2??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::A2::foo] [@vm.inferred-type.metadata=#lib::T2? (receiver not int)] [@vm.direct-call.metadata=#lib::B2Base::aa2] [@vm.inferred-type.metadata=#lib::A2] bb.{self::B2Base::aa2}.foo.doTest2();
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
-static method getDynamic3() → dynamic
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method getDynamic3() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown3.call();
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method test3() → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method test3() → void {
   self::getDynamic3().aa3(1, 2, 3, 4, 5, 6, new self::T3::•());
   self::ok = false;
   [@vm.direct-call.metadata=#lib::T3::doTest3??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::A3::foo] [@vm.inferred-type.metadata=#lib::T3? (receiver not int)] [@vm.direct-call.metadata=#lib::B3::aa3??] [@vm.inferred-type.metadata=#lib::A3 (receiver not int)] [@vm.inferred-type.metadata=#lib::B3?] self::bb3.aa3.foo.doTest3();
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
-static method getDynamic4() → dynamic
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method getDynamic4() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown4.call();
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method test4() → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method test4() → void {
   self::getDynamic4().aa4(1, 2, 3, 4, 5, 6, 7, new self::T4::•());
   self::ok = false;
   [@vm.direct-call.metadata=#lib::T4::doTest4??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::A4::foo] [@vm.inferred-type.metadata=#lib::T4? (receiver not int)] [@vm.inferred-type.metadata=#lib::A4] self::getDynamic4().aa4.foo.doTest4();
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static method main() → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method main() → void {
   self::test1();
   self::test2();
   self::test3();

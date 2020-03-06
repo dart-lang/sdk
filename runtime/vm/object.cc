@@ -3593,6 +3593,8 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   Function& forwarder = Function::Handle(zone);
   forwarder ^= Object::Clone(*this, Heap::kOld);
 
+  forwarder.reset_unboxed_parameters_and_return();
+
   forwarder.set_name(mangled_name);
   forwarder.set_is_native(false);
   // TODO(dartbug.com/37737): Currently, we intentionally keep the recognized
@@ -14150,6 +14152,11 @@ intptr_t ICData::CountWithoutTypeArgs() const {
 intptr_t ICData::SizeWithoutTypeArgs() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.Size();
+}
+
+intptr_t ICData::SizeWithTypeArgs() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.SizeWithTypeArgs();
 }
 
 uint32_t ICData::DeoptReasons() const {

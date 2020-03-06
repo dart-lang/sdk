@@ -955,7 +955,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ j(NOT_EQUAL, call_target_function);
   __ EnterStubFrame();
   // Load the receiver.
-  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
   __ movq(RAX,
           Address(RBP, RDI, TIMES_HALF_WORD_SIZE,
                   target::frame_layout.param_end_from_fp * target::kWordSize));
@@ -988,7 +988,7 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Load the receiver into RAX.  The argument count in the arguments
   // descriptor in R10 is a smi.
-  __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+  __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
   // Three words (saved pp, saved fp, stub's pc marker)
   // in the stack above the return address.
   __ movq(RAX,
@@ -2024,7 +2024,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ movq(R13, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+  __ movq(R13, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
   __ movq(RAX,
           Address(RBP, R13, TIMES_4,
                   target::frame_layout.param_end_from_fp * target::kWordSize));

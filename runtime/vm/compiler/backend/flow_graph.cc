@@ -102,6 +102,9 @@ intptr_t FlowGraph::ParameterOffsetAt(const Function& function,
 
 Representation FlowGraph::ParameterRepresentationAt(const Function& function,
                                                     intptr_t index) {
+  if (function.IsNull()) {
+    return kTagged;
+  }
   ASSERT(index < function.NumParameters());
   if (function.is_unboxed_integer_parameter_at(index)) {
     return kUnboxedInt64;
@@ -114,6 +117,9 @@ Representation FlowGraph::ParameterRepresentationAt(const Function& function,
 }
 
 Representation FlowGraph::ReturnRepresentationOf(const Function& function) {
+  if (function.IsNull()) {
+    return kTagged;
+  }
   if (function.has_unboxed_integer_return()) {
     return kUnboxedInt64;
   } else if (function.has_unboxed_double_return()) {
@@ -176,6 +182,9 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
     constant =
         new (zone()) ConstantInstr(Object::ZoneHandle(zone(), object.raw()));
     constant->set_ssa_temp_index(alloc_ssa_temp_index());
+    if (NeedsPairLocation(constant->representation())) {
+      alloc_ssa_temp_index();
+    }
     AddToGraphInitialDefinitions(constant);
     constant_instr_pool_.Insert(constant);
   }
@@ -1101,18 +1110,20 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     ASSERT(FLAG_precompiled_mode || !function().is_unboxed_parameter_at(i));
     ParameterInstr* param;
 
-    if (function().is_unboxed_integer_parameter_at(i)) {
+    const intptr_t index = (function().IsFactory() ? (i - 1) : i);
+
+    if (index >= 0 && function().is_unboxed_integer_parameter_at(index)) {
       constexpr intptr_t kCorrection = compiler::target::kIntSpillFactor - 1;
       param = new (zone()) ParameterInstr(i, param_offset + kCorrection,
                                           function_entry, kUnboxedInt64);
       param_offset += compiler::target::kIntSpillFactor;
-    } else if (function().is_unboxed_double_parameter_at(i)) {
+    } else if (index >= 0 && function().is_unboxed_double_parameter_at(index)) {
       constexpr intptr_t kCorrection = compiler::target::kDoubleSpillFactor - 1;
       param = new (zone()) ParameterInstr(i, param_offset + kCorrection,
                                           function_entry, kUnboxedDouble);
       param_offset += compiler::target::kDoubleSpillFactor;
     } else {
-      ASSERT(!function().is_unboxed_parameter_at(i));
+      ASSERT(index < 0 || !function().is_unboxed_parameter_at(index));
       param =
           new (zone()) ParameterInstr(i, param_offset, function_entry, kTagged);
       param_offset++;

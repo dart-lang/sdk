@@ -949,7 +949,11 @@ class Instruction : public ZoneAllocated {
     locs_ = MakeLocationSummary(zone, optimizing);
   }
 
-  static LocationSummary* MakeCallSummary(Zone* zone, const Instruction* instr);
+  // Makes a new call location summary (or uses `locs`) and initializes the
+  // output register constraints depending on the representation of [instr].
+  static LocationSummary* MakeCallSummary(Zone* zone,
+                                          const Instruction* instr,
+                                          LocationSummary* locs = nullptr);
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) { UNIMPLEMENTED(); }
 
@@ -3854,6 +3858,25 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
 
   bool HasNonSmiAssignableInterface(Zone* zone) const;
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    if (type_args_len() > 0) {
+      if (idx == 0) {
+        return kGuardInputs;
+      }
+      idx--;
+    }
+    return interface_target_.is_unboxed_parameter_at(idx) ? kNotSpeculative
+                                                          : kGuardInputs;
+  }
+
+  virtual intptr_t ArgumentsSize() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+
+  virtual Representation representation() const;
+
  protected:
   friend class CallSpecializer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
@@ -4085,10 +4108,6 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
 
   Value* class_id() const { return InputAt(InputCount() - 1); }
 
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    return (idx == (InputCount() - 1)) ? kUntagged : kTagged;
-  }
-
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -4100,6 +4119,23 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
   virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
 
   virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    if (type_args_len() > 0) {
+      if (idx == 0) {
+        return kGuardInputs;
+      }
+      idx--;
+    }
+    return interface_target_.is_unboxed_parameter_at(idx) ? kNotSpeculative
+                                                          : kGuardInputs;
+  }
+
+  virtual intptr_t ArgumentsSize() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+
+  virtual Representation representation() const;
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -6359,6 +6395,10 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return TokenPosition::kBox; }
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
  protected:
   BoxInstr(Representation from_representation, Value* value)
       : from_representation_(from_representation) {
@@ -6383,10 +6423,6 @@ class BoxIntegerInstr : public BoxInstr {
   virtual bool ValueFitsSmi() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
-    return kNotSpeculative;
-  }
 
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();

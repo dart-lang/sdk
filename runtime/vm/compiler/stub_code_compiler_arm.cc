@@ -973,7 +973,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ b(call_target_function, NE);
   __ EnterStubFrame();
   // Load the receiver.
-  __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
+  __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::size_offset()));
   __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
   __ ldr(R8, Address(IP, target::frame_layout.param_end_from_fp *
                              target::kWordSize));
@@ -1004,7 +1004,7 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
+  __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::size_offset()));
   __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
   __ ldr(R8, Address(IP, target::frame_layout.param_end_from_fp *
                              target::kWordSize));

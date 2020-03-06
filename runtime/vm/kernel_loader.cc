@@ -1680,8 +1680,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     T.SetupFunctionParameters(klass, function,
                               true,   // is_method
                               false,  // is_closure
-                              &function_node_helper,
-                              correction_offset_ - library_kernel_offset_);
+                              &function_node_helper);
+    T.SetupUnboxingInfoMetadata(function, library_kernel_offset_);
 
     if (library.is_dart_scheme() &&
         H.IsPrivate(constructor_helper.canonical_name_)) {
@@ -2025,8 +2025,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
   T.SetupFunctionParameters(owner, function, is_method,
                             false,  // is_closure
-                            &function_node_helper,
-                            correction_offset_ - library_kernel_offset_);
+                            &function_node_helper);
+  T.SetupUnboxingInfoMetadata(function, library_kernel_offset_);
 
   // Everything else is skipped implicitly, and procedure_helper and
   // function_node_helper are no longer used.
@@ -2050,8 +2050,6 @@ void KernelLoader::LoadProcedure(const Library& library,
       library.GetMetadata(function);
     }
   }
-
-  T.ReadInferredResultType(function, library_kernel_offset_);
 }
 
 const Object& KernelLoader::ClassForScriptAt(const Class& klass,

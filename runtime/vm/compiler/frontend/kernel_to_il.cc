@@ -1796,12 +1796,28 @@ RawArray* FlowGraphBuilder::GetOptionalParameterNames(
   return names.raw();
 }
 
-Fragment FlowGraphBuilder::PushExplicitParameters(const Function& function) {
+Fragment FlowGraphBuilder::PushExplicitParameters(
+    const Function& function,
+    const Function& target /* = Function::null_function()*/) {
   Fragment instructions;
   for (intptr_t i = function.NumImplicitParameters(),
                 n = function.NumParameters();
        i < n; ++i) {
-    instructions += LoadLocal(parsed_function_->ParameterVariable(i));
+    Fragment push_param = LoadLocal(parsed_function_->ParameterVariable(i));
+    if (!target.IsNull() && target.is_unboxed_parameter_at(i)) {
+      Representation to;
+      if (target.is_unboxed_integer_parameter_at(i)) {
+        to = kUnboxedInt64;
+      } else {
+        ASSERT(target.is_unboxed_double_parameter_at(i));
+        to = kUnboxedDouble;
+      }
+      const auto unbox = UnboxInstr::Create(to, Pop(), DeoptId::kNone,
+                                            Instruction::kNotSpeculative);
+      Push(unbox);
+      push_param += Fragment(unbox);
+    }
+    instructions += push_param;
   }
   return instructions;
 }
@@ -2720,8 +2736,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   // Push receiver.
   ASSERT(function.NumImplicitParameters() == 1);
   body += LoadLocal(parsed_function_->receiver_var());
-
-  body += PushExplicitParameters(function);
+  body += PushExplicitParameters(function, target);
 
   const intptr_t argument_count = function.NumParameters();
   const auto& argument_names =
@@ -2729,6 +2744,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
 
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
                      argument_names, ICData::kNoRebind, nullptr, type_args_len);
+
+  if (target.has_unboxed_integer_return()) {
+    body += Box(kUnboxedInt64);
+  } else if (target.has_unboxed_double_return()) {
+    body += Box(kUnboxedDouble);
+  }
 
   // Later optimization passes assume that result of a x.[]=(...) call is not
   // used. We must guarantee this invariant because violation will lead to an

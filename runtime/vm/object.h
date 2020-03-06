@@ -1953,6 +1953,8 @@ class ICData : public Object {
 
   intptr_t SizeWithoutTypeArgs() const;
 
+  intptr_t SizeWithTypeArgs() const;
+
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -2758,7 +2760,8 @@ class Function : public Object {
   }
 
   bool HasThisParameter() const {
-    return IsDynamicFunction() || IsGenerativeConstructor();
+    return IsDynamicFunction(/*allow_abstract=*/true) ||
+           IsGenerativeConstructor();
   }
 
   bool IsDynamicFunction(bool allow_abstract = false) const {
@@ -3077,16 +3080,6 @@ class Function : public Object {
   static constexpr intptr_t maximum_unboxed_parameter_count() {
     // Subtracts one that represents the return value
     return RawFunction::UnboxedParameterBitmap::kCapacity - 1;
-  }
-
-  bool can_unbox_parameters() const {
-    return !IsImplicitStaticClosureFunction() && !is_native() &&
-           (IsStaticFunction() || IsGenerativeConstructor());
-  }
-
-  bool can_unbox_result() const {
-    return !IsImplicitStaticClosureFunction() && !is_native() &&
-           IsStaticFunction();
   }
 
   void reset_unboxed_parameters_and_return() const {

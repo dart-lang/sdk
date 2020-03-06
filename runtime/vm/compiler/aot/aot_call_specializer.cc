@@ -124,6 +124,9 @@ bool AotCallSpecializer::TryCreateICDataForUniqueTarget(
     RedefinitionInstr* redefinition = new (Z)
         RedefinitionInstr(new (Z) Value(call->ArgumentAt(receiver_index)));
     redefinition->set_ssa_temp_index(flow_graph()->alloc_ssa_temp_index());
+    if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
+      flow_graph()->alloc_ssa_temp_index();
+    }
     redefinition->InsertAfter(call);
     // Replace all uses of the receiver dominated by this call.
     FlowGraph::RenameDominatedUses(call->ArgumentAt(receiver_index),

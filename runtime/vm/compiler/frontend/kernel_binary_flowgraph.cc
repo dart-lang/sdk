@@ -5109,7 +5109,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       type_translator_.SetupFunctionParameters(Class::Handle(Z), function,
                                                false,  // is_method
                                                true,   // is_closure
-                                               &function_node_helper, 0);
+                                               &function_node_helper);
+      // type_translator_.SetupUnboxingInfoMetadata is not called here at the
+      // moment because closures do not have unboxed parameters and return value
       function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
       // Finalize function type.

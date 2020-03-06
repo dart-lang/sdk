@@ -1037,7 +1037,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::size_offset());
   __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
   __ LoadFromOffset(R6, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
@@ -1067,7 +1067,7 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::size_offset());
   __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
   __ LoadFromOffset(R6, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
@@ -2102,7 +2102,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::size_offset());
   __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
   __ LoadFromOffset(R6, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);

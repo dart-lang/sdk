@@ -659,6 +659,9 @@ static void ReplaceParameterStubs(Zone* zone,
       RedefinitionInstr* redefinition =
           new (zone) RedefinitionInstr(actual->Copy(zone));
       redefinition->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
+      if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
+        caller_graph->alloc_ssa_temp_index();
+      }
       if (target_info->IsSingleCid()) {
         redefinition->UpdateType(CompileType::FromCid(target_info->cid_start));
       }
@@ -707,6 +710,9 @@ static void ReplaceParameterStubs(Zone* zone,
               Slot::Closure_context(), call_data->call->token_pos());
           context_load->set_ssa_temp_index(
               caller_graph->alloc_ssa_temp_index());
+          if (FlowGraph::NeedsPairLocation(context_load->representation())) {
+            caller_graph->alloc_ssa_temp_index();
+          }
           context_load->InsertBefore(callee_entry->next());
           param->ReplaceUsesWith(context_load);
           break;
@@ -1800,6 +1806,9 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
       new (Z) RedefinitionInstr(new (Z) Value(receiver));
   redefinition->set_ssa_temp_index(
       owner_->caller_graph()->alloc_ssa_temp_index());
+  if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
+    owner_->caller_graph()->alloc_ssa_temp_index();
+  }
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           owner_->caller_graph(), receiver_cid, target, call_, redefinition,
           call_->token_pos(), call_->ic_data(), graph_entry, &entry, &last,
@@ -2061,6 +2070,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                                                call_->complete());
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
+    if (FlowGraph::NeedsPairLocation(fallback_call->representation())) {
+      owner_->caller_graph()->alloc_ssa_temp_index();
+    }
     fallback_call->InheritDeoptTarget(zone(), call_);
     fallback_call->set_total_call_count(call_->CallCount());
     ReturnInstr* fallback_return = new ReturnInstr(

@@ -973,14 +973,14 @@ class FlowGraphCompiler : public ValueObject {
   void EmitOptimizedStaticCall(
       const Function& function,
       const Array& arguments_descriptor,
-      intptr_t count_with_type_args,
+      intptr_t size_with_type_args,
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitUnoptimizedStaticCall(
-      intptr_t count_with_type_args,
+      intptr_t size_with_type_args,
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,

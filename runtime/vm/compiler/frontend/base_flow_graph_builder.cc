@@ -799,9 +799,6 @@ Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(
     intptr_t offset,
     CompileType result_type,
     Representation representation) {
-  if (representation != kTagged) {
-    ASSERT(!result_type.is_nullable());
-  }
   LoadIndexedUnsafeInstr* instr = new (Z)
       LoadIndexedUnsafeInstr(Pop(), offset, result_type, representation);
   Push(instr);

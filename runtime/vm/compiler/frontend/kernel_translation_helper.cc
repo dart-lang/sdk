@@ -1858,6 +1858,39 @@ void TableSelectorMetadataHelper::ReadTableSelectorInfo(
   info->called_on_null = helper_->ReadByte() != 0;
 }
 
+UnboxingInfoMetadataHelper::UnboxingInfoMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
+    intptr_t node_offset) {
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+
+  if (md_offset < 0) {
+    return nullptr;
+  }
+
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
+
+  const intptr_t num_args = helper_->ReadUInt();
+  const auto info = new (helper_->zone_) UnboxingInfoMetadata();
+  info->SetArgsCount(num_args);
+  for (intptr_t i = 0; i < num_args; i++) {
+    const auto arg_info = helper_->ReadByte();
+    assert(arg_info >= UnboxingInfoMetadata::kBoxed &&
+           arg_info < UnboxingInfoMetadata::kUnboxingCandidate);
+    info->unboxed_args_info[i] =
+        static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(arg_info);
+  }
+  const auto return_info = helper_->ReadByte();
+  assert(return_info >= UnboxingInfoMetadata::kBoxed &&
+         return_info < UnboxingInfoMetadata::kUnboxingCandidate);
+  info->return_info =
+      static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(return_info);
+  return info;
+}
+
 intptr_t KernelReaderHelper::ReaderOffset() const {
   return reader_.offset();
 }
@@ -2791,6 +2824,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       active_class_(active_class),
       type_parameter_scope_(NULL),
       inferred_type_metadata_helper_(helper_, constant_reader_),
+      unboxing_info_metadata_helper_(helper_),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
@@ -3285,48 +3319,71 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
   return type;
 }
 
-void TypeTranslator::ReadInferredType(const Function& function,
-                                      intptr_t param_index,
-                                      intptr_t correction) {
+static void SetupUnboxingInfoOfParameter(const Function& function,
+                                         intptr_t param_index,
+                                         const UnboxingInfoMetadata* metadata) {
   const intptr_t param_pos =
       param_index + (function.HasThisParameter() ? 1 : 0);
 
-  const intptr_t kernel_offset = helper_->ReaderOffset() - correction;
-
-  if (FLAG_precompiled_mode && function.can_unbox_parameters()) {
-    const InferredTypeMetadata type =
-        inferred_type_metadata_helper_.GetInferredType(kernel_offset,
-                                                       /*read_constant=*/false);
-    if (param_pos < function.maximum_unboxed_parameter_count() &&
-        !type.IsNullable()) {
-      if (type.IsInt() && FlowGraphCompiler::SupportsUnboxedInt64()) {
-        function.set_unboxed_integer_parameter_at(param_pos);
-      }
-      if (type.cid == kDoubleCid &&
-          FlowGraphCompiler::SupportsUnboxedDoubles()) {
-        function.set_unboxed_double_parameter_at(param_pos);
-      }
+  if (param_pos < function.maximum_unboxed_parameter_count()) {
+    switch (metadata->unboxed_args_info[param_index]) {
+      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+          function.set_unboxed_integer_parameter_at(param_pos);
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+          function.set_unboxed_double_parameter_at(param_pos);
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxingCandidate:
+        UNREACHABLE();
+        break;
+      case UnboxingInfoMetadata::kBoxed:
+        break;
+      default:
+        UNREACHABLE();
+        break;
     }
   }
 }
 
-void TypeTranslator::ReadInferredResultType(const Function& function,
-                                            intptr_t library_kernel_offset) {
+void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
+                                               intptr_t library_kernel_offset) {
   const intptr_t kernel_offset =
       function.kernel_offset() + library_kernel_offset;
 
-  if (FLAG_precompiled_mode && function.can_unbox_result()) {
-    const InferredTypeMetadata type =
-        inferred_type_metadata_helper_.GetInferredType(kernel_offset,
-                                                       /*read_constant=*/false);
-    if (!type.IsNullable()) {
-      if (type.IsInt() && FlowGraphCompiler::SupportsUnboxedInt64()) {
-        function.set_unboxed_integer_return();
-      }
-      if (type.cid == kDoubleCid &&
-          FlowGraphCompiler::SupportsUnboxedDoubles()) {
-        function.set_unboxed_double_return();
-      }
+  const auto unboxing_info =
+      unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
+
+  // TODO(dartbug.com/32292): accept unboxed parameters and return value
+  // when FLAG_use_table_dispatch == false.
+  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
+      FLAG_use_table_dispatch && FLAG_use_bare_instructions) {
+    for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
+      SetupUnboxingInfoOfParameter(function, i, unboxing_info);
+    }
+
+    switch (unboxing_info->return_info) {
+      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+          function.set_unboxed_integer_return();
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+          function.set_unboxed_double_return();
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxingCandidate:
+        UNREACHABLE();
+        break;
+      case UnboxingInfoMetadata::kBoxed:
+        break;
+      default:
+        UNREACHABLE();
+        break;
     }
   }
 }
@@ -3336,8 +3393,7 @@ void TypeTranslator::SetupFunctionParameters(
     const Function& function,
     bool is_method,
     bool is_closure,
-    FunctionNodeHelper* function_node_helper,
-    intptr_t correction) {
+    FunctionNodeHelper* function_node_helper) {
   ASSERT(!(is_method && is_closure));
   bool is_factory = function.IsFactory();
   intptr_t extra_parameters = (is_method || is_closure || is_factory) ? 1 : 0;
@@ -3397,10 +3453,6 @@ void TypeTranslator::SetupFunctionParameters(
 
   const Library& lib = Library::Handle(Z, active_class_->klass->library());
   for (intptr_t i = 0; i < positional_parameter_count; ++i, ++pos) {
-    if (i < required_parameter_count) {
-      // Only required parameters can be unboxed.
-      ReadInferredType(function, i, correction);
-    }
     // Read ith variable declaration.
     VariableDeclarationHelper helper(helper_);
     helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
