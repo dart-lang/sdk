@@ -5,7 +5,6 @@
 library ElementTest;
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/src/expected_function.dart' show ExpectedFunction;
 import 'dart:async';
 import 'dart:html';
@@ -32,8 +31,6 @@ void testUnsupported(String name, void f()) {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   var isHRElement = predicate((x) => x is HRElement, 'is a HRElement');
   var isBRElement = predicate((x) => x is BRElement, 'is a BRElement');
   var isInputElement =

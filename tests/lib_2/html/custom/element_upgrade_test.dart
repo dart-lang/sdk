@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 
-import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
