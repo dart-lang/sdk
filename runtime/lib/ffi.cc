@@ -325,8 +325,7 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 1) {
   // the function so that we can reuse the function for each c function with
   // the same signature.
   const Context& context = Context::Handle(Context::New(1));
-  context.SetAt(0,
-                Integer::Handle(zone, Integer::New(pointer.NativeAddress())));
+  context.SetAt(0, pointer);
 
   return Closure::New(Object::null_type_arguments(),
                       Object::null_type_arguments(), function, context,
