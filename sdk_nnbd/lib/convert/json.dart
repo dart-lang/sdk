@@ -473,6 +473,13 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 }
 
 /// This class parses JSON strings and builds the corresponding objects.
+///
+/// A JSON input must be the JSON encoding of a single JSON value,
+/// which can be a list or map containing other values.
+///
+/// When used as a [StreamTransformer], the input stream may emit
+/// multiple strings. The concatenation of all of these strings must
+/// be a valid JSON encoding of a single JSON value.
 class JsonDecoder extends Converter<String, Object?> {
   final Object? Function(Object? key, Object? value)? _reviver;
 
