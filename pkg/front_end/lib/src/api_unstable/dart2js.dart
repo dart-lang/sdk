@@ -33,6 +33,8 @@ import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../base/libraries_specification.dart' show LibrariesSpecification;
 
+import '../base/nnbd_mode.dart' show NnbdMode;
+
 import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../kernel_generator_impl.dart' show generateKernelInternal;
@@ -109,6 +111,8 @@ export '../api_prototype/kernel_generator.dart' show kernelForProgram;
 
 export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 
+export '../base/nnbd_mode.dart' show NnbdMode;
+
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
@@ -133,7 +137,8 @@ InitializedCompilerState initializeCompiler(
     Uri packagesFileUri,
     {List<Uri> dependencies,
     Map<ExperimentalFlag, bool> experimentalFlags,
-    bool verify: false}) {
+    bool verify: false,
+    NnbdMode nnbdMode}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
@@ -151,6 +156,7 @@ InitializedCompilerState initializeCompiler(
     ..packagesFileUri = packagesFileUri
     ..experimentalFlags = experimentalFlags
     ..verify = verify;
+  if (nnbdMode != null) options.nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

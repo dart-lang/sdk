@@ -529,7 +529,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-runtime-null-safety"
+          "--no-null-safety"
         ],
         "use-sdk": true
       }
@@ -589,7 +589,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-runtime-null-safety"
+          "--no-null-safety"
         ],
         "host-checked": true
       }

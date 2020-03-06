@@ -335,13 +335,13 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// When null-safety is enabled, whether the compiler should emit code with
   /// weak or strong semantics.
-  bool useWeakNullSafetySemantics = false;
+  bool _useWeakNullSafetySemantics = true;
 
   /// Whether to use legacy subtype semantics rather than null-safe semantics.
   /// This is `true` if null-safety is disabled, i.e. all code is legacy code,
   /// or if weak null-safety semantics are being used, since we do not emit
   /// warnings.
-  bool get useLegacySubtyping => !useNullSafety || useWeakNullSafetySemantics;
+  bool get useLegacySubtyping => !useNullSafety || _useWeakNullSafetySemantics;
 
   /// The path to the file that contains the profiled allocations.
   ///
@@ -468,11 +468,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
-      // TODO(sigmund): if no flag is specified, the default should depend on
-      // whether the entry point library is opted-in (see
-      // https://github.com/dart-lang/language/pull/779)
-      ..useWeakNullSafetySemantics =
-          _hasOption(options, Flags.noRuntimeNullSafety);
+      .._useWeakNullSafetySemantics = !_hasOption(options, Flags.nullSafety);
   }
 
   void validate() {
