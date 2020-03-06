@@ -5248,7 +5248,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     inputs.addAll(arguments);
 
     AbstractValue typeMask;
-    if (target is FunctionEntity) {
+    if (selector.isGetter && target.isGetter ||
+        !selector.isGetter && target is FunctionEntity) {
       typeMask = _typeInferenceMap.getReturnTypeOf(target);
     } else {
       typeMask = _abstractValueDomain.dynamicType;
