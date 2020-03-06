@@ -47,7 +47,7 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/buildtools/+/master/fuchsia.ensure
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "b25fc4123c77097c05ea221e023fa5c6a16e0f41",
+  "clang_revision": "7e9747b50bcb1be28d4a3236571e8050835497a6",
   "gn_revision": "239533d2d91a04b3317ca9101cf7189f4e651e4d",
 
   # Scripts that make 'git cl format' work.
