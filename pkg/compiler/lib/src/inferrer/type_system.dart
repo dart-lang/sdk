@@ -317,43 +317,42 @@ class TypeSystem {
   /// type.
   TypeInformation narrowType(TypeInformation type, DartType annotation,
       {bool isNullable: true}) {
+    TypeInformation _narrowTo(AbstractValue otherType) {
+      if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) return type;
+      if (isNullable) {
+        otherType = _abstractValueDomain.includeNull(otherType);
+      }
+      TypeInformation newType =
+          new NarrowTypeInformation(_abstractValueDomain, type, otherType);
+      allocatedTypes.add(newType);
+      return newType;
+    }
+
+    // TODO(fishythefish): Use nullability.
     annotation = annotation.withoutNullability;
-    AbstractValue otherType;
     if (annotation is VoidType) return type;
     if (_closedWorld.dartTypes.isTopType(annotation)) {
       if (isNullable) return type;
       // If the input is already narrowed to be not-null, there is no value
       // in adding another narrowing node.
       if (_isNonNullNarrow(type)) return type;
-      otherType = _abstractValueDomain.excludeNull(dynamicType.type);
+      return _narrowTo(_abstractValueDomain.excludeNull(dynamicType.type));
+    } else if (annotation is NeverType) {
+      return _narrowTo(_abstractValueDomain.emptyType);
     } else if (annotation is InterfaceType) {
-      InterfaceType interface = annotation;
-      if (interface.element == _closedWorld.commonElements.objectClass) {
-        if (isNullable) return type;
-        if (_isNonNullNarrow(type)) return type;
-        otherType = _abstractValueDomain.excludeNull(dynamicType.type);
-      } else {
-        otherType =
-            _abstractValueDomain.createNonNullSubtype(interface.element);
-      }
+      return _narrowTo(
+          _abstractValueDomain.createNonNullSubtype(annotation.element));
     } else if (annotation is FunctionType) {
-      otherType = functionType.type;
+      return _narrowTo(functionType.type);
     } else if (annotation is FutureOrType) {
       // TODO(johnniwinther): Support narrowing of FutureOr.
       return type;
-    } else {
-      assert(annotation is TypeVariableType);
+    } else if (annotation is TypeVariableType) {
       // TODO(ngeoffray): Narrow to bound.
       return type;
+    } else {
+      throw 'Unexpected annotation type $annotation';
     }
-    if (isNullable) {
-      otherType = _abstractValueDomain.includeNull(otherType);
-    }
-    if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) return type;
-    TypeInformation newType =
-        new NarrowTypeInformation(_abstractValueDomain, type, otherType);
-    allocatedTypes.add(newType);
-    return newType;
   }
 
   ParameterTypeInformation getInferredTypeOfParameter(Local parameter) {

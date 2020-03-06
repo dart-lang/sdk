@@ -2599,16 +2599,6 @@ abstract class ModularNamer {
         return runtimeTypeName(_commonElements.jsJavaScriptFunctionClass);
       case JsGetName.FUTURE_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.futureClass);
-      case JsGetName.BOOL_RECIPE:
-        return runtimeTypeName(_commonElements.boolClass);
-      case JsGetName.DOUBLE_RECIPE:
-        return runtimeTypeName(_commonElements.doubleClass);
-      case JsGetName.INT_RECIPE:
-        return runtimeTypeName(_commonElements.intClass);
-      case JsGetName.NUM_RECIPE:
-        return runtimeTypeName(_commonElements.numClass);
-      case JsGetName.STRING_RECIPE:
-        return runtimeTypeName(_commonElements.stringClass);
       case JsGetName.RTI_FIELD_IS:
         return instanceFieldPropertyName(_commonElements.rtiIsField);
       default:

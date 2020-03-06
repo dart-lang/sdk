@@ -820,38 +820,36 @@ bool _installSpecializedIsTest(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  int kind = Rti._getKind(testRti);
 
   var isFn = RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
 
-  if (isTopType(testRti)) {
+  if (isObjectType(testRti)) {
+    isFn = RAW_DART_FUNCTION_REF(_isObject);
+    Rti._setAsCheckFunction(testRti, RAW_DART_FUNCTION_REF(_asObject));
+    Rti._setTypeCheckFunction(testRti, RAW_DART_FUNCTION_REF(_checkObject));
+  } else if (isTopType(testRti)) {
     isFn = RAW_DART_FUNCTION_REF(_isTop);
     var asFn = RAW_DART_FUNCTION_REF(_asTop);
     Rti._setAsCheckFunction(testRti, asFn);
     Rti._setTypeCheckFunction(testRti, asFn);
-  } else if (kind == Rti.kindInterface) {
-    String key = Rti._getCanonicalRecipe(testRti);
-
-    if (JS_GET_NAME(JsGetName.INT_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isInt);
-    } else if (JS_GET_NAME(JsGetName.DOUBLE_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isNum);
-    } else if (JS_GET_NAME(JsGetName.NUM_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isNum);
-    } else if (JS_GET_NAME(JsGetName.STRING_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isString);
-    } else if (JS_GET_NAME(JsGetName.BOOL_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isBool);
-    } else {
-      String name = Rti._getInterfaceName(testRti);
-      var arguments = Rti._getInterfaceTypeArguments(testRti);
-      if (JS(
-          'bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
-        String propertyName =
-            '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
-        Rti._setSpecializedTestResource(testRti, propertyName);
-        isFn = RAW_DART_FUNCTION_REF(_isTestViaProperty);
-      }
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isInt);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isNum);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isNum);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isString);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isBool);
+  } else if (Rti._getKind(testRti) == Rti.kindInterface) {
+    String name = Rti._getInterfaceName(testRti);
+    var arguments = Rti._getInterfaceTypeArguments(testRti);
+    if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
+      String propertyName =
+          '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+      Rti._setSpecializedTestResource(testRti, propertyName);
+      isFn = RAW_DART_FUNCTION_REF(_isTestViaProperty);
     }
   }
 
@@ -859,11 +857,23 @@ bool _installSpecializedIsTest(object) {
   return Rti._isCheck(testRti, object);
 }
 
+bool _nullIs(Rti testRti) {
+  int kind = Rti._getKind(testRti);
+  return isTopType(testRti) ||
+      kind == Rti.kindStar &&
+          Rti._getKind(Rti._getStarArgument(testRti)) == Rti.kindNever ||
+      kind == Rti.kindQuestion ||
+      isNullType(testRti);
+}
+
 /// Called from generated code.
 bool _generalIsTestImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
+  if (JS_GET_FLAG('NNBD') && object == null) {
+    return _nullIs(testRti);
+  }
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
 }
@@ -873,6 +883,9 @@ bool _isTestViaProperty(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
+  if (JS_GET_FLAG('NNBD') && object == null) {
+    return _nullIs(testRti);
+  }
   var tag = Rti._getSpecializedTestResource(testRti);
 
   // This test is redundant with getInterceptor below, but getInterceptor does
@@ -888,11 +901,14 @@ bool _isTestViaProperty(object) {
 
 /// Called from generated code.
 _generalAsCheckImplementation(object) {
-  if (object == null) return object;
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  if (Rti._isCheck(testRti, object)) return object;
+  if (object == null) {
+    if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) return object;
+  } else {
+    if (Rti._isCheck(testRti, object)) return object;
+  }
 
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
@@ -902,11 +918,14 @@ _generalAsCheckImplementation(object) {
 
 /// Called from generated code.
 _generalTypeCheckImplementation(object) {
-  if (object == null) return object;
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  if (Rti._isCheck(testRti, object)) return object;
+  if (object == null) {
+    if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) return object;
+  } else {
+    if (Rti._isCheck(testRti, object)) return object;
+  }
 
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
@@ -964,6 +983,26 @@ class _TypeError extends _Error implements TypeError {
 //
 // Specializations can be placed on Rti objects as the _as, _check and _is
 // 'methods'. They can also be called directly called from generated code.
+
+/// Specialization for 'is Object'.
+/// Called from generated code via Rti `_is` method.
+bool _isObject(object) {
+  return !JS_GET_FLAG('NNBD') || object != null;
+}
+
+/// Specialization for 'as Object'.
+/// Called from generated code via Rti `_as` method.
+dynamic _asObject(object) {
+  if (JS_GET_FLAG('LEGACY') || object != null) return object;
+  throw _CastError.forType(object, 'Object');
+}
+
+/// Specialization for check on 'Object'.
+/// Called from generated code via Rti `_check` method.
+dynamic _checkObject(object) {
+  if (JS_GET_FLAG('LEGACY') || object != null) return object;
+  throw _TypeError.forType(object, 'Object');
+}
 
 /// Specialization for 'is dynamic' and other top types.
 /// Called from generated code via Rti `_is` method.

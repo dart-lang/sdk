@@ -338,21 +338,6 @@ enum JsGetName {
   /// String representation of the type of the JavaScriptFunction class.
   JS_FUNCTION_CLASS_TYPE_NAME,
 
-  /// String recipe for the [bool] type.
-  BOOL_RECIPE,
-
-  /// String recipe for the [double] type.
-  DOUBLE_RECIPE,
-
-  /// String recipe for the [int] type.
-  INT_RECIPE,
-
-  /// String recipe for the [num] type.
-  NUM_RECIPE,
-
-  /// String recipe for the [String] type.
-  STRING_RECIPE,
-
   /// Property name for Rti._is field.
   RTI_FIELD_IS,
 }

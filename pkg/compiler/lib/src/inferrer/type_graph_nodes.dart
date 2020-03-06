@@ -2248,42 +2248,36 @@ abstract class TypeInformationVisitor<T> {
   T visitYieldTypeInformation(YieldTypeInformation info);
 }
 
-AbstractValue _intersection(AbstractValue type, AbstractValue otherType,
-    AbstractValueDomain abstractValueDomain, bool isNullable) {
-  if (isNullable) {
-    otherType = abstractValueDomain.includeNull(otherType);
-  }
-  return type == null
-      ? otherType
-      : abstractValueDomain.intersection(type, otherType);
-}
-
 AbstractValue _narrowType(
     JClosedWorld closedWorld, AbstractValue type, DartType annotation,
     {bool isNullable: true}) {
-  annotation = annotation.withoutNullability;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+
+  AbstractValue _intersectionWith(AbstractValue otherType) {
+    if (isNullable) {
+      otherType = abstractValueDomain.includeNull(otherType);
+    }
+    return type == null
+        ? otherType
+        : abstractValueDomain.intersection(type, otherType);
+  }
+
   // TODO(joshualitt): FutureOrType, TypeVariableType, and FunctionTypeVariable
   // can be narrowed.
+  // TODO(fishythefish): Use nullability.
+  annotation = annotation.withoutNullability;
   if (closedWorld.dartTypes.isTopType(annotation) ||
-      annotation is VoidType ||
-      annotation is NeverType ||
       annotation is FutureOrType ||
       annotation is TypeVariableType ||
       annotation is FunctionTypeVariable) {
     return type;
+  } else if (annotation is NeverType) {
+    return _intersectionWith(abstractValueDomain.emptyType);
   } else if (annotation is InterfaceType) {
-    if (annotation.element == closedWorld.commonElements.objectClass) {
-      return type;
-    }
-    return _intersection(
-        type,
-        abstractValueDomain.createNonNullSubtype(annotation.element),
-        abstractValueDomain,
-        isNullable);
+    return _intersectionWith(
+        abstractValueDomain.createNonNullSubtype(annotation.element));
   } else if (annotation is FunctionType) {
-    return _intersection(type, closedWorld.abstractValueDomain.functionType,
-        abstractValueDomain, isNullable);
+    return _intersectionWith(abstractValueDomain.functionType);
   } else {
     throw 'Unexpected annotation type $annotation';
   }

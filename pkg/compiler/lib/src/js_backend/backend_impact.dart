@@ -832,6 +832,9 @@ class BackendImpacts {
           _commonElements.specializedIsTop,
           _commonElements.specializedAsTop,
           // no specializedCheckTop
+          _commonElements.specializedIsObject,
+          _commonElements.specializedAsObject,
+          _commonElements.specializedCheckObject,
         ], globalClasses: [
           _commonElements.closureClass, // instanceOrFunctionType uses this.
         ])
