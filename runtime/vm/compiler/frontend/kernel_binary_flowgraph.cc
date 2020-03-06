@@ -314,9 +314,11 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         const Tag initializer_tag = ReadTag();
         if (class_field.is_late()) {
-          instructions +=
-              BuildLateFieldInitializer(Field::ZoneHandle(Z, class_field.raw()),
-                                        initializer_tag == kSomething);
+          if (!is_constructor_initialized) {
+            instructions += BuildLateFieldInitializer(
+                Field::ZoneHandle(Z, class_field.raw()),
+                initializer_tag == kSomething);
+          }
         } else if (initializer_tag == kSomething) {
           EnterScope(field_offset);
           // If this field is initialized in constructor then we can ignore the

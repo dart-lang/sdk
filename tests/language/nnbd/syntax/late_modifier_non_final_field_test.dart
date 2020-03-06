@@ -18,6 +18,11 @@ class A {
   late int? fieldWithNullInit = null;
   late int fieldWithNoInit;
   late int? nullableFieldWithNoInit;
+  late int? fieldWithOnlyCtorInit;
+  late int? fieldWithOnlyBothInitAndCtorInit = 123;
+  A()
+      : fieldWithOnlyCtorInit = null,
+        fieldWithOnlyBothInitAndCtorInit = null;
 }
 
 main() {
@@ -32,6 +37,8 @@ main() {
         () => a.fieldWithNoInit, (error) => error is LateInitializationError);
     Expect.throws(() => a.nullableFieldWithNoInit,
         (error) => error is LateInitializationError);
+    Expect.equals(null, a.fieldWithOnlyCtorInit);
+    Expect.equals(null, a.fieldWithOnlyBothInitAndCtorInit);
     Expect.equals(1, initCalls);
     Expect.equals(123, a.fieldWithInit);
     Expect.equals(123, a.fieldWithTrivialInit);
@@ -40,18 +47,24 @@ main() {
         () => a.fieldWithNoInit, (error) => error is LateInitializationError);
     Expect.throws(() => a.nullableFieldWithNoInit,
         (error) => error is LateInitializationError);
+    Expect.equals(null, a.fieldWithOnlyCtorInit);
+    Expect.equals(null, a.fieldWithOnlyBothInitAndCtorInit);
     Expect.equals(1, initCalls);
     a.fieldWithInit = 456;
     a.fieldWithTrivialInit = 456;
     a.fieldWithNullInit = 456;
     a.fieldWithNoInit = 456;
     a.nullableFieldWithNoInit = null;
+    a.fieldWithOnlyCtorInit = 456;
+    a.fieldWithOnlyBothInitAndCtorInit = 456;
     Expect.equals(1, initCalls);
     Expect.equals(456, a.fieldWithInit);
     Expect.equals(456, a.fieldWithTrivialInit);
     Expect.equals(456, a.fieldWithNullInit);
     Expect.equals(456, a.fieldWithNoInit);
     Expect.equals(null, a.nullableFieldWithNoInit);
+    Expect.equals(456, a.fieldWithOnlyCtorInit);
+    Expect.equals(456, a.fieldWithOnlyBothInitAndCtorInit);
     Expect.equals(1, initCalls);
     initCalls = 0;
 
