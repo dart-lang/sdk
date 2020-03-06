@@ -944,23 +944,18 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     success = false;
   }
 
-  // Once we --enable-isolate-groups in JIT again, we have to ensure unwind
-  // errors will be propagated to all isolates.
-  if (result.IsUnwindError()) {
-    const auto& error = Error::Cast(result);
-    if (thread->top_exit_frame_info() == 0) {
-      // We can only propagate errors when there are Dart frames on the stack.
-      // In this case there are no Dart frames on the stack and we set the
-      // thread's sticky error. This error will be returned to the message
-      // handler.
-      thread->set_sticky_error(error);
-    } else {
-      // If the tag handler returns with an UnwindError error, propagate it and
-      // give up.
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
+  // Re-queue any shutdown requests so they can inform each isolate's own thread
+  // to shut down.
+  isolateIndex = 0;
+  ForEachIsolate([&](Isolate* isolate) {
+    tmp = results.At(isolateIndex);
+    if (tmp.IsUnwindError()) {
+      Isolate::KillIfExists(isolate, UnwindError::Cast(tmp).is_user_initiated()
+                                         ? Isolate::kKillMsg
+                                         : Isolate::kInternalKillMsg);
     }
-  }
+    isolateIndex++;
+  });
 
   return success;
 }
