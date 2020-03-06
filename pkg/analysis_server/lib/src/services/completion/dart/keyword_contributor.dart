@@ -820,6 +820,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       Keyword.ASSERT,
       Keyword.CONST,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
