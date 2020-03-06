@@ -223,7 +223,6 @@ import 'invalid_type_argument_in_const_set_test.dart'
 import 'invalid_uri_test.dart' as invalid_uri;
 import 'invalid_use_of_covariant_in_extension_test.dart'
     as invalid_use_of_covariant_in_extension;
-import 'invalid_use_of_null_value_test.dart' as invalid_use_of_null_value;
 import 'invalid_use_of_protected_member_test.dart'
     as invalid_use_of_protected_member;
 import 'invalid_use_of_visible_for_template_member_test.dart'
@@ -445,8 +444,6 @@ import 'type_parameter_referenced_by_static_test.dart'
 import 'type_test_with_non_type_test.dart' as type_test_with_non_type;
 import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
-import 'unchecked_use_of_nullable_value_test.dart'
-    as unchecked_use_of_nullable_value;
 import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
@@ -487,6 +484,7 @@ import 'unused_local_variable_test.dart' as unused_local_variable;
 import 'unused_shown_name_test.dart' as unused_shown_name;
 import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
 import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
+import 'use_of_nullable_value_test.dart' as use_of_nullable_value_test;
 import 'use_of_void_result_test.dart' as use_of_void_result;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
@@ -651,7 +649,6 @@ main() {
     invalid_type_argument_in_const_set.main();
     invalid_uri.main();
     invalid_use_of_covariant_in_extension.main();
-    invalid_use_of_null_value.main();
     invalid_use_of_protected_member.main();
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();
@@ -799,7 +796,6 @@ main() {
     type_parameter_referenced_by_static.main();
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
-    unchecked_use_of_nullable_value.main();
     undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();
@@ -837,6 +833,7 @@ main() {
     unused_shown_name.main();
     uri_does_not_exist.main();
     uri_with_interpolation.main();
+    use_of_nullable_value_test.main();
     use_of_void_result.main();
     variable_type_mismatch.main();
     void_with_type_arguments_test.main();

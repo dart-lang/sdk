@@ -8163,14 +8163,16 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * it indicates a different type of programmer error and has different
    * corrections.
    *
-   * Parameters: none
+   * No parameters.
    */
-  static const StaticWarningCode INVALID_USE_OF_NULL_VALUE = StaticWarningCode(
-      'INVALID_USE_OF_NULL_VALUE',
-      "This expression is invalid as it will always be null.",
-      correction:
-          "Try changing the type, or casting, to a more useful type like "
-          "dynamic.");
+  static const StaticWarningCode INVALID_USE_OF_NULL_VALUE =
+      StaticWarningCodeWithUniqueName(
+          'USE_OF_NULLABLE_VALUE',
+          'INVALID_USE_OF_NULL_VALUE',
+          "This expression is invalid as it will always be null.",
+          correction:
+              "Try changing the type, or casting, to a more useful type like "
+              "dynamic.");
 
   /**
    * Parameters:
@@ -9118,10 +9120,11 @@ class StaticWarningCode extends AnalyzerErrorCode {
   /**
    * For the purposes of experimenting with potential non-null type semantics.
    *
-   * Parameters: none
+   * No parameters.
    */
   static const StaticWarningCode UNCHECKED_USE_OF_NULLABLE_VALUE =
-      StaticWarningCode(
+      StaticWarningCodeWithUniqueName(
+          'USE_OF_NULLABLE_VALUE',
           'UNCHECKED_USE_OF_NULLABLE_VALUE',
           "The expression is nullable and must be null-checked before it can "
               "be used.",
