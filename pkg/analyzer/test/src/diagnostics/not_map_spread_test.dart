@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,7 +12,28 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotMapSpreadTest);
+    defineReflectiveTests(NotMapSpreadNullSafetyTest);
   });
+}
+
+@reflectiveTest
+class NotMapSpreadNullSafetyTest extends NotMapSpreadTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_map_typeParameter_bound_mapQuestion() async {
+    await assertNoErrorsInCode('''
+void f<T extends Map<int, String>?>(T a) {
+  var v = <int, String>{...?a};
+  v;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -25,6 +48,15 @@ var v = <int, int>{...a};
   test_map_null() async {
     await assertNoErrorsInCode('''
 var v = <int, int>{...?null};
+''');
+  }
+
+  test_map_typeParameter_bound_map() async {
+    await assertNoErrorsInCode('''
+void f<T extends Map<int, String>>(T a) {
+  var v = <int, String>{...a};
+  v;
+}
 ''');
   }
 
@@ -62,6 +94,17 @@ var a = 0;
 var v = <int, int>{if (1 > 0) ...a};
 ''', [
       error(CompileTimeErrorCode.NOT_MAP_SPREAD, 44, 1),
+    ]);
+  }
+
+  test_notMap_typeParameter_bound() async {
+    await assertErrorsInCode('''
+void f<T extends num>(T a) {
+  var v = <int, int>{...a};
+  v;
+}
+''', [
+      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 53, 1),
     ]);
   }
 }

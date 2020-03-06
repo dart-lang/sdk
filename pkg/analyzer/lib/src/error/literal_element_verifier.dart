@@ -142,6 +142,8 @@ class LiteralElementVerifier {
       return;
     }
 
+    expressionType = typeSystem.resolveToBound(expressionType);
+
     InterfaceType iterableType;
     if (expressionType is InterfaceTypeImpl) {
       iterableType = expressionType.asInstanceOf(typeProvider.iterableElement);
@@ -182,6 +184,8 @@ class LiteralElementVerifier {
       }
       return;
     }
+
+    expressionType = typeSystem.resolveToBound(expressionType);
 
     InterfaceType mapType;
     if (expressionType is InterfaceTypeImpl) {
