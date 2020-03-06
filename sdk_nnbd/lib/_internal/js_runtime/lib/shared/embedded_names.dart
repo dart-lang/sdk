@@ -121,6 +121,11 @@ const GET_ISOLATE_TAG = 'getIsolateTag';
 //    [INTERCEPTORS_BY_TAG] and [LEAF_TAGS].
 const ISOLATE_TAG = 'isolateTag';
 
+/// An embedded global that contains the property used to store type information
+/// on JavaScript Array instances. This is a Symbol (except for IE11, where is
+/// is a String).
+const ARRAY_RTI_PROPERTY = 'arrayRti';
+
 /// This embedded global (a function) returns the isolate-specific dispatch-tag
 /// that is used to accelerate interceptor calls.
 const DISPATCH_PROPERTY_NAME = "dispatchPropertyName";

@@ -28,6 +28,7 @@ import 'dart:_js_embedded_names'
         JsBuiltin,
         JsGetName,
         RtiUniverseFieldNames,
+        ARRAY_RTI_PROPERTY,
         CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME,
         RTI_UNIVERSE,
         TYPES;
@@ -686,7 +687,7 @@ Rti _arrayInstanceType(object) {
   // IE11 we would have to synthesise a String property-name with almost zero
   // chance of conflict.
 
-  var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
+  var rti = JS('', r'#[#]', object, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY));
   var defaultRti = getJSArrayInteropRti();
 
   // Case 3.

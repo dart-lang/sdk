@@ -266,7 +266,7 @@ class Namer extends ModularNamer {
 
     // 15.1.4 Constructor Properties of the Global Object
     "Object", "Function", "Array", "String", "Boolean", "Number", "Date",
-    "RegExp", "Error", "EvalError", "RangeError", "ReferenceError",
+    "RegExp", "Symbol", "Error", "EvalError", "RangeError", "ReferenceError",
     "SyntaxError", "TypeError", "URIError",
 
     // 15.1.5 Other Properties of the Global Object
