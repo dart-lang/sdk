@@ -1046,106 +1046,106 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   R2: array length as Smi (must be preserved).
 // The newly allocated object is returned in R0.
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
-  Label slow_case;
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize(
-  //     (array_length * kwordSize) + target::Array::header_size()).
-  __ mov(R3, Operand(R2));  // Array length.
-  // Check that length is a positive Smi.
-  __ tst(R3, Operand(kSmiTagMask));
-  if (FLAG_use_slow_path) {
-    __ b(&slow_case);
-  } else {
+  if (!FLAG_use_slow_path) {
+    Label slow_case;
+    // Compute the size to be allocated, it is based on the array length
+    // and is computed as:
+    // RoundedAllocationSize(
+    //     (array_length * kwordSize) + target::Array::header_size()).
+    __ mov(R3, Operand(R2));  // Array length.
+    // Check that length is a positive Smi.
+    __ tst(R3, Operand(kSmiTagMask));
     __ b(&slow_case, NE);
+
+    __ cmp(R3, Operand(0));
+    __ b(&slow_case, LT);
+
+    // Check for maximum allowed length.
+    const intptr_t max_len =
+        target::ToRawSmi(target::Array::kMaxNewSpaceElements);
+    __ CompareImmediate(R3, max_len);
+    __ b(&slow_case, GT);
+
+    const intptr_t cid = kArrayCid;
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(R4, &slow_case));
+
+    const intptr_t fixed_size_plus_alignment_padding =
+        target::Array::header_size() +
+        target::ObjectAlignment::kObjectAlignment - 1;
+    __ LoadImmediate(R9, fixed_size_plus_alignment_padding);
+    __ add(R9, R9, Operand(R3, LSL, 1));  // R3 is a Smi.
+    ASSERT(kSmiTagShift == 1);
+    __ bic(R9, R9, Operand(target::ObjectAlignment::kObjectAlignment - 1));
+
+    // R9: Allocation size.
+    // Potential new object start.
+    __ ldr(R0, Address(THR, target::Thread::top_offset()));
+    __ adds(R3, R0, Operand(R9));  // Potential next object start.
+    __ b(&slow_case, CS);          // Branch if unsigned overflow.
+
+    // Check if the allocation fits into the remaining space.
+    // R0: potential new object start.
+    // R3: potential next object start.
+    // R9: allocation size.
+    __ ldr(TMP, Address(THR, target::Thread::end_offset()));
+    __ cmp(R3, Operand(TMP));
+    __ b(&slow_case, CS);
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    __ str(R3, Address(THR, target::Thread::top_offset()));
+    __ add(R0, R0, Operand(kHeapObjectTag));
+
+    // Initialize the tags.
+    // R0: new object start as a tagged pointer.
+    // R3: new object end address.
+    // R9: allocation size.
+    {
+      const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
+                             target::ObjectAlignment::kObjectAlignmentLog2;
+
+      __ CompareImmediate(R9, target::RawObject::kSizeTagMaxSizeTag);
+      __ mov(R8, Operand(R9, LSL, shift), LS);
+      __ mov(R8, Operand(0), HI);
+
+      // Get the class index and insert it into the tags.
+      // R8: size and bit tags.
+      const uint32_t tags =
+          target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+      __ LoadImmediate(TMP, tags);
+      __ orr(R8, R8, Operand(TMP));
+      __ str(R8,
+             FieldAddress(R0, target::Array::tags_offset()));  // Store tags.
+    }
+
+    // R0: new object start as a tagged pointer.
+    // R3: new object end address.
+    // Store the type argument field.
+    __ StoreIntoObjectNoBarrier(
+        R0, FieldAddress(R0, target::Array::type_arguments_offset()), R1);
+
+    // Set the length field.
+    __ StoreIntoObjectNoBarrier(
+        R0, FieldAddress(R0, target::Array::length_offset()), R2);
+
+    // Initialize all array elements to raw_null.
+    // R0: new object start as a tagged pointer.
+    // R8, R9: null
+    // R4: iterator which initially points to the start of the variable
+    // data area to be initialized.
+    // R3: new object end address.
+    // R9: allocation size.
+
+    __ LoadObject(R8, NullObject());
+    __ mov(R9, Operand(R8));
+    __ AddImmediate(R4, R0, target::Array::header_size() - kHeapObjectTag);
+    __ InitializeFieldsNoBarrier(R0, R4, R3, R8, R9);
+    __ Ret();  // Returns the newly allocated object in R0.
+    // Unable to allocate the array using the fast inline code, just call
+    // into the runtime.
+    __ Bind(&slow_case);
   }
-  __ cmp(R3, Operand(0));
-  __ b(&slow_case, LT);
-
-  // Check for maximum allowed length.
-  const intptr_t max_len =
-      target::ToRawSmi(target::Array::kMaxNewSpaceElements);
-  __ CompareImmediate(R3, max_len);
-  __ b(&slow_case, GT);
-
-  const intptr_t cid = kArrayCid;
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(R4, &slow_case));
-
-  const intptr_t fixed_size_plus_alignment_padding =
-      target::Array::header_size() + target::ObjectAlignment::kObjectAlignment -
-      1;
-  __ LoadImmediate(R9, fixed_size_plus_alignment_padding);
-  __ add(R9, R9, Operand(R3, LSL, 1));  // R3 is a Smi.
-  ASSERT(kSmiTagShift == 1);
-  __ bic(R9, R9, Operand(target::ObjectAlignment::kObjectAlignment - 1));
-
-  // R9: Allocation size.
-  // Potential new object start.
-  __ ldr(R0, Address(THR, target::Thread::top_offset()));
-  __ adds(R3, R0, Operand(R9));     // Potential next object start.
-  __ b(&slow_case, CS);             // Branch if unsigned overflow.
-
-  // Check if the allocation fits into the remaining space.
-  // R0: potential new object start.
-  // R3: potential next object start.
-  // R9: allocation size.
-  __ ldr(TMP, Address(THR, target::Thread::end_offset()));
-  __ cmp(R3, Operand(TMP));
-  __ b(&slow_case, CS);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ str(R3, Address(THR, target::Thread::top_offset()));
-  __ add(R0, R0, Operand(kHeapObjectTag));
-
-  // Initialize the tags.
-  // R0: new object start as a tagged pointer.
-  // R3: new object end address.
-  // R9: allocation size.
-  {
-    const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
-                           target::ObjectAlignment::kObjectAlignmentLog2;
-
-    __ CompareImmediate(R9, target::RawObject::kSizeTagMaxSizeTag);
-    __ mov(R8, Operand(R9, LSL, shift), LS);
-    __ mov(R8, Operand(0), HI);
-
-    // Get the class index and insert it into the tags.
-    // R8: size and bit tags.
-    const uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
-    __ LoadImmediate(TMP, tags);
-    __ orr(R8, R8, Operand(TMP));
-    __ str(R8, FieldAddress(R0, target::Array::tags_offset()));  // Store tags.
-  }
-
-  // R0: new object start as a tagged pointer.
-  // R3: new object end address.
-  // Store the type argument field.
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::Array::type_arguments_offset()), R1);
-
-  // Set the length field.
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::Array::length_offset()), R2);
-
-  // Initialize all array elements to raw_null.
-  // R0: new object start as a tagged pointer.
-  // R8, R9: null
-  // R4: iterator which initially points to the start of the variable
-  // data area to be initialized.
-  // R3: new object end address.
-  // R9: allocation size.
-
-  __ LoadObject(R8, NullObject());
-  __ mov(R9, Operand(R8));
-  __ AddImmediate(R4, R0, target::Array::header_size() - kHeapObjectTag);
-  __ InitializeFieldsNoBarrier(R0, R4, R3, R8, R9);
-  __ Ret();  // Returns the newly allocated object in R0.
-  // Unable to allocate the array using the fast inline code, just call
-  // into the runtime.
-  __ Bind(&slow_case);
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
@@ -1513,11 +1513,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
   // R3: potential next object start.
   __ ldr(IP, Address(THR, target::Thread::end_offset()));
   __ cmp(R3, Operand(IP));
-  if (FLAG_use_slow_path) {
-    __ b(slow_case);
-  } else {
-    __ b(slow_case, CS);  // Branch if unsigned higher or equal.
-  }
+  __ b(slow_case, CS);  // Branch if unsigned higher or equal.
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1565,7 +1561,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
 // Clobbered:
 //   Potentially any since is can go to runtime.
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
-  if (FLAG_inline_alloc) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
     GenerateAllocateContext(assembler, &slow_case);
@@ -1917,7 +1913,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   ASSERT(instance_size % target::ObjectAlignment::kObjectAlignment == 0);
 
   __ LoadObject(kNullReg, NullObject());
-  if (FLAG_inline_alloc &&
+  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
     Label slow_case;
@@ -1930,11 +1926,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
     __ ldrd(kInstanceReg, kEndReg, THR, target::Thread::top_offset());
     __ AddImmediate(kEndOfInstanceReg, kInstanceReg, instance_size);
     __ cmp(kEndOfInstanceReg, Operand(kEndReg));
-    if (FLAG_use_slow_path) {
-      __ b(&slow_case);
-    } else {
-      __ b(&slow_case, CS);  // Unsigned higher or equal.
-    }
+    __ b(&slow_case, CS);  // Unsigned higher or equal.
+
     __ str(kEndOfInstanceReg, Address(THR, target::Thread::top_offset()));
 
     // Set the tags.
