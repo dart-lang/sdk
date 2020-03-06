@@ -5304,6 +5304,17 @@ const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
     tip: r"""Try replacing with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropNonExternalConstructor =
+    messageJsInteropNonExternalConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropNonExternalConstructor = const MessageCode(
+    "JsInteropNonExternalConstructor",
+    message:
+        r"""JS interop classes do not support non-external constructors.""",
+    tip: r"""Try annotating with `external`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(

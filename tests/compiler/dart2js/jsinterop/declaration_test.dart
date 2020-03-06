@@ -264,7 +264,7 @@ import 'package:js/js.dart';
 
 @JS()
 class A {
-  A();
+  external A();
 }
 
 main() => new A();
@@ -303,7 +303,7 @@ import 'package:js/js.dart';
 @JS()
 @anonymous
 class A {
-  A();
+  external A();
 }
 
 main() => new A();

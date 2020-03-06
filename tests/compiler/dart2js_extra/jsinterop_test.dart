@@ -143,7 +143,7 @@ class Class {
 
 @JS('d')
 class JsInteropClass {
-  // JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR //# 34: compile-time error
+  // GENERIC //# 34: compile-time error
   JsInteropClass.generative(); //# 34: continued
 
   // JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR //# 35: compile-time error
@@ -152,7 +152,7 @@ class JsInteropClass {
   external JsInteropClass.externalGenerative();
   external factory JsInteropClass.externalFact();
 
-  @JS('a') // JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR //# 36: compile-time error
+  @JS('a') // GENERIC //# 36: compile-time error
   JsInteropClass.jsInteropGenerative(); //# 36: continued
 
   @JS('a') // JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR //# 37: compile-time error

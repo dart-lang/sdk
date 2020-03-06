@@ -18,9 +18,7 @@ $compiler == dart2js,jsinterop_test/01,MissingCompileTimeError,Issue 34174,https
 $compiler == dart2js,jsinterop_test/02,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
 $compiler == dart2js,jsinterop_test/03,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
 $compiler == dart2js,jsinterop_test/04,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
-$compiler == dart2js,jsinterop_test/34,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
 $compiler == dart2js,jsinterop_test/35,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
-$compiler == dart2js,jsinterop_test/36,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
 $compiler == dart2js,jsinterop_test/37,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
 $compiler == dart2js,jsinterop_test/38,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
 $compiler == dart2js,jsinterop_test/42,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
@@ -38,9 +36,7 @@ $compiler == dart2js,non_jsinterop_test/01,MissingCompileTimeError,Issue 34174,h
 $compiler == dart2js,non_jsinterop_test/02,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
 $compiler == dart2js,non_jsinterop_test/03,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
 $compiler == dart2js,non_jsinterop_test/04,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
-$compiler == dart2js,non_jsinterop_test/34,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
 $compiler == dart2js,non_jsinterop_test/35,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
-$compiler == dart2js,non_jsinterop_test/36,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
 $compiler == dart2js,non_jsinterop_test/37,MissingCompileTimeError,Issue 33834,https://dartbug.com/33834,open
 $compiler == dart2js,non_jsinterop_test/38,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open
 $compiler == dart2js,non_jsinterop_test/42,MissingCompileTimeError,Issue 34174,https://dartbug.com/34174,open

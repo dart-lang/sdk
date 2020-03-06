@@ -4019,6 +4019,10 @@ JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
 
+JsInteropNonExternalConstructor:
+  template: "JS interop classes do not support non-external constructors."
+  tip: "Try annotating with `external`."
+
 DefaultListConstructorError:
   template: "Can't use the default List constructor."
   tip: "Try using List.filled instead."

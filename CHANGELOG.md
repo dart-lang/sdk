@@ -104,6 +104,9 @@ additional details see the [announcement].
   `package:js` interop specification must now be wrapped with a call to
   `allowInterop`. This behavior was always enforced by `dart2js`, but was not
   enforced consistently in `ddc`. It will now be enforced in both.
+* **Breaking Change**: Constructors in `@JS()` classes must be marked with
+  `external`. Previously the external could be omitted in some cases with DDC
+  but doing so would cause incorrect behavior with `dart2js`.
 * JS interop classes with an index operator are now static errors.
 * Removed the `dart:mirrors` library from the SDK. Use of this library on the
   web has been unsupported and prevented by the Dart build systems since Dart
@@ -127,6 +130,10 @@ additional details see the [announcement].
 * **Breaking Change**: Types are now normalized. See [normalization] for the
   full specification. Types will now be printed in their normal form, and
   mutual subtypes with the same normal form will now be considered equal.
+* **Breaking Change**: Constructors in `@JS()` classes must be marked with
+  `external`. Previously the external could be omitted for unused constructors.
+  Omitting `external` for a constructor which is used would cause incorrect
+  behavior at runtime, now omitting it on any constructor is a static error.
 
  [normalization]: https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 

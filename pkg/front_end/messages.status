@@ -415,6 +415,8 @@ InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
+JsInteropNonExternalConstructor/analyzerCode: Fail # Web compiler specific
+JsInteropNonExternalConstructor/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.

@@ -78,7 +78,6 @@ enum MessageKind {
   INVALID_PACKAGE_URI,
   INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
-  JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_INTEROP_FIELD_NOT_SUPPORTED,
   JS_INTEROP_NON_EXTERNAL_MEMBER,
@@ -233,13 +232,6 @@ main() => new Class();
           "Js-interop class members are only supported in js-interop classes.",
           howToFix: "Try marking the enclosing class as js-interop or "
               "remove the js-interop annotation from the member."),
-
-      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR:
-          const MessageTemplate(
-              MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR,
-              "Constructor '#{constructor}' in js-interop class '#{cls}' is "
-              "not external.",
-              howToFix: "Try adding the 'external' to '#{constructor}'."),
 
       MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,

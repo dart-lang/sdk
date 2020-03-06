@@ -162,19 +162,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
                 constructor, memberName);
           }
 
-          // TODO(33834): It is a breaking change (at least against in some of
-          // our own tests) but JS-interop constructors should be required to be
-          // external since we otherwise allow creating a Dart object that tries
-          // to pass as a JS-interop class.
-          /*if (!constructor.isExternal) {
-            reporter.reportErrorMessage(constructor,
-                MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR, {
-              'cls': cls.name,
-              'constructor':
-                  constructor.name.isEmpty ? '${cls.name}.' : constructor.name
-            });
-          }*/
-
           if (constructor.isFactoryConstructor && isAnonymous) {
             if (constructor.parameterStructure.positionalParameters > 0) {
               reporter.reportErrorMessage(
