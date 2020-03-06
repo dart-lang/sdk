@@ -2060,7 +2060,7 @@ ConstantPool {
     dart.core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
     dynamic :saved_try_context_var0;
-    dart.core::int* :async_temporary_0;
+    dynamic :async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L3:
@@ -2068,7 +2068,7 @@ ConstantPool {
           [yield] let dynamic #t2 = dart.async::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
           :async_temporary_0 = dart._internal::unsafeCast<dart.core::int*>(:result);
           [yield] let dynamic #t3 = dart.async::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
-          :return_value = :async_temporary_0.{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result));
+          :return_value = dart._internal::unsafeCast<dart.core::int*>(:async_temporary_0).{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result));
           break #L3;
         }
         dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -2092,8 +2092,8 @@ ConstantPool {
     dart.core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
     dynamic :saved_try_context_var0;
-    dart.core::int* :async_temporary_0;
-    dart.core::int* :async_temporary_1;
+    dynamic :async_temporary_0;
+    dynamic :async_temporary_1;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L4:
@@ -2108,7 +2108,7 @@ ConstantPool {
                   :async_temporary_1 = sum;
                   :async_temporary_0 = i.{dart.core::num::+}(j);
                   [yield] let dynamic #t4 = dart.async::_awaitHelper(#lib::foo(), :async_op_then, :async_op_error, :async_op) in null;
-                  sum = :async_temporary_1.{dart.core::num::+}(:async_temporary_0.{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result)));
+                  sum = dart._internal::unsafeCast<dart.core::int*>(:async_temporary_1).{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:async_temporary_0).{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result)));
                 }
               }
             }
@@ -2144,9 +2144,9 @@ ConstantPool {
     dynamic :saved_try_context_var2;
     dynamic :exception0;
     dynamic :stack_trace0;
-    dart.core::int* :async_temporary_0;
-    dart.core::int* :async_temporary_1;
-    dart.core::int* :async_temporary_2;
+    dynamic :async_temporary_0;
+    dynamic :async_temporary_1;
+    dynamic :async_temporary_2;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L5:
@@ -2156,7 +2156,7 @@ ConstantPool {
             try {
               :async_temporary_0 = x;
               [yield] let dynamic #t5 = dart.async::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
-              x = :async_temporary_0.{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result));
+              x = dart._internal::unsafeCast<dart.core::int*>(:async_temporary_0).{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result));
             }
             on dynamic catch(final dynamic e) {
               if(e is dart.core::Error*) {
@@ -2165,14 +2165,14 @@ ConstantPool {
               }
               :async_temporary_1 = x;
               [yield] let dynamic #t6 = dart.async::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
-              x = :async_temporary_1.{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result));
+              x = dart._internal::unsafeCast<dart.core::int*>(:async_temporary_1).{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result));
               rethrow;
             }
           finally {
             dart.core::print("fin");
             :async_temporary_2 = x;
             [yield] let dynamic #t7 = dart.async::_awaitHelper(c, :async_op_then, :async_op_error, :async_op) in null;
-            x = :async_temporary_2.{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result));
+            x = dart._internal::unsafeCast<dart.core::int*>(:async_temporary_2).{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result));
             :return_value = x;
             break #L5;
           }

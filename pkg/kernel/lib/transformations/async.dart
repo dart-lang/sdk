@@ -116,17 +116,22 @@ class ExpressionLifter extends Transformer {
   }
 
   // Name an expression by emitting an assignment to a temporary variable.
-  VariableGet name(Expression expr) {
+  Expression name(Expression expr) {
+    // Allocate as dynamic as temps might be reused with different types.
     VariableDeclaration temp =
-        allocateTemporary(nameIndex, expr.getStaticType(_staticTypeContext));
-    statements.add(new ExpressionStatement(new VariableSet(temp, expr)));
-    return new VariableGet(temp);
+        allocateTemporary(nameIndex, const DynamicType());
+    statements.add(ExpressionStatement(VariableSet(temp, expr)));
+    // Type annotate the get via an unsafe cast since all temps are allocated
+    // as dynamic.
+    DartType type = expr.getStaticType(_staticTypeContext);
+    return StaticInvocation(continuationRewriter.helper.unsafeCast,
+        Arguments(<Expression>[VariableGet(temp)], types: <DartType>[type]));
   }
 
-  VariableDeclaration allocateTemporary(int index, DartType type) {
+  VariableDeclaration allocateTemporary(int index,
+      [DartType type = const DynamicType()]) {
     for (var i = variables.length; i <= index; i++) {
-      variables
-          .add(new VariableDeclaration(":async_temporary_${i}", type: type));
+      variables.add(VariableDeclaration(":async_temporary_${i}", type: type));
     }
     return variables[index];
   }
@@ -159,11 +164,12 @@ class ExpressionLifter extends Transformer {
   // Getting a final or const variable is not an effect so it can be evaluated
   // after an await to its right.
   TreeNode visitVariableGet(VariableGet expr) {
+    Expression result = expr;
     if (seenAwait && !expr.variable.isFinal && !expr.variable.isConst) {
-      expr = name(expr);
+      result = name(expr);
       ++nameIndex;
     }
-    return expr;
+    return result;
   }
 
   // Transform an expression given an action to transform the children.  For
