@@ -1399,7 +1399,7 @@ class C {
 
 ### equal_elements_in_const_set
 
-_Two values in a constant set can't be equal._
+_Two elements in a constant set literal can't be equal._
 
 #### Description
 

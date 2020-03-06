@@ -1654,7 +1654,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // returned by an iterator.
   static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
       CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
-          "Two values in a constant set can't be equal.",
+          "Two elements in a constant set literal can't be equal.",
+          correction: "Change or remove the duplicate element.",
           hasPublishedDocs: true);
 
   /**

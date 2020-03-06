@@ -82,7 +82,9 @@ import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
+import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
+import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
 import 'expected_one_list_type_arguments_test.dart'
     as expected_one_list_type_arguments;
 import 'expected_one_set_type_arguments_test.dart'
@@ -557,7 +559,9 @@ main() {
     duplicate_part.main();
     duplicate_shown_name.main();
     equal_elements_in_const_set.main();
+    equal_elements_in_set.main();
     equal_keys_in_const_map.main();
+    equal_keys_in_map.main();
     expected_one_list_type_arguments.main();
     expected_one_set_type_arguments.main();
     expected_two_map_type_arguments.main();

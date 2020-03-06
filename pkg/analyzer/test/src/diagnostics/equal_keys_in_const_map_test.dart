@@ -158,9 +158,12 @@ var c = const {1: null, ...{1: null}};
   }
 
   test_nonConst_entry() async {
-    await assertNoErrorsInCode('''
+    // No error, but there is a hint.
+    await assertErrorsInCode('''
 var c = {1: null, 2: null, 1: null};
-''');
+''', [
+      error(HintCode.EQUAL_KEYS_IN_MAP, 27, 1),
+    ]);
   }
 }
 
