@@ -22,7 +22,6 @@ import 'package:analyzer/dart/element/element.dart'
         Element,
         ExecutableElement,
         ExtensionElement,
-        FieldElement,
         LibraryElement,
         LocalVariableElement,
         ParameterElement,
@@ -34,371 +33,90 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
-import 'features.dart';
+import 'feature_computer.dart';
 
+/// Compute metrics to determine whether they should be used to compute a
+/// relevance score for completion suggestions.
 Future<void> main(List<String> args) async {
-  var out = io.stdout;
-  if (args.isEmpty) {
-    out.writeln('Usage: a single absolute file path to analyze.');
+  ArgParser parser = createArgParser();
+  ArgResults result = parser.parse(args);
+
+  if (validArguments(parser, result)) {
+    var out = io.stdout;
+    var rootPath = result.rest[0];
+    out.writeln('Analyzing root: "$rootPath"');
+
+    var computer = RelevanceMetricsComputer();
+    var stopwatch = Stopwatch();
+    stopwatch.start();
+    await computer.compute(rootPath,
+        corpus: result['corpus'], verbose: result['verbose']);
+    stopwatch.stop();
+
+    var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
+    out.writeln('Metrics computed in $duration');
+    computer.writeMetrics(out);
     await out.flush();
-    io.exit(1);
   }
-
-  var corpus = args[0] == '--corpus';
-  var rootPath = corpus ? args[1] : args[0];
-  out.writeln('Analyzing root: \"$rootPath\"');
-  if (!io.Directory(rootPath).existsSync()) {
-    out.writeln('\tError: No such directory exists on this machine.\n');
-    return;
-  }
-
-  var computer = RelevanceMetricsComputer();
-  var stopwatch = Stopwatch();
-  stopwatch.start();
-  // TODO(brianwilkerson) Add a `--verbose` flag to enable verbose output.
-  await computer.compute(rootPath, corpus: corpus, verbose: false);
-  stopwatch.stop();
-  var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
-  out.writeln('  Metrics computed in $duration');
-  computer.writeMetrics(out);
-  await out.flush();
   io.exit(0);
 }
 
-/// An object used to compute metrics for a single file or directory.
-class ContextTypeVisitor extends SimpleAstVisitor<DartType> {
-  final TypeProvider typeProvider;
+/// Create a parser that can be used to parse the command-line arguments.
+ArgParser createArgParser() {
+  ArgParser parser = ArgParser();
+  parser.addFlag(
+    'corpus',
+    help: 'Analyze each of the subdirectories separately',
+    negatable: false,
+  );
+  parser.addOption(
+    'help',
+    abbr: 'h',
+    help: 'Print this help message.',
+  );
+  parser.addFlag(
+    'verbose',
+    abbr: 'v',
+    help: 'Print additional information about the analysis',
+    negatable: false,
+  );
+  return parser;
+}
 
-  AstNode childNode;
-
-  ContextTypeVisitor(this.typeProvider, this.childNode);
-
-  @override
-  DartType visitAdjacentStrings(AdjacentStrings node) {
-    if (childNode == node.strings[0]) {
-      return _visitParent(node);
-    }
-    return typeProvider.stringType;
+/// Print usage information for this tool.
+void printUsage(ArgParser parser, {String error}) {
+  if (error != null) {
+    print(error);
+    print('');
   }
+  print('usage: dart relevance_metrics.dart [options] packagePath');
+  print('');
+  print('Compute metrics to determine whether they should be used to compute');
+  print('a relevance score for completion suggestions.');
+  print('');
+  print(parser.usage);
+}
 
-  @override
-  DartType visitArgumentList(ArgumentList node) {
-    return (childNode as Expression).staticParameterElement?.type;
+/// Return `true` if the command-line arguments (represented by the [result] and
+/// parsed by the [parser]) are valid.
+bool validArguments(ArgParser parser, ArgResults result) {
+  if (result.wasParsed('help')) {
+    printUsage(parser);
+    return false;
+  } else if (result.rest.length != 1) {
+    printUsage(parser, error: 'No package path specified.');
+    return false;
   }
-
-  @override
-  DartType visitAssertInitializer(AssertInitializer node) {
-    if (childNode == node.condition) {
-      return typeProvider.boolType;
-    }
-    return null;
+  var rootPath = result.rest[0];
+  if (!io.Directory(rootPath).existsSync()) {
+    printUsage(parser, error: 'The directory "$rootPath" does not exist.');
+    return false;
   }
-
-  @override
-  DartType visitAssertStatement(AssertStatement node) {
-    if (childNode == node.condition) {
-      return typeProvider.boolType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitAssignmentExpression(AssignmentExpression node) {
-    if (childNode == node.rightHandSide) {
-      return node.leftHandSide.staticType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitAwaitExpression(AwaitExpression node) {
-    return _visitParent(node);
-  }
-
-  @override
-  DartType visitBinaryExpression(BinaryExpression node) {
-    if (childNode == node.rightOperand) {
-      return (childNode as Expression).staticParameterElement?.type;
-    }
-    return _visitParent(node);
-  }
-
-  @override
-  DartType visitCascadeExpression(CascadeExpression node) {
-    if (childNode == node.target) {
-      return _visitParent(node);
-    }
-    return null;
-  }
-
-  @override
-  DartType visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (childNode == node.expression) {
-      var element = node.fieldName.staticElement;
-      if (element is FieldElement) {
-        return element.type;
-      }
-    }
-    return null;
-  }
-
-  @override
-  DartType visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (childNode == node.defaultValue) {
-      return node.parameter.declaredElement.type;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitDoStatement(DoStatement node) {
-    if (childNode == node.condition) {
-      return typeProvider.boolType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    if (childNode == node.iterable) {
-      var parent = node.parent;
-      if ((parent is ForStatement && parent.awaitKeyword != null) ||
-          (parent is ForElement && parent.awaitKeyword != null)) {
-        return typeProvider.streamDynamicType;
-      }
-      return typeProvider.iterableDynamicType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    if (childNode == node.iterable) {
-      var parent = node.parent;
-      if ((parent is ForStatement && parent.awaitKeyword != null) ||
-          (parent is ForElement && parent.awaitKeyword != null)) {
-        return typeProvider.streamDynamicType;
-      }
-      return typeProvider.iterableDynamicType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    if (childNode == node.condition) {
-      return typeProvider.boolType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitForPartsWithExpression(ForPartsWithExpression node) {
-    if (childNode == node.condition) {
-      return typeProvider.boolType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitFunctionExpressionInvocation(
-      FunctionExpressionInvocation node) {
-    if (childNode == node.function) {
-      return _visitParent(node);
-    }
-    return null;
-  }
-
-  @override
-  DartType visitIfElement(IfElement node) {
-    if (childNode == node.condition) {
-      return typeProvider.boolType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitIfStatement(IfStatement node) {
-    if (childNode == node.condition) {
-      return typeProvider.boolType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitIndexExpression(IndexExpression node) {
-    if (childNode == node.index) {
-      var parameters = node.staticElement?.parameters;
-      if (parameters != null && parameters.length == 1) {
-        return parameters[0].type;
-      }
-    }
-    return null;
-  }
-
-  @override
-  DartType visitListLiteral(ListLiteral node) {
-    var typeArguments = node.typeArguments?.arguments;
-    if (typeArguments != null && typeArguments.length == 1) {
-      return typeArguments[0].type;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitMapLiteralEntry(MapLiteralEntry node) {
-    var typeArguments =
-        node.thisOrAncestorOfType<SetOrMapLiteral>()?.typeArguments;
-    if (typeArguments != null && typeArguments.length == 2) {
-      if (childNode == node.key) {
-        return typeArguments.arguments[0].type;
-      } else {
-        return typeArguments.arguments[1].type;
-      }
-    }
-    return null;
-  }
-
-  @override
-  DartType visitMethodInvocation(MethodInvocation node) {
-    if (childNode == node.target) {
-      return _visitParent(node);
-    }
-    return null;
-  }
-
-  @override
-  DartType visitParenthesizedExpression(ParenthesizedExpression node) {
-    return _visitParent(node);
-  }
-
-  @override
-  DartType visitPostfixExpression(PostfixExpression node) {
-    return (childNode as Expression).staticParameterElement?.type;
-  }
-
-  @override
-  DartType visitPrefixExpression(PrefixExpression node) {
-    return (childNode as Expression).staticParameterElement?.type;
-  }
-
-  @override
-  DartType visitPropertyAccess(PropertyAccess node) {
-    if (childNode == node.target) {
-      return _visitParent(node);
-    }
-    return null;
-  }
-
-  @override
-  DartType visitReturnStatement(ReturnStatement node) {
-    if (childNode == node.expression) {
-      return _returnType(node);
-    }
-    return null;
-  }
-
-  @override
-  DartType visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isSet) {
-      var typeArguments = node.typeArguments?.arguments;
-      if (typeArguments != null && typeArguments.length == 1) {
-        return typeArguments[0].type;
-      }
-    }
-    return null;
-  }
-
-  @override
-  DartType visitSpreadElement(SpreadElement node) {
-    if (childNode == node.expression) {
-      var currentNode = node.parent;
-      while (currentNode != null) {
-        if (currentNode is ListLiteral) {
-          return typeProvider.iterableDynamicType;
-        } else if (currentNode is SetOrMapLiteral) {
-          if (currentNode.isSet) {
-            return typeProvider.iterableDynamicType;
-          }
-          return typeProvider.mapType2(
-              typeProvider.dynamicType, typeProvider.dynamicType);
-        }
-        currentNode = currentNode.parent;
-      }
-    }
-    return null;
-  }
-
-  @override
-  DartType visitVariableDeclaration(VariableDeclaration node) {
-    if (childNode == node.initializer) {
-      var parent = node.parent;
-      if (parent is VariableDeclarationList && parent.type != null) {
-        return parent.type.type;
-      }
-    }
-    return null;
-  }
-
-  @override
-  DartType visitWhileStatement(WhileStatement node) {
-    if (childNode == node.condition) {
-      return typeProvider.boolType;
-    }
-    return null;
-  }
-
-  @override
-  DartType visitYieldStatement(YieldStatement node) {
-    if (childNode == node.expression) {
-      return _returnType(node);
-    }
-    return null;
-  }
-
-  DartType _returnType(AstNode node) {
-    DartType unwrap(DartType returnType, FunctionBody body) {
-      // TODO(brianwilkerson) Unwrap in an async, async* or sync* method.
-      if (body.isAsynchronous) {
-        if (body.isGenerator) {
-          // async*
-          return null;
-        } else {
-          // async
-          return null;
-        }
-      } else if (body.isGenerator) {
-        // sync*
-        return null;
-      }
-      return returnType;
-    }
-
-    var parent = node.parent;
-    while (parent != null) {
-      if (parent is MethodDeclaration) {
-        return unwrap(parent.declaredElement.returnType, parent.body);
-      } else if (parent is ConstructorDeclaration) {
-        return parent.declaredElement.returnType;
-      } else if (parent is FunctionDeclaration) {
-        return unwrap(
-            parent.declaredElement.returnType, parent.functionExpression.body);
-      }
-      parent = parent.parent;
-    }
-    return null;
-  }
-
-  DartType _visitParent(AstNode node) {
-    if (node.parent != null) {
-      childNode = node;
-      return node.parent.accept(this);
-    }
-    return null;
-  }
+  return true;
 }
 
 /// An object that records the data used to compute the metrics.
@@ -427,9 +145,6 @@ class RelevanceData {
   /// A table mapping distances from an identifier to the nearest previous token
   /// with the same lexeme to the number of times that distance was found.
   Map<int, int> tokenDistances = {};
-
-  Timer contextTypeTimer = Timer();
-  Timer inheritanceDepthTimer = Timer();
 
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
@@ -648,6 +363,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The type system associated with the current compilation unit.
   TypeSystem typeSystem;
 
+  /// The object used to compute the values of features.
+  FeatureComputer featureComputer;
+
   /// Initialize a newly created collector to add data points to the given
   /// [data].
   RelevanceDataCollector(this.data);
@@ -852,6 +570,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
     inheritanceManager = InheritanceManager3();
+    featureComputer = FeatureComputer(typeProvider);
 
     for (var directive in node.directives) {
       _recordTokenType('CompilationUnit (directive)', directive,
@@ -863,10 +582,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     super.visitCompilationUnit(node);
 
+    featureComputer = null;
+    inheritanceManager = null;
     typeSystem = null;
     typeProvider = null;
     enclosingLibrary = null;
-    inheritanceManager = null;
   }
 
   @override
@@ -1123,12 +843,13 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // There are no completions.
-    var contextType = _contextType(node);
+    var contextType = featureComputer.computeContextType(node);
     if (contextType != null) {
       var memberType = _returnType(node.staticElement);
       if (memberType != null) {
         _recordTypeRelationships(
-            'function expression invocation', contextType, memberType);
+            'function expression invocation', contextType, memberType,
+            isContextType: true);
       }
     }
     super.visitFunctionExpressionInvocation(node);
@@ -1313,8 +1034,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           (element.enclosingElement as ClassElement).thisType,
           Name(element.librarySource.uri, element.name));
       if (overriddenMembers != null) {
-        // TODO(brianwilkerson) Should we limit this to the most immediate
-        //  override?
+        // Consider limiting this to the most immediate override. If the
+        // signature of a method is changed by one of the overrides, then it
+        // isn't reasonable to expect the overrides of that member to conform to
+        // the signatures of the overridden members from superclasses.
         for (var overridden in overriddenMembers) {
           _recordOverride(element, overridden);
         }
@@ -1328,12 +1051,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var member = node.methodName.staticElement;
     _recordMemberDepth(node.target?.staticType, member);
     if (node.target != null) {
-      var contextType = _contextType(node);
+      var contextType = featureComputer.computeContextType(node);
       if (contextType != null) {
         var memberType = _returnType(member);
         if (memberType != null) {
-          _recordTypeRelationships(
-              'method invocation', contextType, memberType);
+          _recordTypeRelationships('method invocation', contextType, memberType,
+              isContextType: true);
         }
       }
     }
@@ -1434,11 +1157,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var member = node.propertyName.staticElement;
     _recordMemberDepth(node.target?.staticType, member);
     if (!(member is PropertyAccessorElement && member.isSetter)) {
-      var contextType = _contextType(node);
+      var contextType = featureComputer.computeContextType(node);
       if (contextType != null) {
         var memberType = _returnType(member);
         if (memberType != null) {
-          _recordTypeRelationships('property access', contextType, memberType);
+          _recordTypeRelationships('property access', contextType, memberType,
+              isContextType: true);
         }
       }
     }
@@ -1696,21 +1420,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     return 'unknown';
   }
 
-  /// Return the type imposed on the given [node] based on its context, or
-  /// `null` if the context does not impose any type.
-  DartType _contextType(AstNode node) {
-    data.contextTypeTimer.start();
-    var type = node.parent?.accept(ContextTypeVisitor(typeProvider, node));
-    data.contextTypeTimer.stop();
-////    if (type == null) {
-////      node.parent?.accept(ContextTypeVisitor(typeProvider, node));
-////    }
-    if (type == null || type.isDynamic) {
-      return null;
-    }
-    return type;
-  }
-
   /// Return the depth of the given [element]. For example:
   /// 0: imported
   /// 1: prefix
@@ -1762,9 +1471,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     if (currentNode is SimpleIdentifier && currentNode.inDeclarationContext()) {
-      // TODO(brianwilkerson) Explore recording when the left-most identifier is
-      //  in a declaration context to help align identifier counts (from the
-      //  token type list) with the element counts.
       return null;
     }
     return currentNode;
@@ -1808,8 +1514,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var distance = 0;
     var node = reference;
     while (node != null) {
-      if (node is ForStatement) {
-        var loopParts = node.forLoopParts;
+      if (node is ForStatement || node is ForElement) {
+        var loopParts = node is ForStatement
+            ? node.forLoopParts
+            : (node as ForElement).forLoopParts;
         if (loopParts is ForPartsWithDeclarations) {
           for (var declaredVariable in loopParts.variables.variables.reversed) {
             if (declaredVariable.declaredElement == variable) {
@@ -1976,9 +1684,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         }
 
         int superclassDepth = getSuperclassDepth();
-        data.inheritanceDepthTimer.start();
-        int interfaceDepth = inheritanceDistance(targetClass, memberClass);
-        data.inheritanceDepthTimer.stop();
+        int interfaceDepth =
+            featureComputer.inheritanceDistance(targetClass, memberClass);
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
         } else if (interfaceDepth >= 0) {
@@ -2060,6 +1767,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       //  crossed and then reporting the distance with a label such as
       //  'local variable ($boundaryCount)'.
       var distance = _localVariableDistance(node, element);
+      if (distance < 0) {
+        DateTime.now();
+      }
       _recordDistance('distance to local variable', distance);
     } else if (element != null) {
       // TODO(brianwilkerson) We might want to cross reference the depth of
@@ -2160,15 +1870,45 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// Record information about how the [parameterType] and [argumentType] are
   /// related, using the [descriptor] to differentiate between the counts.
   void _recordTypeRelationships(
-      String descriptor, DartType parameterType, DartType argumentType) {
+      String descriptor, DartType parameterType, DartType argumentType,
+      {bool isContextType = false}) {
     if (argumentType == parameterType) {
       data.recordTypeMatch('$descriptor', 'exact');
+      data.recordTypeMatch('all', 'exact');
     } else if (typeSystem.isSubtypeOf(argumentType, parameterType)) {
       data.recordTypeMatch('$descriptor', 'subtype');
+      data.recordTypeMatch('all', 'subtype');
+      if (isContextType &&
+          argumentType is InterfaceType &&
+          parameterType is InterfaceType) {
+        int distance;
+        if (parameterType.element == typeProvider.futureOrElement) {
+          var typeArgument = parameterType.typeArguments[0];
+          distance = featureComputer.inheritanceDistance(
+              argumentType.element, typeProvider.futureElement);
+          if (typeArgument is InterfaceType) {
+            var argDistance = featureComputer.inheritanceDistance(
+                argumentType.element, typeArgument.element);
+            if (distance < 0 || (argDistance >= 0 && argDistance < distance)) {
+              distance = argDistance;
+            }
+          }
+        } else {
+          distance = featureComputer.inheritanceDistance(
+              argumentType.element, parameterType.element);
+        }
+        if (distance < 0) {
+          DateTime.now();
+        }
+        data.recordDistance('Subtype of context type ($descriptor)', distance);
+        data.recordDistance('Subtype of context type (all)', distance);
+      }
     } else if (typeSystem.isSubtypeOf(parameterType, argumentType)) {
       data.recordTypeMatch('$descriptor', 'supertype');
+      data.recordTypeMatch('all', 'supertype');
     } else {
       data.recordTypeMatch('$descriptor', 'unrelated');
+      data.recordTypeMatch('all', 'unrelated');
     }
   }
 
@@ -2276,15 +2016,6 @@ class RelevanceMetricsComputer {
       }
     }
 
-    void writeTimer(String label, Timer timer) {
-      var totalTime = timer.totalTime;
-      var count = timer.count;
-      var averageTime = timer.averageTime;
-      sink.writeln('    $label: $totalTime / $count = $averageTime ms');
-    }
-
-    writeTimer('Context type', data.contextTypeTimer);
-    writeTimer('Inheritance depth', data.inheritanceDepthTimer);
     sink.writeln('');
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);
