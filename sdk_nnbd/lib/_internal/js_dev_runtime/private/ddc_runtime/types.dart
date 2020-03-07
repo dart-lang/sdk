@@ -1245,8 +1245,8 @@ bool isSubtypeOf(Object t1, Object t2) {
     bool result = JS('', '#.get(#)', map, t2);
     if (JS('!', '# !== void 0', result)) return result;
   }
-  var validSubtype = _isSubtype(t1, t2, true);
 
+  var validSubtype = _isSubtype(t1, t2, true);
   if (!validSubtype && !_strictSubtypeChecks) {
     validSubtype = _isSubtype(t1, t2, false);
     if (validSubtype) {
@@ -1292,7 +1292,8 @@ bool _isFutureOr(type) {
       getGenericClass(FutureOr));
 }
 
-bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
+@notNull
+bool _isSubtype(t1, t2, bool strictMode) => JS<bool>('!', '''(() => {
   if (!$strictMode) {
     // Strip nullable types when performing check in weak mode.
     // TODO(nshahan) Investigate stripping off legacy types as well.
