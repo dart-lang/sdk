@@ -451,7 +451,7 @@ class _Type extends Type {
 ///
 /// [isNormalized] is true when [type] is known to be in a canonicalized
 /// normal form, so the algorithm can directly wrap and return the value.
-Type wrapType(type, {isNormalized = false}) {
+Type wrapType(type, [@notNull bool isNormalized = false]) {
   // If we've already wrapped this type once, use the previous wrapper. This
   // way, multiple references to the same type return an identical Type.
   if (JS('!', '#.hasOwnProperty(#)', type, _typeObject)) {
@@ -481,7 +481,7 @@ Type _canonicalizeNormalizedTypeObject(type) {
 
   // GenericFunctionTypeIdentifiers are implicitly normalized.
   if (JS<bool>('!', '# instanceof #', type, GenericFunctionTypeIdentifier)) {
-    return wrapType(type, isNormalized: true);
+    return wrapType(type, true);
   }
   if (JS<bool>('!', '# instanceof #', type, FunctionType)) {
     var normReturnType = normalizeHelper(type.returnType);
@@ -491,11 +491,11 @@ Type _canonicalizeNormalizedTypeObject(type) {
             type.requiredNamed)) {
       if (type.optionals.isEmpty) {
         var normType = fnType(normReturnType, normArgs);
-        return wrapType(normType, isNormalized: true);
+        return wrapType(normType, true);
       }
       var normOptionals = type.optionals.map(normalizeHelper).toList();
       var normType = fnType(normReturnType, normArgs, normOptionals);
-      return wrapType(normType, isNormalized: true);
+      return wrapType(normType, true);
     }
     var normNamed = JS('', '{}');
     _transformJSObject(type.named, normNamed, normalizeHelper);
@@ -503,7 +503,7 @@ Type _canonicalizeNormalizedTypeObject(type) {
     _transformJSObject(type.requiredNamed, normRequiredNamed, normalizeHelper);
     var normType =
         fnType(normReturnType, normArgs, normNamed, normRequiredNamed);
-    return wrapType(normType, isNormalized: true);
+    return wrapType(normType, true);
   }
   if (JS<bool>('!', '# instanceof #', type, GenericFunctionType)) {
     var formals = _getCanonicalTypeFormals(type.typeFormals.length);
@@ -516,7 +516,7 @@ Type _canonicalizeNormalizedTypeObject(type) {
     JS('', '#.push(#)', typeObjectIdKey, normFunc);
     var memoizedId = _memoizeArray(_gFnTypeTypeMap, typeObjectIdKey,
         () => GenericFunctionTypeIdentifier(formals, normBounds, normFunc));
-    return wrapType(memoizedId, isNormalized: true);
+    return wrapType(memoizedId, true);
   }
   var args = getGenericArgs(type);
   var normType;
@@ -527,7 +527,7 @@ Type _canonicalizeNormalizedTypeObject(type) {
     var normArgs = args.map(normalizeHelper).toList();
     normType = JS('!', '#(...#)', genericClass, normArgs);
   }
-  return wrapType(normType, isNormalized: true);
+  return wrapType(normType, true);
 }
 
 /// Generates new values by applying [transform] to the values of [srcObject],
