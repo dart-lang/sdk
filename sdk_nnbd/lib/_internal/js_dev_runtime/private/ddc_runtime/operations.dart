@@ -420,24 +420,15 @@ bool instanceOf(obj, type) {
 cast(obj, type, @notNull bool isImplicit) {
   // We hoist the common case where null is checked against another type here
   // for better performance.
-  if (obj == null) {
-    if (_isLegacy(type) ||
-        _isNullType(type) ||
-        _isTop(type) ||
-        _isNullable(type)) {
-      return obj;
-    }
-    if (_strictSubtypeChecks) {
-      return castError(obj, type, isImplicit);
-    }
+  if (obj == null && !_strictSubtypeChecks) {
     // Check the null comparison cache to avoid emitting repeated warnings.
     _nullWarnOnType(type);
     return obj;
+  } else {
+    var actual = getReifiedType(obj);
+    if (isSubtypeOf(actual, type)) return obj;
   }
-  var actual = getReifiedType(obj);
-  if (isSubtypeOf(actual, type)) {
-    return obj;
-  }
+
   return castError(obj, type, isImplicit);
 }
 

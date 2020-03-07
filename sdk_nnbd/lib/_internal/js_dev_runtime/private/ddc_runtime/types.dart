@@ -85,14 +85,15 @@ class DartType implements Type {
 class DynamicType extends DartType {
   toString() => 'dynamic';
 
+  @notNull
   @JSExportName('is')
   bool is_T(object) => true;
 
   @JSExportName('as')
-  as_T(object) => object;
+  Object? as_T(Object? object) => object;
 
   @JSExportName('_check')
-  check_T(object) => object;
+  Object? check_T(Object? object) => object;
 }
 
 @notNull
@@ -412,6 +413,16 @@ final _dynamic = DynamicType();
 
 class VoidType extends DartType {
   toString() => 'void';
+
+  @notNull
+  @JSExportName('is')
+  bool is_T(object) => true;
+
+  @JSExportName('as')
+  Object? as_T(Object? object) => object;
+
+  @JSExportName('_check')
+  Object? check_T(Object? object) => object;
 }
 
 @JSExportName('void')
