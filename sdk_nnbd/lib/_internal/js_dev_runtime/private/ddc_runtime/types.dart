@@ -294,7 +294,7 @@ Object nullable(type) {
 Object _computeNullable(type) {
   // *? normalizes to ?.
   if (_isLegacy(type)) {
-    return nullable(JS<Object>('', '#.type', type));
+    return nullable(JS<Object>('!', '#.type', type));
   }
   if (_isNullable(type) ||
       _isTop(type) ||
@@ -460,7 +460,7 @@ Type wrapType(type, {isNormalized = false}) {
   var result = isNormalized
       ? _Type(type)
       : (_isLegacy(type)
-          ? wrapType(type.type)
+          ? wrapType(JS<Object>('!', '#.type', type))
           : _canonicalizeNormalizedTypeObject(type));
   JS('', '#[#] = #', type, _typeObject, result);
   return result;
@@ -972,7 +972,7 @@ class GenericFunctionType extends AbstractFunctionType {
     bool hasFreeFormal(t) {
       // Ignore nullability wrappers.
       if (_isLegacy(t) || _isNullable(t)) {
-        return hasFreeFormal(JS<Type>('', '#.type', t));
+        return hasFreeFormal(JS<Object>('!', '#.type', t));
       }
       if (partials.containsKey(t)) return true;
       // Generic classes and typedefs.
@@ -1257,7 +1257,7 @@ bool _isBottom(type, strictMode) => JS(
 
 @notNull
 bool _isTop(type) {
-  if (_isNullable(type)) return JS('!', '# === #', type.type, Object);
+  if (_isNullable(type)) return JS('!', '#.type === #', type, Object);
 
   return JS('!', '# === # || # === #', type, dynamic, type, void_);
 }
