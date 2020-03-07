@@ -223,6 +223,16 @@ void _checkThrow<T>(dynamic v, void onError(error)) {
   });
 }
 
+void returnsNormally(dynamic o) {
+  try {
+    Expect.type<Function()>(o);
+    o();
+  } catch (error, trace) {
+    Expect.fail(
+        "Expected function to return normally, but threw:\n$error\n\n$trace");
+  }
+}
+
 void throws(dynamic v) {
   _checkThrow<Object>(v, (_) {});
 }
