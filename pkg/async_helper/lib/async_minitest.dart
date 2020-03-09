@@ -189,6 +189,11 @@ Matcher lessThanOrEqualTo(num n) => (dynamic v) {
       Expect.fail("$v is not less than $n");
     };
 
+Matcher predicate(bool fn(dynamic value), [String description = ""]) =>
+    (dynamic v) {
+      Expect.isTrue(fn(v), description);
+    };
+
 void isTrue(dynamic v) {
   Expect.isTrue(v);
 }
