@@ -98,6 +98,7 @@ compiler's
 complement
 completers
 confidence
+confident
 confirm
 consecutive
 considering
@@ -115,6 +116,7 @@ dadd
 daemon
 dartanalyzer
 dartfile
+dash
 dashes
 day
 db
@@ -184,6 +186,7 @@ expansive
 explain
 extern
 fac
+faking
 falling
 favors
 fetched
@@ -379,6 +382,7 @@ retainingpath
 retains
 rev
 risky
+runtimes
 say
 scans
 screen

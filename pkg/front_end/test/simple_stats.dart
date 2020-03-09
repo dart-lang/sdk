@@ -23,9 +23,10 @@ class SimpleTTestStat {
     if (confidence < diffMean.abs()) {
       double percentDiff = diffMean * 100 / bMean;
       double percentDiffConfidence = confidence * 100 / bMean;
-      return new TTestResult(true, percentDiff, percentDiffConfidence);
+      return new TTestResult(
+          true, percentDiff, percentDiffConfidence, diffMean, confidence);
     } else {
-      return new TTestResult(false, 0, 0);
+      return new TTestResult(false, 0, 0, 0, 0);
     }
   }
 
@@ -94,15 +95,30 @@ class TTestResult {
   final bool significant;
   final double percentDiff;
   final double percentDiffConfidence;
+  final double diff;
+  final double confidence;
 
-  TTestResult(this.significant, this.percentDiff, this.percentDiffConfidence);
+  TTestResult(this.significant, this.percentDiff, this.percentDiffConfidence,
+      this.diff, this.confidence);
 
   String toString() {
     if (significant) {
+      double leastConfidentChange;
+      if (diff < 0) {
+        leastConfidentChange = diff + confidence;
+      } else {
+        leastConfidentChange = diff - confidence;
+      }
       return "TTestResult[significant: "
-          "$percentDiff% +/- $percentDiffConfidence%]";
+          "${_format(percentDiff)}% +/- ${_format(percentDiffConfidence)}% "
+          "(${_format(diff)} +/- ${_format(confidence)}) "
+          "(at least ${_format(leastConfidentChange)})]";
     } else {
       return "TTestResult[not significant]";
     }
+  }
+
+  String _format(double d) {
+    return d.toStringAsFixed(2);
   }
 }
