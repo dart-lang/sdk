@@ -65,14 +65,21 @@ class MeanReciprocalRankComputer {
   final List<int> ranks = [];
   MeanReciprocalRankComputer();
 
-  double get mrr {
-    if (ranks.isEmpty) {
+  double getMRR([int maxRank = 0]) {
+    if (ranks.isEmpty || maxRank < 0) {
       return 0;
     }
-
     double sum = 0;
     ranks.forEach((rank) {
-      sum += rank != 0 ? (1 / rank) : 0;
+      if (maxRank == 0) {
+        if (rank != 0) {
+          sum += 1 / rank;
+        }
+      } else {
+        if (rank != 0 && rank <= maxRank) {
+          sum += 1 / rank;
+        }
+      }
     });
     return sum / rankCount;
   }
@@ -86,9 +93,15 @@ class MeanReciprocalRankComputer {
   void clear() => ranks.clear();
 
   void printMean() {
-    var mrrVal = mrr;
-    print('Mean Reciprocal Rank    = ${mrrVal.toStringAsFixed(5)}');
-    print('Harmonic Mean (inverse) = ${(1 / mrrVal).toStringAsFixed(2)}');
+    var mrrVal = getMRR();
+    print(
+        'Mean Reciprocal Rank                  = ${mrrVal.toStringAsFixed(6)} '
+        '(inverse = ${(1 / mrrVal).toStringAsFixed(3)})');
+
+    var mrrVal5 = getMRR(5);
+    print(
+        'Mean Reciprocal Rank (max rank 5)     = ${mrrVal5.toStringAsFixed(6)} '
+        '(inverse = ${(1 / mrrVal5).toStringAsFixed(3)})');
   }
 }
 

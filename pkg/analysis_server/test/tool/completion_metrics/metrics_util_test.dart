@@ -46,7 +46,7 @@ void main() {
       var mrrc = MeanReciprocalRankComputer();
       expect(mrrc.rankCount, equals(0));
       expect(mrrc.ranks, isEmpty);
-      expect(mrrc.mrr, equals(0));
+      expect(mrrc.getMRR(), equals(0));
     });
 
     test('clear', () {
@@ -69,7 +69,7 @@ void main() {
       mrrc.addRank(3);
       expect(mrrc.rankCount, equals(5));
       expect(mrrc.ranks, equals([3, 3, 3, 3, 3]));
-      expect(mrrc.mrr, doubleEquals(1 / 3));
+      expect(mrrc.getMRR(), doubleEquals(1 / 3));
     });
 
     test('mmr- example', () {
@@ -79,7 +79,17 @@ void main() {
       mrrc.addRank(1);
       expect(mrrc.rankCount, equals(3));
       expect(mrrc.ranks, equals([3, 2, 1]));
-      expect(mrrc.mrr, doubleEquals(11 / 18));
+      expect(mrrc.getMRR(), doubleEquals(11 / 18));
+    });
+
+    test('mmr- max rank', () {
+      var mrrc = MeanReciprocalRankComputer();
+      mrrc.addRank(3);
+      mrrc.addRank(2);
+      mrrc.addRank(1);
+      expect(mrrc.rankCount, equals(3));
+      expect(mrrc.ranks, equals([3, 2, 1]));
+      expect(mrrc.getMRR(2), doubleEquals(1 / 2));
     });
   });
 

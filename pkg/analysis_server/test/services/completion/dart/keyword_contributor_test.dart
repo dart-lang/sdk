@@ -1008,7 +1008,7 @@ class C {
   }
 
   Future<void> test_constructor_param_prefix() async {
-    addTestSource('class A { A(^) {}}');
+    addTestSource('class A { A(t^) {}}');
     await computeSuggestions();
     assertSuggestKeywords(constructorParameter);
   }
