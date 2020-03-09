@@ -3173,7 +3173,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         body.add(js.statement('if (# == null) return false;', [jsParam]));
       } else if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
-      } else if (_mustBeNonNullable(p.type)) {
+      } else if (_mustBeNonNullable(p.type) &&
+          !_annotatedNotNull(p.annotations)) {
         // TODO(vsm): Remove if / when CFE does this:
         // https://github.com/dart-lang/sdk/issues/40597
         // The check on `p.type` is per:
@@ -3228,6 +3229,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _annotatedNullCheck(List<Expression> annotations) =>
       annotations.any(_nullableInference.isNullCheckAnnotation);
+
+  bool _annotatedNotNull(List<Expression> annotations) =>
+      annotations.any(_nullableInference.isNotNullAnnotation);
 
   bool _reifyGenericFunction(Member m) =>
       m == null ||
