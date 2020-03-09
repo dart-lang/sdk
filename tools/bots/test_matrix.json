@@ -1302,6 +1302,15 @@
           "shards": 6
         },
         {
+          "name": "vm co19_2 tests",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel-nnbd",
+          "shards": 10
+        },
+        {
           "name": "vm weak tests with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
