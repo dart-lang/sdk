@@ -173,16 +173,6 @@ class InfoBuilder {
       return 'The value of the expression is nullable';
     }
 
-    // Text indicating the type of nullable value found.
-    String nullableValue;
-    if (node is NullLiteral) {
-      nullableValue = "an explicit 'null'";
-    } else if (origin.kind == EdgeOriginKind.dynamicAssignment) {
-      nullableValue = 'a dynamic value, which is nullable';
-    } else {
-      nullableValue = 'a nullable value';
-    }
-
     if (origin.kind == EdgeOriginKind.listLengthConstructor) {
       return 'A length is specified in the "List()" constructor and the list '
           'items are initialized to null';
@@ -203,6 +193,16 @@ class InfoBuilder {
     } else if (origin.kind == EdgeOriginKind.implicitNullReturn) {
       return 'This function contains a return statement with no value on line '
           '$lineNumber, which implicitly returns null.';
+    }
+
+    // Text indicating the type of nullable value found.
+    String nullableValue;
+    if (node is NullLiteral) {
+      nullableValue = "an explicit 'null'";
+    } else if (origin.kind == EdgeOriginKind.dynamicAssignment) {
+      nullableValue = 'a dynamic value, which is nullable';
+    } else {
+      nullableValue = 'a nullable value';
     }
 
     /// If the [node] is inside the return expression for a function body,
@@ -263,16 +263,19 @@ class InfoBuilder {
         return 'This field is initialized to $nullableValue';
       }
       return 'This variable is initialized to $nullableValue';
-    } else if (node is ConstructorDeclaration &&
-        origin.kind == EdgeOriginKind.fieldNotInitialized) {
-      String constructorName =
-          node.declaredElement.enclosingElement.displayName;
-      if (node.declaredElement.displayName.isNotEmpty) {
-        constructorName =
-            '$constructorName.${node.declaredElement.displayName}';
+    } else if (origin.kind == EdgeOriginKind.fieldNotInitialized) {
+      if (node is ConstructorDeclaration) {
+        String constructorName =
+            node.declaredElement.enclosingElement.displayName;
+        if (node.declaredElement.displayName.isNotEmpty) {
+          constructorName =
+              '$constructorName.${node.declaredElement.displayName}';
+        }
+        return "The constructor '$constructorName' does not initialize this "
+            'field in its initializer list';
+      } else {
+        return 'This field is not initialized';
       }
-      return "The constructor '$constructorName' does not initialize this "
-          'field in its initializer list';
     }
 
     String enclosingMemberDescription = buildEnclosingMemberDescription(node);

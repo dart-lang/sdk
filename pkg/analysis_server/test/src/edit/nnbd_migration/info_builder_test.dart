@@ -1344,7 +1344,6 @@ class B extends A {
         details: ['A nullable value is assigned']);
   }
 
-  @FailingTest(issue: 'https://dartbug.com/40773')
   Future<void> test_parameter_fromOverriddenField_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
@@ -1366,8 +1365,7 @@ void f(A a) => a.m = null;
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(region: regions[0], offset: 15, details: [
-      // TODO(mfairhurst): Implement something similar to this error message
-      'No initializer is given',
+      'This field is not initialized',
       "An explicit 'null' is assigned in the function 'f'",
     ]);
     assertRegion(region: regions[1], offset: 61, details: [
@@ -1823,7 +1821,6 @@ class C {
     assertDetail(detail: region.details[2], offset: 70, length: 3);
   }
 
-  @FailingTest(issue: 'https://dartbug.com/40773')
   Future<void> test_uninitializedMember() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
@@ -1837,10 +1834,11 @@ class C {
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     expect(regions[0].details, isNotEmpty);
-    // disabled so that it won't interfere with @FailingTest annotation.
-    //assertRegion(region: regions[0], offset: 15, length: 1, details: [
-    //  'This field is not initialized and is therefore made nullable'
-    //]);
+    assertRegion(
+        region: regions[0],
+        offset: 15,
+        length: 1,
+        details: ['This field is not initialized']);
   }
 
   Future<void> test_uninitializedVariable_notLate_uninitializedUse() async {
