@@ -225,7 +225,6 @@ class ClassHierarchyBuilder {
 
   final List<DelayedMember> delayedMemberChecks = <DelayedMember>[];
 
-  // TODO(dmitryas): Consider removing this.
   final CoreTypes coreTypes;
 
   Types types;
@@ -254,28 +253,27 @@ class ClassHierarchyBuilder {
         getNodeFromClassBuilder(loader.computeClassBuilderFromTargetClass(cls));
   }
 
-  InterfaceType asSupertypeOf(InterfaceType subtype, Class supertype) {
+  Supertype asSupertypeOf(InterfaceType subtype, Class supertype) {
     if (subtype.classNode == supertype) {
-      return subtype;
+      return new Supertype(supertype, subtype.typeArguments);
     }
     ClassHierarchyNode clsNode = getNodeFromClass(subtype.classNode);
     ClassHierarchyNode supertypeNode = getNodeFromClass(supertype);
-    List<DartType> superclasses = clsNode.superclasses;
+    List<Supertype> superclasses = clsNode.superclasses;
     int depth = supertypeNode.depth;
     if (depth < superclasses.length) {
-      DartType superclass = superclasses[depth];
-      if (superclass is InterfaceType && superclass.classNode == supertype) {
+      Supertype superclass = superclasses[depth];
+      if (superclass.classNode == supertype) {
         return Substitution.fromInterfaceType(subtype)
-            .substituteType(superclass);
+            .substituteSupertype(superclass);
       }
     }
-    List<DartType> superinterfaces = clsNode.interfaces;
+    List<Supertype> superinterfaces = clsNode.interfaces;
     for (int i = 0; i < superinterfaces.length; i++) {
-      DartType superinterface = superinterfaces[i];
-      if (superinterface is InterfaceType &&
-          superinterface.classNode == supertype) {
+      Supertype superinterface = superinterfaces[i];
+      if (superinterface.classNode == supertype) {
         return Substitution.fromInterfaceType(subtype)
-            .substituteType(superinterface);
+            .substituteSupertype(superinterface);
       }
     }
     return null;
@@ -298,7 +296,9 @@ class ClassHierarchyBuilder {
                 superclass.typeParameters.length, coreTypes.nullType));
       }
     }
-    return asSupertypeOf(type, superclass);
+    return asSupertypeOf(type, superclass)
+        .asInterfaceType
+        .withNullability(type.nullability);
   }
 
   List<DartType> getKernelTypeArgumentsAsInstanceOf(
@@ -1365,9 +1365,9 @@ class ClassHierarchyNodeBuilder {
     /// superclasses.
     List<ClassMember> interfaceSetters;
 
-    List<DartType> superclasses;
+    List<Supertype> superclasses;
 
-    List<DartType> interfaces;
+    List<Supertype> interfaces;
 
     int maxInheritancePath;
 
@@ -1375,18 +1375,20 @@ class ClassHierarchyNodeBuilder {
       // This should be Object.
       classMembers = localMembers;
       classSetters = localSetters;
-      superclasses = new List<DartType>(0);
-      interfaces = new List<DartType>(0);
+      superclasses = new List<Supertype>(0);
+      interfaces = new List<Supertype>(0);
       maxInheritancePath = 0;
     } else {
       maxInheritancePath = supernode.maxInheritancePath + 1;
 
-      superclasses = new List<DartType>(supernode.superclasses.length + 1);
-      DartType supertype = classBuilder.supertype.build(classBuilder.library);
-      if (supertype is! InterfaceType) {
+      superclasses = new List<Supertype>(supernode.superclasses.length + 1);
+      Supertype supertype = classBuilder.supertype.buildSupertype(
+          classBuilder.library, classBuilder.charOffset, classBuilder.fileUri);
+      if (supertype == null) {
         // If the superclass is not an interface type we use Object instead.
         // A similar normalization is performed on [supernode] above.
-        supertype = hierarchy.coreTypes.objectNonNullableRawType;
+        supertype =
+            new Supertype(hierarchy.coreTypes.objectClass, const <DartType>[]);
       }
       superclasses.setRange(0, superclasses.length - 1,
           substSupertypes(supertype, supernode.superclasses));
@@ -1404,11 +1406,14 @@ class ClassHierarchyNodeBuilder {
       }
       if (directInterfaceBuilders != null) {
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
-          recordSupertype(
-              directInterfaceBuilders[i].build(classBuilder.library));
+          Supertype interface = directInterfaceBuilders[i].buildSupertype(
+              classBuilder.library,
+              classBuilder.charOffset,
+              classBuilder.fileUri);
+          if (interface != null) recordSupertype(interface);
         }
       }
-      List<DartType> superclassInterfaces = supernode.interfaces;
+      List<Supertype> superclassInterfaces = supernode.interfaces;
       if (superclassInterfaces != null) {
         superclassInterfaces = substSupertypes(supertype, superclassInterfaces);
       }
@@ -1423,7 +1428,7 @@ class ClassHierarchyNodeBuilder {
             mergeInterfaces(supernode, directInterfaceBuilders);
         interfaceMembers = result.mergedMembers;
         interfaceSetters = result.mergedSetters;
-        interfaces = <DartType>[];
+        interfaces = <Supertype>[];
         if (superclassInterfaces != null) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
             addInterface(interfaces, superclasses, superclassInterfaces[i]);
@@ -1431,10 +1436,12 @@ class ClassHierarchyNodeBuilder {
         }
 
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
-          DartType directInterface =
-              directInterfaceBuilders[i].build(classBuilder.library);
-          addInterface(interfaces, superclasses, directInterface);
-          if (directInterface is InterfaceType) {
+          Supertype directInterface = directInterfaceBuilders[i].buildSupertype(
+              classBuilder.library,
+              classBuilder.charOffset,
+              classBuilder.fileUri);
+          if (directInterface != null) {
+            addInterface(interfaces, superclasses, directInterface);
             ClassHierarchyNode interfaceNode =
                 hierarchy.getNodeFromClass(directInterface.classNode);
             if (interfaceNode != null) {
@@ -1442,13 +1449,13 @@ class ClassHierarchyNodeBuilder {
                 maxInheritancePath = interfaceNode.maxInheritancePath + 1;
               }
 
-              List<DartType> types =
+              List<Supertype> types =
                   substSupertypes(directInterface, interfaceNode.superclasses);
               for (int i = 0; i < types.length; i++) {
                 addInterface(interfaces, superclasses, types[i]);
               }
               if (interfaceNode.interfaces != null) {
-                List<DartType> types =
+                List<Supertype> types =
                     substSupertypes(directInterface, interfaceNode.interfaces);
                 for (int i = 0; i < types.length; i++) {
                   addInterface(interfaces, superclasses, types[i]);
@@ -1511,39 +1518,35 @@ class ClassHierarchyNodeBuilder {
     );
   }
 
-  DartType recordSupertype(DartType supertype) {
+  Supertype recordSupertype(Supertype supertype) {
     debug?.log("In ${this.classBuilder.fullNameForErrors} "
         "recordSupertype(${supertype})");
-    if (supertype is InterfaceType) {
-      Class cls = supertype.classNode;
-      if (cls.isMixinApplication) {
-        recordSupertype(cls.mixedInType.asInterfaceType);
+    Class cls = supertype.classNode;
+    if (cls.isMixinApplication) {
+      recordSupertype(cls.mixedInType);
+    }
+    List<TypeParameter> typeVariableBuilders = cls.typeParameters;
+    if (typeVariableBuilders == null) {
+      substitutions[cls] = Substitution.empty;
+      assert(cls.typeParameters.isEmpty);
+    } else {
+      List<DartType> arguments = supertype.typeArguments;
+      List<DartType> typeArguments = new List<DartType>(arguments.length);
+      List<TypeParameter> typeParameters =
+          new List<TypeParameter>(arguments.length);
+      for (int i = 0; i < arguments.length; i++) {
+        typeParameters[i] = typeVariableBuilders[i];
+        typeArguments[i] = arguments[i];
       }
-      List<TypeParameter> typeVariableBuilders = cls.typeParameters;
-      if (typeVariableBuilders == null) {
-        substitutions[cls] = Substitution.empty;
-        assert(cls.typeParameters.isEmpty);
-      } else {
-        List<DartType> arguments = supertype.typeArguments;
-        List<DartType> typeArguments = new List<DartType>(arguments.length);
-        List<TypeParameter> typeParameters =
-            new List<TypeParameter>(arguments.length);
-        for (int i = 0; i < arguments.length; i++) {
-          typeParameters[i] = typeVariableBuilders[i];
-          typeArguments[i] = arguments[i];
-        }
-        substitutions[cls] =
-            Substitution.fromPairs(typeParameters, typeArguments);
-      }
+      substitutions[cls] =
+          Substitution.fromPairs(typeParameters, typeArguments);
     }
     return supertype;
   }
 
-  List<DartType> substSupertypes(
-      DartType supertype, List<DartType> supertypes) {
-    if (supertype is! InterfaceType) return supertypes;
-    InterfaceType cls = supertype;
-    List<TypeParameter> typeVariables = cls.classNode.typeParameters;
+  List<Supertype> substSupertypes(
+      Supertype supertype, List<Supertype> supertypes) {
+    List<TypeParameter> typeVariables = supertype.classNode.typeParameters;
     if (typeVariables.isEmpty) {
       debug?.log("In ${this.classBuilder.fullNameForErrors} "
           "$supertypes aren't substed");
@@ -1553,16 +1556,16 @@ class ClassHierarchyNodeBuilder {
       return supertypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
-    List<DartType> arguments = cls.typeArguments;
+    List<DartType> arguments = supertype.typeArguments;
     for (int i = 0; i < typeVariables.length; i++) {
       map[typeVariables[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
-    List<DartType> result;
+    List<Supertype> result;
     for (int i = 0; i < supertypes.length; i++) {
-      DartType supertype = supertypes[i];
-      DartType substituted =
-          recordSupertype(substitution.substituteType(supertype));
+      Supertype supertype = supertypes[i];
+      Supertype substituted =
+          recordSupertype(substitution.substituteSupertype(supertype));
       if (supertype != substituted) {
         debug?.log("In ${this.classBuilder.fullNameForErrors} $supertype"
             " -> $substituted");
@@ -1597,63 +1600,60 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  DartType addInterface(
-      List<DartType> interfaces, List<DartType> superclasses, DartType type) {
+  Supertype addInterface(List<Supertype> interfaces,
+      List<Supertype> superclasses, Supertype type) {
+    if (type == null) return null;
     if (!classBuilder.library.isNonNullableByDefault) {
-      type = legacyErasure(hierarchy.coreTypes, type);
+      type = legacyErasureSupertype(hierarchy.coreTypes, type);
     }
-    if (type is InterfaceType) {
-      ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
-      if (node == null) return null;
-      int depth = node.depth;
-      int myDepth = superclasses.length;
-      DartType superclass = depth < myDepth ? superclasses[depth] : null;
-      if (superclass is InterfaceType &&
-          superclass.classNode == type.classNode) {
-        // This is a potential conflict.
-        if (classBuilder.library.isNonNullableByDefault) {
-          superclass = nnbdTopMerge(
-              hierarchy.coreTypes,
-              norm(hierarchy.coreTypes, superclass),
-              norm(hierarchy.coreTypes, type));
-          if (superclass == null) {
-            // This is a conflict.
-            // TODO(johnniwinther): Report errors here instead of through
-            // the computation of the [ClassHierarchy].
-            superclass = superclasses[depth];
-          } else {
-            superclasses[depth] = superclass;
-          }
-        }
-        return superclass;
-      } else {
-        for (int i = 0; i < interfaces.length; i++) {
-          // This is a quadratic algorithm, but normally, the number of
-          // interfaces is really small.
-          DartType interface = interfaces[i];
-          if (interface is InterfaceType &&
-              interface.classNode == type.classNode) {
-            // This is a potential conflict.
-            if (classBuilder.library.isNonNullableByDefault) {
-              interface = nnbdTopMerge(
-                  hierarchy.coreTypes,
-                  norm(hierarchy.coreTypes, interface),
-                  norm(hierarchy.coreTypes, type));
-              if (interface == null) {
-                // This is a conflict.
-                // TODO(johnniwinther): Report errors here instead of through
-                // the computation of the [ClassHierarchy].
-                interface = interfaces[i];
-              } else {
-                interfaces[i] = interface;
-              }
-            }
-            return interface;
-          }
+    ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
+    if (node == null) return null;
+    int depth = node.depth;
+    int myDepth = superclasses.length;
+    Supertype superclass = depth < myDepth ? superclasses[depth] : null;
+    if (superclass != null && superclass.classNode == type.classNode) {
+      // This is a potential conflict.
+      if (classBuilder.library.isNonNullableByDefault) {
+        superclass = nnbdTopMergeSupertype(
+            hierarchy.coreTypes,
+            normSupertype(hierarchy.coreTypes, superclass),
+            normSupertype(hierarchy.coreTypes, type));
+        if (superclass == null) {
+          // This is a conflict.
+          // TODO(johnniwinther): Report errors here instead of through
+          // the computation of the [ClassHierarchy].
+          superclass = superclasses[depth];
+        } else {
+          superclasses[depth] = superclass;
         }
       }
-      interfaces.add(type);
+      return superclass;
+    } else {
+      for (int i = 0; i < interfaces.length; i++) {
+        // This is a quadratic algorithm, but normally, the number of
+        // interfaces is really small.
+        Supertype interface = interfaces[i];
+        if (interface.classNode == type.classNode) {
+          // This is a potential conflict.
+          if (classBuilder.library.isNonNullableByDefault) {
+            interface = nnbdTopMergeSupertype(
+                hierarchy.coreTypes,
+                normSupertype(hierarchy.coreTypes, interface),
+                normSupertype(hierarchy.coreTypes, type));
+            if (interface == null) {
+              // This is a conflict.
+              // TODO(johnniwinther): Report errors here instead of through
+              // the computation of the [ClassHierarchy].
+              interface = interfaces[i];
+            } else {
+              interfaces[i] = interface;
+            }
+          }
+          return interface;
+        }
+      }
     }
+    interfaces.add(type);
     return null;
   }
 
@@ -1893,11 +1893,11 @@ class ClassHierarchyNode {
 
   /// All superclasses of [classBuilder] excluding itself. The classes are
   /// sorted by depth from the root (Object) in ascending order.
-  final List<DartType> superclasses;
+  final List<Supertype> superclasses;
 
   /// The list of all classes implemented by [classBuilder] and its supertypes
   /// excluding any classes from [superclasses].
-  final List<DartType> interfaces;
+  final List<Supertype> interfaces;
 
   /// The longest inheritance path from [classBuilder] to `Object`.
   final int maxInheritancePath;
@@ -1923,17 +1923,13 @@ class ClassHierarchyNode {
     List<ClassHierarchyNode> result = new List<ClassHierarchyNode>(
         1 + superclasses.length + interfaces.length);
     for (int i = 0; i < superclasses.length; i++) {
-      DartType type = superclasses[i];
-      if (type is InterfaceType) {
-        result[i] = hierarchy.getNodeFromClass(type.classNode);
-      }
+      Supertype type = superclasses[i];
+      result[i] = hierarchy.getNodeFromClass(type.classNode);
     }
     for (int i = 0; i < interfaces.length; i++) {
-      DartType type = interfaces[i];
-      if (type is InterfaceType) {
-        result[i + superclasses.length] =
-            hierarchy.getNodeFromClass(type.classNode);
-      }
+      Supertype type = interfaces[i];
+      result[i + superclasses.length] =
+          hierarchy.getNodeFromClass(type.classNode);
     }
     return result..last = this;
   }
@@ -1950,20 +1946,20 @@ class ClassHierarchyNode {
     }
     sb..writeln("  superclasses:");
     int depth = 0;
-    for (DartType superclass in superclasses) {
+    for (Supertype superclass in superclasses) {
       sb.write("  " * (depth + 2));
       if (depth != 0) sb.write("-> ");
-      sb.write(typeToText(superclass));
+      sb.write(typeToText(superclass.asInterfaceType));
       sb.writeln();
       depth++;
     }
     if (interfaces != null) {
       sb.write("  interfaces:");
       bool first = true;
-      for (DartType i in interfaces) {
+      for (Supertype i in interfaces) {
         if (!first) sb.write(",");
         sb.write(" ");
-        sb.write(typeToText(i));
+        sb.write(typeToText(i.asInterfaceType));
         first = false;
       }
       sb.writeln();
