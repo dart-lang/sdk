@@ -513,12 +513,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (entity == node.methodName || entity == node.argumentList) {
-      // no keywords in '.' expressions or type argument lists
+    if (entity == node.methodName) {
+      // no keywords in '.' expressions
+    } else if (entity == node.argumentList) {
       // Note that we're checking the argumentList rather than the typeArgumentList
       // as you'd expect. For some reason, when the cursor is in a type argument
       // list (f<^>()), the entity is the invocation's argumentList...
       // See similar logic in `imported_reference_contributor`.
+
+      _addSuggestion(Keyword.DYNAMIC);
     } else {
       super.visitMethodInvocation(node);
     }
@@ -656,6 +659,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       return null;
     }
     return visitStatement(node);
+  }
+
+  @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    _addSuggestion(Keyword.DYNAMIC);
   }
 
   @override
