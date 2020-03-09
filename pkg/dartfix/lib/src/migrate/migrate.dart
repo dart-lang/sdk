@@ -61,17 +61,46 @@ class MigrateCommand extends Command {
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
-    Progress progress =
-        logger.progress('${ansi.emphasized('Analyzing project')}');
-
-    Server server =
-        Server(listener: logger.isVerbose ? _ServerListener(logger) : null);
+    Progress getProgress(String message) => options.debug
+        ? SimpleProgress(logger, message)
+        : logger.progress(message);
 
     Map<String, List<AnalysisError>> fileErrors = {};
 
+    bool enableAsserts = false;
+    String instrumentationLogFile;
+    bool profileServer = false;
+    String serverPath = options.serverPath;
+    int servicesPort;
+    String sdkPath = options.sdkPath;
+    bool stdioPassthrough = false;
+
+    if (options.debug) {
+      enableAsserts = true;
+      profileServer = true;
+      servicesPort = 9500;
+      stdioPassthrough = true;
+      instrumentationLogFile = path.join(
+          Directory.systemTemp.createTempSync('migration_debug').path,
+          'instrumentationLog');
+      logger.stdout('Instrumentation log file:  ${instrumentationLogFile}');
+    }
+
+    Progress progress = getProgress('${ansi.emphasized('Analyzing project')}');
+
+    Server server = Server(
+        listener: logger.isVerbose ? _ServerListener(logger) : null,
+        stdioPassthrough: stdioPassthrough);
     try {
       await server.start(
-          clientId: 'dart $name', clientVersion: _dartSdkVersion);
+          clientId: 'dart $name',
+          clientVersion: _dartSdkVersion,
+          enableAsserts: enableAsserts,
+          instrumentationLogFile: instrumentationLogFile,
+          profileServer: profileServer,
+          serverPath: serverPath,
+          servicesPort: servicesPort,
+          sdkPath: sdkPath);
       _ServerNotifications serverNotifications = _ServerNotifications(server);
       await serverNotifications.listenToServer(server);
 
@@ -135,9 +164,8 @@ class MigrateCommand extends Command {
 
     // Calculate migration suggestions.
     logger.stdout('');
-    progress = logger
-        .progress('${ansi.emphasized('Generating migration suggestions')}');
-
+    progress =
+        getProgress('${ansi.emphasized('Generating migration suggestions')}');
     Map<String, dynamic> json;
 
     try {

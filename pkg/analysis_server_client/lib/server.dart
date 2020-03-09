@@ -26,6 +26,10 @@ class Server {
   /// or if the server has already been stopped.
   Process _process;
 
+  /// Replicate all stdout/stderr data from the server process to stdout/stderr,
+  /// when true.
+  bool _stdioPassthrough;
+
   /// Commands that have been sent to the server but not yet acknowledged,
   /// and the [Completer] objects which should be completed
   /// when acknowledgement is received.
@@ -43,9 +47,11 @@ class Server {
   /// [listenToOutput] has not been called or [stop] has been called.
   StreamSubscription<String> _stdoutSubscription;
 
-  Server({ServerListener listener, Process process})
+  Server(
+      {ServerListener listener, Process process, bool stdioPassthrough = false})
       : _listener = listener,
-        _process = process;
+        _process = process,
+        _stdioPassthrough = stdioPassthrough;
 
   /// Force kill the server. Returns exit code future.
   Future<int> kill({String reason = 'none'}) {
@@ -63,6 +69,7 @@ class Server {
         .transform(utf8.decoder)
         .transform(LineSplitter())
         .listen((String line) {
+      if (_stdioPassthrough) stdout.writeln(line);
       String trimmedLine = line.trim();
 
       // Guard against lines like:
@@ -116,6 +123,7 @@ class Server {
         .transform(utf8.decoder)
         .transform(LineSplitter())
         .listen((String line) {
+      if (_stdioPassthrough) stderr.writeln(line);
       String trimmedLine = line.trim();
       _listener?.errorMessage(trimmedLine);
     });
