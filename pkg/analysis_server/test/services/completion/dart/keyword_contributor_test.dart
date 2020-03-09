@@ -1002,13 +1002,13 @@ class C {
   }
 
   Future<void> test_constructor_param_noPrefix() async {
-    addTestSource('class A { A(^) {});}');
+    addTestSource('class A { A(^) {}}');
     await computeSuggestions();
     assertSuggestKeywords(constructorParameter);
   }
 
   Future<void> test_constructor_param_prefix() async {
-    addTestSource('class A { A(t^) {});}');
+    addTestSource('class A { A(^) {}}');
     await computeSuggestions();
     assertSuggestKeywords(constructorParameter);
   }
@@ -1918,7 +1918,7 @@ f() => <int>{1, ^, 2};
   }
 
   Future<void> test_method_param_noPrefix() async {
-    addTestSource('class A { foo(^) {});}');
+    addTestSource('class A { foo(^) {}}');
     await computeSuggestions();
     expect(suggestions, isNotEmpty);
     assertSuggestKeywords(methodParameter);
