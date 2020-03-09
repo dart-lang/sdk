@@ -168,13 +168,15 @@ class TraceEntry {
 
   /// The function associated with the entry.  We display this before the link
   /// so that the trace has the familiar appearance of a stacktrace.
+  ///
+  /// Null if not known.
   final String function;
 
   /// Source code location associated with the entry, or `null` if no source
   /// code location is known.
   final TargetLink link;
 
-  TraceEntry({@required this.description, @required this.function, this.link});
+  TraceEntry({@required this.description, this.function, this.link});
 
   TraceEntry.fromJson(dynamic json)
       : description = json['description'],
@@ -183,7 +185,7 @@ class TraceEntry {
 
   Map<String, Object> toJson() => {
         'description': description,
-        'function': function,
+        if (function != null) 'function': function,
         if (link != null) 'link': link.toJson()
       };
 

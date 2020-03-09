@@ -17,15 +17,24 @@ class CodeReference {
 
   final int column;
 
-  CodeReference(this.path, this.line, this.column);
+  /// Name of the enclosing function, or `null` if not known.
+  String function;
+
+  CodeReference(this.path, this.line, this.column, this.function);
 
   CodeReference.fromJson(dynamic json)
       : path = json['path'] as String,
         line = json['line'] as int,
-        column = json['col'] as int;
+        column = json['col'] as int,
+        function = json['function'] as String;
 
   Map<String, Object> toJson() {
-    return {'path': path, 'line': line, 'col': column};
+    return {
+      'path': path,
+      'line': line,
+      'col': column,
+      if (function != null) 'function': function
+    };
   }
 
   @override

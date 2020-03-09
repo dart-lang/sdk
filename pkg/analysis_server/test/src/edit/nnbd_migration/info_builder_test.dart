@@ -238,12 +238,14 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     }
   }
 
-  void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo, int offset) {
+  void assertTraceEntry(
+      UnitInfo unit, TraceEntryInfo entryInfo, String function, int offset) {
     var lineInfo = LineInfo.fromContent(unit.content);
     var expectedLocation = lineInfo.getLocation(offset);
     expect(entryInfo.target.filePath, unit.path);
     expect(entryInfo.target.line, expectedLocation.lineNumber);
     expect(entryInfo.target.offset, expectedLocation.columnNumber);
+    expect(entryInfo.function, function);
   }
 
   Future<void> test_asExpression() async {
@@ -1763,11 +1765,11 @@ void h() {
     expect(entries, hasLength(3));
     // Entry 0 is the edge from g's argument to f's argument, due to g's call to
     // f.
-    assertTraceEntry(unit, entries[0], unit.content.indexOf('i);'));
+    assertTraceEntry(unit, entries[0], 'g', unit.content.indexOf('i);'));
     // Entry 1 is the edge from null to g's argument, due to h's call to g.
-    assertTraceEntry(unit, entries[1], unit.content.indexOf('null'));
+    assertTraceEntry(unit, entries[1], 'h', unit.content.indexOf('null'));
     // Entry 2 is the edge from always to null.
-    assertTraceEntry(unit, entries[2], unit.content.indexOf('null'));
+    assertTraceEntry(unit, entries[2], 'h', unit.content.indexOf('null'));
   }
 
   Future<void> test_trace_nullCheck() async {
@@ -1781,7 +1783,7 @@ void h() {
     var entries = region.traces.single.entries;
     expect(entries, hasLength(1));
     // Entry 0 is the edge from always to the type of i.
-    assertTraceEntry(unit, entries[0], unit.content.indexOf('int?'));
+    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int?'));
   }
 
   Future<void> test_uninitializedField() async {

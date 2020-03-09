@@ -412,7 +412,7 @@ void populateEditDetails([EditDetails response]) {
     var ul = traceParagraph.append(document.createElement('ul'));
     for (var entry in trace.entries) {
       var li = ul.append(document.createElement('li'));
-      li.append(Text(entry.function));
+      li.append(Text(entry.function ?? 'unknown'));
       var link = entry.link;
       if (link != null) {
         li.append(Text(' ('));

@@ -78,7 +78,7 @@ class RegionRenderer {
             for (var entry in trace.entries)
               TraceEntry(
                   description: entry.description,
-                  function: 'unknown',
+                  function: entry.function,
                   link:
                       entry.target == null ? null : linkForTarget(entry.target))
           ])

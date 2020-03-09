@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -197,7 +198,10 @@ mixin EdgeTester {
   /// aren't already.  In practice this means that the caller can pass in either
   //  /// a [NodeMatcher] or a [NullabilityNode].
   NullabilityEdge assertEdge(Object source, Object destination,
-      {@required bool hard, bool checkable = true, Object guards = isEmpty}) {
+      {@required bool hard,
+      bool checkable = true,
+      Object guards = isEmpty,
+      Object codeReference}) {
     var edges = getEdges(source, destination);
     if (edges.length == 0) {
       fail('Expected edge $source -> $destination, found none');
@@ -208,6 +212,9 @@ mixin EdgeTester {
       expect(edge.isHard, hard);
       expect(edge.isCheckable, checkable);
       expect(edge.guards, guards);
+      if (codeReference != null) {
+        expect(edge.codeReference, codeReference);
+      }
       return edge;
     }
   }
@@ -400,6 +407,17 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// element whose text is [text].
   ConditionalDiscard elementDiscard(String text) {
     return variables.conditionalDiscard(findNode.collectionElement(text));
+  }
+
+  /// Returns a [Matcher] that matches a [CodeReference] pointing to the given
+  /// file [offset], with the given [function] name.
+  TypeMatcher<CodeReference> matchCodeRef(
+      {@required int offset, @required String function}) {
+    var location = testUnit.lineInfo.getLocation(offset);
+    return TypeMatcher<CodeReference>()
+        .having((cr) => cr.line, 'line', location.lineNumber)
+        .having((cr) => cr.column, 'column', location.columnNumber)
+        .having((cr) => cr.function, 'function', function);
   }
 
   NullabilityNode possiblyOptionalParameter(String text) {

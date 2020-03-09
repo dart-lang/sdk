@@ -191,11 +191,14 @@ class TraceEntryInfo {
   /// Text description of the entry.
   final String description;
 
+  /// Name of the enclosing function, or `null` if not known.
+  String function;
+
   /// Source code location associated with the entry, or `null` if no source
   /// code location is known.
   final NavigationTarget target;
 
-  TraceEntryInfo(this.description, this.target);
+  TraceEntryInfo(this.description, this.function, this.target);
 }
 
 /// Information about a nullability trace.

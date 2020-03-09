@@ -520,6 +520,7 @@ class InfoBuilder {
     var description = step.toString(); // TODO(paulberry): improve this message.
     return TraceEntryInfo(
         description,
+        codeReference?.function,
         codeReference == null
             ? null
             : NavigationTarget(codeReference.path, codeReference.column,
