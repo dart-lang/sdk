@@ -37,6 +37,7 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
 #endif
 
 #if !defined(__Fuchsia__)
+/// Please see documentation for Dart_LoadElf_Fd.
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          uint64_t file_offset,
                                          const char** error,
@@ -46,6 +47,7 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          const uint8_t** vm_isolate_instrs);
 #endif
 
+/// Please see documentation for Dart_LoadElf_Fd.
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
     const uint8_t* snapshot,
     uint64_t snapshot_size,
@@ -55,6 +57,11 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
     const uint8_t** vm_isolate_data,
     const uint8_t** vm_isolate_instrs);
 
+/// Unloads an ELF object loaded through Dart_LoadELF{_Fd, _Memory}.
+///
+/// Unlike dlclose(), this does not use reference counting.
+/// Dart_LoadELF{_Fd, _Memory} will return load the target library separately
+/// each time it is called, and the results must be unloaded separately.
 DART_EXPORT void Dart_UnloadELF(Dart_LoadedElf* loaded);
 
 #endif  // RUNTIME_BIN_ELF_LOADER_H_
