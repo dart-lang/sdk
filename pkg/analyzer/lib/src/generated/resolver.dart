@@ -1106,7 +1106,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (_flowAnalysis != null) {
       if (!isFunctionDeclaration) {
-        _flowAnalysis.flow.functionExpression_begin(node);
+        _flowAnalysis.executableDeclaration_enter(node, node.parameters, true);
       }
     } else {
       _promoteManager.enterFunctionBody(body);

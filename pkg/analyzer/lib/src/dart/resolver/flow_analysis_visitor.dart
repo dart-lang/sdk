@@ -125,14 +125,14 @@ class FlowAnalysisHelper {
   }
 
   void executableDeclaration_enter(
-      Declaration node, FormalParameterList parameters, bool isClosure) {
+      AstNode node, FormalParameterList parameters, bool isClosure) {
     if (isClosure) {
       flow.functionExpression_begin(node);
     }
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow.initialize(parameter.declaredElement);
+        flow.declare(parameter.declaredElement, true);
       }
     }
   }
@@ -224,9 +224,7 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        if (variable.initializer != null) {
-          flow.initialize(variable.declaredElement);
-        }
+        flow.declare(variable.declaredElement, variable.initializer != null);
       }
     }
   }

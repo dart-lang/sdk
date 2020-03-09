@@ -1593,6 +1593,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         assert(_flowAnalysis != null);
       }
       try {
+        if (declaredElement is PromotableElement) {
+          _flowAnalysis.declare(declaredElement, initializer != null);
+        }
         if (initializer == null) {
           // For top level variables and static fields, we have to generate an
           // implicit assignment of `null`.  For instance fields, this is done
@@ -1606,9 +1609,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 type.node, ImplicitNullInitializerOrigin(source, node));
           }
         } else {
-          if (declaredElement is PromotableElement) {
-            _flowAnalysis.initialize(declaredElement);
-          }
           var destinationType = getOrComputeElementType(declaredElement);
           _handleAssignment(initializer, destinationType: destinationType);
         }
@@ -1652,7 +1652,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _addParametersToFlowAnalysis(FormalParameterList parameters) {
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        _flowAnalysis.initialize(parameter.declaredElement);
+        _flowAnalysis.declare(parameter.declaredElement, true);
       }
     }
   }
@@ -1703,7 +1703,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _assignedVariables);
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        _flowAnalysis.initialize(parameter.declaredElement);
+        _flowAnalysis.declare(parameter.declaredElement, true);
       }
     }
   }

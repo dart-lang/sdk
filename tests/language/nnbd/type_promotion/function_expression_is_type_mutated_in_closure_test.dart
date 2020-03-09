@@ -7,11 +7,15 @@
 void f() {
   void g(Object x) {
     if (x is String) {
-      x.length; //# none: compile-time error
+      x.length; //# 01: ok
     }
 
     void h() {
       x = 42;
+    }
+
+    if (x is String) {
+      x.length; //# 02: compile-time error
     }
   }
 }

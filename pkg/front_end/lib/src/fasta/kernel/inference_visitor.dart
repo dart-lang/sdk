@@ -791,6 +791,7 @@ class InferenceVisitor
 
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
+    inferrer.flowAnalysis.declare(variable, true);
     inferrer.flowAnalysis.forEach_bodyBegin(node, variable, variable.type);
 
     VariableDeclaration tempVariable =
@@ -1049,6 +1050,7 @@ class InferenceVisitor
   @override
   StatementInferenceResult visitFunctionDeclaration(
       covariant FunctionDeclarationImpl node) {
+    inferrer.flowAnalysis.declare(node.variable, true);
     inferrer.flowAnalysis.functionExpression_begin(node);
     inferrer.inferMetadataKeepingHelper(
         node.variable, node.variable.annotations);
@@ -5372,8 +5374,9 @@ class InferenceVisitor
       inferredType = inferrer.inferDeclarationType(
           initializerResult.inferredType,
           forSyntheticVariable: node.name == null);
-      inferrer.flowAnalysis.initialize(node);
+      inferrer.flowAnalysis.declare(node, true);
     } else {
+      inferrer.flowAnalysis.declare(node, false);
       inferredType = const DynamicType();
     }
     if (node.isImplicitlyTyped) {
