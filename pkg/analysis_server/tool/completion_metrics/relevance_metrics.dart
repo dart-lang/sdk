@@ -1050,6 +1050,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var member = node.methodName.staticElement;
     _recordMemberDepth(node.target?.staticType, member);
+    if (node.target is SuperExpression) {
+      var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
+      if (enclosingMethod != null) {
+        if (enclosingMethod.name.name == node.methodName.name) {
+          data.recordTypeMatch('super invocation member', 'same');
+        } else {
+          data.recordTypeMatch('super invocation member', 'different');
+        }
+      }
+    }
     if (node.target != null) {
       var contextType = featureComputer.computeContextType(node);
       if (contextType != null) {
@@ -1156,6 +1166,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitPropertyAccess(PropertyAccess node) {
     var member = node.propertyName.staticElement;
     _recordMemberDepth(node.target?.staticType, member);
+    if (node.target is SuperExpression) {
+      var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
+      if (enclosingMethod != null) {
+        if (enclosingMethod.name.name == node.propertyName.name) {
+          data.recordTypeMatch('super property access member', 'same');
+        } else {
+          data.recordTypeMatch('super property access member', 'different');
+        }
+      }
+    }
     if (!(member is PropertyAccessorElement && member.isSetter)) {
       var contextType = featureComputer.computeContextType(node);
       if (contextType != null) {
