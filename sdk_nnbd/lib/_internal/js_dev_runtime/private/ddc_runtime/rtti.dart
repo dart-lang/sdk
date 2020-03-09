@@ -88,7 +88,7 @@ getReifiedType(obj) {
   switch (JS<String>('!', 'typeof #', obj)) {
     case "object":
       if (obj == null) return JS('', '#', Null);
-      if (JS('!', '# instanceof #', obj, Object)) {
+      if (_jsInstanceOf(obj, Object)) {
         return JS('', '#.constructor', obj);
       }
       var result = JS('', '#[#]', obj, _extensionType);

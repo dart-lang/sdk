@@ -142,17 +142,17 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
 
     // FutureOr<dynamic|void|Object?|Object*> --> dynamic|void|Object?|Object*
     if (_isTop(typeArg) ||
-        (_isLegacy(typeArg) &&
+        (_jsInstanceOf(typeArg, LegacyType) &&
             JS<bool>('!', '#.type === #', typeArg, Object))) {
       return typeArg;
     }
 
     // FutureOr<Never> --> Future<Never>
-    if (typeArg == never_) {
+    if (_equalType(typeArg, Never)) {
       return JS('!', '#(#)', getGenericClass(Future), typeArg);
     }
     // FutureOr<Null> --> Future<Null>?
-    if (typeArg == unwrapType(Null)) {
+    if (_equalType(typeArg, Null)) {
       return nullable(JS('!', '#(#)', getGenericClass(Future), typeArg));
     }
     // Otherwise, create the FutureOr<T> type as a normal generic type.
@@ -286,7 +286,7 @@ bool isJsInterop(obj) {
   // Note that it is still possible to call typed JS interop methods on
   // extension types but the calls must be statically typed.
   if (JS('!', '#[#] != null', obj, _extensionType)) return false;
-  return JS('!', '!($obj instanceof $Object)');
+  return !_jsInstanceOf(obj, Object);
 }
 
 /// Get the type of a method from a type using the stored signature

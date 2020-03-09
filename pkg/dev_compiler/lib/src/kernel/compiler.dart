@@ -4755,21 +4755,35 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (target.isFactory) return _emitFactoryInvocation(node);
 
     // Optimize some internal SDK calls.
-    if (isSdkInternalRuntime(target.enclosingLibrary) &&
-        node.arguments.positional.length == 1) {
-      var name = target.name.name;
-      var firstArg = node.arguments.positional[0];
-      if (name == 'getGenericClass' && firstArg is TypeLiteral) {
-        var type = firstArg.type;
-        if (type is InterfaceType) {
-          return _emitTopLevelNameNoInterop(type.classNode, suffix: '\$');
+    if (isSdkInternalRuntime(target.enclosingLibrary)) {
+      if (node.arguments.positional.length == 1) {
+        var name = target.name.name;
+        var firstArg = node.arguments.positional[0];
+        if (name == 'getGenericClass' && firstArg is TypeLiteral) {
+          var type = firstArg.type;
+          if (type is InterfaceType) {
+            return _emitTopLevelNameNoInterop(type.classNode, suffix: '\$');
+          }
         }
-      }
-      if (name == 'unwrapType' && firstArg is TypeLiteral) {
-        return _emitType(firstArg.type);
-      }
-      if (name == 'extensionSymbol' && firstArg is StringLiteral) {
-        return getExtensionSymbolInternal(firstArg.value);
+        if (name == 'unwrapType' && firstArg is TypeLiteral) {
+          return _emitType(firstArg.type);
+        }
+        if (name == 'extensionSymbol' && firstArg is StringLiteral) {
+          return getExtensionSymbolInternal(firstArg.value);
+        }
+      } else if (node.arguments.positional.length == 2) {
+        var name = target.name.name;
+        var firstArg = node.arguments.positional[0];
+        var secondArg = node.arguments.positional[1];
+        if (name == '_jsInstanceOf' && secondArg is TypeLiteral) {
+          return js.call('# instanceof #',
+              [_visitExpression(firstArg), _emitType(secondArg.type)]);
+        }
+
+        if (name == '_equalType' && secondArg is TypeLiteral) {
+          return js.call('# === #',
+              [_visitExpression(firstArg), _emitType(secondArg.type)]);
+        }
       }
     }
     if (target == _coreTypes.identicalProcedure) {

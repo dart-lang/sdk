@@ -301,7 +301,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
   }
 
   // Apply type arguments
-  if ($ftype instanceof $GenericFunctionType) {
+  if (${_jsInstanceOf(ftype, GenericFunctionType)}) {
     let formalCount = $ftype.formalCount;
 
     if ($typeArgs == null) {
@@ -405,17 +405,27 @@ dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
 dsetindex(obj, index, value) =>
     callMethod(obj, '_set', null, [index, value], null, '[]=');
 
+/// General implementation of the Dart `is` operator.
+///
+/// Some basic cases are handled directly by the `.is` methods that are attached
+/// directly on types, but any query that requires checking subtyping relations
+/// is handled here.
 @notNull
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (obj == null) {
-    return identical(type, unwrapType(Null)) ||
+    return _equalType(type, Null) ||
         _isTop(type) ||
-        _isNullable(type);
+        _jsInstanceOf(type, NullableType);
   }
   return isSubtypeOf(getReifiedType(obj), type);
 }
 
+/// General implementation of the Dart `as` operator.
+///
+/// Some basic cases are handled directly by the `.as` methods that are attached
+/// directly on types, but any query that requires checking subtyping relations
+/// is handled here.
 @JSExportName('as')
 cast(obj, type, @notNull bool isImplicit) {
   // We hoist the common case where null is checked against another type here
