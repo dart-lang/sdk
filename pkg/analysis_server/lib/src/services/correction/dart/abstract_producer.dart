@@ -53,6 +53,8 @@ abstract class CorrectionProducer {
 
   TypeProvider get typeProvider => _context.typeProvider;
 
+  CompilationUnit get unit => _context.unit;
+
   CorrectionUtils get utils => _context.utils;
 
   Future<void> compute(DartChangeBuilder builder);
@@ -94,6 +96,7 @@ class CorrectionProducerContext {
   final int selectionLength;
   final int selectionEnd;
 
+  final CompilationUnit unit;
   final CorrectionUtils utils;
   final String file;
 
@@ -118,6 +121,7 @@ class CorrectionProducerContext {
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
         selectionEnd = (selectionOffset ?? 0) + (selectionLength ?? 0),
+        unit = resolvedResult.unit,
         utils = CorrectionUtils(resolvedResult);
 
   AstNode get node => _node;
