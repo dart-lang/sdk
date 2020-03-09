@@ -20,20 +20,75 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
 import 'metrics_util.dart';
 import 'visitors.dart';
 
 Future<void> main(List<String> args) async {
-  if (args.isEmpty) {
-    print('Usage: a single absolute file path to analyze.');
-    io.exit(1);
+  ArgParser parser = createArgParser();
+  ArgResults result = parser.parse(args);
+
+  if (validArguments(parser, result)) {
+    var code = await CompletionCoverageMetrics(result.rest[0])
+        .compute(corpus: result['corpus'], verbose: result['verbose']);
+    io.exit(code);
   }
-  var corpus = args[0] == '--corpus';
-  var rootPath = corpus ? args[1] : args[0];
-  var code = await CompletionCoverageMetrics(rootPath).compute(corpus: corpus);
-  io.exit(code);
+  return io.exit(1);
+}
+
+/// Create a parser that can be used to parse the command-line arguments.
+ArgParser createArgParser() {
+  ArgParser parser = ArgParser();
+  parser.addFlag(
+    'corpus',
+    help: 'Analyze each of the subdirectories separately',
+    negatable: false,
+  );
+  parser.addOption(
+    'help',
+    abbr: 'h',
+    help: 'Print this help message.',
+  );
+  parser.addFlag(
+    'verbose',
+    abbr: 'v',
+    help: 'Print additional information about the analysis',
+    negatable: false,
+  );
+  return parser;
+}
+
+/// Return `true` if the command-line arguments (represented by the [result] and
+/// parsed by the [parser]) are valid.
+bool validArguments(ArgParser parser, ArgResults result) {
+  if (result.wasParsed('help')) {
+    printUsage(parser);
+    return false;
+  } else if (result.rest.length != 1) {
+    printUsage(parser, error: 'No package path specified.');
+    return false;
+  }
+  var rootPath = result.rest[0];
+  if (!io.Directory(rootPath).existsSync()) {
+    printUsage(parser, error: 'The directory "$rootPath" does not exist.');
+    return false;
+  }
+  return true;
+}
+
+/// Print usage information for this tool.
+void printUsage(ArgParser parser, {String error}) {
+  if (error != null) {
+    print(error);
+    print('');
+  }
+  print('usage: dart completion_metrics.dart [options] packagePath');
+  print('');
+  print('Compute code completion health metrics.');
+  print('');
+  print(parser.usage);
 }
 
 /// This is the main metrics computer class for code completions. After the
@@ -43,6 +98,8 @@ class CompletionCoverageMetrics {
   final String _rootPath;
 
   String _currentFilePath;
+
+  bool _verbose;
 
   ResolvedUnitResult _resolvedUnitResult;
 
@@ -70,17 +127,13 @@ class CompletionCoverageMetrics {
   /// The analysis root path that this CompletionMetrics class will be computed.
   String get rootPath => _rootPath;
 
-  Future<int> compute({bool corpus = false}) async {
+  Future<int> compute({bool corpus = false, bool verbose = false}) async {
+    _verbose = verbose;
     resultCode = 0;
-    print('Analyzing root: \"$_rootPath\"');
-
-    if (!io.Directory(_rootPath).existsSync()) {
-      print('\tError: No such directory exists on this machine.\n');
-      return 1;
-    }
 
     var roots = _computeRootPaths(_rootPath, corpus);
     for (var root in roots) {
+      print('Analyzing root: \"$root\"');
       final collection = AnalysisContextCollection(
         includedPaths: [root],
         resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -160,13 +213,15 @@ class CompletionCoverageMetrics {
       completionElementKindCounter
           .count(expectedCompletion.elementKind.toString());
 
-      // The format "/file/path/foo.dart:3:4" makes for easier input
-      // with the Files dialog in IntelliJ
-      print(
-          '$currentFilePath:${expectedCompletion.lineNumber}:${expectedCompletion.columnNumber}');
-      print(
-          '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
-      print('');
+      if (_verbose) {
+        // The format "/file/path/foo.dart:3:4" makes for easier input
+        // with the Files dialog in IntelliJ
+        print(
+            '$currentFilePath:${expectedCompletion.lineNumber}:${expectedCompletion.columnNumber}');
+        print(
+            '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
+        print('');
+      }
     }
   }
 
@@ -175,6 +230,7 @@ class CompletionCoverageMetrics {
     final percentIncluded = includedCount / totalCompletionCount;
     final percentNotIncluded = 1 - percentIncluded;
 
+    print('');
     completionMissedTokenCounter.printCounterValues();
     print('');
 
