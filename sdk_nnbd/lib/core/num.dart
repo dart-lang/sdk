@@ -359,8 +359,8 @@ abstract class num implements Comparable<num> {
    *     1.toStringAsFixed(3);  // 1.000
    *     (4321.12345678).toStringAsFixed(3);  // 4321.123
    *     (4321.12345678).toStringAsFixed(5);  // 4321.12346
-   *     123456789012345678901.toStringAsFixed(3);  // 123456789012345683968.000
-   *     1000000000000000000000.toStringAsFixed(3); // 1e+21
+   *     123456789012345.toStringAsFixed(3);  // 123456789012345.000
+   *     10000000000000000.toStringAsFixed(4); // 10000000000000000.0000
    *     5.25.toStringAsFixed(0); // 5
    */
   String toStringAsFixed(int fractionDigits);
