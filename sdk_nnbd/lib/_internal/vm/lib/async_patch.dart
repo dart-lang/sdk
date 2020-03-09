@@ -41,7 +41,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     }
   }
 
-  void start(f) {
+  void start(void Function() f) {
     f();
     isSync = true;
   }
