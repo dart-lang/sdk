@@ -60,49 +60,6 @@ safeGetOwnProperty(obj, name) {
     return JS<Object>('', '#[#]', obj, name);
 }
 
-/// Defines a lazy static field.
-/// After initial get or set, it will replace itself with a value property.
-// TODO(jmesserly): reusing descriptor objects has been shown to improve
-// performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
-defineLazyField(to, name, desc) => JS('', '''(() => {
-  const initializer = $desc.get;
-  let init = initializer;
-  let value = null;
-  $desc.get = function() {
-    if (init == null) return value;
-    let f = init;
-    init = $throwCyclicInitializationError;
-    if (f === init) f($name); // throw cycle error
-
-    // On the first (non-cyclic) execution, record the field so we can reset it
-    // later if needed (hot restart).
-    $_resetFields.push(() => {
-      init = initializer;
-      value = null;
-    });
-
-    // Try to evaluate the field, using try+catch to ensure we implement the
-    // correct Dart error semantics.
-    try {
-      value = f();
-      init = null;
-      return value;
-    } catch (e) {
-      init = null;
-      value = null;
-      throw e;
-    }
-  };
-  $desc.configurable = true;
-  if ($desc.set != null) {
-    $desc.set = function(x) {
-      init = null;
-      value = x;
-    };
-  }
-  return ${defineProperty(to, name, desc)};
-})()''');
-
 copyTheseProperties(to, from, names) {
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     var name = JS('', '#[#]', names, i);

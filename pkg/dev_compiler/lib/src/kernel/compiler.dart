@@ -348,7 +348,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // emitted before dart.defineLazy.
     if (_constLazyAccessors.isNotEmpty) {
       var constTableBody = runtimeStatement(
-          'defineLazy(#, { # })', [_constTable, _constLazyAccessors]);
+          'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]);
       moduleItems.insert(_constTableInsertionIndex, constTableBody);
       _constLazyAccessors.clear();
     }
@@ -2106,10 +2106,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
       _staticTypeContext.leaveMember(field);
     }
-    _currentUri = _currentLibrary.fileUri;
-
     _currentUri = savedUri;
-    return runtimeStatement('defineLazy(#, { # })', [objExpr, accessors]);
+
+    return runtimeStatement('defineLazy(#, { # }, #)', [
+      objExpr,
+      accessors,
+      js.boolean(!_currentLibrary.isNonNullableByDefault)
+    ]);
   }
 
   js_ast.Fun _emitStaticFieldInitializer(Field field) {

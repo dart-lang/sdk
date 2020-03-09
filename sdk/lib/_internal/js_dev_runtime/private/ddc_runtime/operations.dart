@@ -697,7 +697,7 @@ _canonicalMember(obj, name) {
 Future loadLibrary() => Future.value();
 
 /// Defines lazy statics.
-void defineLazy(to, from) {
+void defineLazy(to, from, bool checkCycles) {
   for (var name in getOwnNamesAndSymbols(from)) {
     defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
   }
