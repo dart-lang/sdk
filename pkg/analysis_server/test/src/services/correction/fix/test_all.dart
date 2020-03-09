@@ -82,6 +82,7 @@ import 'import_library_project_test.dart' as import_library_project;
 import 'import_library_sdk_test.dart' as import_library_sdk;
 import 'import_library_show_test.dart' as import_library_show;
 import 'inline_invocation_test.dart' as inline_invocation;
+import 'inline_typedef_test.dart' as inline_typedef;
 import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_field_not_final_test.dart' as make_field_not_final;
@@ -221,6 +222,7 @@ void main() {
     import_library_sdk.main();
     import_library_show.main();
     inline_invocation.main();
+    inline_typedef.main();
     insert_semicolon.main();
     make_class_abstract.main();
     make_field_not_final.main();

@@ -27,13 +27,17 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   /// The offset of the lint marker in the code being analyzed.
   int lintOffset = -1;
 
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, or `null` if there are no experiments that should be enabled.
+  List<String> get experiments => null;
+
   /// Return the lint code being tested.
   String get lintCode;
 
   @override
   void setUp() {
     super.setUp();
-    createAnalysisOptionsFile(lints: [lintCode]);
+    createAnalysisOptionsFile(experiments: experiments, lints: [lintCode]);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,

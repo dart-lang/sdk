@@ -268,6 +268,8 @@ class DartFixKind {
       FixKind('IMPORT_LIBRARY_SHOW', 55, "Update library '{0}' import");
   static const INLINE_INVOCATION =
       FixKind('INLINE_INVOCATION', 30, "Inline invocation of '{0}'");
+  static const INLINE_TYPEDEF =
+      FixKind('INLINE_TYPEDEF', 30, "Inline the definition of '{0}'");
   static const INSERT_SEMICOLON = FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const MAKE_CLASS_ABSTRACT =
       FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");

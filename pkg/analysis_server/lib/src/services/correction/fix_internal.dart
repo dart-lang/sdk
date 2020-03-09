@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_map_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
@@ -4717,7 +4718,9 @@ class FixProcessor extends BaseProcessor {
       await compute(RemoveDeadIfNull());
     } else if (errorCode is LintCode) {
       String name = errorCode.name;
-      if (name == LintNames.avoid_returning_null_for_future) {
+      if (name == LintNames.avoid_private_typedef_functions) {
+        await compute(InlineTypedef());
+      } else if (name == LintNames.avoid_returning_null_for_future) {
         await compute(WrapInFuture());
       } else if (name == LintNames.prefer_collection_literals) {
         await compute(ConvertToListLiteral());

@@ -19,6 +19,8 @@ class LintNames {
   static const String avoid_relative_lib_imports = 'avoid_relative_lib_imports';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';
+  static const String avoid_private_typedef_functions =
+      'avoid_private_typedef_functions';
   static const String avoid_returning_null_for_future =
       'avoid_returning_null_for_future';
   static const String avoid_types_on_closure_parameters =
