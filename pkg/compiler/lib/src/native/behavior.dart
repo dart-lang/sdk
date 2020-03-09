@@ -9,6 +9,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
+import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
@@ -737,6 +738,8 @@ abstract class BehaviorBuilder {
   NativeBasicData get nativeBasicData;
   bool get trustJSInteropTypeAnnotations;
   ElementEnvironment get elementEnvironment;
+  CompilerOptions get options;
+  DartTypes get dartTypes => commonElements.dartTypes;
 
   NativeBehavior _behavior;
 
@@ -796,6 +799,7 @@ abstract class BehaviorBuilder {
   /// We assume that JS-interop APIs cannot instantiate Dart types or
   /// non-JSInterop native types.
   void _capture(DartType type, bool isJsInterop) {
+    type = type.withoutNullability;
     if (type is FunctionType) {
       FunctionType functionType = type;
       _capture(functionType.returnType, isJsInterop);
@@ -813,9 +817,7 @@ abstract class BehaviorBuilder {
           _behavior.typesInstantiated.add(type);
         }
 
-        if (!trustJSInteropTypeAnnotations ||
-            type is DynamicType ||
-            type == commonElements.objectType) {
+        if (!trustJSInteropTypeAnnotations || dartTypes.isTopType(type)) {
           // By saying that only JS-interop types can be created, we prevent
           // pulling in every other native type (e.g. all of dart:html) when a
           // JS interop API returns dynamic or when we don't trust the type
@@ -842,6 +844,18 @@ abstract class BehaviorBuilder {
     _behavior.sideEffects.setAllSideEffects();
   }
 
+  void _addReturnType(DartType type) {
+    _behavior.typesReturned.add(type.withoutNullability);
+
+    // Breakdown nullable type into TypeWithoutNullability|Null.
+    // Pre-nnbd Declared types are nullable, so we also add null in that case.
+    if (type is NullableType ||
+        type is LegacyType ||
+        (!options.useNullSafety && type is! VoidType)) {
+      _behavior.typesReturned.add(commonElements.nullType);
+    }
+  }
+
   NativeBehavior buildFieldLoadBehavior(
       DartType type,
       Iterable<String> createsAnnotations,
@@ -850,11 +864,9 @@ abstract class BehaviorBuilder {
       {bool isJsInterop}) {
     _behavior = new NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
-    _behavior.typesReturned.add(!isJsInterop || trustJSInteropTypeAnnotations
+    _addReturnType(!isJsInterop || trustJSInteropTypeAnnotations
         ? type
         : commonElements.dynamicType);
-    // Declared types are nullable.
-    _behavior.typesReturned.add(commonElements.nullType);
     _capture(type, isJsInterop);
     _overrideWithAnnotations(
         createsAnnotations, returnsAnnotations, lookupType);
@@ -888,13 +900,9 @@ abstract class BehaviorBuilder {
     // an interop call returns a DOM type and declares a dynamic return type,
     // but otherwise we would include a lot of code by default).
     // TODO(sigmund,sra): consider doing something better for numeric types.
-    _behavior.typesReturned.add(!isJsInterop || trustJSInteropTypeAnnotations
+    _addReturnType(!isJsInterop || trustJSInteropTypeAnnotations
         ? returnType
         : commonElements.dynamicType);
-    if (type.returnType is! VoidType) {
-      // Declared types are nullable.
-      _behavior.typesReturned.add(commonElements.nullType);
-    }
     _capture(type, isJsInterop);
 
     for (DartType type in type.optionalParameterTypes) {

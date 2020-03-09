@@ -2467,26 +2467,6 @@ class JsElementEnvironment extends ElementEnvironment
   }
 }
 
-/// [BehaviorBuilder] for kernel based elements.
-class JsBehaviorBuilder extends BehaviorBuilder {
-  @override
-  final ElementEnvironment elementEnvironment;
-  @override
-  final CommonElements commonElements;
-  @override
-  final DiagnosticReporter reporter;
-  @override
-  final NativeBasicData nativeBasicData;
-  final CompilerOptions _options;
-
-  JsBehaviorBuilder(this.elementEnvironment, this.commonElements,
-      this.nativeBasicData, this.reporter, this._options);
-
-  @override
-  bool get trustJSInteropTypeAnnotations =>
-      _options.trustJSInteropTypeAnnotations;
-}
-
 /// [EntityLookup] implementation used to deserialize [JsKernelToElementMap].
 ///
 /// Since data objects and environments are registered together with their
