@@ -296,8 +296,8 @@ void maybeScrollIntoView(Element element) {
 
 /// Scroll target with id [offset] into view if it is not currently in view.
 ///
-/// If [offset] is null, instead scroll the "unit-name" header, at the top of the
-/// page, into view.
+/// If [offset] is null, instead scroll the "unit-name" header, at the top of
+/// the page, into view.
 ///
 /// Also add the "target" class, highlighting the target. Also add the
 /// "highlight" class to the entire line on which the target lies.

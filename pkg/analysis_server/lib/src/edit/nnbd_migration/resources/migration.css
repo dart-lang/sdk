@@ -357,7 +357,9 @@ footer .wide {
 }
 
 .elevation-z4 {
-  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, .12);
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+      0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+      0px 1px 10px 0px rgba(0, 0, 0, .12);
 }
 
 a {
@@ -397,4 +399,14 @@ button[disabled] {
   color: #777;
   text-align: center;
   margin-top: 3em !important;
+}
+
+/**
+ * HLJS Overrides
+ */
+.hljs {
+  /**
+   * This allows the per-line highlights to show.
+   */
+  background: none;
 }
