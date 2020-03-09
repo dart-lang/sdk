@@ -5,7 +5,6 @@ import 'dart:html';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:async_helper/async_minitest.dart';
-import 'package:expect/minitest.dart' as minitest;
 
 
 Future<FileSystem> _fileSystem;
@@ -30,8 +29,8 @@ main() {
   });
 
   test('requestFileSystem', () async {
-    var expectation = FileSystem.supported ? minitest.returnsNormally : throws;
-    minitest.expect(() async {
+    var expectation = FileSystem.supported ? returnsNormally : throws;
+    expect(() async {
       var fs = await fileSystem;
       expect(fs.root != null, true);
     }, expectation);
