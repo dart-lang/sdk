@@ -21,8 +21,7 @@ class AnalysisOptionsProvider {
 
   AnalysisOptionsProvider([this.sourceFactory]);
 
-  /// Provide the options found in either
-  /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_FILE] or
+  /// Provide the options found in
   /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE].
   /// Recursively merge options referenced by an include directive
   /// and remove the include directive from the resulting options map.
@@ -43,10 +42,6 @@ class AnalysisOptionsProvider {
   File getOptionsFile(Folder root, {bool crawlUp = false}) {
     Resource resource;
     for (Folder folder = root; folder != null; folder = folder.parent) {
-      resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
-      if (resource.exists) {
-        break;
-      }
       resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       if (resource.exists || !crawlUp) {
         break;

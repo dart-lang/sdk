@@ -378,12 +378,7 @@ class ContextBuilder {
     }
     Folder root = resourceProvider.getFolder(path);
     for (Folder folder = root; folder != null; folder = folder.parent) {
-      File file =
-          folder.getChildAssumingFile(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
-      if (file.exists) {
-        return file;
-      }
-      file = folder
+      File file = folder
           .getChildAssumingFile(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       if (file.exists) {
         return file;

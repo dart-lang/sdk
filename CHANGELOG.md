@@ -147,6 +147,10 @@ The Linter was updated to `0.1.112`, which includes:
 * new lint: `unnecessary_string_escapes`
 * incompatible rule documentation improvements
 
+#### Analyzer
+
+ * Removed support for the deprecated analysis options file name `.analysis_options`.
+
 #### Pub
 
 * `pub get` and `pub upgrade` now fetches version information about hosted

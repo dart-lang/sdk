@@ -20,8 +20,7 @@ import '../src/util/yaml_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisOptionsProviderOldTest);
-    defineReflectiveTests(AnalysisOptionsProviderNewTest);
+    defineReflectiveTests(AnalysisOptionsProviderTest);
   });
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
@@ -101,24 +100,13 @@ analyzer:
 }
 
 @reflectiveTest
-class AnalysisOptionsProviderNewTest extends AnalysisOptionsProviderTest {
-  @override
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-}
-
-@reflectiveTest
-class AnalysisOptionsProviderOldTest extends AnalysisOptionsProviderTest {
-  @override
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-}
-
-abstract class AnalysisOptionsProviderTest {
+class AnalysisOptionsProviderTest {
   TestPathTranslator pathTranslator;
   ResourceProvider resourceProvider;
 
   AnalysisOptionsProvider provider;
 
-  String get optionsFileName;
+  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
   void setUp() {
     var rawProvider = MemoryResourceProvider();

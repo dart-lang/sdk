@@ -796,30 +796,9 @@ environment:
     expect(result.path, filePath);
   }
 
-  void test_getOptionsFile_inParentOfRoot_old() {
-    String parentPath = convertPath('/some/directory');
-    String path = join(parentPath, 'path');
-    String filePath = join(parentPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE);
-    newFile(filePath);
-
-    File result = builder.getOptionsFile(path);
-    expect(result, isNotNull);
-    expect(result.path, filePath);
-  }
-
   void test_getOptionsFile_inRoot_new() {
     String path = convertPath('/some/directory/path');
     String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    newFile(filePath);
-
-    File result = builder.getOptionsFile(path);
-    expect(result, isNotNull);
-    expect(result.path, filePath);
-  }
-
-  void test_getOptionsFile_inRoot_old() {
-    String path = convertPath('/some/directory/path');
-    String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_FILE);
     newFile(filePath);
 
     File result = builder.getOptionsFile(path);

@@ -111,9 +111,6 @@ class AnalysisEngine {
   /// The long suffix used for HTML files.
   static const String SUFFIX_HTML = "html";
 
-  /// The deprecated file name used for analysis options files.
-  static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
-
   /// The file name used for analysis options files.
   static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
@@ -166,8 +163,7 @@ class AnalysisEngine {
       return false;
     }
     String basename = (context ?? pathos.posix).basename(fileName);
-    return basename == ANALYSIS_OPTIONS_FILE ||
-        basename == ANALYSIS_OPTIONS_YAML_FILE;
+    return basename == ANALYSIS_OPTIONS_YAML_FILE;
   }
 
   /// Return `true` if the given [fileName] is assumed to contain Dart source
