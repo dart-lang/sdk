@@ -136,8 +136,7 @@ class _SyncIterator<T> implements Iterator<T> {
   _SyncIterator(this._moveNextFn);
 
   bool moveNext() {
-    final moveNextFn = _moveNextFn;
-    if (moveNextFn == null) {
+    if (_moveNextFn == null) {
       return false;
     }
     while (true) {
@@ -150,7 +149,7 @@ class _SyncIterator<T> implements Iterator<T> {
       }
       // _moveNextFn() will update the values of _yieldEachIterable
       //  and _current.
-      if (!moveNextFn(this)) {
+      if (!_moveNextFn!(this)) {
         _moveNextFn = null;
         _current = null;
         return false;
