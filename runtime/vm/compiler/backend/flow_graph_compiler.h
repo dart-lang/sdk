@@ -1121,6 +1121,15 @@ class FlowGraphCompiler : public ValueObject {
   // is amenable to a peephole optimization.
   bool IsPeephole(Instruction* instr) const;
 
+#if defined(DEBUG)
+  bool CanCallDart() const {
+    return current_instruction_ == nullptr ||
+           current_instruction_->CanCallDart();
+  }
+#else
+  bool CanCallDart() const { return true; }
+#endif
+
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {
    public:

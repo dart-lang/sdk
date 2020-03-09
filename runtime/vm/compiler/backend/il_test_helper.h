@@ -58,6 +58,7 @@ RawLibrary* LoadTestScript(const char* script,
                            const char* lib_uri = RESOLVED_USER_TEST_URI);
 
 RawFunction* GetFunction(const Library& lib, const char* name);
+RawClass* GetClass(const Library& lib, const char* name);
 
 void Invoke(const Library& lib, const char* name);
 

@@ -1125,6 +1125,13 @@ void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 }
 
+void StoreIndexedInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Instruction::PrintOperandsTo(f);
+  if (!ShouldEmitStoreBarrier()) {
+    f->Print(", NoStoreBarrier");
+  }
+}
+
 void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   const char* name = "<unknown code>";
   if (code_.IsStubCode()) {

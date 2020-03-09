@@ -100,14 +100,14 @@ compiler_sources = [
   "compiler_state.h",
   "ffi/abi.cc",
   "ffi/abi.h",
-  "ffi/frame_rebase.cc",
-  "ffi/frame_rebase.h",
-  "ffi/marshaller.cc",
-  "ffi/marshaller.h",
   "ffi/call.cc",
   "ffi/call.h",
   "ffi/callback.cc",
   "ffi/callback.h",
+  "ffi/frame_rebase.cc",
+  "ffi/frame_rebase.h",
+  "ffi/marshaller.cc",
+  "ffi/marshaller.h",
   "ffi/native_calling_convention.cc",
   "ffi/native_calling_convention.h",
   "ffi/native_location.cc",
@@ -166,6 +166,8 @@ compiler_sources = [
   "stub_code_compiler_arm64.cc",
   "stub_code_compiler_ia32.cc",
   "stub_code_compiler_x64.cc",
+  "write_barrier_elimination.cc",
+  "write_barrier_elimination.h",
 ]
 
 compiler_sources_tests = [
@@ -190,4 +192,5 @@ compiler_sources_tests = [
   "backend/typed_data_aot_test.cc",
   "backend/yield_position_test.cc",
   "cha_test.cc",
+  "write_barrier_elimination_test.cc",
 ]
