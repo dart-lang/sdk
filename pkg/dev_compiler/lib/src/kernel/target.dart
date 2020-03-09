@@ -23,6 +23,7 @@ import 'kernel_helpers.dart';
 class DevCompilerTarget extends Target {
   DevCompilerTarget(this.flags);
 
+  @override
   final TargetFlags flags;
 
   WidgetCreatorTracker _widgetTracker;

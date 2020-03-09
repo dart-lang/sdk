@@ -139,7 +139,6 @@ abstract class Compiler {
           parseExperimentalArguments(expFlags),
           onError: (msg) => errors.add(msg))
       ..environmentDefines = new EnvironmentMap()
-      ..enableAsserts = enableAsserts
       ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;

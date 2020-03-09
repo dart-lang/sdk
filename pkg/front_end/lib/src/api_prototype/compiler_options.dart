@@ -25,6 +25,8 @@ import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
 
+import '../api_unstable/util.dart';
+
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage;
 
@@ -102,7 +104,7 @@ class CompilerOptions {
   /// When this option is `true`, [sdkSummary] must be null.
   bool compileSdk = false;
 
-  @deprecated
+  @Deprecated("Unused internally.")
   bool chaseDependencies;
 
   /// Patch files to apply on the core libraries for a specific target platform.
@@ -119,6 +121,7 @@ class CompilerOptions {
   /// directly, while relative URIs are resolved from the [sdkRoot].
   // TODO(sigmund): provide also a flag to load this data from a file (like
   // libraries.json)
+  @Deprecated("Unused internally.")
   Map<String, List<Uri>> targetPatches = <String, List<Uri>>{};
 
   /// Enable or disable experimental features. Features mapping to `true` are
@@ -153,6 +156,7 @@ class CompilerOptions {
 
   /// Deprecated. Has no affect on front-end.
   // TODO(dartbug.com/37514) Remove this field once DDK removes its uses of it.
+  @Deprecated("Unused internally.")
   bool enableAsserts = false;
 
   /// Whether to show verbose messages (mainly for debugging and performance
@@ -232,6 +236,65 @@ class CompilerOptions {
   String currentSdkVersion = "${kernel.defaultLanguageVersionMajor}"
       "."
       "${kernel.defaultLanguageVersionMinor}";
+
+  bool equivalent(CompilerOptions other,
+      {bool ignoreOnDiagnostic: true,
+      bool ignoreVerbose: true,
+      bool ignoreVerify: true,
+      bool ignoreDebugDump: true}) {
+    if (sdkRoot != other.sdkRoot) return false;
+    if (librariesSpecificationUri != other.librariesSpecificationUri) {
+      return false;
+    }
+    if (!ignoreOnDiagnostic) {
+      if (onDiagnostic != other.onDiagnostic) return false;
+    }
+    if (packagesFileUri != other.packagesFileUri) return false;
+    if (!equalLists(additionalDills, other.additionalDills)) return false;
+    if (sdkSummary != other.sdkSummary) return false;
+    if (!equalMaps(declaredVariables, other.declaredVariables)) return false;
+    if (fileSystem != other.fileSystem) return false;
+    if (compileSdk != compileSdk) return false;
+    // chaseDependencies aren't used anywhere, so ignored here.
+    // targetPatches aren't used anywhere, so ignored here.
+    if (!equalMaps(experimentalFlags, other.experimentalFlags)) return false;
+    if (!equalMaps(environmentDefines, other.environmentDefines)) return false;
+    if (errorOnUnevaluatedConstant != other.errorOnUnevaluatedConstant) {
+      return false;
+    }
+    if (target != other.target) {
+      if (target.runtimeType != other.target.runtimeType) return false;
+      if (target.name != other.target.name) return false;
+      if (target.flags != other.target.flags) return false;
+    }
+    // enableAsserts is not used anywhere, so ignored here.
+    if (!ignoreVerbose) {
+      if (verbose != other.verbose) return false;
+    }
+    if (!ignoreVerify) {
+      if (verify != other.verify) return false;
+    }
+    if (!ignoreDebugDump) {
+      if (debugDump != other.debugDump) return false;
+    }
+    if (omitPlatform != other.omitPlatform) return false;
+    if (setExitCodeOnProblem != other.setExitCodeOnProblem) return false;
+    if (embedSourceText != other.embedSourceText) return false;
+    if (throwOnErrorsForDebugging != other.throwOnErrorsForDebugging) {
+      return false;
+    }
+    if (throwOnWarningsForDebugging != other.throwOnWarningsForDebugging) {
+      return false;
+    }
+    if (skipForDebugging != other.skipForDebugging) return false;
+    if (bytecode != other.bytecode) return false;
+    if (writeFileOnCrashReport != other.writeFileOnCrashReport) return false;
+    if (nnbdMode != other.nnbdMode) return false;
+    if (performNnbdChecks != other.performNnbdChecks) return false;
+    if (currentSdkVersion != other.currentSdkVersion) return false;
+
+    return true;
+  }
 }
 
 /// Parse experimental flag arguments of the form 'flag' or 'no-flag' into a map

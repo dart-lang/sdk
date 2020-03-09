@@ -22,6 +22,32 @@ class TargetFlags {
       this.forceLateLoweringForTesting = false,
       this.forceNoExplicitGetterCallsForTesting = false,
       this.enableNullSafety = false});
+
+  bool operator ==(other) {
+    if (other is! TargetFlags) return false;
+    TargetFlags o = other;
+    if (trackWidgetCreation != o.trackWidgetCreation) return false;
+    if (forceLateLoweringForTesting != o.forceLateLoweringForTesting) {
+      return false;
+    }
+    if (forceNoExplicitGetterCallsForTesting !=
+        o.forceNoExplicitGetterCallsForTesting) {
+      return false;
+    }
+    if (enableNullSafety != o.enableNullSafety) return false;
+    return true;
+  }
+
+  int get hashCode {
+    int hash = 485786;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ forceLateLoweringForTesting.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ forceNoExplicitGetterCallsForTesting.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
+    return hash;
+  }
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -87,6 +113,7 @@ class ConstantsBackend {
 
 /// A target provides backend-specific options for generating kernel IR.
 abstract class Target {
+  TargetFlags get flags;
   String get name;
 
   /// A list of URIs of required libraries, not including dart:core.

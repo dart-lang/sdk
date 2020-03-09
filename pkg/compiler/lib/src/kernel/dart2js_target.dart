@@ -50,6 +50,7 @@ bool maybeEnableNative(Uri uri) {
 
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
+  @override
   final TargetFlags flags;
   @override
   final String name;
