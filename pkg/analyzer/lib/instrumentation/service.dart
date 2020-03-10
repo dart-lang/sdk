@@ -4,6 +4,7 @@
 
 import 'package:analyzer/instrumentation/noop_service.dart';
 import 'package:analyzer/instrumentation/plugin_data.dart';
+import 'package:meta/meta.dart';
 
 /// The interface used by client code to communicate with an instrumentation
 /// service of some kind.
@@ -16,7 +17,9 @@ abstract class InstrumentationService {
 
   /// Log that the given non-priority [exception] was thrown, with the given
   /// [stackTrace].
-  void logException(dynamic exception, [StackTrace stackTrace]);
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]);
 
   /// Log unstructured text information for debugging purposes.
   void logInfo(String message, [dynamic exception]);
@@ -74,4 +77,17 @@ abstract class InstrumentationService {
 
   /// Shut down this service.
   Future<void> shutdown();
+}
+
+/// The additional attachment to be logged.
+class InstrumentationServiceAttachment {
+  final String id;
+  final String stringValue;
+
+  /// Create a new attachment with the unique [id] and string [value].
+  InstrumentationServiceAttachment.string({
+    @required String id,
+    @required String value,
+  })  : id = id,
+        stringValue = value;
 }

@@ -12,6 +12,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/crash_reporting.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
@@ -287,13 +288,16 @@ class Driver implements ServerStarter {
   /// should be used to compute relevance scores.
   static const String USE_NEW_RELEVANCE = 'use-new-relevance';
 
-  /// The instrumentation service that is to be used by the analysis server.
-  InstrumentationService instrumentationService;
+  /// The builder for attachments that should be included into crash reports.
+  CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
+      CrashReportingAttachmentsBuilder.empty;
 
-  /// *
   /// An optional manager to handle file systems which may not always be
   /// available.
   DetachableFileSystemManager detachableFileSystemManager;
+
+  /// The instrumentation service that is to be used by the analysis server.
+  InstrumentationService instrumentationService;
 
   HttpAnalysisServer httpServer;
 
@@ -455,6 +459,7 @@ class Driver implements ServerStarter {
           analysisServerOptions,
           parser,
           dartSdkManager,
+          crashReportingAttachmentsBuilder,
           instrumentationService,
           RequestStatisticsHelper(),
           analytics,
@@ -468,6 +473,7 @@ class Driver implements ServerStarter {
     AnalysisServerOptions analysisServerOptions,
     CommandLineParser parser,
     DartSdkManager dartSdkManager,
+    CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
     RequestStatisticsHelper requestStatistics,
     telemetry.Analytics analytics,
@@ -500,6 +506,7 @@ class Driver implements ServerStarter {
     final socketServer = SocketServer(
         analysisServerOptions,
         dartSdkManager,
+        crashReportingAttachmentsBuilder,
         instrumentationService,
         requestStatistics,
         diagnosticServer,

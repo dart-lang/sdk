@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
@@ -38,6 +39,9 @@ import 'package:analyzer/src/util/glob.dart';
 abstract class AbstractAnalysisServer {
   /// The options of this server instance.
   AnalysisServerOptions options;
+
+  /// The builder for attachments that should be included into crash reports.
+  final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
 
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
@@ -93,7 +97,10 @@ abstract class AbstractAnalysisServer {
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
   List<Glob> _analyzedFilesGlobs;
 
-  AbstractAnalysisServer(this.options, this.diagnosticServer,
+  AbstractAnalysisServer(
+      this.options,
+      this.diagnosticServer,
+      this.crashReportingAttachmentsBuilder,
       ResourceProvider baseResourceProvider)
       : resourceProvider = OverlayResourceProvider(baseResourceProvider) {
     performance = performanceDuringStartup;
@@ -285,6 +292,23 @@ abstract class AbstractAnalysisServer {
       AnalysisEngine.instance.instrumentationService.logException(e, st);
       return null;
     });
+  }
+
+  void logExceptionResult(nd.ExceptionResult result) {
+    String message = 'Analysis failed: ${result.filePath}';
+    if (result.contextKey != null) {
+      message += ' context: ${result.contextKey}';
+    }
+
+    var attachments =
+        crashReportingAttachmentsBuilder.forExceptionResult(result);
+
+    // TODO(39284): should this exception be silent?
+    AnalysisEngine.instance.instrumentationService.logException(
+      SilentException.wrapInMessage(message, result.exception),
+      null,
+      attachments,
+    );
   }
 
   /// Notify the declarations tracker that the file with the given [path] was

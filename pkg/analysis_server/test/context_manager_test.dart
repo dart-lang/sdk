@@ -2404,7 +2404,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
       AnalysisEngine.instance.instrumentationService.logException(
-          CaughtException.withMessage('Analysis failed: ${result.path}',
+          CaughtException.withMessage('Analysis failed: ${result.filePath}',
               result.exception.exception, result.exception.stackTrace));
     });
     return currentDriver;

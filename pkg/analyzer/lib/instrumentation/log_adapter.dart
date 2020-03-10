@@ -38,7 +38,9 @@ class InstrumentationLogAdapter implements InstrumentationService {
   void logError(String message) => _log(TAG_ERROR, message);
 
   @override
-  void logException(dynamic exception, [StackTrace stackTrace]) {
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
     if (_instrumentationLogger != null) {
       String message = _toString(exception);
       String trace = _toString(stackTrace);

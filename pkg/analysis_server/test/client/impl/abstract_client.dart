@@ -10,6 +10,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -104,8 +105,13 @@ abstract class AbstractClient {
   AnalysisServer createAnalysisServer(String sdkPath) {
     sdk = MockSdk(resourceProvider: resourceProvider);
     var options = AnalysisServerOptions();
-    return AnalysisServer(serverChannel, resourceProvider, options,
-        DartSdkManager(sdkPath, true), InstrumentationService.NULL_SERVICE);
+    return AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        options,
+        DartSdkManager(sdkPath, true),
+        CrashReportingAttachmentsBuilder.empty,
+        InstrumentationService.NULL_SERVICE);
   }
 
   /// Create a project at [projectPath].

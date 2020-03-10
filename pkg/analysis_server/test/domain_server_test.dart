@@ -7,6 +7,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -29,6 +30,7 @@ void main() {
         resourceProvider,
         AnalysisServerOptions(),
         DartSdkManager('', false),
+        CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
     handler = ServerDomainHandler(server);
   });

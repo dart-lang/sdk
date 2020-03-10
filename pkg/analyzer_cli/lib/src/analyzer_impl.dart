@@ -269,7 +269,9 @@ class StdInstrumentation extends NoopInstrumentationService {
   }
 
   @override
-  void logException(dynamic exception, [StackTrace stackTrace]) {
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
     errorSink.writeln(exception);
     errorSink.writeln(stackTrace);
   }

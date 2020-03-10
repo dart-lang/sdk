@@ -8,6 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -75,8 +76,13 @@ class LspSocketServer implements AbstractSocketServer {
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
     }
 
-    analysisServer = LspAnalysisServer(serverChannel, resourceProvider,
-        analysisServerOptions, sdkManager, instrumentationService,
+    analysisServer = LspAnalysisServer(
+        serverChannel,
+        resourceProvider,
+        analysisServerOptions,
+        sdkManager,
+        CrashReportingAttachmentsBuilder.empty,
+        instrumentationService,
         diagnosticServer: diagnosticServer);
   }
 }

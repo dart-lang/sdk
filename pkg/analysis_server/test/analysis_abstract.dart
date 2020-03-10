@@ -10,6 +10,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -125,6 +126,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
         resourceProvider,
         options,
         DartSdkManager(resourceProvider.convertPath('/sdk'), true),
+        CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }
 
