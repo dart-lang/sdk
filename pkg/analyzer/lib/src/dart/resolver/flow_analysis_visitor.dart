@@ -28,6 +28,10 @@ class FlowAnalysisDataForTesting {
   /// the corresponding variable has been definitely assigned.
   final List<AstNode> unassignedNodes = [];
 
+  /// The list of [SimpleIdentifier]s representing variable accesses that occur
+  /// when the corresponding variable has been definitely unassigned.
+  final List<AstNode> definitelyUnassignedNodes = [];
+
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
   final Map<Declaration,
@@ -176,12 +180,17 @@ class FlowAnalysisHelper {
 
     var element = node.staticElement;
     if (element is LocalVariableElement) {
+      if (flow.isUnassigned(element)) {
+        dataForTesting?.definitelyUnassignedNodes?.add(node);
+      }
+
       var typeSystem = _typeOperations.typeSystem;
       if (typeSystem.isPotentiallyNonNullable(element.type)) {
         var isUnassigned = !flow.isAssigned(element);
         if (isUnassigned) {
           dataForTesting?.unassignedNodes?.add(node);
         }
+
         // Note: in principle we could make this slightly more performant by
         // checking element.isLate earlier, but we would lose the ability to
         // test the flow analysis mechanism using late variables.  And it seems
