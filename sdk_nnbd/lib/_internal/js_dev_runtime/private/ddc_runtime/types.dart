@@ -410,7 +410,7 @@ class NeverType extends DartType {
 }
 
 @JSExportName('Never')
-final never_ = NeverType();
+final _never = NeverType();
 
 @JSExportName('dynamic')
 final _dynamic = DynamicType();
@@ -432,7 +432,7 @@ class VoidType extends DartType {
 @JSExportName('void')
 final void_ = VoidType();
 
-// TODO(nshahan): Cleanup and consolidate NeverType, BottomType, bottom, never_.
+// TODO(nshahan): Cleanup and consolidate NeverType, BottomType, bottom, _never.
 class BottomType extends DartType {
   toString() => 'bottom';
 }
