@@ -50,8 +50,10 @@ main(List<String> args) async {
   var listener = _Listener(categoryOfInterest,
       printExceptionNodeOnly: parsedArgs['exception_node_only'] as bool);
   assert(listener.numExceptions == 0);
+  var overallStartTime = DateTime.now();
   for (var package in packages) {
     print('Migrating $package');
+    var startTime = DateTime.now();
     listener.currentPackage = package.name;
     var contextCollection = AnalysisContextCollectionImpl(
         includedPaths: package.migrationPaths, sdkPath: sdk.sdkPath);
@@ -68,7 +70,7 @@ main(List<String> args) async {
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.prepareInput(resolvedUnit);
         } else {
-          print('Skipping $file, it has errors.');
+          print('  Skipping $file; it has errors.');
         }
       }
       for (var file in localFiles) {
@@ -86,10 +88,17 @@ main(List<String> args) async {
       migration.finish();
     }
 
+    var endTime = DateTime.now();
+    print('  Migrated $package in ${endTime.difference(startTime).inSeconds} '
+        'seconds');
     print('  ${files.length} files found');
     var exceptionCount = listener.numExceptions - previousExceptionCount;
     print('  $exceptionCount exceptions in this package');
   }
+
+  var overallDuration = DateTime.now().difference(overallStartTime);
+  print('${packages.length} packages migrated in ${overallDuration.inSeconds} '
+      'seconds');
   print('${listener.numTypesMadeNullable} types made nullable');
   print('${listener.numNullChecksAdded} null checks added');
   print('${listener.numMetaImportsAdded} meta imports added');
@@ -97,24 +106,42 @@ main(List<String> args) async {
   print('${listener.numDeadCodeSegmentsFound} dead code segments found');
   print('${listener.numExceptions} exceptions in '
       '${listener.groupedExceptions.length} categories');
+
+  var sortedExceptions = [
+    for (var entry in listener.groupedExceptions.entries)
+      ExceptionCategory(entry.key, entry.value)
+  ]..sort((category1, category2) => category2.count.compareTo(category1.count));
+  var exceptionalPackages =
+      sortedExceptions.expand((category) => category.packageNames).toSet();
+  print('Packages with exceptions: $exceptionalPackages');
   print('Exception categories:');
-  var sortedExceptions = listener.groupedExceptions.entries
-      .map((entry) => MapEntry(
-          entry.key,
-          entry.value.entries.toList()
-            ..sort((e1, e2) => e2.value.compareTo(e1.value))))
-      .toList()
-        ..sort((e1, e2) => e2.value.length.compareTo(e1.value.length));
-  for (var entry in sortedExceptions) {
-    final packages =
-        entry.value.map((entry) => "${entry.key} x${entry.value}").join(', ');
-    print('  ${entry.key} ($packages)');
+  for (var category in sortedExceptions) {
+    print('  $category');
   }
 
   if (categoryOfInterest == null) {
     print('\n(Note: to show stack traces & nodes for a particular failure,'
         ' rerun with a search string as an argument.)');
   }
+}
+
+class ExceptionCategory {
+  final String topOfStack;
+  final List<MapEntry<String, int>> exceptionCountPerPackage;
+
+  ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
+      : this.exceptionCountPerPackage = exceptions.entries.toList()
+          ..sort((e1, e2) => e2.value.compareTo(e1.value));
+
+  int get count => exceptionCountPerPackage.length;
+
+  List<String> get packageNames =>
+      [for (var entry in exceptionCountPerPackage) entry.key];
+
+  Iterable<String> get packageNamesAndCounts =>
+      exceptionCountPerPackage.map((entry) => '${entry.key} x${entry.value}');
+
+  String toString() => '$topOfStack (${packageNamesAndCounts.join(', ')})';
 }
 
 ArgResults parseArguments(List<String> args) {
