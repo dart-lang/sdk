@@ -44,14 +44,6 @@ RawFunction* GetFunction(const Library& lib, const char* name) {
   return func.raw();
 }
 
-RawClass* GetClass(const Library& lib, const char* name) {
-  Thread* thread = Thread::Current();
-  const auto& cls = Class::Handle(
-      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
-  EXPECT(!cls.IsNull());
-  return cls.raw();
-}
-
 void Invoke(const Library& lib, const char* name) {
   // These tests rely on running unoptimized code to collect type feedback. The
   // interpreter does not collect type feedback for interface calls, so set

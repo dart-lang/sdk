@@ -19,7 +19,6 @@
 #include "vm/compiler/backend/redundancy_elimination.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/call_specializer.h"
-#include "vm/compiler/write_barrier_elimination.h"
 #if defined(DART_PRECOMPILER)
 #include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/aot/precompiler.h"
@@ -267,7 +266,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   // so it should not be lifted earlier than that pass.
   INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
-  INVOKE_PASS(EliminateWriteBarriers);
+  INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
 #if defined(DART_PRECOMPILER)
   if (mode == kAOT) {
@@ -350,7 +349,7 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
-  INVOKE_PASS(EliminateWriteBarriers);
+  INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
 #if defined(DART_PRECOMPILER)
   if (mode == kAOT) {
@@ -530,7 +529,38 @@ COMPILER_PASS(ReorderBlocks, {
   }
 });
 
-COMPILER_PASS(EliminateWriteBarriers, { EliminateWriteBarriers(flow_graph); });
+static void WriteBarrierElimination(FlowGraph* flow_graph) {
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    Definition* last_allocated = nullptr;
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (!current->CanTriggerGC()) {
+        if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
+          if (instr->instance()->definition() == last_allocated) {
+            instr->set_emit_store_barrier(kNoStoreBarrier);
+          }
+          continue;
+        }
+      }
+
+      if (AllocationInstr* alloc = current->AsAllocation()) {
+        if (alloc->WillAllocateNewOrRemembered()) {
+          last_allocated = alloc;
+          continue;
+        }
+      }
+
+      if (current->CanTriggerGC()) {
+        last_allocated = nullptr;
+      }
+    }
+  }
+}
+
+COMPILER_PASS(WriteBarrierElimination,
+              { WriteBarrierElimination(flow_graph); });
 
 COMPILER_PASS(FinalizeGraph, {
   // At the end of the pipeline, force recomputing and caching graph

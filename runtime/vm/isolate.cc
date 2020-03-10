@@ -2366,7 +2366,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // after a potential shutdown of the group, which would turn down any pending
   // GC tasks as well as the heap.
   Isolate::MarkIsolateDead(is_application_isolate);
-}  // namespace dart
+}
 
 Dart_InitializeIsolateCallback Isolate::initialize_callback_ = nullptr;
 Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
@@ -2459,18 +2459,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
 void IsolateGroup::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers();
-}
-
-void Isolate::RememberLiveTemporaries() {
-  if (mutator_thread_ != nullptr) {
-    mutator_thread_->RememberLiveTemporaries();
-  }
-}
-
-void Isolate::DeferredMarkLiveTemporaries() {
-  if (mutator_thread_ != nullptr) {
-    mutator_thread_->DeferredMarkLiveTemporaries();
-  }
 }
 
 void IsolateGroup::EnableIncrementalBarrier(
@@ -2588,17 +2576,6 @@ uword IsolateGroup::FindPendingDeoptAtSafepoint(uword fp) {
   }
   FATAL("Missing pending deopt entry");
   return 0;
-}
-
-void IsolateGroup::DeferredMarkLiveTemporaries() {
-  ForEachIsolate(
-      [&](Isolate* isolate) { isolate->DeferredMarkLiveTemporaries(); },
-      /*at_safepoint=*/true);
-}
-
-void IsolateGroup::RememberLiveTemporaries() {
-  ForEachIsolate([&](Isolate* isolate) { isolate->RememberLiveTemporaries(); },
-                 /*at_safepoint=*/true);
 }
 
 RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {

@@ -51,7 +51,7 @@ class SlotCache : public ZoneAllocated {
 
 const char* Slot::KindToCString(Kind k) {
   switch (k) {
-#define NATIVE_CASE(C, U, F, id, M)                                            \
+#define NATIVE_CASE(C, F, id, M)                                               \
   case NATIVE_SLOT_NAME(C, F, id, M):                                          \
     return NATIVE_TO_STR(C, F, id, M);
     NATIVE_SLOTS_LIST(NATIVE_CASE)
@@ -70,7 +70,7 @@ const char* Slot::KindToCString(Kind k) {
 
 bool Slot::ParseKind(const char* str, Kind* out) {
   ASSERT(str != nullptr && out != nullptr);
-#define NATIVE_CASE(C, U, F, id, M)                                            \
+#define NATIVE_CASE(C, F, id, M)                                               \
   if (strcmp(str, NATIVE_TO_STR(C, F, id, M)) == 0) {                          \
     *out = NATIVE_SLOT_NAME(C, F, id, M);                                      \
     return true;                                                               \
@@ -101,8 +101,7 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
   static const Slot fields[] = {
 #define FIELD_FINAL (IsImmutableBit::encode(true))
 #define FIELD_VAR (0)
-#define DEFINE_NATIVE_FIELD(ClassName, UnderlyingType, FieldName, cid,         \
-                            mutability)                                        \
+#define DEFINE_NATIVE_FIELD(ClassName, FieldName, cid, mutability)             \
   Slot(Kind::k##ClassName##_##FieldName, FIELD_##mutability, k##cid##Cid,      \
        compiler::target::ClassName::FieldName##_offset(),                      \
        #ClassName "." #FieldName, nullptr),

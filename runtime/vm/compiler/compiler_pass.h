@@ -50,7 +50,7 @@ namespace dart {
   V(TypePropagation)                                                           \
   V(UseTableDispatch)                                                          \
   V(WidenSmiToInt32)                                                           \
-  V(EliminateWriteBarriers)
+  V(WriteBarrierElimination)
 
 class AllocationSinking;
 class BlockScheduler;
