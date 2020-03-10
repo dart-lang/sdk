@@ -43,14 +43,14 @@ void main() {
 
   group('MeanReciprocalRankComputer', () {
     test('empty', () {
-      var mrrc = MeanReciprocalRankComputer();
+      var mrrc = MeanReciprocalRankComputer('');
       expect(mrrc.rankCount, equals(0));
       expect(mrrc.ranks, isEmpty);
       expect(mrrc.getMRR(), equals(0));
     });
 
     test('clear', () {
-      var mrrc = MeanReciprocalRankComputer();
+      var mrrc = MeanReciprocalRankComputer('');
       mrrc.addRank(2);
       expect(mrrc.rankCount, equals(1));
       expect(mrrc.ranks, isNotEmpty);
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('mmr- single value', () {
-      var mrrc = MeanReciprocalRankComputer();
+      var mrrc = MeanReciprocalRankComputer('');
       mrrc.addRank(3);
       mrrc.addRank(3);
       mrrc.addRank(3);
@@ -73,7 +73,7 @@ void main() {
     });
 
     test('mmr- example', () {
-      var mrrc = MeanReciprocalRankComputer();
+      var mrrc = MeanReciprocalRankComputer('');
       mrrc.addRank(3);
       mrrc.addRank(2);
       mrrc.addRank(1);
@@ -83,7 +83,7 @@ void main() {
     });
 
     test('mmr- max rank', () {
-      var mrrc = MeanReciprocalRankComputer();
+      var mrrc = MeanReciprocalRankComputer('');
       mrrc.addRank(3);
       mrrc.addRank(2);
       mrrc.addRank(1);

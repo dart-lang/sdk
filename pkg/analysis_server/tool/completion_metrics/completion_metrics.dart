@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -24,6 +23,7 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
 import 'metrics_util.dart';
+import 'utils.dart';
 import 'visitors.dart';
 
 Future<void> main(List<String> args) async {
@@ -60,6 +60,19 @@ ArgParser createArgParser() {
   return parser;
 }
 
+/// Print usage information for this tool.
+void printUsage(ArgParser parser, {String error}) {
+  if (error != null) {
+    print(error);
+    print('');
+  }
+  print('usage: dart completion_metrics.dart [options] packagePath');
+  print('');
+  print('Compute code completion health metrics.');
+  print('');
+  print(parser.usage);
+}
+
 /// Return `true` if the command-line arguments (represented by the [result] and
 /// parsed by the [parser]) are valid.
 bool validArguments(ArgParser parser, ArgResults result) {
@@ -78,19 +91,6 @@ bool validArguments(ArgParser parser, ArgResults result) {
   return true;
 }
 
-/// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
-  if (error != null) {
-    print(error);
-    print('');
-  }
-  print('usage: dart completion_metrics.dart [options] packagePath');
-  print('');
-  print('Compute code completion health metrics.');
-  print('');
-  print(parser.usage);
-}
-
 /// This is the main metrics computer class for code completions. After the
 /// object is constructed, [computeCompletionMetrics] is executed to do analysis
 /// and print a summary of the metrics gathered from the completion tests.
@@ -106,23 +106,23 @@ class CompletionCoverageMetrics {
   /// The int to be returned from the [compute] call.
   int resultCode;
 
-  int includedCount = 0;
-  int notIncludedCount = 0;
-
-  var completionMissedTokenCounter = Counter('missing completion counter');
-  var completionKindCounter = Counter('completion kind counter');
-  var completionElementKindCounter = Counter('completion element kind counter');
-  var mRRComputer = MeanReciprocalRankComputer();
+  var completionCounter = Counter('successful/ unsuccessful completions');
+  var completionMissedTokenCounter =
+      Counter('unsuccessful completion token counter');
+  var completionKindCounter = Counter('unsuccessful completion kind counter');
+  var completionElementKindCounter =
+      Counter('unsuccessful completion element kind counter');
+  var mRRComputer =
+      MeanReciprocalRankComputer('successful/ unsuccessful completions');
+  var typeMemberMRRComputer =
+      MeanReciprocalRankComputer('type member completions');
+  var nonTypeMemberMRRComputer =
+      MeanReciprocalRankComputer('non-type member completions');
 
   CompletionCoverageMetrics(this._rootPath);
 
   /// The path to the current file.
   String get currentFilePath => _currentFilePath;
-
-  /// If the concrete class has this getter return true, then when
-  /// [forEachExpectedCompletion] is called, the [List] of
-  /// [CompletionSuggestion]s will be passed.
-  bool get doComputeCompletionsFromAnalysisServer => true;
 
   /// The analysis root path that this CompletionMetrics class will be computed.
   String get rootPath => _rootPath;
@@ -175,12 +175,8 @@ class CompletionCoverageMetrics {
               for (var expectedCompletion in visitor.expectedCompletions) {
                 forEachExpectedCompletion(
                     expectedCompletion,
-                    doComputeCompletionsFromAnalysisServer
-                        ? await _computeCompletionSuggestions(
-                            _resolvedUnitResult,
-                            expectedCompletion.offset,
-                            declarationsTracker)
-                        : null);
+                    await _computeCompletionSuggestions(_resolvedUnitResult,
+                        expectedCompletion.offset, declarationsTracker));
               }
             } catch (e) {
               print('Exception caught analyzing: $filePath');
@@ -204,9 +200,15 @@ class CompletionCoverageMetrics {
     mRRComputer.addRank(place.rank);
 
     if (place.denominator != 0) {
-      includedCount++;
+      completionCounter.count('successful');
+
+      if (isTypeMember(expectedCompletion.syntacticEntity)) {
+        typeMemberMRRComputer.addRank(place.rank);
+      } else {
+        nonTypeMemberMRRComputer.addRank(place.rank);
+      }
     } else {
-      notIncludedCount++;
+      completionCounter.count('unsuccessful');
 
       completionMissedTokenCounter.count(expectedCompletion.completion);
       completionKindCounter.count(expectedCompletion.kind.toString());
@@ -226,10 +228,6 @@ class CompletionCoverageMetrics {
   }
 
   void printAndClearComputers() {
-    final totalCompletionCount = includedCount + notIncludedCount;
-    final percentIncluded = includedCount / totalCompletionCount;
-    final percentNotIncluded = 1 - percentIncluded;
-
     print('');
     completionMissedTokenCounter.printCounterValues();
     print('');
@@ -243,19 +241,22 @@ class CompletionCoverageMetrics {
     mRRComputer.printMean();
     print('');
 
-    print('Summary for $_rootPath:');
-    print('Total number of completion tests   = $totalCompletionCount');
-    print(
-        'Number of successful completions   = $includedCount (${printPercentage(percentIncluded)})');
-    print(
-        'Number of unsuccessful completions = $notIncludedCount (${printPercentage(percentNotIncluded)})');
+    typeMemberMRRComputer.printMean();
+    print('');
 
-    includedCount = 0;
-    notIncludedCount = 0;
+    nonTypeMemberMRRComputer.printMean();
+    print('');
+
+    print('Summary for $_rootPath:');
+    completionCounter.printCounterValues();
+
     completionMissedTokenCounter.clear();
     completionKindCounter.clear();
     completionElementKindCounter.clear();
+    completionCounter.clear();
     mRRComputer.clear();
+    typeMemberMRRComputer.clear();
+    nonTypeMemberMRRComputer.clear();
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
@@ -299,20 +300,6 @@ class CompletionCoverageMetrics {
     return suggestions;
   }
 
-  List<String> _computeRootPaths(String rootPath, bool corpus) {
-    var roots = <String>[];
-    if (!corpus) {
-      roots.add(rootPath);
-    } else {
-      for (var child in io.Directory(rootPath).listSync()) {
-        if (child is io.Directory) {
-          roots.add(path.join(rootPath, child.path));
-        }
-      }
-    }
-    return roots;
-  }
-
   /// Given some [ResolvedUnitResult] return the first error of high severity
   /// if such an error exists, null otherwise.
   static err.AnalysisError getFirstErrorOrNull(
@@ -335,5 +322,19 @@ class CompletionCoverageMetrics {
       placeCounter++;
     }
     return Place.none();
+  }
+
+  static List<String> _computeRootPaths(String rootPath, bool corpus) {
+    var roots = <String>[];
+    if (!corpus) {
+      roots.add(rootPath);
+    } else {
+      for (var child in io.Directory(rootPath).listSync()) {
+        if (child is io.Directory) {
+          roots.add(path.join(rootPath, child.path));
+        }
+      }
+    }
+    return roots;
   }
 }

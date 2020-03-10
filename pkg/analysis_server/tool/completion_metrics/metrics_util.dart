@@ -49,8 +49,8 @@ class Counter {
   int getCountOf(String id) => _buckets[id] ?? 0;
 
   void printCounterValues() {
-    print('Counts for \'$name\':');
-    if (totalCount > 0) {
+    print('Counts for \'$name\' (total = $_totalCount):');
+    if (_totalCount > 0) {
       _buckets.forEach((id, count) =>
           print('[$id] $count (${printPercentage(count / _totalCount, 2)})'));
     } else {
@@ -62,8 +62,9 @@ class Counter {
 /// A computer for the mean reciprocal rank,
 /// https://en.wikipedia.org/wiki/Mean_reciprocal_rank.
 class MeanReciprocalRankComputer {
+  final String name;
   final List<int> ranks = [];
-  MeanReciprocalRankComputer();
+  MeanReciprocalRankComputer(this.name);
 
   double getMRR([int maxRank = 0]) {
     if (ranks.isEmpty || maxRank < 0) {
@@ -94,13 +95,12 @@ class MeanReciprocalRankComputer {
 
   void printMean() {
     var mrrVal = getMRR();
-    print(
-        'Mean Reciprocal Rank                  = ${mrrVal.toStringAsFixed(6)} '
+    print('Mean Reciprocal Rank \'$name\' (total = $rankCount)');
+    print('mmr   = ${mrrVal.toStringAsFixed(6)} '
         '(inverse = ${(1 / mrrVal).toStringAsFixed(3)})');
 
     var mrrVal5 = getMRR(5);
-    print(
-        'Mean Reciprocal Rank (max rank 5)     = ${mrrVal5.toStringAsFixed(6)} '
+    print('mmr_5 = ${mrrVal5.toStringAsFixed(6)} '
         '(inverse = ${(1 / mrrVal5).toStringAsFixed(3)})');
   }
 }
