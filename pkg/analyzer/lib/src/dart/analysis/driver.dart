@@ -1473,7 +1473,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var featureSetProvider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
       packages: _packages,
-      sourceFactory: _sourceFactory,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,
       nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
     );
@@ -1688,7 +1687,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       contextKey = state.contextKey;
     }
     CaughtException caught = CaughtException(exception, stackTrace);
-    _exceptionController.add(ExceptionResult(path, caught, contextKey));
+    String fileContent = _fsState.getFileForPath(path).content;
+    _exceptionController.add(
+      ExceptionResult(
+        filePath: path,
+        fileContent: fileContent,
+        exception: caught,
+        contextKey: contextKey,
+      ),
+    );
   }
 
   /// Serialize the given [resolvedUnit] errors and index into bytes.
@@ -2116,7 +2123,10 @@ class ExceptionResult {
   /// The path of the file being analyzed when the [exception] happened.
   ///
   /// Absolute and normalized.
-  final String path;
+  final String filePath;
+
+  /// The path of the file being analyzed when the [exception] happened.
+  final String fileContent;
 
   /// The exception during analysis of the file with the [path].
   final CaughtException exception;
@@ -2127,7 +2137,12 @@ class ExceptionResult {
   /// number of context to store was reached, etc.
   final String contextKey;
 
-  ExceptionResult(this.path, this.exception, this.contextKey);
+  ExceptionResult({
+    @required this.filePath,
+    @required this.fileContent,
+    @required this.exception,
+    @required this.contextKey,
+  });
 }
 
 /// Worker in [AnalysisDriverScheduler].

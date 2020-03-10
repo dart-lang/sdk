@@ -3,34 +3,34 @@ import self as self;
 import "dart:core" as core;
 
 abstract class I extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foo() → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  abstract method foo() → void;
 }
 class T1 extends core::Object implements self::I {
-  synthetic constructor •() → self::T1*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T1*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method foo() → void {}
 }
 class T2 extends core::Object implements self::I {
-  synthetic constructor •() → self::T2*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T2*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method foo() → void {}
 }
 class Point extends core::Object /*hasConstConstructor*/  {
 [@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  final field self::I* x;
-  const constructor •([@vm.inferred-type.metadata=!] self::I* x) → self::Point*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  const constructor •([@vm.inferred-type.metadata=!] self::I* x) → self::Point*
     : self::Point::x = x, super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method newPoint1() → self::Point*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method newPoint1() → self::Point*
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] this.{self::Point::x});
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method newPoint2() → self::Point*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method newPoint2() → self::Point*
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] this.{self::Point::x});
 }
-static method getX([@vm.inferred-type.metadata=#lib::Point] dynamic point) → dynamic {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method getX([@vm.inferred-type.metadata=#lib::Point] dynamic point) → dynamic {
   [@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!? (receiver not int)] point.x;
 }
-static method main() → dynamic {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method main() → dynamic {
   self::Point* a = new self::Point::•(new self::T1::•());
   core::print([@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] a.{self::Point::x});
   self::Point* c = new self::Point::•(new self::T2::•());

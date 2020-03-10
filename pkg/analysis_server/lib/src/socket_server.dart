@@ -7,6 +7,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
@@ -31,6 +32,7 @@ class SocketServer implements AbstractSocketServer {
   /// The function used to create a new SDK using the default SDK.
   final DartSdkManager sdkManager;
 
+  final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
   final InstrumentationService instrumentationService;
   final RequestStatisticsHelper requestStatistics;
   @override
@@ -45,6 +47,7 @@ class SocketServer implements AbstractSocketServer {
   SocketServer(
       this.analysisServerOptions,
       this.sdkManager,
+      this.crashReportingAttachmentsBuilder,
       this.instrumentationService,
       this.requestStatistics,
       this.diagnosticServer,
@@ -81,6 +84,7 @@ class SocketServer implements AbstractSocketServer {
       resourceProvider,
       analysisServerOptions,
       sdkManager,
+      crashReportingAttachmentsBuilder,
       instrumentationService,
       requestStatistics: requestStatistics,
       diagnosticServer: diagnosticServer,

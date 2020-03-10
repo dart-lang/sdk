@@ -529,7 +529,7 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-runtime-null-safety"
+          "--no-null-safety"
         ],
         "use-sdk": true
       }
@@ -582,14 +582,14 @@
         "host-checked": true
       }
     },
-    "dart2js-hostasserts-weak-(linux|mac|win)-x64-d8": {
+    "dart2js-hostasserts-weak-(linux|mac|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
         "enable-experiment": [
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-runtime-null-safety"
+          "--no-null-safety"
         ],
         "host-checked": true
       }
@@ -1302,6 +1302,15 @@
           "shards": 6
         },
         {
+          "name": "vm co19_2 tests",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel-nnbd",
+          "shards": 10
+        },
+        {
           "name": "vm weak tests with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
@@ -1315,10 +1324,44 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp linux release builders. (includes co19_2 testing)"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 6
+        },
+        {
+          "name": "vm co19_2 tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-linux-product-x64",
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
-        "vm-kernel-precomp-linux-release-x64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-win-release-x64"
       ],
@@ -2519,6 +2562,26 @@
           ],
           "shards": 6,
           "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js legacy weak lib tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-linux-x64-chrome",
+            "--dart2js-batch",
+            "lib_2"
+          ],
+          "shards": 3,
+          "fileset": "dart2js_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js legacy weak co19 tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-linux-x64-chrome",
+            "--dart2js-batch",
+            "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts_nnbd"
         }
       ]
     },
@@ -2833,20 +2896,22 @@
           "name": "analyze nnbd strong tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
+            "corelib",
             "ffi",
             "language",
-            "lib/mirrors",
-            "standalone/io"
+            "lib",
+            "standalone"
           ]
         },
         {
           "name": "analyze nnbd weak tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
+            "corelib",
             "ffi",
             "language",
-            "lib/mirrors",
-            "standalone/io"
+            "lib",
+            "standalone"
           ]
         },
         {

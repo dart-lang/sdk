@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -30,7 +29,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContextConfigurationTest);
     defineReflectiveTests(ErrorCodeValuesTest);
-    defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
     defineReflectiveTests(OptionsFileValidatorTest);
     defineReflectiveTests(OptionsProviderTest);
   });
@@ -205,42 +203,6 @@ class ErrorProcessorMatcher extends Matcher {
     return o is ErrorProcessor &&
         o.code.toUpperCase() == required.code.toUpperCase() &&
         o.severity == required.severity;
-  }
-}
-
-@reflectiveTest
-class GenerateOldOptionsErrorsTaskTest with ResourceProviderMixin {
-  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
-
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
-
-  test_does_analyze_old_options_files() {
-    validate('''
-analyzer:
-  strong-mode: true
-    ''', [
-      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-      AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED
-    ]);
-  }
-
-  test_finds_issues_in_old_options_files() {
-    validate('''
-analyzer:
-  strong_mode: true
-    ''', [
-      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES
-    ]);
-  }
-
-  void validate(String content, List<ErrorCode> expected) {
-    final source = newFile(optionsFilePath, content: content).createSource();
-    var options = optionsProvider.getOptionsFromSource(source);
-    final OptionsFileValidator validator = OptionsFileValidator(source);
-    var errors = validator.validate(options);
-    expect(errors.map((AnalysisError e) => e.errorCode),
-        unorderedEquals(expected));
   }
 }
 

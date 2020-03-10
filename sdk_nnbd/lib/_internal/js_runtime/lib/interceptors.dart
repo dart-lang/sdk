@@ -110,7 +110,7 @@ makeDispatchRecord(interceptor, proto, extension, indexability) {
 dispatchRecordInterceptor(record) => JS('', '#.i', record);
 dispatchRecordProto(record) => JS('', '#.p', record);
 dispatchRecordExtension(record) => JS('', '#.e', record);
-dispatchRecordIndexability(record) => JS('bool|Null', '#.x', record);
+bool? dispatchRecordIndexability(record) => JS('bool|Null', '#.x', record);
 
 /// Returns the interceptor for a native class instance. Used by
 /// [getInterceptor].

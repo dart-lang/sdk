@@ -973,14 +973,14 @@ class FlowGraphCompiler : public ValueObject {
   void EmitOptimizedStaticCall(
       const Function& function,
       const Array& arguments_descriptor,
-      intptr_t count_with_type_args,
+      intptr_t size_with_type_args,
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitUnoptimizedStaticCall(
-      intptr_t count_with_type_args,
+      intptr_t size_with_type_args,
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
@@ -1084,6 +1084,12 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t reverse_index(intptr_t index) const {
     return block_order_.length() - index - 1;
   }
+
+  void set_current_instruction(Instruction* current_instruction) {
+    current_instruction_ = current_instruction;
+  }
+
+  Instruction* current_instruction() { return current_instruction_; }
 
   void CompactBlock(BlockEntryInstr* block);
   void CompactBlocks();
@@ -1207,6 +1213,9 @@ class FlowGraphCompiler : public ValueObject {
 
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
   Array& edge_counters_array_;
+
+  // Instruction currently running EmitNativeCode().
+  Instruction* current_instruction_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

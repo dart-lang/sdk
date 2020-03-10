@@ -83,19 +83,10 @@ Future<CompilerResult> generateKernelInternal(
       dillTarget.loader.appendLibraries(sdkSummary);
     }
 
-    // TODO(sigmund): provide better error reporting if input summaries or
-    // linked dependencies were listed out of order (or provide mechanism to
-    // sort them).
-    for (Component inputSummary in await options.loadInputSummaries(nameRoot)) {
-      loadedComponents.add(inputSummary);
-      dillTarget.loader.appendLibraries(inputSummary);
-    }
-
-    // Linked dependencies are meant to be part of the component so they are not
-    // marked external.
-    for (Component dependency in await options.loadLinkDependencies(nameRoot)) {
-      loadedComponents.add(dependency);
-      dillTarget.loader.appendLibraries(dependency);
+    for (Component additionalDill
+        in await options.loadAdditionalDills(nameRoot)) {
+      loadedComponents.add(additionalDill);
+      dillTarget.loader.appendLibraries(additionalDill);
     }
 
     await dillTarget.buildOutlines();

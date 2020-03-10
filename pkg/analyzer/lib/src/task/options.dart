@@ -431,14 +431,6 @@ class OptionsFileValidator {
       source,
       isNonNullableByDefault: false,
     );
-    if (AnalysisEngine.ANALYSIS_OPTIONS_FILE == source.shortName) {
-      reporter.reportError(AnalysisError(
-          source,
-          0, // offset
-          1, // length
-          AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-          [source.shortName]));
-    }
     _validators.forEach((OptionsValidator v) => v.validate(reporter, options));
     return recorder.errors;
   }

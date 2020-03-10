@@ -320,11 +320,11 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
   Array& args_desc = Array::Handle(zone);
   Array& args = Array::Handle(zone);
   if (extracted_type_args.IsNull()) {
-    args_desc = ArgumentsDescriptor::New(0, 1);
+    args_desc = ArgumentsDescriptor::NewBoxed(0, 1);
     args = Array::New(1);
     args.SetAt(0, extract);
   } else {
-    args_desc = ArgumentsDescriptor::New(num_type_args, 1);
+    args_desc = ArgumentsDescriptor::NewBoxed(num_type_args, 1);
     args = Array::New(2);
     args.SetAt(0, extracted_type_args);
     args.SetAt(1, extract);

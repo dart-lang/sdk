@@ -8,6 +8,7 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
+        ARRAY_RTI_PROPERTY,
         CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,

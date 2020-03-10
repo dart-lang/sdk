@@ -33,6 +33,8 @@ import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../base/libraries_specification.dart' show LibrariesSpecification;
 
+import '../base/nnbd_mode.dart' show NnbdMode;
+
 import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../kernel_generator_impl.dart' show generateKernelInternal;
@@ -109,6 +111,8 @@ export '../api_prototype/kernel_generator.dart' show kernelForProgram;
 
 export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 
+export '../base/nnbd_mode.dart' show NnbdMode;
+
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
@@ -129,28 +133,30 @@ InitializedCompilerState initializeCompiler(
     InitializedCompilerState oldState,
     Target target,
     Uri librariesSpecificationUri,
-    List<Uri> linkedDependencies,
+    List<Uri> additionalDills,
     Uri packagesFileUri,
     {List<Uri> dependencies,
     Map<ExperimentalFlag, bool> experimentalFlags,
-    bool verify: false}) {
-  linkedDependencies.sort((a, b) => a.toString().compareTo(b.toString()));
+    bool verify: false,
+    NnbdMode nnbdMode}) {
+  additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      equalLists(oldState.options.linkedDependencies, linkedDependencies) &&
+      equalLists(oldState.options.additionalDills, additionalDills) &&
       equalMaps(oldState.options.experimentalFlags, experimentalFlags)) {
     return oldState;
   }
 
   CompilerOptions options = new CompilerOptions()
     ..target = target
-    ..linkedDependencies = linkedDependencies
+    ..additionalDills = additionalDills
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
     ..experimentalFlags = experimentalFlags
     ..verify = verify;
+  if (nnbdMode != null) options.nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

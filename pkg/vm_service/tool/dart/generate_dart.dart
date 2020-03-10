@@ -210,7 +210,9 @@ final String _implCode = r'''
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
       String type = result['type'];
-      if (_typeFactories[type] == null) {
+      if (type == 'Sentinel') {
+        completer.completeError(SentinelException.parse(methodName, result));
+      } else if (_typeFactories[type] == null) {
         completer.complete(Response.parse(result));
       } else {
         completer.complete(createServiceObject(result, returnTypes));
@@ -265,7 +267,7 @@ final String _rpcError = r'''
 
 typedef DisposeHandler = Future Function();
 
-class RPCError {
+class RPCError implements Exception {
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
@@ -286,6 +288,17 @@ class RPCError {
       return '${message} (${code}) from ${callingMethod}():\n${details}';
     }
   }
+}
+
+/// Thrown when an RPC response is a [Sentinel].
+class SentinelException implements Exception {
+  final String callingMethod;
+  final Sentinel sentinel;
+
+  SentinelException.parse(this.callingMethod, Map<String, dynamic> data) :
+    sentinel = Sentinel.parse(data);
+
+  String toString() => '$sentinel from ${callingMethod}()';
 }
 
 /// An `ExtensionData` is an arbitrary map that can have any contents.
@@ -512,11 +525,10 @@ dynamic _createSpecificObject(dynamic json, dynamic creator(Map<String, dynamic>
   if (json is List) {
     return json.map((e) => creator(e)).toList();
   } else if (json is Map) {
-    Map<String, dynamic> map = {};
-    for (dynamic key in json.keys) {
-      map[key as String] = json[key];
-    }
-    return creator(map);
+    return creator({
+      for (String key in json.keys)
+        key: json[key],
+    });
   } else {
     // Handle simple types.
     return json;
@@ -1067,35 +1079,31 @@ class Method extends Member {
     if (!hasArgs) {
       gen.writeStatement("=> _call('${name}');");
     } else if (hasOptionalArgs) {
-      gen.writeStatement('{');
-      gen.write('Map m = {');
+      gen.writeStatement("=> _call('$name', {");
       gen.write(args
           .where((MethodArg a) => !a.optional)
-          .map((arg) => "'${arg.name}': ${arg.name}")
-          .join(', '));
-      gen.writeln('};');
+          .map((arg) => "'${arg.name}': ${arg.name},")
+          .join());
+
       args.where((MethodArg a) => a.optional).forEach((MethodArg arg) {
         String valueRef = arg.name;
         // Special case for `getAllocationProfile`. We do not want to add these
         // params if they are false.
         if (name == 'getAllocationProfile') {
-          gen.writeln("if (${arg.name} != null && ${arg.name}) {");
+          gen.writeln("if (${arg.name} != null && ${arg.name})");
         } else {
-          gen.writeln("if (${arg.name} != null) {");
+          gen.writeln("if (${arg.name} != null)");
         }
-        gen.writeln("m['${arg.name}'] = ${valueRef};");
-        gen.writeln("}");
+        gen.writeln("'${arg.name}': $valueRef,");
       });
-      gen.writeStatement("return _call('${name}', m);");
-      gen.writeStatement('}');
+
+      gen.writeln('});');
     } else {
-      gen.writeStatement('{');
-      gen.write("return _call('${name}', {");
+      gen.write("=> _call('${name}', {");
       gen.write(args.map((MethodArg arg) {
         return "'${arg.name}': ${arg.name}";
       }).join(', '));
       gen.writeStatement('});');
-      gen.writeStatement('}');
     }
   }
 
@@ -1113,6 +1121,11 @@ class Method extends Member {
       if (returnType.isMultipleReturns) {
         _docs += '\n\nThe return value can be one of '
             '${joinLast(returnType.types.map((t) => '[${t}]'), ', ', ' or ')}.';
+        _docs = _docs.trim();
+      }
+      if (returnType.canReturnSentinel) {
+        _docs +=
+            '\n\nThis method will throw a [SentinelException] in the case a [Sentinel] is returned.';
         _docs = _docs.trim();
       }
       if (_docs.isNotEmpty) gen.writeDocs(_docs);
@@ -1152,10 +1165,11 @@ class MemberType extends Member {
 
   MemberType();
 
-  void parse(Parser parser) {
+  void parse(Parser parser, {bool isReturnType = false}) {
     // foo|bar[]|baz
     // (@Instance|Sentinel)[]
     bool loop = true;
+    this.isReturnType = isReturnType;
 
     while (loop) {
       if (parser.consume('(')) {
@@ -1177,7 +1191,11 @@ class MemberType extends Member {
           parser.expect(']');
           ref.arrayDepth++;
         }
-        types.add(ref);
+        if (isReturnType && ref.name == 'Sentinel') {
+          canReturnSentinel = true;
+        } else {
+          types.add(ref);
+        }
       }
 
       loop = parser.consume('|');
@@ -1187,8 +1205,12 @@ class MemberType extends Member {
   String get name {
     if (types.isEmpty) return '';
     if (types.length == 1) return types.first.ref;
+    if (isReturnType) return 'Response';
     return 'dynamic';
   }
+
+  bool isReturnType = false;
+  bool canReturnSentinel = false;
 
   bool get isMultipleReturns => types.length > 1;
 
@@ -1928,7 +1950,7 @@ class MethodParser extends Parser {
     // method is return type, name, (, args )
     // args is type name, [optional], comma
 
-    method.returnType.parse(this);
+    method.returnType.parse(this, isReturnType: true);
 
     Token t = expectName();
     validate(

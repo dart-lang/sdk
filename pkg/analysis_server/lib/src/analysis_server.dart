@@ -39,6 +39,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
@@ -167,11 +168,13 @@ class AnalysisServer extends AbstractAnalysisServer {
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
     this.sdkManager,
+    CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     this.instrumentationService, {
     this.requestStatistics,
     DiagnosticServer diagnosticServer,
     this.detachableFileSystemManager,
-  }) : super(options, diagnosticServer, baseResourceProvider) {
+  }) : super(options, diagnosticServer, crashReportingAttachmentsBuilder,
+            baseResourceProvider) {
     notificationManager = NotificationManager(channel, resourceProvider);
 
     pluginManager = PluginManager(
@@ -866,15 +869,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.
       }
     });
-    analysisDriver.exceptions.listen((nd.ExceptionResult result) {
-      String message = 'Analysis failed: ${result.path}';
-      if (result.contextKey != null) {
-        message += ' context: ${result.contextKey}';
-      }
-      // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService.logException(
-          SilentException.wrapInMessage(message, result.exception));
-    });
+    analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
   }

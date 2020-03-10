@@ -19,6 +19,7 @@ import 'calls.dart';
 import 'summary.dart';
 import 'table_selector.dart';
 import 'types.dart';
+import 'unboxing_info.dart';
 import 'utils.dart';
 import '../pragma.dart';
 import '../devirtualization.dart' show Devirtualization;
@@ -26,6 +27,7 @@ import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
 import '../../metadata/procedure_attributes.dart';
 import '../../metadata/table_selector.dart';
+import '../../metadata/unboxing_info.dart';
 import '../../metadata/unreachable.dart';
 
 const bool kDumpClassHierarchy =
@@ -73,7 +75,12 @@ Component transformComponent(
   new TFADevirtualization(component, typeFlowAnalysis, hierarchy)
       .visitComponent(component);
 
-  new AnnotateKernel(component, typeFlowAnalysis).visitComponent(component);
+  final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis);
+
+  _makePartition(component, typeFlowAnalysis, unboxingInfo);
+
+  new AnnotateKernel(component, typeFlowAnalysis, unboxingInfo)
+      .visitComponent(component);
 
   transformsStopWatch.stop();
 
@@ -117,10 +124,13 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final TableSelectorMetadataRepository _tableSelectorMetadata;
   final TableSelectorAssigner _tableSelectorAssigner;
+  final UnboxingInfoMetadataRepository _unboxingInfoMetadata;
+  final UnboxingInfoManager _unboxingInfo;
   final Class _intClass;
   Constant _nullConstant;
 
-  AnnotateKernel(Component component, this._typeFlowAnalysis)
+  AnnotateKernel(
+      Component component, this._typeFlowAnalysis, this._unboxingInfo)
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag],
         _inferredTypeMetadata = new InferredTypeMetadataRepository(),
@@ -129,11 +139,13 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
             new ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = new TableSelectorMetadataRepository(),
         _tableSelectorAssigner = new TableSelectorAssigner(),
+        _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
     component.addMetadataRepository(_tableSelectorMetadata);
+    component.addMetadataRepository(_unboxingInfoMetadata);
   }
 
   // Query whether a call site was marked as a direct call by the analysis.
@@ -301,10 +313,35 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
               skipCheck: uncheckedParameters.contains(param));
         }
 
+        final unboxingInfoMetadata =
+            _unboxingInfo.getUnboxingInfoOfMember(member);
+
+        if (unboxingInfoMetadata != null) {
+          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+        }
+
         // TODO(alexmarkov): figure out how to pass receiver type.
       }
     } else if (!member.isAbstract) {
       _setUnreachable(member);
+    } else if (member is! Field) {
+      final unboxingInfoMetadata =
+          _unboxingInfo.getUnboxingInfoOfMember(member);
+      if (unboxingInfoMetadata != null) {
+        // Check for partitions that only have abstract methods should be marked as boxed.
+        if (unboxingInfoMetadata.returnInfo ==
+            UnboxingInfoMetadata.kUnboxingCandidate) {
+          unboxingInfoMetadata.returnInfo = UnboxingInfoMetadata.kBoxed;
+        }
+        for (int i = 0; i < unboxingInfoMetadata.unboxedArgsInfo.length; i++) {
+          if (unboxingInfoMetadata.unboxedArgsInfo[i] ==
+              UnboxingInfoMetadata.kUnboxingCandidate) {
+            unboxingInfoMetadata.unboxedArgsInfo[i] =
+                UnboxingInfoMetadata.kBoxed;
+          }
+        }
+        _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+      }
     }
 
     // We need to attach ProcedureAttributesMetadata to all members, even
@@ -421,6 +458,76 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   visitComponent(Component node) {
     super.visitComponent(node);
     _tableSelectorMetadata.mapping[node] = _tableSelectorAssigner.metadata;
+  }
+}
+
+// Partition the methods in order to idenfity parameters and return values
+// that are unboxing candidates
+void _makePartition(Component component, TypeFlowAnalysis typeFlowAnalysis,
+    UnboxingInfoManager unboxingInfo) {
+  // Traverses all the members and creates the partition graph.
+  // Currently unboxed parameters and return value are not supported for
+  // closures, therefore they do not exist in this graph
+  for (bool registering in const [true, false]) {
+    for (Library library in component.libraries) {
+      for (Class cls in library.classes) {
+        for (Member member in cls.members) {
+          if (registering) {
+            unboxingInfo.registerMember(member);
+          } else {
+            unboxingInfo.linkWithSuperClasses(member);
+          }
+        }
+      }
+      if (registering) {
+        for (Member member in library.members) {
+          unboxingInfo.registerMember(member);
+        }
+      }
+    }
+  }
+  unboxingInfo.finishGraph();
+
+  for (Library library in component.libraries) {
+    for (Class cls in library.classes) {
+      for (Member member in cls.members) {
+        _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
+      }
+    }
+    for (Member member in library.members) {
+      _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
+    }
+  }
+}
+
+void _updateUnboxingInfoOfMember(Member member,
+    TypeFlowAnalysis typeFlowAnalysis, UnboxingInfoManager unboxingInfo) {
+  if (typeFlowAnalysis.isMemberUsed(member) && (member is! Field)) {
+    final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
+    assertx(argTypes != null);
+
+    final int firstParamIndex =
+        numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
+
+    final positionalParams = member.function.positionalParameters;
+    assertx(
+        argTypes.positionalCount == firstParamIndex + positionalParams.length);
+
+    for (int i = 0; i < positionalParams.length; i++) {
+      final inferredType = argTypes.values[firstParamIndex + i];
+      unboxingInfo.applyToArg(member, i, inferredType);
+    }
+
+    final names = argTypes.names;
+    for (int i = 0; i < names.length; i++) {
+      final inferredType =
+          argTypes.values[firstParamIndex + positionalParams.length + i];
+      unboxingInfo.applyToArg(
+          member, positionalParams.length + i, inferredType);
+    }
+
+    final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
+    unboxingInfo.applyToReturn(member, resultType);
   }
 }
 

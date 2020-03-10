@@ -82,7 +82,9 @@ import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
+import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
+import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
 import 'expected_one_list_type_arguments_test.dart'
     as expected_one_list_type_arguments;
 import 'expected_one_set_type_arguments_test.dart'
@@ -221,7 +223,6 @@ import 'invalid_type_argument_in_const_set_test.dart'
 import 'invalid_uri_test.dart' as invalid_uri;
 import 'invalid_use_of_covariant_in_extension_test.dart'
     as invalid_use_of_covariant_in_extension;
-import 'invalid_use_of_null_value_test.dart' as invalid_use_of_null_value;
 import 'invalid_use_of_protected_member_test.dart'
     as invalid_use_of_protected_member;
 import 'invalid_use_of_visible_for_template_member_test.dart'
@@ -443,8 +444,6 @@ import 'type_parameter_referenced_by_static_test.dart'
 import 'type_test_with_non_type_test.dart' as type_test_with_non_type;
 import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
-import 'unchecked_use_of_nullable_value_test.dart'
-    as unchecked_use_of_nullable_value;
 import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
@@ -485,8 +484,10 @@ import 'unused_local_variable_test.dart' as unused_local_variable;
 import 'unused_shown_name_test.dart' as unused_shown_name;
 import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
 import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
+import 'use_of_nullable_value_test.dart' as use_of_nullable_value_test;
 import 'use_of_void_result_test.dart' as use_of_void_result;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
+import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
 import 'wrong_number_of_parameters_for_operator_test.dart'
     as wrong_number_of_parameters_for_operator;
 import 'wrong_number_of_parameters_for_setter_test.dart'
@@ -556,7 +557,9 @@ main() {
     duplicate_part.main();
     duplicate_shown_name.main();
     equal_elements_in_const_set.main();
+    equal_elements_in_set.main();
     equal_keys_in_const_map.main();
+    equal_keys_in_map.main();
     expected_one_list_type_arguments.main();
     expected_one_set_type_arguments.main();
     expected_two_map_type_arguments.main();
@@ -646,7 +649,6 @@ main() {
     invalid_type_argument_in_const_set.main();
     invalid_uri.main();
     invalid_use_of_covariant_in_extension.main();
-    invalid_use_of_null_value.main();
     invalid_use_of_protected_member.main();
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();
@@ -794,7 +796,6 @@ main() {
     type_parameter_referenced_by_static.main();
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
-    unchecked_use_of_nullable_value.main();
     undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();
@@ -832,8 +833,10 @@ main() {
     unused_shown_name.main();
     uri_does_not_exist.main();
     uri_with_interpolation.main();
+    use_of_nullable_value_test.main();
     use_of_void_result.main();
     variable_type_mismatch.main();
+    void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();
     wrong_number_of_parameters_for_setter.main();
     wrong_number_of_type_arguments.main();

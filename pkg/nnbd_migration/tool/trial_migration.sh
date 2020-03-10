@@ -7,12 +7,12 @@
 
 TRIAL_MIGRATION=`dirname "$0"`/trial_migration.dart
 
-# Priority One, Group One
+# Priority One, Group One, as defined at go/dart-null-safety-migration-order.
 p1g1 () {
   for n in charcode collection logging path pedantic term_glyph typed_data ; do
     echo "-g https://dart.googlesource.com/${n}.git"
   done
-  # Some packages do not have googlesource mirrors, use github directly.
+  # Some packages do not have googlesource mirrors; use GitHub directly.
   echo "-g https://github.com/google/vector_math.dart.git"
   # SDK-only packages.
   echo "-p meta"

@@ -391,6 +391,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return options.useNullSafety;
       case 'LEGACY':
         return options.useLegacySubtyping;
+      case 'PRINT_LEGACY_STARS':
+        return options.printLegacyStars;
       default:
         return null;
     }
@@ -5246,7 +5248,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     inputs.addAll(arguments);
 
     AbstractValue typeMask;
-    if (target is FunctionEntity) {
+    if (selector.isGetter && target.isGetter ||
+        !selector.isGetter && target is FunctionEntity) {
       typeMask = _typeInferenceMap.getReturnTypeOf(target);
     } else {
       typeMask = _abstractValueDomain.dynamicType;

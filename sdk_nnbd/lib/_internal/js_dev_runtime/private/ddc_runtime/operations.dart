@@ -300,12 +300,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     return $f.apply($obj, $args);
   }
 
-  // TODO(vsm): Remove when we no longer need mirrors metadata.
-  // An array is used to encode annotations attached to the type.
-  if ($ftype instanceof Array) $ftype = $ftype[0];
-
   // Apply type arguments
-  if ($ftype instanceof $GenericFunctionType) {
+  if (${_jsInstanceOf(ftype, GenericFunctionType)}) {
     let formalCount = $ftype.formalCount;
 
     if ($typeArgs == null) {
@@ -409,39 +405,40 @@ dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
 dsetindex(obj, index, value) =>
     callMethod(obj, '_set', null, [index, value], null, '[]=');
 
+/// General implementation of the Dart `is` operator.
+///
+/// Some basic cases are handled directly by the `.is` methods that are attached
+/// directly on types, but any query that requires checking subtyping relations
+/// is handled here.
 @notNull
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (obj == null) {
-    return identical(type, unwrapType(Null)) ||
+    return _equalType(type, Null) ||
         _isTop(type) ||
-        _isNullable(type);
+        _jsInstanceOf(type, NullableType);
   }
   return isSubtypeOf(getReifiedType(obj), type);
 }
 
+/// General implementation of the Dart `as` operator.
+///
+/// Some basic cases are handled directly by the `.as` methods that are attached
+/// directly on types, but any query that requires checking subtyping relations
+/// is handled here.
 @JSExportName('as')
 cast(obj, type, @notNull bool isImplicit) {
   // We hoist the common case where null is checked against another type here
   // for better performance.
-  if (obj == null) {
-    if (_isLegacy(type) ||
-        _isNullType(type) ||
-        _isTop(type) ||
-        _isNullable(type)) {
-      return obj;
-    }
-    if (_strictSubtypeChecks) {
-      return castError(obj, type, isImplicit);
-    }
+  if (obj == null && !_strictSubtypeChecks) {
     // Check the null comparison cache to avoid emitting repeated warnings.
     _nullWarnOnType(type);
     return obj;
+  } else {
+    var actual = getReifiedType(obj);
+    if (isSubtypeOf(actual, type)) return obj;
   }
-  var actual = getReifiedType(obj);
-  if (isSubtypeOf(actual, type)) {
-    return obj;
-  }
+
   return castError(obj, type, isImplicit);
 }
 
@@ -754,8 +751,89 @@ _canonicalMember(obj, name) {
 Future loadLibrary() => Future.value();
 
 /// Defines lazy statics.
-void defineLazy(to, from) {
+///
+/// TODO: Remove useOldSemantics when non-null-safe late static field behavior is
+/// deprecated.
+void defineLazy(to, from, bool useOldSemantics) {
   for (var name in getOwnNamesAndSymbols(from)) {
-    defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
+    if (useOldSemantics) {
+      defineLazyFieldOld(to, name, getOwnPropertyDescriptor(from, name));
+    } else {
+      defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
+    }
   }
 }
+
+/// Defines a lazy static field.
+/// After initial get or set, it will replace itself with a value property.
+// TODO(jmesserly): reusing descriptor objects has been shown to improve
+// performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
+defineLazyField(to, name, desc) => JS('', '''(() => {
+  const initializer = $desc.get;
+  let init = initializer;
+  let value = null;
+  let executed = false;
+  $desc.get = function() {
+    if (init == null) return value;
+    if (!executed) {
+      // Record the field on first execution so we can reset it later if
+      // needed (hot restart).
+      $_resetFields.push(() => {
+        init = initializer;
+        value = null;
+      });
+      executed = true;
+    }
+    value = init();
+    init = null;
+    return value;
+  };
+  $desc.configurable = true;
+  if ($desc.set != null) {
+    $desc.set = function(x) {
+      init = null;
+      value = x;
+    };
+  }
+  return ${defineProperty(to, name, desc)};
+})()''');
+
+/// Defines a lazy static field with pre-null-safety semantics.
+defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
+  const initializer = $desc.get;
+  let init = initializer;
+  let value = null;
+  $desc.get = function() {
+    if (init == null) return value;
+    let f = init;
+    init = $throwCyclicInitializationError;
+    if (f === init) f($name); // throw cycle error
+
+    // On the first (non-cyclic) execution, record the field so we can reset it
+    // later if needed (hot restart).
+    $_resetFields.push(() => {
+      init = initializer;
+      value = null;
+    });
+
+    // Try to evaluate the field, using try+catch to ensure we implement the
+    // correct Dart error semantics.
+    try {
+      value = f();
+      init = null;
+      return value;
+    } catch (e) {
+      init = null;
+      value = null;
+      throw e;
+    }
+  };
+  $desc.configurable = true;
+  if ($desc.set != null) {
+    $desc.set = function(x) {
+      init = null;
+      value = x;
+    };
+  }
+  return ${defineProperty(to, name, desc)};
+})()''');

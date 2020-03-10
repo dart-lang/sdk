@@ -1038,8 +1038,10 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
 
   // Wait for pending tasks to complete and then account for the driver task.
+  Phase waited_for;
   {
     MonitorLocker locker(tasks_lock());
+    waited_for = phase();
     if (!finalize &&
         (phase() == kMarking || phase() == kAwaitingFinalization)) {
       // Concurrent mark is already running.
@@ -1054,6 +1056,16 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   }
 
   const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+  if (FLAG_verbose_gc) {
+    const int64_t wait = pre_safe_point - pre_wait_for_sweepers;
+    if (waited_for == kMarking) {
+      THR_Print("Waited %" Pd64 " us for concurrent marking to finish.\n",
+                wait);
+    } else if (waited_for == kSweepingRegular || waited_for == kSweepingLarge) {
+      THR_Print("Waited %" Pd64 " us for concurrent sweeping to finish.\n",
+                wait);
+    }
+  }
 
   // Ensure that all threads for this isolate are at a safepoint (either
   // stopped or in native code). We have guards around Newgen GC and oldgen GC
@@ -1483,9 +1495,8 @@ PageSpaceController::PageSpaceController(Heap* heap,
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
       idle_gc_threshold_in_words_(0) {
-  intptr_t grow_heap = heap_growth_max / 2;
-  gc_threshold_in_words_ =
-      last_usage_.capacity_in_words + (kPageSizeInWords * grow_heap);
+  const intptr_t growth_in_pages = heap_growth_max / 2;
+  RecordUpdate(last_usage_, last_usage_, growth_in_pages, "initial");
 }
 
 PageSpaceController::~PageSpaceController() {}
@@ -1497,12 +1508,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-#if defined(TARGET_ARCH_IA32)
-  intptr_t headroom = 0;
-#else
-  intptr_t headroom = heap_->new_space()->CapacityInWords();
-#endif
-  return after.CombinedUsedInWords() > (gc_threshold_in_words_ + headroom);
+  return after.CombinedUsedInWords() > hard_gc_threshold_in_words_;
 }
 
 bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
@@ -1512,7 +1518,7 @@ bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  return after.CombinedUsedInWords() > gc_threshold_in_words_;
+  return after.CombinedUsedInWords() > soft_gc_threshold_in_words_;
 }
 
 bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
@@ -1613,15 +1619,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap);
   last_usage_ = after;
 
-  // Save final threshold compared before growing.
-  gc_threshold_in_words_ =
-      after.CombinedUsedInWords() + (kPageSizeInWords * grow_heap);
-
-  // Set a tight idle threshold.
-  idle_gc_threshold_in_words_ =
-      after.CombinedUsedInWords() + (2 * kPageSizeInWords);
-
-  RecordUpdate(before, after, "gc");
+  RecordUpdate(before, after, grow_heap, "gc");
 }
 
 void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
@@ -1637,38 +1635,57 @@ void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   growth_in_pages =
       Utils::Minimum(static_cast<intptr_t>(heap_growth_max_), growth_in_pages);
 
+  RecordUpdate(after, after, growth_in_pages, "loaded");
+}
+
+void PageSpaceController::RecordUpdate(SpaceUsage before,
+                                       SpaceUsage after,
+                                       intptr_t growth_in_pages,
+                                       const char* reason) {
   // Save final threshold compared before growing.
-  gc_threshold_in_words_ =
+  hard_gc_threshold_in_words_ =
       after.CombinedUsedInWords() + (kPageSizeInWords * growth_in_pages);
+
+  // Start concurrent marking when old-space has less than half of new-space
+  // available or less than 5% available.
+#if defined(TARGET_ARCH_IA32)
+  const intptr_t headroom = 0;  // No concurrent marking.
+#else
+  // Note that heap_ can be null in some unit tests.
+  const intptr_t new_space =
+      heap_ == nullptr ? 0 : heap_->new_space()->CapacityInWords();
+  const intptr_t headroom =
+      Utils::Maximum(new_space / 2, hard_gc_threshold_in_words_ / 20);
+#endif
+  soft_gc_threshold_in_words_ = hard_gc_threshold_in_words_ - headroom;
 
   // Set a tight idle threshold.
   idle_gc_threshold_in_words_ =
       after.CombinedUsedInWords() + (2 * kPageSizeInWords);
 
-  RecordUpdate(after, after, "loaded");
-}
-
-void PageSpaceController::RecordUpdate(SpaceUsage before,
-                                       SpaceUsage after,
-                                       const char* reason) {
 #if defined(SUPPORT_TIMELINE)
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "UpdateGrowthLimit");
-  tbes.SetNumArguments(5);
-  tbes.CopyArgument(0, "Reason", reason);
-  tbes.FormatArgument(1, "Before.CombinedUsed (kB)", "%" Pd "",
-                      RoundWordsToKB(before.CombinedUsedInWords()));
-  tbes.FormatArgument(2, "After.CombinedUsed (kB)", "%" Pd "",
-                      RoundWordsToKB(after.CombinedUsedInWords()));
-  tbes.FormatArgument(3, "Threshold (kB)", "%" Pd "",
-                      RoundWordsToKB(gc_threshold_in_words_));
-  tbes.FormatArgument(4, "Idle Threshold (kB)", "%" Pd "",
-                      RoundWordsToKB(idle_gc_threshold_in_words_));
+  Thread* thread = Thread::Current();
+  if (thread != nullptr) {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "UpdateGrowthLimit");
+    tbes.SetNumArguments(6);
+    tbes.CopyArgument(0, "Reason", reason);
+    tbes.FormatArgument(1, "Before.CombinedUsed (kB)", "%" Pd "",
+                        RoundWordsToKB(before.CombinedUsedInWords()));
+    tbes.FormatArgument(2, "After.CombinedUsed (kB)", "%" Pd "",
+                        RoundWordsToKB(after.CombinedUsedInWords()));
+    tbes.FormatArgument(3, "Hard Threshold (kB)", "%" Pd "",
+                        RoundWordsToKB(hard_gc_threshold_in_words_));
+    tbes.FormatArgument(4, "Soft Threshold (kB)", "%" Pd "",
+                        RoundWordsToKB(soft_gc_threshold_in_words_));
+    tbes.FormatArgument(5, "Idle Threshold (kB)", "%" Pd "",
+                        RoundWordsToKB(idle_gc_threshold_in_words_));
+  }
 #endif
 
   if (FLAG_log_growth) {
     THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=%s\n",
               heap_->isolate_group()->source()->name,
-              gc_threshold_in_words_ / KBInWords,
+              hard_gc_threshold_in_words_ / KBInWords,
               idle_gc_threshold_in_words_ / KBInWords, reason);
   }
 }

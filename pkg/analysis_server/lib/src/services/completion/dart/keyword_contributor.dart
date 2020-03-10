@@ -361,6 +361,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (entity is Token && (entity as Token).type == TokenType.CLOSE_PAREN) {
       _addSuggestion(Keyword.COVARIANT);
+      _addSuggestion(Keyword.DYNAMIC);
       if (request.featureSet.isEnabled(Feature.non_nullable)) {
         _addSuggestion(Keyword.REQUIRED);
       }
@@ -368,6 +369,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       Token beginToken = (entity as FormalParameter).beginToken;
       if (beginToken != null && request.target.offset == beginToken.end) {
         _addSuggestion(Keyword.COVARIANT);
+        _addSuggestion(Keyword.DYNAMIC);
         if (request.featureSet.isEnabled(Feature.non_nullable)) {
           _addSuggestion(Keyword.REQUIRED);
         }
@@ -513,12 +515,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (entity == node.methodName || entity == node.argumentList) {
-      // no keywords in '.' expressions or type argument lists
+    if (entity == node.methodName) {
+      // no keywords in '.' expressions
+    } else if (entity == node.argumentList) {
       // Note that we're checking the argumentList rather than the typeArgumentList
       // as you'd expect. For some reason, when the cursor is in a type argument
       // list (f<^>()), the entity is the invocation's argumentList...
       // See similar logic in `imported_reference_contributor`.
+
+      _addSuggestion(Keyword.DYNAMIC);
     } else {
       super.visitMethodInvocation(node);
     }
@@ -656,6 +661,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       return null;
     }
     return visitStatement(node);
+  }
+
+  @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    _addSuggestion(Keyword.DYNAMIC);
   }
 
   @override
@@ -820,6 +830,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       Keyword.ASSERT,
       Keyword.CONST,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,

@@ -1393,14 +1393,14 @@ class ChildEntities
   @override
   Iterator<SyntacticEntity> get iterator => _entities.iterator;
 
-  /// Add an AST node or token as the next child entity, if it is not null.
+  /// Add an AST node or token as the next child entity, if it is not `null`.
   void add(SyntacticEntity entity) {
     if (entity != null) {
       _entities.add(entity);
     }
   }
 
-  /// Add the given items as the next child entities, if [items] is not null.
+  /// Add the given items as the next child entities, if [items] is not `null`.
   void addAll(Iterable<SyntacticEntity> items) {
     if (items != null) {
       _entities.addAll(items);
@@ -4067,6 +4067,8 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
     NodeList<Annotation> metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken;
+    } else if (requiredKeyword != null) {
+      return requiredKeyword;
     } else if (covariantKeyword != null) {
       return covariantKeyword;
     } else if (keyword != null) {
@@ -5166,11 +5168,19 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken =>
-      this.metadata.beginToken ??
-      covariantKeyword ??
-      _returnType?.beginToken ??
-      identifier?.beginToken;
+  Token get beginToken {
+    NodeList<Annotation> metadata = this.metadata;
+    if (metadata.isNotEmpty) {
+      return metadata.beginToken;
+    } else if (requiredKeyword != null) {
+      return requiredKeyword;
+    } else if (covariantKeyword != null) {
+      return covariantKeyword;
+    } else if (_returnType != null) {
+      return _returnType.beginToken;
+    }
+    return identifier?.beginToken;
+  }
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
@@ -5853,6 +5863,7 @@ class IndexExpressionImpl extends ExpressionImpl
 
   @override
   bool get isNullAware =>
+      question != null ||
       leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
       (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
           period != null &&
@@ -7690,9 +7701,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     } else {
       result.addAll(sortedCommentAndAnnotations);
     }
-    if (covariantKeyword != null) {
-      result.add(covariantKeyword);
-    }
+    result..add(requiredKeyword)..add(covariantKeyword);
     return result;
   }
 
@@ -8724,6 +8733,8 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     NodeList<Annotation> metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken;
+    } else if (requiredKeyword != null) {
+      return requiredKeyword;
     } else if (covariantKeyword != null) {
       return covariantKeyword;
     } else if (keyword != null) {

@@ -9,13 +9,13 @@
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/js_helper.dart": {
     "Dynamic invocation of '[]'.": 3,
     "Dynamic access of 'isNaN'.": 3,
-    "Dynamic invocation of '<='.": 4,
-    "Dynamic invocation of '-'.": 4,
-    "Dynamic invocation of '>>'.": 2,
-    "Dynamic invocation of '&'.": 3,
-    "Dynamic invocation of '<'.": 3,
-    "Dynamic invocation of '>'.": 2,
+    "Dynamic invocation of '<='.": 2,
+    "Dynamic invocation of '-'.": 3,
+    "Dynamic invocation of '&'.": 1,
+    "Dynamic invocation of '>>'.": 1,
+    "Dynamic invocation of '<'.": 2,
     "Dynamic invocation of '+'.": 1,
+    "Dynamic invocation of '>'.": 1,
     "Dynamic access of 'length'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/string_helper.dart": {
@@ -23,7 +23,7 @@
     "Dynamic invocation of '+'.": 1,
     "Dynamic invocation of '>='.": 1,
     "Dynamic invocation of 'substring'.": 7,
-    "Dynamic invocation of 'allMatches'.": 4,
+    "Dynamic invocation of 'allMatches'.": 3,
     "Dynamic access of 'isNotEmpty'.": 1,
     "Dynamic invocation of '_js_helper::_execGlobal'.": 1,
     "Dynamic access of 'start'.": 1,

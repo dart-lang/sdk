@@ -177,9 +177,12 @@ var c = const {1, ...{1}};
   }
 
   test_nonConst_entry() async {
-    await assertNoErrorsInCode('''
+    // No error, but there is a hint.
+    await assertErrorsInCode('''
 var c = {1, 2, 1};
-''');
+''', [
+      error(HintCode.EQUAL_ELEMENTS_IN_SET, 15, 1),
+    ]);
   }
 }
 

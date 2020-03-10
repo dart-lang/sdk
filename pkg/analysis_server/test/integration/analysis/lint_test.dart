@@ -31,33 +31,8 @@ class abc { // lint: not CamelCase (should get ignored though)
     expect(errors, hasLength(0));
   }
 
-  Future<void> test_simple_lint_newOptionsFile() async {
+  Future<void> test_simple_lint_optionsFile() async {
     writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE), '''
-linter:
-  rules:
-    - camel_case_types
-''');
-
-    String source = sourcePath('test.dart');
-    writeFile(source, '''
-class a { // lint: not CamelCase
-}''');
-
-    standardAnalysisSetup();
-
-    await analysisFinished;
-
-    expect(currentAnalysisErrors[source], isList);
-    List<AnalysisError> errors = currentAnalysisErrors[source];
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.location.file, source);
-    expect(error.severity, AnalysisErrorSeverity.INFO);
-    expect(error.type, AnalysisErrorType.LINT);
-  }
-
-  Future<void> test_simple_lint_oldOptionsFile() async {
-    writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE), '''
 linter:
   rules:
     - camel_case_types

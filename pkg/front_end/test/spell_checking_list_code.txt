@@ -151,6 +151,7 @@ ci
 ck
 cl
 claim
+claimed
 clarification
 clashes
 class's
@@ -282,6 +283,7 @@ diffs
 digest
 digests
 dijkstra's
+dills
 directed
 directions
 dirtify
@@ -875,6 +877,7 @@ rpc
 rs
 runnable
 s
+saw
 say
 sb
 sc
@@ -1122,6 +1125,7 @@ unshadowed
 unwraps
 unzip
 upcast
+update2018
 ur
 uri's
 url

@@ -2250,28 +2250,34 @@ class JsElementEnvironment extends ElementEnvironment
   @override
   DartType getAsyncOrSyncStarElementType(
       AsyncMarker asyncMarker, DartType returnType) {
+    var returnTypeWithoutNullability = returnType.withoutNullability;
     switch (asyncMarker) {
       case AsyncMarker.SYNC:
         return returnType;
       case AsyncMarker.SYNC_STAR:
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.iterableClass) {
-            return returnType.typeArguments.first;
+        if (returnTypeWithoutNullability is InterfaceType) {
+          if (returnTypeWithoutNullability.element ==
+              elementMap.commonElements.iterableClass) {
+            return returnTypeWithoutNullability.typeArguments.first;
           }
         }
         return dynamicType;
       case AsyncMarker.ASYNC:
-        if (returnType is FutureOrType) return returnType.typeArgument;
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.futureClass) {
-            return returnType.typeArguments.first;
+        if (returnTypeWithoutNullability is FutureOrType) {
+          return returnTypeWithoutNullability.typeArgument;
+        }
+        if (returnTypeWithoutNullability is InterfaceType) {
+          if (returnTypeWithoutNullability.element ==
+              elementMap.commonElements.futureClass) {
+            return returnTypeWithoutNullability.typeArguments.first;
           }
         }
         return dynamicType;
       case AsyncMarker.ASYNC_STAR:
-        if (returnType is InterfaceType) {
-          if (returnType.element == elementMap.commonElements.streamClass) {
-            return returnType.typeArguments.first;
+        if (returnTypeWithoutNullability is InterfaceType) {
+          if (returnTypeWithoutNullability.element ==
+              elementMap.commonElements.streamClass) {
+            return returnTypeWithoutNullability.typeArguments.first;
           }
         }
         return dynamicType;
@@ -2459,26 +2465,6 @@ class JsElementEnvironment extends ElementEnvironment
       f(member);
     });
   }
-}
-
-/// [BehaviorBuilder] for kernel based elements.
-class JsBehaviorBuilder extends BehaviorBuilder {
-  @override
-  final ElementEnvironment elementEnvironment;
-  @override
-  final CommonElements commonElements;
-  @override
-  final DiagnosticReporter reporter;
-  @override
-  final NativeBasicData nativeBasicData;
-  final CompilerOptions _options;
-
-  JsBehaviorBuilder(this.elementEnvironment, this.commonElements,
-      this.nativeBasicData, this.reporter, this._options);
-
-  @override
-  bool get trustJSInteropTypeAnnotations =>
-      _options.trustJSInteropTypeAnnotations;
 }
 
 /// [EntityLookup] implementation used to deserialize [JsKernelToElementMap].

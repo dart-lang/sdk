@@ -20,7 +20,6 @@ void main(List<String> arguments) {
   parser.addFlag('help',
       abbr: 'h', negatable: false, help: 'Print this usage information.');
   parser.addOption('build-directory', help: 'The build directory to use.');
-  parser.addOption('package-root', help: 'The package root to use.');
   parser.addOption('packages', help: 'The package spec file to use.');
   parser.addOption('network',
       help: 'The network interface to use.', defaultsTo: '0.0.0.0');
@@ -38,7 +37,6 @@ void main(List<String> arguments) {
         args['csp'] as bool,
         Runtime.find(args['runtime'] as String),
         null,
-        args['package-root'] as String,
         args['packages'] as String);
     var port = int.parse(args['port'] as String);
     var crossOriginPort = int.parse(args['crossOriginPort'] as String);

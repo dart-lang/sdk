@@ -628,6 +628,62 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
+    ExternalTypedData& external_typed_data =
+        ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->raw());
+    IsolateGroupSource* source = Isolate::Current()->source();
+    Array& hot_reload_blobs = Array::Handle();
+    bool saved_external_typed_data = false;
+    if (source->hot_reload_blobs_ != nullptr) {
+      hot_reload_blobs = source->hot_reload_blobs_;
+
+      // Walk the array, and (if stuff was removed) compact and reuse the space.
+      // Note that the space has to be compacted as the ordering is important.
+      WeakProperty& weak_property = WeakProperty::Handle();
+      WeakProperty& weak_property_tmp = WeakProperty::Handle();
+      ExternalTypedData& existing_entry = ExternalTypedData::Handle(Z);
+      intptr_t next_entry_index = 0;
+      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
+        weak_property ^= hot_reload_blobs.At(i);
+        if (weak_property.key() != ExternalTypedData::null()) {
+          if (i != next_entry_index) {
+            existing_entry = ExternalTypedData::RawCast(weak_property.key());
+            weak_property_tmp ^= hot_reload_blobs.At(next_entry_index);
+            weak_property_tmp.set_key(existing_entry);
+          }
+          next_entry_index++;
+        }
+      }
+      if (next_entry_index < hot_reload_blobs.Length()) {
+        // There's now space to re-use.
+        weak_property ^= hot_reload_blobs.At(next_entry_index);
+        weak_property.set_key(external_typed_data);
+        next_entry_index++;
+        saved_external_typed_data = true;
+      }
+      if (next_entry_index < hot_reload_blobs.Length()) {
+        ExternalTypedData& nullExternalTypedData = ExternalTypedData::Handle(Z);
+        while (next_entry_index < hot_reload_blobs.Length()) {
+          // Null out any extra spaces.
+          weak_property ^= hot_reload_blobs.At(next_entry_index);
+          weak_property.set_key(nullExternalTypedData);
+          next_entry_index++;
+        }
+      }
+    }
+    if (!saved_external_typed_data) {
+      const WeakProperty& weak_property =
+          WeakProperty::Handle(WeakProperty::New(Heap::kOld));
+      weak_property.set_key(external_typed_data);
+
+      intptr_t length =
+          hot_reload_blobs.IsNull() ? 0 : hot_reload_blobs.Length();
+      Array& new_array =
+          Array::Handle(Array::Grow(hot_reload_blobs, length + 1, Heap::kOld));
+      new_array.SetAt(length, weak_property);
+      source->hot_reload_blobs_ = new_array.raw();
+    }
+    source->num_hot_reloads_++;
+
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(
         kernel_program.get(), first_isolate_, modified_libs_, force_reload,
@@ -888,23 +944,18 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     success = false;
   }
 
-  // Once we --enable-isolate-groups in JIT again, we have to ensure unwind
-  // errors will be propagated to all isolates.
-  if (result.IsUnwindError()) {
-    const auto& error = Error::Cast(result);
-    if (thread->top_exit_frame_info() == 0) {
-      // We can only propagate errors when there are Dart frames on the stack.
-      // In this case there are no Dart frames on the stack and we set the
-      // thread's sticky error. This error will be returned to the message
-      // handler.
-      thread->set_sticky_error(error);
-    } else {
-      // If the tag handler returns with an UnwindError error, propagate it and
-      // give up.
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
+  // Re-queue any shutdown requests so they can inform each isolate's own thread
+  // to shut down.
+  isolateIndex = 0;
+  ForEachIsolate([&](Isolate* isolate) {
+    tmp = results.At(isolateIndex);
+    if (tmp.IsUnwindError()) {
+      Isolate::KillIfExists(isolate, UnwindError::Cast(tmp).is_user_initiated()
+                                         ? Isolate::kKillMsg
+                                         : Isolate::kInternalKillMsg);
     }
-  }
+    isolateIndex++;
+  });
 
   return success;
 }

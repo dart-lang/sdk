@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:meta/meta.dart';
 
 class FeatureSetProvider {
@@ -37,7 +37,8 @@ class FeatureSetProvider {
     for (var package in _packages.packages) {
       if (package.rootFolder.contains(path)) {
         var languageVersion = package.languageVersion;
-        if (languageVersion == null) {
+        if (languageVersion == null ||
+            languageVersion == ExperimentStatus.currentVersion) {
           return _packageDefaultFeatureSet;
         } else {
           return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
@@ -51,7 +52,6 @@ class FeatureSetProvider {
   static FeatureSetProvider build({
     @required ResourceProvider resourceProvider,
     @required Packages packages,
-    @required SourceFactory sourceFactory,
     @required FeatureSet packageDefaultFeatureSet,
     @required FeatureSet nonPackageDefaultFeatureSet,
   }) {

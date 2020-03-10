@@ -43,7 +43,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
   environmentDefines ??= <String, String>{};
   final options = new CompilerOptions()
     ..target = target
-    ..linkedDependencies = <Uri>[platformKernel]
+    ..additionalDills = <Uri>[platformKernel]
     ..environmentDefines = environmentDefines
     ..onDiagnostic = (DiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");

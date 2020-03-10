@@ -37,9 +37,11 @@ var tests = <IsolateTest>[
     expect(stack.frames.length, greaterThanOrEqualTo(1));
     expect(stack.frames[0].function.name, 'testFunction');
 
-    final root = await service.getObject(isolate.id, isolate.rootLib.id);
-    var func = root.functions.singleWhere((f) => f.name == 'leafFunction');
-    func = await service.getObject(isolate.id, func.id);
+    final Library root =
+        await service.getObject(isolate.id, isolate.rootLib.id);
+    FuncRef funcRef =
+        root.functions.singleWhere((f) => f.name == 'leafFunction');
+    Func func = await service.getObject(isolate.id, funcRef.id) as Func;
 
     final expectedRange = {
       'scriptIndex': 0,
@@ -73,9 +75,11 @@ var tests = <IsolateTest>[
     expect(stack.frames.length, greaterThanOrEqualTo(1));
     expect(stack.frames[0].function.name, 'testFunction');
 
-    final root = await service.getObject(isolate.id, isolate.rootLib.id);
-    var func = root.functions.singleWhere((f) => f.name == 'leafFunction');
-    func = await service.getObject(isolate.id, func.id);
+    final Library root =
+        await service.getObject(isolate.id, isolate.rootLib.id);
+    FuncRef funcRef =
+        root.functions.singleWhere((f) => f.name == 'leafFunction');
+    Func func = await service.getObject(isolate.id, funcRef.id) as Func;
 
     var expectedRange = {
       'scriptIndex': 0,

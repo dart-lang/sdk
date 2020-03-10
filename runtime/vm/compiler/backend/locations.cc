@@ -13,6 +13,31 @@
 
 namespace dart {
 
+const char* Location::RepresentationToCString(Representation repr) {
+  switch (repr) {
+#define REPR_CASE(Name)                                                        \
+  case k##Name:                                                                \
+    return #Name;
+    FOR_EACH_REPRESENTATION_KIND(REPR_CASE)
+#undef KIND_CASE
+    default:
+      UNREACHABLE();
+  }
+  return nullptr;
+}
+
+bool Location::ParseRepresentation(const char* str, Representation* out) {
+  ASSERT(str != nullptr && out != nullptr);
+#define KIND_CASE(Name)                                                        \
+  if (strcmp(str, #Name) == 0) {                                               \
+    *out = k##Name;                                                            \
+    return true;                                                               \
+  }
+  FOR_EACH_REPRESENTATION_KIND(KIND_CASE)
+#undef KIND_CASE
+  return false;
+}
+
 intptr_t RegisterSet::RegisterCount(intptr_t registers) {
   // Brian Kernighan's algorithm for counting the bits set.
   intptr_t count = 0;

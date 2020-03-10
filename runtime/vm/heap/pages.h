@@ -242,6 +242,11 @@ class PageSpaceController {
   void RecordUpdate(SpaceUsage before, SpaceUsage after, const char* reason);
   void MergeOtherPageSpaceController(PageSpaceController* other);
 
+  void RecordUpdate(SpaceUsage before,
+                    SpaceUsage after,
+                    intptr_t growth_in_pages,
+                    const char* reason);
+
   Heap* heap_;
 
   bool is_enabled_;
@@ -264,10 +269,13 @@ class PageSpaceController {
   // we grow the heap more aggressively.
   const int garbage_collection_time_ratio_;
 
-  // Perform a GC when capacity exceeds this amount.
-  intptr_t gc_threshold_in_words_;
+  // Perform a stop-the-world GC when usage exceeds this amount.
+  intptr_t hard_gc_threshold_in_words_;
 
-  // Start considering idle GC when capacity exceeds this amount.
+  // Begin concurrent marking when usage exceeds this amount.
+  intptr_t soft_gc_threshold_in_words_;
+
+  // Run idle GC if time permits when usage exceeds this amount.
   intptr_t idle_gc_threshold_in_words_;
 
   PageSpaceGarbageCollectionHistory history_;

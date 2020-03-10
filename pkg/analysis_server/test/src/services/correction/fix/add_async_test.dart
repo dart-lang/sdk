@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -13,6 +14,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAsyncTest);
+    defineReflectiveTests(AvoidReturningNullForFutureTest);
   });
 }
 
@@ -179,6 +181,28 @@ foo() {}
 main() async {
   await foo();
   return 42;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AvoidReturningNullForFutureTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_ASYNC;
+
+  @override
+  String get lintCode => LintNames.avoid_returning_null_for_future;
+
+  Future<void> test_asyncFor() async {
+    await resolveTestUnit('''
+Future<String> f() {
+  return null;
+}
+''');
+    await assertHasFix('''
+Future<String> f() async {
+  return null;
 }
 ''');
   }

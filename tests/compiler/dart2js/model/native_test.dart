@@ -68,9 +68,7 @@ main() {
       '46',
       '51',
       // TODO(33834): Non-external constructors should not be allowed.
-      '34',
       '35',
-      '36',
       '37',
       // TODO(34345): Non-external static members should not be allowed.
       '43',
@@ -127,9 +125,7 @@ main() {
       '46',
       '51',
       // TODO(33834): Non-external constructors should not be allowed.
-      '34',
       '35',
-      '36',
       '37',
       // TODO(34345): Non-external static members should not be allowed.
       '43',

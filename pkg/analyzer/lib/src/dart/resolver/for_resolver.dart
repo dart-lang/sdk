@@ -124,6 +124,10 @@ class ForResolver {
       loopVariableElement.type = elementType;
     }
 
+    if (loopVariable != null) {
+      _flowAnalysis?.flow?.declare(loopVariable.declaredElement, true);
+    }
+
     _flowAnalysis?.flow?.forEach_bodyBegin(
       node,
       identifierElement is VariableElement

@@ -295,7 +295,7 @@ static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -312,7 +312,7 @@ static RawObject* Send1Arg(const Instance& receiver,
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 2;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -428,6 +428,10 @@ Dart_Handle Api::CheckAndFinalizePendingClasses(Thread* thread) {
 
 Dart_Isolate Api::CastIsolate(Isolate* isolate) {
   return reinterpret_cast<Dart_Isolate>(isolate);
+}
+
+Dart_IsolateGroup Api::CastIsolateGroup(IsolateGroup* isolate_group) {
+  return reinterpret_cast<Dart_IsolateGroup>(isolate_group);
 }
 
 Dart_Handle Api::NewError(const char* format, ...) {
@@ -994,11 +998,12 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
 }
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
-  ApiState* state = isolate->group()->api_state();
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
+  ASSERT(state->IsActivePersistentHandle(object));
   PersistentHandle* ref = PersistentHandle::Cast(object);
   ASSERT(!state->IsProtectedHandle(ref));
   if (!state->IsProtectedHandle(ref)) {
@@ -1007,16 +1012,15 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
 }
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
-    Dart_Isolate current_isolate,
     Dart_WeakPersistentHandle object) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(current_isolate);
-  CHECK_ISOLATE(isolate);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
-  ASSERT(isolate == Isolate::Current());
-  ApiState* state = isolate->group()->api_state();
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
+  ASSERT(state->IsActiveWeakPersistentHandle(object));
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->EnsureFreeExternal(isolate->group());
+  weak_ref->EnsureFreeExternal(isolate_group);
   state->FreeWeakPersistentHandle(weak_ref);
 }
 
@@ -1469,11 +1473,15 @@ DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
   return reinterpret_cast<Isolate*>(isolate)->init_callback_data();
 }
 
+DART_EXPORT Dart_IsolateGroup Dart_CurrentIsolateGroup() {
+  return Api::CastIsolateGroup(IsolateGroup::Current());
+}
+
 DART_EXPORT void* Dart_CurrentIsolateGroupData() {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
-  return isolate->group()->embedder_data();
+  return isolate_group->embedder_data();
 }
 
 DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {
@@ -3111,7 +3119,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+      Array::Handle(Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Z, Resolver::ResolveDynamic(instance, name, args_desc));
   if (function.IsNull()) {
@@ -3204,7 +3212,7 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
       const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 2;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -3262,7 +3270,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
       const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 3;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -3447,7 +3455,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+        Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z,
         Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
@@ -3533,8 +3541,8 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   if (!instance.IsNull()) {
     const int kTypeArgsLen = 0;
     const int kNumArgs = 3;
-    ArgumentsDescriptor args_desc(
-        Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
+    ArgumentsDescriptor args_desc(Array::Handle(
+        Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                     args_desc));

@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/command_line_util.dart';
 
@@ -45,7 +44,7 @@ Future<Null> writeComponentToFile(
   IOSink sink = output.openWrite();
   try {
     BinaryPrinter printer =
-        new LimitedBinaryPrinter(sink, (lib) => lib == wantedLibrary, false);
+        new BinaryPrinter(sink, libraryFilter: (lib) => lib == wantedLibrary);
     printer.writeComponentFile(component);
   } finally {
     await sink.close();

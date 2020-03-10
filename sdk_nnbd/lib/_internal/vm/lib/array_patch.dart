@@ -69,6 +69,17 @@ class List<E> {
   }
 
   @patch
+  factory List.generate(int length, E generator(int index),
+      {bool growable = true}) {
+    final List<E> result =
+        growable ? new _GrowableList<E>(length) : new _List<E>(length);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = generator(i);
+    }
+    return result;
+  }
+
+  @patch
   factory List.unmodifiable(Iterable elements) {
     final result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);

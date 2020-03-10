@@ -509,7 +509,7 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
   ArgumentsDescriptor args_desc(Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& getter =
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
                                  receiver_class, getter_name, args_desc));
@@ -1055,8 +1055,8 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   const String& getter_name = String::Handle(Field::GetterName(target_name));
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+  ArgumentsDescriptor args_desc(Array::Handle(
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& getter =
       Function::Handle(Resolver::ResolveDynamicForReceiverClass(
           receiver_class, getter_name, args_desc));
@@ -1323,6 +1323,7 @@ static RawFunction* InlineCacheMissHandler(
 DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(1));
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
@@ -1340,6 +1341,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& other = Instance::CheckedHandle(zone, arguments.ArgAt(1));
   const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(2));
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
   GrowableArray<const Instance*> args(2);
   args.Add(&receiver);
   args.Add(&other);
@@ -1456,8 +1458,10 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
   ASSERT(!old_target.HasOptionalParameters());
   ASSERT(!old_target.IsGeneric());
   const int kTypeArgsLen = 0;
+  // TODO(dartbug.com/33549): Update this code to use the size of the parameters
+  // when supporting calls to non-static methods with unboxed parameters.
   const Array& descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(
+      Array::Handle(zone, ArgumentsDescriptor::NewBoxed(
                               kTypeArgsLen, old_target.num_fixed_parameters()));
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
@@ -1775,8 +1779,11 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
 
     const int kTypeArgsLen = 0;
     name = old_target.name();
-    descriptor = ArgumentsDescriptor::New(kTypeArgsLen,
-                                          old_target.num_fixed_parameters());
+    // TODO(dartbug.com/33549): Update this code to use the size of the
+    // parameters when supporting calls to non-static methods with
+    // unboxed parameters.
+    descriptor = ArgumentsDescriptor::NewBoxed(
+        kTypeArgsLen, old_target.num_fixed_parameters());
   }
 
   const ICData& ic_data =

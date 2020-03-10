@@ -2123,6 +2123,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitAsCheck(HAsCheck node) {
+    // TODO(fishythefish): Correctly constant fold `null as T` (also in
+    // [visitAsCheckSimple]) when running with strong NNBD. We might get this
+    // for free if nullability is precisely propagated to the typemasks.
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
 
     // See if this check can be lowered to a simple one.
@@ -2153,7 +2156,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTest(HIsTest node) {
-    AbstractBool result = node.evaluate(_closedWorld);
+    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
@@ -2199,7 +2202,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTestSimple(HIsTestSimple node) {
-    AbstractBool result = node.evaluate(_closedWorld);
+    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }

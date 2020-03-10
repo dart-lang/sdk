@@ -4543,8 +4543,9 @@ class HIsTest extends HInstruction {
   HInstruction get typeInput => inputs[0];
   HInstruction get checkedInput => inputs[1];
 
-  AbstractBool evaluate(JClosedWorld closedWorld) =>
-      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld);
+  AbstractBool evaluate(JClosedWorld closedWorld, bool useNullSafety) =>
+      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld,
+          useNullSafety);
 
   @override
   accept(HVisitor visitor) => visitor.visitIsTest(this);
@@ -4577,8 +4578,9 @@ class HIsTestSimple extends HInstruction {
 
   HInstruction get checkedInput => inputs[0];
 
-  AbstractBool evaluate(JClosedWorld closedWorld) =>
-      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld);
+  AbstractBool evaluate(JClosedWorld closedWorld, bool useNullSafety) =>
+      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld,
+          useNullSafety);
 
   @override
   accept(HVisitor visitor) => visitor.visitIsTestSimple(this);
@@ -4596,11 +4598,36 @@ class HIsTestSimple extends HInstruction {
   String toString() => 'HIsTestSimple()';
 }
 
-AbstractBool _isTestResult(HInstruction expression, DartType dartType,
-    AbstractValueWithPrecision checkedAbstractValue, JClosedWorld closedWorld) {
+AbstractBool _isTestResult(
+    HInstruction expression,
+    DartType dartType,
+    AbstractValueWithPrecision checkedAbstractValue,
+    JClosedWorld closedWorld,
+    bool useNullSafety) {
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   AbstractValue subsetType = expression.instructionType;
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
+
+  if (useNullSafety &&
+      expression.isNull(abstractValueDomain).isDefinitelyTrue) {
+    if (closedWorld.dartTypes.isTopType(dartType) ||
+        dartType is NullableType ||
+        dartType.isNull) {
+      return AbstractBool.True;
+    }
+    if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
+      return AbstractBool.Maybe;
+    }
+    if (dartType is LegacyType) {
+      DartType baseType = dartType.baseType;
+      if (baseType is NeverType) return AbstractBool.True;
+      if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
+        return AbstractBool.Maybe;
+      }
+    }
+    return AbstractBool.False;
+  }
+
   if (checkedAbstractValue.isPrecise &&
       abstractValueDomain.isIn(subsetType, supersetType).isDefinitelyTrue) {
     return AbstractBool.True;

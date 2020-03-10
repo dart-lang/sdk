@@ -43,8 +43,7 @@ import 'src/plugin/plugin_manager_test.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractContextManagerTest);
-    defineReflectiveTests(ContextManagerWithNewOptionsTest);
-    defineReflectiveTests(ContextManagerWithOldOptionsTest);
+    defineReflectiveTests(ContextManagerWithOptionsTest);
   });
 }
 
@@ -1657,7 +1656,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
       '**/*.${AnalysisEngine.SUFFIX_DART}',
       '**/*.${AnalysisEngine.SUFFIX_HTML}',
       '**/*.${AnalysisEngine.SUFFIX_HTM}',
-      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
       '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
     ];
     return patterns
@@ -1712,26 +1710,8 @@ abstract class ContextManagerTest with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
-  @override
+class ContextManagerWithOptionsTest extends ContextManagerTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-
-  @override
-  @failingTest
-  Future<void> test_analysis_options_parse_failure() async {
-    // We have lost the ability to detect errors of this form.
-    return super.test_analysis_options_parse_failure();
-  }
-}
-
-@reflectiveTest
-class ContextManagerWithOldOptionsTest extends ContextManagerWithOptionsTest {
-  @override
-  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-}
-
-abstract class ContextManagerWithOptionsTest extends ContextManagerTest {
-  String get optionsFileName;
 
   void deleteOptionsFile() {
     deleteFile('$projPath/$optionsFileName');
@@ -1879,6 +1859,7 @@ include: package:boo/other_options.yaml
     expect(lints[0].name, 'camel_case_types');
   }
 
+  @failingTest
   Future<void> test_analysis_options_parse_failure() async {
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
@@ -2423,7 +2404,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
       AnalysisEngine.instance.instrumentationService.logException(
-          CaughtException.withMessage('Analysis failed: ${result.path}',
+          CaughtException.withMessage('Analysis failed: ${result.filePath}',
               result.exception.exception, result.exception.stackTrace));
     });
     return currentDriver;

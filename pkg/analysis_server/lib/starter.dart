@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -13,6 +14,11 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 abstract class ServerStarter {
   /// Initialize a newly created starter to start up an analysis server.
   factory ServerStarter() = Driver;
+
+  /// Set the new builder for attachments that should be included into crash
+  /// reports.
+  set crashReportingAttachmentsBuilder(
+      CrashReportingAttachmentsBuilder builder);
 
   /// An optional manager to handle file systems which may not always be
   /// available.

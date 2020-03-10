@@ -66,6 +66,7 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       procedure_attributes_metadata_helper_(&helper_),
       type_translator_(&helper_,
+                       &constant_reader_,
                        &active_class_,
                        /*finalize=*/true) {
   H.InitFromScript(helper_.script());

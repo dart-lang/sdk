@@ -342,6 +342,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
                    /*external=*/false,
                    /*array_cid=*/kArrayCid,
                    /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                   /*index_unboxed=*/false,
                    /*array=*/TMP,
                    /*index=*/RAX));
   __ movq(TMP, compiler::FieldAddress(
@@ -954,7 +955,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ j(NOT_EQUAL, call_target_function);
   __ EnterStubFrame();
   // Load the receiver.
-  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+  __ movq(RDI, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
   __ movq(RAX,
           Address(RBP, RDI, TIMES_HALF_WORD_SIZE,
                   target::frame_layout.param_end_from_fp * target::kWordSize));
@@ -987,7 +988,7 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Load the receiver into RAX.  The argument count in the arguments
   // descriptor in R10 is a smi.
-  __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+  __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
   // Three words (saved pp, saved fp, stub's pc marker)
   // in the stack above the return address.
   __ movq(RAX,
@@ -1029,117 +1030,116 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
 // NOTE: R10 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in RAX.
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
-  Label slow_case;
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize(
-  //     (array_length * target::kwordSize) + target::Array::header_size()).
-  __ movq(RDI, R10);  // Array Length.
-  // Check that length is a positive Smi.
-  __ testq(RDI, Immediate(kSmiTagMask));
-  if (FLAG_use_slow_path) {
-    __ jmp(&slow_case);
-  } else {
+  if (!FLAG_use_slow_path) {
+    Label slow_case;
+    // Compute the size to be allocated, it is based on the array length
+    // and is computed as:
+    // RoundedAllocationSize(
+    //     (array_length * target::kwordSize) + target::Array::header_size()).
+    __ movq(RDI, R10);  // Array Length.
+    // Check that length is a positive Smi.
+    __ testq(RDI, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
-  }
-  __ cmpq(RDI, Immediate(0));
-  __ j(LESS, &slow_case);
-  // Check for maximum allowed length.
-  const Immediate& max_len =
-      Immediate(target::ToRawSmi(target::Array::kMaxNewSpaceElements));
-  __ cmpq(RDI, max_len);
-  __ j(GREATER, &slow_case);
 
-  // Check for allocation tracing.
-  NOT_IN_PRODUCT(
-      __ MaybeTraceAllocation(kArrayCid, &slow_case, Assembler::kFarJump));
+    __ cmpq(RDI, Immediate(0));
+    __ j(LESS, &slow_case);
+    // Check for maximum allowed length.
+    const Immediate& max_len =
+        Immediate(target::ToRawSmi(target::Array::kMaxNewSpaceElements));
+    __ cmpq(RDI, max_len);
+    __ j(GREATER, &slow_case);
 
-  const intptr_t fixed_size_plus_alignment_padding =
-      target::Array::header_size() + target::ObjectAlignment::kObjectAlignment -
-      1;
-  // RDI is a Smi.
-  __ leaq(RDI, Address(RDI, TIMES_4, fixed_size_plus_alignment_padding));
-  ASSERT(kSmiTagShift == 1);
-  __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
+    // Check for allocation tracing.
+    NOT_IN_PRODUCT(
+        __ MaybeTraceAllocation(kArrayCid, &slow_case, Assembler::kFarJump));
 
-  const intptr_t cid = kArrayCid;
-  __ movq(RAX, Address(THR, target::Thread::top_offset()));
+    const intptr_t fixed_size_plus_alignment_padding =
+        target::Array::header_size() +
+        target::ObjectAlignment::kObjectAlignment - 1;
+    // RDI is a Smi.
+    __ leaq(RDI, Address(RDI, TIMES_4, fixed_size_plus_alignment_padding));
+    ASSERT(kSmiTagShift == 1);
+    __ andq(RDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
-  // RDI: allocation size.
-  __ movq(RCX, RAX);
-  __ addq(RCX, RDI);
-  __ j(CARRY, &slow_case);
+    const intptr_t cid = kArrayCid;
+    __ movq(RAX, Address(THR, target::Thread::top_offset()));
 
-  // Check if the allocation fits into the remaining space.
-  // RAX: potential new object start.
-  // RCX: potential next object start.
-  // RDI: allocation size.
-  __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
-  __ j(ABOVE_EQUAL, &slow_case);
+    // RDI: allocation size.
+    __ movq(RCX, RAX);
+    __ addq(RCX, RDI);
+    __ j(CARRY, &slow_case);
 
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ movq(Address(THR, target::Thread::top_offset()), RCX);
-  __ addq(RAX, Immediate(kHeapObjectTag));
+    // Check if the allocation fits into the remaining space.
+    // RAX: potential new object start.
+    // RCX: potential next object start.
+    // RDI: allocation size.
+    __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
+    __ j(ABOVE_EQUAL, &slow_case);
 
-  // Initialize the tags.
-  // RAX: new object start as a tagged pointer.
-  // RDI: allocation size.
-  {
-    Label size_tag_overflow, done;
-    __ cmpq(RDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));
-    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(RDI, Immediate(target::RawObject::kTagBitsSizeTagPos -
-                           target::ObjectAlignment::kObjectAlignmentLog2));
-    __ jmp(&done, Assembler::kNearJump);
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    __ movq(Address(THR, target::Thread::top_offset()), RCX);
+    __ addq(RAX, Immediate(kHeapObjectTag));
 
-    __ Bind(&size_tag_overflow);
-    __ LoadImmediate(RDI, Immediate(0));
-    __ Bind(&done);
+    // Initialize the tags.
+    // RAX: new object start as a tagged pointer.
+    // RDI: allocation size.
+    {
+      Label size_tag_overflow, done;
+      __ cmpq(RDI, Immediate(target::RawObject::kSizeTagMaxSizeTag));
+      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+      __ shlq(RDI, Immediate(target::RawObject::kTagBitsSizeTagPos -
+                             target::ObjectAlignment::kObjectAlignmentLog2));
+      __ jmp(&done, Assembler::kNearJump);
 
-    // Get the class index and insert it into the tags.
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
-    __ orq(RDI, Immediate(tags));
-    __ movq(FieldAddress(RAX, target::Array::tags_offset()), RDI);  // Tags.
-  }
+      __ Bind(&size_tag_overflow);
+      __ LoadImmediate(RDI, Immediate(0));
+      __ Bind(&done);
 
-  // RAX: new object start as a tagged pointer.
-  // Store the type argument field.
-  // No generational barrier needed, since we store into a new object.
-  __ StoreIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::Array::type_arguments_offset()), RBX);
+      // Get the class index and insert it into the tags.
+      uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
+      __ orq(RDI, Immediate(tags));
+      __ movq(FieldAddress(RAX, target::Array::tags_offset()), RDI);  // Tags.
+    }
 
-  // Set the length field.
-  __ StoreIntoObjectNoBarrier(
-      RAX, FieldAddress(RAX, target::Array::length_offset()), R10);
+    // RAX: new object start as a tagged pointer.
+    // Store the type argument field.
+    // No generational barrier needed, since we store into a new object.
+    __ StoreIntoObjectNoBarrier(
+        RAX, FieldAddress(RAX, target::Array::type_arguments_offset()), RBX);
 
-  // Initialize all array elements to raw_null.
-  // RAX: new object start as a tagged pointer.
-  // RCX: new object end address.
-  // RDI: iterator which initially points to the start of the variable
-  // data area to be initialized.
-  __ LoadObject(R12, NullObject());
-  __ leaq(RDI, FieldAddress(RAX, target::Array::header_size()));
-  Label done;
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ cmpq(RDI, RCX);
+    // Set the length field.
+    __ StoreIntoObjectNoBarrier(
+        RAX, FieldAddress(RAX, target::Array::length_offset()), R10);
+
+    // Initialize all array elements to raw_null.
+    // RAX: new object start as a tagged pointer.
+    // RCX: new object end address.
+    // RDI: iterator which initially points to the start of the variable
+    // data area to be initialized.
+    __ LoadObject(R12, NullObject());
+    __ leaq(RDI, FieldAddress(RAX, target::Array::header_size()));
+    Label done;
+    Label init_loop;
+    __ Bind(&init_loop);
+    __ cmpq(RDI, RCX);
 #if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
+    static const bool kJumpLength = Assembler::kFarJump;
 #else
-  static const bool kJumpLength = Assembler::kNearJump;
+    static const bool kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
-  __ j(ABOVE_EQUAL, &done, kJumpLength);
-  // No generational barrier needed, since we are storing null.
-  __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
-  __ addq(RDI, Immediate(target::kWordSize));
-  __ jmp(&init_loop, kJumpLength);
-  __ Bind(&done);
-  __ ret();  // returns the newly allocated object in RAX.
+    __ j(ABOVE_EQUAL, &done, kJumpLength);
+    // No generational barrier needed, since we are storing null.
+    __ StoreIntoObjectNoBarrier(RAX, Address(RDI, 0), R12);
+    __ addq(RDI, Immediate(target::kWordSize));
+    __ jmp(&init_loop, kJumpLength);
+    __ Bind(&done);
+    __ ret();  // returns the newly allocated object in RAX.
 
-  // Unable to allocate the array using the fast inline code, just call
-  // into the runtime.
-  __ Bind(&slow_case);
+    // Unable to allocate the array using the fast inline code, just call
+    // into the runtime.
+    __ Bind(&slow_case);
+  }
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
@@ -1505,11 +1505,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R13: potential next object start.
   // R10: number of context variables.
   __ cmpq(R13, Address(THR, target::Thread::end_offset()));
-  if (FLAG_use_slow_path) {
-    __ jmp(slow_case);
-  } else {
-    __ j(ABOVE_EQUAL, slow_case);
-  }
+  __ j(ABOVE_EQUAL, slow_case);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1563,7 +1559,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 //   R9, R13
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ LoadObject(R9, NullObject());
-  if (FLAG_inline_alloc) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
@@ -1907,7 +1903,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   static_assert(kAllocationStubTypeArgumentsReg == RDX,
                 "Adjust register allocation in the AllocationStub");
 
-  if (FLAG_inline_alloc &&
+  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
     Label slow_case;
@@ -1920,11 +1916,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
     // RAX: potential new object start.
     // RBX: potential next object start.
     __ cmpq(RBX, Address(THR, target::Thread::end_offset()));
-    if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
-    } else {
-      __ j(ABOVE_EQUAL, &slow_case);
-    }
+    __ j(ABOVE_EQUAL, &slow_case);
+
     __ movq(Address(THR, target::Thread::top_offset()), RBX);
 
     // RAX: new object start (untagged).
@@ -2031,7 +2024,7 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ movq(R13, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
+  __ movq(R13, FieldAddress(R10, target::ArgumentsDescriptor::size_offset()));
   __ movq(RAX,
           Address(RBP, R13, TIMES_4,
                   target::frame_layout.param_end_from_fp * target::kWordSize));

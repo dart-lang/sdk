@@ -21,11 +21,9 @@ const sdkOption = 'sdk';
 
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
-const _dependencies = 'migrate-dependencies';
 
 // options only supported by server 1.22.2 and greater
 const _helpOption = 'help';
-const _previewOption = 'preview';
 const _serverSnapshot = 'server';
 
 // options not supported yet by any server
@@ -36,7 +34,6 @@ class Options {
   final Context context;
   Logger logger;
 
-  UpgradeOptions upgradeOptions;
   List<String> targets;
   final String sdkPath;
   final String serverSnapshot;
@@ -65,8 +62,6 @@ class Options {
             ? results[_colorOption] as bool
             : null,
         verbose = results[_verboseOption] as bool;
-
-  bool get isUpgrade => upgradeOptions != null;
 
   String makeAbsoluteAndNormalize(String target) {
     if (!path.isAbsolute(target)) {
@@ -118,21 +113,6 @@ class Options {
           help: 'Use ansi colors when printing messages.',
           defaultsTo: Ansi.terminalSupportsAnsi);
 
-    //
-    // Commands.
-    //
-    parser.addCommand('upgrade')
-      ..addFlag(_dependencies,
-          help: 'Upgrade dependencies automatically (not yet implemented)',
-          defaultsTo: false,
-          negatable: true,
-          hide: true)
-      ..addFlag(_previewOption,
-          help: 'Open the preview tool to view changes.',
-          defaultsTo: true,
-          negatable: true,
-          hide: true);
-
     context ??= Context();
 
     ArgResults results;
@@ -175,43 +155,6 @@ class Options {
     if (!context.exists(sdkPath)) {
       logger.stderr('Invalid Dart SDK path: $sdkPath');
       context.exit(19);
-    }
-
-    var command = results.command;
-    if (command != null) {
-      if (command.name == 'upgrade') {
-        options.upgradeOptions = UpgradeOptions._fromCommand(results.command);
-        var rest = command.rest;
-        if (rest.isNotEmpty) {
-          if (rest[0] == 'sdk') {
-            if (results.wasParsed(includeFixOption)) {
-              logger.stderr('Cannot define includeFixes when using upgrade.');
-              context.exit(22);
-            }
-            if (results.wasParsed(excludeFixOption)) {
-              logger.stderr('Cannot define excludeFixes when using upgrade.');
-              context.exit(22);
-            }
-            if (results.wasParsed(pedanticOption) && options.pedanticFixes) {
-              logger.stderr('Cannot use pedanticFixes when using upgrade.');
-              context.exit(22);
-            }
-            // TODO(jcollins-g): prevent non-nullable outside of upgrade
-            // command.
-            options.includeFixes.add('non-nullable');
-            if (rest.length > 1) {
-              options.targets = command.rest.sublist(1);
-            } else {
-              options.targets = [Directory.current.path];
-            }
-          } else {
-            logger
-                .stderr('Missing or invalid specification of what to upgrade.');
-            logger.stderr("(Currently 'sdk' is the only supported option.)");
-            context.exit(22);
-          }
-        }
-      }
     }
 
     // Check for files and/or directories to analyze.
@@ -264,14 +207,4 @@ Use --$_helpOption to display the fixes that can be specified using either
 --$includeFixOption or --$excludeFixOption.'''
         : '');
   }
-}
-
-/// Command line options for `dartfix upgrade`.
-class UpgradeOptions {
-  final bool dependencies;
-  final bool preview;
-
-  UpgradeOptions._fromCommand(ArgResults results)
-      : dependencies = results[_dependencies] as bool,
-        preview = results[_previewOption] as bool;
 }

@@ -51,6 +51,9 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         VoidType;
 
+import 'package:kernel/default_language_version.dart' as kernel
+    show defaultLanguageVersionMajor, defaultLanguageVersionMinor;
+
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
@@ -165,9 +168,8 @@ import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
 
-// TODO(johnniwinther,jensj): Replace this with the correct scheme.
-const int enableNonNullableDefaultMajorVersion = 2;
-const int enableNonNullableDefaultMinorVersion = 8;
+import '../../api_prototype/experimental_flags.dart'
+    show enableNonNullableMajorVersion, enableNonNullableMinorVersion;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -383,8 +385,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isNonNullableByDefault =>
       loader.target.enableNonNullable &&
-      languageVersion.major >= enableNonNullableDefaultMajorVersion &&
-      languageVersion.minor >= enableNonNullableDefaultMinorVersion &&
+      languageVersion.major >= enableNonNullableMajorVersion &&
+      languageVersion.minor >= enableNonNullableMinorVersion &&
       !isOptOutPackage(library.importUri) &&
       !isOptOutTest(library.importUri);
 
@@ -3958,10 +3960,10 @@ class InvalidLanguageVersion implements LanguageVersion {
       this.fileUri, this.charOffset, this.charCount, this.isExplicit);
 
   @override
-  int get major => Library.defaultLanguageVersionMajor;
+  int get major => kernel.defaultLanguageVersionMajor;
 
   @override
-  int get minor => Library.defaultLanguageVersionMinor;
+  int get minor => kernel.defaultLanguageVersionMinor;
 
   @override
   bool get valid => false;
@@ -3983,10 +3985,10 @@ class ImplicitLanguageVersion implements LanguageVersion {
   const ImplicitLanguageVersion();
 
   @override
-  int get major => Library.defaultLanguageVersionMajor;
+  int get major => kernel.defaultLanguageVersionMajor;
 
   @override
-  int get minor => Library.defaultLanguageVersionMinor;
+  int get minor => kernel.defaultLanguageVersionMinor;
 
   @override
   bool get valid => true;

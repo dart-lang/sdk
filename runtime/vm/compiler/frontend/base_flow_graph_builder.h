@@ -159,12 +159,14 @@ class BaseFlowGraphBuilder {
   Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
   // Takes a [class_id] valid for StoreIndexed.
-  Fragment LoadIndexedTypedData(classid_t class_id);
+  Fragment LoadIndexedTypedData(classid_t class_id,
+                                intptr_t index_scale,
+                                bool index_unboxed);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
-  Fragment ConvertUntaggedToIntptr();
-  Fragment ConvertIntptrToUntagged();
+  Fragment ConvertUntaggedToUnboxed(Representation to);
+  Fragment ConvertUnboxedToUntagged(Representation from);
   Fragment UnboxSmiToIntptr();
   Fragment FloatToDouble();
   Fragment DoubleToFloat();
@@ -199,7 +201,12 @@ class BaseFlowGraphBuilder {
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StoreIndexed(classid_t class_id);
   // Takes a [class_id] valid for StoreIndexed.
-  Fragment StoreIndexedTypedData(classid_t class_id);
+  Fragment StoreIndexedTypedData(classid_t class_id,
+                                 intptr_t index_scale,
+                                 bool index_unboxed);
+
+  // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
+  Fragment Box(Representation from);
 
   void Push(Definition* definition);
   Definition* Peek(intptr_t depth = 0);
@@ -252,7 +259,9 @@ class BaseFlowGraphBuilder {
   Fragment BinaryIntegerOp(Token::Kind op,
                            Representation representation,
                            bool is_truncating = false);
-  Fragment LoadFpRelativeSlot(intptr_t offset, CompileType result_type);
+  Fragment LoadFpRelativeSlot(intptr_t offset,
+                              CompileType result_type,
+                              Representation representation = kTagged);
   Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,

@@ -31,7 +31,11 @@ namespace dart {
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
-LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
+LocationSummary* Instruction::MakeCallSummary(Zone* zone,
+                                              const Instruction* instr,
+                                              LocationSummary* locs) {
+  // This is unused on ia32.
+  ASSERT(locs == nullptr);
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)
@@ -42,6 +46,7 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
 
 DEFINE_BACKEND(LoadIndexedUnsafe, (Register out, Register index)) {
   ASSERT(instr->RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
+  ASSERT(instr->representation() == kTagged);
   __ movl(out, compiler::Address(instr->base_reg(), index, TIMES_2,
                                  instr->offset()));
 
@@ -76,6 +81,7 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  ASSERT(representation() == kTagged);
   locs->set_in(0, LocationAnyOrConstant(value()));
   return locs;
 }
@@ -101,6 +107,7 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  ASSERT(representation() == kTagged);
   locs->set_in(0, Location::RegisterLocation(EAX));
   return locs;
 }
@@ -1176,8 +1183,10 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(array);
   const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
+  constexpr int kSizeOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
+                          kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);
@@ -1283,14 +1292,14 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   compiler::Address element_address =
-      index.IsRegister()
-          ? compiler::Assembler::ElementAddressForRegIndex(
-                IsExternal(), class_id(), index_scale(), array, index.reg())
-          : compiler::Assembler::ElementAddressForIntIndex(
-                IsExternal(), class_id(), index_scale(), array,
-                Smi::Cast(index.constant()).Value());
+      index.IsRegister() ? compiler::Assembler::ElementAddressForRegIndex(
+                               IsExternal(), class_id(), index_scale(),
+                               index_unboxed_, array, index.reg())
+                         : compiler::Assembler::ElementAddressForIntIndex(
+                               IsExternal(), class_id(), index_scale(), array,
+                               Smi::Cast(index.constant()).Value());
 
-  if (index_scale() == 1) {
+  if (index_scale() == 1 && !index_unboxed_) {
     if (index.IsRegister()) {
       __ SmiUntag(index.reg());
     } else {
@@ -1347,8 +1356,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       element_address =
           index.IsRegister()
               ? compiler::Assembler::ElementAddressForRegIndex(
-                    IsExternal(), class_id(), index_scale(), array, index.reg(),
-                    kWordSize)
+                    IsExternal(), class_id(), index_scale(), index_unboxed_,
+                    array, index.reg(), kWordSize)
               : compiler::Assembler::ElementAddressForIntIndex(
                     IsExternal(), class_id(), index_scale(), array,
                     Smi::Cast(index.constant()).Value(), kWordSize);
@@ -1402,7 +1411,14 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // Array can be a Dart object or a pointer to external data.
   if (idx == 0) return kNoRepresentation;  // Flexible input representation.
-  if (idx == 1) return kTagged;            // Index is a smi.
+  if (idx == 1) {
+    if (index_unboxed_) {
+      // TODO(dartbug.com/39432): kUnboxedInt32 || kUnboxedUint32.
+      return kNoRepresentation;
+    } else {
+      return kTagged;  // Index is a smi.
+    }
+  }
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
@@ -1512,14 +1528,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   compiler::Address element_address =
-      index.IsRegister()
-          ? compiler::Assembler::ElementAddressForRegIndex(
-                IsExternal(), class_id(), index_scale(), array, index.reg())
-          : compiler::Assembler::ElementAddressForIntIndex(
-                IsExternal(), class_id(), index_scale(), array,
-                Smi::Cast(index.constant()).Value());
+      index.IsRegister() ? compiler::Assembler::ElementAddressForRegIndex(
+                               IsExternal(), class_id(), index_scale(),
+                               index_unboxed_, array, index.reg())
+                         : compiler::Assembler::ElementAddressForIntIndex(
+                               IsExternal(), class_id(), index_scale(), array,
+                               Smi::Cast(index.constant()).Value());
 
-  if ((index_scale() == 1) && index.IsRegister()) {
+  if ((index_scale() == 1) && index.IsRegister() && !index_unboxed_) {
     __ SmiUntag(index.reg());
   }
   switch (class_id()) {
@@ -1602,8 +1618,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       element_address =
           index.IsRegister()
               ? compiler::Assembler::ElementAddressForRegIndex(
-                    IsExternal(), class_id(), index_scale(), array, index.reg(),
-                    kWordSize)
+                    IsExternal(), class_id(), index_scale(), index_unboxed_,
+                    array, index.reg(), kWordSize)
               : compiler::Assembler::ElementAddressForIntIndex(
                     IsExternal(), class_id(), index_scale(), array,
                     Smi::Cast(index.constant()).Value(), kWordSize);
@@ -4000,7 +4016,8 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Address element_address =
       compiler::Assembler::ElementAddressForRegIndex(
-          IsExternal(), class_id(), index_scale(), str, index.reg());
+          IsExternal(), class_id(), index_scale(), /*index_unboxed=*/false, str,
+          index.reg());
 
   if ((index_scale() == 1)) {
     __ SmiUntag(index.reg());
@@ -4890,8 +4907,10 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
   const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
+  constexpr int kSizeOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
+                          kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);

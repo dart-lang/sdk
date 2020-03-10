@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
@@ -2653,6 +2654,36 @@ double f() {
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('double').node);
+  }
+
+  Future<void> test_edgeOrigin_call_from_function() async {
+    await analyze('''
+void f(int i) {}
+void g(int j) {
+  f(j);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true,
+        codeReference:
+            matchCodeRef(offset: findNode.simple('j);').offset, function: 'g'));
+  }
+
+  Future<void> test_edgeOrigin_call_from_method() async {
+    await analyze('''
+class C {
+  void f(int i) {}
+  void g(int j) {
+    f(j);
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true,
+        codeReference: matchCodeRef(
+            offset: findNode.simple('j);').offset, function: 'C.g'));
   }
 
   Future<void> test_export_metadata() async {

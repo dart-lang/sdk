@@ -629,13 +629,13 @@ class Dart_CObject extends Struct {}
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 
 /// Exposes function pointers to functions in `dart_native_api.h`.
-class NativeApi {
+abstract class NativeApi {
   /// A function pointer to
   /// `bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message)`
   /// in `dart_native_api.h`.
   external static Pointer<
           NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
-      get nativeApiPostCObject;
+      get postCObject;
 
   /// A function pointer to
   /// ```
@@ -649,11 +649,11 @@ class NativeApi {
           Int64 Function(
               Pointer<Uint8>,
               Pointer<NativeFunction<Dart_NativeMessageHandler>>,
-              Int8)>> get nativeApiNewNativePort;
+              Int8)>> get newNativePort;
 
   /// A function pointer to
   /// `bool Dart_CloseNativePort(Dart_Port native_port_id)`
   /// in `dart_native_api.h`.
   external static Pointer<NativeFunction<Int8 Function(Int64)>>
-      get nativeApiCloseNativePort;
+      get closeNativePort;
 }

@@ -255,11 +255,11 @@ Future<CompilerResult> _compile(List<String> args,
 
   var compileSdk = argResults['compile-sdk'] == true;
   var oldCompilerState = compilerState;
-  List<Component> doneInputSummaries;
+  List<Component> doneAdditionalDills;
   fe.IncrementalCompiler incrementalCompiler;
   fe.WorkerInputComponent cachedSdkInput;
   var recordUsedInputs = argResults['used-inputs-file'] != null;
-  var inputSummaries = summaryModules.keys.toList();
+  var additionalDills = summaryModules.keys.toList();
   if (!useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
@@ -268,7 +268,7 @@ Future<CompilerResult> _compile(List<String> args,
         compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
-        inputSummaries,
+        additionalDills,
         DevCompilerTarget(TargetFlags(
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: options.enableNullSafety)),
@@ -290,7 +290,7 @@ Future<CompilerResult> _compile(List<String> args,
       }
     }
 
-    doneInputSummaries = List<Component>(summaryModules.length);
+    doneAdditionalDills = List<Component>(summaryModules.length);
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         {
@@ -298,13 +298,13 @@ Future<CompilerResult> _compile(List<String> args,
           'multiRootScheme=${fileSystem.markerScheme}',
           'multiRootRoots=${fileSystem.roots}',
         },
-        doneInputSummaries,
+        doneAdditionalDills,
         compileSdk,
         sourcePathToUri(getSdkPath()),
         compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
-        inputSummaries,
+        additionalDills,
         inputDigests,
         DevCompilerTarget(TargetFlags(
             trackWidgetCreation: trackWidgetCreation,
@@ -332,7 +332,7 @@ Future<CompilerResult> _compile(List<String> args,
     var incrementalComponent = await incrementalCompiler.computeDelta(
         entryPoints: inputs, fullComponent: true);
     result = fe.DdcResult(incrementalComponent, cachedSdkInput.component,
-        doneInputSummaries, incrementalCompiler.userCode.loader.hierarchy);
+        doneAdditionalDills, incrementalCompiler.userCode.loader.hierarchy);
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
@@ -346,10 +346,6 @@ Future<CompilerResult> _compile(List<String> args,
       Component(nameRoot: component.root, uriToSource: component.uriToSource);
   for (var lib in component.libraries) {
     if (!librariesFromDill.contains(lib)) compiledLibraries.libraries.add(lib);
-  }
-
-  if (!options.emitMetadata && _checkForDartMirrorsImport(compiledLibraries)) {
-    return CompilerResult(1, kernelState: compilerState);
   }
 
   // Output files can be written in parallel, so collect the futures.
@@ -390,13 +386,13 @@ Future<CompilerResult> _compile(List<String> args,
 
   final importToSummary = Map<Library, Component>.identity();
   final summaryToModule = Map<Component, String>.identity();
-  for (var i = 0; i < result.inputSummaries.length; i++) {
-    var summary = result.inputSummaries[i];
-    var moduleImport = summaryModules[inputSummaries[i]];
-    for (var l in summary.libraries) {
+  for (var i = 0; i < result.additionalDills.length; i++) {
+    var additionalDill = result.additionalDills[i];
+    var moduleImport = summaryModules[additionalDills[i]];
+    for (var l in additionalDill.libraries) {
       assert(!importToSummary.containsKey(l));
-      importToSummary[l] = summary;
-      summaryToModule[summary] = moduleImport;
+      importToSummary[l] = additionalDill;
+      summaryToModule[additionalDill] = moduleImport;
     }
   }
 
@@ -630,21 +626,6 @@ final defaultSdkSummaryPath =
     p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
-
-bool _checkForDartMirrorsImport(Component component) {
-  for (var library in component.libraries) {
-    if (library.importUri.scheme == 'dart') continue;
-    for (var dep in library.dependencies) {
-      var uri = dep.targetLibrary.importUri;
-      if (uri.scheme == 'dart' && uri.path == 'mirrors') {
-        print('${library.importUri}: Error: Cannot import "dart:mirrors" '
-            'in web applications (https://goo.gl/R1anEs).');
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 /// Returns the absolute path to the default `.packages` file, or `null` if one
 /// could not be found.

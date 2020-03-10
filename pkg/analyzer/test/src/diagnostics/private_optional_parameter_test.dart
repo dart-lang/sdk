@@ -9,12 +9,12 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RecursiveCompileTimeConstantTest);
+    defineReflectiveTests(PrivateOptionalParameterTest);
   });
 }
 
 @reflectiveTest
-class RecursiveCompileTimeConstantTest extends DriverResolutionTest {
+class PrivateOptionalParameterTest extends DriverResolutionTest {
   test_private() async {
     await assertErrorsInCode('''
 f({var _p}) {}

@@ -3679,10 +3679,12 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
                                              bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
+                                             bool index_unboxed,
                                              Register array,
                                              Register index) {
-  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
-  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  // If unboxed, index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   int32_t offset =
       is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
   const OperandSize size = Address::OperandSizeFor(cid);
@@ -3720,10 +3722,12 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
                                               bool is_external,
                                               intptr_t cid,
                                               intptr_t index_scale,
+                                              bool index_unboxed,
                                               Register array,
                                               Register index) {
-  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
-  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  // If unboxed, index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;
   int32_t offset =
       is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
   if (shift < 0) {

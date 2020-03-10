@@ -5413,6 +5413,42 @@ enum E {
 ''');
   }
 
+  test_enum_value_documented_withMetadata() async {
+    var library = await checkLibrary('''
+enum E {
+  /**
+   * aaa
+   */
+  @annotation
+  a,
+  /// bbb
+  @annotation
+  b,
+}
+
+const int annotation = 0;
+''');
+    checkElementText(
+        library,
+        r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  /**
+   * aaa
+   */
+  @annotation
+  static const E a;
+  /// bbb
+  @annotation
+  static const E b;
+  String toString() {}
+}
+const int annotation = 0;
+''',
+        withConstElements: false);
+  }
+
   test_enum_values() async {
     var library = await checkLibrary('enum E { v1, v2 }');
     checkElementText(library, r'''

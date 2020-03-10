@@ -3,53 +3,53 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A*
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get foo() → core::String*
     return "foo";
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method getBar() → core::String*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method getBar() → core::String*
     return "bar";
 }
 class B extends core::Object /*isEnum*/  {
 [@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  final field core::int* index;
 [@vm.inferred-type.metadata=dart.core::_OneByteString (value: B.b2)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  final field core::String* _name;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method toString() → core::String*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method toString() → core::String*
     return [@vm.inferred-type.metadata=dart.core::_OneByteString (value: B.b2)] this.{=self::B::_name};
 }
-static method test0([@vm.inferred-type.metadata=dart.core::_Smi (value: 40)] core::int* arg) → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method test0([@vm.inferred-type.metadata=dart.core::_Smi (value: 40)] core::int* arg) → void {
   core::print(arg);
 }
-static method test1([[@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] core::int* arg = #C1]) → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method test1([[@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] core::int* arg = #C1]) → void {
   core::print(arg);
 }
-static method test2({[@vm.inferred-type.metadata=dart.core::_Smi (value: 43)] core::int* arg = #C2}) → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method test2({[@vm.inferred-type.metadata=dart.core::_Smi (value: 43)] core::int* arg = #C2}) → void {
   core::print(arg);
 }
 static get getD() → dynamic
   return 100.0;
-static method testDouble([@vm.inferred-type.metadata=dart.core::_Double (value: 3.14)] core::double* arg) → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method testDouble([@vm.inferred-type.metadata=dart.core::_Double (value: 3.14)] core::double* arg) → void {
   core::print(arg);
   core::print([@vm.inferred-type.metadata=dart.core::_Double (value: 100.0)] self::getD);
 }
-static method testStrings([@vm.inferred-type.metadata=#lib::A] self::A* a0, [@vm.inferred-type.metadata=dart.core::_OneByteString (value: bazz)] core::String* a1) → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method testStrings([@vm.inferred-type.metadata=#lib::A] self::A* a0, [@vm.inferred-type.metadata=dart.core::_OneByteString (value: bazz)] core::String* a1) → void {
   core::print([@vm.direct-call.metadata=#lib::A::foo] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: foo)] a0.{self::A::foo});
   core::print([@vm.direct-call.metadata=#lib::A::getBar] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check) (value: bar)] a0.{self::A::getBar}());
   core::print(a1);
 }
-static method testPassEnum([@vm.inferred-type.metadata=#lib::B (value: #lib::B {index: 1, #lib::_name: B.b2, })] self::B* arg) → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method testPassEnum([@vm.inferred-type.metadata=#lib::B (value: #lib::B {index: 1, #lib::_name: B.b2, })] self::B* arg) → void {
   self::testPassEnum2(arg);
 }
-static method testPassEnum2([@vm.inferred-type.metadata=#lib::B (value: #lib::B {index: 1, #lib::_name: B.b2, })] self::B* arg) → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method testPassEnum2([@vm.inferred-type.metadata=#lib::B (value: #lib::B {index: 1, #lib::_name: B.b2, })] self::B* arg) → void {
   core::print(arg);
 }
-static method getList() → dynamic
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method getList() → dynamic
   return #C6;
-static method testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<dart.core::int*>([1, 2, 3]))] dynamic arg1, [[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<dart.core::int*>([4, 5]))] dynamic arg2 = #C9]) → void {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<dart.core::int*>([1, 2, 3]))] dynamic arg1, [[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<dart.core::int*>([4, 5]))] dynamic arg2 = #C9]) → void {
   core::print(arg1);
   core::print(arg2);
 }
-static method main() → dynamic {
+[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method main() → dynamic {
   self::test0(40);
   self::test1();
   self::test2();

@@ -142,17 +142,17 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
 
     // FutureOr<dynamic|void|Object?|Object*> --> dynamic|void|Object?|Object*
     if (_isTop(typeArg) ||
-        (_isLegacy(typeArg) &&
+        (_jsInstanceOf(typeArg, LegacyType) &&
             JS<bool>('!', '#.type === #', typeArg, Object))) {
       return typeArg;
     }
 
     // FutureOr<Never> --> Future<Never>
-    if (typeArg == never_) {
+    if (_equalType(typeArg, Never)) {
       return JS('!', '#(#)', getGenericClass(Future), typeArg);
     }
     // FutureOr<Null> --> Future<Null>?
-    if (typeArg == unwrapType(Null)) {
+    if (_equalType(typeArg, Null)) {
       return nullable(JS('!', '#(#)', getGenericClass(Future), typeArg));
     }
     // Otherwise, create the FutureOr<T> type as a normal generic type.
@@ -161,6 +161,7 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
     // this method. This ensures that the we can test a type value returned here
     // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
     JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
+    JS('!', '#(#)', addTypeCaches, genericType);
     return genericType;
   }
 
@@ -216,6 +217,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     return value;
   }
   makeGenericType[$_genericTypeCtor] = $typeConstructor;
+  $addTypeCaches(makeGenericType);
   return makeGenericType;
 })()''');
 
@@ -284,7 +286,7 @@ bool isJsInterop(obj) {
   // Note that it is still possible to call typed JS interop methods on
   // extension types but the calls must be statically typed.
   if (JS('!', '#[#] != null', obj, _extensionType)) return false;
-  return JS('!', '!($obj instanceof $Object)');
+  return !_jsInstanceOf(obj, Object);
 }
 
 /// Get the type of a method from a type using the stored signature
@@ -299,11 +301,6 @@ getSetterType(type, name) {
   if (setters != null) {
     var type = JS('', '#[#]', setters, name);
     if (type != null) {
-      if (JS('!', '# instanceof Array', type)) {
-        // The type has metadata attached.  Pull out just the type.
-        // TODO(jmesserly): remove when we remove mirrors
-        return JS('', '#[0]', type);
-      }
       return type;
     }
   }
@@ -566,6 +563,16 @@ addTypeTests(ctor, isClass) {
       ctor,
       isClass,
       cast);
+}
+
+/// Pre-initializes types with empty type caches.
+///
+/// Allows us to perform faster lookups on local caches without having to
+/// filter out the prototype chain. Also allows types to remain relatively
+/// monomorphic, which results in faster execution in V8.
+addTypeCaches(type) {
+  JS('', '#[#] = void 0', type, _cachedLegacy);
+  JS('', '#[#] = void 0', type, _cachedNullable);
 }
 
 // TODO(jmesserly): should we do this for all interfaces?

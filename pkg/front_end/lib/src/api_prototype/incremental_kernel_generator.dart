@@ -54,6 +54,24 @@ abstract class IncrementalKernelGenerator {
         incrementalSerializer);
   }
 
+  /// Initialize the incremental compiler specifically for expression
+  /// compilation where the dill is external and we cannot expect to have access
+  /// to the sources.
+  ///
+  /// The resulting incremental compiler allows for expression compilation,
+  /// but not for general compilation. Note that computeDelta will have to be
+  /// called once to setup properly though.
+  ///
+  /// Notice that the component has to include the platform, and that no other
+  /// platform will be loaded.
+  factory IncrementalKernelGenerator.forExpressionCompilationOnly(
+      CompilerOptions options, Uri entryPoint, Component component) {
+    return new IncrementalCompiler.forExpressionCompilationOnly(
+        new CompilerContext(
+            new ProcessedOptions(options: options, inputs: [entryPoint])),
+        component);
+  }
+
   /// Returns a component whose libraries are the recompiled libraries,
   /// or - in the case of [fullComponent] - a full Component.
   Future<Component> computeDelta({List<Uri> entryPoints, bool fullComponent});

@@ -119,7 +119,10 @@ RawObject* CompilationTraceLoader::CompileTrace(uint8_t* buffer,
   Function& dispatcher = Function::Handle(zone_);
   for (intptr_t argc = 1; argc <= 4; argc++) {
     const intptr_t kTypeArgsLen = 0;
-    arguments_descriptor = ArgumentsDescriptor::New(kTypeArgsLen, argc);
+
+    // TODO(dartbug.com/33549): Update this code to use the size of the
+    // parameters when supporting calls to closures with unboxed parameters.
+    arguments_descriptor = ArgumentsDescriptor::NewBoxed(kTypeArgsLen, argc);
     dispatcher = closure_class.GetInvocationDispatcher(
         Symbols::Call(), arguments_descriptor,
         RawFunction::kInvokeFieldDispatcher, true /* create_if_absent */);

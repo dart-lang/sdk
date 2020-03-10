@@ -180,16 +180,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * The [length] must be non-negative.
    */
-  factory List.generate(int length, E generator(int index),
-      {bool growable = true}) {
-    if (length < 0) throw RangeError.index(length, 0, null, "length");
-    if (length == 0) return List<E>.empty(growable: growable);
-    List<E> result = List<E>.filled(length, generator(0), growable: growable);
-    for (int i = 1; i < length; i++) {
-      result[i] = generator(i);
-    }
-    return result;
-  }
+  external factory List.generate(int length, E generator(int index),
+      {bool growable = true});
 
   /**
    * Creates an unmodifiable list containing all [elements].

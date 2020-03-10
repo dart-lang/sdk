@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
@@ -232,7 +233,10 @@ class ExpressionCompiler {
 
   void _log(String message) {
     if (verbose) {
-      print(message);
+      // writing to stdout breaks communication to
+      // frontend server, which is done on stdin/stdout,
+      // so we use stderr here instead
+      stderr.writeln(message);
     }
   }
 
@@ -250,14 +254,14 @@ class ExpressionCompiler {
   ///
   /// Returns expression compiled to JavaScript or null on error.
   /// Errors are reported using onDiagnostic function
-  /// [moduleName] is of the form '/packages/hello_world_main.dart'
+  /// [moduleName] is of the form 'packages/hello_world_main.dart'
   /// [jsFrameValues] is a map from js variable name to its primitive value
   /// or another variable name, for example
   /// { 'x': '1', 'y': 'y', 'o': 'null' }
   /// [jsModules] is a map from variable name to the module name, where
   /// variable name is the name originally used in JavaScript to contain the
   /// module object, for example:
-  /// { 'dart':'dart_sdk', 'main': '/packages/hello_world_main.dart' }
+  /// { 'dart':'dart_sdk', 'main': 'packages/hello_world_main.dart' }
   Future<String> compileExpressionToJs(
       String libraryUri,
       int line,
@@ -269,8 +273,6 @@ class ExpressionCompiler {
     // 1. find dart scope where debugger is paused
 
     _log('ExpressionCompiler: compiling:  $expression in $moduleName');
-
-    var moduleVariable = moduleName.split('/').last;
 
     var dartScope = await _findScopeAt(Uri.parse(libraryUri), line, column);
     if (dartScope == null) {
@@ -299,8 +301,8 @@ class ExpressionCompiler {
 
     // 3. compile dart expression to JS
 
-    var jsExpression = await _compileExpression(
-        dartScope, jsModules, moduleVariable, expression);
+    var jsExpression =
+        await _compileExpression(dartScope, jsModules, moduleName, expression);
 
     if (jsExpression == null) {
       _log('ExpressionCompiler: failed to compile $expression, $jsExpression');
@@ -370,10 +372,13 @@ error.name + ": " + error.message;
   Future<Library> _getLibrary(Uri libraryUri) async {
     return await _compiler.context.runInContext((_) async {
       var builder = _compiler.userCode.loader.builders[libraryUri];
-      var library =
-          _compiler.userCode.loader.read(libraryUri, -1, accessor: builder);
+      if (builder != null) {
+        var library =
+            _compiler.userCode.loader.read(libraryUri, -1, accessor: builder);
 
-      return library.library;
+        return library.library;
+      }
+      return null;
     });
   }
 
@@ -381,12 +386,12 @@ error.name + ": " + error.message;
   /// example:
   /// let dart = require('dart_sdk').dart;
   js_ast.Statement _createRequireModuleStatement(
-      String moduleName, String moduleVariable) {
+      String moduleName, String moduleVariable, String fieldName) {
     var variableName = moduleVariable.replaceFirst('.dart', '');
     var rhs = js_ast.PropertyAccess.field(
         js_ast.Call(js_ast.Identifier('require'),
             [js_ast.LiteralExpression('\'$moduleName\'')]),
-        '$variableName');
+        '$fieldName');
 
     return rhs.toVariableDeclaration(js_ast.Identifier('$variableName'));
   }
@@ -416,16 +421,18 @@ error.name + ": " + error.message;
   /// [scope] current dart scope information
   /// [modules] map from module variable names to module names in JavaScript
   /// code. For example,
-  /// { 'dart':'dart_sdk', 'main': '/packages/hello_world_main.dart' }
+  /// { 'dart':'dart_sdk', 'main': 'packages/hello_world_main.dart' }
   /// [currentModule] current js module name.
   /// For example, in library package:hello_world/main.dart:
-  /// '/packages/hello_world/main.dart'
+  /// 'packages/hello_world/main.dart'
   /// [expression] expression to compile in given [scope].
   Future<String> _compileExpression(
       DartScope scope,
       Map<String, String> modules,
       String currentModule,
       String expression) async {
+    var currentModuleVariable = currentModule.split('/').last;
+
     // 1. Compile expression to kernel AST
 
     var procedure = await _compiler.compileExpression(
@@ -437,6 +444,10 @@ error.name + ": " + error.message;
         scope.cls?.name,
         scope.procedure.isStatic);
 
+    // TODO(annagrin): The condition below seems to be always false.
+    // Errors are still correctly reported in the frontent_server,
+    // but we end up doing unnesessary work below.
+    // Add communication of error state from compiler here.
     if (_compiler.context.errors.length > 0) {
       return null;
     }
@@ -468,18 +479,46 @@ error.name + ": " + error.message;
     var body = js_ast.Block([
       // require dart, core, self and other modules
       ...modules.keys.map((String variable) {
-        return _createRequireModuleStatement(modules[variable], variable);
+        var module = modules[variable];
+        _log('ExpressionCompiler: '
+            'module: $module, '
+            'variable: $variable, '
+            'currentModule: $currentModule');
+
+        return _createRequireModuleStatement(
+            module,
+            // Inside a module, the library variable compiler creates is the
+            // file name without extension (currentModuleVariable).
+            //
+            // Inside a non-package module, the statement we need to produce
+            // to reload the library is
+            //      'main = require('web/main.dart').web__main'
+            //
+            // This is the only special case where currentModuleVariable
+            // ('main') is different from variable and field ('web_name')
+            //
+            // In all other cases, the variable, currentModuleVariable and
+            // the field are the same:
+            //      'library = require('packages/_test/library.dart').library'
+            //
+            // TODO(annagrin): save metadata decribing the variables and fields
+            // to use during compilation and use this information here to make
+            // expression compilation resilient to name convention changes
+            // See [issue 891](https://github.com/dart-lang/webdev/issues/891)
+            module == currentModule ? currentModuleVariable : variable,
+            variable);
       }),
       // re-create private field accessors
       ...scope.privateFields
-          .map((String v) => _createPrivateField(v, currentModule)),
-      ...privateFields.map((String v) => _createPrivateField(v, currentModule)),
+          .map((String v) => _createPrivateField(v, currentModuleVariable)),
+      ...privateFields
+          .map((String v) => _createPrivateField(v, currentModuleVariable)),
       // statements generated by the FE
       ...jsFun.body.statements
     ]);
 
     var jsFunModified = js_ast.Fun(jsFun.params, body);
-    _log('ExpressionCompiler: JS AST: ${jsFunModified.toString()}');
+    _log('ExpressionCompiler: JS AST: $jsFunModified');
 
     // 4. print JS ast to string for evaluation
 

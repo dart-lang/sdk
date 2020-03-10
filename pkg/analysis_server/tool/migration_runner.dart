@@ -25,6 +25,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -72,8 +73,13 @@ class MigrationBase {
     String sdkPath = FolderBasedDartSdk.defaultSdkDirectory(
       PhysicalResourceProvider.INSTANCE,
     ).path;
-    return AnalysisServer(serverChannel, resourceProvider, options,
-        DartSdkManager(sdkPath, true), InstrumentationService.NULL_SERVICE);
+    return AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        options,
+        DartSdkManager(sdkPath, true),
+        CrashReportingAttachmentsBuilder.empty,
+        InstrumentationService.NULL_SERVICE);
   }
 
   void processNotification(Notification notification) {

@@ -18,9 +18,12 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_map_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
+import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -33,7 +36,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -372,12 +374,6 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == HintCode.UNUSED_CATCH_STACK) {
       await _addFix_removeUnusedCatchStack();
     }
-    if (errorCode == HintCode.UNUSED_ELEMENT) {
-      await _addFix_removeUnusedElement();
-    }
-    if (errorCode == HintCode.UNUSED_FIELD) {
-      await _addFix_removeUnusedField();
-    }
     if (errorCode == HintCode.UNUSED_IMPORT) {
       await _addFix_removeUnusedImport();
     }
@@ -628,6 +624,9 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.avoid_return_types_on_setters) {
         await _addFix_removeTypeAnnotation();
+      }
+      if (name == LintNames.avoid_returning_null_for_future) {
+        await _addFix_addAsync();
       }
       if (name == LintNames.avoid_types_on_closure_parameters) {
         await _addFix_replaceWithIdentifier();
@@ -3747,110 +3746,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_removeUnusedElement() async {
-    final sourceRanges = <SourceRange>[];
-    final referencedNode = node.parent;
-    if (referencedNode is ClassDeclaration ||
-        referencedNode is EnumDeclaration ||
-        referencedNode is FunctionDeclaration ||
-        referencedNode is FunctionTypeAlias ||
-        referencedNode is MethodDeclaration ||
-        referencedNode is VariableDeclaration) {
-      final element = referencedNode is Declaration
-          ? referencedNode.declaredElement
-          : (referencedNode as NamedCompilationUnitMember).declaredElement;
-      final references = _findAllReferences(unit, element);
-      // todo (pq): consider filtering for references that are limited to within the class.
-      if (references.length == 1) {
-        var sourceRange;
-        if (referencedNode is VariableDeclaration) {
-          VariableDeclarationList parent = referencedNode.parent;
-          if (parent.variables.length == 1) {
-            sourceRange = utils.getLinesRange(range.node(parent.parent));
-          } else {
-            sourceRange = range.nodeInList(parent.variables, referencedNode);
-          }
-        } else {
-          sourceRange = utils.getLinesRange(range.node(referencedNode));
-        }
-        sourceRanges.add(sourceRange);
-      }
-    }
-
-    if (sourceRanges.isNotEmpty) {
-      final changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        for (var sourceRange in sourceRanges) {
-          builder.addDeletion(sourceRange);
-        }
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_ELEMENT);
-    }
-  }
-
-  Future<void> _addFix_removeUnusedField() async {
-    final declaration = node.parent;
-    if (declaration is! VariableDeclaration) {
-      return;
-    }
-    final element = (declaration as VariableDeclaration).declaredElement;
-    if (element is! FieldElement) {
-      return;
-    }
-
-    final sourceRanges = <SourceRange>[];
-    final references = _findAllReferences(unit, element);
-    for (var reference in references) {
-      // todo (pq): consider scoping this to parent or parent.parent.
-      final referenceNode = reference.thisOrAncestorMatching((node) =>
-          node is VariableDeclaration ||
-          node is ExpressionStatement ||
-          node is ConstructorFieldInitializer ||
-          node is FieldFormalParameter);
-      if (referenceNode == null) {
-        return;
-      }
-      var sourceRange;
-      if (referenceNode is VariableDeclaration) {
-        VariableDeclarationList parent = referenceNode.parent;
-        if (parent.variables.length == 1) {
-          sourceRange = utils.getLinesRange(range.node(parent.parent));
-        } else {
-          sourceRange = range.nodeInList(parent.variables, referenceNode);
-        }
-      } else if (referenceNode is ConstructorFieldInitializer) {
-        ConstructorDeclaration cons =
-            referenceNode.parent as ConstructorDeclaration;
-        // A() : _f = 0;
-        if (cons.initializers.length == 1) {
-          sourceRange = range.endEnd(cons.parameters, referenceNode);
-        } else {
-          sourceRange = range.nodeInList(cons.initializers, referenceNode);
-        }
-      } else if (referenceNode is FieldFormalParameter) {
-        FormalParameterList params =
-            referenceNode.parent as FormalParameterList;
-        if (params.parameters.length == 1) {
-          sourceRange =
-              range.endStart(params.leftParenthesis, params.rightParenthesis);
-        } else {
-          sourceRange = range.nodeInList(params.parameters, referenceNode);
-        }
-      } else {
-        sourceRange = utils.getLinesRange(range.node(referenceNode));
-      }
-      sourceRanges.add(sourceRange);
-    }
-
-    final changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      for (var sourceRange in sourceRanges) {
-        builder.addDeletion(sourceRange);
-      }
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_FIELD);
-  }
-
   Future<void> _addFix_removeUnusedImport() async {
     // prepare ImportDirective
     ImportDirective importDirective =
@@ -4709,11 +4604,19 @@ class FixProcessor extends BaseProcessor {
     }
 
     var errorCode = error.errorCode;
-    if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
+    if (errorCode == HintCode.UNUSED_ELEMENT) {
+      await compute(RemoveUnusedElement());
+    } else if (errorCode == HintCode.UNUSED_FIELD) {
+      await compute(RemoveUnusedField());
+    } else if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
       await compute(RemoveDeadIfNull());
     } else if (errorCode is LintCode) {
       String name = errorCode.name;
-      if (name == LintNames.prefer_collection_literals) {
+      if (name == LintNames.avoid_private_typedef_functions) {
+        await compute(InlineTypedef());
+      } else if (name == LintNames.avoid_returning_null_for_future) {
+        await compute(WrapInFuture());
+      } else if (name == LintNames.prefer_collection_literals) {
         await compute(ConvertToListLiteral());
         await compute(ConvertToMapLiteral());
         await compute(ConvertToSetLiteral());
@@ -4833,12 +4736,6 @@ class FixProcessor extends BaseProcessor {
         sourceSuffix,
         targetClassElement);
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD, args: [name]);
-  }
-
-  List<SimpleIdentifier> _findAllReferences(AstNode root, Element element) {
-    var collector = _ElementReferenceCollector(element);
-    root.accept(collector);
-    return collector.references;
   }
 
   /// Return the class, enum or mixin declaration for the given [element].
@@ -5222,32 +5119,6 @@ class _ClosestElementFinder {
   void _updateList(Iterable<Element> elements) {
     for (Element element in elements) {
       _update(element);
-    }
-  }
-}
-
-class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
-  final Element element;
-  final List<SimpleIdentifier> references = [];
-
-  _ElementReferenceCollector(this.element);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    final staticElement = node.staticElement;
-    if (staticElement == element) {
-      references.add(node);
-    }
-    // Implicit Setter.
-    else if (staticElement is PropertyAccessorElement) {
-      if (staticElement.variable == element) {
-        references.add(node);
-      }
-      // Field Formals.
-    } else if (staticElement is FieldFormalParameterElement) {
-      if (staticElement.field == element) {
-        references.add(node);
-      }
     }
   }
 }

@@ -66,9 +66,6 @@ class SharedCompilerOptions {
   /// This is required for a modular build process.
   final bool summarizeApi;
 
-  /// Whether to preserve metdata only accessible via mirrors.
-  final bool emitMetadata;
-
   // Whether to enable assertions.
   final bool enableAsserts;
 
@@ -98,7 +95,6 @@ class SharedCompilerOptions {
       {this.sourceMap = true,
       this.inlineSourceMap = false,
       this.summarizeApi = true,
-      this.emitMetadata = false,
       this.enableAsserts = true,
       this.replCompile = false,
       this.summaryModules = const {},
@@ -112,7 +108,6 @@ class SharedCompilerOptions {
             sourceMap: args['source-map'] as bool,
             inlineSourceMap: args['inline-source-map'] as bool,
             summarizeApi: args['summarize'] as bool,
-            emitMetadata: args['emit-metadata'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
@@ -139,8 +134,6 @@ class SharedCompilerOptions {
           help: 'emit source mapping', defaultsTo: true, hide: hide)
       ..addFlag('inline-source-map',
           help: 'emit source mapping inline', defaultsTo: false, hide: hide)
-      ..addFlag('emit-metadata',
-          help: 'emit metadata annotations queriable via mirrors', hide: hide)
       ..addFlag('enable-asserts',
           help: 'enable assertions', defaultsTo: true, hide: hide)
       ..addOption('module-name',

@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
         templateMissingExplicitTypeArguments,
         messageNotATypeContext,
         LocatedMessage,
+        templateExtendingRestricted,
         templateNotAType,
         templateTypeArgumentMismatch,
         templateTypeArgumentsOnTypeVariable,
@@ -226,6 +227,13 @@ class NamedTypeBuilder extends TypeBuilder {
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
+      if (declaration.isNullClass && !library.mayImplementRestrictedTypes) {
+        library.addProblem(
+            templateExtendingRestricted.withArguments(declaration.name),
+            charOffset,
+            noLength,
+            fileUri);
+      }
       return declaration.buildSupertype(library, arguments);
     } else if (declaration is TypeAliasBuilder) {
       TypeDeclarationBuilder declarationBuilder =

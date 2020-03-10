@@ -258,7 +258,10 @@ class _MapBaseValueIterator<K, V> implements Iterator<V> {
     return false;
   }
 
-  V get current => _current as V;
+  V get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as V;
+  }
 }
 
 /// Mixin that overrides mutating map operations with implementations that

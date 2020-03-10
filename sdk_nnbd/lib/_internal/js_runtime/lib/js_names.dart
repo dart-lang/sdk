@@ -148,7 +148,7 @@ List extractKeys(victim) {
 /// This is used, for example, to return unmangled names from TypeImpl.toString
 /// *if* names are being preserved for other reasons (use of dart:mirrors, for
 /// example).
-String unmangleGlobalNameIfPreservedAnyways(String name) {
+String? unmangleGlobalNameIfPreservedAnyways(String name) {
   var names = JS_EMBEDDED_GLOBAL('', MANGLED_GLOBAL_NAMES);
   return JS('String|Null', '#', JsCache.fetch(names, name));
 }

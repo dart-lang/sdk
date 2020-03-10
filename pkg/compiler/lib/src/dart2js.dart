@@ -418,6 +418,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.minify, passThrough),
     new OptionHandler(Flags.noMinify, passThrough),
     new OptionHandler(Flags.preserveUris, ignoreOption),
+    new OptionHandler(Flags.printLegacyStars, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler(Flags.disableDiagnosticColors, (_) {
       enableColors = false;
@@ -464,8 +465,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
     new OptionHandler(Flags.benchmarkingExperiment, passThrough),
-    new OptionHandler(Flags.runtimeNullSafety, setNullSafetyMode),
-    new OptionHandler(Flags.noRuntimeNullSafety, setNullSafetyMode),
+    new OptionHandler(Flags.nullSafety, setNullSafetyMode),
+    new OptionHandler(Flags.noNullSafety, setNullSafetyMode),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly

@@ -29,14 +29,7 @@ html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
 html/custom/created_callback_test: Skip # Issue 31577
 html/custom/document_register_basic_test: Skip # Issue 31577
 html/custom/document_register_template_test: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/construction: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/constructors: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/createElement with type extension: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/functional: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/namespaces: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/parsing: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/registration: Skip # Issue 31577
-html/custom/document_register_type_extensions_test/single-parameter createElement: Skip # Issue 31577
+html/custom/document_register_type_extensions_test: Skip # Issue 31577
 html/custom/element_upgrade_test: Skip # Issue 31577
 html/custom/entered_left_view/.*: Skip # Issue 31577
 html/custom/mirrors_2_test: Skip # Issue 31577

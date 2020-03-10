@@ -170,7 +170,7 @@ void setStartAsyncSynchronously([bool value = true]) {
 ///
 /// This is used by [hotRestart] to ensure we don't leak types from previous
 /// libraries.
-/// Results made against Null are cached in _nullComparisonMap and must be
+/// Results made against Null are cached in _nullComparisonSet and must be
 /// cleared separately.
 @notNull
 final List<Object> _cacheMaps = JS('!', '[]');

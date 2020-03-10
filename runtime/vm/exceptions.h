@@ -157,12 +157,12 @@ class CatchEntryMove {
 
   intptr_t src_lo_slot() const {
     ASSERT(source_kind() == SourceKind::kInt64PairSlot);
-    return LoSourceSlot::decode(src_);
+    return index_to_pair_slot(LoSourceSlot::decode(src_));
   }
 
   intptr_t src_hi_slot() const {
     ASSERT(source_kind() == SourceKind::kInt64PairSlot);
-    return HiSourceSlot::decode(src_);
+    return index_to_pair_slot(HiSourceSlot::decode(src_));
   }
 
   intptr_t dest_slot() const {
@@ -182,8 +182,8 @@ class CatchEntryMove {
   }
 
   static intptr_t EncodePairSource(intptr_t src_lo_slot, intptr_t src_hi_slot) {
-    return LoSourceSlot::encode(src_lo_slot) |
-           HiSourceSlot::encode(src_hi_slot);
+    return LoSourceSlot::encode(pair_slot_to_index(src_lo_slot)) |
+           HiSourceSlot::encode(pair_slot_to_index(src_hi_slot));
   }
 
   bool IsRedundant() const {
@@ -206,6 +206,15 @@ class CatchEntryMove {
 #endif
 
  private:
+  static intptr_t pair_slot_to_index(intptr_t slot) {
+    return (slot < 0) ? -2 * slot : 2 * slot + 1;
+  }
+
+  static intptr_t index_to_pair_slot(intptr_t index) {
+    ASSERT(index >= 0);
+    return ((index & 1) != 0) ? (index >> 1) : -(index >> 1);
+  }
+
   CatchEntryMove(int32_t src, int32_t dest_and_kind)
       : src_(src), dest_and_kind_(dest_and_kind) {}
 

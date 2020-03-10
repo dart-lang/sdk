@@ -13,6 +13,11 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 
 /// The state of an NNBD migration.
 class MigrationState {
+  bool _hasBeenApplied = false;
+
+  /// If the migration has been applied to disk.
+  bool get hasBeenApplied => _hasBeenApplied;
+
   /// The migration associated with the state.
   final NullabilityMigration migration;
 
@@ -40,6 +45,7 @@ class MigrationState {
 
   /// Refresh the state of the migration after the migration has been updated.
   void refresh() async {
+    assert(!hasBeenApplied);
     OverlayResourceProvider provider = listener.server.resourceProvider;
     InfoBuilder infoBuilder = InfoBuilder(provider, includedRoot,
         instrumentationListener.data, listener, adapter, migration);
@@ -48,5 +54,11 @@ class MigrationState {
     migrationInfo = MigrationInfo(
         unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
     pathMapper = PathMapper(provider);
+  }
+
+  /// Mark that the migration has been applied to disk.
+  void markApplied() {
+    assert(!hasBeenApplied);
+    _hasBeenApplied = true;
   }
 }

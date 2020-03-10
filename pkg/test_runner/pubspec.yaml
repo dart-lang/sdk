@@ -11,8 +11,8 @@ dependencies:
     path: ../expect
   glob:
     path: ../../third_party/pkg/glob
-  package_resolver:
-    path: ../../third_party/pkg_tested/package_resolver
+  package_config:
+    path: ../../third_party/pkg_tested/package_config
   smith:
     path: ../smith
   status_file:

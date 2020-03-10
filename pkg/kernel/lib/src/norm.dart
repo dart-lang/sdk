@@ -13,6 +13,7 @@ DartType norm(CoreTypes coreTypes, DartType type) {
   return type.accept(new _Norm(coreTypes)) ?? type;
 }
 
+/// Returns normalization of [supertype].
 Supertype normSupertype(CoreTypes coreTypes, Supertype supertype) {
   if (supertype.typeArguments.isEmpty) return supertype;
   _Norm normVisitor = new _Norm(coreTypes);

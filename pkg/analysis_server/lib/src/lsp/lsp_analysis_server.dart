@@ -27,6 +27,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
@@ -118,9 +119,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
     this.sdkManager,
+    CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     this.instrumentationService, {
     DiagnosticServer diagnosticServer,
-  }) : super(options, diagnosticServer, baseResourceProvider) {
+  }) : super(options, diagnosticServer, crashReportingAttachmentsBuilder,
+            baseResourceProvider) {
     messageHandler = UninitializedStateMessageHandler(this);
     // TODO(dantup): This code is almost identical to AnalysisServer, consider
     // moving it the base class that already holds many of these fields.
@@ -629,15 +632,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         }
       }
     });
-    analysisDriver.exceptions.listen((nd.ExceptionResult result) {
-      String message = 'Analysis failed: ${result.path}';
-      if (result.contextKey != null) {
-        message += ' context: ${result.contextKey}';
-      }
-      // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService.logException(
-          SilentException.wrapInMessage(message, result.exception));
-    });
+    analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
   }

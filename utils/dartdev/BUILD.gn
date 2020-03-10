@@ -11,8 +11,15 @@ dartdev_files = exec_script("../../tools/list_dart_files.py",
                             ],
                             "list lines")
 
+dartfix_files = exec_script("../../tools/list_dart_files.py",
+                            [
+                              "absolute",
+                              rebase_path("../../pkg/dartfix"),
+                            ],
+                            "list lines")
+
 application_snapshot("dartdev") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = [ "--help" ]
-  inputs = dartdev_files
+  inputs = dartdev_files + dartfix_files
 }

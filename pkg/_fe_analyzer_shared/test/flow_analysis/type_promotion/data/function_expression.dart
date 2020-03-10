@@ -22,11 +22,15 @@ void isType_mutatedInClosure() {
 void isType_mutatedInclosure2() {
   void g(Object x) {
     if (x is String) {
-      x;
+      /*String*/ x;
     }
 
     void h() {
       x = 42;
+    }
+
+    if (x is String) {
+      x;
     }
   }
 }

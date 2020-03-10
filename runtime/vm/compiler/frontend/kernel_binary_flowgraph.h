@@ -34,8 +34,11 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
             data_program_offset),
         flow_graph_builder_(flow_graph_builder),
         active_class_(&flow_graph_builder->active_class_),
-        type_translator_(this, active_class_, /* finalize= */ true),
         constant_reader_(this, active_class_),
+        type_translator_(this,
+                         &constant_reader_,
+                         active_class_,
+                         /* finalize= */ true),
         bytecode_metadata_helper_(this, active_class_),
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this, &constant_reader_),
@@ -362,8 +365,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
-  TypeTranslator type_translator_;
   ConstantReader constant_reader_;
+  TypeTranslator type_translator_;
   BytecodeMetadataHelper bytecode_metadata_helper_;
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;

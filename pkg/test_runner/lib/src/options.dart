@@ -747,7 +747,6 @@ compiler.''',
           localIP: data["local_ip"] as String,
           sharedOptions: sharedOptions,
           packages: data["packages"] as String,
-          packageRoot: data["package_root"] as String,
           suiteDirectory: data["suite_dir"] as String,
           outputDirectory: data["output_directory"] as String,
           reproducingArguments:

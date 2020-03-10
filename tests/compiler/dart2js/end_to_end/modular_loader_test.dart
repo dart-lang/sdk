@@ -70,14 +70,14 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
       entity.writeAsBytesSync(data);
     }
   });
-  List<Uri> linkedDependencies = [
+  List<Uri> additionalDills = [
     computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
   ]..addAll(deps.map(toTestUri));
   fs.entityForUri(toTestUri('.packages')).writeAsStringSync('');
   var options = new CompilerOptions()
     ..target = new Dart2jsTarget("dart2js", new TargetFlags())
     ..fileSystem = new TestFileSystem(fs)
-    ..linkedDependencies = linkedDependencies
+    ..additionalDills = additionalDills
     ..packagesFileUri = toTestUri('.packages');
   var inputUris = inputs.map(toTestUri).toList();
   var inputUriSet = inputUris.toSet();

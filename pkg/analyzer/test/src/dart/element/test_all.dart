@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_test.dart' as element;
+import 'factor_type_test.dart' as factor_type;
 import 'function_type_test.dart' as function_type;
 import 'inheritance_manager3_test.dart' as inheritance_manager3;
 import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
@@ -23,6 +24,7 @@ import 'upper_lower_bound_test.dart' as upper_bound;
 main() {
   defineReflectiveSuite(() {
     element.main();
+    factor_type.main();
     function_type.main();
     inheritance_manager3.main();
     least_upper_bound_helper.main();

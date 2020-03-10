@@ -106,7 +106,7 @@ class Expando<T> {
   Expando([String name])
       : this.name = name,
         _jsWeakMapOrKey = JS('bool', 'typeof WeakMap == "function"')
-            ? JS('=Object|Null', 'new WeakMap()')
+            ? JS('=Object', 'new WeakMap()')
             : _createKey();
 
   @patch

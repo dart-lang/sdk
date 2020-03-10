@@ -17,11 +17,13 @@ import 'package:analysis_server/src/edit/preview/index_file_page.dart';
 import 'package:analysis_server/src/edit/preview/navigation_tree_page.dart';
 import 'package:analysis_server/src/edit/preview/not_found_page.dart';
 import 'package:analysis_server/src/edit/preview/region_page.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
 /// The site used to serve pages for the preview tool.
-class PreviewSite extends Site implements AbstractGetHandler {
+class PreviewSite extends Site
+    implements AbstractGetHandler, AbstractPostHandler {
   /// The path of the CSS page used to style the semantic highlighting within a
   /// Dart file.
   static const highlightCssPath = '/highlight.css';
@@ -30,6 +32,8 @@ class PreviewSite extends Site implements AbstractGetHandler {
   static const highlightJsPath = '/highlight.pack.js';
 
   static const navigationTreePath = '/_preview/navigationTree.json';
+
+  static const applyMigrationPath = '/apply-migration';
 
   /// The state of the migration being previewed.
   final MigrationState migrationState;
@@ -92,14 +96,6 @@ class PreviewSite extends Site implements AbstractGetHandler {
   @override
   Future<void> handleGetRequest(HttpRequest request) async {
     Uri uri = request.uri;
-    if (uri.queryParameters.containsKey('replacement')) {
-      // TODO(devoncarew): We should only perform work on a 'POST' request.
-      performEdit(uri);
-
-      respondOk(request);
-      return;
-    }
-
     String path = uri.path;
     try {
       if (path == highlightCssPath) {
@@ -121,6 +117,7 @@ class PreviewSite extends Site implements AbstractGetHandler {
         // https://github.com/dart-lang/sdk/issues/39204
         return await respond(request, IndexFilePage(this));
       }
+
       UnitInfo unitInfo = unitInfoMap[path];
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
@@ -146,18 +143,46 @@ class PreviewSite extends Site implements AbstractGetHandler {
       return await respond(
           request, createUnknownPage(path), HttpStatus.notFound);
     } catch (exception, stackTrace) {
-      try {
-        await respond(
-            request,
-            createExceptionPageWithPath(path, '$exception', stackTrace),
-            HttpStatus.internalServerError);
-      } catch (exception, stackTrace) {
-        HttpResponse response = request.response;
-        response.statusCode = HttpStatus.internalServerError;
-        response.headers.contentType = ContentType.text;
-        response.write('$exception\n\n$stackTrace');
-        response.close();
+      _respondInternalError(request, path, exception, stackTrace);
+    }
+  }
+
+  @override
+  Future<void> handlePostRequest(HttpRequest request) async {
+    Uri uri = request.uri;
+    String path = uri.path;
+    try {
+      if (path == applyMigrationPath) {
+        performApply();
+
+        respondOk(request);
+        return;
+      } else if (uri.queryParameters.containsKey('replacement')) {
+        performEdit(uri);
+
+        respondOk(request);
+        return;
       }
+    } catch (exception, stackTrace) {
+      _respondInternalError(request, path, exception, stackTrace);
+    }
+  }
+
+  /// Perform the migration.
+  void performApply() {
+    if (migrationState.hasBeenApplied) {
+      throw StateError('Cannot reapply migration.');
+    }
+
+    final edits = migrationState.listener.sourceChange.edits;
+
+    // Eagerly mark the migration applied. If this throws, we cannot go back.
+    migrationState.markApplied();
+    for (final fileEdit in edits) {
+      final file = pathMapper.provider.getFile(fileEdit.file);
+      String code = file.exists ? file.readAsStringSync() : '';
+      code = SourceEdit.applySequence(code, fileEdit.edits);
+      file.writeAsStringSync(code);
     }
   }
 
@@ -206,5 +231,21 @@ class PreviewSite extends Site implements AbstractGetHandler {
     }
     response.write(await page.generate(request.uri.queryParameters));
     response.close();
+  }
+
+  Future<void> _respondInternalError(HttpRequest request, String path,
+      dynamic exception, StackTrace stackTrace) async {
+    try {
+      await respond(
+          request,
+          createExceptionPageWithPath(path, '$exception', stackTrace),
+          HttpStatus.internalServerError);
+    } catch (exception, stackTrace) {
+      HttpResponse response = request.response;
+      response.statusCode = HttpStatus.internalServerError;
+      response.headers.contentType = ContentType.text;
+      response.write('$exception\n\n$stackTrace');
+      response.close();
+    }
   }
 }

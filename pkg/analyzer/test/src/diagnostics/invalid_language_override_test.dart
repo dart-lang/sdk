@@ -9,12 +9,12 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BadDartLanguageOverrideTest);
+    defineReflectiveTests(InvalidLanguageOverrideTest);
   });
 }
 
 @reflectiveTest
-class BadDartLanguageOverrideTest extends DriverResolutionTest {
+class InvalidLanguageOverrideTest extends DriverResolutionTest {
   test_correct_11_12() async {
     await assertNoErrorsInCode(r'''
 // @dart = 11.12
@@ -74,6 +74,57 @@ int i = 0;
 // comment.
 // @dart >= 2.0
 int i = 0;
+''');
+  }
+
+  test_location_afterClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  // @dart = 2.5
+  void test() {}
+}
+''', [
+      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 15, 11),
+    ]);
+  }
+
+  test_location_afterDeclaration() async {
+    await assertErrorsInCode(r'''
+class A {}
+// @dart = 2.5
+''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 14, 11)]);
+  }
+
+  test_location_afterDeclaration_beforeEof() async {
+    await assertErrorsInCode(r'''
+class A {}
+// @dart = 2.5
+''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 14, 11)]);
+  }
+
+  test_location_afterDirective() async {
+    await assertErrorsInCode(r'''
+import 'dart:core';
+// @dart = 2.5
+class A {}
+''', [error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION, 23, 11)]);
+  }
+
+  test_location_beforeDeclaration() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+class A {}
+''');
+  }
+
+  test_location_notLineStart() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  /**
+   * For example '// @dart = 2.1'.
+   */
+  void test() {}
+}
 ''');
   }
 

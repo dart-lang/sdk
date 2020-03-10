@@ -895,12 +895,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     FunctionBuilder builder = member;
     if (extensionThis != null) {
-      typeInferrer?.flowAnalysis?.initialize(extensionThis);
+      typeInferrer?.flowAnalysis?.declare(extensionThis, true);
     }
     if (formals?.parameters != null) {
       for (int i = 0; i < formals.parameters.length; i++) {
         FormalParameterBuilder parameter = formals.parameters[i];
-        typeInferrer?.flowAnalysis?.initialize(parameter.variable);
+        typeInferrer?.flowAnalysis?.declare(parameter.variable, true);
       }
       for (int i = 0; i < formals.parameters.length; i++) {
         FormalParameterBuilder parameter = formals.parameters[i];
@@ -1373,7 +1373,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
-        typeInferrer?.flowAnalysis?.initialize(parameter.variable);
+        typeInferrer?.flowAnalysis?.declare(parameter.variable, true);
       }
     }
     if (_initializers != null) {
@@ -3182,6 +3182,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..bind(new VoidTypeBuilder(const VoidType(), libraryBuilder, offset)),
         offset,
         uri));
+  }
+
+  @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    assert(checkState(token, <ValueKind>[
+      /* arguments */ ValueKinds.TypeArgumentsOrNull,
+    ]));
+
+    debugEvent("handleVoidKeywordWithTypeArguments");
+    pop(); // arguments.
+    handleVoidKeyword(token);
   }
 
   @override

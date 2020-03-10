@@ -5304,6 +5304,17 @@ const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
     tip: r"""Try replacing with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropNonExternalConstructor =
+    messageJsInteropNonExternalConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropNonExternalConstructor = const MessageCode(
+    "JsInteropNonExternalConstructor",
+    message:
+        r"""JS interop classes do not support non-external constructors.""",
+    tip: r"""Try annotating with `external`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(
@@ -6208,7 +6219,7 @@ const MessageCode messageNonNullableOptOut = const MessageCode(
     "NonNullableOptOut",
     message: r"""Null safety features are disabled for this library.""",
     tip:
-        r"""Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.""");
+        r"""Try removing the `@dart=` annotation or setting the language version higher.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonNullableOptOutComment = messageNonNullableOptOutComment;
@@ -8680,6 +8691,16 @@ const Code<Null> codeVoidExpression = messageVoidExpression;
 const MessageCode messageVoidExpression = const MessageCode("VoidExpression",
     analyzerCodes: <String>["USE_OF_VOID_RESULT"],
     message: r"""This expression has type 'void' and can't be used.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeVoidWithTypeArguments = messageVoidWithTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageVoidWithTypeArguments = const MessageCode(
+    "VoidWithTypeArguments",
+    index: 100,
+    message: r"""Type 'void' can't have type arguments.""",
+    tip: r"""Try removing the type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

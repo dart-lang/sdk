@@ -642,6 +642,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func->ptr()->end_token_pos_ = d->ReadTokenPosition();
         func->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
+      func->ptr()->unboxed_parameters_info_.Reset();
 #endif
       func->ptr()->packed_fields_ = d->Read<uint32_t>();
       func->ptr()->kind_tag_ = d->Read<uint32_t>();

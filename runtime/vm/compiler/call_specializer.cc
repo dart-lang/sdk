@@ -125,13 +125,16 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
         Token::IsEqualityOperator(op_kind) ||
         Token::IsBinaryOperator(op_kind)) {
       // Guess cid: if one of the inputs is a number assume that the other
-      // is a number of same type.
-      const intptr_t cid_0 = class_ids[0];
-      const intptr_t cid_1 = class_ids[1];
-      if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
-        class_ids[0] = cid_1;
-      } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
-        class_ids[1] = cid_0;
+      // is a number of same type, unless the interface target tells us this
+      // is impossible.
+      if (!call->HasNonSmiAssignableInterface(zone())) {
+        const intptr_t cid_0 = class_ids[0];
+        const intptr_t cid_1 = class_ids[1];
+        if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
+          class_ids[0] = cid_1;
+        } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
+          class_ids[1] = cid_0;
+        }
       }
     }
   }
@@ -1696,9 +1699,9 @@ Definition* TypedDataSpecializer::AppendLoadIndexed(TemplateDartCall<0>* call,
                         compiler::target::TypedDataBase::data_field_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
-  Definition* load = new (Z)
-      LoadIndexedInstr(new (Z) Value(data), new (Z) Value(index), index_scale,
-                       cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
+  Definition* load = new (Z) LoadIndexedInstr(
+      new (Z) Value(data), new (Z) Value(index), /*index_unboxed=*/false,
+      index_scale, cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
   flow_graph_->InsertBefore(call, load, call->env(), FlowGraph::kValue);
 
   if (cid == kTypedDataFloat32ArrayCid) {
@@ -1776,8 +1779,9 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
 
   auto store = new (Z) StoreIndexedInstr(
       new (Z) Value(data), new (Z) Value(index), new (Z) Value(value),
-      kNoStoreBarrier, index_scale, cid, kAlignedAccess, DeoptId::kNone,
-      call->token_pos(), Instruction::kNotSpeculative);
+      kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
+      kAlignedAccess, DeoptId::kNone, call->token_pos(),
+      Instruction::kNotSpeculative);
   flow_graph_->InsertBefore(call, store, call->env(), FlowGraph::kEffect);
 }
 

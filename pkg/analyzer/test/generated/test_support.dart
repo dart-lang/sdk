@@ -394,7 +394,9 @@ class TestInstrumentor extends NoopInstrumentationService {
   }
 
   @override
-  void logException(dynamic exception, [StackTrace stackTrace]) {
+  void logException(dynamic exception,
+      [StackTrace stackTrace,
+      List<InstrumentationServiceAttachment> attachments]) {
     log.add("error: $exception $stackTrace");
   }
 

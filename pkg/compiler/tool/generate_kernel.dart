@@ -28,9 +28,7 @@ main(List<String> args) async {
     ..target = new Dart2jsTarget("dart2js", new TargetFlags())
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..setExitCodeOnProblem = true
-    ..linkedDependencies = [
-      Uri.base.resolve(nativeToUriPath(flags['platform']))
-    ];
+    ..additionalDills = [Uri.base.resolve(nativeToUriPath(flags['platform']))];
 
   if (flags.rest.isEmpty) {
     var script = relativizeUri(Uri.base, Platform.script, false);

@@ -229,16 +229,16 @@ class AssignedVariablesForTesting<Node, Variable>
 
 /// Information tracked by [AssignedVariables] for a single node.
 class AssignedVariablesNodeInfo<Variable> {
+  /// The set of local variables that are potentially written in the node.
   final Set<Variable> _written = new Set<Variable>.identity();
 
-  // The set of local variables that are potentially written in the node.
+  /// The set of local variables for which a potential write is captured by a
+  /// local function or closure inside the node.
   final Set<Variable> _captured = new Set<Variable>.identity();
 
-  // The set of local variables for which a potential write is captured by a
-  // local function or closure inside the node.
+  /// The set of local variables that are declared in the node.
   final Set<Variable> _declared = new Set<Variable>.identity();
 
-  // The set of local variables that are declared in the node.
   String toString() =>
       'AssignedVariablesNodeInfo(_written=$_written, _captured=$_captured, '
       '_declared=$_declared)';
@@ -340,6 +340,13 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// Call this method upon reaching the "?" part of a conditional expression
   /// ("?:").  [condition] should be the expression preceding the "?".
   void conditional_thenBegin(Expression condition);
+
+  /// Register a declaration of the [variable] in the current state.
+  /// Should also be called for function parameters.
+  ///
+  /// A local variable is [initialized] if its declaration has an initializer.
+  /// A function parameter is always initialized, so [initialized] is `true`.
+  void declare(Variable variable, bool initialized);
 
   /// Call this method before visiting the body of a "do-while" statement.
   /// [doStatement] should be the same node that was passed to
@@ -493,10 +500,6 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// - Visit the "else" statement
   /// - Call [ifStatement_end], passing `true` for `hasElse`.
   void ifStatement_thenBegin(Expression condition);
-
-  /// Register an initialized declaration of the given [variable] in the current
-  /// state.  Should also be called for function parameters.
-  void initialize(Variable variable);
 
   /// Return whether the [variable] is definitely assigned in the current state.
   bool isAssigned(Variable variable);
@@ -775,6 +778,12 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void declare(Variable variable, bool initialized) {
+    _wrap('declare($variable, $initialized)',
+        () => _wrapped.declare(variable, initialized));
+  }
+
+  @override
   void doStatement_bodyBegin(Statement doStatement) {
     return _wrap('doStatement_bodyBegin($doStatement)',
         () => _wrapped.doStatement_bodyBegin(doStatement));
@@ -901,11 +910,6 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   void ifStatement_thenBegin(Expression condition) {
     _wrap('ifStatement_thenBegin($condition)',
         () => _wrapped.ifStatement_thenBegin(condition));
-  }
-
-  @override
-  void initialize(Variable variable) {
-    _wrap('initialize($variable)', () => _wrapped.initialize(variable));
   }
 
   @override
@@ -1152,19 +1156,23 @@ class FlowModel<Variable, Type> {
     }());
   }
 
+  /// Register a declaration of the [variable].
+  /// Should also be called for function parameters.
+  ///
+  /// A local variable is [initialized] if its declaration has an initializer.
+  /// A function parameter is always initialized, so [initialized] is `true`.
+  FlowModel<Variable, Type> declare(Variable variable, bool initialized) {
+    VariableModel<Type> newInfoForVar = _freshVariableInfo;
+    if (initialized) {
+      newInfoForVar = newInfoForVar.initialize();
+    }
+
+    return _updateVariableInfo(variable, newInfoForVar);
+  }
+
   /// Gets the info for the given [variable], creating it if it doesn't exist.
   VariableModel<Type> infoFor(Variable variable) =>
       variableInfo[variable] ?? _freshVariableInfo;
-
-  /// Updates the state to indicate that the given [variable] was initialized.
-  /// The variable is marked as definitely assigned, and any previous type
-  /// promotion is removed.
-  FlowModel<Variable, Type> initialize(Variable variable) {
-    VariableModel<Type> infoForVar = infoFor(variable);
-    VariableModel<Type> newInfoForVar = infoForVar.initialize();
-    if (identical(newInfoForVar, infoForVar)) return this;
-    return _updateVariableInfo(variable, newInfoForVar);
-  }
 
   /// Updates the state to indicate that the given [writtenVariables] are no
   /// longer promoted; they are presumed to have their declared types.
@@ -1245,28 +1253,24 @@ class FlowModel<Variable, Type> {
         in variableInfo.entries) {
       Variable variable = entry.key;
       VariableModel<Type> thisModel = entry.value;
-      VariableModel<Type> otherModel = other.infoFor(variable);
+      VariableModel<Type> otherModel = other.variableInfo[variable];
+      if (otherModel == null) {
+        variableInfoMatchesThis = false;
+        continue;
+      }
       VariableModel<Type> restricted = thisModel.restrict(
           typeOperations, otherModel, unsafe.contains(variable));
-      if (!identical(restricted, _freshVariableInfo)) {
-        newVariableInfo[variable] = restricted;
-      }
+      newVariableInfo[variable] = restricted;
       if (!identical(restricted, thisModel)) variableInfoMatchesThis = false;
       if (!identical(restricted, otherModel)) variableInfoMatchesOther = false;
     }
-    for (MapEntry<Variable, VariableModel<Type>> entry
-        in other.variableInfo.entries) {
-      Variable variable = entry.key;
-      if (variableInfo.containsKey(variable)) continue;
-      VariableModel<Type> thisModel = _freshVariableInfo;
-      VariableModel<Type> otherModel = entry.value;
-      VariableModel<Type> restricted = thisModel.restrict(
-          typeOperations, otherModel, unsafe.contains(variable));
-      if (!identical(restricted, _freshVariableInfo)) {
-        newVariableInfo[variable] = restricted;
+    if (variableInfoMatchesOther) {
+      for (Variable variable in other.variableInfo.keys) {
+        if (!variableInfo.containsKey(variable)) {
+          variableInfoMatchesOther = false;
+          break;
+        }
       }
-      if (!identical(restricted, thisModel)) variableInfoMatchesThis = false;
-      if (!identical(restricted, otherModel)) variableInfoMatchesOther = false;
     }
     assert(variableInfoMatchesThis ==
         _variableInfosEqual(newVariableInfo, variableInfo));
@@ -1347,10 +1351,13 @@ class FlowModel<Variable, Type> {
   /// previous type promotion is removed.
   FlowModel<Variable, Type> write(Variable variable, Type writtenType,
       TypeOperations<Variable, Type> typeOperations) {
-    VariableModel<Type> infoForVar = infoFor(variable);
+    VariableModel<Type> infoForVar = variableInfo[variable];
+    if (infoForVar == null) return this;
+
     VariableModel<Type> newInfoForVar =
         infoForVar.write(writtenType, typeOperations);
     if (identical(newInfoForVar, infoForVar)) return this;
+
     return _updateVariableInfo(variable, newInfoForVar);
   }
 
@@ -2054,6 +2061,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void declare(Variable variable, bool initialized) {
+    _current = _current.declare(variable, initialized);
+  }
+
+  @override
   void doStatement_bodyBegin(Statement doStatement) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(doStatement);
@@ -2268,11 +2280,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
-  void initialize(Variable variable) {
-    _current = _current.initialize(variable);
-  }
-
-  @override
   bool isAssigned(Variable variable) {
     return _current.infoFor(variable).assigned;
   }
@@ -2441,10 +2448,10 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _stack.last as _TryContext<Variable, Type>;
     _current = context._beforeCatch;
     if (exceptionVariable != null) {
-      _current = _current.initialize(exceptionVariable);
+      _current = _current.declare(exceptionVariable, true);
     }
     if (stackTraceVariable != null) {
-      _current = _current.initialize(stackTraceVariable);
+      _current = _current.declare(stackTraceVariable, true);
     }
   }
 

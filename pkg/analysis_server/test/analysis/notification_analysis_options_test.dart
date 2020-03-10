@@ -17,13 +17,12 @@ import '../analysis_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
-    defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
+    defineReflectiveTests(AnalysisOptionsFileNotificationTest);
   });
 }
 
-abstract class AnalysisOptionsFileNotificationTest
-    extends AbstractAnalysisTest {
+@reflectiveTest
+class AnalysisOptionsFileNotificationTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
   final testSource = '''
@@ -37,7 +36,7 @@ main() {
 
   List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath];
 
-  String get optionsFilePath;
+  String get optionsFilePath => '$projectPath/analysis_options.yaml';
 
   List<AnalysisError> get testFileErrors => filesErrors[testFile];
 
@@ -259,18 +258,4 @@ linter:
     var rules = options.lintRules.map((rule) => rule.name);
     expect(rules, unorderedEquals(lints));
   }
-}
-
-@reflectiveTest
-class NewAnalysisOptionsFileNotificationTest
-    extends AnalysisOptionsFileNotificationTest {
-  @override
-  String get optionsFilePath => '$projectPath/analysis_options.yaml';
-}
-
-@reflectiveTest
-class OldAnalysisOptionsFileNotificationTest
-    extends AnalysisOptionsFileNotificationTest {
-  @override
-  String get optionsFilePath => '$projectPath/.analysis_options';
 }

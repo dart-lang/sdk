@@ -877,6 +877,8 @@ class MetadataHelper {
   TranslationHelper& translation_helper_;
 
  private:
+  MetadataHelper();
+
   void SetMetadataMappings(intptr_t mappings_offset, intptr_t mappings_num);
   void ScanMetadataMappings();
 
@@ -940,13 +942,15 @@ struct InferredTypeMetadata {
     return (cid == kDynamicCid) && (flags == kFlagNullable);
   }
   bool IsNullable() const { return (flags & kFlagNullable) != 0; }
-  bool IsInt() const { return (flags & kFlagInt) != 0; }
+  bool IsInt() const {
+    return (flags & kFlagInt) != 0 || cid == kMintCid || cid == kSmiCid;
+  }
   bool IsSkipCheck() const { return (flags & kFlagSkipCheck) != 0; }
   bool IsConstant() const { return (flags & kFlagConstant) != 0; }
   bool ReceiverNotInt() const { return (flags & kFlagReceiverNotInt) != 0; }
 
   CompileType ToCompileType(Zone* zone) const {
-    if (IsInt()) {
+    if (IsInt() && cid == kDynamicCid) {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(zone, Type::IntType()), IsNullable());
     } else {
@@ -963,7 +967,8 @@ class InferredTypeMetadataHelper : public MetadataHelper {
   explicit InferredTypeMetadataHelper(KernelReaderHelper* helper,
                                       ConstantReader* constant_reader);
 
-  InferredTypeMetadata GetInferredType(intptr_t node_offset);
+  InferredTypeMetadata GetInferredType(intptr_t node_offset,
+                                       bool read_constant = true);
 
  private:
   ConstantReader* constant_reader_;
@@ -1072,6 +1077,42 @@ class TableSelectorMetadataHelper : public MetadataHelper {
   void ReadTableSelectorInfo(TableSelectorInfo* info);
 
   DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadataHelper);
+};
+
+// Information about a function regarding unboxed parameters and return value.
+class UnboxingInfoMetadata : public ZoneAllocated {
+ public:
+  enum UnboxingInfoTag {
+    kBoxed = 0,
+    kUnboxedIntCandidate = 1 << 0,
+    kUnboxedDoubleCandidate = 1 << 1,
+    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate,
+  };
+
+  UnboxingInfoMetadata() : unboxed_args_info(0) { return_info = kBoxed; }
+
+  void SetArgsCount(intptr_t num_args) {
+    ASSERT(unboxed_args_info.is_empty());
+    unboxed_args_info.SetLength(num_args);
+    unboxed_args_info.FillWith(kBoxed, 0, num_args);
+  }
+
+  GrowableArray<UnboxingInfoTag> unboxed_args_info;
+  UnboxingInfoTag return_info;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadata);
+};
+
+// Helper class which provides access to unboxing information metadata.
+class UnboxingInfoMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.unboxing-info.metadata"; }
+
+  explicit UnboxingInfoMetadataHelper(KernelReaderHelper* helper);
+
+  UnboxingInfoMetadata* GetUnboxingInfoMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadataHelper);
 };
 
 class KernelReaderHelper {
@@ -1212,6 +1253,7 @@ class KernelReaderHelper {
   friend class TableSelectorMetadataHelper;
   friend class TypeParameterHelper;
   friend class TypeTranslator;
+  friend class UnboxingInfoMetadataHelper;
   friend class VariableDeclarationHelper;
   friend class ObfuscationProhibitionsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
@@ -1371,6 +1413,7 @@ class ActiveTypeParametersScope {
 class TypeTranslator {
  public:
   TypeTranslator(KernelReaderHelper* helper,
+                 ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
                  bool apply_legacy_erasure = false);
@@ -1398,6 +1441,9 @@ class TypeTranslator {
                                FunctionNodeHelper* function_node_helper);
 
  private:
+  void SetupUnboxingInfoMetadata(const Function& function,
+                                 intptr_t library_kernel_offset);
+
   void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
@@ -1430,9 +1476,12 @@ class TypeTranslator {
   };
 
   KernelReaderHelper* helper_;
+  ConstantReader* constant_reader_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
   TypeParameterScope* type_parameter_scope_;
+  InferredTypeMetadataHelper inferred_type_metadata_helper_;
+  UnboxingInfoMetadataHelper unboxing_info_metadata_helper_;
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;

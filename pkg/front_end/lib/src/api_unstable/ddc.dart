@@ -72,17 +72,17 @@ export 'compiler_state.dart'
 class DdcResult {
   final Component component;
   final Component sdkSummary;
-  final List<Component> inputSummaries;
+  final List<Component> additionalDills;
   final ClassHierarchy classHierarchy;
 
-  DdcResult(
-      this.component, this.sdkSummary, this.inputSummaries, this.classHierarchy)
+  DdcResult(this.component, this.sdkSummary, this.additionalDills,
+      this.classHierarchy)
       : assert(classHierarchy != null);
 
   Set<Library> computeLibrariesFromDill() {
     Set<Library> librariesFromDill = new Set<Library>();
 
-    for (Component c in inputSummaries) {
+    for (Component c in additionalDills) {
       for (Library lib in c.libraries) {
         librariesFromDill.add(lib);
       }
@@ -104,19 +104,19 @@ Future<InitializedCompilerState> initializeCompiler(
     Uri sdkSummary,
     Uri packagesFile,
     Uri librariesSpecificationUri,
-    List<Uri> inputSummaries,
+    List<Uri> additionalDills,
     Target target,
     {FileSystem fileSystem,
     Map<ExperimentalFlag, bool> experiments,
     Map<String, String> environmentDefines}) async {
-  inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
+  additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
       oldState.options.compileSdk == compileSdk &&
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      equalLists(oldState.options.inputSummaries, inputSummaries) &&
+      equalLists(oldState.options.additionalDills, additionalDills) &&
       equalMaps(oldState.options.experimentalFlags, experiments) &&
       equalMaps(oldState.options.environmentDefines, environmentDefines)) {
     // Reuse old state.
@@ -128,7 +128,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..sdkRoot = sdkRoot
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
-    ..inputSummaries = inputSummaries
+    ..additionalDills = additionalDills
     ..librariesSpecificationUri = librariesSpecificationUri
     ..target = target
     ..fileSystem = fileSystem ?? StandardFileSystem.instance
@@ -147,13 +147,13 @@ Future<InitializedCompilerState> initializeCompiler(
 Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState oldState,
     Set<String> tags,
-    List<Component> doneInputSummaries,
+    List<Component> doneAdditionalDills,
     bool compileSdk,
     Uri sdkRoot,
     Uri sdkSummary,
     Uri packagesFile,
     Uri librariesSpecificationUri,
-    List<Uri> inputSummaries,
+    List<Uri> additionalDills,
     Map<Uri, List<int>> workerInputDigests,
     Target target,
     {FileSystem fileSystem,
@@ -163,11 +163,11 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   return modular.initializeIncrementalCompiler(
       oldState,
       tags,
-      doneInputSummaries,
+      doneAdditionalDills,
       sdkSummary,
       packagesFile,
       librariesSpecificationUri,
-      inputSummaries,
+      additionalDills,
       workerInputDigests,
       target,
       compileSdk: compileSdk,
@@ -198,7 +198,7 @@ Future<DdcResult> compile(InitializedCompilerState compilerState,
 
   // These should be cached.
   Component sdkSummary = await processedOpts.loadSdkSummary(null);
-  List<Component> summaries = await processedOpts.loadInputSummaries(null);
+  List<Component> summaries = await processedOpts.loadAdditionalDills(null);
   return new DdcResult(
       component, sdkSummary, summaries, compilerResult.classHierarchy);
 }

@@ -741,13 +741,14 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
-      sink.write(node.period.lexeme);
+      safelyVisitToken(node.period);
     } else {
       safelyVisitNode(node.target);
     }
-    sink.write('[');
+    safelyVisitToken(node.question);
+    safelyVisitToken(node.leftBracket);
     safelyVisitNode(node.index);
-    sink.write(']');
+    safelyVisitToken(node.rightBracket);
   }
 
   @override

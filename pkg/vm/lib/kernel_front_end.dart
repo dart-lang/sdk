@@ -39,8 +39,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-import 'package:kernel/binary/limited_ast_to_binary.dart'
-    show LimitedBinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
@@ -207,9 +205,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri packagesUri = packages != null ? resolveInputUri(packages) : null;
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
-  final List<Uri> linkedDependencies = <Uri>[];
+  final List<Uri> additionalDills = <Uri>[];
   if (aot || linkPlatform) {
-    linkedDependencies.add(platformKernelUri);
+    additionalDills.add(platformKernelUri);
   }
 
   Uri mainUri = resolveInputUri(input);
@@ -224,7 +222,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..sdkSummary = platformKernelUri
     ..target = target
     ..fileSystem = fileSystem
-    ..linkedDependencies = linkedDependencies
+    ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
@@ -236,7 +234,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..embedSourceText = embedSources;
 
   final results = await compileToKernel(mainUri, compilerOptions,
-      includePlatform: linkedDependencies.isNotEmpty,
+      includePlatform: additionalDills.isNotEmpty,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
@@ -660,11 +658,9 @@ Future writeOutputSplitByPackages(
         }
       }
 
-      final BinaryPrinter printer = new LimitedBinaryPrinter(
-          sink,
-          (lib) =>
-              packageFor(lib, compilationResults.loadedLibraries) == package,
-          false /* excludeUriToSource */);
+      final BinaryPrinter printer = new BinaryPrinter(sink,
+          libraryFilter: (lib) =>
+              packageFor(lib, compilationResults.loadedLibraries) == package);
       printer.writeComponentFile(partComponent);
 
       await sink.close();

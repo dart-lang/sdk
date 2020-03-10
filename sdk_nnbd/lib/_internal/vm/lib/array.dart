@@ -250,7 +250,10 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
     assert(array is _List<E> || array is _ImmutableList<E>);
   }
 
-  E get current => _current as E;
+  E get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as E;
+  }
 
   @pragma("vm:prefer-inline")
   bool moveNext() {

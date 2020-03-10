@@ -24,9 +24,6 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
-import 'package:kernel/binary/limited_ast_to_binary.dart'
-    show LimitedBinaryPrinter;
-
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 /// Print the given [component].  Do nothing if it is `null`.  If the
@@ -52,9 +49,7 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
   File output = new File.fromUri(uri);
   IOSink sink = output.openWrite();
   try {
-    BinaryPrinter printer = filter == null
-        ? new BinaryPrinter(sink)
-        : new LimitedBinaryPrinter(sink, filter ?? (_) => true, false);
+    BinaryPrinter printer = new BinaryPrinter(sink, libraryFilter: filter);
     printer.writeComponentFile(component);
   } finally {
     await sink.close();
@@ -67,11 +62,10 @@ Uint8List serializeComponent(Component component,
     bool includeSources: true,
     bool includeOffsets: true}) {
   ByteSink byteSink = new ByteSink();
-  BinaryPrinter printer = filter == null
-      ? new BinaryPrinter(byteSink,
-          includeSources: includeSources, includeOffsets: includeOffsets)
-      : new LimitedBinaryPrinter(byteSink, filter, !includeSources,
-          includeOffsets: includeOffsets);
+  BinaryPrinter printer = new BinaryPrinter(byteSink,
+      libraryFilter: filter,
+      includeSources: includeSources,
+      includeOffsets: includeOffsets);
   printer.writeComponentFile(component);
   return byteSink.builder.takeBytes();
 }

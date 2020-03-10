@@ -300,6 +300,9 @@ inline intptr_t RoundedAllocationSize(intptr_t size) {
 // Information about frame_layout that compiler should be targeting.
 extern FrameLayout frame_layout;
 
+constexpr intptr_t kIntSpillFactor = sizeof(int64_t) / kWordSize;
+constexpr intptr_t kDoubleSpillFactor = sizeof(double) / kWordSize;
+
 // Returns the FP-relative index where [variable] can be found (assumes
 // [variable] is not captured), in bytes.
 inline int FrameOffsetInBytesForVariable(const LocalVariable* variable) {
@@ -514,9 +517,13 @@ class GrowableObjectArray : public AllStatic {
   static word NextFieldOffset();
 };
 
-class TypedDataBase : public AllStatic {
+class PointerBase : public AllStatic {
  public:
   static word data_field_offset();
+};
+
+class TypedDataBase : public PointerBase {
+ public:
   static word length_offset();
   static word InstanceSize();
   static word NextFieldOffset();
@@ -570,13 +577,13 @@ class ArgumentsDescriptor : public AllStatic {
   static word position_offset();
   static word name_offset();
   static word count_offset();
+  static word size_offset();
   static word type_args_len_offset();
   static word positional_count_offset();
 };
 
-class Pointer : public AllStatic {
+class Pointer : public PointerBase {
  public:
-  static word c_memory_address_offset();
   static word type_arguments_offset();
   static word InstanceSize();
   static word NextFieldOffset();

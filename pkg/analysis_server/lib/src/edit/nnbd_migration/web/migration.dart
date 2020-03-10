@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
@@ -26,6 +27,19 @@ void main() {
         pushState(path, offset, lineNumber);
       });
     }
+
+    final applyMigrationButton = document.querySelector('.apply-migration');
+    applyMigrationButton.onClick.listen((event) {
+      doPost('/apply-migration').then((xhr) {
+        document.body.classes
+          ..remove('proposed')
+          ..add('applied');
+      }).catchError((e, st) {
+        logError('apply migration error: $e', st);
+
+        window.alert('Could not apply migration ($e).');
+      });
+    });
   });
 
   window.addEventListener('popstate', (event) {
@@ -47,15 +61,6 @@ void main() {
 }
 
 String get rootPath => querySelector('.root').text.trim();
-
-/// Return the absolute path of [path], assuming [path] is relative to [root].
-String absolutePath(String path) {
-  if (path[0] != '/') {
-    return '$rootPath/$path';
-  } else {
-    return path;
-  }
-}
 
 void addArrowClickHandler(Element arrow) {
   Element childList =
@@ -107,6 +112,19 @@ void addClickHandlers(String selector) {
   });
 }
 
+Future<HttpRequest> doPost(String path) => HttpRequest.request(
+      path,
+      method: 'POST',
+      requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
+    ).then((HttpRequest xhr) {
+      if (xhr.status == 200) {
+        // Request OK.
+        return xhr;
+      } else {
+        throw 'Request failed; status of ${xhr.status}';
+      }
+    });
+
 int getLine(String location) {
   String str = Uri.parse(location).queryParameters['line'];
   return str == null ? null : int.tryParse(str);
@@ -150,28 +168,17 @@ void handleNavLinkClick(
 
 void handlePostLinkClick(MouseEvent event) {
   String path = (event.currentTarget as Element).getAttribute('href');
-  // TODO(devoncarew): Validate that this path logic is correct.
-  // This is only called by .post-link elements - the 'edits' / incremental
-  // workflow code path.
-  path = absolutePath(path);
 
   // Directing the server to produce an edit; request it, then do work with the
   // response.
-  HttpRequest.request(
-    path,
-    method: 'POST',
-    requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
-  ).then((HttpRequest xhr) {
-    if (xhr.status == 200) {
-      // Likely request new navigation and file content.
-    } else {
-      window.alert('Request failed; status of ${xhr.status}');
-    }
-  }).catchError((e, st) {
+  doPost(path).catchError((e, st) {
     logError('handlePostLinkClick: $e', st);
 
     window.alert('Could not load $path ($e).');
   });
+
+  // Don't navigate on link click.
+  event.preventDefault();
 }
 
 void highlightAllCode() {
@@ -289,8 +296,8 @@ void maybeScrollIntoView(Element element) {
 
 /// Scroll target with id [offset] into view if it is not currently in view.
 ///
-/// If [offset] is null, instead scroll the "unit-name" header, at the top of the
-/// page, into view.
+/// If [offset] is null, instead scroll the "unit-name" header, at the top of
+/// the page, into view.
 ///
 /// Also add the "target" class, highlighting the target. Also add the
 /// "highlight" class to the entire line on which the target lies.
@@ -380,18 +387,10 @@ void populateEditDetails([EditDetails response]) {
     for (var detail in response.details) {
       var detailItem = detailList.append(document.createElement('li'));
       detailItem.append(Text(detail.description));
-      if (detail.link != null) {
-        int targetLine = detail.link.line;
-
+      var link = detail.link;
+      if (link != null) {
         detailItem.append(Text(' ('));
-        AnchorElement a = detailItem.append(document.createElement('a'));
-        a.append(Text("${detail.link.path}:$targetLine"));
-
-        String relLink = detail.link.href;
-        String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
-
-        a.setAttribute('href', fullPath);
-        a.classes.add('nav-link');
+        detailItem.append(_aElementForLink(link, parentDirectory));
         detailItem.append(Text(')'));
       }
     }
@@ -403,7 +402,25 @@ void populateEditDetails([EditDetails response]) {
       Element a = editParagraph.append(document.createElement('a'));
       a.append(Text(edit.description));
       a.setAttribute('href', edit.href);
-      a.classes.add('post-link');
+      a.classes = ['post-link', 'before-apply'];
+    }
+  }
+
+  for (var trace in response.traces) {
+    var traceParagraph = editPanel.append(document.createElement('p'));
+    traceParagraph.append(Text(trace.description));
+    var ul = traceParagraph.append(document.createElement('ul'));
+    for (var entry in trace.entries) {
+      var li = ul.append(document.createElement('li'));
+      li.append(Text(entry.function ?? 'unknown'));
+      var link = entry.link;
+      if (link != null) {
+        li.append(Text(' ('));
+        li.append(_aElementForLink(link, parentDirectory));
+        li.append(Text(')'));
+      }
+      li.append(Text(': '));
+      li.append(Text(entry.description));
     }
   }
 }
@@ -548,6 +565,19 @@ void writeNavigationSubtree(Element parentElement, dynamic tree) {
       }
     }
   }
+}
+
+AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
+  int targetLine = link.line;
+  AnchorElement a = document.createElement('a');
+  a.append(Text('${link.path}:$targetLine'));
+
+  String relLink = link.href;
+  String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
+
+  a.setAttribute('href', fullPath);
+  a.classes.add('nav-link');
+  return a;
 }
 
 class _PermissiveNodeValidator implements NodeValidator {

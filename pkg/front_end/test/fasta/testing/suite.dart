@@ -23,7 +23,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
+    show ExperimentalFlag, defaultExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -148,21 +148,25 @@ const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
 const String experimentalFlagOptions = '--enable-experiment=';
+const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
 
 class TestOptions {
-  final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Map<ExperimentalFlag, bool> _experimentalFlags;
   final bool forceLateLowering;
   final bool forceNnbdChecks;
   final bool forceNoExplicitGetterCalls;
   final bool nnbdAgnosticMode;
   final String target;
+  final String overwriteCurrentSdkVersion;
 
-  TestOptions(this.experimentalFlags,
+  TestOptions(this._experimentalFlags,
       {this.forceLateLowering: false,
       this.forceNnbdChecks: false,
       this.forceNoExplicitGetterCalls: false,
       this.nnbdAgnosticMode: false,
-      this.target: "vm"})
+      this.target: "vm",
+      // can be null
+      this.overwriteCurrentSdkVersion})
       : assert(forceLateLowering != null),
         assert(forceNnbdChecks != null),
         assert(forceNoExplicitGetterCalls != null),
@@ -171,7 +175,8 @@ class TestOptions {
 
   Map<ExperimentalFlag, bool> computeExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
-    Map<ExperimentalFlag, bool> flags = new Map.from(experimentalFlags);
+    Map<ExperimentalFlag, bool> flags = new Map.from(defaultExperimentalFlags);
+    flags.addAll(_experimentalFlags);
     flags.addAll(forcedExperimentalFlags);
     return flags;
   }
@@ -305,11 +310,15 @@ class FastaContext extends ChainContext with MatchContext {
             new File.fromUri(directory.uri.resolve('test.options'));
         if (optionsFile.existsSync()) {
           List<String> experimentalFlagsArguments = [];
+          String overwriteCurrentSdkVersionArgument = null;
           for (String line in optionsFile.readAsStringSync().split('\n')) {
             line = line.trim();
             if (line.startsWith(experimentalFlagOptions)) {
               experimentalFlagsArguments =
                   line.substring(experimentalFlagOptions.length).split('\n');
+            } else if (line.startsWith(overwriteCurrentSdkVersion)) {
+              overwriteCurrentSdkVersionArgument =
+                  line.substring(overwriteCurrentSdkVersion.length);
             } else if (line.startsWith(Flags.forceLateLowering)) {
               forceLateLowering = true;
             } else if (line.startsWith(Flags.forceNnbdChecks)) {
@@ -338,7 +347,8 @@ class FastaContext extends ChainContext with MatchContext {
               forceNnbdChecks: forceNnbdChecks,
               forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
               nnbdAgnosticMode: nnbdAgnosticMode,
-              target: target);
+              target: target,
+              overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument);
         } else {
           testOptions = _computeTestOptionsForDirectory(directory.parent);
         }
@@ -366,22 +376,26 @@ class FastaContext extends ChainContext with MatchContext {
       Uri sdk = Uri.base.resolve("sdk/");
       Uri packages = Uri.base.resolve(".packages");
       TestOptions testOptions = computeTestOptions(description);
-      ProcessedOptions options = new ProcessedOptions(
-          options: new CompilerOptions()
-            ..onDiagnostic = (DiagnosticMessage message) {
-              throw message.plainTextFormatted.join("\n");
-            }
-            ..sdkRoot = sdk
-            ..packagesFileUri = packages
-            ..environmentDefines = {}
-            ..experimentalFlags =
-                testOptions.computeExperimentalFlags(experimentalFlags)
-            ..nnbdMode = weak
-                ? NnbdMode.Weak
-                : (testOptions.nnbdAgnosticMode
-                    ? NnbdMode.Agnostic
-                    : NnbdMode.Strong)
-            ..librariesSpecificationUri = librariesSpecificationUri);
+      CompilerOptions compilerOptions = new CompilerOptions()
+        ..onDiagnostic = (DiagnosticMessage message) {
+          throw message.plainTextFormatted.join("\n");
+        }
+        ..sdkRoot = sdk
+        ..packagesFileUri = packages
+        ..environmentDefines = {}
+        ..experimentalFlags =
+            testOptions.computeExperimentalFlags(experimentalFlags)
+        ..nnbdMode = weak
+            ? NnbdMode.Weak
+            : (testOptions.nnbdAgnosticMode
+                ? NnbdMode.Agnostic
+                : NnbdMode.Strong)
+        ..librariesSpecificationUri = librariesSpecificationUri;
+      if (testOptions.overwriteCurrentSdkVersion != null) {
+        compilerOptions.currentSdkVersion =
+            testOptions.overwriteCurrentSdkVersion;
+      }
+      ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
       uriTranslator = await options.getUriTranslator();
       _uriTranslators[librariesSpecificationUri] = uriTranslator;
     }
@@ -535,6 +549,8 @@ class Run extends Step<ComponentResult, int, FastaContext> {
 
   Future<Result<int>> run(ComponentResult result, FastaContext context) async {
     TestOptions testOptions = context.computeTestOptions(result.description);
+    Map<ExperimentalFlag, bool> experimentalFlags =
+        testOptions.computeExperimentalFlags(context.experimentalFlags);
     switch (testOptions.target) {
       case "vm":
         if (context.platformUri == null) {
@@ -544,6 +560,12 @@ class Run extends Step<ComponentResult, int, FastaContext> {
         StdioProcess process;
         try {
           var args = <String>[];
+          if (experimentalFlags[ExperimentalFlag.nonNullable]) {
+            args.add("--enable-experiment=non-nullable");
+            if (!context.weak) {
+              args.add("--null-safety");
+            }
+          }
           args.add(generated.path);
           process = await StdioProcess.run(context.vm.toFilePath(), args);
           print(process.output);
@@ -590,20 +612,23 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     List<Uri> inputs = <Uri>[description.uri];
 
     ProcessedOptions createProcessedOptions(NnbdMode nnbdMode) {
-      return new ProcessedOptions(
-          options: new CompilerOptions()
-            ..onDiagnostic = (DiagnosticMessage message) {
-              if (errors.isNotEmpty) {
-                errors.write("\n\n");
-              }
-              errors.writeAll(message.plainTextFormatted, "\n");
-            }
-            ..environmentDefines = {}
-            ..experimentalFlags = experimentalFlags
-            ..performNnbdChecks = testOptions.forceNnbdChecks
-            ..nnbdMode = nnbdMode
-            ..librariesSpecificationUri = librariesSpecificationUri,
-          inputs: inputs);
+      CompilerOptions compilerOptions = new CompilerOptions()
+        ..onDiagnostic = (DiagnosticMessage message) {
+          if (errors.isNotEmpty) {
+            errors.write("\n\n");
+          }
+          errors.writeAll(message.plainTextFormatted, "\n");
+        }
+        ..environmentDefines = {}
+        ..experimentalFlags = experimentalFlags
+        ..performNnbdChecks = testOptions.forceNnbdChecks
+        ..nnbdMode = nnbdMode
+        ..librariesSpecificationUri = librariesSpecificationUri;
+      if (testOptions.overwriteCurrentSdkVersion != null) {
+        compilerOptions.currentSdkVersion =
+            testOptions.overwriteCurrentSdkVersion;
+      }
+      return new ProcessedOptions(options: compilerOptions, inputs: inputs);
     }
 
     // Disable colors to ensure that expectation files are the same across

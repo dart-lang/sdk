@@ -105,7 +105,10 @@ class KernelLoaderTask extends CompilerTask {
             _options.librariesSpecificationUri,
             dependencies,
             _options.packageConfig,
-            experimentalFlags: _options.languageExperiments);
+            experimentalFlags: _options.languageExperiments,
+            nnbdMode: _options.useLegacySubtyping
+                ? fe.NnbdMode.Weak
+                : fe.NnbdMode.Strong);
         component = await fe.compile(
             initializedCompilerState,
             false,

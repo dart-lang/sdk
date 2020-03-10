@@ -4,7 +4,6 @@
 
 import 'dart:html';
 
-import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
@@ -78,8 +77,6 @@ class CustomCustomDiv extends CustomDiv {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   // Adapted from Blink's fast/dom/custom/document-register-type-extension test.
 
   var testForm = new FormElement()..id = 'testForm';

@@ -22,16 +22,14 @@ Future getFlagValue(VmService service, String flagName) async {
 var tests = <VMTest>[
   // Modify a flag which does not exist.
   (VmService service) async {
-    final result = await service.setFlag('does_not_exist', 'true');
-    expect(result, TypeMatcher<Error>());
+    final Error result = await service.setFlag('does_not_exist', 'true');
     expect(result.message, 'Cannot set flag: flag not found');
   },
 
   // Modify a flag with the wrong value type.
   (VmService service) async {
-    final result =
+    final Error result =
         await service.setFlag('pause_isolates_on_start', 'not-boolean');
-    expect(result, TypeMatcher<Error>());
     expect(result.message, equals('Cannot set flag: invalid value'));
   },
 
@@ -43,8 +41,7 @@ var tests = <VMTest>[
 
   // Modify a flag which cannot be set at runtime.
   (VmService service) async {
-    final result = await service.setFlag('random_seed', '42');
-    expect(result, TypeMatcher<Error>());
+    final Error result = await service.setFlag('random_seed', '42');
     expect(result.message, 'Cannot set flag: cannot change at runtime');
   },
 

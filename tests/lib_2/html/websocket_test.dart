@@ -3,7 +3,6 @@ library WebSocketTest;
 import 'dart:html';
 
 import 'package:async_helper/async_minitest.dart';
-import 'package:expect/minitest.dart' as minitest;
 
 main() {
   group('supported', () {
@@ -13,15 +12,13 @@ main() {
   });
 
   group('websocket', () {
-    var isWebSocket =
-        minitest.predicate((x) => x is WebSocket, 'is a WebSocket');
-    var expectation = WebSocket.supported ? minitest.returnsNormally : throws;
+    var expectation = WebSocket.supported ? returnsNormally : throws;
 
     test('constructorTest', () {
-      minitest.expect(() {
+      expect(() {
         var socket = new WebSocket('ws://localhost/ws', 'chat');
         expect(socket, isNotNull);
-        minitest.expect(socket, isWebSocket);
+        expect(socket, isInstanceOf<WebSocket>());
       }, expectation);
     });
 

@@ -1388,5 +1388,8 @@ class _StringAllMatchesIterator implements Iterator<Match> {
     return true;
   }
 
-  Match get current => _current as Match;
+  Match get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as Match;
+  }
 }

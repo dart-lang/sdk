@@ -4,12 +4,13 @@
 
 import 'dart:io';
 
+import 'package:args/args.dart';
+
 /// This binary can generate and update an integrated workspace for upgrading
 /// individual packages and their dependencies simultaneously.
 
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 import 'package:path/path.dart' as path;
-import 'package:args/args.dart';
 
 final parser = ArgParser()
   ..addMultiOption('extra-packages', abbr: 'e', splitCommas: true)
@@ -25,18 +26,15 @@ final parser = ArgParser()
       defaultsTo: false,
       negatable: true,
       help:
-          'Use dartfix to force-update all dependencies (lib/ directory only).')
+          'Use dart migrate to force-update all dependencies (lib/ directory only).')
   ..addFlag('force-migrate-package',
       defaultsTo: false,
       negatable: true,
-      help: 'Use dartfix to force-update the base package (from root).')
+      help: 'Use dart migrate to force-update the base package (from root).')
   ..addFlag('force-migrate-extras',
       defaultsTo: false,
       negatable: true,
-      help: 'Use dartfix to force-update extra packages (from root).')
-  ..addOption('sdk',
-      help:
-          'Use the given path to a NNBD-compliant sdk.  Required for any --force options.')
+      help: 'Use dart migrate to force-update extra packages (from root).')
   ..addOption('analyze-results',
       defaultsTo: 'full',
       allowed: ['full', 'none', 'all'],
@@ -106,15 +104,11 @@ Future<void> main(List<String> args) async {
           (s) => s.name != packageName && !extraPackages.contains(s.name)));
     }
 
-    if (results['sdk'] as String == null) {
-      _showHelp('error: --sdk required with force-migrate options');
-      exit(1);
-    }
-    if (!await workspace.forceMigratePackages(upgradedSubPackages,
-        upgradedSubPackagesLibOnly, results['sdk'] as String, [
+    if (!await workspace
+        .forceMigratePackages(upgradedSubPackages, upgradedSubPackagesLibOnly, [
       Platform.resolvedExecutable,
       path.normalize(path.join(Platform.script.toFilePath(), '..', '..', '..',
-          'dartfix', 'bin', 'dartfix.dart'))
+          'dartdev', 'bin', 'dartdev.dart'))
     ])) {
       stderr.writeln('//// Everything already upgraded.');
     }
@@ -137,8 +131,7 @@ Future<void> main(List<String> args) async {
     if (results['analyze-results'] == 'all') {
       subPackagesLibOnly = upgradedSubPackagesLibOnly;
     }
-    await workspace.analyzePackages(
-        subPackages, subPackagesLibOnly, results['sdk'] as String, [
+    await workspace.analyzePackages(subPackages, subPackagesLibOnly, [
       Platform.resolvedExecutable,
       path.normalize(path.join(Platform.script.toFilePath(), '..', '..', '..',
           'analyzer_cli', 'bin', 'analyzer.dart'))

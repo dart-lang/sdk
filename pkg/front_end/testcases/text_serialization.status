@@ -57,6 +57,7 @@ extensions/issue38750: TextSerializationFailure
 extensions/issue38755: TextSerializationFailure
 extensions/issue38915: TextSerializationFailure
 extensions/issue39938/issue39938: TextSerializationFailure
+extensions/issue40816: TextSerializationFailure
 extensions/missing_toplevel: TextSerializationFailure
 extensions/nested_on_types: TextSerializationFailure
 extensions/null_aware: TextSerializationFailure
@@ -342,6 +343,8 @@ general/top_level_library_method: TextSerializationFailure # Was: Pass
 general/type_literal_as_metadata: TextSerializationFailure
 general/type_of_null: TextSerializationFailure
 general/type_parameter_type_named_int: TextSerializationFailure
+general/type_parameters_on_dynamic: TextSerializationFailure
+general/type_parameters_on_void: TextSerializationFailure
 general/type_variable_as_super: TextSerializationFailure # Was: RuntimeError
 general/type_variable_bound_access: TypeCheckError
 general/type_variable_prefix: TextSerializationFailure # Was: RuntimeError
@@ -1299,6 +1302,7 @@ nnbd/nullable_access: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/nullable_receiver: TextSerializationFailure
+nnbd/nullable_rhs_of_typedef: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
 nnbd/override_checks: TextSerializationFailure
 nnbd/platform_definite_assignment/main: TextSerializationFailure

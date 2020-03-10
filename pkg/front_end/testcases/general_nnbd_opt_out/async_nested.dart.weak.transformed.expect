@@ -27,9 +27,9 @@ static method main() → void /* originally async */ {
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
-  self::Node* :async_temporary_0;
-  self::Node* :async_temporary_1;
-  self::Node* :async_temporary_2;
+  dynamic :async_temporary_0;
+  dynamic :async_temporary_1;
+  dynamic :async_temporary_2;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L1:
@@ -42,11 +42,11 @@ static method main() → void /* originally async */ {
         [yield] let dynamic #t6 = asy::_awaitHelper(asy::Future::value<self::Node*>(new self::Node::•("8", <self::Node*>[])), :async_op_then, :async_op_error, :async_op) in null;
         :async_temporary_0 = _in::unsafeCast<self::Node*>(:result);
         [yield] let dynamic #t7 = asy::_awaitHelper(asy::Future::value<self::Node*>(new self::Node::•("9", <self::Node*>[])), :async_op_then, :async_op_error, :async_op) in null;
-        [yield] let dynamic #t8 = asy::_awaitHelper(asy::Future::value<self::Node*>(new self::Node::•("4", <self::Node*>[new self::Node::•("5", <self::Node*>[:async_temporary_1, :async_temporary_0, _in::unsafeCast<self::Node*>(:result)])])), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t8 = asy::_awaitHelper(asy::Future::value<self::Node*>(new self::Node::•("4", <self::Node*>[new self::Node::•("5", <self::Node*>[_in::unsafeCast<self::Node*>(:async_temporary_1), _in::unsafeCast<self::Node*>(:async_temporary_0), _in::unsafeCast<self::Node*>(:result)])])), :async_op_then, :async_op_error, :async_op) in null;
         [yield] let dynamic #t9 = asy::_awaitHelper(asy::Future::value<self::Node*>(new self::Node::•("3", <self::Node*>[_in::unsafeCast<self::Node*>(:result)])), :async_op_then, :async_op_error, :async_op) in null;
         :async_temporary_0 = _in::unsafeCast<self::Node*>(:result);
         [yield] let dynamic #t10 = asy::_awaitHelper(asy::Future::value<self::Node*>(new self::Node::•("10", <self::Node*>[])), :async_op_then, :async_op_error, :async_op) in null;
-        self::Node* node = new self::Node::•("1", <self::Node*>[:async_temporary_2, :async_temporary_0, _in::unsafeCast<self::Node*>(:result)]);
+        self::Node* node = new self::Node::•("1", <self::Node*>[_in::unsafeCast<self::Node*>(:async_temporary_2), _in::unsafeCast<self::Node*>(:async_temporary_0), _in::unsafeCast<self::Node*>(:result)]);
         core::String* actual = node.{self::Node::toSimpleString}() as{TypeError,ForDynamic} core::String*;
         core::print(actual);
         if(!actual.{core::String::==}(expected)) {

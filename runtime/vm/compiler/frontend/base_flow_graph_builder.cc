@@ -193,9 +193,18 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position,
 
   Value* value = Pop();
   ASSERT(stack_ == nullptr);
-
-  ReturnInstr* return_instr =
-      new (Z) ReturnInstr(position, value, GetNextDeoptId(), yield_index);
+  const Function& function = parsed_function_->function();
+  Representation representation;
+  if (function.has_unboxed_integer_return()) {
+    representation = kUnboxedInt64;
+  } else if (function.has_unboxed_double_return()) {
+    representation = kUnboxedDouble;
+  } else {
+    ASSERT(!function.has_unboxed_return());
+    representation = kTagged;
+  }
+  ReturnInstr* return_instr = new (Z) ReturnInstr(
+      position, value, GetNextDeoptId(), yield_index, representation);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;
@@ -320,23 +329,24 @@ Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
 Fragment BaseFlowGraphBuilder::LoadIndexed(intptr_t index_scale) {
   Value* index = Pop();
   Value* array = Pop();
-  LoadIndexedInstr* instr = new (Z)
-      LoadIndexedInstr(array, index, index_scale, kArrayCid, kAlignedAccess,
-                       DeoptId::kNone, TokenPosition::kNoSource);
+  LoadIndexedInstr* instr = new (Z) LoadIndexedInstr(
+      array, index, /*index_unboxed=*/false, index_scale, kArrayCid,
+      kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
   Push(instr);
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::LoadIndexedTypedData(classid_t class_id) {
+Fragment BaseFlowGraphBuilder::LoadIndexedTypedData(classid_t class_id,
+                                                    intptr_t index_scale,
+                                                    bool index_unboxed) {
   // We use C behavior when dereferencing pointers, we assume alignment.
   const AlignmentType alignment = kAlignedAccess;
-  const intptr_t scale = compiler::target::Instance::ElementSizeFor(class_id);
 
   Value* index = Pop();
   Value* c_pointer = Pop();
-  LoadIndexedInstr* instr =
-      new (Z) LoadIndexedInstr(c_pointer, index, scale, class_id, alignment,
-                               DeoptId::kNone, TokenPosition::kNoSource);
+  LoadIndexedInstr* instr = new (Z)
+      LoadIndexedInstr(c_pointer, index, index_unboxed, index_scale, class_id,
+                       alignment, DeoptId::kNone, TokenPosition::kNoSource);
   Push(instr);
   return Fragment(instr);
 }
@@ -355,19 +365,25 @@ Fragment BaseFlowGraphBuilder::StoreUntagged(intptr_t offset) {
   return Fragment(store);
 }
 
-Fragment BaseFlowGraphBuilder::ConvertUntaggedToIntptr() {
+Fragment BaseFlowGraphBuilder::ConvertUntaggedToUnboxed(
+    Representation to_representation) {
+  ASSERT(to_representation == kUnboxedIntPtr ||
+         to_representation == kUnboxedFfiIntPtr);
   Value* value = Pop();
   auto converted = new (Z)
-      IntConverterInstr(kUntagged, kUnboxedIntPtr, value, DeoptId::kNone);
+      IntConverterInstr(kUntagged, to_representation, value, DeoptId::kNone);
   converted->mark_truncating();
   Push(converted);
   return Fragment(converted);
 }
 
-Fragment BaseFlowGraphBuilder::ConvertIntptrToUntagged() {
+Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged(
+    Representation from_representation) {
+  ASSERT(from_representation == kUnboxedIntPtr ||
+         from_representation == kUnboxedFfiIntPtr);
   Value* value = Pop();
   auto converted = new (Z)
-      IntConverterInstr(kUnboxedIntPtr, kUntagged, value, DeoptId::kNone);
+      IntConverterInstr(from_representation, kUntagged, value, DeoptId::kNone);
   converted->mark_truncating();
   Push(converted);
   return Fragment(converted);
@@ -552,23 +568,25 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
       value->BindsToConstant() ? kNoStoreBarrier : kEmitStoreBarrier;
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
-      index, value, emit_store_barrier,
+      index, value, emit_store_barrier, /*index_unboxed=*/false,
+
       compiler::target::Instance::ElementSizeFor(class_id), class_id,
       kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
   return Fragment(store);
 }
 
-Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id) {
+Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
+                                                     intptr_t index_scale,
+                                                     bool index_unboxed) {
   // We use C behavior when dereferencing pointers, we assume alignment.
   const AlignmentType alignment = kAlignedAccess;
-  const intptr_t scale = compiler::target::Instance::ElementSizeFor(class_id);
 
   Value* value = Pop();
   Value* index = Pop();
   Value* c_pointer = Pop();
   StoreIndexedInstr* instr = new (Z) StoreIndexedInstr(
-      c_pointer, index, value, kNoStoreBarrier, scale, class_id, alignment,
-      DeoptId::kNone, TokenPosition::kNoSource,
+      c_pointer, index, value, kNoStoreBarrier, index_unboxed, index_scale,
+      class_id, alignment, DeoptId::kNone, TokenPosition::kNoSource,
       Instruction::SpeculativeMode::kNotSpeculative);
   return Fragment(instr);
 }
@@ -777,10 +795,12 @@ Fragment BaseFlowGraphBuilder::BinaryIntegerOp(Token::Kind kind,
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(intptr_t offset,
-                                                  CompileType result_type) {
-  LoadIndexedUnsafeInstr* instr =
-      new (Z) LoadIndexedUnsafeInstr(Pop(), offset, result_type);
+Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(
+    intptr_t offset,
+    CompileType result_type,
+    Representation representation) {
+  LoadIndexedUnsafeInstr* instr = new (Z)
+      LoadIndexedUnsafeInstr(Pop(), offset, result_type, representation);
   Push(instr);
   return Fragment(instr);
 }
@@ -888,6 +908,12 @@ Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
   return Fragment(allocate);
 }
 
+Fragment BaseFlowGraphBuilder::Box(Representation from) {
+  BoxInstr* box = BoxInstr::Create(from, Pop());
+  Push(box);
+  return Fragment(box);
+}
+
 Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
     const TypeArguments& signatures) {
   ASSERT(signatures.IsInstantiated());
@@ -903,8 +929,9 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
           Function::Handle(Z, Type::Cast(native_type).signature())));
 
   Fragment code;
-  code += LoadNativeField(Slot::Pointer_c_memory_address());
-  LocalVariable* address = MakeTemporary();
+  // Store the pointer in the context, we cannot load the untagged address
+  // here as these can be unoptimized call sites.
+  LocalVariable* pointer = MakeTemporary();
 
   auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       /*context_id=*/0, /*num_variables=*/1);
@@ -912,7 +939,7 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   LocalVariable* context = MakeTemporary();
 
   code += LoadLocal(context);
-  code += LoadLocal(address);
+  code += LoadLocal(pointer);
   code += StoreInstanceField(TokenPosition::kNoSource, *context_slots[0]);
 
   code += AllocateClosure(TokenPosition::kNoSource, target);

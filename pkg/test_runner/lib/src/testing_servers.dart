@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert' show HtmlEscape;
 import 'dart:io';
 
-import 'package:package_resolver/package_resolver.dart';
+import 'package:package_config/package_config.dart';
 
 import 'package:test_runner/src/configuration.dart';
 import 'package:test_runner/src/repository.dart';
@@ -74,35 +74,28 @@ class TestingServers {
   ];
 
   final List<HttpServer> _serverList = [];
-  Uri _buildDirectory;
-  Uri _dartDirectory;
-  Uri _packageRoot;
-  Uri _packages;
+  final Uri _buildDirectory;
+  final Uri _dartDirectory;
+  final Uri _packages;
+  PackageConfig _packageConfig;
   final bool useContentSecurityPolicy;
   final Runtime runtime;
   DispatchingServer _server;
-  SyncPackageResolver _resolver;
 
-  TestingServers(String buildDirectory, this.useContentSecurityPolicy,
-      [this.runtime = Runtime.none,
-      String dartDirectory,
-      String packageRoot,
-      String packages]) {
-    _buildDirectory = Uri.base.resolveUri(Uri.directory(buildDirectory));
-    if (dartDirectory == null) {
-      _dartDirectory = Repository.uri;
-    } else {
-      _dartDirectory = Uri.base.resolveUri(Uri.directory(dartDirectory));
-    }
-    if (packageRoot == null) {
-      if (packages == null) {
-        _packages = _dartDirectory.resolve('.packages');
-      } else {
-        _packages = Uri.file(packages);
-      }
-    } else {
-      _packageRoot = Uri.directory(packageRoot);
-    }
+  TestingServers._(this.useContentSecurityPolicy, this._buildDirectory,
+      this._dartDirectory, this._packages, this.runtime);
+
+  factory TestingServers(String buildDirectory, bool useContentSecurityPolicy,
+      [Runtime runtime = Runtime.none, String dartDirectory, String packages]) {
+    var buildDirectoryUri = Uri.base.resolveUri(Uri.directory(buildDirectory));
+    var dartDirectoryUri = dartDirectory == null
+        ? Repository.uri
+        : Uri.base.resolveUri(Uri.directory(dartDirectory));
+    var packagesUri = packages == null
+        ? dartDirectoryUri.resolve('.packages')
+        : Uri.file(packages);
+    return TestingServers._(useContentSecurityPolicy, buildDirectoryUri,
+        dartDirectoryUri, packagesUri, runtime);
   }
 
   String get network => _serverList[0].address.address;
@@ -122,11 +115,8 @@ class TestingServers {
   ///   "Access-Control-Allow-Credentials: true"
   Future startServers(String host,
       {int port = 0, int crossOriginPort = 0}) async {
-    if (_packages != null) {
-      _resolver = await SyncPackageResolver.loadConfig(_packages);
-    } else {
-      _resolver = SyncPackageResolver.root(_packageRoot);
-    }
+    _packageConfig = await loadPackageConfigUri(_packages);
+
     _server = await _startHttpServer(host, port: port);
     await _startHttpServer(host,
         port: crossOriginPort, allowedPort: _serverList[0].port);
@@ -150,10 +140,7 @@ class TestingServers {
       '--build-directory=$buildDirectory',
       '--runtime=${runtime.name}',
       if (useContentSecurityPolicy) '--csp',
-      if (_packages != null)
-        '--packages=${_packages.toFilePath()}'
-      else if (_packageRoot != null)
-        '--package-root=${_packageRoot.toFilePath()}'
+      '--packages=${_packages.toFilePath()}'
     ].join(' ');
   }
 
@@ -260,7 +247,7 @@ class TestingServers {
       var packageUri = Uri(
           scheme: 'package',
           pathSegments: pathSegments.skip(packagesIndex + 1));
-      return _resolver.resolveUri(packageUri);
+      return _packageConfig.resolve(packageUri);
     }
     if (pathSegments[0] == prefixBuildDir) {
       return _buildDirectory.resolve(pathSegments.skip(1).join('/'));

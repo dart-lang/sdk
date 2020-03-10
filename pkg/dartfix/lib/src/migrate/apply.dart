@@ -4,14 +4,11 @@
 
 import 'package:analysis_server_client/protocol.dart';
 
+import '../util.dart';
+
 /// Perform the indicated source edits to the given source, returning the
 /// resulting transformed text.
 String applyEdits(SourceFileEdit sourceFileEdit, String source) {
-  // Sort edits in reverse offset order.
-  List<SourceEdit> edits = sourceFileEdit.edits.toList();
-  edits.sort((a, b) {
-    return b.offset - a.offset;
-  });
-
+  List<SourceEdit> edits = sortEdits(sourceFileEdit);
   return SourceEdit.applySequence(source, edits);
 }

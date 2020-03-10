@@ -314,9 +314,11 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         const Tag initializer_tag = ReadTag();
         if (class_field.is_late()) {
-          instructions +=
-              BuildLateFieldInitializer(Field::ZoneHandle(Z, class_field.raw()),
-                                        initializer_tag == kSomething);
+          if (!is_constructor_initialized) {
+            instructions += BuildLateFieldInitializer(
+                Field::ZoneHandle(Z, class_field.raw()),
+                initializer_tag == kSomething);
+          }
         } else if (initializer_tag == kSomething) {
           EnterScope(field_offset);
           // If this field is initialized in constructor then we can ignore the
@@ -2481,8 +2483,8 @@ Fragment StreamingFlowGraphBuilder::BuildAllocateInvocationMirrorCall(
 
   //   - the arguments descriptor.
   const Array& args_descriptor =
-      Array::Handle(Z, ArgumentsDescriptor::New(num_type_arguments,
-                                                num_arguments, argument_names));
+      Array::Handle(Z, ArgumentsDescriptor::NewBoxed(
+                           num_type_arguments, num_arguments, argument_names));
   instructions += Constant(Array::ZoneHandle(Z, args_descriptor.raw()));
 
   //   - an array containing the actual arguments.
@@ -5108,6 +5110,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
                                                false,  // is_method
                                                true,   // is_closure
                                                &function_node_helper);
+      // type_translator_.SetupUnboxingInfoMetadata is not called here at the
+      // moment because closures do not have unboxed parameters and return value
       function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
       // Finalize function type.

@@ -24,41 +24,99 @@ import 'package:analyzer/dart/element/element.dart'
         ExtensionElement,
         LibraryElement,
         LocalVariableElement,
-        ParameterElement;
+        ParameterElement,
+        PropertyAccessorElement;
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:args/args.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
+import 'feature_computer.dart';
+
+/// Compute metrics to determine whether they should be used to compute a
+/// relevance score for completion suggestions.
 Future<void> main(List<String> args) async {
-  var out = io.stdout;
-  if (args.isEmpty) {
-    out.writeln('Usage: a single absolute file path to analyze.');
+  ArgParser parser = createArgParser();
+  ArgResults result = parser.parse(args);
+
+  if (validArguments(parser, result)) {
+    var out = io.stdout;
+    var rootPath = result.rest[0];
+    out.writeln('Analyzing root: "$rootPath"');
+
+    var computer = RelevanceMetricsComputer();
+    var stopwatch = Stopwatch();
+    stopwatch.start();
+    await computer.compute(rootPath,
+        corpus: result['corpus'], verbose: result['verbose']);
+    stopwatch.stop();
+
+    var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
+    out.writeln('Metrics computed in $duration');
+    computer.writeMetrics(out);
     await out.flush();
-    io.exit(1);
   }
-
-  var corpus = args[0] == '--corpus';
-  var rootPath = corpus ? args[1] : args[0];
-  out.writeln('Analyzing root: \"$rootPath\"');
-  if (!io.Directory(rootPath).existsSync()) {
-    out.writeln('\tError: No such directory exists on this machine.\n');
-    return;
-  }
-
-  var computer = RelevanceMetricsComputer();
-  var stopwatch = Stopwatch();
-  stopwatch.start();
-  await computer.compute(rootPath, corpus: corpus);
-  stopwatch.stop();
-  var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
-  out.writeln('  Metrics computed in $duration');
-  computer.writeMetrics(out);
-  await out.flush();
   io.exit(0);
+}
+
+/// Create a parser that can be used to parse the command-line arguments.
+ArgParser createArgParser() {
+  ArgParser parser = ArgParser();
+  parser.addFlag(
+    'corpus',
+    help: 'Analyze each of the subdirectories separately',
+    negatable: false,
+  );
+  parser.addOption(
+    'help',
+    abbr: 'h',
+    help: 'Print this help message.',
+  );
+  parser.addFlag(
+    'verbose',
+    abbr: 'v',
+    help: 'Print additional information about the analysis',
+    negatable: false,
+  );
+  return parser;
+}
+
+/// Print usage information for this tool.
+void printUsage(ArgParser parser, {String error}) {
+  if (error != null) {
+    print(error);
+    print('');
+  }
+  print('usage: dart relevance_metrics.dart [options] packagePath');
+  print('');
+  print('Compute metrics to determine whether they should be used to compute');
+  print('a relevance score for completion suggestions.');
+  print('');
+  print(parser.usage);
+}
+
+/// Return `true` if the command-line arguments (represented by the [result] and
+/// parsed by the [parser]) are valid.
+bool validArguments(ArgParser parser, ArgResults result) {
+  if (result.wasParsed('help')) {
+    printUsage(parser);
+    return false;
+  } else if (result.rest.length != 1) {
+    printUsage(parser, error: 'No package path specified.');
+    return false;
+  }
+  var rootPath = result.rest[0];
+  if (!io.Directory(rootPath).existsSync()) {
+    printUsage(parser, error: 'The directory "$rootPath" does not exist.');
+    return false;
+  }
+  return true;
 }
 
 /// An object that records the data used to compute the metrics.
@@ -299,8 +357,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The library containing the compilation unit being visited.
   LibraryElement enclosingLibrary;
 
+  /// The type provider associated with the current compilation unit.
+  TypeProvider typeProvider;
+
   /// The type system associated with the current compilation unit.
   TypeSystem typeSystem;
+
+  /// The object used to compute the values of features.
+  FeatureComputer featureComputer;
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
@@ -503,8 +567,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     enclosingLibrary = node.declaredElement.library;
+    typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
     inheritanceManager = InheritanceManager3();
+    featureComputer = FeatureComputer(typeProvider);
 
     for (var directive in node.directives) {
       _recordTokenType('CompilationUnit (directive)', directive,
@@ -516,9 +582,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     super.visitCompilationUnit(node);
 
-    typeSystem = null;
-    enclosingLibrary = null;
+    featureComputer = null;
     inheritanceManager = null;
+    typeSystem = null;
+    typeProvider = null;
+    enclosingLibrary = null;
   }
 
   @override
@@ -775,6 +843,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // There are no completions.
+    var contextType = featureComputer.computeContextType(node);
+    if (contextType != null) {
+      var memberType = _returnType(node.staticElement);
+      if (memberType != null) {
+        _recordTypeRelationships(
+            'function expression invocation', contextType, memberType,
+            isContextType: true);
+      }
+    }
     super.visitFunctionExpressionInvocation(node);
   }
 
@@ -957,8 +1034,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           (element.enclosingElement as ClassElement).thisType,
           Name(element.librarySource.uri, element.name));
       if (overriddenMembers != null) {
-        // TODO(brianwilkerson) Should we limit this to the most immediate
-        //  override?
+        // Consider limiting this to the most immediate override. If the
+        // signature of a method is changed by one of the overrides, then it
+        // isn't reasonable to expect the overrides of that member to conform to
+        // the signatures of the overridden members from superclasses.
         for (var overridden in overriddenMembers) {
           _recordOverride(element, overridden);
         }
@@ -969,7 +1048,28 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _recordMemberDepth(node.target?.staticType, node.methodName.staticElement);
+    var member = node.methodName.staticElement;
+    _recordMemberDepth(node.target?.staticType, member);
+    if (node.target is SuperExpression) {
+      var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
+      if (enclosingMethod != null) {
+        if (enclosingMethod.name.name == node.methodName.name) {
+          data.recordTypeMatch('super invocation member', 'same');
+        } else {
+          data.recordTypeMatch('super invocation member', 'different');
+        }
+      }
+    }
+    if (node.target != null) {
+      var contextType = featureComputer.computeContextType(node);
+      if (contextType != null) {
+        var memberType = _returnType(member);
+        if (memberType != null) {
+          _recordTypeRelationships('method invocation', contextType, memberType,
+              isContextType: true);
+        }
+      }
+    }
     super.visitMethodInvocation(node);
   }
 
@@ -1064,8 +1164,28 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    _recordMemberDepth(
-        node.target?.staticType, node.propertyName.staticElement);
+    var member = node.propertyName.staticElement;
+    _recordMemberDepth(node.target?.staticType, member);
+    if (node.target is SuperExpression) {
+      var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
+      if (enclosingMethod != null) {
+        if (enclosingMethod.name.name == node.propertyName.name) {
+          data.recordTypeMatch('super property access member', 'same');
+        } else {
+          data.recordTypeMatch('super property access member', 'different');
+        }
+      }
+    }
+    if (!(member is PropertyAccessorElement && member.isSetter)) {
+      var contextType = featureComputer.computeContextType(node);
+      if (contextType != null) {
+        var memberType = _returnType(member);
+        if (memberType != null) {
+          _recordTypeRelationships('property access', contextType, memberType,
+              isContextType: true);
+        }
+      }
+    }
     super.visitPropertyAccess(node);
   }
 
@@ -1371,9 +1491,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     if (currentNode is SimpleIdentifier && currentNode.inDeclarationContext()) {
-      // TODO(brianwilkerson) Explore recording when the left-most identifier is
-      //  in a declaration context to help align identifier counts (from the
-      //  token type list) with the element counts.
       return null;
     }
     return currentNode;
@@ -1417,8 +1534,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var distance = 0;
     var node = reference;
     while (node != null) {
-      if (node is ForStatement) {
-        var loopParts = node.forLoopParts;
+      if (node is ForStatement || node is ForElement) {
+        var loopParts = node is ForStatement
+            ? node.forLoopParts
+            : (node as ForElement).forLoopParts;
         if (loopParts is ForPartsWithDeclarations) {
           for (var declaredVariable in loopParts.variables.variables.reversed) {
             if (declaredVariable.declaredElement == variable) {
@@ -1536,6 +1655,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// Record the distance between the static type of the target (the
   /// [targetType]) and the [member] to which the reference was resolved.
   void _recordMemberDepth(DartType targetType, Element member) {
+    if (member == null) {
+      return;
+    }
     if (targetType is InterfaceType) {
       var targetClass = targetType.element;
       var extension = member.thisOrAncestorOfType<ExtensionElement>();
@@ -1581,47 +1703,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           return depth;
         }
 
-        const notFound = 0xFFFF;
-
-        /// Return the minimum distance from the [currentClass] to the
-        /// [memberClass] along any inheritance chain (including interfaces).
-        /// This includes paths introduced by mixins.
-        int getInterfaceDepth(ClassElement currentClass) {
-          if (currentClass == null) {
-            return notFound;
-          } else if (currentClass == memberClass) {
-            return 0;
-          }
-          var minDepth = getInterfaceDepth(currentClass.supertype?.element);
-          for (var mixin in currentClass.mixins) {
-            var depth = getInterfaceDepth(mixin.element);
-            if (depth < minDepth) {
-              minDepth = depth;
-            }
-          }
-          for (var interface in currentClass.interfaces) {
-            var depth = getInterfaceDepth(interface.element);
-            if (depth < minDepth) {
-              minDepth = depth;
-            }
-          }
-          return minDepth + 1;
-        }
-
         int superclassDepth = getSuperclassDepth();
-        int interfaceDepth = getInterfaceDepth(targetClass);
+        int interfaceDepth =
+            featureComputer.inheritanceDistance(targetClass, memberClass);
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
-          data.recordDistanceByDepth(getTargetDepth(), superclassDepth);
+        } else if (interfaceDepth >= 0) {
+          _recordDistance('member (interface)', interfaceDepth);
         } else {
-          if (interfaceDepth < notFound) {
-            _recordDistance('member (interface)', interfaceDepth);
-          } else {
-            _recordDistance('member (not found)', 0);
-          }
+          // This shouldn't happen, so it's worth investigating the cause when
+          // it does.
+          _recordDistance('member (not found)', 0);
         }
-        if (interfaceDepth < notFound) {
+        if (interfaceDepth >= 0) {
           _recordDistance('member (shortest distance)', interfaceDepth);
+          data.recordDistanceByDepth(getTargetDepth(), interfaceDepth);
         }
       }
     }
@@ -1691,6 +1787,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       //  crossed and then reporting the distance with a label such as
       //  'local variable ($boundaryCount)'.
       var distance = _localVariableDistance(node, element);
+      if (distance < 0) {
+        DateTime.now();
+      }
       _recordDistance('distance to local variable', distance);
     } else if (element != null) {
       // TODO(brianwilkerson) We might want to cross reference the depth of
@@ -1791,16 +1890,55 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// Record information about how the [parameterType] and [argumentType] are
   /// related, using the [descriptor] to differentiate between the counts.
   void _recordTypeRelationships(
-      String descriptor, DartType parameterType, DartType argumentType) {
+      String descriptor, DartType parameterType, DartType argumentType,
+      {bool isContextType = false}) {
     if (argumentType == parameterType) {
       data.recordTypeMatch('$descriptor', 'exact');
+      data.recordTypeMatch('all', 'exact');
     } else if (typeSystem.isSubtypeOf(argumentType, parameterType)) {
       data.recordTypeMatch('$descriptor', 'subtype');
+      data.recordTypeMatch('all', 'subtype');
+      if (isContextType &&
+          argumentType is InterfaceType &&
+          parameterType is InterfaceType) {
+        int distance;
+        if (parameterType.element == typeProvider.futureOrElement) {
+          var typeArgument = parameterType.typeArguments[0];
+          distance = featureComputer.inheritanceDistance(
+              argumentType.element, typeProvider.futureElement);
+          if (typeArgument is InterfaceType) {
+            var argDistance = featureComputer.inheritanceDistance(
+                argumentType.element, typeArgument.element);
+            if (distance < 0 || (argDistance >= 0 && argDistance < distance)) {
+              distance = argDistance;
+            }
+          }
+        } else {
+          distance = featureComputer.inheritanceDistance(
+              argumentType.element, parameterType.element);
+        }
+        if (distance < 0) {
+          DateTime.now();
+        }
+        data.recordDistance('Subtype of context type ($descriptor)', distance);
+        data.recordDistance('Subtype of context type (all)', distance);
+      }
     } else if (typeSystem.isSubtypeOf(parameterType, argumentType)) {
       data.recordTypeMatch('$descriptor', 'supertype');
+      data.recordTypeMatch('all', 'supertype');
     } else {
       data.recordTypeMatch('$descriptor', 'unrelated');
+      data.recordTypeMatch('all', 'unrelated');
     }
+  }
+
+  /// Return the return type of the [element], or `null` if the element doesn't
+  /// have a return type.
+  DartType _returnType(Element element) {
+    if (element is ExecutableElement) {
+      return element.returnType;
+    }
+    return null;
   }
 }
 
@@ -1816,7 +1954,8 @@ class RelevanceMetricsComputer {
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
-  void compute(String rootPath, {bool corpus}) async {
+  void compute(String rootPath,
+      {@required bool corpus, @required bool verbose}) async {
     final collector = RelevanceDataCollector(data);
     var roots = _computeRootPaths(rootPath, corpus);
     for (var root in roots) {
@@ -1835,20 +1974,28 @@ class RelevanceMetricsComputer {
               //
               if (resolvedUnitResult == null) {
                 print('File $filePath skipped because resolved unit was null.');
-                print('');
+                if (verbose) {
+                  print('');
+                }
                 continue;
               } else if (resolvedUnitResult.state != ResultState.VALID) {
                 print(
                     'File $filePath skipped because it could not be analyzed.');
-                print('');
+                if (verbose) {
+                  print('');
+                }
                 continue;
               } else if (hasError(resolvedUnitResult)) {
-                print('File $filePath skipped due to errors:');
-                for (var error in resolvedUnitResult.errors
-                    .where((e) => e.severity == Severity.error)) {
-                  print('  ${error.toString()}');
+                if (verbose) {
+                  print('File $filePath skipped due to errors:');
+                  for (var error in resolvedUnitResult.errors
+                      .where((e) => e.severity == Severity.error)) {
+                    print('  ${error.toString()}');
+                  }
+                  print('');
+                } else {
+                  print('File $filePath skipped due to analysis errors.');
                 }
-                print('');
                 continue;
               }
 
@@ -1856,6 +2003,7 @@ class RelevanceMetricsComputer {
               resolvedUnitResult.unit.accept(collector);
             } catch (exception, stacktrace) {
               print('Exception caught analyzing: "$filePath"');
+              print(exception);
               print(stacktrace);
             }
           }
@@ -1874,12 +2022,14 @@ class RelevanceMetricsComputer {
       var firstLabel = ', first token';
       var firstIndex = key.indexOf(firstLabel);
       if (firstIndex > 0) {
-        first[key.replaceFirst(firstLabel, '')] = entry.value;
+        first['  ${key.replaceFirst(firstLabel, '')}'] =
+            entry.value.map((key, value) => MapEntry('  $key', value));
       } else {
         var wholeLabel = ', whole';
         var wholeIndex = key.indexOf(wholeLabel);
         if (wholeIndex > 0) {
-          whole[key.replaceFirst(wholeLabel, '')] = entry.value;
+          whole['  ${key.replaceFirst(wholeLabel, '')}'] =
+              entry.value.map((key, value) => MapEntry('  $key', value));
         } else {
           rest[key] = entry.value;
         }
@@ -2025,7 +2175,11 @@ class RelevanceMetricsComputer {
   void _writeContextMap(
       StringSink sink, Map<String, Map<String, int>> contextMap) {
     var contexts = contextMap.keys.toList()..sort();
-    for (var context in contexts) {
+    for (var i = 0; i < contexts.length; i++) {
+      if (i > 0) {
+        sink.writeln();
+      }
+      var context = contexts[i];
       var lines = _convertMap(context, contextMap[context]);
       for (var line in lines) {
         sink.writeln('  $line');
@@ -2139,5 +2293,26 @@ class RelevanceMetricsComputer {
       }
     }
     return false;
+  }
+}
+
+class Timer {
+  Stopwatch stopwatch = Stopwatch();
+
+  int count = 0;
+
+  Timer();
+
+  double get averageTime => count == 0 ? 0 : totalTime / count;
+
+  int get totalTime => stopwatch.elapsedMilliseconds;
+
+  void start() {
+    stopwatch.start();
+  }
+
+  void stop() {
+    stopwatch.stop();
+    count++;
   }
 }

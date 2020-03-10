@@ -28,6 +28,7 @@ import 'dart:_js_embedded_names'
         JsBuiltin,
         JsGetName,
         RtiUniverseFieldNames,
+        ARRAY_RTI_PROPERTY,
         CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME,
         RTI_UNIVERSE,
         TYPES;
@@ -110,7 +111,7 @@ class Rti {
   @pragma('dart2js:noElision')
   dynamic _precomputed1;
 
-  static Object _getPrecomputed1(Rti rti) => rti._precomputed1;
+  static Object? _getPrecomputed1(Rti rti) => rti._precomputed1;
 
   static void _setPrecomputed1(Rti rti, precomputed) {
     rti._precomputed1 = precomputed;
@@ -118,7 +119,7 @@ class Rti {
 
   static Rti _getQuestionFromStar(universe, Rti rti) {
     assert(_getKind(rti) == kindStar);
-    Rti question = _castToRtiOrNull(_getPrecomputed1(rti));
+    Rti? question = _castToRtiOrNull(_getPrecomputed1(rti));
     if (question == null) {
       question =
           _Universe._lookupQuestionRti(universe, _getStarArgument(rti), true);
@@ -129,7 +130,7 @@ class Rti {
 
   static Rti _getFutureFromFutureOr(universe, Rti rti) {
     assert(_getKind(rti) == kindFutureOr);
-    Rti future = _castToRtiOrNull(_getPrecomputed1(rti));
+    Rti? future = _castToRtiOrNull(_getPrecomputed1(rti));
     if (future == null) {
       future = _Universe._lookupFutureRti(universe, _getFutureOrArgument(rti));
       Rti._setPrecomputed1(rti, future);
@@ -155,7 +156,7 @@ class Rti {
 
   // The Type object corresponding to this Rti.
   Object? _cachedRuntimeType;
-  static _Type _getCachedRuntimeType(Rti rti) =>
+  static _Type? _getCachedRuntimeType(Rti rti) =>
       JS('_Type|Null', '#', rti._cachedRuntimeType);
   static void _setCachedRuntimeType(Rti rti, _Type type) {
     rti._cachedRuntimeType = type;
@@ -426,7 +427,7 @@ Rti evalInInstance(instance, String recipe) {
 /// Called from generated code.
 @pragma('dart2js:noInline')
 Rti? instantiatedGenericFunctionType(
-    Rti genericFunctionRti, Rti instantiationRti) {
+    Rti? genericFunctionRti, Rti instantiationRti) {
   // If --lax-runtime-type-to-string is enabled and we never check the function
   // type, then the function won't have a signature, so its RTI will be null. In
   // this case, there is nothing to instantiate, so we return `null` and the
@@ -444,7 +445,7 @@ Rti? instantiatedGenericFunctionType(
   String key = Rti._getCanonicalRecipe(instantiationRti);
   var probe = _Utils.mapGet(cache, key);
   if (probe != null) return _castToRti(probe);
-  Rti? rti = _instantiate(_theUniverse(),
+  Rti rti = _instantiate(_theUniverse(),
       Rti._getGenericFunctionBase(genericFunctionRti), typeArguments, 0);
   _Utils.mapSet(cache, key, rti);
   return rti;
@@ -458,7 +459,7 @@ Rti? instantiatedGenericFunctionType(
 /// [depth] is the number of subsequent generic function parameters that are in
 /// scope. This is subtracted off the de Bruijn index for the type parameter to
 /// arrive at an potential index into [typeArguments].
-Rti? _instantiate(universe, Rti rti, Object typeArguments, int depth) {
+Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
   int kind = Rti._getKind(rti);
   switch (kind) {
     case Rti.kindErased:
@@ -470,19 +471,19 @@ Rti? _instantiate(universe, Rti rti, Object typeArguments, int depth) {
     case Rti.kindStar:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
       Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth)!;
+          _instantiate(universe, baseType, typeArguments, depth);
       if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
       return _Universe._lookupStarRti(universe, instantiatedBaseType, true);
     case Rti.kindQuestion:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
       Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth)!;
+          _instantiate(universe, baseType, typeArguments, depth);
       if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
       return _Universe._lookupQuestionRti(universe, instantiatedBaseType, true);
     case Rti.kindFutureOr:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
       Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth)!;
+          _instantiate(universe, baseType, typeArguments, depth);
       if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
       return _Universe._lookupFutureOrRti(universe, instantiatedBaseType, true);
     case Rti.kindInterface:
@@ -496,8 +497,7 @@ Rti? _instantiate(universe, Rti rti, Object typeArguments, int depth) {
           instantiatedInterfaceTypeArguments);
     case Rti.kindBinding:
       Rti base = Rti._getBindingBase(rti);
-      Rti instantiatedBase =
-          _instantiate(universe, base, typeArguments, depth)!;
+      Rti instantiatedBase = _instantiate(universe, base, typeArguments, depth);
       Object arguments = Rti._getBindingArguments(rti);
       Object instantiatedArguments =
           _instantiateArray(universe, arguments, typeArguments, depth);
@@ -508,7 +508,7 @@ Rti? _instantiate(universe, Rti rti, Object typeArguments, int depth) {
     case Rti.kindFunction:
       Rti returnType = Rti._getReturnType(rti);
       Rti instantiatedReturnType =
-          _instantiate(universe, returnType, typeArguments, depth)!;
+          _instantiate(universe, returnType, typeArguments, depth);
       _FunctionParameters functionParameters = Rti._getFunctionParameters(rti);
       _FunctionParameters instantiatedFunctionParameters =
           _instantiateFunctionParameters(
@@ -524,15 +524,17 @@ Rti? _instantiate(universe, Rti rti, Object typeArguments, int depth) {
       Object instantiatedBounds =
           _instantiateArray(universe, bounds, typeArguments, depth);
       Rti base = Rti._getGenericFunctionBase(rti);
-      Rti instantiatedBase =
-          _instantiate(universe, base, typeArguments, depth)!;
+      Rti instantiatedBase = _instantiate(universe, base, typeArguments, depth);
       if (_Utils.isIdentical(instantiatedBounds, bounds) &&
           _Utils.isIdentical(instantiatedBase, base)) return rti;
       return _Universe._lookupGenericFunctionRti(
           universe, instantiatedBase, instantiatedBounds);
     case Rti.kindGenericFunctionParameter:
       int index = Rti._getGenericFunctionParameterIndex(rti);
-      if (index < depth) return null;
+      if (index < depth) {
+        throw AssertionError(
+            'Unexpected index $index at instantiation depth $depth');
+      }
       return _castToRti(_Utils.arrayAt(typeArguments, index - depth));
     default:
       throw AssertionError(
@@ -547,7 +549,7 @@ Object _instantiateArray(
   Object result = JS('', '[]');
   for (int i = 0; i < length; i++) {
     Rti rti = _castToRti(_Utils.arrayAt(rtiArray, i));
-    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth)!;
+    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
     if (_Utils.isNotIdentical(instantiatedRti, rti)) {
       changed = true;
     }
@@ -565,7 +567,7 @@ Object _instantiateNamed(
   for (int i = 0; i < length; i += 2) {
     String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
     Rti rti = _castToRti(_Utils.arrayAt(namedArray, i + 1));
-    Rti? instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
+    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
     if (_Utils.isNotIdentical(instantiatedRti, rti)) {
       changed = true;
     }
@@ -685,7 +687,7 @@ Rti _arrayInstanceType(object) {
   // IE11 we would have to synthesise a String property-name with almost zero
   // chance of conflict.
 
-  var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
+  var rti = JS('', r'#[#]', object, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY));
   var defaultRti = getJSArrayInteropRti();
 
   // Case 3.
@@ -768,14 +770,21 @@ Type getRuntimeType(object) {
 
 /// Called from generated code.
 Type createRuntimeType(Rti rti) {
-  _Type type = Rti._getCachedRuntimeType(rti);
+  _Type? type = Rti._getCachedRuntimeType(rti);
   if (type != null) return type;
-  // TODO(fishythefish, https://github.com/dart-lang/language/issues/428) For
-  // NNBD transition, canonicalization may be needed. It might be possible to
-  // generate a star-free recipe from the canonical recipe and evaluate that.
-  type = _Type(rti);
-  Rti._setCachedRuntimeType(rti, type);
-  return type;
+  if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
+    return _Type(rti);
+  } else {
+    String recipe = Rti._getCanonicalRecipe(rti);
+    String starErasedRecipe = JS('String', '#.replace(/\\*/g, "")', recipe);
+    if (starErasedRecipe == recipe) {
+      return _Type(rti);
+    }
+    Rti starErasedRti = _Universe.eval(_theUniverse(), starErasedRecipe, true);
+    type = Rti._getCachedRuntimeType(starErasedRti) ?? _Type(starErasedRti);
+    Rti._setCachedRuntimeType(rti, type);
+    return type;
+  }
 }
 
 /// Called from generated code in the constant pool.
@@ -786,15 +795,9 @@ Type typeLiteral(String recipe) {
 /// Implementation of [Type] based on Rti.
 class _Type implements Type {
   final Rti _rti;
-  int? _hashCode;
 
-  _Type(this._rti);
-
-  int get hashCode => _hashCode ??= Rti._getCanonicalRecipe(_rti).hashCode;
-
-  @pragma('dart2js:noInline')
-  bool operator ==(other) {
-    return (other is _Type) && identical(_rti, other._rti);
+  _Type(this._rti) : assert(Rti._getCachedRuntimeType(_rti) == null) {
+    Rti._setCachedRuntimeType(_rti, this);
   }
 
   @override
@@ -818,38 +821,36 @@ bool _installSpecializedIsTest(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  int kind = Rti._getKind(testRti);
 
   var isFn = RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
 
-  if (isTopType(testRti)) {
+  if (isObjectType(testRti)) {
+    isFn = RAW_DART_FUNCTION_REF(_isObject);
+    Rti._setAsCheckFunction(testRti, RAW_DART_FUNCTION_REF(_asObject));
+    Rti._setTypeCheckFunction(testRti, RAW_DART_FUNCTION_REF(_checkObject));
+  } else if (isTopType(testRti)) {
     isFn = RAW_DART_FUNCTION_REF(_isTop);
     var asFn = RAW_DART_FUNCTION_REF(_asTop);
     Rti._setAsCheckFunction(testRti, asFn);
     Rti._setTypeCheckFunction(testRti, asFn);
-  } else if (kind == Rti.kindInterface) {
-    String key = Rti._getCanonicalRecipe(testRti);
-
-    if (JS_GET_NAME(JsGetName.INT_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isInt);
-    } else if (JS_GET_NAME(JsGetName.DOUBLE_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isNum);
-    } else if (JS_GET_NAME(JsGetName.NUM_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isNum);
-    } else if (JS_GET_NAME(JsGetName.STRING_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isString);
-    } else if (JS_GET_NAME(JsGetName.BOOL_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isBool);
-    } else {
-      String name = Rti._getInterfaceName(testRti);
-      var arguments = Rti._getInterfaceTypeArguments(testRti);
-      if (JS(
-          'bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
-        String propertyName =
-            '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
-        Rti._setSpecializedTestResource(testRti, propertyName);
-        isFn = RAW_DART_FUNCTION_REF(_isTestViaProperty);
-      }
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isInt);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isNum);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isNum);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isString);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isBool);
+  } else if (Rti._getKind(testRti) == Rti.kindInterface) {
+    String name = Rti._getInterfaceName(testRti);
+    var arguments = Rti._getInterfaceTypeArguments(testRti);
+    if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
+      String propertyName =
+          '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+      Rti._setSpecializedTestResource(testRti, propertyName);
+      isFn = RAW_DART_FUNCTION_REF(_isTestViaProperty);
     }
   }
 
@@ -857,11 +858,22 @@ bool _installSpecializedIsTest(object) {
   return Rti._isCheck(testRti, object);
 }
 
+bool _nullIs(Rti testRti) {
+  int kind = Rti._getKind(testRti);
+  return isTopType(testRti) ||
+      _Utils.isIdentical(testRti, LEGACY_TYPE_REF<Never>()) ||
+      kind == Rti.kindQuestion ||
+      isNullType(testRti);
+}
+
 /// Called from generated code.
 bool _generalIsTestImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
+  if (JS_GET_FLAG('NNBD') && object == null) {
+    return _nullIs(testRti);
+  }
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
 }
@@ -871,6 +883,9 @@ bool _isTestViaProperty(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
+  if (JS_GET_FLAG('NNBD') && object == null) {
+    return _nullIs(testRti);
+  }
   var tag = Rti._getSpecializedTestResource(testRti);
 
   // This test is redundant with getInterceptor below, but getInterceptor does
@@ -886,11 +901,14 @@ bool _isTestViaProperty(object) {
 
 /// Called from generated code.
 _generalAsCheckImplementation(object) {
-  if (object == null) return object;
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  if (Rti._isCheck(testRti, object)) return object;
+  if (object == null) {
+    if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) return object;
+  } else {
+    if (Rti._isCheck(testRti, object)) return object;
+  }
 
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
@@ -900,11 +918,14 @@ _generalAsCheckImplementation(object) {
 
 /// Called from generated code.
 _generalTypeCheckImplementation(object) {
-  if (object == null) return object;
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  if (Rti._isCheck(testRti, object)) return object;
+  if (object == null) {
+    if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) return object;
+  } else {
+    if (Rti._isCheck(testRti, object)) return object;
+  }
 
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
@@ -963,6 +984,26 @@ class _TypeError extends _Error implements TypeError {
 // Specializations can be placed on Rti objects as the _as, _check and _is
 // 'methods'. They can also be called directly called from generated code.
 
+/// Specialization for 'is Object'.
+/// Called from generated code via Rti `_is` method.
+bool _isObject(object) {
+  return !JS_GET_FLAG('NNBD') || object != null;
+}
+
+/// Specialization for 'as Object'.
+/// Called from generated code via Rti `_as` method.
+dynamic _asObject(object) {
+  if (JS_GET_FLAG('LEGACY') || object != null) return object;
+  throw _CastError.forType(object, 'Object');
+}
+
+/// Specialization for check on 'Object'.
+/// Called from generated code via Rti `_check` method.
+dynamic _checkObject(object) {
+  if (JS_GET_FLAG('LEGACY') || object != null) return object;
+  throw _TypeError.forType(object, 'Object');
+}
+
 /// Specialization for 'is dynamic' and other top types.
 /// Called from generated code via Rti `_is` method.
 bool _isTop(object) {
@@ -983,7 +1024,7 @@ bool _isBool(object) {
 
 /// Specialization for 'as bool?'.
 /// Called from generated code.
-bool /*?*/ _asBoolNullable(object) {
+bool? _asBoolNullable(object) {
   if (_isBool(object)) return _Utils.asBool(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'bool');
@@ -991,7 +1032,7 @@ bool /*?*/ _asBoolNullable(object) {
 
 /// Specialization for check on 'bool?'.
 /// Called from generated code.
-bool /*?*/ _checkBoolNullable(object) {
+bool? _checkBoolNullable(object) {
   if (_isBool(object)) return _Utils.asBool(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'bool');
@@ -999,7 +1040,7 @@ bool /*?*/ _checkBoolNullable(object) {
 
 /// Specialization for 'as double?'.
 /// Called from generated code.
-double /*?*/ _asDoubleNullable(object) {
+double? _asDoubleNullable(object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'double');
@@ -1007,7 +1048,7 @@ double /*?*/ _asDoubleNullable(object) {
 
 /// Specialization for check on 'double?'.
 /// Called from generated code.
-double /*?*/ _checkDoubleNullable(object) {
+double? _checkDoubleNullable(object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'double');
@@ -1022,7 +1063,7 @@ bool _isInt(object) {
 
 /// Specialization for 'as int?'.
 /// Called from generated code.
-int /*?*/ _asIntNullable(object) {
+int? _asIntNullable(object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'int');
@@ -1030,7 +1071,7 @@ int /*?*/ _asIntNullable(object) {
 
 /// Specialization for check on 'int?'.
 /// Called from generated code.
-int /*?*/ _checkIntNullable(object) {
+int? _checkIntNullable(object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'int');
@@ -1044,7 +1085,7 @@ bool _isNum(object) {
 
 /// Specialization for 'as num?'.
 /// Called from generated code.
-num /*?*/ _asNumNullable(object) {
+num? _asNumNullable(object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'num');
@@ -1052,7 +1093,7 @@ num /*?*/ _asNumNullable(object) {
 
 /// Specialization for check on 'num?'.
 /// Called from generated code.
-num /*?*/ _checkNumNullable(object) {
+num? _checkNumNullable(object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'num');
@@ -1066,7 +1107,7 @@ bool _isString(object) {
 
 /// Specialization for 'as String?'.
 /// Called from generated code.
-String /*?*/ _asStringNullable(object) {
+String? _asStringNullable(object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'String');
@@ -1074,7 +1115,7 @@ String /*?*/ _asStringNullable(object) {
 
 /// Specialization for check on 'String?'.
 /// Called from generated code.
-String /*?*/ _checkStringNullable(object) {
+String? _checkStringNullable(object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'String');
@@ -1174,7 +1215,7 @@ String _functionRtiToString(Rti functionType, List<String>? genericContext,
 
   if (outerContextLength != null) {
     // Pop all of the generic type parameters.
-    JS('', '#.length = #', genericContext, outerContextLength);
+    JS('', '#.length = #', genericContext!, outerContextLength);
   }
 
   // TODO(fishythefish): Below is the same format as the VM. Change to:
@@ -1196,12 +1237,16 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
   if (kind == Rti.kindStar) {
     Rti starArgument = Rti._getStarArgument(rti);
     String s = _rtiToString(starArgument, genericContext);
-    int argumentKind = Rti._getKind(starArgument);
-    if (argumentKind == Rti.kindFunction ||
-        argumentKind == Rti.kindGenericFunction) {
-      s = '(' + s + ')';
+    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
+      int argumentKind = Rti._getKind(starArgument);
+      if (argumentKind == Rti.kindFunction ||
+          argumentKind == Rti.kindGenericFunction) {
+        s = '(' + s + ')';
+      }
+      return s + '*';
+    } else {
+      return s;
     }
-    return s + '*';
   }
 
   if (kind == Rti.kindQuestion) {
@@ -1251,7 +1296,7 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
 }
 
 String _unminifyOrTag(String rawClassName) {
-  String preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
+  String? preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
   if (preserved != null) return preserved;
   return JS_GET_FLAG('MINIFIED') ? 'minified:$rawClassName' : rawClassName;
 }
@@ -1416,11 +1461,11 @@ class _Universe {
   static Object typeParameterVariances(universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.typeParameterVariances);
 
-  static Object _findRule(universe, String targetType) =>
+  static Object? _findRule(universe, String targetType) =>
       JS('', '#.#', typeRules(universe), targetType);
 
-  static Object findRule(universe, String targetType) {
-    Object rule = _findRule(universe, targetType);
+  static Object? findRule(universe, String targetType) {
+    Object? rule = _findRule(universe, targetType);
     while (_Utils.isString(rule)) {
       rule = _findRule(universe, _Utils.asString(rule));
     }
@@ -1447,7 +1492,7 @@ class _Universe {
     }
   }
 
-  static Object findTypeParameterVariances(universe, String cls) =>
+  static Object? findTypeParameterVariances(universe, String cls) =>
       JS('', '#.#', typeParameterVariances(universe), cls);
 
   static void addRules(universe, rules) =>
@@ -1517,9 +1562,9 @@ class _Universe {
     }
 
     String interfaceName = Rti._getInterfaceName(environment);
-    Object rule = _Universe.findRule(universe, interfaceName);
+    Object? rule = _Universe.findRule(universe, interfaceName);
     assert(rule != null);
-    String recipe = TypeRule.lookupTypeVariable(rule, name);
+    String? recipe = TypeRule.lookupTypeVariable(rule, name);
     if (recipe == null) {
       throw 'No "$name" in "${Rti._getCanonicalRecipe(environment)}"';
     }
@@ -2426,10 +2471,10 @@ class TypeRule {
     throw UnimplementedError("TypeRule is static methods only.");
   }
 
-  static String lookupTypeVariable(rule, String typeVariable) =>
+  static String? lookupTypeVariable(rule, String typeVariable) =>
       JS('', '#.#', rule, typeVariable);
 
-  static JSArray lookupSupertype(rule, String supertype) =>
+  static JSArray? lookupSupertype(rule, String supertype) =>
       JS('', '#.#', rule, supertype);
 }
 
@@ -2781,7 +2826,7 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // interface, so rather than iterating over the Ci, we can instead look up
   // [t] in our ruleset.
   // TODO(fishythefish): Handle variance correctly.
-  Object rule = _Universe.findRule(universe, sName);
+  Object? rule = _Universe.findRule(universe, sName);
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
   if (supertypeArgs == null) return false;
@@ -2831,19 +2876,19 @@ bool isJsFunctionType(Rti t) =>
 
 /// Unchecked cast to Rti.
 Rti _castToRti(s) => JS('Rti', '#', s);
-Rti /*?*/ _castToRtiOrNull(s) => JS('Rti|Null', '#', s);
+Rti? _castToRtiOrNull(s) => JS('Rti|Null', '#', s);
 
 class _Utils {
-  static bool asBool(Object o) => JS('bool', '#', o);
-  static double asDouble(Object o) => JS('double', '#', o);
-  static int asInt(Object o) => JS('int', '#', o);
-  static num asNum(Object o) => JS('num', '#', o);
-  static String asString(Object o) => JS('String', '#', o);
+  static bool asBool(o) => JS('bool', '#', o);
+  static double asDouble(o) => JS('double', '#', o);
+  static int asInt(o) => JS('int', '#', o);
+  static num asNum(o) => JS('num', '#', o);
+  static String asString(o) => JS('String', '#', o);
 
-  static bool isString(Object o) => JS('bool', 'typeof # == "string"', o);
-  static bool isNum(Object o) => JS('bool', 'typeof # == "number"', o);
+  static bool isString(o) => JS('bool', 'typeof # == "string"', o);
+  static bool isNum(o) => JS('bool', 'typeof # == "number"', o);
 
-  static bool instanceOf(Object o, Object constructor) =>
+  static bool instanceOf(o, Object constructor) =>
       JS('bool', '# instanceof #', o, constructor);
 
   static bool isIdentical(s, t) => JS('bool', '# === #', s, t);
@@ -2862,13 +2907,13 @@ class _Utils {
     }
   }
 
-  static bool isArray(Object o) => JS('bool', 'Array.isArray(#)', o);
+  static bool isArray(o) => JS('bool', 'Array.isArray(#)', o);
 
   static int arrayLength(Object array) => JS('int', '#.length', array);
 
   static Object arrayAt(Object array, int i) => JS('', '#[#]', array, i);
 
-  static void arraySetAt(Object array, int i, Object value) {
+  static void arraySetAt(Object array, int i, value) {
     JS('', '#[#] = #', array, i, value);
   }
 
@@ -2881,7 +2926,7 @@ class _Utils {
   static JSArray arrayConcat(Object a1, Object a2) =>
       JS('JSArray', '#.concat(#)', a1, a2);
 
-  static void arrayPush(Object array, Object? value) {
+  static void arrayPush(Object array, value) {
     JS('', '#.push(#)', array, value);
   }
 

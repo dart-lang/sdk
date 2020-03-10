@@ -191,21 +191,18 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       ClassHierarchyNode classHierarchyNode =
           _classHierarchyBuilder.getNodeFromClass(node);
       Set<String> supertypes = <String>{};
-      void addDartType(DartType type) {
-        if (type is InterfaceType) {
-          if (type.classNode.isAnonymousMixin) return;
-          Supertype supertype =
-              new Supertype(type.classNode, type.typeArguments);
-          supertypes.add(supertypeToText(
-              supertype, TypeRepresentation.analyzerNonNullableByDefault));
-        }
+      void addSupertype(Supertype supertype) {
+        if (supertype.classNode.isAnonymousMixin) return;
+        supertypes.add(supertypeToText(
+            supertype, TypeRepresentation.analyzerNonNullableByDefault));
       }
 
-      addDartType(_coreTypes.thisInterfaceType(
+      addSupertype(new Supertype(
           classHierarchyNode.classBuilder.cls,
-          classHierarchyNode.classBuilder.cls.enclosingLibrary.nonNullable));
-      classHierarchyNode.superclasses.forEach(addDartType);
-      classHierarchyNode.interfaces.forEach(addDartType);
+          getAsTypeArguments(classHierarchyNode.classBuilder.cls.typeParameters,
+              classHierarchyNode.classBuilder.library.library)));
+      classHierarchyNode.superclasses.forEach(addSupertype);
+      classHierarchyNode.interfaces.forEach(addSupertype);
       List<String> sorted = supertypes.toList()..sort();
       return sorted.join(',');
     }

@@ -72,6 +72,17 @@ class RegionRenderer {
               for (var edit in region.edits) linkForEdit(edit),
             ]
           : null,
+      traces: [
+        for (var trace in region.traces)
+          Trace(description: trace.description, entries: [
+            for (var entry in trace.entries)
+              TraceEntry(
+                  description: entry.description,
+                  function: entry.function,
+                  link:
+                      entry.target == null ? null : linkForTarget(entry.target))
+          ])
+      ],
     );
     return response;
   }

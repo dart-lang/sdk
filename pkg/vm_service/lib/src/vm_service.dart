@@ -80,11 +80,9 @@ dynamic _createSpecificObject(
   if (json is List) {
     return json.map((e) => creator(e)).toList();
   } else if (json is Map) {
-    Map<String, dynamic> map = {};
-    for (dynamic key in json.keys) {
-      map[key as String] = json[key];
-    }
-    return creator(map);
+    return creator({
+      for (String key in json.keys) key: json[key],
+    });
   } else {
     // Handle simple types.
     return json;
@@ -187,47 +185,47 @@ Map<String, Function> _typeFactories = {
 };
 
 Map<String, List<String>> _methodReturnTypes = {
-  'addBreakpoint': const ['Breakpoint', 'Sentinel'],
-  'addBreakpointWithScriptUri': const ['Breakpoint', 'Sentinel'],
-  'addBreakpointAtEntry': const ['Breakpoint', 'Sentinel'],
-  'clearCpuSamples': const ['Success', 'Sentinel'],
+  'addBreakpoint': const ['Breakpoint'],
+  'addBreakpointWithScriptUri': const ['Breakpoint'],
+  'addBreakpointAtEntry': const ['Breakpoint'],
+  'clearCpuSamples': const ['Success'],
   'clearVMTimeline': const ['Success'],
-  'invoke': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
-  'evaluate': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
-  'evaluateInFrame': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
-  'getAllocationProfile': const ['AllocationProfile', 'Sentinel'],
+  'invoke': const ['InstanceRef', 'ErrorRef'],
+  'evaluate': const ['InstanceRef', 'ErrorRef'],
+  'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
+  'getAllocationProfile': const ['AllocationProfile'],
   'getClientName': const ['ClientName'],
-  'getCpuSamples': const ['CpuSamples', 'Sentinel'],
+  'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
-  'getInboundReferences': const ['InboundReferences', 'Sentinel'],
-  'getInstances': const ['InstanceSet', 'Sentinel'],
-  'getIsolate': const ['Isolate', 'Sentinel'],
-  'getIsolateGroup': const ['IsolateGroup', 'Sentinel'],
-  'getMemoryUsage': const ['MemoryUsage', 'Sentinel'],
-  'getIsolateGroupMemoryUsage': const ['MemoryUsage', 'Sentinel'],
-  'getScripts': const ['ScriptList', 'Sentinel'],
-  'getObject': const ['Obj', 'Sentinel'],
-  'getRetainingPath': const ['RetainingPath', 'Sentinel'],
-  'getStack': const ['Stack', 'Sentinel'],
-  'getSourceReport': const ['SourceReport', 'Sentinel'],
+  'getInboundReferences': const ['InboundReferences'],
+  'getInstances': const ['InstanceSet'],
+  'getIsolate': const ['Isolate'],
+  'getIsolateGroup': const ['IsolateGroup'],
+  'getMemoryUsage': const ['MemoryUsage'],
+  'getIsolateGroupMemoryUsage': const ['MemoryUsage'],
+  'getScripts': const ['ScriptList'],
+  'getObject': const ['Obj'],
+  'getRetainingPath': const ['RetainingPath'],
+  'getStack': const ['Stack'],
+  'getSourceReport': const ['SourceReport'],
   'getVersion': const ['Version'],
   'getVM': const ['VM'],
   'getVMTimeline': const ['Timeline'],
   'getVMTimelineFlags': const ['TimelineFlags'],
   'getVMTimelineMicros': const ['Timestamp'],
-  'pause': const ['Success', 'Sentinel'],
-  'kill': const ['Success', 'Sentinel'],
+  'pause': const ['Success'],
+  'kill': const ['Success'],
   'registerService': const ['Success'],
-  'reloadSources': const ['ReloadReport', 'Sentinel'],
-  'removeBreakpoint': const ['Success', 'Sentinel'],
-  'requestHeapSnapshot': const ['Success', 'Sentinel'],
+  'reloadSources': const ['ReloadReport'],
+  'removeBreakpoint': const ['Success'],
+  'requestHeapSnapshot': const ['Success'],
   'requirePermissionToResume': const ['Success'],
-  'resume': const ['Success', 'Sentinel'],
+  'resume': const ['Success'],
   'setClientName': const ['Success'],
-  'setExceptionPauseMode': const ['Success', 'Sentinel'],
+  'setExceptionPauseMode': const ['Success'],
   'setFlag': const ['Success', 'Error'],
-  'setLibraryDebuggable': const ['Success', 'Sentinel'],
-  'setName': const ['Success', 'Sentinel'],
+  'setLibraryDebuggable': const ['Success'],
+  'setName': const ['Success'],
   'setVMName': const ['Success'],
   'setVMTimelineFlags': const ['Success'],
   'streamCancel': const ['Success'],
@@ -274,8 +272,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Breakpoint].
   ///
-  /// The return value can be one of [Breakpoint] or [Sentinel].
-  Future<dynamic> addBreakpoint(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Breakpoint> addBreakpoint(
     String isolateId,
     String scriptId,
     int line, {
@@ -310,8 +309,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Breakpoint].
   ///
-  /// The return value can be one of [Breakpoint] or [Sentinel].
-  Future<dynamic> addBreakpointWithScriptUri(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Breakpoint> addBreakpointWithScriptUri(
     String isolateId,
     String scriptUri,
     int line, {
@@ -331,8 +331,9 @@ abstract class VmServiceInterface {
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   ///
-  /// The return value can be one of [Breakpoint] or [Sentinel].
-  Future<dynamic> addBreakpointAtEntry(String isolateId, String functionId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId);
 
   /// Clears all CPU profiling samples.
   ///
@@ -341,8 +342,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Success].
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> clearCpuSamples(String isolateId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> clearCpuSamples(String isolateId);
 
   /// Clears all VM timeline events.
   ///
@@ -381,8 +383,11 @@ abstract class VmServiceInterface {
   /// If the invocation is evaluated successfully, an [InstanceRef] reference
   /// will be returned.
   ///
-  /// The return value can be one of [InstanceRef], [ErrorRef] or [Sentinel].
-  Future<dynamic> invoke(
+  /// The return value can be one of [InstanceRef] or [ErrorRef].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Response> invoke(
     String isolateId,
     String targetId,
     String selector,
@@ -424,8 +429,11 @@ abstract class VmServiceInterface {
   /// If the expression is evaluated successfully, an [InstanceRef] reference
   /// will be returned.
   ///
-  /// The return value can be one of [InstanceRef], [ErrorRef] or [Sentinel].
-  Future<dynamic> evaluate(
+  /// The return value can be one of [InstanceRef] or [ErrorRef].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Response> evaluate(
     String isolateId,
     String targetId,
     String expression, {
@@ -459,8 +467,11 @@ abstract class VmServiceInterface {
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// The return value can be one of [InstanceRef], [ErrorRef] or [Sentinel].
-  Future<dynamic> evaluateInFrame(
+  /// The return value can be one of [InstanceRef] or [ErrorRef].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Response> evaluateInFrame(
     String isolateId,
     int frameIndex,
     String expression, {
@@ -481,8 +492,10 @@ abstract class VmServiceInterface {
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// The return value can be one of [AllocationProfile] or [Sentinel].
-  Future<dynamic> getAllocationProfile(String isolateId, {bool reset, bool gc});
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<AllocationProfile> getAllocationProfile(String isolateId,
+      {bool reset, bool gc});
 
   /// The `getClientName` RPC is used to retrieve the name associated with the
   /// currently connected VM service client. If no name was previously set
@@ -502,8 +515,9 @@ abstract class VmServiceInterface {
   ///
   /// See [CpuSamples].
   ///
-  /// The return value can be one of [CpuSamples] or [Sentinel].
-  Future<dynamic> getCpuSamples(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<CpuSamples> getCpuSamples(
       String isolateId, int timeOriginMicros, int timeExtentMicros);
 
   /// The `getFlagList` RPC returns a list of all command line flags in the VM
@@ -537,8 +551,9 @@ abstract class VmServiceInterface {
   ///
   /// See [InboundReferences].
   ///
-  /// The return value can be one of [InboundReferences] or [Sentinel].
-  Future<dynamic> getInboundReferences(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<InboundReferences> getInboundReferences(
       String isolateId, String targetId, int limit);
 
   /// The `getInstances` RPC is used to retrieve a set of instances which are of
@@ -563,8 +578,10 @@ abstract class VmServiceInterface {
   ///
   /// See [InstanceSet].
   ///
-  /// The return value can be one of [InstanceSet] or [Sentinel].
-  Future<dynamic> getInstances(String isolateId, String objectId, int limit);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<InstanceSet> getInstances(
+      String isolateId, String objectId, int limit);
 
   /// The `getIsolate` RPC is used to lookup an `Isolate` object by its `id`.
   ///
@@ -573,8 +590,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Isolate].
   ///
-  /// The return value can be one of [Isolate] or [Sentinel].
-  Future<dynamic> getIsolate(String isolateId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Isolate> getIsolate(String isolateId);
 
   /// The `getIsolateGroup` RPC is used to lookup an `IsolateGroup` object by
   /// its `id`.
@@ -588,8 +606,9 @@ abstract class VmServiceInterface {
   ///
   /// See [IsolateGroup], [VM].
   ///
-  /// The return value can be one of [IsolateGroup] or [Sentinel].
-  Future<dynamic> getIsolateGroup(String isolateGroupId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<IsolateGroup> getIsolateGroup(String isolateGroupId);
 
   /// The `getMemoryUsage` RPC is used to lookup an isolate's memory usage
   /// statistics by its `id`.
@@ -599,8 +618,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Isolate].
   ///
-  /// The return value can be one of [MemoryUsage] or [Sentinel].
-  Future<dynamic> getMemoryUsage(String isolateId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<MemoryUsage> getMemoryUsage(String isolateId);
 
   /// The `getIsolateGroupMemoryUsage` RPC is used to lookup an isolate group's
   /// memory usage statistics by its `id`.
@@ -610,8 +630,9 @@ abstract class VmServiceInterface {
   ///
   /// See [IsolateGroup].
   ///
-  /// The return value can be one of [MemoryUsage] or [Sentinel].
-  Future<dynamic> getIsolateGroupMemoryUsage(String isolateGroupId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<MemoryUsage> getIsolateGroupMemoryUsage(String isolateGroupId);
 
   /// The `getScripts` RPC is used to retrieve a `ScriptList` containing all
   /// scripts for an isolate based on the isolate's `isolateId`.
@@ -621,8 +642,9 @@ abstract class VmServiceInterface {
   ///
   /// See [ScriptList].
   ///
-  /// The return value can be one of [ScriptList] or [Sentinel].
-  Future<dynamic> getScripts(String isolateId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<ScriptList> getScripts(String isolateId);
 
   /// The `getObject` RPC is used to lookup an `object` from some isolate by its
   /// `id`.
@@ -648,8 +670,9 @@ abstract class VmServiceInterface {
   /// Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
   /// Float32x4List, and Float64x2List. These parameters are otherwise ignored.
   ///
-  /// The return value can be one of [Obj] or [Sentinel].
-  Future<dynamic> getObject(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Obj> getObject(
     String isolateId,
     String objectId, {
     int offset,
@@ -678,8 +701,9 @@ abstract class VmServiceInterface {
   ///
   /// See [RetainingPath].
   ///
-  /// The return value can be one of [RetainingPath] or [Sentinel].
-  Future<dynamic> getRetainingPath(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<RetainingPath> getRetainingPath(
       String isolateId, String targetId, int limit);
 
   /// The `getStack` RPC is used to retrieve the current execution stack and
@@ -690,8 +714,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Stack].
   ///
-  /// The return value can be one of [Stack] or [Sentinel].
-  Future<dynamic> getStack(String isolateId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Stack> getStack(String isolateId);
 
   /// The `getSourceReport` RPC is used to generate a set of reports tied to
   /// source locations in an isolate.
@@ -730,8 +755,9 @@ abstract class VmServiceInterface {
   ///
   /// See [SourceReport].
   ///
-  /// The return value can be one of [SourceReport] or [Sentinel].
-  Future<dynamic> getSourceReport(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<SourceReport> getSourceReport(
     String isolateId,
     /*List<SourceReportKind>*/
     List<String> reports, {
@@ -801,8 +827,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Success].
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> pause(String isolateId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> pause(String isolateId);
 
   /// The `kill` RPC is used to kill an isolate as if by dart:isolate's
   /// `Isolate.kill(IMMEDIATE)`.
@@ -814,8 +841,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Success].
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> kill(String isolateId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> kill(String isolateId);
 
   /// Registers a service that can be invoked by other VM service clients, where
   /// `service` is the name of the service to advertise and `alias` is an
@@ -845,8 +873,9 @@ abstract class VmServiceInterface {
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// The return value can be one of [ReloadReport] or [Sentinel].
-  Future<dynamic> reloadSources(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<ReloadReport> reloadSources(
     String isolateId, {
     bool force,
     bool pause,
@@ -863,8 +892,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Success].
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> removeBreakpoint(String isolateId, String breakpointId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> removeBreakpoint(String isolateId, String breakpointId);
 
   /// Requests a dump of the Dart heap of the given isolate.
   ///
@@ -877,8 +907,9 @@ abstract class VmServiceInterface {
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> requestHeapSnapshot(String isolateId);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> requestHeapSnapshot(String isolateId);
 
   /// The `requirePermissionToResume` RPC is used to change the pause/resume
   /// behavior of isolates by providing a way for the VM service to wait for
@@ -932,8 +963,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Success], [StepOption].
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> resume(String isolateId,
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> resume(String isolateId,
       {/*StepOption*/ String step, int frameIndex});
 
   /// The `setClientName` RPC is used to set a name to be associated with the
@@ -957,8 +989,9 @@ abstract class VmServiceInterface {
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> setExceptionPauseMode(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> setExceptionPauseMode(
       String isolateId, /*ExceptionPauseMode*/ String mode);
 
   /// The `setFlag` RPC is used to set a VM flag at runtime. Returns an error if
@@ -968,7 +1001,7 @@ abstract class VmServiceInterface {
   /// The following flags may be set at runtime:
   ///
   /// The return value can be one of [Success] or [Error].
-  Future<dynamic> setFlag(String name, String value);
+  Future<Response> setFlag(String name, String value);
 
   /// The `setLibraryDebuggable` RPC is used to enable or disable whether
   /// breakpoints and stepping work for a given library.
@@ -978,8 +1011,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Success].
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> setLibraryDebuggable(
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> setLibraryDebuggable(
       String isolateId, String libraryId, bool isDebuggable);
 
   /// The `setName` RPC is used to change the debugging name for an isolate.
@@ -989,8 +1023,9 @@ abstract class VmServiceInterface {
   ///
   /// See [Success].
   ///
-  /// The return value can be one of [Success] or [Sentinel].
-  Future<dynamic> setName(String isolateId, String name);
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> setName(String isolateId, String name);
 
   /// The `setVMName` RPC is used to change the debugging name for the vm.
   ///
@@ -1542,210 +1577,179 @@ class VmService implements VmServiceInterface {
   Stream<Event> get onStderrEvent => _getEventController('Stderr').stream;
 
   @override
-  Future<dynamic> addBreakpoint(
+  Future<Breakpoint> addBreakpoint(
     String isolateId,
     String scriptId,
     int line, {
     int column,
-  }) {
-    Map m = {'isolateId': isolateId, 'scriptId': scriptId, 'line': line};
-    if (column != null) {
-      m['column'] = column;
-    }
-    return _call('addBreakpoint', m);
-  }
+  }) =>
+      _call('addBreakpoint', {
+        'isolateId': isolateId,
+        'scriptId': scriptId,
+        'line': line,
+        if (column != null) 'column': column,
+      });
 
   @override
-  Future<dynamic> addBreakpointWithScriptUri(
+  Future<Breakpoint> addBreakpointWithScriptUri(
     String isolateId,
     String scriptUri,
     int line, {
     int column,
-  }) {
-    Map m = {'isolateId': isolateId, 'scriptUri': scriptUri, 'line': line};
-    if (column != null) {
-      m['column'] = column;
-    }
-    return _call('addBreakpointWithScriptUri', m);
-  }
+  }) =>
+      _call('addBreakpointWithScriptUri', {
+        'isolateId': isolateId,
+        'scriptUri': scriptUri,
+        'line': line,
+        if (column != null) 'column': column,
+      });
 
   @override
-  Future<dynamic> addBreakpointAtEntry(String isolateId, String functionId) {
-    return _call('addBreakpointAtEntry',
-        {'isolateId': isolateId, 'functionId': functionId});
-  }
+  Future<Breakpoint> addBreakpointAtEntry(
+          String isolateId, String functionId) =>
+      _call('addBreakpointAtEntry',
+          {'isolateId': isolateId, 'functionId': functionId});
 
   @override
-  Future<dynamic> clearCpuSamples(String isolateId) {
-    return _call('clearCpuSamples', {'isolateId': isolateId});
-  }
+  Future<Success> clearCpuSamples(String isolateId) =>
+      _call('clearCpuSamples', {'isolateId': isolateId});
 
   @override
   Future<Success> clearVMTimeline() => _call('clearVMTimeline');
 
   @override
-  Future<dynamic> invoke(
+  Future<Response> invoke(
     String isolateId,
     String targetId,
     String selector,
     List<String> argumentIds, {
     bool disableBreakpoints,
-  }) {
-    Map m = {
-      'isolateId': isolateId,
-      'targetId': targetId,
-      'selector': selector,
-      'argumentIds': argumentIds
-    };
-    if (disableBreakpoints != null) {
-      m['disableBreakpoints'] = disableBreakpoints;
-    }
-    return _call('invoke', m);
-  }
+  }) =>
+      _call('invoke', {
+        'isolateId': isolateId,
+        'targetId': targetId,
+        'selector': selector,
+        'argumentIds': argumentIds,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   @override
-  Future<dynamic> evaluate(
+  Future<Response> evaluate(
     String isolateId,
     String targetId,
     String expression, {
     Map<String, String> scope,
     bool disableBreakpoints,
-  }) {
-    Map m = {
-      'isolateId': isolateId,
-      'targetId': targetId,
-      'expression': expression
-    };
-    if (scope != null) {
-      m['scope'] = scope;
-    }
-    if (disableBreakpoints != null) {
-      m['disableBreakpoints'] = disableBreakpoints;
-    }
-    return _call('evaluate', m);
-  }
+  }) =>
+      _call('evaluate', {
+        'isolateId': isolateId,
+        'targetId': targetId,
+        'expression': expression,
+        if (scope != null) 'scope': scope,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   @override
-  Future<dynamic> evaluateInFrame(
+  Future<Response> evaluateInFrame(
     String isolateId,
     int frameIndex,
     String expression, {
     Map<String, String> scope,
     bool disableBreakpoints,
-  }) {
-    Map m = {
-      'isolateId': isolateId,
-      'frameIndex': frameIndex,
-      'expression': expression
-    };
-    if (scope != null) {
-      m['scope'] = scope;
-    }
-    if (disableBreakpoints != null) {
-      m['disableBreakpoints'] = disableBreakpoints;
-    }
-    return _call('evaluateInFrame', m);
-  }
+  }) =>
+      _call('evaluateInFrame', {
+        'isolateId': isolateId,
+        'frameIndex': frameIndex,
+        'expression': expression,
+        if (scope != null) 'scope': scope,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   @override
-  Future<dynamic> getAllocationProfile(String isolateId,
-      {bool reset, bool gc}) {
-    Map m = {'isolateId': isolateId};
-    if (reset != null && reset) {
-      m['reset'] = reset;
-    }
-    if (gc != null && gc) {
-      m['gc'] = gc;
-    }
-    return _call('getAllocationProfile', m);
-  }
+  Future<AllocationProfile> getAllocationProfile(String isolateId,
+          {bool reset, bool gc}) =>
+      _call('getAllocationProfile', {
+        'isolateId': isolateId,
+        if (reset != null && reset) 'reset': reset,
+        if (gc != null && gc) 'gc': gc,
+      });
 
   @override
   Future<ClientName> getClientName() => _call('getClientName');
 
   @override
-  Future<dynamic> getCpuSamples(
-      String isolateId, int timeOriginMicros, int timeExtentMicros) {
-    return _call('getCpuSamples', {
-      'isolateId': isolateId,
-      'timeOriginMicros': timeOriginMicros,
-      'timeExtentMicros': timeExtentMicros
-    });
-  }
+  Future<CpuSamples> getCpuSamples(
+          String isolateId, int timeOriginMicros, int timeExtentMicros) =>
+      _call('getCpuSamples', {
+        'isolateId': isolateId,
+        'timeOriginMicros': timeOriginMicros,
+        'timeExtentMicros': timeExtentMicros
+      });
 
   @override
   Future<FlagList> getFlagList() => _call('getFlagList');
 
   @override
-  Future<dynamic> getInboundReferences(
-      String isolateId, String targetId, int limit) {
-    return _call('getInboundReferences',
-        {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
-  }
+  Future<InboundReferences> getInboundReferences(
+          String isolateId, String targetId, int limit) =>
+      _call('getInboundReferences',
+          {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
 
   @override
-  Future<dynamic> getInstances(String isolateId, String objectId, int limit) {
-    return _call('getInstances',
-        {'isolateId': isolateId, 'objectId': objectId, 'limit': limit});
-  }
+  Future<InstanceSet> getInstances(
+          String isolateId, String objectId, int limit) =>
+      _call('getInstances',
+          {'isolateId': isolateId, 'objectId': objectId, 'limit': limit});
 
   @override
-  Future<dynamic> getIsolate(String isolateId) {
-    return _call('getIsolate', {'isolateId': isolateId});
-  }
+  Future<Isolate> getIsolate(String isolateId) =>
+      _call('getIsolate', {'isolateId': isolateId});
 
   @override
-  Future<dynamic> getIsolateGroup(String isolateGroupId) {
-    return _call('getIsolateGroup', {'isolateGroupId': isolateGroupId});
-  }
+  Future<IsolateGroup> getIsolateGroup(String isolateGroupId) =>
+      _call('getIsolateGroup', {'isolateGroupId': isolateGroupId});
 
   @override
-  Future<dynamic> getMemoryUsage(String isolateId) {
-    return _call('getMemoryUsage', {'isolateId': isolateId});
-  }
+  Future<MemoryUsage> getMemoryUsage(String isolateId) =>
+      _call('getMemoryUsage', {'isolateId': isolateId});
 
   @override
-  Future<dynamic> getIsolateGroupMemoryUsage(String isolateGroupId) {
-    return _call(
-        'getIsolateGroupMemoryUsage', {'isolateGroupId': isolateGroupId});
-  }
+  Future<MemoryUsage> getIsolateGroupMemoryUsage(String isolateGroupId) =>
+      _call('getIsolateGroupMemoryUsage', {'isolateGroupId': isolateGroupId});
 
   @override
-  Future<dynamic> getScripts(String isolateId) {
-    return _call('getScripts', {'isolateId': isolateId});
-  }
+  Future<ScriptList> getScripts(String isolateId) =>
+      _call('getScripts', {'isolateId': isolateId});
 
   @override
-  Future<dynamic> getObject(
+  Future<Obj> getObject(
     String isolateId,
     String objectId, {
     int offset,
     int count,
-  }) {
-    Map m = {'isolateId': isolateId, 'objectId': objectId};
-    if (offset != null) {
-      m['offset'] = offset;
-    }
-    if (count != null) {
-      m['count'] = count;
-    }
-    return _call('getObject', m);
-  }
+  }) =>
+      _call('getObject', {
+        'isolateId': isolateId,
+        'objectId': objectId,
+        if (offset != null) 'offset': offset,
+        if (count != null) 'count': count,
+      });
 
   @override
-  Future<dynamic> getRetainingPath(
-      String isolateId, String targetId, int limit) {
-    return _call('getRetainingPath',
-        {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
-  }
+  Future<RetainingPath> getRetainingPath(
+          String isolateId, String targetId, int limit) =>
+      _call('getRetainingPath',
+          {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
 
   @override
-  Future<dynamic> getStack(String isolateId) {
-    return _call('getStack', {'isolateId': isolateId});
-  }
+  Future<Stack> getStack(String isolateId) =>
+      _call('getStack', {'isolateId': isolateId});
 
   @override
-  Future<dynamic> getSourceReport(
+  Future<SourceReport> getSourceReport(
     String isolateId,
     /*List<SourceReportKind>*/
     List<String> reports, {
@@ -1753,22 +1757,15 @@ class VmService implements VmServiceInterface {
     int tokenPos,
     int endTokenPos,
     bool forceCompile,
-  }) {
-    Map m = {'isolateId': isolateId, 'reports': reports};
-    if (scriptId != null) {
-      m['scriptId'] = scriptId;
-    }
-    if (tokenPos != null) {
-      m['tokenPos'] = tokenPos;
-    }
-    if (endTokenPos != null) {
-      m['endTokenPos'] = endTokenPos;
-    }
-    if (forceCompile != null) {
-      m['forceCompile'] = forceCompile;
-    }
-    return _call('getSourceReport', m);
-  }
+  }) =>
+      _call('getSourceReport', {
+        'isolateId': isolateId,
+        'reports': reports,
+        if (scriptId != null) 'scriptId': scriptId,
+        if (tokenPos != null) 'tokenPos': tokenPos,
+        if (endTokenPos != null) 'endTokenPos': endTokenPos,
+        if (forceCompile != null) 'forceCompile': forceCompile,
+      });
 
   @override
   Future<Version> getVersion() => _call('getVersion');
@@ -1777,16 +1774,12 @@ class VmService implements VmServiceInterface {
   Future<VM> getVM() => _call('getVM');
 
   @override
-  Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros}) {
-    Map m = {};
-    if (timeOriginMicros != null) {
-      m['timeOriginMicros'] = timeOriginMicros;
-    }
-    if (timeExtentMicros != null) {
-      m['timeExtentMicros'] = timeExtentMicros;
-    }
-    return _call('getVMTimeline', m);
-  }
+  Future<Timeline> getVMTimeline(
+          {int timeOriginMicros, int timeExtentMicros}) =>
+      _call('getVMTimeline', {
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
+      });
 
   @override
   Future<TimelineFlags> getVMTimelineFlags() => _call('getVMTimelineFlags');
@@ -1795,135 +1788,100 @@ class VmService implements VmServiceInterface {
   Future<Timestamp> getVMTimelineMicros() => _call('getVMTimelineMicros');
 
   @override
-  Future<dynamic> pause(String isolateId) {
-    return _call('pause', {'isolateId': isolateId});
-  }
+  Future<Success> pause(String isolateId) =>
+      _call('pause', {'isolateId': isolateId});
 
   @override
-  Future<dynamic> kill(String isolateId) {
-    return _call('kill', {'isolateId': isolateId});
-  }
+  Future<Success> kill(String isolateId) =>
+      _call('kill', {'isolateId': isolateId});
 
   @override
-  Future<Success> registerService(String service, String alias) {
-    return _call('registerService', {'service': service, 'alias': alias});
-  }
+  Future<Success> registerService(String service, String alias) =>
+      _call('registerService', {'service': service, 'alias': alias});
 
   @override
-  Future<dynamic> reloadSources(
+  Future<ReloadReport> reloadSources(
     String isolateId, {
     bool force,
     bool pause,
     String rootLibUri,
     String packagesUri,
-  }) {
-    Map m = {'isolateId': isolateId};
-    if (force != null) {
-      m['force'] = force;
-    }
-    if (pause != null) {
-      m['pause'] = pause;
-    }
-    if (rootLibUri != null) {
-      m['rootLibUri'] = rootLibUri;
-    }
-    if (packagesUri != null) {
-      m['packagesUri'] = packagesUri;
-    }
-    return _call('reloadSources', m);
-  }
+  }) =>
+      _call('reloadSources', {
+        'isolateId': isolateId,
+        if (force != null) 'force': force,
+        if (pause != null) 'pause': pause,
+        if (rootLibUri != null) 'rootLibUri': rootLibUri,
+        if (packagesUri != null) 'packagesUri': packagesUri,
+      });
 
   @override
-  Future<dynamic> removeBreakpoint(String isolateId, String breakpointId) {
-    return _call('removeBreakpoint',
-        {'isolateId': isolateId, 'breakpointId': breakpointId});
-  }
+  Future<Success> removeBreakpoint(String isolateId, String breakpointId) =>
+      _call('removeBreakpoint',
+          {'isolateId': isolateId, 'breakpointId': breakpointId});
 
   @override
-  Future<dynamic> requestHeapSnapshot(String isolateId) {
-    return _call('requestHeapSnapshot', {'isolateId': isolateId});
-  }
+  Future<Success> requestHeapSnapshot(String isolateId) =>
+      _call('requestHeapSnapshot', {'isolateId': isolateId});
 
   @override
   Future<Success> requirePermissionToResume(
-      {bool onPauseStart, bool onPauseReload, bool onPauseExit}) {
-    Map m = {};
-    if (onPauseStart != null) {
-      m['onPauseStart'] = onPauseStart;
-    }
-    if (onPauseReload != null) {
-      m['onPauseReload'] = onPauseReload;
-    }
-    if (onPauseExit != null) {
-      m['onPauseExit'] = onPauseExit;
-    }
-    return _call('requirePermissionToResume', m);
-  }
+          {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
+      _call('requirePermissionToResume', {
+        if (onPauseStart != null) 'onPauseStart': onPauseStart,
+        if (onPauseReload != null) 'onPauseReload': onPauseReload,
+        if (onPauseExit != null) 'onPauseExit': onPauseExit,
+      });
 
   @override
-  Future<dynamic> resume(String isolateId,
-      {/*StepOption*/ String step, int frameIndex}) {
-    Map m = {'isolateId': isolateId};
-    if (step != null) {
-      m['step'] = step;
-    }
-    if (frameIndex != null) {
-      m['frameIndex'] = frameIndex;
-    }
-    return _call('resume', m);
-  }
+  Future<Success> resume(String isolateId,
+          {/*StepOption*/ String step, int frameIndex}) =>
+      _call('resume', {
+        'isolateId': isolateId,
+        if (step != null) 'step': step,
+        if (frameIndex != null) 'frameIndex': frameIndex,
+      });
 
   @override
-  Future<Success> setClientName(String name) {
-    return _call('setClientName', {'name': name});
-  }
+  Future<Success> setClientName(String name) =>
+      _call('setClientName', {'name': name});
 
   @override
-  Future<dynamic> setExceptionPauseMode(
-      String isolateId, /*ExceptionPauseMode*/ String mode) {
-    return _call(
-        'setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
-  }
+  Future<Success> setExceptionPauseMode(
+          String isolateId, /*ExceptionPauseMode*/ String mode) =>
+      _call('setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
 
   @override
-  Future<dynamic> setFlag(String name, String value) {
-    return _call('setFlag', {'name': name, 'value': value});
-  }
+  Future<Response> setFlag(String name, String value) =>
+      _call('setFlag', {'name': name, 'value': value});
 
   @override
-  Future<dynamic> setLibraryDebuggable(
-      String isolateId, String libraryId, bool isDebuggable) {
-    return _call('setLibraryDebuggable', {
-      'isolateId': isolateId,
-      'libraryId': libraryId,
-      'isDebuggable': isDebuggable
-    });
-  }
+  Future<Success> setLibraryDebuggable(
+          String isolateId, String libraryId, bool isDebuggable) =>
+      _call('setLibraryDebuggable', {
+        'isolateId': isolateId,
+        'libraryId': libraryId,
+        'isDebuggable': isDebuggable
+      });
 
   @override
-  Future<dynamic> setName(String isolateId, String name) {
-    return _call('setName', {'isolateId': isolateId, 'name': name});
-  }
+  Future<Success> setName(String isolateId, String name) =>
+      _call('setName', {'isolateId': isolateId, 'name': name});
 
   @override
-  Future<Success> setVMName(String name) {
-    return _call('setVMName', {'name': name});
-  }
+  Future<Success> setVMName(String name) => _call('setVMName', {'name': name});
 
   @override
-  Future<Success> setVMTimelineFlags(List<String> recordedStreams) {
-    return _call('setVMTimelineFlags', {'recordedStreams': recordedStreams});
-  }
+  Future<Success> setVMTimelineFlags(List<String> recordedStreams) =>
+      _call('setVMTimelineFlags', {'recordedStreams': recordedStreams});
 
   @override
-  Future<Success> streamCancel(String streamId) {
-    return _call('streamCancel', {'streamId': streamId});
-  }
+  Future<Success> streamCancel(String streamId) =>
+      _call('streamCancel', {'streamId': streamId});
 
   @override
-  Future<Success> streamListen(String streamId) {
-    return _call('streamListen', {'streamId': streamId});
-  }
+  Future<Success> streamListen(String streamId) =>
+      _call('streamListen', {'streamId': streamId});
 
   /// Call an arbitrary service protocol method. This allows clients to call
   /// methods not explicitly exposed by this library.
@@ -2063,7 +2021,9 @@ class VmService implements VmServiceInterface {
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
       String type = result['type'];
-      if (_typeFactories[type] == null) {
+      if (type == 'Sentinel') {
+        completer.completeError(SentinelException.parse(methodName, result));
+      } else if (_typeFactories[type] == null) {
         completer.complete(Response.parse(result));
       } else {
         completer.complete(createServiceObject(result, returnTypes));
@@ -2116,7 +2076,7 @@ class VmService implements VmServiceInterface {
 
 typedef DisposeHandler = Future Function();
 
-class RPCError {
+class RPCError implements Exception {
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
@@ -2137,6 +2097,17 @@ class RPCError {
       return '${message} (${code}) from ${callingMethod}():\n${details}';
     }
   }
+}
+
+/// Thrown when an RPC response is a [Sentinel].
+class SentinelException implements Exception {
+  final String callingMethod;
+  final Sentinel sentinel;
+
+  SentinelException.parse(this.callingMethod, Map<String, dynamic> data)
+      : sentinel = Sentinel.parse(data);
+
+  String toString() => '$sentinel from ${callingMethod}()';
 }
 
 /// An `ExtensionData` is an arbitrary map that can have any contents.

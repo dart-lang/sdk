@@ -30,17 +30,27 @@ class IncrementalCompiler {
   bool fullComponent = false;
   Uri initializeFromDillUri;
   Uri _entryPoint;
+  final bool forExpressionCompilationOnly;
 
   Uri get entryPoint => _entryPoint;
   IncrementalKernelGenerator get generator => _generator;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
-      {this.initializeFromDillUri, bool incrementalSerialization: true}) {
+      {this.initializeFromDillUri, bool incrementalSerialization: true})
+      : forExpressionCompilationOnly = false {
     if (incrementalSerialization) {
       incrementalSerializer = new IncrementalSerializer();
     }
     _generator = new IncrementalKernelGenerator(_compilerOptions, _entryPoint,
         initializeFromDillUri, false, incrementalSerializer);
+    _pendingDeltas = <Component>[];
+  }
+
+  IncrementalCompiler.forExpressionCompilationOnly(
+      Component component, this._compilerOptions, this._entryPoint)
+      : forExpressionCompilationOnly = true {
+    _generator = new IncrementalKernelGenerator.forExpressionCompilationOnly(
+        _compilerOptions, _entryPoint, component);
     _pendingDeltas = <Component>[];
   }
 
@@ -96,6 +106,10 @@ class IncrementalCompiler {
   /// were accepted, don't need to be included into subsequent [compile] calls
   /// results.
   accept() {
+    if (forExpressionCompilationOnly) {
+      throw new StateError("Incremental compiler created for expression "
+          "compilation only; cannot accept");
+    }
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = <Uri, Source>{};
 
@@ -128,6 +142,10 @@ class IncrementalCompiler {
   /// were rejected. Subsequent [compile] or [compileExpression] calls need to
   /// be processed without changes picked up by rejected [compile] call.
   reject() async {
+    if (forExpressionCompilationOnly) {
+      throw new StateError("Incremental compiler created for expression "
+          "compilation only; cannot reject");
+    }
     _pendingDeltas.clear();
     // Need to reset and warm up compiler so that expression evaluation requests
     // are processed in that known good state.

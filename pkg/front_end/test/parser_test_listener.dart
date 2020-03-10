@@ -1603,6 +1603,10 @@ class ParserTestListener implements Listener {
     doPrint('handleVoidKeyword(' '$token)');
   }
 
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    doPrint('handleVoidKeywordWithTypeArguments(' '$token)');
+  }
+
   void beginYieldStatement(Token token) {
     doPrint('beginYieldStatement(' '$token)');
     indent++;

@@ -548,7 +548,7 @@ void main() async {
       ];
 
       var library = 'package:hello/foo.dart';
-      var module = '/packages/hello/foo.dart';
+      var module = 'packages/hello/foo.dart';
 
       final StreamController<List<int>> streamController =
           StreamController<List<int>>();
@@ -1470,7 +1470,7 @@ true
         ..writeAsStringSync("hello:${tempDir.uri}\n");
 
       var library = 'package:hello/foo.dart';
-      var module = '/packages/hello/foo.dart';
+      var module = 'packages/hello/foo.dart';
 
       var dillFile = File('${tempDir.path}/foo.dart.dill');
       var sourceFile = File('${dillFile.path}.sources');
@@ -1486,6 +1486,7 @@ true
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${tempDir.path}/.packages',
+        '--debugger-module-names'
       ];
 
       final StreamController<List<int>> streamController =
@@ -1577,7 +1578,7 @@ true
         ..writeAsStringSync("hello:${tempDir.uri}\n");
 
       var library = 'package:hello/foo.dart';
-      var module = '/packages/hello/foo.dart';
+      var module = 'packages/hello/foo.dart';
 
       var dillFile = File('${tempDir.path}/foo.dart.dill');
       var sourceFile = File('${dillFile.path}.sources');
@@ -1593,6 +1594,7 @@ true
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${tempDir.path}/.packages',
+        '--debugger-module-names'
       ];
 
       final StreamController<List<int>> streamController =

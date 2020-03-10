@@ -20,32 +20,101 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 
 import 'metrics_util.dart';
 import 'visitors.dart';
 
 Future<void> main(List<String> args) async {
-  if (args.isEmpty) {
-    print('Usage: a single absolute file path to analyze.');
-    io.exit(1);
+  ArgParser parser = createArgParser();
+  ArgResults result = parser.parse(args);
+
+  if (validArguments(parser, result)) {
+    var code = await CompletionCoverageMetrics(result.rest[0])
+        .compute(corpus: result['corpus'], verbose: result['verbose']);
+    io.exit(code);
   }
-  await CompletionCoverageMetrics(args[0]).compute();
-  io.exit(0);
+  return io.exit(1);
+}
+
+/// Create a parser that can be used to parse the command-line arguments.
+ArgParser createArgParser() {
+  ArgParser parser = ArgParser();
+  parser.addFlag(
+    'corpus',
+    help: 'Analyze each of the subdirectories separately',
+    negatable: false,
+  );
+  parser.addOption(
+    'help',
+    abbr: 'h',
+    help: 'Print this help message.',
+  );
+  parser.addFlag(
+    'verbose',
+    abbr: 'v',
+    help: 'Print additional information about the analysis',
+    negatable: false,
+  );
+  return parser;
+}
+
+/// Return `true` if the command-line arguments (represented by the [result] and
+/// parsed by the [parser]) are valid.
+bool validArguments(ArgParser parser, ArgResults result) {
+  if (result.wasParsed('help')) {
+    printUsage(parser);
+    return false;
+  } else if (result.rest.length != 1) {
+    printUsage(parser, error: 'No package path specified.');
+    return false;
+  }
+  var rootPath = result.rest[0];
+  if (!io.Directory(rootPath).existsSync()) {
+    printUsage(parser, error: 'The directory "$rootPath" does not exist.');
+    return false;
+  }
+  return true;
+}
+
+/// Print usage information for this tool.
+void printUsage(ArgParser parser, {String error}) {
+  if (error != null) {
+    print(error);
+    print('');
+  }
+  print('usage: dart completion_metrics.dart [options] packagePath');
+  print('');
+  print('Compute code completion health metrics.');
+  print('');
+  print(parser.usage);
 }
 
 /// This is the main metrics computer class for code completions. After the
 /// object is constructed, [computeCompletionMetrics] is executed to do analysis
 /// and print a summary of the metrics gathered from the completion tests.
-abstract class AbstractCompletionMetricsComputer {
-  // TODO(brianwilkerson) Consider merging this class into the single concrete
-  //  subclass.
+class CompletionCoverageMetrics {
   final String _rootPath;
 
   String _currentFilePath;
 
+  bool _verbose;
+
   ResolvedUnitResult _resolvedUnitResult;
 
-  AbstractCompletionMetricsComputer(this._rootPath);
+  /// The int to be returned from the [compute] call.
+  int resultCode;
+
+  int includedCount = 0;
+  int notIncludedCount = 0;
+
+  var completionMissedTokenCounter = Counter('missing completion counter');
+  var completionKindCounter = Counter('completion kind counter');
+  var completionElementKindCounter = Counter('completion element kind counter');
+  var mRRComputer = MeanReciprocalRankComputer();
+
+  CompletionCoverageMetrics(this._rootPath);
 
   /// The path to the current file.
   String get currentFilePath => _currentFilePath;
@@ -53,90 +122,141 @@ abstract class AbstractCompletionMetricsComputer {
   /// If the concrete class has this getter return true, then when
   /// [forEachExpectedCompletion] is called, the [List] of
   /// [CompletionSuggestion]s will be passed.
-  bool get doComputeCompletionsFromAnalysisServer;
-
-  /// The current [ResolvedUnitResult].
-  ResolvedUnitResult get resolvedUnitResult => _resolvedUnitResult;
+  bool get doComputeCompletionsFromAnalysisServer => true;
 
   /// The analysis root path that this CompletionMetrics class will be computed.
   String get rootPath => _rootPath;
 
-  void compute() async {
-    print('Analyzing root: \"$_rootPath\"');
+  Future<int> compute({bool corpus = false, bool verbose = false}) async {
+    _verbose = verbose;
+    resultCode = 0;
 
-    if (!io.Directory(_rootPath).existsSync()) {
-      print('\tError: No such directory exists on this machine.\n');
-      return;
-    }
+    var roots = _computeRootPaths(_rootPath, corpus);
+    for (var root in roots) {
+      print('Analyzing root: \"$root\"');
+      final collection = AnalysisContextCollection(
+        includedPaths: [root],
+        resourceProvider: PhysicalResourceProvider.INSTANCE,
+      );
 
-    final collection = AnalysisContextCollection(
-      includedPaths: [_rootPath],
-      resourceProvider: PhysicalResourceProvider.INSTANCE,
-    );
-
-    for (var context in collection.contexts) {
-      // Set the DeclarationsTracker, only call doWork to build up the available
-      // suggestions if doComputeCompletionsFromAnalysisServer is true.
-      var declarationsTracker = DeclarationsTracker(
-          MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
-      declarationsTracker.addContext(context);
-      if (doComputeCompletionsFromAnalysisServer) {
+      for (var context in collection.contexts) {
+        // Set the DeclarationsTracker, only call doWork to build up the available
+        // suggestions if doComputeCompletionsFromAnalysisServer is true.
+        var declarationsTracker = DeclarationsTracker(
+            MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
+        declarationsTracker.addContext(context);
         while (declarationsTracker.hasWork) {
           declarationsTracker.doWork();
         }
-      }
 
-      // Loop through each file, resolve the file and call
-      // forEachExpectedCompletion
-      for (var filePath in context.contextRoot.analyzedFiles()) {
-        if (AnalysisEngine.isDartFileName(filePath)) {
-          _currentFilePath = filePath;
-          try {
-            _resolvedUnitResult =
-                await context.currentSession.getResolvedUnit(filePath);
+        // Loop through each file, resolve the file and call
+        // forEachExpectedCompletion
+        for (var filePath in context.contextRoot.analyzedFiles()) {
+          if (AnalysisEngine.isDartFileName(filePath)) {
+            _currentFilePath = filePath;
+            try {
+              _resolvedUnitResult =
+                  await context.currentSession.getResolvedUnit(filePath);
 
-            var error = getFirstErrorOrNull(resolvedUnitResult);
-            if (error != null) {
-              print('File $filePath skipped due to errors such as:');
-              print('  ${error.toString()}');
-              print('');
-              continue;
+              var analysisError = getFirstErrorOrNull(_resolvedUnitResult);
+              if (analysisError != null) {
+                print('File $filePath skipped due to errors such as:');
+                print('  ${analysisError.toString()}');
+                print('');
+                resultCode = 1;
+                continue;
+              }
+
+              // Use the ExpectedCompletionsVisitor to compute the set of expected
+              // completions for this CompilationUnit.
+              final visitor = ExpectedCompletionsVisitor();
+              _resolvedUnitResult.unit.accept(visitor);
+
+              for (var expectedCompletion in visitor.expectedCompletions) {
+                forEachExpectedCompletion(
+                    expectedCompletion,
+                    doComputeCompletionsFromAnalysisServer
+                        ? await _computeCompletionSuggestions(
+                            _resolvedUnitResult,
+                            expectedCompletion.offset,
+                            declarationsTracker)
+                        : null);
+              }
+            } catch (e) {
+              print('Exception caught analyzing: $filePath');
+              print(e.toString());
+              resultCode = 1;
             }
-
-            // Use the ExpectedCompletionsVisitor to compute the set of expected
-            // completions for this CompilationUnit.
-            final visitor = ExpectedCompletionsVisitor();
-            resolvedUnitResult.unit.accept(visitor);
-
-            for (var expectedCompletion in visitor.expectedCompletions) {
-              // Call forEachExpectedCompletion, passing in the computed
-              // suggestions only if doComputeCompletionsFromAnalysisServer is
-              // true:
-              forEachExpectedCompletion(
-                  expectedCompletion,
-                  doComputeCompletionsFromAnalysisServer
-                      ? await _computeCompletionSuggestions(resolvedUnitResult,
-                          expectedCompletion.offset, declarationsTracker)
-                      : null);
-            }
-          } catch (e) {
-            print('Exception caught analyzing: $filePath');
-            print(e.toString());
           }
         }
       }
     }
     printAndClearComputers();
+    return resultCode;
   }
 
-  /// Overridden by each subclass, this method gathers some set of data from
-  /// each [ExpectedCompletion], and each [CompletionSuggestion] list (if
-  /// [doComputeCompletionsFromAnalysisServer] is set to true.)
   void forEachExpectedCompletion(ExpectedCompletion expectedCompletion,
-      List<CompletionSuggestion> suggestions);
+      List<CompletionSuggestion> suggestions) {
+    assert(suggestions != null);
 
-  /// This method is called to print a summary of the data collected.
-  void printAndClearComputers();
+    var place = placementInSuggestionList(suggestions, expectedCompletion);
+
+    mRRComputer.addRank(place.rank);
+
+    if (place.denominator != 0) {
+      includedCount++;
+    } else {
+      notIncludedCount++;
+
+      completionMissedTokenCounter.count(expectedCompletion.completion);
+      completionKindCounter.count(expectedCompletion.kind.toString());
+      completionElementKindCounter
+          .count(expectedCompletion.elementKind.toString());
+
+      if (_verbose) {
+        // The format "/file/path/foo.dart:3:4" makes for easier input
+        // with the Files dialog in IntelliJ
+        print(
+            '$currentFilePath:${expectedCompletion.lineNumber}:${expectedCompletion.columnNumber}');
+        print(
+            '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
+        print('');
+      }
+    }
+  }
+
+  void printAndClearComputers() {
+    final totalCompletionCount = includedCount + notIncludedCount;
+    final percentIncluded = includedCount / totalCompletionCount;
+    final percentNotIncluded = 1 - percentIncluded;
+
+    print('');
+    completionMissedTokenCounter.printCounterValues();
+    print('');
+
+    completionKindCounter.printCounterValues();
+    print('');
+
+    completionElementKindCounter.printCounterValues();
+    print('');
+
+    mRRComputer.printMean();
+    print('');
+
+    print('Summary for $_rootPath:');
+    print('Total number of completion tests   = $totalCompletionCount');
+    print(
+        'Number of successful completions   = $includedCount (${printPercentage(percentIncluded)})');
+    print(
+        'Number of unsuccessful completions = $notIncludedCount (${printPercentage(percentNotIncluded)})');
+
+    includedCount = 0;
+    notIncludedCount = 0;
+    completionMissedTokenCounter.clear();
+    completionKindCounter.clear();
+    completionElementKindCounter.clear();
+    mRRComputer.clear();
+  }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
       ResolvedUnitResult resolvedUnitResult, int offset,
@@ -179,6 +299,20 @@ abstract class AbstractCompletionMetricsComputer {
     return suggestions;
   }
 
+  List<String> _computeRootPaths(String rootPath, bool corpus) {
+    var roots = <String>[];
+    if (!corpus) {
+      roots.add(rootPath);
+    } else {
+      for (var child in io.Directory(rootPath).listSync()) {
+        if (child is io.Directory) {
+          roots.add(path.join(rootPath, child.path));
+        }
+      }
+    }
+    return roots;
+  }
+
   /// Given some [ResolvedUnitResult] return the first error of high severity
   /// if such an error exists, null otherwise.
   static err.AnalysisError getFirstErrorOrNull(
@@ -201,82 +335,5 @@ abstract class AbstractCompletionMetricsComputer {
       placeCounter++;
     }
     return Place.none();
-  }
-}
-
-class CompletionCoverageMetrics extends AbstractCompletionMetricsComputer {
-  int includedCount = 0;
-  int notIncludedCount = 0;
-  var completionMissedTokenCounter = Counter('missing completion counter');
-  var completionKindCounter = Counter('completion kind counter');
-  var completionElementKindCounter = Counter('completion element kind counter');
-  var mRRComputer = MeanReciprocalRankComputer();
-
-  CompletionCoverageMetrics(String rootPath) : super(rootPath);
-
-  @override
-  bool get doComputeCompletionsFromAnalysisServer => true;
-
-  @override
-  void forEachExpectedCompletion(ExpectedCompletion expectedCompletion,
-      List<CompletionSuggestion> suggestions) {
-    assert(suggestions != null);
-
-    var place = AbstractCompletionMetricsComputer.placementInSuggestionList(
-        suggestions, expectedCompletion);
-
-    mRRComputer.addRank(place.rank);
-
-    if (place.denominator != 0) {
-      includedCount++;
-    } else {
-      notIncludedCount++;
-
-      completionMissedTokenCounter.count(expectedCompletion.completion);
-      completionKindCounter.count(expectedCompletion.kind.toString());
-      completionElementKindCounter
-          .count(expectedCompletion.elementKind.toString());
-
-      // The format "/file/path/foo.dart:3:4" makes for easier input
-      // with the Files dialog in IntelliJ
-      print(
-          '$currentFilePath:${expectedCompletion.lineNumber}:${expectedCompletion.columnNumber}');
-      print(
-          '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
-      print('');
-    }
-  }
-
-  @override
-  void printAndClearComputers() {
-    final totalCompletionCount = includedCount + notIncludedCount;
-    final percentIncluded = includedCount / totalCompletionCount;
-    final percentNotIncluded = 1 - percentIncluded;
-
-    completionMissedTokenCounter.printCounterValues();
-    print('');
-
-    completionKindCounter.printCounterValues();
-    print('');
-
-    completionElementKindCounter.printCounterValues();
-    print('');
-
-    mRRComputer.printMean();
-    print('');
-
-    print('Summary for $_rootPath:');
-    print('Total number of completion tests   = $totalCompletionCount');
-    print(
-        'Number of successful completions   = $includedCount (${printPercentage(percentIncluded)})');
-    print(
-        'Number of unsuccessful completions = $notIncludedCount (${printPercentage(percentNotIncluded)})');
-
-    includedCount = 0;
-    notIncludedCount = 0;
-    completionMissedTokenCounter.clear();
-    completionKindCounter.clear();
-    completionElementKindCounter.clear();
-    mRRComputer.clear();
   }
 }

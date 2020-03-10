@@ -39,6 +39,9 @@ class PrepareRenameHandler
           RenameRefactoring.getElementToRename(node, element);
       final refactoring = RenameRefactoring(
           server.refactoringWorkspace, unit.result, refactorDetails.element);
+      if (refactoring == null) {
+        return success(null);
+      }
 
       // Check the rename is valid here.
       final initStatus = await refactoring.checkInitialConditions();
@@ -100,6 +103,9 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
           RenameRefactoring.getElementToRename(node, element);
       final refactoring = RenameRefactoring(
           server.refactoringWorkspace, unit.result, refactorDetails.element);
+      if (refactoring == null) {
+        return success(null);
+      }
 
       // TODO(dantup): Consider using window/showMessageRequest to prompt
       // the user to see if they'd like to proceed with a rename if there

@@ -1498,7 +1498,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       const intptr_t num_type_args =
           ((flags & kFlagHasTypeArgs) != 0) ? reader_.ReadUInt() : 0;
       if ((flags & kFlagHasNamedArgs) == 0) {
-        return ArgumentsDescriptor::New(num_type_args, num_arguments);
+        return ArgumentsDescriptor::NewBoxed(num_type_args, num_arguments);
       } else {
         const intptr_t num_arg_names = reader_.ReadListLength();
         const Array& array = Array::Handle(Z, Array::New(num_arg_names));
@@ -1507,7 +1507,8 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
           name ^= ReadObject();
           array.SetAt(i, name);
         }
-        return ArgumentsDescriptor::New(num_type_args, num_arguments, array);
+        return ArgumentsDescriptor::NewBoxed(num_type_args, num_arguments,
+                                             array);
       }
     }
     case kScript: {

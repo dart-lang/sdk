@@ -511,6 +511,7 @@ class Summary {
 
   List<Statement> _statements = <Statement>[];
   TypeExpr result = null;
+  Type resultType = EmptyType();
 
   Summary(
       {this.parameterCount: 0,
@@ -620,7 +621,9 @@ class Summary {
 
     Statistics.summariesAnalyzed++;
 
-    return result.getComputedType(types);
+    Type computedType = result.getComputedType(types);
+    resultType = resultType.union(computedType, typeHierarchy);
+    return computedType;
   }
 
   Args<Type> get argumentTypes {

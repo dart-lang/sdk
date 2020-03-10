@@ -123,6 +123,11 @@ const GET_ISOLATE_TAG = 'getIsolateTag';
 //    [INTERCEPTORS_BY_TAG] and [LEAF_TAGS].
 const ISOLATE_TAG = 'isolateTag';
 
+/// An embedded global that contains the property used to store type information
+/// on JavaScript Array instances. This is a Symbol (except for IE11, where is
+/// is a String).
+const ARRAY_RTI_PROPERTY = 'arrayRti';
+
 /// This embedded global (a function) returns the isolate-specific dispatch-tag
 /// that is used to accelerate interceptor calls.
 const DISPATCH_PROPERTY_NAME = "dispatchPropertyName";
@@ -334,21 +339,6 @@ enum JsGetName {
 
   /// String representation of the type of the JavaScriptFunction class.
   JS_FUNCTION_CLASS_TYPE_NAME,
-
-  /// String recipe for the [bool] type.
-  BOOL_RECIPE,
-
-  /// String recipe for the [double] type.
-  DOUBLE_RECIPE,
-
-  /// String recipe for the [int] type.
-  INT_RECIPE,
-
-  /// String recipe for the [num] type.
-  NUM_RECIPE,
-
-  /// String recipe for the [String] type.
-  STRING_RECIPE,
 
   /// Property name for Rti._is field.
   RTI_FIELD_IS,

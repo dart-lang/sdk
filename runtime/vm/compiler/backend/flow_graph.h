@@ -112,6 +112,9 @@ class FlowGraph : public ZoneAllocated {
   // the arguments descriptor.
   intptr_t num_direct_parameters() const { return num_direct_parameters_; }
 
+  // The number of words on the stack used by the direct parameters.
+  intptr_t direct_parameters_size() const { return direct_parameters_size_; }
+
   // The number of variables (or boxes) which code can load from / store to.
   // The SSA renaming will insert phi's for them (and only them - i.e. there
   // will be no phi insertion for [LocalVariable]s pointing to the expression
@@ -126,6 +129,19 @@ class FlowGraph : public ZoneAllocated {
     ASSERT(IsCompiledForOsr());
     return variable_count() + graph_entry()->osr_entry()->stack_depth();
   }
+
+  // This function returns the offset (in words) of the [index]th
+  // parameter, relative to the first parameter.
+  // If [last_slot] is true it gives the offset of the last slot of that
+  // location, otherwise it returns the first one.
+  static intptr_t ParameterOffsetAt(const Function& function,
+                                    intptr_t index,
+                                    bool last_slot = true);
+
+  static Representation ParameterRepresentationAt(const Function& function,
+                                                  intptr_t index);
+
+  static Representation ReturnRepresentationOf(const Function& function);
 
   // The number of variables (or boxes) inside the functions frame - meaning
   // below the frame pointer.  This does not include the expression stack.
@@ -159,6 +175,11 @@ class FlowGraph : public ZoneAllocated {
   intptr_t EnvIndex(const LocalVariable* variable) const {
     ASSERT(!variable->is_captured());
     return num_direct_parameters_ - variable->index().value();
+  }
+
+  static bool NeedsPairLocation(Representation representation) {
+    return representation == kUnboxedInt64 &&
+           compiler::target::kIntSpillFactor == 2;
   }
 
   // Flow graph orders.
@@ -516,6 +537,7 @@ class FlowGraph : public ZoneAllocated {
   // Flow graph fields.
   const ParsedFunction& parsed_function_;
   intptr_t num_direct_parameters_;
+  intptr_t direct_parameters_size_;
   GraphEntryInstr* graph_entry_;
   GrowableArray<BlockEntryInstr*> preorder_;
   GrowableArray<BlockEntryInstr*> postorder_;

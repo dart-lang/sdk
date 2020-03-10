@@ -65,6 +65,7 @@ class Flags {
   static const String noMinify = '--no-minify';
   static const String noSourceMaps = '--no-source-maps';
   static const String preserveUris = '--preserve-uris';
+  static const String printLegacyStars = '--debug-print-legacy-stars';
   static const String showPackageWarnings = '--show-package-warnings';
   static const String suppressHints = '--suppress-hints';
   static const String suppressWarnings = '--suppress-warnings';
@@ -94,8 +95,8 @@ class Flags {
 
   static const String serverMode = '--server-mode';
 
-  static const String runtimeNullSafety = '--runtime-null-safety';
-  static const String noRuntimeNullSafety = '--no-runtime-null-safety';
+  static const String nullSafety = '--null-safety';
+  static const String noNullSafety = '--no-null-safety';
 
   static const String newDeferredSplit = '--new-deferred-split';
   static const String reportInvalidInferredDeferredTypes =

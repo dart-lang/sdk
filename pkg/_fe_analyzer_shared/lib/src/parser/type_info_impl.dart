@@ -355,14 +355,39 @@ class VoidType implements TypeInfo {
 
   @override
   Token parseType(Token token, Parser parser) {
-    token = token.next;
-    parser.listener.handleVoidKeyword(token);
+    Token voidKeyword = token = token.next;
+    bool hasTypeArguments = false;
+
+    // Recovery: Skip past, but issue problem, if followed by type arguments.
+    if (optional('<', token.next)) {
+      TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
+      if (typeParam != noTypeParamOrArg) {
+        hasTypeArguments = true;
+        parser.reportRecoverableError(
+            token.next, codes.messageVoidWithTypeArguments);
+        token = typeParam.parseArguments(token, parser);
+      }
+    }
+    if (hasTypeArguments) {
+      parser.listener.handleVoidKeywordWithTypeArguments(voidKeyword);
+    } else {
+      // Normal case.
+      parser.listener.handleVoidKeyword(voidKeyword);
+    }
     return token;
   }
 
   @override
   Token skipType(Token token) {
-    return token.next;
+    token = token.next;
+    // Recovery: Skip past if followed by type arguments.
+    if (optional('<', token.next)) {
+      TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
+      if (typeParam != noTypeParamOrArg) {
+        token = typeParam.skip(token);
+      }
+    }
+    return token;
   }
 }
 

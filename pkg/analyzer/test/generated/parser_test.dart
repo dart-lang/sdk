@@ -17267,6 +17267,20 @@ enum E {
     expectCommentText(value.documentationComment, '/// Doc');
   }
 
+  void test_parseEnumDeclaration_withDocComment_onValue_annotated() {
+    createParser('''
+enum E {
+  /// Doc
+  @annotation
+  ONE
+}
+''');
+    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
+    var value = declaration.constants[0];
+    expectCommentText(value.documentationComment, '/// Doc');
+    expect(value.metadata, hasLength(1));
+  }
+
   void test_parseExportDirective_configuration_multiple() {
     createParser("export 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
     ExportDirective directive = parseFullDirective();

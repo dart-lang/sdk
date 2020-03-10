@@ -6,6 +6,7 @@
 
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
@@ -1690,7 +1691,8 @@ InferredTypeMetadataHelper::InferredTypeMetadataHelper(
       constant_reader_(constant_reader) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
-    intptr_t node_offset) {
+    intptr_t node_offset,
+    bool read_constant) {
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
   if (md_offset < 0) {
     return InferredTypeMetadata(kDynamicCid,
@@ -1706,8 +1708,10 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   const Object* constant_value = &Object::null_object();
   if ((flags & InferredTypeMetadata::kFlagConstant) != 0) {
     const intptr_t constant_offset = helper_->ReadUInt();
-    constant_value = &Object::ZoneHandle(
-        H.zone(), constant_reader_->ReadConstant(constant_offset));
+    if (read_constant) {
+      constant_value = &Object::ZoneHandle(
+          H.zone(), constant_reader_->ReadConstant(constant_offset));
+    }
   }
 
   if (H.IsRoot(kernel_name)) {
@@ -1852,6 +1856,39 @@ void TableSelectorMetadataHelper::ReadTableSelectorInfo(
     TableSelectorInfo* info) {
   info->call_count = helper_->ReadUInt();
   info->called_on_null = helper_->ReadByte() != 0;
+}
+
+UnboxingInfoMetadataHelper::UnboxingInfoMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
+    intptr_t node_offset) {
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+
+  if (md_offset < 0) {
+    return nullptr;
+  }
+
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
+
+  const intptr_t num_args = helper_->ReadUInt();
+  const auto info = new (helper_->zone_) UnboxingInfoMetadata();
+  info->SetArgsCount(num_args);
+  for (intptr_t i = 0; i < num_args; i++) {
+    const auto arg_info = helper_->ReadByte();
+    assert(arg_info >= UnboxingInfoMetadata::kBoxed &&
+           arg_info < UnboxingInfoMetadata::kUnboxingCandidate);
+    info->unboxed_args_info[i] =
+        static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(arg_info);
+  }
+  const auto return_info = helper_->ReadByte();
+  assert(return_info >= UnboxingInfoMetadata::kBoxed &&
+         return_info < UnboxingInfoMetadata::kUnboxingCandidate);
+  info->return_info =
+      static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(return_info);
+  return info;
 }
 
 intptr_t KernelReaderHelper::ReaderOffset() const {
@@ -2777,13 +2814,17 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 }
 
 TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
+                               ConstantReader* constant_reader,
                                ActiveClass* active_class,
                                bool finalize,
                                bool apply_legacy_erasure)
     : helper_(helper),
+      constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       type_parameter_scope_(NULL),
+      inferred_type_metadata_helper_(helper_, constant_reader_),
+      unboxing_info_metadata_helper_(helper_),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
@@ -3276,6 +3317,75 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
                                                : Nullability::kLegacy);
   }
   return type;
+}
+
+static void SetupUnboxingInfoOfParameter(const Function& function,
+                                         intptr_t param_index,
+                                         const UnboxingInfoMetadata* metadata) {
+  const intptr_t param_pos =
+      param_index + (function.HasThisParameter() ? 1 : 0);
+
+  if (param_pos < function.maximum_unboxed_parameter_count()) {
+    switch (metadata->unboxed_args_info[param_index]) {
+      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+          function.set_unboxed_integer_parameter_at(param_pos);
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+          function.set_unboxed_double_parameter_at(param_pos);
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxingCandidate:
+        UNREACHABLE();
+        break;
+      case UnboxingInfoMetadata::kBoxed:
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
+}
+
+void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
+                                               intptr_t library_kernel_offset) {
+  const intptr_t kernel_offset =
+      function.kernel_offset() + library_kernel_offset;
+
+  const auto unboxing_info =
+      unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
+
+  // TODO(dartbug.com/32292): accept unboxed parameters and return value
+  // when FLAG_use_table_dispatch == false.
+  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
+      FLAG_use_table_dispatch && FLAG_use_bare_instructions) {
+    for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
+      SetupUnboxingInfoOfParameter(function, i, unboxing_info);
+    }
+
+    switch (unboxing_info->return_info) {
+      case UnboxingInfoMetadata::kUnboxedIntCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+          function.set_unboxed_integer_return();
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+          function.set_unboxed_double_return();
+        }
+        break;
+      case UnboxingInfoMetadata::kUnboxingCandidate:
+        UNREACHABLE();
+        break;
+      case UnboxingInfoMetadata::kBoxed:
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
 }
 
 void TypeTranslator::SetupFunctionParameters(

@@ -1475,7 +1475,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (supertype != null) {
       return true;
     }
-    return data.callType is FunctionType;
+    return data.callType?.withoutNullability is FunctionType;
   }
 
   @override
@@ -1869,14 +1869,15 @@ class KernelBehaviorBuilder extends BehaviorBuilder {
   final DiagnosticReporter reporter;
   @override
   final NativeBasicData nativeBasicData;
-  final CompilerOptions _options;
+  @override
+  final CompilerOptions options;
 
   KernelBehaviorBuilder(this.elementEnvironment, this.commonElements,
-      this.nativeBasicData, this.reporter, this._options);
+      this.nativeBasicData, this.reporter, this.options);
 
   @override
   bool get trustJSInteropTypeAnnotations =>
-      _options.trustJSInteropTypeAnnotations;
+      options.trustJSInteropTypeAnnotations;
 }
 
 class KernelNativeMemberResolver implements NativeMemberResolver {

@@ -5,7 +5,11 @@
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show Message, LocatedMessage, messageJsInteropIndexNotSupported;
+    show
+        Message,
+        LocatedMessage,
+        messageJsInteropIndexNotSupported,
+        messageJsInteropNonExternalConstructor;
 
 import 'src/js_interop.dart';
 
@@ -29,6 +33,17 @@ class JsInteropChecks extends RecursiveVisitor<void> {
           procedure.fileOffset,
           procedure.name.name.length,
           procedure.location.file);
+    }
+  }
+
+  @override
+  void visitConstructor(Constructor constructor) {
+    if (!constructor.isExternal && !constructor.isSynthetic) {
+      _diagnosticsReporter.report(
+          messageJsInteropNonExternalConstructor,
+          constructor.fileOffset,
+          constructor.name.name.length,
+          constructor.location.file);
     }
   }
 }

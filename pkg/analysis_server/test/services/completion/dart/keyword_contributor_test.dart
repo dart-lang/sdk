@@ -71,7 +71,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get constructorParameter {
-    List<Keyword> keywords = [Keyword.COVARIANT, Keyword.THIS];
+    List<Keyword> keywords = [Keyword.COVARIANT, Keyword.DYNAMIC, Keyword.THIS];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.REQUIRED);
     }
@@ -156,7 +156,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get methodParameter {
-    List<Keyword> keywords = [Keyword.COVARIANT];
+    List<Keyword> keywords = [Keyword.COVARIANT, Keyword.DYNAMIC];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.REQUIRED);
     }
@@ -168,6 +168,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.ASSERT,
       Keyword.CONST,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
@@ -194,6 +195,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.CONST,
       Keyword.CONTINUE,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
@@ -220,6 +222,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.CONST,
       Keyword.CONTINUE,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
@@ -243,6 +246,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.BREAK,
       Keyword.CONST,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
@@ -268,6 +272,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.BREAK,
       Keyword.CONST,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
@@ -293,6 +298,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.CONST,
       Keyword.DEFAULT,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
@@ -320,6 +326,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.CONST,
       Keyword.DEFAULT,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
@@ -342,6 +349,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.ASSERT,
       Keyword.CONST,
       Keyword.DO,
+      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
@@ -994,13 +1002,13 @@ class C {
   }
 
   Future<void> test_constructor_param_noPrefix() async {
-    addTestSource('class A { A(^) {});}');
+    addTestSource('class A { A(^) {}}');
     await computeSuggestions();
     assertSuggestKeywords(constructorParameter);
   }
 
   Future<void> test_constructor_param_prefix() async {
-    addTestSource('class A { A(t^) {});}');
+    addTestSource('class A { A(t^) {}}');
     await computeSuggestions();
     assertSuggestKeywords(constructorParameter);
   }
@@ -1910,7 +1918,7 @@ f() => <int>{1, ^, 2};
   }
 
   Future<void> test_method_param_noPrefix() async {
-    addTestSource('class A { foo(^) {});}');
+    addTestSource('class A { foo(^) {}}');
     await computeSuggestions();
     expect(suggestions, isNotEmpty);
     assertSuggestKeywords(methodParameter);
@@ -2142,6 +2150,12 @@ f() => [...^];
     assertSuggestKeywords(statementStartInSwitchOutsideClass);
   }
 
+  Future<void> test_variable_decl_type_args() async {
+    addTestSource('void m() {List<^> list;}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.DYNAMIC]);
+  }
+
   Future<void> test_while_break_continue() async {
     addTestSource('main() {while (true) {^}}');
     await computeSuggestions();
@@ -2259,7 +2273,7 @@ void m() {
 ''');
 
     await computeSuggestions();
-    assertSuggestKeywords([]);
+    assertSuggestKeywords([Keyword.DYNAMIC]);
   }
 }
 

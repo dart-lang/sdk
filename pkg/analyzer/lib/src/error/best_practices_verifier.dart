@@ -566,6 +566,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    _checkForDuplications(node);
+    super.visitSetOrMapLiteral(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForDeprecatedMemberUseAtIdentifier(node);
     _invalidAccessVerifier.verify(node);
@@ -822,6 +828,31 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return false;
+  }
+
+  /// Generate hints related to duplicate elements (keys) in sets (maps).
+  void _checkForDuplications(SetOrMapLiteral node) {
+    // This only checks for top-level elements. If, for, and spread elements
+    // that contribute duplicate values are not detected.
+    if (node.isConst) {
+      // This case is covered by the ErrorVerifier.
+      return;
+    }
+    final expressions = node.isSet
+        ? node.elements.whereType<Expression>()
+        : node.elements.whereType<MapLiteralEntry>().map((entry) => entry.key);
+    final alreadySeen = <DartObject>{};
+    for (final expression in expressions) {
+      final constEvaluation = _linterContext.evaluateConstant(expression);
+      if (constEvaluation.errors.isEmpty) {
+        if (!alreadySeen.add(constEvaluation.value)) {
+          var errorCode = node.isSet
+              ? HintCode.EQUAL_ELEMENTS_IN_SET
+              : HintCode.EQUAL_KEYS_IN_MAP;
+          _errorReporter.reportErrorForNode(errorCode, expression);
+        }
+      }
+    }
   }
 
   /// Checks whether [node] violates the rules of [immutable].

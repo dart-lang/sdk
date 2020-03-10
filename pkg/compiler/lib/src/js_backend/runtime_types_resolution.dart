@@ -390,22 +390,23 @@ class TypeVariableTests {
     }
 
     void processCheckedType(DartType type) {
-      if (type is InterfaceType) {
+      var typeWithoutNullability = type.withoutNullability;
+      if (typeWithoutNullability is InterfaceType) {
         // Register that if [cls] needs type arguments then so do the entities
         // that declare type variables occurring in [type].
-        ClassEntity cls = type.element;
-        registerDependencies(_getClassNode(cls), type);
+        ClassEntity cls = typeWithoutNullability.element;
+        registerDependencies(_getClassNode(cls), typeWithoutNullability);
       }
-      if (type is FutureOrType) {
-        // [type] is `FutureOr<X>`.
+      if (typeWithoutNullability is FutureOrType) {
+        // [typeWithoutNullability] is `FutureOr<X>`.
 
         // For the implied `is Future<X>` test, register that if `Future` needs
         // type arguments then so do the entities that declare type variables
         // occurring in `type.typeArgument`.
-        registerDependencies(
-            _getClassNode(commonElements.futureClass), type.typeArgument);
+        registerDependencies(_getClassNode(commonElements.futureClass),
+            typeWithoutNullability.typeArgument);
         // Process `type.typeArgument` for the implied `is X` test.
-        processCheckedType(type.typeArgument);
+        processCheckedType(typeWithoutNullability.typeArgument);
       }
     }
 
@@ -486,11 +487,12 @@ class TypeVariableTests {
     }
 
     void processType(DartType type, {bool direct: true}) {
-      if (type is FutureOrType) {
+      var typeWithoutNullability = type.withoutNullability;
+      if (typeWithoutNullability is FutureOrType) {
         _getClassNode(commonElements.futureClass).markIndirectTest();
-        processType(type.typeArgument, direct: false);
+        processType(typeWithoutNullability.typeArgument, direct: false);
       } else {
-        type.forEachTypeVariable((TypeVariableType type) {
+        typeWithoutNullability.forEachTypeVariable((TypeVariableType type) {
           processTypeVariableType(type, direct: direct);
         });
       }
@@ -568,10 +570,12 @@ class TypeVariableTests {
     /// If [type] is of the form `FutureOr<X>`, also register the implicit
     /// is-tests of `Future<X>` and `X`.
     void addImplicitCheck(DartType type) {
-      if (implicitIsChecks.add(type)) {
-        if (type is FutureOrType) {
-          addImplicitCheck(commonElements.futureType(type.typeArgument));
-          addImplicitCheck(type.typeArgument);
+      var typeWithoutNullability = type.withoutNullability;
+      if (implicitIsChecks.add(typeWithoutNullability)) {
+        if (typeWithoutNullability is FutureOrType) {
+          addImplicitCheck(
+              commonElements.futureType(typeWithoutNullability.typeArgument));
+          addImplicitCheck(typeWithoutNullability.typeArgument);
         }
       }
     }
@@ -581,9 +585,11 @@ class TypeVariableTests {
     }
 
     world.isChecks.forEach((DartType type) {
-      if (type is FutureOrType) {
-        addImplicitCheck(commonElements.futureType(type.typeArgument));
-        addImplicitCheck(type.typeArgument);
+      var typeWithoutNullability = type.withoutNullability;
+      if (typeWithoutNullability is FutureOrType) {
+        addImplicitCheck(
+            commonElements.futureType(typeWithoutNullability.typeArgument));
+        addImplicitCheck(typeWithoutNullability.typeArgument);
       }
     });
 

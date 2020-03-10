@@ -16,13 +16,13 @@ void f1(
   (nullableInt ?? nonNullInt) + 1;
   (nullableInt ?? nullableInt) + 1;
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer] STATIC_WARNING.USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
   (nonNullInt ?? nullableInt) + 1;
 //               ^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer] STATIC_WARNING.USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
   (nonNullInt ?? nonNullInt) + 1;
 //               ^^^^^^^^^^

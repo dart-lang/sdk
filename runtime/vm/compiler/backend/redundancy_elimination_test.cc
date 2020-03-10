@@ -642,21 +642,23 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
 
     //   v1 <- LoadIndexed(array)
     v1 = builder.AddDefinition(new LoadIndexedInstr(
-        new Value(array), new Value(vc0), 1, kTypedDataUint32ArrayCid,
-        kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource));
+        new Value(array), new Value(vc0), /*index_unboxed=*/false, 1,
+        kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
+        TokenPosition::kNoSource));
 
     //   v2 <- LoadUntagged(array)
     //   StoreIndexed(v2, index=0, value=42)
     v2 = builder.AddDefinition(new LoadUntaggedInstr(new Value(array), 0));
     store = builder.AddInstruction(new StoreIndexedInstr(
-        new Value(v2), new Value(vc0), new Value(vc42), kNoStoreBarrier, 1,
-        kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
-        TokenPosition::kNoSource));
+        new Value(v2), new Value(vc0), new Value(vc42), kNoStoreBarrier,
+        /*index_unboxed=*/false, 1, kTypedDataUint32ArrayCid, kAlignedAccess,
+        DeoptId::kNone, TokenPosition::kNoSource));
 
     //   v3 <- LoadIndexed(array)
     v3 = builder.AddDefinition(new LoadIndexedInstr(
-        new Value(array), new Value(vc0), 1, kTypedDataUint32ArrayCid,
-        kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource));
+        new Value(array), new Value(vc0), /*index_unboxed=*/false, 1,
+        kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
+        TokenPosition::kNoSource));
 
     //   return v3
     ret = builder.AddInstruction(new ReturnInstr(

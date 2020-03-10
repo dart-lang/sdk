@@ -107,6 +107,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _MULTIPLE_VARIANCE_MODIFIERS,
   _INVALID_USE_OF_COVARIANT_IN_EXTENSION,
   _TYPE_PARAMETER_ON_CONSTRUCTOR,
+  _VOID_WITH_TYPE_ARGUMENTS,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -573,6 +574,10 @@ const ParserErrorCode _VAR_RETURN_TYPE = ParserErrorCode(
     'VAR_RETURN_TYPE', r"The return type can't be 'var'.",
     correction:
         "Try removing the keyword 'var', or replacing it with the name of the return type.");
+
+const ParserErrorCode _VOID_WITH_TYPE_ARGUMENTS = ParserErrorCode(
+    'VOID_WITH_TYPE_ARGUMENTS', r"Type 'void' can't have type arguments.",
+    correction: "Try removing the type arguments.");
 
 const ParserErrorCode _WITH_BEFORE_EXTENDS = ParserErrorCode(
     'WITH_BEFORE_EXTENDS',

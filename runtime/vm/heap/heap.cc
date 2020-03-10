@@ -52,24 +52,6 @@ class NoActiveIsolateScope {
   Isolate* saved_isolate_;
 };
 
-RunFinalizersScope::RunFinalizersScope(Thread* thread) : thread_(thread) {
-  if (!FLAG_enable_isolate_groups) {
-    ASSERT(thread->IsAtSafepoint() ||
-           (thread->task_kind() == Thread::kMarkerTask));
-    IsolateGroup* isolate_group = thread->isolate_group();
-    Isolate* isolate = isolate_group->isolates_.First();
-    ASSERT(isolate == isolate_group->isolates_.Last());
-    saved_isolate_ = thread->isolate_;
-    thread->isolate_ = isolate;
-  }
-}
-
-RunFinalizersScope::~RunFinalizersScope() {
-  if (!FLAG_enable_isolate_groups) {
-    thread_->isolate_ = saved_isolate_;
-  }
-}
-
 Heap::Heap(IsolateGroup* isolate_group,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)

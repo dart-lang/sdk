@@ -39,7 +39,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "def1183bacc28f008db4fdd3d0442ed05f1889f8",
+  "co19_rev": "34a1386e6e7d3e27f5f2b4461aeb6f8794ab55c7",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -47,7 +47,7 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/buildtools/+/master/fuchsia.ensure
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "b25fc4123c77097c05ea221e023fa5c6a16e0f41",
+  "clang_revision": "7e9747b50bcb1be28d4a3236571e8050835497a6",
   "gn_revision": "239533d2d91a04b3317ca9101cf7189f4e651e4d",
 
   # Scripts that make 'git cl format' work.
@@ -86,7 +86,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.30.1",
+  "dartdoc_tag" : "v0.30.2",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
@@ -126,10 +126,10 @@ vars = {
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
   "shelf_static_rev": "v0.2.8",
-  "shelf_packages_handler_tag": "1.0.4",
+  "shelf_packages_handler_tag": "2.0.0",
   "shelf_tag": "0.7.3+3",
   "shelf_web_socket_tag": "0.2.2+3",
-  "source_map_stack_trace_tag": "1.1.5",
+  "source_map_stack_trace_tag": "2.0.0",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
   "source_span_tag": "1.5.5",
@@ -141,12 +141,12 @@ vars = {
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.9",
-  "test_tag": "test-v1.6.4",
+  "test_tag": "test_core-v0.3.2",
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
-  "watcher_rev": "0.9.7+13",
+  "watcher_rev": "0.9.7+14",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.9",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
@@ -286,8 +286,6 @@ deps = {
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
-  Var("dart_root") + "/third_party/pkg/args":
-      Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/ffi":

@@ -71,7 +71,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   RawArray* GetOptionalParameterNames(const Function& function);
 
   // Generate fragment which pushes all explicit parameters of [function].
-  Fragment PushExplicitParameters(const Function& function);
+  Fragment PushExplicitParameters(
+      const Function& function,
+      const Function& target = Function::null_function());
 
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
@@ -189,9 +191,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Truncates (instead of deoptimizing) if the origin does not fit into the
   // target representation.
   Fragment UnboxTruncate(Representation to);
-
-  // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
-  Fragment Box(Representation from);
 
   // Creates an ffi.Pointer holding a given address (TOS).
   Fragment FfiPointerFromAddress(const Type& result_type);

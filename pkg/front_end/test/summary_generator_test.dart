@@ -40,7 +40,7 @@ main() {
     sourcesWithA['a.dill'] = summaryA;
 
     var summaryBC = await summarize(['b.dart', 'c.dart'], sourcesWithA,
-        inputSummaries: ['a.dill']);
+        additionalDills: ['a.dill']);
 
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
@@ -48,7 +48,7 @@ main() {
     // Note: a is loaded first, bc.dill have a.dart as an external reference so
     // we want to ensure loading them here will not create a problem.
     var summaryD = await summarize(['d.dart'], sourcesWithABC,
-        inputSummaries: ['a.dill', 'bc.dill']);
+        additionalDills: ['a.dill', 'bc.dill']);
 
     checkDSummary(summaryD);
   });
@@ -59,7 +59,7 @@ main() {
     sourcesWithA['a.dill'] = summaryA;
 
     var summaryBC = await summarize(['b.dart', 'c.dart'], sourcesWithA,
-        inputSummaries: ['a.dill']);
+        additionalDills: ['a.dill']);
 
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
@@ -69,7 +69,7 @@ main() {
     // because we share a CanonicalName root to resolve names across multiple
     // dill files and because of how the kernel loader merges definitions.
     var summaryD = await summarize(['d.dart'], sourcesWithABC,
-        inputSummaries: ['bc.dill', 'a.dill']);
+        additionalDills: ['bc.dill', 'a.dill']);
     checkDSummary(summaryD);
   });
 
@@ -84,7 +84,7 @@ main() {
     var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
     var summaryB = await summarize(['b.dart'], sourcesWithA,
-        inputSummaries: ['a.dill'], truncate: true);
+        additionalDills: ['a.dill'], truncate: true);
     component = loadComponentFromBytes(summaryB);
     expect(component.libraries.length, 1);
     expect(

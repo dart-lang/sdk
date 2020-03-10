@@ -45,7 +45,7 @@ Map<String, dynamic>? _symbolMapToStringMap(Map<Symbol, dynamic>? map) {
 }
 
 @patch
-int identityHashCode(Object object) => objectHashCode(object);
+int identityHashCode(Object? object) => objectHashCode(object);
 
 // Patch for Object implementation.
 @patch
@@ -105,7 +105,7 @@ class Expando<T> {
   Expando([String? name])
       : this.name = name,
         _jsWeakMapOrKey = JS('bool', 'typeof WeakMap == "function"')
-            ? JS('=Object|Null', 'new WeakMap()')
+            ? JS('=Object', 'new WeakMap()')
             : _createKey();
 
   @patch
@@ -448,6 +448,18 @@ class List<E> {
   factory List.of(Iterable<E> elements, {bool growable: true}) {
     // TODO(32937): Specialize to benefit from known element type.
     return List.from(elements, growable: growable);
+  }
+
+  @patch
+  factory List.generate(int length, E generator(int index),
+      {bool growable = true}) {
+    final result = growable
+        ? new JSArray<E>.growable(length)
+        : new JSArray<E>.fixed(length);
+    for (int i = 0; i < length; i++) {
+      result[i] = generator(i);
+    }
+    return result;
   }
 
   @patch

@@ -136,6 +136,7 @@ and
 angle
 annotatable
 annotated
+annotating
 annotation
 annotations
 annotator

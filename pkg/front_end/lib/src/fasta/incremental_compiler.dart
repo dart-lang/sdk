@@ -144,6 +144,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Map<String, Package> previousPackagesMap;
   Map<String, Package> currentPackagesMap;
   bool hasToCheckPackageUris = false;
+  final bool initializedForExpressionCompilationOnly;
+  bool computeDeltaRunOnce = false;
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
   List<Component> modulesToLoad;
@@ -159,25 +161,34 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   IncrementalCompiler.fromComponent(
       this.context, this.componentToInitializeFrom,
-      [bool outlineOnly, IncrementalSerializer incrementalSerializer])
+      [bool outlineOnly, this.incrementalSerializer])
       : ticker = context.options.ticker,
         initializeFromDillUri = null,
         this.outlineOnly = outlineOnly ?? false,
-        this.incrementalSerializer = incrementalSerializer {
+        this.initializedForExpressionCompilationOnly = false {
     enableExperimentsBasedOnEnvironment();
   }
 
   IncrementalCompiler(this.context,
       [this.initializeFromDillUri,
       bool outlineOnly,
-      IncrementalSerializer incrementalSerializer])
+      this.incrementalSerializer])
       : ticker = context.options.ticker,
         componentToInitializeFrom = null,
         this.outlineOnly = outlineOnly ?? false,
-        this.incrementalSerializer = incrementalSerializer {
+        this.initializedForExpressionCompilationOnly = false {
     enableExperimentsBasedOnEnvironment();
   }
 
+  IncrementalCompiler.forExpressionCompilationOnly(
+      this.context, this.componentToInitializeFrom)
+      : ticker = context.options.ticker,
+        initializeFromDillUri = null,
+        this.outlineOnly = false,
+        this.incrementalSerializer = null,
+        this.initializedForExpressionCompilationOnly = true {
+    enableExperimentsBasedOnEnvironment();
+  }
   void enableExperimentsBasedOnEnvironment() {
     // Note that these are all experimental. Use at your own risk.
     Set<String> enabledExperiments = getExperimentEnvironment();
@@ -198,6 +209,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     ticker.reset();
     entryPoints ??= context.options.inputs;
     return context.runInContext<Component>((CompilerContext c) async {
+      if (computeDeltaRunOnce && initializedForExpressionCompilationOnly) {
+        throw new StateError("Initialized for expression compilation: "
+            "cannot do another general compile.");
+      }
+      computeDeltaRunOnce = true;
       // Initial setup: Load platform, initialize from dill or component etc.
       UriTranslator uriTranslator = await setupPackagesAndUriTranslator(c);
       IncrementalCompilerData data =
@@ -953,6 +969,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // changed and only set this to true if it did.
     hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
     ticker.logMs("Read packages file");
+    if (initializedForExpressionCompilationOnly) {
+      hasToCheckPackageUris = false;
+    }
     return uriTranslator;
   }
 

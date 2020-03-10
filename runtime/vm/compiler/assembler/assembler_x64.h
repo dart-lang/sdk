@@ -192,6 +192,7 @@ class Address : public Operand {
 
   Address(Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     SetModRM(0, RSP);
     SetSIB(scale, index, RBP);
     SetDisp32(disp);
@@ -202,6 +203,7 @@ class Address : public Operand {
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     if ((disp == 0) && ((base & 7) != RBP)) {
       SetModRM(0, RSP);
       SetSIB(scale, index, base);
@@ -962,6 +964,7 @@ class Assembler : public AssemblerBase {
   static Address ElementAddressForRegIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
+                                           bool index_unboxed,
                                            Register array,
                                            Register index);
 

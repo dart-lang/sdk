@@ -12,6 +12,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -79,6 +80,7 @@ abstract class AbstractLspAnalysisServerTest
         resourceProvider,
         AnalysisServerOptions(),
         DartSdkManager(convertPath('/sdk'), false),
+        CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
 
     projectFolderPath = convertPath('/home/test');

@@ -2407,6 +2407,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
+  if (isolate_group_ != nullptr) {
+    if (isolate_group_->source()->hot_reload_blobs_ != nullptr) {
+      visitor->VisitPointer(reinterpret_cast<RawObject**>(
+          &(isolate_group_->source()->hot_reload_blobs_)));
+    }
+  }
 #if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));

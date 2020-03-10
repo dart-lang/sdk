@@ -9,17 +9,27 @@ import 'package:args/src/arg_parser.dart';
 import 'package:path/path.dart' as path;
 
 class MigrateOptions {
-  static const ignoreErrorsOption = 'ignore-errors';
   static const applyChangesOption = 'apply-changes';
+  static const debugOption = 'debug';
+  static const ignoreErrorsOption = 'ignore-errors';
+  static const sdkPathOption = 'sdk-path';
+  static const serverPathOption = 'server-path';
+  static const webPreviewOption = 'web-preview';
 
-  final String directory;
   final bool applyChanges;
+  final bool debug;
+  final String directory;
   final bool ignoreErrors;
+  final String serverPath;
+  final String sdkPath;
   final bool webPreview;
 
   MigrateOptions(ArgResults argResults, this.directory)
       : applyChanges = argResults[applyChangesOption] as bool,
+        debug = argResults[debugOption] as bool,
         ignoreErrors = argResults[ignoreErrorsOption] as bool,
+        sdkPath = argResults[sdkPathOption] as String,
+        serverPath = argResults[serverPathOption] as String,
         webPreview = argResults['web-preview'] as bool;
 
   String get directoryAbsolute => Directory(path.canonicalize(directory)).path;
@@ -37,14 +47,32 @@ class MigrateOptions {
       help: 'Apply the proposed null safety changes to the files on disk.',
     );
     argParser.addFlag(
+      debugOption,
+      defaultsTo: false,
+      hide: true,
+      negatable: true,
+      help: 'Show (very verbose) debugging information to stdout during '
+          'migration',
+    );
+    argParser.addFlag(
       ignoreErrorsOption,
       defaultsTo: false,
       negatable: false,
       help: 'Attempt to perform null safety analysis even if there are '
           'analysis errors in the project.',
     );
+    argParser.addOption(
+      sdkPathOption,
+      hide: true,
+      help: 'Override the SDK path used for migration.',
+    );
+    argParser.addOption(
+      serverPathOption,
+      hide: true,
+      help: 'Override the analysis server path used for migration.',
+    );
     argParser.addFlag(
-      'web-preview',
+      webPreviewOption,
       defaultsTo: true,
       negatable: true,
       help: 'Show an interactive preview of the proposed null safety changes '

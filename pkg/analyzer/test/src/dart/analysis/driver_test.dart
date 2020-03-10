@@ -3073,7 +3073,7 @@ var v = 0
     if (allExceptions.isNotEmpty) {
       var buffer = StringBuffer();
       for (var exception in allExceptions) {
-        buffer.writeln('Path: ${exception.path}');
+        buffer.writeln('Path: ${exception.filePath}');
         buffer.writeln('Exception: ${exception.exception}');
       }
       fail('Unexpected exceptions:\n$buffer');

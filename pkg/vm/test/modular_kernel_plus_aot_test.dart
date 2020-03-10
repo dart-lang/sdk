@@ -36,21 +36,14 @@ main() async {
     await File.fromUri(mixinFilename).writeAsStringSync(mixinFile);
 
     await compileToKernel(vmTarget, librariesFile, sdkSummary, packagesFile,
-        mixinDillFilename, <Uri>[mixinFilename], <Uri>[], <Uri>[]);
+        mixinDillFilename, <Uri>[mixinFilename], <Uri>[]);
 
     final mainFilename = uri.resolve('main.dart');
     final mainDillFilename = uri.resolve('main.dart.dill');
     await File.fromUri(mainFilename).writeAsStringSync(mainFile);
 
-    await compileToKernel(
-        vmTarget,
-        librariesFile,
-        sdkSummary,
-        packagesFile,
-        mainDillFilename,
-        <Uri>[mainFilename],
-        <Uri>[mixinDillFilename],
-        <Uri>[]);
+    await compileToKernel(vmTarget, librariesFile, sdkSummary, packagesFile,
+        mainDillFilename, <Uri>[mainFilename], <Uri>[mixinDillFilename]);
 
     final bytes = concat(
         await File.fromUri(sdkSummary).readAsBytes(),
@@ -84,15 +77,13 @@ Future compileToKernel(
     Uri packagesFile,
     Uri outputFile,
     List<Uri> sources,
-    List<Uri> linkedInputs,
-    List<Uri> summaryInputs) async {
+    List<Uri> additionalDills) async {
   final state = await fe.initializeCompiler(
       null,
       sdkSummary,
       librariesFile,
       packagesFile,
-      summaryInputs,
-      linkedInputs,
+      additionalDills,
       target,
       StandardFileSystem.instance, const <String>[], const <String, String>{});
 

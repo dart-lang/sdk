@@ -689,7 +689,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Applies  [streamTransformer] to this stream.
+   * Applies [streamTransformer] to this stream.
    *
    * Returns the transformed stream,
    * that is, the result of `streamTransformer.bind(this)`.

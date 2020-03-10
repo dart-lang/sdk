@@ -1510,7 +1510,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
 
   const int kTypeArgsLen = 0;
   const Array& args_descriptor_array = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
+      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (!redirected_constructor.AreValidArguments(args_descriptor, NULL)) {

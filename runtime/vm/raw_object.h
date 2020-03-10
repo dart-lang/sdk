@@ -1008,6 +1008,63 @@ class RawFunction : public RawObject {
     kAsyncGen = kAsyncBit | kGeneratorBit,
   };
 
+  // Wraps a 64-bit integer to represent the bitmap for unboxed parameters and
+  // return value. Two bits are used for each of them - the first one indicates
+  // whether this value is unboxed or not, and the second one says whether it is
+  // an integer or a double. It includes the two bits for the receiver, even
+  // though currently we do not have information from TFA that allows the
+  // receiver to be unboxed.
+  class UnboxedParameterBitmap {
+   public:
+    static constexpr intptr_t kBitsPerParameter = 2;
+    static constexpr intptr_t kCapacity =
+        (kBitsPerByte * sizeof(uint64_t)) / kBitsPerParameter;
+
+    UnboxedParameterBitmap() : bitmap_(0) {}
+    explicit UnboxedParameterBitmap(uint64_t bitmap) : bitmap_(bitmap) {}
+    UnboxedParameterBitmap(const UnboxedParameterBitmap&) = default;
+    UnboxedParameterBitmap& operator=(const UnboxedParameterBitmap&) = default;
+
+    DART_FORCE_INLINE bool IsUnboxed(intptr_t position) const {
+      if (position >= kCapacity) {
+        return false;
+      }
+      ASSERT(Utils::TestBit(bitmap_, 2 * position) ||
+             !Utils::TestBit(bitmap_, 2 * position + 1));
+      return Utils::TestBit(bitmap_, 2 * position);
+    }
+    DART_FORCE_INLINE bool IsUnboxedInteger(intptr_t position) const {
+      if (position >= kCapacity) {
+        return false;
+      }
+      return Utils::TestBit(bitmap_, 2 * position) &&
+             !Utils::TestBit(bitmap_, 2 * position + 1);
+    }
+    DART_FORCE_INLINE bool IsUnboxedDouble(intptr_t position) const {
+      if (position >= kCapacity) {
+        return false;
+      }
+      return Utils::TestBit(bitmap_, 2 * position) &&
+             Utils::TestBit(bitmap_, 2 * position + 1);
+    }
+    DART_FORCE_INLINE void SetUnboxedInteger(intptr_t position) {
+      ASSERT(position < kCapacity);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
+      ASSERT(!Utils::TestBit(bitmap_, 2 * position + 1));
+    }
+    DART_FORCE_INLINE void SetUnboxedDouble(intptr_t position) {
+      ASSERT(position < kCapacity);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position + 1);
+    }
+    DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
+    DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
+    DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
+
+   private:
+    uint64_t bitmap_;
+  };
+
   static constexpr intptr_t kMaxFixedParametersBits = 15;
   static constexpr intptr_t kMaxOptionalParametersBits = 14;
 
@@ -1102,6 +1159,8 @@ class RawFunction : public RawObject {
 #undef DECLARE
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
 };
 
 class RawClosureData : public RawObject {
@@ -2392,8 +2451,12 @@ class RawTwoByteString : public RawString {
   friend class String;
 };
 
-// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
-class RawTypedDataBase : public RawInstance {
+// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
+// Pointer.
+//
+// TypedData extends this with a length field, while Pointer extends this with
+// TypeArguments field.
+class RawPointerBase : public RawInstance {
  protected:
   // The contents of [data_] depends on what concrete subclass is used:
   //
@@ -2401,12 +2464,20 @@ class RawTypedDataBase : public RawInstance {
   //  - RawExternalTypedData: Start of the C-heap payload.
   //  - RawTypedDataView: The [data_] field of the backing store for the view
   //    plus the [offset_in_bytes_] the view has.
+  //  - RawPointer: Pointer into C memory (no length specified).
   //
   // During allocation or snapshot reading the [data_] can be temporarily
   // nullptr (which is the case for views which just got created but haven't
   // gotten the backing store set).
   uint8_t* data_;
 
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(PointerBase);
+};
+
+// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
+class RawTypedDataBase : public RawPointerBase {
+ protected:
   // The length of the view in element sizes (obtainable via
   // [TypedDataBase::ElementSizeInBytes]).
   RawSmi* length_;
@@ -2671,12 +2742,12 @@ class RawExternalTypedData : public RawTypedDataBase {
   friend class RawBytecode;
 };
 
-class RawPointer : public RawInstance {
+class RawPointer : public RawPointerBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
+
   VISIT_FROM(RawCompressed, type_arguments_)
   RawTypeArguments* type_arguments_;
-  RawInteger* c_memory_address_;
-  VISIT_TO(RawCompressed, c_memory_address_)
+  VISIT_TO(RawCompressed, type_arguments_)
 
   friend class Pointer;
 };

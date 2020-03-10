@@ -280,8 +280,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       // Analyze the libraries.
       for (String path in filesToAnalyze) {
         var shortName = resourceProvider.pathContext.basename(path);
-        if (shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
-            shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
+        if (shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE) {
           File file = resourceProvider.getFile(path);
           String content = file.readAsStringSync();
           LineInfo lineInfo = LineInfo.fromContent(content);

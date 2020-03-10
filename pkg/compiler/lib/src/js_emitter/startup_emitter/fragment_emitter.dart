@@ -1942,7 +1942,13 @@ class FragmentEmitter {
       globals.add(new js.Property(js.string(LEAF_TAGS), new js.LiteralNull()));
     }
 
-    js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
+    globals.add(js.Property(
+        js.string(ARRAY_RTI_PROPERTY),
+        js.js(r'typeof Symbol == "function" && typeof Symbol() == "symbol"'
+            r'    ? Symbol("$ti")'
+            r'    : "$ti"')));
+
+    js.ObjectInitializer globalsObject = js.ObjectInitializer(globals);
 
     return js.js.statement('var init = #;', globalsObject);
   }

@@ -173,16 +173,6 @@ class InfoBuilder {
       return 'The value of the expression is nullable';
     }
 
-    // Text indicating the type of nullable value found.
-    String nullableValue;
-    if (node is NullLiteral) {
-      nullableValue = "an explicit 'null'";
-    } else if (origin.kind == EdgeOriginKind.dynamicAssignment) {
-      nullableValue = 'a dynamic value, which is nullable';
-    } else {
-      nullableValue = 'a nullable value';
-    }
-
     if (origin.kind == EdgeOriginKind.listLengthConstructor) {
       return 'A length is specified in the "List()" constructor and the list '
           'items are initialized to null';
@@ -203,6 +193,16 @@ class InfoBuilder {
     } else if (origin.kind == EdgeOriginKind.implicitNullReturn) {
       return 'This function contains a return statement with no value on line '
           '$lineNumber, which implicitly returns null.';
+    }
+
+    // Text indicating the type of nullable value found.
+    String nullableValue;
+    if (node is NullLiteral) {
+      nullableValue = "an explicit 'null'";
+    } else if (origin.kind == EdgeOriginKind.dynamicAssignment) {
+      nullableValue = 'a dynamic value, which is nullable';
+    } else {
+      nullableValue = 'a nullable value';
     }
 
     /// If the [node] is inside the return expression for a function body,
@@ -263,16 +263,19 @@ class InfoBuilder {
         return 'This field is initialized to $nullableValue';
       }
       return 'This variable is initialized to $nullableValue';
-    } else if (node is ConstructorDeclaration &&
-        origin.kind == EdgeOriginKind.fieldNotInitialized) {
-      String constructorName =
-          node.declaredElement.enclosingElement.displayName;
-      if (node.declaredElement.displayName.isNotEmpty) {
-        constructorName =
-            '$constructorName.${node.declaredElement.displayName}';
+    } else if (origin.kind == EdgeOriginKind.fieldNotInitialized) {
+      if (node is ConstructorDeclaration) {
+        String constructorName =
+            node.declaredElement.enclosingElement.displayName;
+        if (node.declaredElement.displayName.isNotEmpty) {
+          constructorName =
+              '$constructorName.${node.declaredElement.displayName}';
+        }
+        return "The constructor '$constructorName' does not initialize this "
+            'field in its initializer list';
+      } else {
+        return 'This field is not initialized';
       }
-      return "The constructor '$constructorName' does not initialize this "
-          'field in its initializer list';
     }
 
     String enclosingMemberDescription = buildEnclosingMemberDescription(node);
@@ -511,6 +514,48 @@ class InfoBuilder {
     }).toList();
   }
 
+  TraceEntryInfo _computeTraceEntry(PropagationStepInfo step) {
+    var codeReference = step.codeReference;
+    var length = 1; // TODO(paulberry): figure out the correct value.
+    var description = step.toString(); // TODO(paulberry): improve this message.
+    return TraceEntryInfo(
+        description,
+        codeReference?.function,
+        codeReference == null
+            ? null
+            : NavigationTarget(codeReference.path, codeReference.column,
+                codeReference.line, length));
+  }
+
+  TraceInfo _computeTraceInfo(NullabilityNodeInfo node) {
+    List<TraceEntryInfo> entries = [];
+    var step = node.whyNullable;
+    while (step != null) {
+      entries.add(_computeTraceEntry(step));
+      step = step.principalCause;
+    }
+    var description = node.toString(); // TODO(paulberry): improve this message.
+    return TraceInfo(description, entries);
+  }
+
+  List<TraceInfo> _computeTraces(List<FixReasonInfo> fixReasons) {
+    var nodes = <NullabilityNodeInfo>[];
+    for (var reason in fixReasons) {
+      if (reason is NullabilityNodeInfo) {
+        if (reason.isNullable) {
+          nodes.add(reason);
+        }
+      } else if (reason is EdgeInfo) {
+        assert(reason.sourceNode.isNullable);
+        assert(!reason.destinationNode.isNullable);
+        nodes.add(reason.sourceNode);
+      } else {
+        assert(false, 'Unrecognized reason type: ${reason.runtimeType}');
+      }
+    }
+    return [for (var node in nodes) _computeTraceInfo(node)];
+  }
+
   /// Compute details about [edgeInfos] which are upstream triggered.
   List<RegionDetail> _computeUpstreamTriggeredDetails(
       Iterable<EdgeInfo> edgeInfos) {
@@ -636,15 +681,16 @@ class InfoBuilder {
           }
         }
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
+        var traces = info == null ? const [] : _computeTraces(info.fixReasons);
         if (explanation != null) {
           if (length > 0) {
             regions.add(RegionInfo(RegionType.remove, offset, length,
                 lineNumber, explanation, details,
-                edits: edits));
+                edits: edits, traces: traces));
           } else {
             regions.add(RegionInfo(RegionType.add, offset, replacement.length,
                 lineNumber, explanation, details,
-                edits: edits));
+                edits: edits, traces: traces));
           }
         }
         offset += replacement.length;

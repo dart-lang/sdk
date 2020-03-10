@@ -13,6 +13,7 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
+import '../util.dart';
 import 'apply.dart';
 import 'display.dart';
 import 'options.dart';
@@ -60,17 +61,46 @@ class MigrateCommand extends Command {
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
-    Progress progress =
-        logger.progress('${ansi.emphasized('Analyzing project')}');
-
-    Server server =
-        Server(listener: logger.isVerbose ? _ServerListener(logger) : null);
+    Progress getProgress(String message) => options.debug
+        ? SimpleProgress(logger, message)
+        : logger.progress(message);
 
     Map<String, List<AnalysisError>> fileErrors = {};
 
+    bool enableAsserts = false;
+    String instrumentationLogFile;
+    bool profileServer = false;
+    String serverPath = options.serverPath;
+    int servicesPort;
+    String sdkPath = options.sdkPath;
+    bool stdioPassthrough = false;
+
+    if (options.debug) {
+      enableAsserts = true;
+      profileServer = true;
+      servicesPort = 9500;
+      stdioPassthrough = true;
+      instrumentationLogFile = path.join(
+          Directory.systemTemp.createTempSync('migration_debug').path,
+          'instrumentationLog');
+      logger.stdout('Instrumentation log file:  ${instrumentationLogFile}');
+    }
+
+    Progress progress = getProgress('${ansi.emphasized('Analyzing project')}');
+
+    Server server = Server(
+        listener: logger.isVerbose ? _ServerListener(logger) : null,
+        stdioPassthrough: stdioPassthrough);
     try {
       await server.start(
-          clientId: 'dart $name', clientVersion: _dartSdkVersion);
+          clientId: 'dart $name',
+          clientVersion: _dartSdkVersion,
+          enableAsserts: enableAsserts,
+          instrumentationLogFile: instrumentationLogFile,
+          profileServer: profileServer,
+          serverPath: serverPath,
+          servicesPort: servicesPort,
+          sdkPath: sdkPath);
       _ServerNotifications serverNotifications = _ServerNotifications(server);
       await serverNotifications.listenToServer(server);
 
@@ -106,7 +136,7 @@ class MigrateCommand extends Command {
       int issueCount =
           fileErrors.values.map((list) => list.length).reduce((a, b) => a + b);
       logger.stdout(
-          '$issueCount analysis ${_pluralize('issue', issueCount)} found:');
+          '$issueCount analysis ${pluralize('issue', issueCount)} found:');
       _displayIssues(
         logger,
         options.directory,
@@ -134,9 +164,8 @@ class MigrateCommand extends Command {
 
     // Calculate migration suggestions.
     logger.stdout('');
-    progress = logger
-        .progress('${ansi.emphasized('Generating migration suggestions')}');
-
+    progress =
+        getProgress('${ansi.emphasized('Generating migration suggestions')}');
     Map<String, dynamic> json;
 
     try {
@@ -163,8 +192,8 @@ class MigrateCommand extends Command {
         migrationResults.edits.map((edit) => edit.file).toList();
 
     logger.stdout('Found ${allEdits.length} '
-        'suggested ${_pluralize('change', allEdits.length)} in '
-        '${files.length} ${_pluralize('file', files.length)}.');
+        'suggested ${pluralize('change', allEdits.length)} in '
+        '${files.length} ${pluralize('file', files.length)}.');
 
     logger.stdout('');
 
@@ -175,24 +204,30 @@ class MigrateCommand extends Command {
 
       logger.stdout('');
       logger.stdout(
-          'Applied ${allEdits.length} ${_pluralize('edit', allEdits.length)}.');
+          'Applied ${allEdits.length} ${pluralize('edit', allEdits.length)}.');
 
+      // Note: do not open the web preview if apply-changes is specified, as we
+      // currently cannot tell the web preview to disable the "apply migration"
+      // button.
       return 0;
     }
 
     if (options.webPreview) {
       String url = migrationResults.urls.first;
 
-      logger.stdout(ansi.emphasized('Migration results available:'));
-      logger.stdout('Visit $url to see the migration results.');
+      logger.stdout(ansi.emphasized('View migration results:'));
 
       // TODO(devoncarew): Open a browser automatically.
+      logger.stdout('''
+Visit:
+  
+  ${ansi.emphasized(url)}
 
-      logger.stdout('');
-      logger.stdout('To apply these changes, re-run the tool with '
-          '--${MigrateOptions.applyChangesOption}.');
+to see the migration results. Use the interactive web view to review, improve, or apply
+the results (alternatively, to apply the results without using the web preview, re-run
+the tool with --${MigrateOptions.applyChangesOption}).
+''');
 
-      logger.stdout('');
       logger.stdout('When finished with the preview, hit ctrl-c '
           'to terminate this process.');
 
@@ -284,7 +319,7 @@ class MigrateCommand extends Command {
 
       logger.stdout('');
       logger.stdout('${ansi.emphasized(relPath)} '
-          '($count ${_pluralize('change', count)}):');
+          '($count ${pluralize('change', count)}):');
 
       String source;
       try {
@@ -296,24 +331,10 @@ class MigrateCommand extends Command {
       } else {
         SourcePrinter sourcePrinter = SourcePrinter(source);
 
-        // Sort edits in reverse offset order.
-        List<SourceEdit> edits = sourceFileEdit.edits;
-        edits.sort((a, b) {
-          return b.offset - a.offset;
-        });
+        List<SourceEdit> edits = sortEdits(sourceFileEdit);
 
-        for (SourceEdit edit in sourceFileEdit.edits) {
-          if (edit.replacement.isNotEmpty) {
-            // an addition
-            sourcePrinter.insertText(
-                edit.offset + edit.length, edit.replacement);
-          }
-
-          if (edit.length != 0) {
-            // a removal
-            sourcePrinter.deleteRange(edit.offset, edit.length);
-          }
-        }
+        // Apply edits.
+        sourcePrinter.applyEdits(edits);
 
         // Render the changed lines.
         sourcePrinter.processChangedLines((lineNumber, lineText) {
@@ -333,7 +354,7 @@ class MigrateCommand extends Command {
     for (SourceFileEdit sourceFileEdit in migrationResults.edits) {
       String relPath = path.relative(sourceFileEdit.file, from: directory);
       int count = sourceFileEdit.edits.length;
-      logger.stdout('  $relPath ($count ${_pluralize('change', count)})');
+      logger.stdout('  $relPath ($count ${pluralize('change', count)})');
 
       String source;
       try {
@@ -441,5 +462,3 @@ String get _dartSdkVersion {
 
   return version;
 }
-
-String _pluralize(String word, int count) => count == 1 ? word : '${word}s';

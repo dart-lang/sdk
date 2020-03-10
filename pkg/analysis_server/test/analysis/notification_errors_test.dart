@@ -200,7 +200,7 @@ import 'does_not_exist.dart';
   Future<void> test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    newFile(join(projectPath, '.analysis_options'), content: '''
+    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
 linter:
   rules:
     - $camelCaseTypesLintName

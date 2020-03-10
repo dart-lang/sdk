@@ -101,7 +101,6 @@ class FileResolver {
     var featureSetProvider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
       packages: Packages.empty,
-      sourceFactory: analysisContext.sourceFactory,
       packageDefaultFeatureSet: analysisContext.analysisOptions.contextFeatures,
       nonPackageDefaultFeatureSet:
           (options as AnalysisOptionsImpl).nonPackageFeatureSet,

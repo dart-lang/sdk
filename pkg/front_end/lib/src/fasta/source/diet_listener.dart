@@ -377,6 +377,11 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleVoidKeywordWithTypeArguments(Token token) {
+    debugEvent("VoidKeywordWithTypeArguments");
+  }
+
+  @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
   }

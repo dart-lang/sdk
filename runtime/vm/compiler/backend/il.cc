@@ -2605,8 +2605,8 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArgumentsDescriptor_type_args_len:
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
+    case Slot::Kind::kArgumentsDescriptor_size:
     case Slot::Kind::kTypeArguments:
-    case Slot::Kind::kTypedDataBase_data_field:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kGrowableObjectArray_data:
@@ -2619,7 +2619,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
-    case Slot::Kind::kPointer_c_memory_address:
+    case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
       return false;
@@ -3024,6 +3024,9 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
   // Find a more precise box instruction.
   if (auto conv = value()->definition()->AsIntConverter()) {
     Definition* replacement;
+    if (conv->from() == kUntagged) {
+      return this;
+    }
     switch (conv->from()) {
       case kUnboxedInt32:
         replacement = new BoxInt32Instr(conv->value()->CopyWithType());
@@ -3168,6 +3171,14 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
       return this;
     }
+
+#if defined(TARGET_ARCH_IS_32_BIT)
+    // Do not erase extending conversions from 32-bit untagged to 64-bit values
+    // because untagged does not specify whether it is signed or not.
+    if ((box_defn->from() == kUntagged) && to() == kUnboxedInt64) {
+      return this;
+    }
+#endif
 
     if (box_defn->from() == to()) {
       return box_defn->value()->definition();
@@ -4257,7 +4268,7 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
                                                         bool optimizing) const {
-  return MakeCallSummary(zone);
+  return MakeCallSummary(zone, this);
 }
 
 static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
@@ -4276,6 +4287,45 @@ static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   }
 }
 
+bool InstanceCallBaseInstr::HasNonSmiAssignableInterface(Zone* zone) const {
+  if (!interface_target().IsNull()) {
+    const AbstractType& target_type = AbstractType::Handle(
+        zone, Class::Handle(zone, interface_target().Owner()).RareType());
+    if (!CompileType::Smi().IsAssignableTo(target_type)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+Representation InstanceCallBaseInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  // The first input is the array of types
+  // for generic functions
+  if (type_args_len() > 0) {
+    if (idx == 0) {
+      return kTagged;
+    }
+    idx--;
+  }
+  return FlowGraph::ParameterRepresentationAt(interface_target(), idx);
+}
+
+intptr_t InstanceCallBaseInstr::ArgumentsSize() const {
+  if (interface_target().IsNull()) {
+    return ArgumentCountWithoutTypeArgs() + ((type_args_len() > 0) ? 1 : 0);
+  }
+
+  return FlowGraph::ParameterOffsetAt(interface_target(),
+                                      ArgumentCountWithoutTypeArgs(),
+                                      /*last_slot=*/false) +
+         ((type_args_len() > 0) ? 1 : 0);
+}
+
+Representation InstanceCallBaseInstr::representation() const {
+  return FlowGraph::ReturnRepresentationOf(interface_target());
+}
+
 void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
   if (FLAG_precompiled_mode && !receiver_is_not_smi()) {
     if (Receiver()->Type()->IsNotSmi()) {
@@ -4283,12 +4333,8 @@ void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
       return;
     }
 
-    if (!interface_target().IsNull()) {
-      const AbstractType& target_type = AbstractType::Handle(
-          zone, Class::Handle(zone, interface_target().Owner()).RareType());
-      if (!CompileType::Smi().IsAssignableTo(target_type)) {
-        set_receiver_is_not_smi(true);
-      }
+    if (HasNonSmiAssignableInterface(zone)) {
+      set_receiver_is_not_smi(true);
     }
   }
 }
@@ -4392,6 +4438,38 @@ const BinaryFeedback& InstanceCallInstr::BinaryFeedback() {
   return *binary_;
 }
 
+Representation DispatchTableCallInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  if (idx == (InputCount() - 1)) {
+    return kUntagged;
+  }
+
+  // The first input is the array of types
+  // for generic functions
+  if (type_args_len() > 0) {
+    if (idx == 0) {
+      return kTagged;
+    }
+    idx--;
+  }
+  return FlowGraph::ParameterRepresentationAt(interface_target(), idx);
+}
+
+intptr_t DispatchTableCallInstr::ArgumentsSize() const {
+  if (interface_target().IsNull()) {
+    return ArgumentCountWithoutTypeArgs() + ((type_args_len() > 0) ? 1 : 0);
+  }
+
+  return FlowGraph::ParameterOffsetAt(interface_target(),
+                                      ArgumentCountWithoutTypeArgs(),
+                                      /*last_slot=*/false) +
+         ((type_args_len() > 0) ? 1 : 0);
+}
+
+Representation DispatchTableCallInstr::representation() const {
+  return FlowGraph::ReturnRepresentationOf(interface_target());
+}
+
 DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
     Zone* zone,
     const InstanceCallBaseInstr* call,
@@ -4414,7 +4492,8 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
 void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Array& arguments_descriptor = Array::ZoneHandle();
   if (selector()->requires_args_descriptor) {
-    ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
+    ArgumentsInfo args_info(type_args_len(), ArgumentCount(), ArgumentsSize(),
+                            argument_names());
     arguments_descriptor = args_info.ToArgumentsDescriptor();
   }
   const Register cid_reg = locs()->in(0).reg();
@@ -4430,9 +4509,33 @@ void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->AddNullCheck(token_pos(), function_name);
     }
   }
-  __ Drop(ArgumentCount());
+  __ Drop(ArgumentsSize());
 
   compiler->AddDispatchTableCallTarget(selector());
+}
+
+Representation StaticCallInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  // The first input is the array of types
+  // for generic functions
+  if (type_args_len() > 0 || function().IsFactory()) {
+    if (idx == 0) {
+      return kTagged;
+    }
+    idx--;
+  }
+  return FlowGraph::ParameterRepresentationAt(function(), idx);
+}
+
+intptr_t StaticCallInstr::ArgumentsSize() const {
+  return FlowGraph::ParameterOffsetAt(function(),
+                                      ArgumentCountWithoutTypeArgs(),
+                                      /*last_slot=*/false) +
+         ((type_args_len() > 0) ? 1 : 0);
+}
+
+Representation StaticCallInstr::representation() const {
+  return FlowGraph::ReturnRepresentationOf(function());
 }
 
 const CallTargets& StaticCallInstr::Targets() {
@@ -4516,11 +4619,12 @@ intptr_t PolymorphicInstanceCallInstr::CallCount() const {
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
     Zone* zone,
     bool optimizing) const {
-  return MakeCallSummary(zone);
+  return MakeCallSummary(zone, this);
 }
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
+  ArgumentsInfo args_info(type_args_len(), ArgumentCount(), ArgumentsSize(),
+                          argument_names());
   UpdateReceiverSminess(compiler->zone());
   compiler->EmitPolymorphicInstanceCall(
       this, targets(), args_info, deopt_id(), token_pos(), locs(), complete(),
@@ -4656,7 +4760,7 @@ Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
 LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
-  return MakeCallSummary(zone);
+  return MakeCallSummary(zone, this);
 }
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4674,8 +4778,8 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
   }
-
-  ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
+  ArgumentsInfo args_info(type_args_len(), ArgumentCount(), ArgumentsSize(),
+                          argument_names());
   compiler->GenerateStaticCall(deopt_id(), token_pos(), function(), args_info,
                                locs(), *call_ic_data, rebind_rule_,
                                entry_kind());
@@ -5251,6 +5355,7 @@ static AlignmentType StrengthenAlignment(intptr_t cid,
 
 LoadIndexedInstr::LoadIndexedInstr(Value* array,
                                    Value* index,
+                                   bool index_unboxed,
                                    intptr_t index_scale,
                                    intptr_t class_id,
                                    AlignmentType alignment,
@@ -5258,6 +5363,7 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
                                    TokenPosition token_pos,
                                    CompileType* result_type)
     : TemplateDefinition(deopt_id),
+      index_unboxed_(index_unboxed),
       index_scale_(index_scale),
       class_id_(class_id),
       alignment_(StrengthenAlignment(class_id, alignment)),
@@ -5271,6 +5377,7 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
                                      Value* index,
                                      Value* value,
                                      StoreBarrierType emit_store_barrier,
+                                     bool index_unboxed,
                                      intptr_t index_scale,
                                      intptr_t class_id,
                                      AlignmentType alignment,
@@ -5279,6 +5386,7 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
                                      SpeculativeMode speculative_mode)
     : TemplateInstruction(deopt_id),
       emit_store_barrier_(emit_store_barrier),
+      index_unboxed_(index_unboxed),
       index_scale_(index_scale),
       class_id_(class_id),
       alignment_(StrengthenAlignment(class_id, alignment)),
@@ -5400,7 +5508,7 @@ intptr_t TruncDivModInstr::OutputIndexOf(Token::Kind token) {
 
 LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
-  return MakeCallSummary(zone);
+  return MakeCallSummary(zone, this);
 }
 
 void NativeCallInstr::SetupNative() {

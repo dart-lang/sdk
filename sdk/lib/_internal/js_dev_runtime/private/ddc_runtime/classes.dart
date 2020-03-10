@@ -287,11 +287,6 @@ getSetterType(type, name) {
   if (setters != null) {
     var type = JS('', '#[#]', setters, name);
     if (type != null) {
-      if (JS('!', '# instanceof Array', type)) {
-        // The type has metadata attached.  Pull out just the type.
-        // TODO(jmesserly): remove when we remove mirrors
-        return JS('', '#[0]', type);
-      }
       return type;
     }
   }
@@ -555,6 +550,11 @@ addTypeTests(ctor, isClass) {
       isClass,
       cast);
 }
+
+/// Pre-initializes types with empty type caches.
+///
+/// Required for the null-safe SDK. Stubbed here.
+addTypeCaches(type) => null;
 
 // TODO(jmesserly): should we do this for all interfaces?
 

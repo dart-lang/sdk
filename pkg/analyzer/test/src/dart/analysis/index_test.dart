@@ -906,18 +906,27 @@ main() {
     assertThat(element)..isReferencedAt('p: 1', true);
   }
 
-  test_isReferencedBy_ParameterElement_named_ofMethod_genericClass() async {
+  test_isReferencedBy_ParameterElement_genericFunctionType() async {
     await _indexTestUnit('''
-class A<T> {
-  void foo({T test}) {}
-}
+typedef F = void Function({int p});
 
-main(A<int> a) {
-  a.foo(test: 0);
+void main(F f) {
+  f(p: 0);
 }
 ''');
-    Element element = findElement('test');
-    assertThat(element)..isReferencedAt('test: 0', true);
+    // We should not crash because of reference to "p" - a named parameter
+    // of a generic function type.
+  }
+
+  test_isReferencedBy_ParameterElement_genericFunctionType_call() async {
+    await _indexTestUnit('''
+typedef F<T> = void Function({T test});
+
+main(F<int> f) {
+  f.call(test: 0);
+}
+''');
+    // No exceptions.
   }
 
   test_isReferencedBy_ParameterElement_named_ofConstructor_genericClass() async {
@@ -934,17 +943,18 @@ main() {
     assertThat(element)..isReferencedAt('test: 0', true);
   }
 
-  test_isReferencedBy_ParameterElement_genericFunctionType() async {
+  test_isReferencedBy_ParameterElement_named_ofMethod_genericClass() async {
     await _indexTestUnit('''
-typedef F = void Function({int p});
+class A<T> {
+  void foo({T test}) {}
+}
 
-void main() {
-  F f;
-  f(p: 0);
+main(A<int> a) {
+  a.foo(test: 0);
 }
 ''');
-    // We should not crash because of reference to "p" - a named parameter
-    // of a generic function type.
+    Element element = findElement('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
   }
 
   test_isReferencedBy_ParameterElement_optionalPositional() async {

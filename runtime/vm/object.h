@@ -1951,6 +1951,10 @@ class ICData : public Object {
 
   intptr_t CountWithoutTypeArgs() const;
 
+  intptr_t SizeWithoutTypeArgs() const;
+
+  intptr_t SizeWithTypeArgs() const;
+
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -2756,7 +2760,8 @@ class Function : public Object {
   }
 
   bool HasThisParameter() const {
-    return IsDynamicFunction() || IsGenerativeConstructor();
+    return IsDynamicFunction(/*allow_abstract=*/true) ||
+           IsGenerativeConstructor();
   }
 
   bool IsDynamicFunction(bool allow_abstract = false) const {
@@ -3071,6 +3076,118 @@ class Function : public Object {
   const char* ToLibNamePrefixedQualifiedCString() const;
 
   const char* ToQualifiedCString() const;
+
+  static constexpr intptr_t maximum_unboxed_parameter_count() {
+    // Subtracts one that represents the return value
+    return RawFunction::UnboxedParameterBitmap::kCapacity - 1;
+  }
+
+  void reset_unboxed_parameters_and_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StoreNonPointer(&raw_ptr()->unboxed_parameters_info_,
+                    RawFunction::UnboxedParameterBitmap());
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  void set_unboxed_integer_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0 && index < maximum_unboxed_parameter_count());
+    index++;  // position 0 is reserved for the return value
+    const_cast<RawFunction::UnboxedParameterBitmap*>(
+        &raw_ptr()->unboxed_parameters_info_)
+        ->SetUnboxedInteger(index);
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  void set_unboxed_double_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0 && index < maximum_unboxed_parameter_count());
+    index++;  // position 0 is reserved for the return value
+    const_cast<RawFunction::UnboxedParameterBitmap*>(
+        &raw_ptr()->unboxed_parameters_info_)
+        ->SetUnboxedDouble(index);
+
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  void set_unboxed_integer_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    const_cast<RawFunction::UnboxedParameterBitmap*>(
+        &raw_ptr()->unboxed_parameters_info_)
+        ->SetUnboxedInteger(0);
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  void set_unboxed_double_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    const_cast<RawFunction::UnboxedParameterBitmap*>(
+        &raw_ptr()->unboxed_parameters_info_)
+        ->SetUnboxedDouble(0);
+
+#else
+    UNREACHABLE();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool is_unboxed_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0);
+    index++;  // position 0 is reserved for the return value
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxed(index);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool is_unboxed_integer_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0);
+    index++;  // position 0 is reserved for the return value
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxedInteger(index);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool is_unboxed_double_parameter_at(intptr_t index) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(index >= 0);
+    index++;  // position 0 is reserved for the return value
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxedDouble(index);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool has_unboxed_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxed(0);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool has_unboxed_integer_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxedInteger(0);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  bool has_unboxed_double_return() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->unboxed_parameters_info_.IsUnboxedDouble(0);
+#else
+    return false;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
@@ -9376,14 +9493,17 @@ class Float64x2 : public Instance {
   friend class Class;
 };
 
-class TypedDataBase : public Instance {
+class PointerBase : public Instance {
+ public:
+  static intptr_t data_field_offset() {
+    return OFFSET_OF(RawPointerBase, data_);
+  }
+};
+
+class TypedDataBase : public PointerBase {
  public:
   static intptr_t length_offset() {
     return OFFSET_OF(RawTypedDataBase, length_);
-  }
-
-  static intptr_t data_field_offset() {
-    return OFFSET_OF(RawTypedDataBase, data_);
   }
 
   RawSmi* length() const { return raw_ptr()->length_; }
@@ -9457,7 +9577,7 @@ class TypedDataBase : public Instance {
       (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 3 + 1;
   static const intptr_t element_size_table[kNumElementSizes];
 
-  HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, Instance);
+  HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, PointerBase);
 };
 
 class TypedData : public TypedDataBase {
@@ -9790,21 +9910,16 @@ class Pointer : public Instance {
   static bool IsPointer(const Instance& obj);
 
   size_t NativeAddress() const {
-    return Integer::Handle(raw_ptr()->c_memory_address_).AsInt64Value();
+    return reinterpret_cast<size_t>(raw_ptr()->data_);
   }
 
   void SetNativeAddress(size_t address) const {
-    const auto& address_boxed = Integer::Handle(Integer::New(address));
-    NoSafepointScope no_safepoint_scope;
-    StorePointer(&raw_ptr()->c_memory_address_, address_boxed.raw());
+    uint8_t* value = reinterpret_cast<uint8_t*>(address);
+    StoreNonPointer(&raw_ptr()->data_, value);
   }
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawPointer, type_arguments_);
-  }
-
-  static intptr_t c_memory_address_offset() {
-    return OFFSET_OF(RawPointer, c_memory_address_);
   }
 
   static intptr_t NextFieldOffset() { return sizeof(RawPointer); }

@@ -9,6 +9,7 @@ import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
+        ARRAY_RTI_PROPERTY,
         DEFERRED_INITIALIZED,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,

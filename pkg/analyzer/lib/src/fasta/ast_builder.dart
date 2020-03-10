@@ -2688,7 +2688,7 @@ class AstBuilder extends StackListener {
       }
     } else if (context == IdentifierContext.enumValueDeclaration) {
       List<Annotation> metadata = pop();
-      Comment comment = _findComment(null, token);
+      Comment comment = _findComment(metadata, token);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       push(identifier);
@@ -3440,6 +3440,19 @@ class AstBuilder extends StackListener {
     // keyword up to an element?
     handleIdentifier(voidKeyword, IdentifierContext.typeReference);
     handleNoTypeArguments(voidKeyword);
+    handleType(voidKeyword, null);
+  }
+
+  @override
+  void handleVoidKeywordWithTypeArguments(Token voidKeyword) {
+    assert(optional('void', voidKeyword));
+    debugEvent("VoidKeywordWithTypeArguments");
+    TypeArgumentList arguments = pop();
+
+    // TODO(paulberry): is this sufficient, or do we need to hook the "void"
+    // keyword up to an element?
+    handleIdentifier(voidKeyword, IdentifierContext.typeReference);
+    push(arguments);
     handleType(voidKeyword, null);
   }
 

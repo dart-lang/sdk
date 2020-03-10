@@ -124,6 +124,9 @@ bool AotCallSpecializer::TryCreateICDataForUniqueTarget(
     RedefinitionInstr* redefinition = new (Z)
         RedefinitionInstr(new (Z) Value(call->ArgumentAt(receiver_index)));
     redefinition->set_ssa_temp_index(flow_graph()->alloc_ssa_temp_index());
+    if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
+      flow_graph()->alloc_ssa_temp_index();
+    }
     redefinition->InsertAfter(call);
     // Replace all uses of the receiver dominated by this call.
     FlowGraph::RenameDominatedUses(call->ArgumentAt(receiver_index),
@@ -220,6 +223,13 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
 
 static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
   ASSERT(instr->type_args_len() == 0);
+
+  // If Smi is not assignable to the interface target of the call, the receiver
+  // is definitely not a Smi.
+  if (instr->HasNonSmiAssignableInterface(Thread::Current()->zone())) {
+    return false;
+  }
+
   // Phis with at least one known smi are // guessed to be likely smi as well.
   for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
     PhiInstr* phi = instr->ArgumentAt(i)->AsPhi();
@@ -472,8 +482,14 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     CompileType* right_type = right_value->Type();
 
     const bool is_equality_op = Token::IsEqualityOperator(op_kind);
-    const bool has_nullable_int_args =
+    bool has_nullable_int_args =
         left_type->IsNullableInt() && right_type->IsNullableInt();
+
+    if (auto* call = instr->AsInstanceCall()) {
+      if (call->HasNonSmiAssignableInterface(zone())) {
+        has_nullable_int_args = false;
+      }
+    }
 
     // NOTE: We cannot use strict comparisons if the receiver has an overridden
     // == operator or if either side can be a double, since 1.0 == 1.
@@ -1103,7 +1119,8 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   }
 
   const Array& args_desc_array = Array::Handle(
-      Z, ArgumentsDescriptor::New(/*type_args_len=*/0, /*num_arguments=*/1));
+      Z,
+      ArgumentsDescriptor::NewBoxed(/*type_args_len=*/0, /*num_arguments=*/1));
   ArgumentsDescriptor args_desc(args_desc_array);
   target = Resolver::ResolveDynamicForReceiverClass(
       receiver_class, getter_name, args_desc, /*allow_add=*/false);
