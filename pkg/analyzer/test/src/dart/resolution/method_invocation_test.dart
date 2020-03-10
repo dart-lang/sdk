@@ -1702,6 +1702,9 @@ class MethodInvocationResolutionWithNnbdTest extends DriverResolutionTest {
       [EnableString.non_nullable],
     );
 
+  @override
+  bool get typeToStringWithNullability => true;
+
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {}
@@ -1724,7 +1727,7 @@ main() {
     assertMethodInvocation(
       invocation,
       import.importedLibrary.loadLibraryFunction,
-      'Future<dynamic> Function()',
+      'Future<dynamic>* Function()*',
     );
   }
 
@@ -1831,6 +1834,29 @@ main(A? a) {
       typeArgumentTypes: [],
       invokeType: 'void Function()',
       type: 'void',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_defined_extensionQ2() async {
+    await assertNoErrorsInCode(r'''
+extension E<T> on T? {
+  T foo() => throw 0;
+}
+
+main(int? a) {
+  a.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: elementMatcher(
+        findElement.method('foo', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
     );
   }
 

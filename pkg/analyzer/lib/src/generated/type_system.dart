@@ -649,6 +649,9 @@ class GenericInferrer {
       var constraints = this.constraints[t2.element];
       if (constraints != null) {
         if (!identical(t1, UnknownInferredType.instance)) {
+          if (t2.nullabilitySuffix == NullabilitySuffix.question) {
+            t1 = _typeSystem.promoteToNonNull(t1);
+          }
           var constraint = _TypeConstraint(origin, t2.element, lower: t1);
           constraints.add(constraint);
           _undoBuffer.add(constraint);

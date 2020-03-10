@@ -454,7 +454,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertMethodInvocation2(
     MethodInvocation node, {
-    @required ExecutableElement element,
+    @required Object element,
     @required List<String> typeArgumentTypes,
     @required String invokeType,
     @required String type,
