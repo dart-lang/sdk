@@ -13,9 +13,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeArgumentNotMatchingBoundsTest);
     defineReflectiveTests(
-      TypeArgumentNotMatchingBoundsWithExtensionMethodsTest,
-    );
-    defineReflectiveTests(
       TypeArgumentNotMatchingBoundsWithNnbdTest,
     );
   });
@@ -77,6 +74,34 @@ class X<T extends Type> {}
 class Y<U> extends X<U> {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
+    ]);
+  }
+
+  test_extensionOverride_hasTypeArguments() async {
+    await assertErrorsInCode(r'''
+extension E<T extends num> on int {
+  void foo() {}
+}
+
+void f() {
+  E<String>(0).foo();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 70, 6),
+    ]);
+  }
+
+  test_extensionOverride_hasTypeArguments_call() async {
+    await assertErrorsInCode(r'''
+extension E<T extends num> on int {
+  void call() {}
+}
+
+void f() {
+  E<String>(0)();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 6),
     ]);
   }
 
@@ -372,43 +397,6 @@ class G<E extends A> {}
 class C extends Object with G<B>{}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class TypeArgumentNotMatchingBoundsWithExtensionMethodsTest
-    extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_extensionOverride_hasTypeArguments() async {
-    await assertErrorsInCode(r'''
-extension E<T extends num> on int {
-  void foo() {}
-}
-
-void f() {
-  E<String>(0).foo();
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 70, 6),
-    ]);
-  }
-
-  test_extensionOverride_hasTypeArguments_call() async {
-    await assertErrorsInCode(r'''
-extension E<T extends num> on int {
-  void call() {}
-}
-
-void f() {
-  E<String>(0)();
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 6),
     ]);
   }
 }
