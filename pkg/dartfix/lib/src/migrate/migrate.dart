@@ -83,7 +83,7 @@ class MigrateCommand extends Command {
       instrumentationLogFile = path.join(
           Directory.systemTemp.createTempSync('migration_debug').path,
           'instrumentationLog');
-      logger.stdout('Instrumentation log file:  ${instrumentationLogFile}');
+      logger.stdout('Instrumentation log file:  $instrumentationLogFile');
     }
 
     Progress progress = getProgress('${ansi.emphasized('Analyzing project')}');
