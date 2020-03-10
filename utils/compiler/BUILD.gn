@@ -39,9 +39,7 @@ prebuilt_dart_action("dart2js_create_snapshot_entry") {
     "../../tools/VERSION",
   ]
 
-  outputs = [
-    "$target_gen_dir/dart2js.dart",
-  ]
+  outputs = [ "$target_gen_dir/dart2js.dart" ]
 
   packages = "../../.packages"
 

@@ -3,27 +3,19 @@
 # BSD-style license that can be found in the LICENSE file.
 
 executable("bit") {
-  sources = [
-    "main.cc",
-  ]
+  sources = [ "main.cc" ]
   root_dir = rebase_path(root_out_dir)
   clang_dir = rebase_path("//buildtools/linux-x64/clang/bin")
   defines = [
     "BIT_BINARY_DIR=\"$root_dir\"",
     "BIT_CLANG_DIR=\"$clang_dir\"",
   ]
-  deps = [
-    "../../../third_party/llvm:LLVMSupport",
-  ]
-  data_deps = [
-    "../codegen",
-  ]
+  deps = [ "../../../third_party/llvm:LLVMSupport" ]
+  data_deps = [ "../codegen" ]
 }
 
 source_set("test") {
-  sources = [
-    "test.cc",
-  ]
+  sources = [ "test.cc" ]
 
   root_dir = rebase_path(root_out_dir)
   clang_dir = rebase_path("//buildtools/linux-x64/clang/bin")
@@ -32,9 +24,7 @@ source_set("test") {
     "BIT_CLANG_DIR=\"$clang_dir\"",
   ]
 
-  deps = [
-    "../../../third_party/llvm:LLVMSupport",
-  ]
+  deps = [ "../../../third_party/llvm:LLVMSupport" ]
 
   include_dirs = [ "//runtime" ]
 

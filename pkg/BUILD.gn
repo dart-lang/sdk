@@ -55,9 +55,7 @@ action("pkg_files_stamp") {
 
   inputs = stamp0_outputs + stamp1_outputs + stamp2_outputs + stamp3_outputs
 
-  outputs = [
-    "$root_gen_dir/pkg_files.stamp",
-  ]
+  outputs = [ "$root_gen_dir/pkg_files.stamp" ]
 
   script = "../tools/create_timestamp_file.py"
   args = [ rebase_path("$root_gen_dir/pkg_files.stamp") ]

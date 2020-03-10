@@ -18,9 +18,7 @@ template("create_timestamp_file") {
                         [ "absolute" ] + list_args,
                         "list lines")
     inputs = [ "$_dart_root/tools/list_dart_files.py" ] + files
-    outputs = [
-      output,
-    ]
+    outputs = [ output ]
     script = "$_dart_root/tools/create_timestamp_file.py"
     args = [ rebase_path(output) ]
   }

@@ -74,14 +74,14 @@ template("copy_trees") {
   foreach(copy_tree_spec, sources) {
     copy_tree_source_paths += [
       rebase_path(copy_tree_spec.source),
-      copy_tree_spec.ignore_patterns
+      copy_tree_spec.ignore_patterns,
     ]
   }
 
   # Evaluate script output as GN, producing a scope containing a single value
   # "sources"
   copy_tree_inputs_scope = exec_script("$_dart_root/tools/copy_tree.py",
-                                       ["--gn"] + copy_tree_source_paths,
+                                       [ "--gn" ] + copy_tree_source_paths,
                                        "scope")
 
   # A list of lists of input source files for copy_tree.

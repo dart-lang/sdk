@@ -11,9 +11,9 @@ vmservice_sdk_sources = [
   "client.dart",
   "constants.dart",
   "devfs.dart",
-  "running_isolate.dart",
-  "running_isolates.dart",
   "message.dart",
   "message_router.dart",
   "named_lookup.dart",
+  "running_isolate.dart",
+  "running_isolates.dart",
 ]

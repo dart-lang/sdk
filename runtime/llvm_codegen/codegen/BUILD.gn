@@ -18,12 +18,8 @@ config("llvm") {
 }
 
 copy("lib_llvm") {
-  sources = [
-    _lib_llvm_so,
-  ]
-  outputs = [
-    "$root_out_dir/libLLVM-9svn.so",
-  ]
+  sources = [ _lib_llvm_so ]
+  outputs = [ "$root_out_dir/libLLVM-9svn.so" ]
   public_configs = [ ":llvm" ]
 }
 

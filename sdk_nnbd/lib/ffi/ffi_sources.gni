@@ -9,5 +9,5 @@ ffi_sdk_sources = [
   "annotations.dart",
   "dynamic_library.dart",
   "native_type.dart",
-  "struct.dart"
+  "struct.dart",
 ]

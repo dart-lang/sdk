@@ -12,17 +12,13 @@ template("code_sign_mac") {
   assert(defined(invoker.deps))
 
   action(target_name) {
-    sources = [
-      invoker.entitlements_path,
-    ]
+    sources = [ invoker.entitlements_path ]
 
     _application_path = invoker.application_path
 
     script = mac_app_script
 
-    outputs = [
-      "$_application_path/_CodeSignature/CodeResources",
-    ]
+    outputs = [ "$_application_path/_CodeSignature/CodeResources" ]
 
     args = [
       "codesign",
@@ -50,9 +46,7 @@ template("process_nibs_mac") {
 
     invoker_out_dir = invoker.output_dir
 
-    outputs = [
-      "$root_build_dir/$invoker_out_dir/{{source_name_part}}.nib",
-    ]
+    outputs = [ "$root_build_dir/$invoker_out_dir/{{source_name_part}}.nib" ]
 
     args = [
       "nib",
@@ -80,9 +74,7 @@ template("resource_copy_mac") {
   copy(target_name) {
     set_sources_assignment_filter([])
     sources = _resources
-    outputs = [
-      "$root_build_dir/$_app_name.app/$_bundle_directory/Contents/Resources/{{source_file_part}}",
-    ]
+    outputs = [ "$root_build_dir/$_app_name.app/$_bundle_directory/Contents/Resources/{{source_file_part}}" ]
 
     if (defined(invoker.deps)) {
       deps = invoker.deps
@@ -116,9 +108,7 @@ template("mac_app") {
     script = mac_app_script
 
     sources = []
-    outputs = [
-      "$root_build_dir/$app_name.app",
-    ]
+    outputs = [ "$root_build_dir/$app_name.app" ]
 
     args = [
       "structure",
@@ -145,12 +135,8 @@ template("mac_app") {
   action(plist_gen_target_name) {
     script = mac_app_script
 
-    sources = [
-      invoker.info_plist,
-    ]
-    outputs = [
-      "$root_build_dir/plist/$app_name/Info.plist",
-    ]
+    sources = [ invoker.info_plist ]
+    outputs = [ "$root_build_dir/plist/$app_name/Info.plist" ]
 
     args = [
       "plist",
@@ -165,32 +151,21 @@ template("mac_app") {
 
   copy_plist_gen_target_name = target_name + "_plist_copy"
   copy(copy_plist_gen_target_name) {
-    sources = [
-      "$root_build_dir/plist/$app_name/Info.plist",
-    ]
+    sources = [ "$root_build_dir/plist/$app_name/Info.plist" ]
 
-    outputs = [
-      "$root_build_dir/$app_name.app/Contents/{{source_file_part}}",
-    ]
+    outputs = [ "$root_build_dir/$app_name.app/Contents/{{source_file_part}}" ]
 
-    deps = [
-      ":$plist_gen_target_name",
-    ]
+    deps = [ ":$plist_gen_target_name" ]
   }
 
   copy_bin_target_name = target_name + "_bin_copy"
   copy(copy_bin_target_name) {
-    sources = [
-      "$root_build_dir/$app_name",
-    ]
+    sources = [ "$root_build_dir/$app_name" ]
 
-    outputs = [
-      "$root_build_dir/$app_name.app/Contents/MacOS/{{source_file_part}}",
-    ]
+    outputs =
+        [ "$root_build_dir/$app_name.app/Contents/MacOS/{{source_file_part}}" ]
 
-    deps = [
-      ":$bin_gen_target_name",
-    ]
+    deps = [ ":$bin_gen_target_name" ]
   }
 
   copy_xib_target_name = target_name + "_xib_copy"
@@ -213,8 +188,6 @@ template("mac_app") {
   # Top level group
 
   group(target_name) {
-    deps = [
-      ":$copy_all_target_name",
-    ]
+    deps = [ ":$copy_all_target_name" ]
   }
 }

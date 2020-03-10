@@ -76,8 +76,7 @@ template("compile_platform") {
       args +=
           [ rebase_path(invoker.libraries_specification_uri, root_build_dir) ]
     }
-    args +=
-        [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
+    args += [ rebase_path("$root_out_dir/$outline", root_build_dir) ]
     args += rebase_path(outputs, root_build_dir)
   }
 }
