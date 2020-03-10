@@ -3,56 +3,56 @@ import self as self;
 import "dart:core" as core;
 
 abstract class T0 extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T0*
+  synthetic constructor •() → self::T0*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  abstract method foo() → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foo() → void;
 }
 class T2 extends self::T0 {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T2*
+  synthetic constructor •() → self::T2*
     : super self::T0::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method foo() → void {}
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
 }
 class A extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:3,getterSelectorId:4] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method method1(self::T0* t0) → void {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method method1(self::T0* t0) → void {
     [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
 abstract class B extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  abstract method method2(covariant dynamic arg) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  abstract method method2(covariant dynamic arg) → void;
 }
 class C extends core::Object implements self::B {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method method2(covariant self::T0* t0) → void {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method method2(covariant self::T0* t0) → void {
     [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
 class D extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::D*
+  synthetic constructor •() → self::D*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method method3(self::T0* t0) → void {
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method method3(self::T0* t0) → void {
     [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method func1([@vm.inferred-type.metadata=#lib::T2?] self::T0* t0) → void {
+static method func1([@vm.inferred-type.metadata=#lib::T2?] self::T0* t0) → void {
   [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
 }
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method func2(self::T0* t0) → void {
+static method func2(self::T0* t0) → void {
   [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
 }
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method getDynamic() → dynamic
+static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method use(dynamic x) → dynamic
+static method use(dynamic x) → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call(x);
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method main(core::List<core::String*>* args) → dynamic {
+static method main(core::List<core::String*>* args) → dynamic {
   self::func1(self::getDynamic() as{TypeError,ForDynamic} self::T0*);
   self::use(#C1);
   self::use(new self::A::•().{self::A::method1});

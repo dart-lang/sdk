@@ -3,59 +3,59 @@ import self as self;
 import "dart:core" as core;
 
 class T1 extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T1*
+  synthetic constructor •() → self::T1*
     : super core::Object::•()
     ;
 }
 class T2 extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T2*
+  synthetic constructor •() → self::T2*
     : super core::Object::•()
     ;
 }
 class A extends core::Object {
 [@vm.inferred-type.metadata=#lib::T1] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field dynamic field1 = new self::T1::•();
 [@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field dynamic field2 = new self::T1::•();
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class DeepCaller1 extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::DeepCaller1*
+  synthetic constructor •() → self::DeepCaller1*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method barL1([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method barL1([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller1::barL2] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::DeepCaller1::barL2}(aa);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method barL2([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method barL2([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller1::barL3] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::DeepCaller1::barL3}(aa);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method barL3([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method barL3([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller1::barL4] [@vm.inferred-type.metadata=#lib::T1 (skip check)] this.{self::DeepCaller1::barL4}(aa);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method barL4([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  method barL4([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::A::field1??] [@vm.inferred-type.metadata=#lib::T1] aa.{self::A::field1};
 }
 class DeepCaller2 extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::DeepCaller2*
+  synthetic constructor •() → self::DeepCaller2*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method barL1([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method barL1([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2::barL2] [@vm.inferred-type.metadata=! (skip check)] this.{self::DeepCaller2::barL2}(aa);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method barL2([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method barL2([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2::barL3] [@vm.inferred-type.metadata=! (skip check)] this.{self::DeepCaller2::barL3}(aa);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method barL3([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method barL3([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2::barL4] [@vm.inferred-type.metadata=! (skip check)] this.{self::DeepCaller2::barL4}(aa);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method barL4([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  method barL4([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::A::field2??] [@vm.inferred-type.metadata=!] aa.{self::A::field2};
 }
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCaller1* x, [@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCaller1* x, [@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller1::barL1] [@vm.inferred-type.metadata=#lib::T1 (skip check)] x.{self::DeepCaller1::barL1}(aa);
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method use2([@vm.inferred-type.metadata=#lib::DeepCaller2] self::DeepCaller2* x, [@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
+static method use2([@vm.inferred-type.metadata=#lib::DeepCaller2] self::DeepCaller2* x, [@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller2::barL1] [@vm.inferred-type.metadata=! (skip check)] x.{self::DeepCaller2::barL1}(aa);
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method getDynamic() → dynamic
+static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method setField2([@vm.inferred-type.metadata=#lib::A] self::A* aa, [@vm.inferred-type.metadata=#lib::T2] dynamic value) → void {
+static method setField2([@vm.inferred-type.metadata=#lib::A] self::A* aa, [@vm.inferred-type.metadata=#lib::T2] dynamic value) → void {
   [@vm.direct-call.metadata=#lib::A::field2] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::field2} = value;
 }
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method main(core::List<core::String*>* args) → dynamic {
+static method main(core::List<core::String*>* args) → dynamic {
   new self::A::•();
   new self::T1::•();
   new self::T2::•();

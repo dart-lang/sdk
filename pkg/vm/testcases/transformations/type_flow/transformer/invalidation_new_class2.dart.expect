@@ -3,70 +3,70 @@ import self as self;
 import "dart:core" as core;
 
 class T1 extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T1*
+  synthetic constructor •() → self::T1*
     : super core::Object::•()
     ;
 }
 class T2 extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::T2*
+  synthetic constructor •() → self::T2*
     : super core::Object::•()
     ;
 }
 abstract class A extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  abstract method foo() → dynamic;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foo() → dynamic;
 }
 class B extends self::A {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B*
     : super self::A::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method foo() → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → dynamic
     return new self::T1::•();
 }
 abstract class C extends core::Object implements self::B {
 }
 abstract class D extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::D*
+  synthetic constructor •() → self::D*
     : super core::Object::•()
     ;
 }
 abstract class _E&D&C extends self::D implements self::C /*isAnonymousMixin,isEliminatedMixin*/  {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::_E&D&C*
+  synthetic constructor •() → self::_E&D&C*
     : super self::D::•()
     ;
 }
 class E extends self::_E&D&C {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::E*
+  synthetic constructor •() → self::E*
     : super self::_E&D&C::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method foo() → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → dynamic
     return new self::T2::•();
 }
 class Intermediate extends core::Object {
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  synthetic constructor •() → self::Intermediate*
+  synthetic constructor •() → self::Intermediate*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4] [@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']  method bar(self::A* aa) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method bar(self::A* aa) → dynamic
     return [@vm.inferred-type.metadata=!] aa.{self::A::foo}();
 }
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method use1([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate* i, self::A* aa) → dynamic
+static method use1([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate* i, self::A* aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=! (skip check)] i.{self::Intermediate::bar}(aa);
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method use2([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate* i, self::A* aa) → dynamic
+static method use2([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate* i, self::A* aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=! (skip check)] i.{self::Intermediate::bar}(aa);
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method use3([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate* i, self::A* aa) → dynamic
+static method use3([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate* i, self::A* aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=! (skip check)] i.{self::Intermediate::bar}(aa);
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method getDynamic() → dynamic
+static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method allocateB() → dynamic {
+static method allocateB() → dynamic {
   new self::B::•();
 }
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method allocateE() → dynamic {
+static method allocateE() → dynamic {
   new self::E::•();
 }
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method main(core::List<core::String*>* args) → dynamic {
+static method main(core::List<core::String*>* args) → dynamic {
   self::use1(new self::Intermediate::•(), self::getDynamic() as{TypeError,ForDynamic} self::A*);
   self::allocateB();
   self::use2(new self::Intermediate::•(), self::getDynamic() as{TypeError,ForDynamic} self::A*);

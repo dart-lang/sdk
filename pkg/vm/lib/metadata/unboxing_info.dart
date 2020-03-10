@@ -27,12 +27,52 @@ class UnboxingInfoMetadata {
             growable: true),
         returnInfo = source.readByte();
 
+  // Returns `true` if all arguments as well as the return value have to be
+  // boxed.
+  //
+  // We don't have to write out metadata for fully boxed methods, because this
+  // is the default.
+  bool get isFullyBoxed {
+    if (returnInfo != kBoxed) return false;
+    for (int argInfo in unboxedArgsInfo) {
+      if (argInfo != kBoxed) return false;
+    }
+    return true;
+  }
+
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(unboxedArgsInfo.length);
     for (int val in unboxedArgsInfo) {
       sink.writeByte(val);
     }
     sink.writeByte(returnInfo);
+  }
+
+  @override
+  String toString() {
+    final sb = StringBuffer();
+    sb.write('(');
+    for (int i = 0; i < unboxedArgsInfo.length; ++i) {
+      final argInfo = unboxedArgsInfo[i];
+      sb.write(_stringifyUnboxingInfo(argInfo));
+      if (i != (unboxedArgsInfo.length - 1)) {
+        sb.write(',');
+      }
+    }
+    sb.write(')');
+    sb.write('->');
+    sb.write(_stringifyUnboxingInfo(returnInfo));
+    return sb.toString();
+  }
+
+  static String _stringifyUnboxingInfo(int info) {
+    if (info == UnboxingInfoMetadata.kUnboxedIntCandidate) {
+      return 'i';
+    } else if (info == UnboxingInfoMetadata.kUnboxedDoubleCandidate) {
+      return 'd';
+    }
+    assert(info == 0);
+    return 'b';
   }
 }
 
