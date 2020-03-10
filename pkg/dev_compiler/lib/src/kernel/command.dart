@@ -401,6 +401,8 @@ Future<CompilerResult> _compile(List<String> args,
 
   var jsModule = compiler.emitModule(compiledLibraries);
 
+  var statistics = computeCompileTimeStatistics(compiledLibraries);
+
   // Also the old Analyzer backend had some code to make debugging better when
   // --single-out-file is used, but that option does not appear to be used by
   // any of our build systems.
@@ -415,7 +417,8 @@ Future<CompilerResult> _compile(List<String> args,
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
         customScheme: multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath);
+        multiRootOutputPath: multiRootOutputPath,
+        compileTimeStatistics: statistics);
 
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
@@ -525,6 +528,40 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   return CompilerResult(0);
 }
 
+// Compute statistics (e.g., code size) to embed in the generated JavaScript
+// for this module.
+//
+// This is intended to be used by our build/debug tools to gather metrics.
+// See pkg/dev_compiler/lib/js/legacy/dart_library.js for runtime code that
+// reads this.
+//
+// These keys (see corresponding logic in dart_library.js) include:
+// - dartSize: <size of Dart input code in bytes>
+// TODO(vsm): Add source map size.
+//
+// TODO(vsm): Ideally, this information is never sent to the browser.  I.e.,
+// our runtime metrics gathering would obtain this information from the
+// compilation server, not the browser.  We don't yet have the infra for that.
+js_ast.ObjectInitializer computeCompileTimeStatistics(Component component) {
+  var dartSize = 0;
+  var uriToSource = component.uriToSource;
+  for (var lib in component.libraries) {
+    var libUri = lib.fileUri;
+    var source = uriToSource[libUri];
+    dartSize += source.source.length;
+    for (var part in lib.parts) {
+      var partUri = libUri.resolve(part.partUri);
+      var partSource = uriToSource[partUri];
+      // TODO(vsm): If we're compiling from dill, `partSource.source` can be
+      // `null`.  Today, we only do this for the SDK externally, which does
+      // not go through this path.
+      dartSize += partSource.source.length;
+    }
+  }
+  return js_ast.ObjectInitializer(
+      [js_ast.Property(js.string('dartSize'), js.number(dartSize))]);
+}
+
 /// The output of compiling a JavaScript module in a particular format.
 /// This was copied from module_compiler.dart class "JSModuleCode".
 class JSCode {
@@ -554,7 +591,8 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     String mapUrl,
     String sourceMapBase,
     String customScheme,
-    String multiRootOutputPath}) {
+    String multiRootOutputPath,
+    js_ast.Expression compileTimeStatistics}) {
   var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   js_ast.SimpleJavaScriptPrintingContext printer;
@@ -567,7 +605,8 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     printer = js_ast.SimpleJavaScriptPrintingContext();
   }
 
-  var tree = transformModuleFormat(format, moduleTree);
+  var tree = transformModuleFormat(format, moduleTree,
+      compileTimeStatistics: compileTimeStatistics);
   tree.accept(
       js_ast.Printer(opts, printer, localNamer: js_ast.TemporaryNamer(tree)));
 
