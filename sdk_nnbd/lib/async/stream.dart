@@ -837,7 +837,7 @@ abstract class Stream<T> {
    * the returned future is completed with that error,
    * and processing stops.
    */
-  Future<bool> contains(Object needle) {
+  Future<bool> contains(Object? needle) {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription<T> subscription =
         this.listen(null, onError: future._completeError, onDone: () {
