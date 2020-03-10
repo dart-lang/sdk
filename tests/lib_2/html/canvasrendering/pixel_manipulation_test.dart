@@ -8,7 +8,7 @@ import 'dart:html';
 import 'dart:math';
 
 import 'canvas_rendering_util.dart';
-import 'package:unittest/unittest.dart';
+import 'package:expect/minitest.dart';
 
 main() {
   setUp(setupFunc);
