@@ -189,14 +189,10 @@ class InferenceContext {
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
 class ResolverVisitor extends ScopedVisitor {
-  /**
-   * The manager for the inheritance mappings.
-   */
+  /// The manager for the inheritance mappings.
   final InheritanceManager3 inheritance;
 
-  /**
-   * The feature set that is enabled for the current unit.
-   */
+  /// The feature set that is enabled for the current unit.
   final FeatureSet _featureSet;
 
   final MigratableAstInfoProvider _migratableAstInfoProvider;
@@ -253,6 +249,10 @@ class ResolverVisitor extends ScopedVisitor {
   MixinDeclaration _enclosingMixinDeclaration;
 
   InferenceContext inferenceContext;
+
+  /// If a class, or mixin, is being resolved, the type of the class.
+  /// Otherwise `null`.
+  DartType _thisType;
 
   /// The object keeping track of which elements have had their types promoted.
   TypePromotionManager _promoteManager;
@@ -415,9 +415,17 @@ class ResolverVisitor extends ScopedVisitor {
         : NullabilitySuffix.star;
   }
 
-  /**
-   * Return `true` if NNBD is enabled for this compilation unit.
-   */
+  /// If a class, or mixin, is being resolved, the type of the class.
+  ///
+  /// If an extension is being resolved, the type of `this`, the declared
+  /// extended type, or promoted.
+  ///
+  /// Otherwise `null`.
+  DartType get thisType {
+    return _thisType;
+  }
+
+  /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
 
@@ -525,7 +533,7 @@ class ResolverVisitor extends ScopedVisitor {
   }) {
     _enclosingClassDeclaration = null;
     enclosingClass = enclosingClassElement;
-    typeAnalyzer.thisType = enclosingClass?.thisType;
+    _thisType = enclosingClass?.thisType;
     _enclosingFunction = enclosingExecutableElement;
   }
 
@@ -533,7 +541,7 @@ class ResolverVisitor extends ScopedVisitor {
   void prepareToResolveMembersInClass(ClassDeclaration node) {
     _enclosingClassDeclaration = node;
     enclosingClass = node.declaredElement;
-    typeAnalyzer.thisType = enclosingClass?.thisType;
+    _thisType = enclosingClass?.thisType;
   }
 
   /// Visit the given [comment] if it is not `null`.
@@ -541,6 +549,11 @@ class ResolverVisitor extends ScopedVisitor {
     if (comment != null) {
       super.visitComment(comment);
     }
+  }
+
+  @visibleForTesting
+  void setThisInterfaceType(InterfaceType thisType) {
+    _thisType = thisType;
   }
 
   /// If in a legacy library, return the legacy view on the [element].
@@ -727,12 +740,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.thisType;
+      _thisType = enclosingClass?.thisType;
       super.visitClassDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.thisType;
+      _thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -956,12 +969,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.thisType;
+      _thisType = enclosingClass?.thisType;
       super.visitEnumDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.thisType;
+      _thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -1005,12 +1018,12 @@ class ResolverVisitor extends ScopedVisitor {
     // Continue the extension resolution.
     //
     try {
-      typeAnalyzer.thisType = node.declaredElement.extendedType;
+      _thisType = node.declaredElement.extendedType;
       super.visitExtensionDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = null;
+      _thisType = null;
     }
   }
 
@@ -1372,12 +1385,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.thisType;
+      _thisType = enclosingClass?.thisType;
       super.visitMixinDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.thisType;
+      _thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingMixinDeclaration = null;
     }
