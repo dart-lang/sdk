@@ -373,18 +373,28 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   List<T> toList({bool growable: true}) {
-    var length = this.length;
-    if (length > 0) {
-      List list = growable ? new _List(length) : new _List<T>(length);
-      for (int i = 0; i < length; i++) {
-        list[i] = this[i];
+    final length = this.length;
+    if (growable) {
+      if (length > 0) {
+        final list = new _List(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        final result = new _GrowableList<T>._withData(list);
+        result._setLength(length);
+        return result;
       }
-      if (!growable) return list;
-      var result = new _GrowableList<T>._withData(list);
-      result._setLength(length);
-      return result;
+      return <T>[];
+    } else {
+      if (length > 0) {
+        final list = new _List<T>(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        return list;
+      }
+      return new List<T>(0);
     }
-    return growable ? <T>[] : new List<T>(0);
   }
 
   Set<T> toSet() {
