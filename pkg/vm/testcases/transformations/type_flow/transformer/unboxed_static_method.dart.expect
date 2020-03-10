@@ -1,0 +1,51 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  synthetic constructor •() → self::X*
+    : super core::Object::•()
+    ;
+}
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(2) ?{core::bool*} true : false;
+static get mint() → core::int*
+  return -6144092014192636707;
+static get smiOrMint() → core::int*
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : [@vm.inferred-type.metadata=int] self::mint;
+[@vm.unboxing-info.metadata=(i,i,d,b,b,b,b,b,b)->b]static method takePositional([@vm.inferred-type.metadata=dart.core::_Smi] core::int* unboxedSmi, [@vm.inferred-type.metadata=int] dynamic unboxedInt, [@vm.inferred-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-type.metadata=!] dynamic boxedIntOrDouble, dynamic boxedNullableIntOrDouble, [@vm.inferred-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-type.metadata=#lib::X] dynamic boxedX) → void {}
+static method takeOptional([[@vm.inferred-type.metadata=dart.core::_Smi] core::int* unboxedSmi = #C1, [@vm.inferred-type.metadata=int] dynamic unboxedInt = #C1, [@vm.inferred-type.metadata=dart.core::_Double] dynamic unboxedDouble = #C1, [@vm.inferred-type.metadata=int?] dynamic boxedNullableInt = #C1, [@vm.inferred-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble = #C1, [@vm.inferred-type.metadata=!] dynamic boxedIntOrDouble = #C1, dynamic boxedNullableIntOrDouble = #C1, [@vm.inferred-type.metadata=#lib::X?] dynamic boxedNullableX = #C1, [@vm.inferred-type.metadata=#lib::X] dynamic boxedX = #C1]) → void {}
+static method takeNamed({[@vm.inferred-type.metadata=dart.core::_Smi] core::int* unboxedSmi = #C1, [@vm.inferred-type.metadata=int] dynamic unboxedInt = #C1, [@vm.inferred-type.metadata=dart.core::_Double] dynamic unboxedDouble = #C1, [@vm.inferred-type.metadata=int?] dynamic boxedNullableInt = #C1, [@vm.inferred-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble = #C1, [@vm.inferred-type.metadata=!] dynamic boxedIntOrDouble = #C1, dynamic boxedNullableIntOrDouble = #C1, [@vm.inferred-type.metadata=#lib::X?] dynamic boxedNullableX = #C1, [@vm.inferred-type.metadata=#lib::X] dynamic boxedX = #C1}) → void {}
+[@vm.unboxing-info.metadata=()->i]static method returnUnboxedSmi() → dynamic
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : 2;
+[@vm.unboxing-info.metadata=()->i]static method returnUnboxedInt() → dynamic
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : 2;
+[@vm.unboxing-info.metadata=()->d]static method returnUnboxedDouble() → dynamic
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : 2.2;
+static method returnBoxedNullableInt() → dynamic
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : null;
+static method returnBoxedNullableDouble() → dynamic
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : null;
+static method returnBoxedIntOrDouble() → dynamic
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1;
+static method returnBoxedNullableIntOrDouble() → dynamic
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=dart.core::bool?] self::kFalse ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1 : null;
+static method returnBoxedNullableX() → dynamic
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{self::X*} new self::X::•() : null;
+static method returnBoxedX() → dynamic
+  return new self::X::•();
+static method main() → dynamic {
+  self::takePositional([@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : 2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : 2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : 2.2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=dart.core::bool?] self::kFalse ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1 : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{self::X*} new self::X::•() : null, new self::X::•());
+  self::takeOptional([@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : 2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : 2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : 2.2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=dart.core::bool?] self::kFalse ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1 : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{self::X*} new self::X::•() : null, new self::X::•());
+  self::takeNamed(unboxedSmi: [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : 2, unboxedInt: [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : 2, unboxedDouble: [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : 2.2, boxedNullableInt: [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : null, boxedNullableDouble: [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : null, boxedIntOrDouble: [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1, boxedNullableIntOrDouble: [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=dart.core::bool?] self::kFalse ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1 : null, boxedNullableX: [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{self::X*} new self::X::•() : null, boxedX: new self::X::•());
+  self::use([@vm.inferred-type.metadata=dart.core::_Smi] self::returnUnboxedSmi());
+  self::use([@vm.inferred-type.metadata=int] self::returnUnboxedInt());
+  self::use([@vm.inferred-type.metadata=dart.core::_Double] self::returnUnboxedDouble());
+  self::use([@vm.inferred-type.metadata=int?] self::returnBoxedNullableInt());
+  self::use([@vm.inferred-type.metadata=dart.core::_Double?] self::returnBoxedNullableDouble());
+  self::use([@vm.inferred-type.metadata=!] self::returnBoxedIntOrDouble());
+  self::use(self::returnBoxedNullableIntOrDouble());
+  self::use([@vm.inferred-type.metadata=#lib::X?] self::returnBoxedNullableX());
+  self::use([@vm.inferred-type.metadata=#lib::X] self::returnBoxedX());
+}
+static method use(dynamic value) → void {}
