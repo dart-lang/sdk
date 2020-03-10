@@ -6,12 +6,14 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
+import 'package:meta/meta.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -22,8 +24,6 @@ class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     LibraryElement containingLibrary = request.libraryElement;
     // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change
@@ -102,7 +102,7 @@ class TypeMemberContributor extends DartCompletionContributor {
 
     // Build the suggestions
     if (type is InterfaceType) {
-      _SuggestionBuilder builder = _SuggestionBuilder(containingLibrary);
+      _SuggestionBuilder builder = _SuggestionBuilder(request);
       builder.buildSuggestions(type, containingMethodName,
           mixins: mixins, superclassConstraints: superclassConstraints);
       return builder.suggestions.toList();
@@ -237,8 +237,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 /// This class provides suggestions based upon the visible instance members in
 /// an interface type.
 class _SuggestionBuilder extends MemberSuggestionBuilder {
-  _SuggestionBuilder(LibraryElement containingLibrary)
-      : super(containingLibrary);
+  final DartCompletionRequest request;
+
+  _SuggestionBuilder(this.request) : super(request.libraryElement);
 
   /// Return completion suggestions for 'dot' completions on the given [type].
   /// If the 'dot' completion is a super expression, then [containingMethodName]
@@ -256,16 +257,34 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     if (superclassConstraints != null) {
       types.addAll(superclassConstraints);
     }
+    var featureComputer =
+        FeatureComputer(request.result.typeSystem, request.result.typeProvider);
     for (InterfaceType targetType in types) {
+      var inheritanceDistance = featureComputer.inheritanceDistanceFeature(
+          type.element, targetType.element);
       for (MethodElement method in targetType.methods) {
         // Exclude static methods when completion on an instance
         if (!method.isStatic) {
           // Boost the relevance of a super expression
           // calling a method of the same name as the containing method
-          addSuggestion(method,
-              relevance: method.name == containingMethodName
-                  ? DART_RELEVANCE_HIGH
-                  : DART_RELEVANCE_DEFAULT);
+          int relevance;
+          if (request.useNewRelevance) {
+            var contextType = featureComputer.contextTypeFeature(
+                request.target.containingNode, method.returnType);
+            var superMatches = method.name == containingMethodName ? 1.0 : 0.0;
+            var startsWithDollar =
+                featureComputer.startsWithDollarFeature(method.name);
+            relevance = _computeRelevance(
+                contextType: contextType,
+                inheritanceDistance: inheritanceDistance,
+                startsWithDollar: startsWithDollar,
+                superMatches: superMatches);
+          } else {
+            relevance = method.name == containingMethodName
+                ? DART_RELEVANCE_HIGH
+                : DART_RELEVANCE_DEFAULT;
+          }
+          addSuggestion(method, relevance: relevance);
         }
       }
       for (PropertyAccessorElement propertyAccessor in targetType.accessors) {
@@ -273,10 +292,38 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
             if (propertyAccessor.isGetter) {
-              addSuggestion(propertyAccessor.variable);
+              var variable = propertyAccessor.variable;
+              int relevance;
+              if (request.useNewRelevance) {
+                var contextType = featureComputer.contextTypeFeature(
+                    request.target.containingNode, variable.type);
+                var startsWithDollar = featureComputer
+                    .startsWithDollarFeature(propertyAccessor.name);
+                relevance = _computeRelevance(
+                    contextType: contextType,
+                    inheritanceDistance: inheritanceDistance,
+                    startsWithDollar: startsWithDollar,
+                    superMatches: -1.0);
+              }
+              addSuggestion(variable, relevance: relevance);
             }
           } else {
-            addSuggestion(propertyAccessor);
+            var type = propertyAccessor.isGetter
+                ? propertyAccessor.returnType
+                : propertyAccessor.parameters[0].type;
+            int relevance;
+            if (request.useNewRelevance) {
+              var contextType = featureComputer.contextTypeFeature(
+                  request.target.containingNode, type);
+              var startsWithDollar = featureComputer
+                  .startsWithDollarFeature(propertyAccessor.name);
+              relevance = _computeRelevance(
+                  contextType: contextType,
+                  inheritanceDistance: inheritanceDistance,
+                  startsWithDollar: startsWithDollar,
+                  superMatches: -1.0);
+            }
+            addSuggestion(propertyAccessor, relevance: relevance);
           }
         }
       }
@@ -284,6 +331,25 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
         addCompletionSuggestion(_createFunctionCallSuggestion());
       }
     }
+  }
+
+  /// Compute a relevance value from the given feature scores:
+  /// - [contextType] is higher if the type of the element matches the context
+  ///   type,
+  /// - [inheritanceDistance] is higher if the element is defined closer to the
+  ///   target type,
+  /// - [startsWithDollar] is higher if the element's name doe _not_ start with
+  ///   a dollar sign, and
+  /// - [superMatches] is higher if the element is being invoked through `super`
+  ///   and the element's name matches the name of the enclosing method.
+  int _computeRelevance(
+      {@required double contextType,
+      @required double inheritanceDistance,
+      @required double startsWithDollar,
+      @required double superMatches}) {
+    return toRelevance(weightedAverage(
+        [contextType, inheritanceDistance, startsWithDollar, superMatches],
+        [1.0, 1.0, 0.5, 1.0]));
   }
 
   /// Get a list of [InterfaceType]s that should be searched to find the

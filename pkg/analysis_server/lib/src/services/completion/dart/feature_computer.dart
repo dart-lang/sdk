@@ -10,18 +10,50 @@ import 'package:analyzer/dart/element/element.dart'
     show ClassElement, FieldElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
-// TODO(brianwilkerson) Move this file to `lib` so that it can be used by the
-//  completion contributors.
+/// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
+/// to a relevance value between `0` and `1000`.
+int toRelevance(double score) {
+  if (score < 0.0) {
+    return 0;
+  }
+  return (score * 1000).truncate();
+}
+
+/// Return the weighted average of the given [values], applying the given
+/// [weights]. The number of weights must be equal to the number of values.
+/// Values less than `0.0` are ignored. If there are no non-negative values then
+/// a negative value will be returned.
+double weightedAverage(List<double> values, List<double> weights) {
+  assert(values.length == weights.length);
+  var totalValue = 0.0;
+  var totalWeight = 0.0;
+  for (int i = 0; i < values.length; i++) {
+    var value = values[i];
+    if (value >= 0.0) {
+      var weight = weights[i];
+      totalValue += value * weight;
+      totalWeight += weight;
+    }
+  }
+  if (totalWeight == 0.0) {
+    return -1.0;
+  }
+  return totalValue / totalWeight;
+}
 
 /// An object that computes the values of features.
 class FeatureComputer {
+  /// The type system used to perform operations on types.
+  final TypeSystem typeSystem;
+
   /// The type provider used to access types defined by the spec.
   final TypeProvider typeProvider;
 
   /// Initialize a newly created feature computer.
-  FeatureComputer(this.typeProvider);
+  FeatureComputer(this.typeSystem, this.typeProvider);
 
   /// Return the type imposed on the given [node] based on its context, or
   /// `null` if the context does not impose any type.
@@ -33,6 +65,32 @@ class FeatureComputer {
       return null;
     }
     return type;
+  }
+
+  /// Return the value of the _context type_ feature for an element with the
+  /// given [elementType] when completing in a location with the given
+  /// [contextType].
+  double contextTypeFeature(AstNode node, DartType elementType) {
+    if (elementType == null) {
+      return -1.0;
+    }
+    var contextType = computeContextType(node);
+    if (contextType == null) {
+      return -1.0;
+    }
+    if (elementType == contextType) {
+      // Exact match.
+      return 1.0;
+    } else if (typeSystem.isSubtypeOf(elementType, contextType)) {
+      // Subtype.
+      return 0.40;
+    } else if (typeSystem.isSubtypeOf(contextType, elementType)) {
+      // Supertype.
+      return 0.02;
+    } else {
+      // Unrelated.
+      return 0.13;
+    }
   }
 
   /// Return the inheritance distance between the [subclass] and the
@@ -47,17 +105,21 @@ class FeatureComputer {
     return _inheritanceDistance(subclass, superclass, {});
   }
 
-  /// Return the value of the inheritance distance feature for a member defined
-  /// in the [superclass] that is being accessed through an expression whose
-  /// static type is the [subclass].
+  /// Return the value of the _inheritance distance_ feature for a member
+  /// defined in the [superclass] that is being accessed through an expression
+  /// whose static type is the [subclass].
   double inheritanceDistanceFeature(
       ClassElement subclass, ClassElement superclass) {
     var distance = _inheritanceDistance(subclass, superclass, {});
     if (distance < 0) {
-      return 0;
+      return 0.0;
     }
-    return 1 / (distance + 1);
+    return 1.0 / (distance + 1);
   }
+
+  /// Return the value of the _starts with dollar_ feature.
+  double startsWithDollarFeature(String name) =>
+      name.startsWith('\$') ? 0.0 : 1.0;
 
   /// Return the inheritance distance between the [subclass] and the
   /// [superclass]. The set of [visited] elements is used to guard against

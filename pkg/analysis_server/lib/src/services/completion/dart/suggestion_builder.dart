@@ -281,7 +281,7 @@ class MemberSuggestionBuilder {
   /// Add a suggestion based upon the given element, provided that it is not
   /// shadowed by a previously added suggestion.
   void addSuggestion(Element element,
-      {int relevance = DART_RELEVANCE_DEFAULT}) {
+      {int relevance, bool useNewRelevance = false}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
         // Do not suggest private members for imported libraries
@@ -290,11 +290,16 @@ class MemberSuggestionBuilder {
     }
     String identifier = element.displayName;
 
-    if (relevance == DART_RELEVANCE_DEFAULT && identifier != null) {
-      // Decrease relevance of suggestions starting with $
-      // https://github.com/dart-lang/sdk/issues/27303
-      if (identifier.startsWith(r'$')) {
-        relevance = DART_RELEVANCE_LOW;
+    if (useNewRelevance) {
+      assert(relevance != null);
+    } else {
+      relevance ??= DART_RELEVANCE_DEFAULT;
+      if (relevance == DART_RELEVANCE_DEFAULT && identifier != null) {
+        // Decrease relevance of suggestions starting with $
+        // https://github.com/dart-lang/sdk/issues/27303
+        if (identifier.startsWith(r'$')) {
+          relevance = DART_RELEVANCE_LOW;
+        }
       }
     }
 
