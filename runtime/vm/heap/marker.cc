@@ -150,7 +150,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           size = raw_obj->VisitPointersNonvirtual(this);
         } else {
           RawWeakProperty* raw_weak = static_cast<RawWeakProperty*>(raw_obj);
-          size = ProcessWeakProperty(raw_weak);
+          size = ProcessWeakProperty(raw_weak, /* did_mark */ true);
         }
         marked_bytes_ += size;
 
@@ -196,13 +196,15 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     delayed_weak_properties_ = raw_weak;
   }
 
-  intptr_t ProcessWeakProperty(RawWeakProperty* raw_weak) {
+  intptr_t ProcessWeakProperty(RawWeakProperty* raw_weak, bool did_mark) {
     // The fate of the weak property is determined by its key.
     RawObject* raw_key = LoadPointerIgnoreRace(&raw_weak->ptr()->key_);
     if (raw_key->IsHeapObject() && raw_key->IsOldObject() &&
         !raw_key->IsMarked()) {
       // Key was white. Enqueue the weak property.
-      EnqueueWeakProperty(raw_weak);
+      if (did_mark) {
+        EnqueueWeakProperty(raw_weak);
+      }
       return raw_weak->HeapSize();
     }
     // Key is gray or black. Make the weak property black.
@@ -214,17 +216,18 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     while ((raw_obj = deferred_work_list_.Pop()) != NULL) {
       ASSERT(raw_obj->IsHeapObject() && raw_obj->IsOldObject());
       // N.B. We are scanning the object even if it is already marked.
+      bool did_mark = TryAcquireMarkBit(raw_obj);
       const intptr_t class_id = raw_obj->GetClassId();
       intptr_t size;
       if (class_id != kWeakPropertyCid) {
         size = raw_obj->VisitPointersNonvirtual(this);
       } else {
         RawWeakProperty* raw_weak = static_cast<RawWeakProperty*>(raw_obj);
-        size = ProcessWeakProperty(raw_weak);
+        size = ProcessWeakProperty(raw_weak, did_mark);
       }
       // Add the size only if we win the marking race to prevent
       // double-counting.
-      if (TryAcquireMarkBit(raw_obj)) {
+      if (did_mark) {
         marked_bytes_ += size;
       }
     }
