@@ -150,11 +150,14 @@ abstract class Stream<T> {
    * stack trace as well.
    */
   @Since("2.5")
-  factory Stream.error(Object error, [StackTrace? stackTrace]) =>
-      (_AsyncStreamController<T>(null, null, null, null)
-            .._addError(error, stackTrace)
-            .._closeUnchecked())
-          .stream;
+  factory Stream.error(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
+    return (_AsyncStreamController<T>(null, null, null, null)
+          .._addError(error, stackTrace)
+          .._closeUnchecked())
+        .stream;
+  }
 
   /**
    * Creates a new single-subscription stream from the future.
