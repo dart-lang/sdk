@@ -356,6 +356,31 @@ footer .wide {
   cursor: pointer;
 }
 
+p.trace .type-description {
+  /* From HLJS's .hljs-keyword, .hljs-selector-tag, .hljs-deletion */
+  color: #cc7832;
+  font-family: monospace;
+}
+
+ul.trace {
+  font-size: 13px;
+  list-style-type: none;
+  padding-left: 0px;
+}
+
+ul.trace li {
+  color: white;
+  margin-left: 14px;
+  text-indent: -14px;
+}
+
+ul.trace li .function {
+  /* From HLJS's .hljs-section, .hljs-title, .hljs-type */
+  color: #ffc66d;
+  font-family: monospace;
+  font-weight: 600;
+}
+
 .elevation-z4 {
   box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
       0px 4px 5px 0px rgba(0, 0, 0, 0.14),

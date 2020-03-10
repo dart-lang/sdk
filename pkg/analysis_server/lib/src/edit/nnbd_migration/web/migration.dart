@@ -407,12 +407,19 @@ void populateEditDetails([EditDetails response]) {
   }
 
   for (var trace in response.traces) {
-    var traceParagraph = editPanel.append(document.createElement('p'));
-    traceParagraph.append(Text(trace.description));
-    var ul = traceParagraph.append(document.createElement('ul'));
+    var traceParagraph =
+        editPanel.append(document.createElement('p')..classes = ['trace']);
+    traceParagraph.append(Text('Nullability trace for: '));
+    traceParagraph.append(document.createElement('span')
+      ..classes = ['type-description']
+      ..append(Text(trace.description)));
+    var ul = traceParagraph
+        .append(document.createElement('ul')..classes = ['trace']);
     for (var entry in trace.entries) {
-      var li = ul.append(document.createElement('li'));
-      li.append(Text(entry.function ?? 'unknown'));
+      var li = ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
+      li.append(document.createElement('span')
+        ..classes = ['function']
+        ..append(Text(entry.function ?? 'unknown')));
       var link = entry.link;
       if (link != null) {
         li.append(Text(' ('));
