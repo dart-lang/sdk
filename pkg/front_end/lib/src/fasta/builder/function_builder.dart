@@ -9,7 +9,7 @@ import 'dart:core' hide MapEntry;
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
 import '../../base/nnbd_mode.dart';
 
@@ -429,13 +429,17 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     if (returnType != null) {
       result.returnType = returnType.build(library);
     }
-    if (!isConstructor &&
-        !isDeclarationInstanceMember &&
-        parent is ClassBuilder) {
-      ClassBuilder enclosingClassBuilder = parent;
-      List<TypeParameter> typeParameters =
-          enclosingClassBuilder.cls.typeParameters;
-      if (typeParameters.isNotEmpty) {
+    if (!isConstructor && !isDeclarationInstanceMember) {
+      List<TypeParameter> typeParameters;
+      if (parent is ClassBuilder) {
+        ClassBuilder enclosingClassBuilder = parent;
+        typeParameters = enclosingClassBuilder.cls.typeParameters;
+      } else if (parent is ExtensionBuilder) {
+        ExtensionBuilder enclosingExtensionBuilder = parent;
+        typeParameters = enclosingExtensionBuilder.extension.typeParameters;
+      }
+
+      if (typeParameters != null && typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution;
         DartType removeTypeVariables(DartType type) {
           if (substitution == null) {
