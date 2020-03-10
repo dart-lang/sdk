@@ -28,7 +28,7 @@ class Server {
 
   /// Replicate all stdout/stderr data from the server process to stdout/stderr,
   /// when true.
-  bool _stdioPassthrough;
+  final bool _stdioPassthrough;
 
   /// Commands that have been sent to the server but not yet acknowledged,
   /// and the [Completer] objects which should be completed
