@@ -16,7 +16,7 @@ namespace dart {
 
 class Elf;
 class InliningNode;
-class AssemblyCodeNamer;
+class SnapshotTextObjectNamer;
 
 struct ScriptIndexPair {
   // Typedefs needed for the DirectChainedHashMap template.
@@ -393,7 +393,7 @@ class Dwarf : public ZoneAllocated {
                          intptr_t root_code_index,
                          intptr_t root_code_offset,
                          const Script& parent_script,
-                         AssemblyCodeNamer* namer);
+                         SnapshotTextObjectNamer* namer);
   void WriteLines();
 
   const char* Deobfuscate(const char* cstr);

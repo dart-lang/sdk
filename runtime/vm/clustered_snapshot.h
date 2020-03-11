@@ -246,36 +246,6 @@ class Serializer : public ThreadStackResource {
   }
   void Align(intptr_t alignment) { stream_.Align(alignment); }
 
- private:
-  intptr_t WriteRefId(RawObject* object) {
-    intptr_t id = 0;
-    if (!object->IsHeapObject()) {
-      RawSmi* smi = Smi::RawCast(object);
-      id = smi_ids_.Lookup(smi)->id_;
-      if (id == 0) {
-        FATAL("Missing ref");
-      }
-    } else {
-      // The object id weak table holds image offsets for Instructions instead
-      // of ref indices.
-      ASSERT(!object->IsInstructions());
-      id = heap_->GetObjectId(object);
-      if (id == 0) {
-        if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
-          return WriteRefId(Object::null());
-        }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
-          return WriteRefId(Object::null());
-        }
-#endif  // !DART_PRECOMPILED_RUNTIME
-        FATAL("Missing ref");
-      }
-    }
-    return id;
-  }
-
- public:
   void WriteRootRef(RawObject* object, const char* name = nullptr) {
     intptr_t id = WriteRefId(object);
     WriteUnsigned(id);
@@ -382,7 +352,6 @@ class Serializer : public ThreadStackResource {
   uint32_t GetDataOffset(RawObject* object) const;
   void TraceDataOffset(uint32_t offset);
   intptr_t GetDataSize() const;
-  intptr_t GetTextSize() const;
 
   Snapshot::Kind kind() const { return kind_; }
   intptr_t next_ref_index() const { return next_ref_index_; }
@@ -390,6 +359,36 @@ class Serializer : public ThreadStackResource {
   void DumpCombinedCodeStatistics();
 
  private:
+  static const char* ReadOnlyObjectType(intptr_t cid);
+
+  intptr_t WriteRefId(RawObject* object) {
+    intptr_t id = 0;
+    if (!object->IsHeapObject()) {
+      RawSmi* smi = Smi::RawCast(object);
+      id = smi_ids_.Lookup(smi)->id_;
+      if (id == 0) {
+        FATAL("Missing ref");
+      }
+    } else {
+      // The object id weak table holds image offsets for Instructions instead
+      // of ref indices.
+      ASSERT(!object->IsInstructions());
+      id = heap_->GetObjectId(object);
+      if (id == 0) {
+        if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
+          return WriteRefId(Object::null());
+        }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
+          return WriteRefId(Object::null());
+        }
+#endif  // !DART_PRECOMPILED_RUNTIME
+        FATAL("Missing ref");
+      }
+    }
+    return id;
+  }
+
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;

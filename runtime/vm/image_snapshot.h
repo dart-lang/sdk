@@ -149,8 +149,8 @@ struct ImageWriterCommand {
 
 class ImageWriter : public ValueObject {
  public:
-  explicit ImageWriter(Heap* heap);
-  virtual ~ImageWriter() {}
+  explicit ImageWriter(Thread* thread);
+  virtual ~ImageWriter();
 
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
@@ -166,12 +166,20 @@ class ImageWriter : public ValueObject {
   // [ImageWriterCommand]s.
   void PrepareForSerialization(GrowableArray<ImageWriterCommand>* commands);
 
+  bool IsROSpace() const {
+    return offset_space_ == V8SnapshotProfileWriter::kVmData ||
+           offset_space_ == V8SnapshotProfileWriter::kVmText ||
+           offset_space_ == V8SnapshotProfileWriter::kIsolateData ||
+           offset_space_ == V8SnapshotProfileWriter::kIsolateText;
+  }
   int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
   uint32_t GetDataOffsetFor(RawObject* raw_object);
 
   void Write(WriteStream* clustered_stream, bool vm);
   intptr_t data_size() const { return next_data_offset_; }
   intptr_t text_size() const { return next_text_offset_; }
+  intptr_t GetTextObjectCount() const;
+  void GetTrampolineInfo(intptr_t* count, intptr_t* size) const;
 
   void DumpStatistics();
 
@@ -215,6 +223,10 @@ class ImageWriter : public ValueObject {
                                       marked_tags);
   }
 
+  // Returns nullptr if there is no profile writer.
+  const char* ObjectTypeForProfile(const Object& object) const;
+  static const char* TagObjectTypeAsReadOnly(Zone* zone, const char* type);
+
  protected:
   void WriteROData(WriteStream* stream);
   virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
@@ -230,16 +242,16 @@ class ImageWriter : public ValueObject {
           raw_code_(code),
           text_offset_(text_offset),
           trampoline_bytes(nullptr),
-          trampline_length(0) {}
+          trampoline_length(0) {}
 
     InstructionsData(uint8_t* trampoline_bytes,
-                     intptr_t trampline_length,
+                     intptr_t trampoline_length,
                      intptr_t text_offset)
         : raw_insns_(nullptr),
           raw_code_(nullptr),
           text_offset_(text_offset),
           trampoline_bytes(trampoline_bytes),
-          trampline_length(trampline_length) {}
+          trampoline_length(trampoline_length) {}
 
     union {
       RawInstructions* raw_insns_;
@@ -252,7 +264,7 @@ class ImageWriter : public ValueObject {
     intptr_t text_offset_;
 
     uint8_t* trampoline_bytes;
-    intptr_t trampline_length;
+    intptr_t trampoline_length;
   };
 
   struct ObjectData {
@@ -273,9 +285,13 @@ class ImageWriter : public ValueObject {
   V8SnapshotProfileWriter::IdSpace offset_space_ =
       V8SnapshotProfileWriter::kSnapshot;
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
+  const char* const instructions_section_type_;
+  const char* const instructions_type_;
+  const char* const trampoline_type_;
 
   template <class T>
   friend class TraceImageObjectScope;
+  friend class SnapshotTextObjectNamer;  // For InstructionsData.
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ImageWriter);
@@ -293,43 +309,34 @@ class TraceImageObjectScope {
                         intptr_t section_offset,
                         const T* stream,
                         const Object& object)
-      : writer_(writer),
-        stream_(stream),
+      : writer_(ASSERT_NOTNULL(writer)),
+        stream_(ASSERT_NOTNULL(stream)),
         section_offset_(section_offset),
-        start_offset_(stream_->Position() - section_offset) {
-    if (writer_->profile_writer_ != nullptr) {
-      Thread* thread = Thread::Current();
-      REUSABLE_CLASS_HANDLESCOPE(thread);
-      REUSABLE_STRING_HANDLESCOPE(thread);
-      Class& klass = thread->ClassHandle();
-      String& name = thread->StringHandle();
-      klass = object.clazz();
-      name = klass.UserVisibleName();
-      ASSERT(writer_->offset_space_ != V8SnapshotProfileWriter::kSnapshot);
-      writer_->profile_writer_->SetObjectTypeAndName(
-          {writer_->offset_space_, start_offset_}, name.ToCString(), nullptr);
-    }
-  }
+        start_offset_(stream_->Position() - section_offset),
+        object_(object) {}
 
   ~TraceImageObjectScope() {
-    if (writer_->profile_writer_ != nullptr) {
-      ASSERT(writer_->offset_space_ != V8SnapshotProfileWriter::kSnapshot);
-      writer_->profile_writer_->AttributeBytesTo(
-          {writer_->offset_space_, start_offset_},
-          stream_->Position() - section_offset_ - start_offset_);
-    }
+    if (writer_->profile_writer_ == nullptr) return;
+    ASSERT(writer_->IsROSpace());
+    writer_->profile_writer_->SetObjectTypeAndName(
+        {writer_->offset_space_, start_offset_},
+        writer_->ObjectTypeForProfile(object_), nullptr);
+    writer_->profile_writer_->AttributeBytesTo(
+        {writer_->offset_space_, start_offset_},
+        stream_->Position() - section_offset_ - start_offset_);
   }
 
  private:
-  ImageWriter* writer_;
-  const T* stream_;
-  intptr_t section_offset_;
-  intptr_t start_offset_;
+  ImageWriter* const writer_;
+  const T* const stream_;
+  const intptr_t section_offset_;
+  const intptr_t start_offset_;
+  const Object& object_;
 };
 
-class AssemblyCodeNamer {
+class SnapshotTextObjectNamer {
  public:
-  explicit AssemblyCodeNamer(Zone* zone)
+  explicit SnapshotTextObjectNamer(Zone* zone)
       : zone_(zone),
         owner_(Object::Handle(zone)),
         string_(String::Handle(zone)),
@@ -338,7 +345,9 @@ class AssemblyCodeNamer {
 
   const char* StubNameForType(const AbstractType& type) const;
 
-  const char* AssemblyNameFor(intptr_t code_index, const Code& code);
+  const char* SnapshotNameFor(intptr_t code_index, const Code& code);
+  const char* SnapshotNameFor(intptr_t index,
+                              const ImageWriter::InstructionsData& data);
 
  private:
   Zone* const zone_;
