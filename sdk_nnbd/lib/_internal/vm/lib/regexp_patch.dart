@@ -277,13 +277,18 @@ class _RegExp implements RegExp {
 
   int get _groupCount native "RegExp_getGroupCount";
 
-  // Returns a List [String, int, String, int, ...] where each
-  // String is the name of a capture group and the following
-  // int is that capture group's index.
-  List get _groupNameList native "RegExp_getGroupNameMap";
+  /// The names and indices of named capture group.
+  ///
+  /// Returns a [List] of alternating strings and integers,
+  /// `[String, int, String, int, ...]` where each
+  /// [String] is the name of a capture group and the following
+  /// [int] is that capture group's index.
+  /// Returns `null` if there are no group names.
+  List? get _groupNameList native "RegExp_getGroupNameMap";
 
   Iterable<String> get _groupNames sync* {
     final nameList = _groupNameList;
+    if (nameList == null) return;
     for (var i = 0; i < nameList.length; i += 2) {
       yield nameList[i] as String;
     }
@@ -291,9 +296,10 @@ class _RegExp implements RegExp {
 
   int _groupNameIndex(String name) {
     var nameList = _groupNameList;
+    if (nameList == null) return -1;
     for (var i = 0; i < nameList.length; i += 2) {
       if (name == nameList[i]) {
-        return nameList[i + 1];
+        return nameList[i + 1] as int;
       }
     }
     return -1;

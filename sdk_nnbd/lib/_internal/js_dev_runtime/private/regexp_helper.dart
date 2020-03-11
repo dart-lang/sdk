@@ -204,7 +204,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   String? namedGroup(String name) {
-    var groups = JS<Object?>('', '#.groups', _match);
+    var groups = JS<Object?>('Object|Null', '#.groups', _match);
     if (groups != null) {
       var result = JS<String?>('', '#[#]', groups, name);
       if (result != null || JS<bool>('!', '# in #', name, groups)) {
@@ -215,7 +215,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   Iterable<String> get groupNames {
-    var groups = JS<Object?>('', '#.groups', _match);
+    var groups = JS<Object?>('Object|Null', '#.groups', _match);
     if (groups != null) {
       var keys = JSArray<String>.of(JS('', 'Object.keys(#)', groups));
       return SubListIterable(keys, 0, null);
