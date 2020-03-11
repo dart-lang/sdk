@@ -1197,38 +1197,38 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
     const AbstractType& type) {
   ASSERT(I->can_use_strong_mode_types());
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
-
-  // The goal is to emit code that will determine the result of 'x is type'
-  // depending solely on the fact that x == null or not.
-  // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
-  // In addition, 'null' is an instance of any nullable type.
-  // It is also an instance of FutureOr<T> if it is an instance of T.
-  const AbstractType& unwrapped_type =
-      AbstractType::Handle(type.UnwrapFutureOr());
-  if (unwrapped_type.IsTopType() || !unwrapped_type.IsInstantiated()) {
-    return false;  // Always true or cannot tell.
-  }
-
-  // Checking whether the receiver is null can only help if the tested type is
-  // legacy (including Never*) or the Null type.
-  if (!unwrapped_type.IsLegacy() && !unwrapped_type.IsNullType()) {
-    // TODO(regis): We should optimize this into a constant if the type
-    // is nullable or non-nullable.
+  if (!type.IsInstantiated()) {
     return false;
   }
 
-  const intptr_t receiver_index = call->FirstArgIndex();
-  Value* left_value = call->ArgumentValueAt(receiver_index);
+  Value* left_value = call->Receiver();
+  if (left_value->Type()->IsInstanceOf(type)) {
+    ConstantInstr* replacement = flow_graph()->GetConstant(Bool::True());
+    call->ReplaceUsesWith(replacement);
+    ASSERT(current_iterator()->Current() == call);
+    current_iterator()->RemoveCurrentFromGraph();
+    return true;
+  }
 
-  // If the static type of the receiver is a subtype of the tested type,
-  // replace 'receiver is type' with 'receiver == null' if type is Null
-  // or with 'receiver != null' otherwise.
-  if (left_value->Type()->IsSubtypeOf(type)) {
+  // The goal is to emit code that will determine the result of 'x is type'
+  // depending solely on the fact that x == null or not.
+  // Checking whether the receiver is null can only help if the tested type is
+  // non-nullable or legacy (including Never*) or the Null type.
+  // Also, testing receiver for null cannot help with FutureOr.
+  if ((type.IsNullable() && !type.IsNullType()) || type.IsFutureOrType()) {
+    return false;
+  }
+
+  // If type is Null or Never*, or the static type of the receiver is a
+  // subtype of the tested type, replace 'receiver is type' with
+  //  - 'receiver == null' if type is Null or Never*,
+  //  - 'receiver != null' otherwise.
+  if (type.IsNullType() || type.IsNeverType() ||
+      left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
-        (unwrapped_type.IsNullType() || unwrapped_type.IsNeverType())
-            ? Token::kEQ_STRICT
-            : Token::kNE_STRICT,
+        (type.IsNullType() || type.IsNeverType()) ? Token::kEQ_STRICT
+                                                  : Token::kNE_STRICT,
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
         /* number_check = */ false, DeoptId::kNone);
