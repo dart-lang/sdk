@@ -107,13 +107,8 @@ void Profiler::Cleanup() {
   }
   ASSERT(initialized_);
   ThreadInterrupter::Cleanup();
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
-  // TODO(30309): Free the sample buffer on platforms that use a signal-based
-  // thread interrupter.
-#else
   delete sample_buffer_;
   sample_buffer_ = NULL;
-#endif
   initialized_ = false;
 }
 

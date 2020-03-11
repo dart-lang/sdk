@@ -1536,6 +1536,10 @@ Profile::Profile(Isolate* isolate)
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,
                     SampleBuffer* sample_buffer) {
+  // Disable thread interrupts while processing the buffer.
+  DisableThreadInterruptsScope dtis(thread);
+  ThreadInterrupter::SampleBufferReaderScope scope;
+
   ProfileBuilder builder(thread, filter, sample_buffer, this);
   builder.Build();
 }
@@ -1825,8 +1829,6 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
                                     SampleBuffer* sample_buffer,
                                     bool include_code_samples) {
   Isolate* isolate = thread->isolate();
-  // Disable thread interrupts while processing the buffer.
-  DisableThreadInterruptsScope dtis(thread);
 
   // We should bail out in service.cc if the profiler is disabled.
   ASSERT(sample_buffer != NULL);
@@ -1921,6 +1923,7 @@ void ProfilerService::ClearSamples() {
 
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
+  ThreadInterrupter::SampleBufferReaderScope scope;
 
   ClearProfileVisitor clear_profile(isolate);
   sample_buffer->VisitSamples(&clear_profile);
