@@ -155,7 +155,7 @@ void emptyChecks<T>(List<T> list, T toElementType(dynamic c)) {
 
   var copy = list.toList();
   // Make sure we are allowed to call range-functions if they are 0..0.
-  list.fillRange(0, 0);
+  list.fillRange(0, 0, toElementType(0));
   Expect.listEquals([], list.getRange(0, 0).toList());
 
   final minusOne = toElementType(-1);

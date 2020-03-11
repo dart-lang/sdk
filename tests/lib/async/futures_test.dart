@@ -15,7 +15,7 @@ Future testWaitEmpty() {
 
 Future testCompleteAfterWait() {
   final futures = new List<Future>();
-  final c = new Completer<Object>();
+  final c = new Completer<Object?>();
   futures.add(c.future);
   Future future = Future.wait(futures);
   c.complete(null);

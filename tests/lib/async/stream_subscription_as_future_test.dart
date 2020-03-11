@@ -71,7 +71,7 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture(output).catchError(expectAsync((error) {
+    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
     }));
   });
@@ -85,7 +85,7 @@ main() {
     var subscription = stream.listen((x) {
       output.add(x);
     });
-    subscription.asFuture(output).catchError(expectAsync((error) {
+    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
     }));
   });
@@ -103,7 +103,7 @@ main() {
       output.add(x);
     });
     bool catchErrorHasRun = false;
-    subscription.asFuture(output).catchError(expectAsync((error) {
+    subscription.asFuture<List?>(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
       catchErrorHasRun = true;
     }));
@@ -127,7 +127,7 @@ main() {
         output.add(x);
       });
       bool catchErrorHasRun = false;
-      subscription.asFuture(output).catchError(expectAsync((error) {
+      subscription.asFuture<List?>(output).catchError(expectAsync((error) {
         Expect.equals(error, "foo");
         catchErrorHasRun = true;
       }));
