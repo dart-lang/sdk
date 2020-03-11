@@ -2577,7 +2577,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (typeArgument is InterfaceType &&
         typeArgument.classNode == _coreTypes.objectClass) {
       // Normalize FutureOr of Object, Object?, Object*.
-      normalizedType = typeArgument;
+      var nullable = futureOr.nullability == Nullability.nullable ||
+          typeArgument.nullability == Nullability.nullable;
+      var legacy = futureOr.nullability == Nullability.legacy ||
+          typeArgument.nullability == Nullability.legacy;
+      var nullability = nullable
+          ? Nullability.nullable
+          : legacy ? Nullability.legacy : Nullability.nonNullable;
+      normalizedType = typeArgument.withNullability(nullability);
     } else if (typeArgument is NeverType) {
       // FutureOr<Never> --> Future<Never>
       normalizedType = InterfaceType(
