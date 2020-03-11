@@ -876,10 +876,14 @@ class GenericFunctionTypeIdentifier extends AbstractFunctionType {
       if (i != 0) s += ", ";
       s += JS<String>('!', '#[#].name', typeFormals, i);
       var bound = typeBounds[i];
-      if (JS(
-          '!', '# !== # && # !== #', bound, dynamic, bound, nullable(Object))) {
-        s += " extends $bound";
+      if (_equalType(bound, dynamic) ||
+          JS<bool>('!', '# === #', bound, nullable(unwrapType(Object))) ||
+          (!_strictSubtypeChecks && _equalType(bound, Object))) {
+        // Do not print the bound when it is a top type. In weak mode the bounds
+        // of Object and Object* will also be elided.
+        continue;
       }
+      s += " extends $bound";
     }
     s += ">" + this.function.toString();
     return this._stringValue = s;
@@ -924,10 +928,11 @@ class GenericFunctionType extends AbstractFunctionType {
 
   List instantiateTypeBounds(List typeArgs) {
     if (!hasTypeBounds) {
-      // The Dart 1 spec says omitted type parameters have an upper bound of
-      // Object. However Dart 2 uses `dynamic` for the purpose of instantiate to
-      // bounds, so we use that here.
-      return List.filled(formalCount, _dynamic);
+      // We ommit the a bound to represent Object*. Other bounds are explicitly
+      // represented, including Object, Object? and dynamic.
+      // TODO(nshahan) Revisit this representation when more libraries have
+      // migrated to null safety.
+      return List.filled(formalCount, legacy(unwrapType(Object)));
     }
     // Bounds can be recursive or depend on other type parameters, so we need to
     // apply type arguments and return the resulting bounds.
