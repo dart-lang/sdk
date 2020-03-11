@@ -1761,15 +1761,27 @@ void h() {
             regionInfo.offset == unit.content.indexOf('? i) {} // f'))
         .single;
     expect(region.traces, hasLength(1));
-    var entries = region.traces.single.entries;
-    expect(entries, hasLength(3));
-    // Entry 0 is the edge from g's argument to f's argument, due to g's call to
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(6));
+    // Entry 0 is the nullability of f's argument
+    assertTraceEntry(
+        unit, entries[0], 'f', unit.content.indexOf('int? i) {} // f'));
+    // Entry 1 is the edge from g's argument to f's argument, due to g's call to
     // f.
-    assertTraceEntry(unit, entries[0], 'g', unit.content.indexOf('i);'));
-    // Entry 1 is the edge from null to g's argument, due to h's call to g.
-    assertTraceEntry(unit, entries[1], 'h', unit.content.indexOf('null'));
-    // Entry 2 is the edge from always to null.
-    assertTraceEntry(unit, entries[2], 'h', unit.content.indexOf('null'));
+    assertTraceEntry(unit, entries[1], 'g', unit.content.indexOf('i);'));
+    // Entry 2 is the nullability of g's argument
+    assertTraceEntry(
+        unit, entries[2], 'g', unit.content.indexOf('int? i) { // g'));
+    // Entry 3 is the edge from null to g's argument, due to h's call to g.
+    assertTraceEntry(unit, entries[3], 'h', unit.content.indexOf('null'));
+    // Entry 4 is the nullability of the null literal.
+    assertTraceEntry(unit, entries[4], 'h', unit.content.indexOf('null'));
+    // Entry 5 is the edge from always to null.
+    // TODO(paulberry): this edge provides no additional useful information and
+    // shouldn't be included in the trace.
+    assertTraceEntry(unit, entries[5], 'h', unit.content.indexOf('null'));
   }
 
   Future<void> test_trace_nullCheck() async {
@@ -1780,10 +1792,16 @@ void h() {
         .where((regionInfo) => regionInfo.offset == unit.content.indexOf('! +'))
         .single;
     expect(region.traces, hasLength(1));
-    var entries = region.traces.single.entries;
-    expect(entries, hasLength(1));
-    // Entry 0 is the edge from always to the type of i.
+    var trace = region.traces.single;
+    expect(trace.description, 'Nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(2));
+    // Entry 0 is the nullability of the type of i.
     assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int?'));
+    // Entry 1 is the edge from always to the type of i.
+    // TODO(paulberry): this edge provides no additional useful information and
+    // shouldn't be included in the trace.
+    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int?'));
   }
 
   Future<void> test_uninitializedField() async {

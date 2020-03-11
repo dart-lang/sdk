@@ -14,13 +14,9 @@ import 'edge_origin.dart';
 
 /// Base class for steps that occur as part of downstream propagation, where the
 /// nullability of a node is changed to a new state.
-abstract class DownstreamPropagationStep extends PropagationStep {
-  /// The node whose nullability was changed.
-  ///
-  /// Any propagation step that took effect should have a non-null value here.
-  /// Propagation steps that are pending but have not taken effect yet, or that
-  /// never had an effect (e.g. because an edge was not triggered) will have a
-  /// `null` value for this field.
+abstract class DownstreamPropagationStep extends PropagationStep
+    implements DownstreamPropagationStepInfo {
+  @override
   NullabilityNodeMutable targetNode;
 
   /// The state that the node's nullability was changed to.
@@ -38,6 +34,9 @@ abstract class DownstreamPropagationStep extends PropagationStep {
       : targetNode = deserializer.nodeForId(json['target'] as int)
             as NullabilityNodeMutable,
         newState = Nullability.fromJson(json['newState']);
+
+  @override
+  DownstreamPropagationStep get principalCause;
 
   @override
   Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
@@ -731,6 +730,9 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   NullabilityNode._();
 
+  @override
+  CodeReference get codeReference => null;
+
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
   String get debugSuffix => '?($this)';
@@ -980,7 +982,7 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   NonNullIntent get nonNullIntent => _nonNullIntent;
 
   @override
-  PropagationStepInfo get whyNullable => _whyNullable;
+  DownstreamPropagationStepInfo get whyNullable => _whyNullable;
 
   @override
   void resetState() {
@@ -1120,7 +1122,7 @@ class SimpleDownstreamPropagationStep extends DownstreamPropagationStep {
       '${edge.toString(idMapper: idMapper)}';
 }
 
-/// Propagation step where we mark the source of an edge as exactx nullable, due
+/// Propagation step where we mark the source of an edge as exact nullable, due
 /// to its destination becoming exact nullable.
 class SimpleExactNullablePropagationStep extends ExactNullablePropagationStep {
   @override
@@ -1241,7 +1243,7 @@ class _NullabilityNodeImmutable extends NullabilityNode {
       isNullable ? NonNullIntent.none : NonNullIntent.direct;
 
   @override
-  PropagationStepInfo get whyNullable => null;
+  DownstreamPropagationStepInfo get whyNullable => null;
 
   @override
   String get _jsonKind => 'immutable';
@@ -1274,6 +1276,9 @@ class _NullabilityNodeSimple extends NullabilityNodeMutable {
       : target =
             NullabilityNodeTarget.text(json['targetDisplayName'] as String),
         super.fromJson(json, deserializer);
+
+  @override
+  CodeReference get codeReference => target.codeReference;
 
   @override
   String get displayName => target.displayName;

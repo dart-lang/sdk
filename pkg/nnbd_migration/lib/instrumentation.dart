@@ -112,6 +112,20 @@ abstract class DecoratedTypeInfo {
   DecoratedTypeInfo typeArgument(int i);
 }
 
+/// Information about a propagation stup that occurred during downstream
+/// propagation.
+abstract class DownstreamPropagationStepInfo implements PropagationStepInfo {
+  DownstreamPropagationStepInfo get principalCause;
+
+  /// The node whose nullability was changed.
+  ///
+  /// Any propagation step that took effect should have a non-null value here.
+  /// Propagation steps that are pending but have not taken effect yet, or that
+  /// never had an effect (e.g. because an edge was not triggered) will have a
+  /// `null` value for this field.
+  NullabilityNodeInfo get targetNode;
+}
+
 /// Information exposed to the migration client about an edge in the nullability
 /// graph.
 ///
@@ -324,6 +338,10 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// List of compound nodes wrapping this node.
   final List<NullabilityNodeInfo> outerCompoundNodes = <NullabilityNodeInfo>[];
 
+  /// Source code location corresponding to this nullability node, or `null` if
+  /// not known.
+  CodeReference get codeReference;
+
   /// Some nodes get nullability from downstream, so the downstream edges are
   /// available to query as well.
   Iterable<EdgeInfo> get downstreamEdges;
@@ -344,13 +362,13 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// The edges that caused this node to have the nullability that it has.
   Iterable<EdgeInfo> get upstreamEdges;
 
-  PropagationStepInfo get whyNullable;
+  /// If [isNullable] is true, the propagation step that caused this node to
+  /// become nullable.
+  DownstreamPropagationStepInfo get whyNullable;
 }
 
 abstract class PropagationStepInfo {
   CodeReference get codeReference;
-
-  PropagationStepInfo get principalCause;
 }
 
 /// Information exposed to the migration client about a node in the nullability

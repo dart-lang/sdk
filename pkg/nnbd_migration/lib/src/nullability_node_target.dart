@@ -46,6 +46,10 @@ abstract class NullabilityNodeTarget {
 
   NullabilityNodeTarget._();
 
+  /// The source code location associated with this target, if known.  Otherwise
+  /// `null`.
+  CodeReference get codeReference => null;
+
   /// Gets a short description of this nullability node target suitable for
   /// displaying to the user.
   String get displayName;
@@ -120,6 +124,9 @@ abstract class _NullabilityNodeTarget_Part extends NullabilityNodeTarget {
   final NullabilityNodeTarget inner;
 
   _NullabilityNodeTarget_Part(this.inner) : super._();
+
+  @override
+  CodeReference get codeReference => inner.codeReference;
 }
 
 /// Nullability node target representing the type of a positional function
