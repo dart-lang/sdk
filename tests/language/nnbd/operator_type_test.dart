@@ -311,7 +311,7 @@ void potentiallyNullable<NN extends int?, NNI extends List<int>?>() {
 
   nn ?? 1;
 
-  nn ??= 1;
+  nn ??= maybeNotNullable<NN>(1);
 
   nn?.toRadixString(16);
 
