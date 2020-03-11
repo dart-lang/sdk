@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-02-27T09:12:42.886102",
+  "generated": "2020-03-11T09:16:09.767708",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -55,12 +55,6 @@
       "rootUri": "../pkg/analyzer_cli",
       "packageUri": "lib/",
       "languageVersion": "2.7"
-    },
-    {
-      "name": "analyzer_fe_comparison",
-      "rootUri": "../pkg/analyzer_fe_comparison",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "analyzer_plugin",

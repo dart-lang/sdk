@@ -13,7 +13,6 @@ analysis_server_client:pkg/analysis_server_client/lib
 analysis_tool:pkg/analysis_tool/lib
 analyzer:pkg/analyzer/lib
 analyzer_cli:pkg/analyzer_cli/lib
-analyzer_fe_comparison:pkg/analyzer_fe_comparison/lib
 analyzer_plugin:pkg/analyzer_plugin/lib
 args:third_party/pkg/args/lib
 async:third_party/pkg/async/lib
