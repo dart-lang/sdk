@@ -22,11 +22,30 @@ class CodeReference {
 
   CodeReference(this.path, this.line, this.column, this.function);
 
+  /// Creates a [CodeReference] pointing to the given [node].
+  factory CodeReference.fromAstNode(AstNode node) {
+    var compilationUnit = node.thisOrAncestorOfType<CompilationUnit>();
+    var source = compilationUnit.declaredElement.source;
+    var location = compilationUnit.lineInfo.getLocation(node.offset);
+    return CodeReference(source.fullName, location.lineNumber,
+        location.columnNumber, _computeEnclosingName(node));
+  }
+
   CodeReference.fromJson(dynamic json)
       : path = json['path'] as String,
         line = json['line'] as int,
         column = json['col'] as int,
         function = json['function'] as String;
+
+  /// Gets a short description of this code reference (using the last component
+  /// of the path rather than the full path)
+  String get shortName => '$shortPath:$line:$column';
+
+  /// Gets the last component of the path part of this code reference.
+  String get shortPath {
+    var pathAsUri = Uri.file(path);
+    return pathAsUri.pathSegments.last;
+  }
 
   Map<String, Object> toJson() {
     return {
@@ -41,6 +60,27 @@ class CodeReference {
   String toString() {
     var pathAsUri = Uri.file(path);
     return '${function ?? 'unknown'} ($pathAsUri:$line:$column)';
+  }
+
+  static String _computeEnclosingName(AstNode node) {
+    List<String> parts = [];
+    while (node != null) {
+      var nodeName = _computeNodeDeclarationName(node);
+      if (nodeName != null) {
+        parts.add(nodeName);
+      }
+      node = node.parent;
+    }
+    if (parts.isEmpty) return null;
+    return parts.reversed.join('.');
+  }
+
+  static String _computeNodeDeclarationName(AstNode node) {
+    if (node is Declaration) {
+      return node.declaredElement?.name;
+    } else {
+      return null;
+    }
   }
 }
 

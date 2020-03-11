@@ -61,7 +61,6 @@ class DecoratedTypeTest extends Object
   void setUp() {
     DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
     ElementTypeProvider.current = elementTypeProvider;
-    NullabilityNode.clearDebugNames();
   }
 
   void tearDown() {

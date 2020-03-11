@@ -25,6 +25,7 @@ import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 
@@ -133,9 +134,11 @@ class Variables implements VariableRecorder, VariableRepository {
               'have been stored by the NodeBuilder via '
               'recordTypeParameterBound');
         }
+        var target = NullabilityNodeTarget.typeParameterBound(typeParameter);
         decoratedType = _alreadyMigratedCodeDecorator.decorate(
             typeParameter.preMigrationBound ?? DynamicTypeImpl.instance,
-            typeParameter);
+            typeParameter,
+            target);
         instrumentation?.externalDecoratedTypeParameterBound(
             typeParameter, decoratedType);
         DecoratedTypeParameterBounds.current.put(typeParameter, decoratedType);
@@ -331,12 +334,13 @@ class Variables implements VariableRecorder, VariableRepository {
       element = (element as FunctionTypeAliasElement).function;
     }
 
+    var target = NullabilityNodeTarget.element(element);
     if (element is FunctionTypedElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(
-          element.preMigrationType, element);
+          element.preMigrationType, element, target);
     } else if (element is VariableElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(
-          element.preMigrationType, element);
+          element.preMigrationType, element, target);
     } else {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');

@@ -9,9 +9,9 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
@@ -93,20 +93,24 @@ class DecoratedType implements DecoratedTypeInfo {
   /// Creates a decorated type corresponding to [type], with fresh nullability
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
-  factory DecoratedType.forImplicitFunction(TypeProvider typeProvider,
-      FunctionType type, NullabilityNode node, NullabilityGraph graph,
-      {DecoratedType returnType, @required int offset}) {
+  factory DecoratedType.forImplicitFunction(
+      TypeProvider typeProvider,
+      FunctionType type,
+      NullabilityNode node,
+      NullabilityGraph graph,
+      NullabilityNodeTarget target,
+      {DecoratedType returnType}) {
     var positionalParameters = <DecoratedType>[];
     var namedParameters = <String, DecoratedType>{};
+    int index = 0;
     for (var parameter in type.parameters) {
       if (parameter.isPositional) {
-        positionalParameters.add(DecoratedType.forImplicitType(
-            typeProvider, parameter.type, graph,
-            offset: offset));
+        positionalParameters.add(DecoratedType.forImplicitType(typeProvider,
+            parameter.type, graph, target.positionalParameter(index++)));
       } else {
-        namedParameters[parameter.name] = DecoratedType.forImplicitType(
-            typeProvider, parameter.type, graph,
-            offset: offset);
+        var name = parameter.name;
+        namedParameters[name] = DecoratedType.forImplicitType(
+            typeProvider, parameter.type, graph, target.namedParameter(name));
       }
     }
     for (var element in type.typeFormals) {
@@ -114,14 +118,16 @@ class DecoratedType implements DecoratedTypeInfo {
         DecoratedTypeParameterBounds.current.put(
             element,
             DecoratedType.forImplicitType(
-                typeProvider, element.bound ?? typeProvider.objectType, graph,
-                offset: offset));
+                typeProvider,
+                element.bound ?? typeProvider.objectType,
+                graph,
+                target.typeFormalBound(element.name)));
       }
     }
     return DecoratedType(type, node,
         returnType: returnType ??
-            DecoratedType.forImplicitType(typeProvider, type.returnType, graph,
-                offset: offset),
+            DecoratedType.forImplicitType(
+                typeProvider, type.returnType, graph, target.returnType()),
         namedParameters: namedParameters,
         positionalParameters: positionalParameters);
   }
@@ -129,10 +135,10 @@ class DecoratedType implements DecoratedTypeInfo {
   /// Creates a DecoratedType corresponding to [type], with fresh nullability
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
-  factory DecoratedType.forImplicitType(
-      TypeProvider typeProvider, DartType type, NullabilityGraph graph,
-      {List<DecoratedType> typeArguments, @required int offset}) {
-    var nullabilityNode = NullabilityNode.forInferredType(offset: offset);
+  factory DecoratedType.forImplicitType(TypeProvider typeProvider,
+      DartType type, NullabilityGraph graph, NullabilityNodeTarget target,
+      {List<DecoratedType> typeArguments}) {
+    var nullabilityNode = NullabilityNode.forInferredType(target);
     if (type is InterfaceType) {
       assert(() {
         if (typeArguments != null) {
@@ -144,9 +150,10 @@ class DecoratedType implements DecoratedTypeInfo {
         return true;
       }());
 
+      int index = 0;
       typeArguments ??= type.typeArguments
-          .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph,
-              offset: offset))
+          .map((t) => DecoratedType.forImplicitType(
+              typeProvider, t, graph, target.typeArgument(index++)))
           .toList();
       return DecoratedType(type, nullabilityNode, typeArguments: typeArguments);
     } else if (type is FunctionType) {
@@ -154,8 +161,7 @@ class DecoratedType implements DecoratedTypeInfo {
         throw "Not supported: implicit function type with explicit type arguments";
       }
       return DecoratedType.forImplicitFunction(
-          typeProvider, type, nullabilityNode, graph,
-          offset: offset);
+          typeProvider, type, nullabilityNode, graph, target);
     } else {
       assert(typeArguments == null);
       return DecoratedType(type, nullabilityNode);

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
 
 import 'edge_origin.dart';
@@ -646,11 +648,7 @@ class NullabilityGraphSerializer {
 /// variables.  Over time this will be replaced by a first class representation
 /// of the nullability inference graph.
 abstract class NullabilityNode implements NullabilityNodeInfo {
-  static final _debugNamesInUse = Set<String>();
-
   bool _isPossiblyOptional = false;
-
-  String _debugName;
 
   /// List of [NullabilityEdge] objects describing this node's relationship to
   /// other nodes that are "downstream" from it (meaning that if a key node is
@@ -667,25 +665,26 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type comes from an already-migrated library.
-  factory NullabilityNode.forAlreadyMigrated() =>
-      _NullabilityNodeSimple('migrated');
+  factory NullabilityNode.forAlreadyMigrated(NullabilityNodeTarget target) =>
+      _NullabilityNodeSimple(target);
 
   /// Creates a [NullabilityNode] representing the nullability of an expression
   /// which is nullable iff two other nullability nodes are both nullable.
   ///
   /// The caller is required to create the appropriate graph edges to ensure
   /// that the appropriate relationship between the nodes' nullabilities holds.
-  factory NullabilityNode.forGLB() => _NullabilityNodeSimple('GLB');
+  factory NullabilityNode.forGLB() => _NullabilityNodeSimple(
+      NullabilityNodeTarget.text('(greatest lower bound)'));
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is determined by the `??` operator.
-  factory NullabilityNode.forIfNotNull() =>
-      _NullabilityNodeSimple('?? operator');
+  factory NullabilityNode.forIfNotNull(AstNode node) => _NullabilityNodeSimple(
+      NullabilityNodeTarget.codeRef('?? operator', node));
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is determined by type inference.
-  factory NullabilityNode.forInferredType({int offset}) =>
-      _NullabilityNodeSimple('inferred${offset == null ? '' : '($offset)'}');
+  factory NullabilityNode.forInferredType(NullabilityNodeTarget target) =>
+      _NullabilityNodeSimple(target);
 
   /// Creates a [NullabilityNode] representing the nullability of an
   /// expression which is nullable iff either [a] or [b] is nullable.
@@ -708,8 +707,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// annotation appearing explicitly in the user's program.
-  factory NullabilityNode.forTypeAnnotation(int endOffset) =>
-      _NullabilityNodeSimple('type($endOffset)');
+  factory NullabilityNode.forTypeAnnotation(NullabilityNodeTarget target) =>
+      _NullabilityNodeSimple(target);
 
   NullabilityNode.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer) {
@@ -736,6 +735,10 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// annotate the nullability of that type.
   String get debugSuffix => '?($this)';
 
+  /// Gets a name for the nullability node that is suitable for display to the
+  /// user.
+  String get displayName;
+
   Iterable<EdgeInfo> get downstreamEdges => _downstreamEdges;
 
   /// After nullability propagation, this getter can be used to query whether
@@ -758,8 +761,6 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   @override
   Iterable<EdgeInfo> get upstreamEdges => _upstreamEdges;
-
-  String get _debugPrefix;
 
   String get _jsonKind;
 
@@ -801,24 +802,11 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   }
 
   String toString({NodeToIdMapper idMapper}) {
-    if (_debugName == null) {
-      var prefix = _debugPrefix;
-      if (_debugNamesInUse.add(prefix)) {
-        _debugName = prefix;
-      } else {
-        for (int i = 0;; i++) {
-          var name = '${prefix}_$i';
-          if (_debugNamesInUse.add(name)) {
-            _debugName = name;
-            break;
-          }
-        }
-      }
-    }
+    var name = displayName;
     if (idMapper == null) {
-      return _debugName;
+      return name;
     } else {
-      return '${idMapper.idForNode(this)}: $_debugName';
+      return '${idMapper.idForNode(this)}: $name';
     }
   }
 
@@ -827,11 +815,6 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// required.
   void trackPossiblyOptional() {
     _isPossiblyOptional = true;
-  }
-
-  @visibleForTesting
-  static void clearDebugNames() {
-    _debugNamesInUse.clear();
   }
 }
 
@@ -880,10 +863,10 @@ class NullabilityNodeForLUB extends NullabilityNodeCompound {
       {'left': left, 'right': right};
 
   @override
-  Iterable<NullabilityNode> get _components => [left, right];
+  String get displayName => '${left.displayName} or ${right.displayName}';
 
   @override
-  String get _debugPrefix => 'LUB($left, $right)';
+  Iterable<NullabilityNode> get _components => [left, right];
 
   @override
   String get _jsonKind => 'lub';
@@ -931,10 +914,11 @@ class NullabilityNodeForSubstitution extends NullabilityNodeCompound
       {'inner': innerNode, 'outer': outerNode};
 
   @override
-  Iterable<NullabilityNode> get _components => [innerNode, outerNode];
+  String get displayName =>
+      '${innerNode.displayName} or ${outerNode.displayName}';
 
   @override
-  String get _debugPrefix => 'Substituted($innerNode, $outerNode)';
+  Iterable<NullabilityNode> get _components => [innerNode, outerNode];
 
   @override
   String get _jsonKind => 'substitution';
@@ -1226,16 +1210,16 @@ enum _NullabilityEdgeKind {
 
 class _NullabilityNodeImmutable extends NullabilityNode {
   @override
-  final String _debugPrefix;
+  final String displayName;
 
   @override
   final bool isNullable;
 
-  _NullabilityNodeImmutable(this._debugPrefix, this.isNullable) : super._();
+  _NullabilityNodeImmutable(this.displayName, this.isNullable) : super._();
 
   _NullabilityNodeImmutable.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
-      : _debugPrefix = json['debugPrefix'] as String,
+      : displayName = json['displayName'] as String,
         isNullable = json['isNullable'] as bool,
         super.fromJson(json, deserializer);
 
@@ -1274,22 +1258,25 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   @override
   Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
     var json = super.toJson(serializer);
-    json['debugPrefix'] = _debugPrefix;
+    json['displayName'] = displayName;
     json['isNullable'] = isNullable;
     return json;
   }
 }
 
 class _NullabilityNodeSimple extends NullabilityNodeMutable {
-  @override
-  final String _debugPrefix;
+  final NullabilityNodeTarget target;
 
-  _NullabilityNodeSimple(this._debugPrefix) : super._();
+  _NullabilityNodeSimple(this.target) : super._();
 
   _NullabilityNodeSimple.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
-      : _debugPrefix = json['debugPrefix'] as String,
+      : target =
+            NullabilityNodeTarget.text(json['targetDisplayName'] as String),
         super.fromJson(json, deserializer);
+
+  @override
+  String get displayName => target.displayName;
 
   @override
   String get _jsonKind => 'simple';
@@ -1297,7 +1284,7 @@ class _NullabilityNodeSimple extends NullabilityNodeMutable {
   @override
   Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
     var json = super.toJson(serializer);
-    json['debugPrefix'] = _debugPrefix;
+    json['targetDisplayName'] = target.displayName;
     return json;
   }
 }

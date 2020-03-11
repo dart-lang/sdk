@@ -20,6 +20,7 @@ import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/variables.dart';
 import 'package:test/test.dart';
 
@@ -35,7 +36,7 @@ class AnyNodeMatcher extends _RecordingNodeMatcher {
 
 /// Mixin allowing unit tests to create decorated types easily.
 mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
-  int _offset = 0;
+  int nodeId = 0;
 
   NullabilityNode get always => graph.always;
 
@@ -101,7 +102,8 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
       DecoratedType(typeProvider.listType2(elementType.type), node ?? newNode(),
           typeArguments: [elementType]);
 
-  NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(_offset++);
+  NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(
+      NullabilityNodeTarget.text('node ${nodeId++}'));
 
   DecoratedType num_({NullabilityNode node}) =>
       DecoratedType(typeProvider.numType, node ?? newNode());

@@ -102,35 +102,9 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
   /// created, or `null` if unknown.
   CodeReference get codeReference {
     if (node != null) {
-      var location = node
-          .thisOrAncestorOfType<CompilationUnit>()
-          .lineInfo
-          .getLocation(node.offset);
-      return CodeReference(source.fullName, location.lineNumber,
-          location.columnNumber, _computeEnclosingName(node));
+      return CodeReference.fromAstNode(node);
     }
     return null;
-  }
-
-  static String _computeEnclosingName(AstNode node) {
-    List<String> parts = [];
-    while (node != null) {
-      var nodeName = _computeNodeDeclarationName(node);
-      if (nodeName != null) {
-        parts.add(nodeName);
-      }
-      node = node.parent;
-    }
-    if (parts.isEmpty) return null;
-    return parts.reversed.join('.');
-  }
-
-  static String _computeNodeDeclarationName(AstNode node) {
-    if (node is Declaration) {
-      return node.declaredElement?.name;
-    } else {
-      return null;
-    }
   }
 }
 

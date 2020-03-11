@@ -5,6 +5,7 @@
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,8 +43,8 @@ class NullabilityNodeTest {
     return NullabilityNode.forLUB(left, right);
   }
 
-  NullabilityNode newNode(int offset) =>
-      NullabilityNode.forTypeAnnotation(offset);
+  NullabilityNode newNode(int id) =>
+      NullabilityNode.forTypeAnnotation(NullabilityNodeTarget.text('node $id'));
 
   void propagate() {
     var propagationResult = graph.propagate(null);

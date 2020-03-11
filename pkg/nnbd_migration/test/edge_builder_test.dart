@@ -1781,6 +1781,7 @@ int f(int i, int j) => i ?? j;
     var right = decoratedTypeAnnotation('int j').node;
     var expression = decoratedExpressionType('??').node;
     assertEdge(right, expression, guards: [left], hard: false);
+    expect(expression.displayName, '?? operator (test.dart:1:24)');
   }
 
   Future<void>
@@ -3816,6 +3817,27 @@ f(int i) => C<int>(t: i/*check*/);
         assertEdge(nullable_i, nullable_c_t_or_nullable_t, hard: true));
   }
 
+  Future<void> test_instanceCreation_implicit_type_params_names() async {
+    await analyze('''
+class C<T, U> {}
+void main() {
+  C<Object, Object> x = C();
+}
+''');
+    var edge0 = assertEdge(
+        anyNode, decoratedTypeAnnotation('C<Object, Object>').node,
+        hard: false);
+    expect(edge0.sourceNode.displayName, 'constructed type (test.dart:3:25)');
+    var edge1 = assertEdge(anyNode, decoratedTypeAnnotation('Object,').node,
+        hard: false, checkable: false);
+    expect(edge1.sourceNode.displayName,
+        'type argument 0 of constructed type (test.dart:3:25)');
+    var edge2 = assertEdge(anyNode, decoratedTypeAnnotation('Object>').node,
+        hard: false, checkable: false);
+    expect(edge2.sourceNode.displayName,
+        'type argument 1 of constructed type (test.dart:3:25)');
+  }
+
   Future<void> test_instanceCreation_parameter_named_optional() async {
     await analyze('''
 class C {
@@ -4066,6 +4088,7 @@ List<String> f() {
 
     final listArgType = returnTypeEdge.sourceNode;
     assertNoUpstreamNullability(listArgType);
+    expect(listArgType.displayName, 'list element type (test.dart:2:10)');
   }
 
   Future<void> test_listLiteral_noTypeArgument_nullableElement() async {
@@ -6315,8 +6338,10 @@ int f() {
 }
 ''');
 
-    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+    var edge = assertEdge(
+        inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
         hard: false);
+    expect(edge.sourceNode.displayName, 'implicit null return (test.dart:2:3)');
   }
 
   Future<void> test_return_null() async {
@@ -6326,10 +6351,11 @@ int f() {
 }
 ''');
 
-    assertNullCheck(
-        checkExpression('null'),
-        assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
-            hard: false));
+    var edge = assertEdge(
+        inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+        hard: false);
+    assertNullCheck(checkExpression('null'), edge);
+    expect(edge.sourceNode.displayName, 'null literal (test.dart:2:10)');
   }
 
   Future<void> test_return_null_generic() async {
@@ -6358,11 +6384,13 @@ Map<String, int> f() {
     var mapNode = decoratedTypeAnnotation('Map').node;
 
     assertNoUpstreamNullability(mapNode);
-    assertNoUpstreamNullability(
-        assertEdge(anyNode, keyNode, hard: false, checkable: false).sourceNode);
-    assertNoUpstreamNullability(
-        assertEdge(anyNode, valueNode, hard: false, checkable: false)
-            .sourceNode);
+    var keyEdge = assertEdge(anyNode, keyNode, hard: false, checkable: false);
+    assertNoUpstreamNullability(keyEdge.sourceNode);
+    expect(keyEdge.sourceNode.displayName, 'map key type (test.dart:2:10)');
+    var valueEdge =
+        assertEdge(anyNode, valueNode, hard: false, checkable: false);
+    assertNoUpstreamNullability(valueEdge.sourceNode);
+    expect(valueEdge.sourceNode.displayName, 'map value type (test.dart:2:10)');
   }
 
   Future<void> test_setOrMapLiteral_map_noTypeArgument_nullableKey() async {
@@ -6496,9 +6524,9 @@ Set<String> f() {
     var setNode = decoratedTypeAnnotation('Set').node;
 
     assertNoUpstreamNullability(setNode);
-    assertNoUpstreamNullability(
-        assertEdge(anyNode, valueNode, hard: false, checkable: false)
-            .sourceNode);
+    var edge = assertEdge(anyNode, valueNode, hard: false, checkable: false);
+    assertNoUpstreamNullability(edge.sourceNode);
+    expect(edge.sourceNode.displayName, 'set element type (test.dart:2:10)');
   }
 
   Future<void> test_setOrMapLiteral_set_noTypeArgument_nullableElement() async {
@@ -6817,7 +6845,10 @@ int f() {
   return throw null;
 }
 ''');
-    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
+    var intNode = decoratedTypeAnnotation('int').node;
+    assertNoUpstreamNullability(intNode);
+    var edge = assertEdge(anyNode, intNode, hard: false);
+    expect(edge.sourceNode.displayName, 'throw expression (test.dart:2:10)');
   }
 
   Future<void> test_topLevelSetter() async {
