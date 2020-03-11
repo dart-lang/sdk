@@ -6,8 +6,7 @@
 /// If a test is asynchronous, it needs to notify the testing driver
 /// about this (otherwise tests may get reported as passing [after main()
 /// finished] even if the asynchronous operations fail).
-/// Tests which can't use the unittest framework should use the helper functions
-/// in this library.
+///
 /// This library provides four methods
 ///  - asyncStart(): Needs to be called before an asynchronous operation is
 ///                  scheduled.

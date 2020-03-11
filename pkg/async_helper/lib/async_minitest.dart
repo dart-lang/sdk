@@ -6,8 +6,9 @@
 /// unittest/test API used by the language and core library.
 ///
 /// Compared with `minitest.dart`, this library supports and expects
-/// asynchronous tests. It uses a `Zone` per test to collect errors in the
-/// correct test.
+/// asynchronous tests. It uses a `Zone` per test to associate a test name with
+/// the failure.
+///
 /// It does not support `setUp` or `tearDown` methods,
 /// and matchers are severely restricted.
 ///
@@ -42,17 +43,18 @@ void group(String name, body()) {
 
 void test(String name, body()) {
   var oldName = _pushName(name);
-  var test = new _Test(_currentName)..asyncWait();
-  var result =
-      runZoned(body, zoneValues: {_testToken: test}, onError: test.fail);
+
+  asyncStart();
+  var result = runZoned(body, zoneValues: {_testToken: _currentName});
   if (result is Future) {
     result.then((_) {
-      test.asyncDone();
-    }, onError: test.fail);
+      asyncEnd();
+    });
   } else {
     // Ensure all tests get to be set up first.
-    scheduleMicrotask(test.asyncDone);
+    scheduleMicrotask(asyncEnd);
   }
+
   _popName(oldName);
 }
 
@@ -69,85 +71,84 @@ void expect(dynamic value, dynamic matcher, {String reason}) {
 }
 
 R Function() expectAsync0<R>(R Function() f, {int count = 1}) {
-  var test = _currentTest..asyncWait(count);
+  asyncStart(count);
   return () {
     var result = f();
-    test.asyncDone();
+    asyncEnd();
     return result;
   };
 }
 
 R Function(A) expectAsync1<R, A>(R Function(A) f, {int count = 1}) {
-  var test = _currentTest..asyncWait(count);
+  asyncStart(count);
   return (A a) {
     var result = f(a);
-    test.asyncDone();
+    asyncEnd();
     return result;
   };
 }
 
 R Function(A, B) expectAsync2<R, A, B>(R Function(A, B) f, {int count = 1}) {
-  var test = _currentTest..asyncWait(count);
+  asyncStart(count);
   return (A a, B b) {
     var result = f(a, b);
-    test.asyncDone();
+    asyncEnd();
     return result;
   };
 }
 
 dynamic expectAsync(Function f, {int count = 1}) {
   var f2 = f; // Avoid type-promoting f, we want dynamic invocations.
-  var test = _currentTest;
   if (f2 is Function(Null, Null, Null, Null, Null)) {
-    test.asyncWait(count);
+    asyncStart(count);
     return ([a, b, c, d, e]) {
       var result = f(a, b, c, d, e);
-      test.asyncDone();
+      asyncEnd();
       return result;
     };
   }
   if (f2 is Function(Null, Null, Null, Null)) {
-    test.asyncWait(count);
+    asyncStart(count);
     return ([a, b, c, d]) {
       var result = f(a, b, c, d);
-      test.asyncDone();
+      asyncEnd();
       return result;
     };
   }
   if (f2 is Function(Null, Null, Null)) {
-    test.asyncWait(count);
+    asyncStart(count);
     return ([a, b, c]) {
       var result = f(a, b, c);
-      test.asyncDone();
+      asyncEnd();
       return result;
     };
   }
   if (f2 is Function(Null, Null)) {
-    test.asyncWait(count);
+    asyncStart(count);
     return ([a, b]) {
       var result = f(a, b);
-      test.asyncDone();
+      asyncEnd();
       return result;
     };
   }
   if (f2 is Function(Null)) {
-    test.asyncWait(count);
+    asyncStart(count);
     return ([a]) {
       var result = f(a);
-      test.asyncDone();
+      asyncEnd();
       return result;
     };
   }
   if (f2 is Function()) {
-    test.asyncWait(count);
+    asyncStart(count);
     return () {
       var result = f();
-      test.asyncDone();
+      asyncEnd();
       return result;
     };
   }
   throw new UnsupportedError(
-      "expectAsync only accepts up to five arguemnt functions");
+      "expectAsync only accepts up to five argument functions");
 }
 
 // Matchers
@@ -212,13 +213,13 @@ bool isStateError(dynamic o) {
 
 void _checkThrow<T>(dynamic v, void onError(error)) {
   if (v is Future) {
-    var test = _currentTest..asyncWait();
+    asyncStart();
     v.then((_) {
       Expect.fail("Did not throw");
     }, onError: (e, s) {
       if (e is! T) throw e;
       if (onError != null) onError(e);
-      test.asyncDone();
+      asyncEnd();
     });
     return;
   }
@@ -251,20 +252,18 @@ Matcher throwsA(matcher) => (dynamic o) {
 Matcher completion(matcher) => (dynamic o) {
       Expect.type<Future>(o);
       Future future = o;
-      _currentTest.asyncWait();
+      asyncStart();
       future.then((value) {
         expect(value, matcher);
-        _currentTest.asyncDone();
+        asyncEnd();
       });
     };
 
 void completes(dynamic o) {
   Expect.type<Future>(o);
   Future future = o;
-  _currentTest.asyncWait();
-  future.then((_) {
-    _currentTest.asyncDone();
-  });
+  asyncStart();
+  future.then(asyncSuccess);
 }
 
 void isMap(dynamic o) {
@@ -297,12 +296,21 @@ String fail(String message) {
   Expect.fail("$message");
 }
 
-// Internal helpers.
+/// Key for zone value holding current test name.
+final _testToken = Object();
 
-// The current combined name of the nesting [group] or [test].
+bool _initializedTestNameCallback = false;
+
+/// The current combined name of the nesting [group] or [test].
 String _currentName = null;
 
 String _pushName(String newName) {
+  // Look up the current test name from the zone created for the test.
+  if (!_initializedTestNameCallback) {
+    ExpectException.setTestNameCallback(() => Zone.current[_testToken]);
+    _initializedTestNameCallback = true;
+  }
+
   var oldName = _currentName;
   if (oldName == null) {
     _currentName = newName;
@@ -314,74 +322,4 @@ String _pushName(String newName) {
 
 void _popName(String oldName) {
   _currentName = oldName;
-}
-
-// Key for zone value holding current test object.
-final Object _testToken = new Object();
-
-_Test get _currentTest =>
-    Zone.current[_testToken] ?? (throw new StateError("Not inside test!"));
-
-class _Test {
-  static int activeTests = 0;
-  static int failedTests = 0;
-
-  final String name;
-  bool completed = false;
-  bool failed = false;
-  int asyncExpected = 0;
-  _Test(this.name) {
-    activeTests++;
-  }
-
-  void asyncWait([int n = 1]) {
-    if (completed) {
-      print("ERROR: $name: New operations started after completion."
-          "${StackTrace.current}");
-    } else if (asyncExpected == 0) {
-      asyncStart(); // Matched by asyncEnd in [_complete];
-    }
-    asyncExpected += n;
-  }
-
-  void asyncDone() {
-    if (asyncExpected == 0) {
-      print("ERROR: $name: More asyncEnds than asyncStarts.\n"
-          "${StackTrace.current}");
-    } else {
-      asyncExpected--;
-      if (asyncExpected == 0 && !completed) {
-        print("SUCCESS: $name");
-        _complete();
-      }
-    }
-  }
-
-  void fail(Object error, StackTrace stack) {
-    if (!completed) {
-      failed = true;
-      failedTests++;
-      print("FAILURE: $name: $error\n$stack");
-      _complete();
-    } else {
-      if (!failed) {
-        failed = true;
-        failedTests++;
-      }
-      print("FAILURE: $name: (after completion) $error\n$stack");
-    }
-  }
-
-  void _complete() {
-    assert(!completed);
-    completed = true;
-    activeTests--;
-    if (failedTests == 0) {
-      asyncEnd();
-    } else if (activeTests == 0) {
-      Zone.root.scheduleMicrotask(() {
-        Expect.fail("$failedTests tests failed");
-      });
-    }
-  }
 }

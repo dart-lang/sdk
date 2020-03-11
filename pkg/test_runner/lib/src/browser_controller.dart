@@ -1120,10 +1120,7 @@ class BrowserTestRunner {
 
     DebugLogger.warning("Double reporting tests:");
     for (var id in doubleReportingOutputs.keys) {
-      DebugLogger.warning("${testCache[id]}, output: ");
-      DebugLogger.warning("${doubleReportingOutputs[id]}");
-      DebugLogger.warning("");
-      DebugLogger.warning("");
+      DebugLogger.warning("${testCache[id]}");
     }
   }
 
