@@ -1303,7 +1303,7 @@
           ]
         },
         {
-          "name": "vm weak legacy tests with asserts",
+          "name": "vm legacy tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
           ],
@@ -1311,7 +1311,7 @@
           "shards": 6
         },
         {
-          "name": "vm co19_2 tests",
+          "name": "vm legacy tests(co19_2) in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
             "co19_2"
@@ -1320,9 +1320,19 @@
           "shards": 10
         },
         {
-          "name": "vm weak tests with asserts",
+          "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
+            "language",
+            "lib/mirrors",
+            "standalone/io"
+          ]
+        },
+	{
+          "name": "vm nnbd tests in strong mode",
+          "arguments": [
+            "-ndartkp-strong-${system}-${mode}-${arch}",
             "ffi",
             "language",
             "lib/mirrors",
@@ -1696,7 +1706,7 @@
           ]
         },
         {
-          "name": "vm weak legacy tests with asserts",
+          "name": "vm legacy tests in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}"
           ],
@@ -1704,7 +1714,7 @@
           "shards": 6
         },
         {
-          "name": "vm weak legacy tests(co19_2) with asserts",
+          "name": "vm legacy tests(co19_2) in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
             "co19_2"
@@ -1713,9 +1723,19 @@
           "shards": 6
         },
         {
-          "name": "vm weak tests with asserts",
+          "name": "vm nnbd test in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
+            "language",
+            "lib/mirrors",
+            "standalone/io"
+          ]
+        },
+        {
+          "name": "vm nnbd tests in strong mode",
+          "arguments": [
+            "-ndartk-strong-${system}-${mode}-${arch}",
             "ffi",
             "language",
             "lib/mirrors",
