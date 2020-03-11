@@ -387,15 +387,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       loader.target.enableNonNullable &&
       languageVersion.major >= enableNonNullableMajorVersion &&
       languageVersion.minor >= enableNonNullableMinorVersion &&
-      !isOptOutPackage(library.importUri) &&
       !isOptOutTest(library.importUri);
-
-  bool isOptOutPackage(Uri uri) {
-    if (!uri.isScheme('package')) return false;
-    if (uri.pathSegments.isEmpty) return false;
-    String packageName = uri.pathSegments.first;
-    return optOutPackages.contains(packageName);
-  }
 
   bool isOptOutTest(Uri uri) {
     String path = uri.path;
@@ -408,120 +400,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     return false;
   }
-
-  // TODO(johnniwinther): remove this logic. Opted out packages should be
-  // computed using language versioning and .packages.json.
-  static final Set<String> optOutPackages = {
-    '_fe_analyzer_shared',
-    'analysis_server',
-    'analysis_server_client',
-    'analysis_tool',
-    'analyzer',
-    'analyzer_cli',
-    'analyzer_fe_comparison',
-    'analyzer_plugin',
-    'args',
-    'async',
-    'async_helper',
-    'bazel_worker',
-    'benchmark_harness',
-    'boolean_selector',
-    'build_integration',
-    'charcode',
-    'cli_util',
-    'collection',
-    'compiler',
-    'convert',
-    'crypto',
-    'csslib',
-    'dart2js_info',
-    'dart2js_tools',
-    'dart2native',
-    'dart_internal',
-    'dart_style',
-    'dartdoc',
-    'dartfix',
-    'dev_compiler',
-    'diagnostic',
-    'expect',
-    'ffi',
-    'fixnum',
-    'frontend_server',
-    'front_end',
-    'gardening',
-    'glob',
-    'html',
-    'http',
-    'http_io',
-    'http_multi_server',
-    'http_parser',
-    'http_retry',
-    'http_throttle',
-    'intl',
-    'js',
-    'js_ast',
-    'js_runtime',
-    'json_rpc_2',
-    'kernel',
-    'linter',
-    'logging',
-    'markdown',
-    'matcher',
-    'meta',
-    'mime',
-    'mockito',
-    'modular_test',
-    'mustache',
-    'native_stack_traces',
-    'nnbd_migration',
-    'oauth2',
-    'observatory',
-    'observatory_test_package',
-    'package_config',
-    'package_resolver',
-    'path',
-    'pedantic',
-    'pool',
-    'protobuf',
-    'pub',
-    'pub_semver',
-    'quiver',
-    'resource',
-    'sdk_library_metadata',
-    'shelf',
-    'shelf_packages_handler',
-    'shelf_static',
-    'shelf_web_socket',
-    'smith',
-    'source_map_stack_trace',
-    'sourcemap_testing',
-    'source_maps',
-    'source_span',
-    'stack_trace',
-    'status_file',
-    'stream_channel',
-    'string_scanner',
-    'telemetry',
-    'term_glyph',
-    'test',
-    'test_api',
-    'test_core',
-    'test_descriptor',
-    'test_process',
-    'test_reflective_loader',
-    'test_runner',
-    'testing',
-    'tflite_native',
-    'typed_data',
-    'unittest',
-    'usage',
-    'vm',
-    'vm_service',
-    'watcher',
-    'web_components',
-    'web_socket_channel',
-    'yaml',
-  };
 
   static final Set<String> optOutTestPaths = {
     '/tests/co19_2',

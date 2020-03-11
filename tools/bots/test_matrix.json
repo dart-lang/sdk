@@ -10,6 +10,7 @@
   "filesets": {
     "analyzer_unit_tests": [
       ".packages",
+      ".dart_tool/package_config.json",
       "pkg/",
       "tests/compiler/dart2js/",
       "third_party/pkg/",
@@ -22,6 +23,7 @@
     ],
     "dart2js": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/gen/utils/dartdevc/",
@@ -62,6 +64,7 @@
     ],
     "dart2js_nnbd": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseIA32NNBD/dart-sdk/",
       "out/ReleaseX64NNBD/dart-sdk/",
       "out/ReleaseX64NNBD/gen/utils/dartdevc/",
@@ -105,6 +108,7 @@
     ],
     "dart2js_hostasserts": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart",
       "out/ReleaseIA32/dart2js_platform.dill",
       "out/ReleaseIA32/dart2js_platform_strong.dill",
@@ -149,6 +153,7 @@
     ],
     "dart2js_hostasserts_nnbd": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseX64NNBD/dart",
       "out/ReleaseX64NNBD/dart2js_platform.dill",
       "out/ReleaseX64NNBD/dart2js_platform_strong.dill",
@@ -187,6 +192,7 @@
     ],
     "front-end": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
       "out/ReleaseX64NNBD/",
@@ -253,6 +259,7 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
+      ".dart_tool/package_config.json",
       ".packages"
     ],
     "vm-kernel": [
@@ -337,6 +344,7 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
+      ".dart_tool/package_config.json",
       ".packages",
       ".vpython"
     ],
@@ -423,6 +431,7 @@
       "runtime/",
       "sdk/",
       "sdk_nnbd/",
+      ".dart_tool/package_config.json",
       ".packages",
       ".vpython"
     ]
