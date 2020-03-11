@@ -266,12 +266,12 @@ abstract class Future<T> {
    * If an error handler isn't added before the future completes, the error
    * will be considered unhandled.
    *
-   * The [error] must not be `null`.
+   * If [error] is `null`, it is replaced by a [NullThrownError].
    *
    * Use [Completer] to create a future and complete it later.
    */
   factory Future.error(Object error, [StackTrace stackTrace]) {
-    ArgumentError.checkNotNull(error, "error");
+    error = _nonNullError(error);
     if (!identical(Zone.current, _rootZone)) {
       AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
@@ -874,7 +874,7 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * The [error] must not be `null`.
+   * If [error] is `null`, it is replaced by a [NullThrownError].
    *
    * If `error` is a `Future`, the future itself is used as the error value.
    * If you want to complete with the result of the future, you can use:

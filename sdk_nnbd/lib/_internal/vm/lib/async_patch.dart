@@ -214,8 +214,6 @@ class _AsyncStarStreamController<T> {
   }
 
   void addError(Object error, StackTrace stackTrace) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
     final future = cancellationFuture;
     if ((future != null) && future._mayComplete) {
       // If the stream has been cancelled, complete the cancellation future

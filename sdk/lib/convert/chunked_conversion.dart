@@ -75,7 +75,6 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
-    ArgumentError.checkNotNull(error, "error");
     _eventSink.addError(error, stackTrace);
   }
 

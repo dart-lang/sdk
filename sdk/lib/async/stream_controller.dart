@@ -237,7 +237,7 @@ abstract class StreamController<T> implements StreamSink<T> {
   /**
    * Sends or enqueues an error event.
    *
-   * The [error] must not be `null`.
+   * If [error] is `null`, it is replaced by a [NullThrownError].
    *
    * Listeners receive this event at a later microtask. This behavior can be
    * overridden by using `sync` controllers. Note, however, that sync
@@ -360,8 +360,6 @@ abstract class SynchronousStreamController<T> implements StreamController<T> {
 
   /**
    * Adds error to the controller's stream.
-   *
-   * The [error] must not be `null`.
    *
    * As [StreamController.addError], but must not be called while an event is
    * being added by [add], [addError] or [close].
@@ -599,11 +597,8 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
   /**
    * Send or enqueue an error event.
-   *
-   * The [error] must not be `null`.
    */
   void addError(Object error, [StackTrace stackTrace]) {
-    ArgumentError.checkNotNull(error, "error");
     if (!_mayAddEvent) throw _badEventState();
     error = _nonNullError(error);
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);

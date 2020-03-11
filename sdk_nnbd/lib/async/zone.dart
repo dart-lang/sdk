@@ -41,10 +41,7 @@ class AsyncError implements Error {
   final Object error;
   final StackTrace? stackTrace;
 
-  AsyncError(this.error, this.stackTrace) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
-  }
+  AsyncError(this.error, this.stackTrace);
 
   String toString() => '$error';
 }
@@ -745,8 +742,6 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
     var implementation = _delegationTarget._errorCallback;
     _Zone implZone = implementation.zone;
     if (identical(implZone, _rootZone)) return null;
@@ -1080,8 +1075,6 @@ class _CustomZone extends _Zone {
   }
 
   AsyncError? errorCallback(Object error, StackTrace? stackTrace) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
     var implementation = this._errorCallback;
     final _Zone implementationZone = implementation.zone;
     if (identical(implementationZone, _rootZone)) return null;

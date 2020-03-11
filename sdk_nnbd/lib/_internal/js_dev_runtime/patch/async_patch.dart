@@ -417,7 +417,6 @@ class _AsyncStarImpl<T> {
   }
 
   void addError(Object error, StackTrace stackTrace) {
-    ArgumentError.checkNotNull(error, "error");
     var completer = cancellationCompleter;
     if (completer != null && !completer.isCompleted) {
       // If the stream has been cancelled, complete the cancellation future

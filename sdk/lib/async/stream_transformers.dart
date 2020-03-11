@@ -234,7 +234,6 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
-    ArgumentError.checkNotNull(error, "error");
     if (_isClosed) {
       throw StateError("Sink is closed");
     }

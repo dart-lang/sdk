@@ -132,7 +132,6 @@ abstract class Stream<T> {
    *
    * This stream emits a single error event of [error] and [stackTrace]
    * and then completes with a done event.
-   * The [error] must not be `null`.
    *
    * Example:
    * ```dart
@@ -153,13 +152,11 @@ abstract class Stream<T> {
    * stack trace as well.
    */
   @Since("2.5")
-  factory Stream.error(Object error, [StackTrace stackTrace]) {
-    ArgumentError.checkNotNull(error, "error");
-    return (_AsyncStreamController<T>(null, null, null, null)
-          .._addError(error, stackTrace)
-          .._closeUnchecked())
-        .stream;
-  }
+  factory Stream.error(Object error, [StackTrace stackTrace]) =>
+      (_AsyncStreamController<T>(null, null, null, null)
+            .._addError(error, stackTrace)
+            .._closeUnchecked())
+          .stream;
 
   /**
    * Creates a new single-subscription stream from the future.
@@ -1813,8 +1810,6 @@ abstract class EventSink<T> implements Sink<T> {
 
   /**
    * Adds an [error] to the sink.
-   *
-   * The [error] must not be `null`.
    *
    * Must not be called on a closed sink.
    */

@@ -209,7 +209,6 @@ class _AsyncStarStreamController<T> {
   }
 
   void addError(Object error, StackTrace stackTrace) {
-    ArgumentError.checkNotNull(error, "error");
     if ((cancellationFuture != null) && cancellationFuture._mayComplete) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
