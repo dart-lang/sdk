@@ -276,7 +276,7 @@ class NoSuchMethodError {
                 ? _NamedArgumentsMap(arguments, argumentNames)
                 : null);
 
-  static String _existingMethodSignature(Object receiver, String methodName,
+  static String? _existingMethodSignature(Object receiver, String methodName,
       int invocationType) native "NoSuchMethodError_existingMethodSignature";
 
   @patch
@@ -336,7 +336,7 @@ class NoSuchMethodError {
         argumentCount++;
       });
     }
-    String existingSig =
+    String? existingSig =
         _existingMethodSignature(_receiver, memberName, localInvocation._type);
     String argsMsg = existingSig != null ? " with matching arguments" : "";
 
