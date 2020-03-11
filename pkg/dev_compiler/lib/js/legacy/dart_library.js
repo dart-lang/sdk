@@ -25,48 +25,6 @@ if (!dart_library) {
   const libraryImports = Symbol('libraryImports');
   dart_library.libraryImports = libraryImports;
 
-  const _metrics = Symbol('metrics');
-  const _logMetrics = false;
-
-
-  // Returns a map from module name to various metrics for
-  // module.
-  function metrics() {
-    var map = {};
-    var keys = Array.from(_libraries.keys());
-    for (var key of keys) {
-      var lib = _libraries.get(key);
-      map[lib._name] = lib._library[_metrics];
-    }
-    return map;
-  }
-  dart_library.metrics = metrics;
-
-  function _sortFn(key1, key2) {
-    var t1 = _libraries.get(key1)._library[_metrics].loadTime;
-    var t2 = _libraries.get(key2)._library[_metrics].loadTime;
-    return t1 - t2;
-  }
-
-  // Convenience method to print the metrics in the browser console
-  // in CSV format.
-  function metricsCsv() {
-    var buffer = 'Module, JS Size, Dart Size, Load Time, Cumulative JS Size\n';
-    var keys = Array.from(_libraries.keys());
-    keys.sort(_sortFn);
-    var cumulativeJsSize = 0;
-    for (var key of keys) {
-      var lib = _libraries.get(key);
-      var jsSize = lib._library[_metrics].jsSize;
-      cumulativeJsSize += jsSize;
-      var dartSize = lib._library[_metrics].dartSize;
-      var loadTime = lib._library[_metrics].loadTime;
-      buffer += '"' + lib._name + '", ' + jsSize + ', ' + dartSize + ', ' + loadTime + ', ' + cumulativeJsSize+ '\n';
-    }
-    return buffer;
-  }
-  dart_library.metricsCsv = metricsCsv;
-
   // Module support.  This is a simplified module system for Dart.
   // Longer term, we can easily migrate to an existing JS module system:
   // ES6, AMD, RequireJS, ....
@@ -102,7 +60,7 @@ if (!dart_library) {
   let _reverseImports = new Map();
   class LibraryLoader {
 
-    constructor(name, defaultValue, imports, loader, data) {
+    constructor(name, defaultValue, imports, loader) {
       imports.forEach(function (i) {
         let deps = _reverseImports.get(i);
         if (!deps) {
@@ -115,9 +73,6 @@ if (!dart_library) {
       this._library = defaultValue ? defaultValue : {};
       this._imports = imports;
       this._loader = loader;
-      data.jsSize = loader.toString().length;
-      data.loadTime = Infinity;
-      this._library[_metrics] = data;
 
       // Cyclic import detection
       this._state = LibraryLoader.NOT_LOADED;
@@ -153,26 +108,15 @@ if (!dart_library) {
 
       if (this._name == 'dart_sdk') {
         // Eagerly load the SDK.
-        library[_metrics].loadTime = window.performance.now();
-        if (_logMetrics) console.time('Load ' + this._name);
         this._loader.apply(null, args);
-        if (_logMetrics) console.timeEnd('Load ' + this._name);
-        loader._loader = null;
       } else {
         // Load / parse other modules on demand.
         let done = false;
         this._library = new Proxy(library, {
-          get: function(o, name) {
-            if (name == _metrics) {
-              return o[name];
-            }
+          get: function (o, name) {
             if (!done) {
               done = true;
-              library[_metrics].loadTime = window.performance.now();
-              if (_logMetrics) console.time('Load ' + loader._name);
               loader._loader.apply(null, args);
-              if (_logMetrics) console.timeEnd('Load ' + loader._name);
-              loader._loader = null;
             }
             return o[name];
           }
@@ -214,13 +158,13 @@ if (!dart_library) {
     deps.forEach(_invalidateLibrary);
   }
 
-  function library(name, defaultValue, imports, loader, data = {}) {
+  function library(name, defaultValue, imports, loader) {
     let result = _libraries.get(name);
     if (result) {
       console.log('Re-loading ' + name);
       _invalidateLibrary(name);
     }
-    result = new LibraryLoader(name, defaultValue, imports, loader, data);
+    result = new LibraryLoader(name, defaultValue, imports, loader);
     _libraries.set(name, result);
     return result;
   }
@@ -302,6 +246,7 @@ if (!dart_library) {
 
     /// Once the `onReloadStart()` completes, this finishes the restart.
     function finishHotRestart() {
+      window.console.clear();
       if (clearState) {
         // This resets all initialized fields and clears type caches and other
         // temporary data structures used by the compiler/SDK.

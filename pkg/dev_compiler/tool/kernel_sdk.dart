@@ -11,8 +11,6 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/compiler/shared_command.dart'
     show SharedCompilerOptions;
-import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
-import 'package:dev_compiler/src/js_ast/js_ast.dart' show js;
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/compiler.dart';
@@ -89,23 +87,6 @@ Future main(List<String> args) async {
   var compilerResult = await kernelForModule(inputs, options);
   var component = compilerResult.component;
 
-  // TODO(vsm): This is repetitive with kernel/command.dart.  This whole
-  // file should be removed in favor of a direct invocation.
-  var dartSize = 0;
-  var uriToSource = component.uriToSource;
-  for (var lib in component.libraries) {
-    var libUri = lib.fileUri;
-    var source = uriToSource[libUri];
-    dartSize += source.source.length;
-    for (var part in lib.parts) {
-      var partUri = libUri.resolve(part.partUri);
-      var partSource = uriToSource[partUri];
-      dartSize += partSource.source.length;
-    }
-  }
-  var statistics = js_ast.ObjectInitializer(
-      [js_ast.Property(js.string('dartSize'), js.number(dartSize))]);
-
   var outputDir = p.dirname(outputPath);
   await Directory(outputDir).create(recursive: true);
   await writeComponentToBinary(component, outputPath);
@@ -135,8 +116,7 @@ Future main(List<String> args) async {
         jsUrl: jsPath,
         mapUrl: mapPath,
         buildSourceMap: true,
-        customScheme: customScheme,
-        compileTimeStatistics: statistics);
+        customScheme: customScheme);
     await File(jsPath).writeAsString(jsCode.code);
     await File(mapPath).writeAsString(json.encode(jsCode.sourceMap));
   }

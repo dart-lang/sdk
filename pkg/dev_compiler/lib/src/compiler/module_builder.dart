@@ -68,14 +68,10 @@ void addModuleFormatOptions(ArgParser argParser, {bool hide = true}) {
 /// structure as possible with the original. The transformation is a shallow one
 /// that affects the top-level module items, especially [ImportDeclaration]s and
 /// [ExportDeclaration]s.
-Program transformModuleFormat(ModuleFormat format, Program module,
-    {Expression compileTimeStatistics}) {
+Program transformModuleFormat(ModuleFormat format, Program module) {
   switch (format) {
     case ModuleFormat.ddc:
-      // Legacy format always generates output compatible with single file mode.
-      return DdcModuleBuilder(
-              compileTimeStatistics: compileTimeStatistics ?? LiteralNull())
-          .build(module);
+      return DdcModuleBuilder().build(module);
     case ModuleFormat.common:
       return CommonJSModuleBuilder().build(module);
     case ModuleFormat.amd:
@@ -132,9 +128,6 @@ abstract class _ModuleBuilder {
 /// Generates modules for with our DDC `dart_library.js` loading mechanism.
 // TODO(jmesserly): remove this and replace with something that interoperates.
 class DdcModuleBuilder extends _ModuleBuilder {
-  final Expression compileTimeStatistics;
-  DdcModuleBuilder({this.compileTimeStatistics});
-
   Program build(Program module) {
     // Collect imports/exports/statements.
     visitProgram(module);
@@ -192,13 +185,12 @@ class DdcModuleBuilder extends _ModuleBuilder {
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
-    var moduleDef = js.statement('dart_library.library(#, #, #, #, #)', [
+    var moduleDef = js.statement('dart_library.library(#, #, #, #)', [
       js.string(module.name, "'"),
       LiteralNull(),
       js.commentExpression(
           'Imports', ArrayInitializer(importNames, multiline: true)),
-      resultModule,
-      compileTimeStatistics
+      resultModule
     ]);
     return Program(<ModuleItem>[moduleDef]);
   }
