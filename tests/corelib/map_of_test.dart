@@ -34,9 +34,7 @@ main() {
       ..[3] = 13,
   ]) {
     expectThrows(void operation()) {
-      // Allow CastError as well as TypeError. Dart2js creates a CastError
-      // here for some reason, and it's not wront.
-      Expect.throws(operation, (e) => e is TypeError || e is CastError);
+      Expect.throwsTypeError(operation);
     }
 
     var sourceType = map.runtimeType.toString();

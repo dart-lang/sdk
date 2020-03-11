@@ -37,7 +37,7 @@ void expectIs<T>(T t, bool Function(Object) test) {
   Expect.isFalse(obj is _IsNot, '$obj is _IsNot');
   // test cast
   t = obj as T;
-  Expect.throwsCastError(() => obj as _IsNot, '$obj as _IsNot');
+  Expect.throwsTypeError(() => obj as _IsNot, '$obj as _IsNot');
 }
 
 main() {

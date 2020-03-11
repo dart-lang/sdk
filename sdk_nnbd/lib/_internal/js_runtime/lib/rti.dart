@@ -960,15 +960,15 @@ class _Error extends Error {
   String toString() => _message;
 }
 
-class _CastError extends _Error implements CastError {
-  _CastError.fromMessage(String message) : super('CastError: $message');
+class _CastError extends _Error implements CastError, TypeError {
+  _CastError.fromMessage(String message) : super('TypeError: $message');
 
   factory _CastError.forType(object, String type) {
     return _CastError.fromMessage(_Error.compose(object, null, type));
   }
 }
 
-class _TypeError extends _Error implements TypeError {
+class _TypeError extends _Error implements TypeError, CastError {
   _TypeError.fromMessage(String message) : super('TypeError: $message');
 
   factory _TypeError.forType(object, String type) {

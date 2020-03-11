@@ -23,13 +23,13 @@ main() {
   // The presence of a `.call` method does not cause class `C` to become a
   // subtype of any function type.
   C c = new C();
-  Expect.throwsCastError(() => c as BToB); //# 01: ok
-  Expect.throwsCastError(() => c as NullToObject); //# 02: ok
-  Expect.throwsCastError(() => c as Function); //# 03: ok
+  Expect.throwsTypeError(() => c as BToB); //# 01: ok
+  Expect.throwsTypeError(() => c as NullToObject); //# 02: ok
+  Expect.throwsTypeError(() => c as Function); //# 03: ok
 
   // The same goes for class `D`: `implements Function` is ignored in Dart 2.
   D d = new D();
-  Expect.throwsCastError(() => d as BToB); //# 04: ok
-  Expect.throwsCastError(() => d as NullToObject); //# 05: ok
-  Expect.throwsCastError(() => d as Function); //# 06: ok
+  Expect.throwsTypeError(() => d as BToB); //# 04: ok
+  Expect.throwsTypeError(() => d as NullToObject); //# 05: ok
+  Expect.throwsTypeError(() => d as Function); //# 06: ok
 }

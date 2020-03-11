@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-// Test that various type errors produced by explicit casts don't invoke
+// Test that various type errors produced by implicit casts don't invoke
 // user-defined code during error reporting.
 
 class NoToString {
@@ -28,15 +28,16 @@ void main() {
   dynamic noToString = NoToString();
 
   Expect.throws<TypeError>(() {
-    wrap(noToString) as int; // Explicit cast should throw
+    int x = wrap(noToString); // Implicit cast should throw
+    return x;
   }, (e) {
     e.toString(); // Should not throw.
     return true;
   });
 
   if (assertionsEnabled) {
-    Expect.throws<AssertionError>(() {
-      assert(wrap(false), noToString); // Assertion should throw
+    Expect.throws<TypeError>(() {
+      assert(wrap(noToString)); // Implicit cast should throw
     }, (e) {
       e.toString(); // Should not throw.
       return true;

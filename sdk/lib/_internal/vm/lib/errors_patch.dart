@@ -82,7 +82,7 @@ class _AssertionError extends Error implements AssertionError {
   final Object message;
 }
 
-class _TypeError extends Error implements TypeError {
+class _TypeError extends Error implements TypeError, CastError {
   @pragma("vm:entry-point")
   _TypeError._create(this._url, this._line, this._column, this._message);
 
@@ -97,7 +97,7 @@ class _TypeError extends Error implements TypeError {
   final Object _message;
 }
 
-class _CastError extends Error implements CastError {
+class _CastError extends Error implements CastError, TypeError {
   @pragma("vm:entry-point")
   _CastError._create(this._url, this._line, this._column, this._errorMsg);
 

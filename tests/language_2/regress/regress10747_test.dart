@@ -15,9 +15,9 @@ class A<T> {
 
 main() {
   Expect.equals(42, new A<int>(42).asTypeVariable());
-  Expect.throwsCastError(() => new A<String>(42).asTypeVariable());
+  Expect.throwsTypeError(() => new A<String>(42).asTypeVariable());
 
   var b = new B<int>();
   Expect.equals(b, new A<int>(b).asBOfT());
-  Expect.throwsCastError(() => new A<String>(b).asBOfT());
+  Expect.throwsTypeError(() => new A<String>(b).asBOfT());
 }

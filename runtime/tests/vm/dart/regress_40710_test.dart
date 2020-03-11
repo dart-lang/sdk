@@ -23,7 +23,7 @@ main(List<String> args) {
   for (int i = 0; i < 20; ++i) {
     final a = new A<B<String>>();
     a.foo(new B<String>());
-    Expect.throwsCastError(() {
+    Expect.throwsTypeError(() {
       a.foo(new B<dynamic>());
     });
   }

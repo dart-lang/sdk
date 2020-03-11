@@ -3088,7 +3088,7 @@ void checkDeferredIsLoaded(String loadId) {
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
 /// Thrown by type assertions that fail.
-class TypeErrorImplementation extends Error implements TypeError {
+class TypeErrorImplementation extends Error implements TypeError, CastError {
   final String _message;
 
   /// Normal type error caused by a failed subtype test.
@@ -3102,12 +3102,12 @@ class TypeErrorImplementation extends Error implements TypeError {
 }
 
 /// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImplementation extends Error implements CastError {
+class CastErrorImplementation extends Error implements CastError, TypeError {
   final String _message;
 
   /// Normal cast error caused by a failed type cast.
   CastErrorImplementation(Object value, Object type)
-      : _message = "CastError: ${Error.safeToString(value)}: type "
+      : _message = "TypeError: ${Error.safeToString(value)}: type "
             "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
   String toString() => _message;

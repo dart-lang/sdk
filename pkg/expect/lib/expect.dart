@@ -594,10 +594,6 @@ class Expect {
     Expect.throws(f, (error) => error is AssertionError, reason);
   }
 
-  static void throwsCastError(void f(), [String reason = "CastError"]) {
-    Expect.throws(f, (error) => error is CastError, reason);
-  }
-
   static void throwsFormatException(void f(),
       [String reason = "FormatException"]) {
     Expect.throws(f, (error) => error is FormatException, reason);
