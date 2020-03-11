@@ -15,20 +15,20 @@ int? voidToNullableInt2() => 42;
 void positionalIntToVoid(int i) => null;
 void positionalNullableIntToVoid(int? i) => null;
 void positionalNullableIntToVoid2(int? i) => null;
-void optionalIntToVoid([int i]) => null;
-void optionalIntToVoid2([int i]) => null;
+void optionalIntToVoid([int i = 0]) => null;
+void optionalIntToVoid2([int i = 0]) => null;
 void optionalNullableIntToVoid([int? i]) => null;
 void optionalNullableIntToVoid2([int? i]) => null;
-void namedIntToVoid({int i}) => null;
-void namedIntToVoid2({int i}) => null;
+void namedIntToVoid({int i = 0}) => null;
+void namedIntToVoid2({int i = 0}) => null;
 void namedNullableIntToVoid({int? i}) => null;
 void namedNullableIntToVoid2({int? i}) => null;
 void requiredIntToVoid({required int i}) => null;
 void requiredIntToVoid2({required int i}) => null;
 void requiredNullableIntToVoid({required int? i}) => null;
 void requiredNullableIntToVoid2({required int? i}) => null;
-void gn(bool b, [int i]) => null;
-void hn(bool b, {int i}) => null;
+void gn(bool b, [int i = 0]) => null;
+void hn(bool b, {int i = 0}) => null;
 
 main() {
   // Same functions with different names.
