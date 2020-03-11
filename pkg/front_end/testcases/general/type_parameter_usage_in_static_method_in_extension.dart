@@ -19,6 +19,7 @@ extension Foo<U> on List {
   static void foo12(void Function(U) b) { return null; }
   // old syntax: variable named "b" of type "U" of a function called 'Function'.
   static void foo13(void Function(U b)) { return null; }
+  static U foo14 = null;
 }
 
 main() {}

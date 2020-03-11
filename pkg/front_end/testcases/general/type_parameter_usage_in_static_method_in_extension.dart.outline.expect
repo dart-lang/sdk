@@ -30,6 +30,10 @@ library;
 //   static void foo13(void Function(U b)) { return null; }
 //               ^
 //
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:22:10: Error: Type variables can't be used in static members.
+//   static U foo14 = null;
+//          ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -43,7 +47,9 @@ extension Foo<U extends core::Object* = dynamic> on core::List<dynamic>* {
   static method foo11 = self::Foo|foo11;
   static method foo12 = self::Foo|foo12;
   static method foo13 = self::Foo|foo13;
+  static field foo14 = self::Foo|foo14;
 }
+static field invalid-type Foo|foo14;
 static method Foo|foo1() → dynamic
   ;
 static method Foo|foo2(dynamic x) → void

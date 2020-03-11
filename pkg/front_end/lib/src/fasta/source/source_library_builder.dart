@@ -1262,7 +1262,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
       List<TypeBuilder> arguments, int charOffset) {
     return addType(
-        new NamedTypeBuilder(name, nullabilityBuilder, arguments), charOffset);
+        new NamedTypeBuilder(
+            name, nullabilityBuilder, arguments, fileUri, charOffset),
+        charOffset);
   }
 
   TypeBuilder addMixinApplication(

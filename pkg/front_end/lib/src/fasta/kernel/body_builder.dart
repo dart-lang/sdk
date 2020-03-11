@@ -3090,8 +3090,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         libraryBuilder.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType(
-            new NamedTypeBuilder(name,
-                libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
+            new NamedTypeBuilder(
+                name,
+                libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
+                null,
+                uri,
+                offset)
               ..bind(new InvalidTypeDeclarationBuilder(
                   name,
                   message.withLocation(
@@ -3180,7 +3184,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     int offset = offsetForToken(token);
     // "void" is always nullable.
     push(new UnresolvedType(
-        new NamedTypeBuilder("void", const NullabilityBuilder.nullable(), null)
+        new NamedTypeBuilder(
+            "void", const NullabilityBuilder.nullable(), null, uri, offset)
           ..bind(new VoidTypeBuilder(const VoidType(), libraryBuilder, offset)),
         offset,
         uri));

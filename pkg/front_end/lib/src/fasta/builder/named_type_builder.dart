@@ -6,18 +6,31 @@ library fasta.named_type_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
+import 'package:kernel/ast.dart'
+    show
+        Class,
+        DartType,
+        Extension,
+        InvalidType,
+        Supertype,
+        TreeNode,
+        TypeParameter,
+        TypedefType;
 
 import '../fasta_codes.dart'
     show
-        Message,
-        Template,
-        noLength,
-        templateMissingExplicitTypeArguments,
-        messageNotATypeContext,
         LocatedMessage,
+        Message,
+        Severity,
+        Template,
+        messageNotATypeContext,
+        messageTypeVariableInStaticContext,
+        noLength,
         templateExtendingRestricted,
+        templateMissingExplicitTypeArguments,
         templateNotAType,
+        templateSupertypeIsIllegal,
+        templateSupertypeIsTypeVariable,
         templateTypeArgumentMismatch,
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
@@ -50,14 +63,18 @@ class NamedTypeBuilder extends TypeBuilder {
 
   final NullabilityBuilder nullabilityBuilder;
 
+  final Uri fileUri;
+  final int charOffset;
+
   @override
   TypeDeclarationBuilder declaration;
 
-  NamedTypeBuilder(this.name, this.nullabilityBuilder, this.arguments);
+  NamedTypeBuilder(this.name, this.nullabilityBuilder, this.arguments,
+      [this.fileUri, this.charOffset]);
 
   NamedTypeBuilder.fromTypeDeclarationBuilder(
       this.declaration, this.nullabilityBuilder,
-      [this.arguments])
+      [this.arguments, this.fileUri, this.charOffset])
       : this.name = declaration.name;
 
   @override
@@ -218,8 +235,23 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   // TODO(johnniwinther): Store [origin] on the built type.
-  DartType build(LibraryBuilder library, [TypedefType origin]) {
+  DartType build(LibraryBuilder library,
+      [TypedefType origin, bool notInstanceContext]) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
+    if (notInstanceContext == true && declaration.isTypeVariable) {
+      TypeVariableBuilder typeParameterBuilder = declaration;
+      TypeParameter typeParameter = typeParameterBuilder.parameter;
+      if (typeParameter.parent is Class || typeParameter.parent is Extension) {
+        messageTypeVariableInStaticContext;
+        library.addProblem(
+            messageTypeVariableInStaticContext,
+            charOffset ?? TreeNode.noOffset,
+            noLength,
+            fileUri ?? library.fileUri);
+        return const InvalidType();
+      }
+    }
+
     return declaration.buildType(library, nullabilityBuilder, arguments);
   }
 
