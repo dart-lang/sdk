@@ -30,12 +30,17 @@ Future<void> main(List<String> args) async {
   ArgParser parser = createArgParser();
   ArgResults result = parser.parse(args);
 
-  if (validArguments(parser, result)) {
-    var code = await CompletionMetricsComputer(result.rest[0])
-        .compute(corpus: result['corpus'], verbose: result['verbose']);
-    io.exit(code);
+  var stopwatch = Stopwatch()..start();
+  if (!validArguments(parser, result)) {
+    return io.exit(1);
   }
-  return io.exit(1);
+  var code = await CompletionMetricsComputer(result.rest[0])
+      .compute(corpus: result['corpus'], verbose: result['verbose']);
+  stopwatch.stop();
+
+  var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
+  print('\nMetrics computed in $duration');
+  return io.exit(code);
 }
 
 /// Create a parser that can be used to parse the command-line arguments.
