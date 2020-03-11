@@ -1185,23 +1185,38 @@ class FlowModel<Variable, Type> {
       variableInfo[variable] ?? _freshVariableInfo;
 
   /// Updates the state to indicate that variables that are not definitely
-  /// unassigned in the [other] are also not definitely unassigned in the
-  /// result.
-  FlowModel<Variable, Type> joinUnassigned(FlowModel<Variable, Type> other) {
+  /// unassigned in the [other], or are [written], are also not definitely
+  /// unassigned in the result.
+  FlowModel<Variable, Type> joinUnassigned({
+    FlowModel<Variable, Type> other,
+    Iterable<Variable> written,
+  }) {
     Map<Variable, VariableModel<Type>> newVariableInfo;
 
-    for (Variable variable in other.variableInfo.keys) {
-      VariableModel<Type> otherInfo = other.variableInfo[variable];
-      if (otherInfo.unassigned) continue;
-
+    void markNotUnassigned(Variable variable) {
       VariableModel<Type> info = variableInfo[variable];
-      if (info == null) continue;
+      if (info == null) return;
 
       VariableModel<Type> newInfo = info.markNotUnassigned();
-      if (identical(newInfo, info)) continue;
+      if (identical(newInfo, info)) return;
 
       (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
           variableInfo))[variable] = newInfo;
+    }
+
+    if (other != null) {
+      for (Variable variable in other.variableInfo.keys) {
+        VariableModel<Type> otherInfo = other.variableInfo[variable];
+        if (!otherInfo.unassigned) {
+          markNotUnassigned(variable);
+        }
+      }
+    }
+
+    if (written != null) {
+      for (Variable variable in written) {
+        markNotUnassigned(variable);
+      }
     }
 
     if (newVariableInfo == null) return this;
@@ -2217,7 +2232,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     FlowModel<Variable, Type> falseCondition = context._conditionInfo.ifFalse;
 
     _current = _join(falseCondition, breakState);
-    _current = _current.joinUnassigned(afterUpdate);
+    _current = _current.joinUnassigned(other: afterUpdate);
   }
 
   @override
@@ -2256,6 +2271,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _stack.add(new _SimpleContext(_current));
     _current = _current.removePromotedAll(_assignedVariables._anywhere._written,
         _assignedVariables._anywhere._captured);
+    _current = _current.joinUnassigned(
+      written: _assignedVariables._anywhere._written,
+    );
   }
 
   @override
@@ -2266,7 +2284,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = context._previous;
-    _current = _current.joinUnassigned(afterBody);
+    _current = _current.joinUnassigned(other: afterBody);
   }
 
   @override
@@ -2597,7 +2615,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _stack.removeLast() as _WhileContext<Variable, Type>;
     var afterBody = _current;
     _current = _join(context._conditionInfo.ifFalse, context._breakModel);
-    _current = _current.joinUnassigned(afterBody);
+    _current = _current.joinUnassigned(other: afterBody);
   }
 
   @override

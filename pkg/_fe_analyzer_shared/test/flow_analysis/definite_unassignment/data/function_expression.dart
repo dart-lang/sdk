@@ -2,29 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-closure_read() {
-  late int v1, v2;
-
-  v1 = 0;
-
-  [0, 1, 2].forEach((t) {
-    v1;
-    /*unassigned*/ v2;
-  });
-}
-
-closure_write() {
-  late int v;
-
-  /*unassigned*/ v;
-
-  [0, 1, 2].forEach((t) {
-    v = t;
-  });
-
-  v;
-}
-
 localFunction_local() {
   late int v;
 
@@ -50,32 +27,21 @@ localFunction_local2() {
   }
 }
 
-localFunction_read() {
+readInClosure_writeInMain() {
   late int v1, v2, v3;
 
   v1 = 0;
 
-  void f() {
+  [0, 1, 2].forEach((t) {
     v1;
-    /*unassigned*/ v2;
-  }
+    v2;
+    /*unassigned*/ v3;
+  });
 
   v2 = 0;
 }
 
-localFunction_write() {
-  late int v;
-
-  /*unassigned*/ v;
-
-  void f() {
-    v = 0;
-  }
-
-  v;
-}
-
-writeCaptured() {
+readInLocal_writeInLocal() {
   late int v1, v2;
 
   void f() {
@@ -91,6 +57,46 @@ writeCaptured() {
 
   g();
   f();
+}
+
+readInLocal_writeInMain() {
+  late int v1, v2, v3;
+
+  v1 = 0;
+
+  void f() {
+    v1;
+    v2;
+    /*unassigned*/ v3;
+  }
+
+  v2 = 0;
+  f();
+}
+
+readInMain_writeInClosure() {
+  late int v1, v2;
+
+  /*unassigned*/ v1;
+  /*unassigned*/ v2;
+
+  [0, 1, 2].forEach((t) {
+    v1 = t;
+  });
+
+  v1;
+  /*unassigned*/ v2;
+}
+
+readInMain_writeInLocal() {
+  late int v1, v2;
+
+  /*unassigned*/ v1;
+  /*unassigned*/ v2;
+
+  void f() {
+    v1 = 0;
+  }
 
   v1;
   /*unassigned*/ v2;

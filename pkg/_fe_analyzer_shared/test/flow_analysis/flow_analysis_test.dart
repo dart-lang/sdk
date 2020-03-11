@@ -2118,76 +2118,110 @@ main() {
     });
 
     group('joinUnassigned', () {
-      test('unchanged', () {
-        var h = _Harness();
+      group('other', () {
+        test('unchanged', () {
+          var h = _Harness();
 
-        var a = _Var('a', _Type('int'));
-        var b = _Var('b', _Type('int'));
+          var a = _Var('a', _Type('int'));
+          var b = _Var('b', _Type('int'));
 
-        var s1 = FlowModel<_Var, _Type>(true)
-            .declare(a, false)
-            .declare(b, false)
-            .write(a, _Type('int'), h);
-        expect(s1.variableInfo, {
-          a: _matchVariableModel(assigned: true, unassigned: false),
-          b: _matchVariableModel(assigned: false, unassigned: true),
+          var s1 = FlowModel<_Var, _Type>(true)
+              .declare(a, false)
+              .declare(b, false)
+              .write(a, _Type('int'), h);
+          expect(s1.variableInfo, {
+            a: _matchVariableModel(assigned: true, unassigned: false),
+            b: _matchVariableModel(assigned: false, unassigned: true),
+          });
+
+          var s2 = s1.write(a, _Type('int'), h);
+          expect(s2.variableInfo, {
+            a: _matchVariableModel(assigned: true, unassigned: false),
+            b: _matchVariableModel(assigned: false, unassigned: true),
+          });
+
+          var s3 = s1.joinUnassigned(other: s2);
+          expect(s3, same(s1));
         });
 
-        var s2 = s1.write(a, _Type('int'), h);
-        expect(s2.variableInfo, {
-          a: _matchVariableModel(assigned: true, unassigned: false),
-          b: _matchVariableModel(assigned: false, unassigned: true),
-        });
+        test('changed', () {
+          var h = _Harness();
 
-        var s3 = s1.joinUnassigned(s2);
-        expect(s3, same(s1));
+          var a = _Var('a', _Type('int'));
+          var b = _Var('b', _Type('int'));
+          var c = _Var('c', _Type('int'));
+
+          var s1 = FlowModel<_Var, _Type>(true)
+              .declare(a, false)
+              .declare(b, false)
+              .declare(c, false)
+              .write(a, _Type('int'), h);
+          expect(s1.variableInfo, {
+            a: _matchVariableModel(assigned: true, unassigned: false),
+            b: _matchVariableModel(assigned: false, unassigned: true),
+            c: _matchVariableModel(assigned: false, unassigned: true),
+          });
+
+          var s2 = s1.write(b, _Type('int'), h);
+          expect(s2.variableInfo, {
+            a: _matchVariableModel(assigned: true, unassigned: false),
+            b: _matchVariableModel(assigned: true, unassigned: false),
+            c: _matchVariableModel(assigned: false, unassigned: true),
+          });
+
+          var s3 = s1.joinUnassigned(other: s2);
+          expect(s3.variableInfo, {
+            a: _matchVariableModel(assigned: true, unassigned: false),
+            b: _matchVariableModel(assigned: false, unassigned: false),
+            c: _matchVariableModel(assigned: false, unassigned: true),
+          });
+        });
       });
 
-      test('written', () {
-        var h = _Harness();
+      group('written', () {
+        test('unchanged', () {
+          var h = _Harness();
 
-        var a = _Var('a', _Type('int'));
-        var b = _Var('b', _Type('int'));
-        var c = _Var('c', _Type('int'));
+          var a = _Var('a', _Type('int'));
+          var b = _Var('b', _Type('int'));
 
-        var s1 = FlowModel<_Var, _Type>(true)
-            .declare(a, false)
-            .declare(b, false)
-            .declare(c, false)
-            .write(a, _Type('int'), h);
-        expect(s1.variableInfo, {
-          a: _matchVariableModel(assigned: true, unassigned: false),
-          b: _matchVariableModel(assigned: false, unassigned: true),
-          c: _matchVariableModel(assigned: false, unassigned: true),
+          var s1 = FlowModel<_Var, _Type>(true)
+              .declare(a, false)
+              .declare(b, false)
+              .write(a, _Type('int'), h);
+          expect(s1.variableInfo, {
+            a: _matchVariableModel(assigned: true, unassigned: false),
+            b: _matchVariableModel(assigned: false, unassigned: true),
+          });
+
+          var s2 = s1.joinUnassigned(written: [a]);
+          expect(s2, same(s1));
         });
 
-        var s2 = s1.write(b, _Type('int'), h);
-        expect(s2.variableInfo, {
-          a: _matchVariableModel(assigned: true, unassigned: false),
-          b: _matchVariableModel(assigned: true, unassigned: false),
-          c: _matchVariableModel(assigned: false, unassigned: true),
-        });
+        test('changed', () {
+          var h = _Harness();
 
-        var s3 = s1.joinUnassigned(s2);
-        expect(s3.variableInfo, {
-          a: _matchVariableModel(assigned: true, unassigned: false),
-          b: _matchVariableModel(assigned: false, unassigned: false),
-          c: _matchVariableModel(assigned: false, unassigned: true),
-        });
-      });
+          var a = _Var('a', _Type('int'));
+          var b = _Var('b', _Type('int'));
+          var c = _Var('c', _Type('int'));
 
-      test('write captured', () {
-        var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .tryPromote(h, objectQVar, _Type('int'))
-            .ifTrue
-            .tryPromote(h, intQVar, _Type('int'))
-            .ifTrue;
-        var s2 = s1.removePromotedAll([], [intQVar]);
-        expect(s2.reachable, true);
-        expect(s2.variableInfo, {
-          objectQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int']),
-          intQVar: _matchVariableModel(chain: null, ofInterest: isEmpty)
+          var s1 = FlowModel<_Var, _Type>(true)
+              .declare(a, false)
+              .declare(b, false)
+              .declare(c, false)
+              .write(a, _Type('int'), h);
+          expect(s1.variableInfo, {
+            a: _matchVariableModel(assigned: true, unassigned: false),
+            b: _matchVariableModel(assigned: false, unassigned: true),
+            c: _matchVariableModel(assigned: false, unassigned: true),
+          });
+
+          var s2 = s1.joinUnassigned(written: [b]);
+          expect(s2.variableInfo, {
+            a: _matchVariableModel(assigned: true, unassigned: false),
+            b: _matchVariableModel(assigned: false, unassigned: false),
+            c: _matchVariableModel(assigned: false, unassigned: true),
+          });
         });
       });
     });
