@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/bit_vector.h"
-
+#include "vm/log.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -39,8 +39,10 @@ bool BitVector::Equals(const BitVector& other) const {
     if (data_[i] != other.data_[i]) return false;
   }
   if (i < data_length_) {
+    if (length_ % kBitsPerWord == 0) return data_[i] == other.data_[i];
+
     // Don't compare bits beyond length_.
-    const intptr_t shift_size = (kBitsPerWord - length_) & (kBitsPerWord - 1);
+    const intptr_t shift_size = kBitsPerWord - (length_ % kBitsPerWord);
     const uword mask = static_cast<uword>(-1) >> shift_size;
     if ((data_[i] & mask) != (other.data_[i] & mask)) return false;
   }
@@ -105,11 +107,11 @@ bool BitVector::IsEmpty() const {
 }
 
 void BitVector::Print() const {
-  OS::PrintErr("[");
+  THR_Print("[");
   for (intptr_t i = 0; i < length_; i++) {
-    OS::PrintErr(Contains(i) ? "1" : "0");
+    THR_Print(Contains(i) ? "1" : "0");
   }
-  OS::PrintErr("]");
+  THR_Print("]");
 }
 
 }  // namespace dart
