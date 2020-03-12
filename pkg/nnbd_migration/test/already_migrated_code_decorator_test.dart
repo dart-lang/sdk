@@ -59,7 +59,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   NullabilityNode get never => graph.never;
 
   void checkAlwaysNullable(NullabilityNode node, String displayName) {
-    var edge = assertEdge(always, node, hard: false);
+    var edge = assertEdge(always, node, hard: true, checkable: false);
     var origin = graph.getEdgeOrigin(edge);
     expect(origin.kind, EdgeOriginKind.alwaysNullableType);
     expect(origin.element, same(element));
@@ -80,7 +80,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void checkExplicitlyNullable(NullabilityNode node, String displayName) {
-    var edge = assertEdge(always, node, hard: false);
+    var edge = assertEdge(always, node, hard: true, checkable: false);
     var origin = graph.getEdgeOrigin(edge);
     expect(origin.kind, EdgeOriginKind.alreadyMigratedType);
     expect(origin.element, same(element));

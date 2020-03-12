@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
@@ -764,6 +766,10 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   @override
   Iterable<EdgeInfo> get upstreamEdges => _upstreamEdges;
 
+  /// If this node has non-null intent, the propagation step that caused it to
+  /// have non-null intent, otherwise `null`.
+  UpstreamPropagationStep get whyNotNullable;
+
   String get _jsonKind;
 
   Nullability get _nullability;
@@ -953,6 +959,8 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
 
   DownstreamPropagationStep _whyNullable;
 
+  UpstreamPropagationStep _whyNotNullable;
+
   NullabilityNodeMutable.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
       : _nullability = json['nullability'] == null
@@ -982,6 +990,9 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   NonNullIntent get nonNullIntent => _nonNullIntent;
 
   @override
+  UpstreamPropagationStep get whyNotNullable => _whyNotNullable;
+
+  @override
   DownstreamPropagationStepInfo get whyNullable => _whyNullable;
 
   @override
@@ -1007,7 +1018,7 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
 /// Information produced by [NullabilityGraph.propagate] about the results of
 /// graph propagation.
 class PropagationResult {
-  /// A list of all edges that couldn't be satisfied.
+  /// A list of all edges that couldn't be satisfied.  May contain duplicates.
   final List<NullabilityEdge> unsatisfiedEdges = [];
 
   /// A list of all substitution nodes that couldn't be satisfied.
@@ -1243,6 +1254,9 @@ class _NullabilityNodeImmutable extends NullabilityNode {
       isNullable ? NonNullIntent.none : NonNullIntent.direct;
 
   @override
+  UpstreamPropagationStep get whyNotNullable => null;
+
+  @override
   DownstreamPropagationStepInfo get whyNullable => null;
 
   @override
@@ -1309,9 +1323,10 @@ class _PropagationState {
   /// The graph's one and only "never" node.
   final NullabilityNode _never;
 
-  /// During any given stage of nullability propagation, a list of all the edges
-  /// that need to be examined before the stage is complete.
-  final List<SimpleDownstreamPropagationStep> _pendingDownstreamSteps = [];
+  /// During any given stage of nullability propagation, a queue of all the
+  /// edges that need to be examined before the stage is complete.
+  final Queue<SimpleDownstreamPropagationStep> _pendingDownstreamSteps =
+      Queue();
 
   final PostmortemFileWriter _postmortemFileWriter;
 
@@ -1332,7 +1347,7 @@ class _PropagationState {
     }
     while (true) {
       while (_pendingDownstreamSteps.isNotEmpty) {
-        var step = _pendingDownstreamSteps.removeLast();
+        var step = _pendingDownstreamSteps.removeFirst();
         var edge = step.edge;
         if (!edge.isTriggered) continue;
         var node = edge.destinationNode;
@@ -1371,11 +1386,11 @@ class _PropagationState {
   /// Propagates non-null intent upstream along unconditional control flow
   /// lines.
   void _propagateUpstream() {
-    var pendingSteps = <UpstreamPropagationStep>[
-      UpstreamPropagationStep(null, _never, NonNullIntent.direct)
-    ];
+    Queue<UpstreamPropagationStep> pendingSteps = Queue();
+    pendingSteps
+        .add(UpstreamPropagationStep(null, _never, NonNullIntent.direct));
     while (pendingSteps.isNotEmpty) {
-      var cause = pendingSteps.removeLast();
+      var cause = pendingSteps.removeFirst();
       var pendingNode = cause.node;
       for (var edge in pendingNode._upstreamEdges) {
         // We only propagate for nodes that are "upstream triggered".  At this
@@ -1497,8 +1512,12 @@ class _PropagationState {
   void _setNonNullIntent(UpstreamPropagationStep step) {
     var node = step.node as NullabilityNodeMutable;
     var newNonNullIntent = step.newNonNullIntent;
+    var oldNonNullIntent = node.nonNullIntent;
     node._nonNullIntent = newNonNullIntent;
     _postmortemFileWriter?.addPropagationStep(step);
+    if (!oldNonNullIntent.isPresent) {
+      node._whyNotNullable = step;
+    }
   }
 
   Nullability _setNullable(DownstreamPropagationStep step) {

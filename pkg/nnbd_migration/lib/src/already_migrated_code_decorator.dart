@@ -30,14 +30,16 @@ class AlreadyMigratedCodeDecorator {
       DartType type, Element element, NullabilityNodeTarget target) {
     if (type.isVoid || type.isDynamic) {
       var node = NullabilityNode.forAlreadyMigrated(target);
-      _graph.makeNullable(node, AlwaysNullableTypeOrigin.forElement(element));
+      _graph.makeNullableUnion(
+          node, AlwaysNullableTypeOrigin.forElement(element));
       return DecoratedType(type, node);
     }
     NullabilityNode node;
     var nullabilitySuffix = type.nullabilitySuffix;
     if (nullabilitySuffix == NullabilitySuffix.question) {
       node = NullabilityNode.forAlreadyMigrated(target);
-      _graph.makeNullable(node, AlreadyMigratedTypeOrigin.forElement(element));
+      _graph.makeNullableUnion(
+          node, AlreadyMigratedTypeOrigin.forElement(element));
     } else {
       node = NullabilityNode.forAlreadyMigrated(target);
       _graph.makeNonNullableUnion(
