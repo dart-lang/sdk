@@ -353,6 +353,8 @@ class Serializer : public ThreadStackResource {
   void TraceDataOffset(uint32_t offset);
   intptr_t GetDataSize() const;
 
+  void WriteDispatchTable(const Array& entries);
+
   Snapshot::Kind kind() const { return kind_; }
   intptr_t next_ref_index() const { return next_ref_index_; }
 
@@ -591,6 +593,8 @@ class Deserializer : public ThreadStackResource {
   void Deserialize();
 
   DeserializationCluster* ReadCluster();
+
+  void ReadDispatchTable();
 
   intptr_t next_index() const { return next_ref_index_; }
   Heap* heap() const { return heap_; }

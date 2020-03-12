@@ -5034,6 +5034,127 @@ void Serializer::Serialize() {
     }
   }
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+// The serialized format of the dispatch table is a sequence of variable-length
+// integers (the built-in variable-length integer encoding/decoding of
+// the stream). Each encoded integer e is interpreted thus:
+// -kRecentCount .. -1   Pick value from the recent values buffer at index -1-e.
+// 0                     Empty (unused) entry.
+// 1 .. kMaxRepeat       Repeat previous entry e times.
+// kIndexBase or higher  Pick entry point from the object at index e-kIndexBase
+//                       in the snapshot code cluster. Also put it in the recent
+//                       values buffer at the next round-robin index.
+
+// Constants for serialization format. Chosen such that repeats and recent
+// values are encoded as single bytes in SLEB128 encoding.
+static constexpr intptr_t kDispatchTableSpecialEncodingBits = 6;
+static constexpr intptr_t kDispatchTableRecentCount =
+    1 << kDispatchTableSpecialEncodingBits;
+static constexpr intptr_t kDispatchTableRecentMask =
+    (1 << kDispatchTableSpecialEncodingBits) - 1;
+static constexpr intptr_t kDispatchTableMaxRepeat =
+    (1 << kDispatchTableSpecialEncodingBits) - 1;
+static constexpr intptr_t kDispatchTableIndexBase = kDispatchTableMaxRepeat + 1;
+#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+
+void Serializer::WriteDispatchTable(const Array& entries) {
+#if defined(DART_PRECOMPILER)
+  if (kind() != Snapshot::kFullAOT) return;
+
+  const intptr_t bytes_before = bytes_written();
+  const intptr_t table_length = entries.IsNull() ? 0 : entries.Length();
+
+  ASSERT(table_length <= compiler::target::kWordMax);
+  WriteUnsigned(table_length);
+  if (table_length == 0) {
+    dispatch_table_size_ = bytes_written() - bytes_before;
+    return;
+  }
+
+  auto const code_cluster =
+      reinterpret_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid]);
+  ASSERT(code_cluster != nullptr);
+  // Reference IDs in a cluster are allocated sequentially, so we can use the
+  // first code object's reference ID to calculate the cluster index.
+  const intptr_t first_code_id =
+      WriteRefId(code_cluster->discovered_objects()->At(0));
+  // The first object in the code cluster must have its reference ID allocated.
+  ASSERT(first_code_id != 0 && first_code_id != WriteRefId(Code::null()));
+
+  // If instructions can be deduped, the code order table in the deserializer
+  // may not contain all Code objects in the snapshot. Thus, we write the ID
+  // for the first code object here so we can retrieve it during deserialization
+  // and calculate the snapshot ID for Code objects from the cluster index.
+  //
+  // We could just use the snapshot reference ID of the Code object itself
+  // instead of the cluster index and avoid this. However, since entries are
+  // SLEB128 encoded, the size delta for serializing the first ID once is less
+  // than the size delta of serializing the ID plus kIndexBase for each entry,
+  // even when Code objects are allocated before all other non-base objects.
+  //
+  // We could also map Code objects to the first Code object in the cluster with
+  // the same entry point and serialize that ID instead, but that loses
+  // information about which Code object was originally referenced.
+  ASSERT(first_code_id <= compiler::target::kWordMax);
+  WriteUnsigned(first_code_id);
+
+  RawCode* previous_code = nullptr;
+  RawCode* recent[kDispatchTableRecentCount] = {nullptr};
+  intptr_t recent_index = 0;
+  intptr_t repeat_count = 0;
+  for (intptr_t i = 0; i < table_length; i++) {
+    auto const code = Code::RawCast(entries.At(i));
+    // First, see if we're repeating the previous entry (invalid, recent, or
+    // encoded).
+    if (code == previous_code) {
+      if (++repeat_count == kDispatchTableMaxRepeat) {
+        Write(kDispatchTableMaxRepeat);
+        repeat_count = 0;
+      }
+      continue;
+    }
+    // Emit any outsanding repeat count before handling the new code value.
+    if (repeat_count > 0) {
+      Write(repeat_count);
+      repeat_count = 0;
+    }
+    previous_code = code;
+    // The invalid entry can be repeated, but is never part of the recent list
+    // since it already encodes to a single byte..
+    if (code == Code::null()) {
+      Write(0);
+      continue;
+    }
+    // Check against the recent entries, and write an encoded reference to
+    // the recent entry if found.
+    intptr_t found_index = 0;
+    for (; found_index < kDispatchTableRecentCount; found_index++) {
+      if (recent[found_index] == code) break;
+    }
+    if (found_index < kDispatchTableRecentCount) {
+      Write(~found_index);
+      continue;
+    }
+    // We have a non-repeated, non-recent entry, so encode the reference ID of
+    // the code object and emit that.
+    auto const object_id = WriteRefId(code);
+    // Make sure that this code object has an allocated reference ID.
+    ASSERT(object_id != 0 && object_id != WriteRefId(Code::null()));
+    // Use the index in the code cluster, not in the snapshot..
+    auto const encoded = kDispatchTableIndexBase + (object_id - first_code_id);
+    ASSERT(encoded <= compiler::target::kWordMax);
+    Write(encoded);
+    recent[recent_index] = code;
+    recent_index = (recent_index + 1) & kDispatchTableRecentMask;
+  }
+  if (repeat_count > 0) {
+    Write(repeat_count);
+  }
+  dispatch_table_size_ = bytes_written() - bytes_before;
+#endif  // defined(DART_PRECOMPILER)
+}
 
 void Serializer::PrintSnapshotSizes() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5067,9 +5188,10 @@ void Serializer::PrintSnapshotSizes() {
     // dispatch table (i.e., the VM snapshot). For a precompiled isolate
     // snapshot, we always serialize at least _one_ byte for the DispatchTable.
     if (dispatch_table_size_ > 0) {
-      auto const dispatch_table = isolate()->dispatch_table();
+      const auto& dispatch_table_entries = Array::Handle(
+          zone_, isolate()->object_store()->dispatch_table_code_entries());
       auto const entry_count =
-          dispatch_table != nullptr ? dispatch_table->length() : 0;
+          dispatch_table_entries.IsNull() ? 0 : dispatch_table_entries.Length();
       clusters_by_size.Add(new (zone_) FakeSerializationCluster(
           "DispatchTable", entry_count, dispatch_table_size_));
     }
@@ -5089,6 +5211,7 @@ void Serializer::PrintSnapshotSizes() {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void Serializer::AddVMIsolateBaseObjects() {
   // These objects are always allocated by Object::InitOnce, so they are not
   // written into the snapshot.
@@ -5211,36 +5334,6 @@ static const char* kObjectStoreFieldNames[] = {
 
 void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
                                       ObjectStore* object_store) {
-#if defined(DART_PRECOMPILER)
-  // We should treat the dispatch table as a root object and trace the
-  // Code objects it references via entry points. Otherwise, an non-empty
-  // entry could be invalid on deserialization if the corresponding Code
-  // object was not reachable from the existing snapshot roots.
-  //
-  // Since the dispatch table only stores entry points, we have to find the
-  // Code objects before entering the NoSafepointScope, since looking up a
-  // Code object from the entry point cannot be done during one.
-  auto const dispatch_table = isolate()->dispatch_table();
-  // Check that we only have dispatch tables in precompiled mode, so we can
-  // elide them from the snapshot when not creating a precompiled snapshot.
-  ASSERT(dispatch_table == nullptr || kind() == Snapshot::kFullAOT);
-  // We collect the Code objects for each entry, storing null if there is none.
-  auto const dispatch_table_length =
-      dispatch_table != nullptr ? dispatch_table->length() : 0;
-  GrowableHandlePtrArray<const Code> dispatch_table_roots(
-      zone_, dispatch_table_length);
-  if (dispatch_table != nullptr) {
-    auto& code = Code::Handle(zone_);
-    auto const entries = dispatch_table->array();
-    for (intptr_t i = 0; i < dispatch_table_length; i++) {
-      auto const entry = entries[i];
-      code = entry != 0 ? Code::LookupCode(entry) : Code::null();
-      ASSERT(entry == 0 || !code.IsNull());
-      dispatch_table_roots.Add(code);
-    }
-  }
-#endif
-
   NoSafepointScope no_safepoint;
 
   if (num_base_objects == 0) {
@@ -5262,12 +5355,20 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
     Push(*p);
   }
 
+  const auto& dispatch_table_entries =
+      Array::Handle(zone_, object_store->dispatch_table_code_entries());
+  // We should only have a dispatch table in precompiled mode.
+  ASSERT(dispatch_table_entries.IsNull() || kind() == Snapshot::kFullAOT);
+
 #if defined(DART_PRECOMPILER)
-  // Push the Code objects collected from the dispatch table.
-  for (intptr_t i = 0; i < dispatch_table_length; i++) {
-    const auto& code = dispatch_table_roots.At(i);
-    if (code.IsNull()) continue;
-    Push(code.raw());
+  // We treat the dispatch table as a root object and trace the Code objects it
+  // references. Otherwise, a non-empty entry could be invalid on
+  // deserialization if the corresponding Code object was not reachable from the
+  // existing snapshot roots.
+  if (!dispatch_table_entries.IsNull()) {
+    for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
+      Push(dispatch_table_entries.At(i));
+    }
   }
 #endif
 
@@ -5278,30 +5379,28 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
     WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
   }
 
-#if defined(DART_PRECOMPILER)
-  // Serialize dispatch table for precompiled snapshots only.
-  if (kind() == Snapshot::kFullAOT) {
-    GrowableArray<RawCode*>* code_objects =
-        static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
-            ->discovered_objects();
-    dispatch_table_size_ = DispatchTable::Serialize(
-        this, isolate()->dispatch_table(), *code_objects);
-    ASSERT(dispatch_table_length == 0 || dispatch_table_size_ > 1);
+  // The dispatch table is serialized only for precompiled snapshots.
+  WriteDispatchTable(dispatch_table_entries);
 
-    if (profile_writer_ != nullptr) {
-      // Grab an unused ref index for a unique object id for the dispatch table.
-      const auto dispatch_table_id = next_ref_index_++;
-      const V8SnapshotProfileWriter::ObjectId dispatch_table_snapshot_id(
-          V8SnapshotProfileWriter::kSnapshot, dispatch_table_id);
-      profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
-      profile_writer_->SetObjectTypeAndName(dispatch_table_snapshot_id,
-                                            "DispatchTable", nullptr);
-      profile_writer_->AttributeBytesTo(dispatch_table_snapshot_id,
-                                        dispatch_table_size_);
-      for (intptr_t i = 0; i < dispatch_table_length; i++) {
-        const auto& code = dispatch_table_roots.At(i);
+#if defined(DART_PRECOMPILER)
+  // If any bytes were written for the dispatch table, add it to the profile.
+  if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
+    // Grab an unused ref index for a unique object id for the dispatch table.
+    const auto dispatch_table_id = next_ref_index_++;
+    const V8SnapshotProfileWriter::ObjectId dispatch_table_snapshot_id(
+        V8SnapshotProfileWriter::kSnapshot, dispatch_table_id);
+    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
+    profile_writer_->SetObjectTypeAndName(dispatch_table_snapshot_id,
+                                          "DispatchTable", nullptr);
+    profile_writer_->AttributeBytesTo(dispatch_table_snapshot_id,
+                                      dispatch_table_size_);
+
+    if (!dispatch_table_entries.IsNull()) {
+      for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
+        auto const code = Code::RawCast(dispatch_table_entries.At(i));
+        if (code == Code::null()) continue;
         const V8SnapshotProfileWriter::ObjectId code_id(
-            V8SnapshotProfileWriter::kSnapshot, WriteRefId(code.raw()));
+            V8SnapshotProfileWriter::kSnapshot, WriteRefId(code));
         profile_writer_->AttributeReferenceTo(
             dispatch_table_snapshot_id,
             {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
@@ -5472,6 +5571,57 @@ DeserializationCluster* Deserializer::ReadCluster() {
   }
   FATAL1("No cluster defined for cid %" Pd, cid);
   return NULL;
+}
+
+void Deserializer::ReadDispatchTable() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const intptr_t length = ReadUnsigned();
+  if (length == 0) return;
+
+  // Not all Code objects may be in the code_order_table when instructions can
+  // be deduplicated. Thus, we serialize the reference ID of the first code
+  // object, from which we can get the reference ID for any code object.
+  const intptr_t first_code_id = ReadUnsigned();
+
+  auto const I = isolate();
+  auto code = I->object_store()->dispatch_table_null_error_stub();
+  ASSERT(code != Code::null());
+  uword null_entry = Code::EntryPointOf(code);
+
+  auto const table = new DispatchTable(length);
+  auto const array = table->array();
+  uword value = 0;
+  uword recent[kDispatchTableRecentCount] = {0};
+  intptr_t recent_index = 0;
+  intptr_t repeat_count = 0;
+  for (intptr_t i = 0; i < length; i++) {
+    if (repeat_count > 0) {
+      array[i] = value;
+      repeat_count--;
+      continue;
+    }
+    auto const encoded = Read<intptr_t>();
+    if (encoded == 0) {
+      value = null_entry;
+    } else if (encoded < 0) {
+      intptr_t r = ~encoded;
+      ASSERT(r < kDispatchTableRecentCount);
+      value = recent[r];
+    } else if (encoded <= kDispatchTableMaxRepeat) {
+      repeat_count = encoded - 1;
+    } else {
+      intptr_t cluster_index = encoded - kDispatchTableIndexBase;
+      code = Code::RawCast(Ref(first_code_id + cluster_index));
+      value = Code::EntryPointOf(code);
+      recent[recent_index] = value;
+      recent_index = (recent_index + 1) & kDispatchTableRecentMask;
+    }
+    array[i] = value;
+  }
+  ASSERT(repeat_count == 0);
+
+  I->set_dispatch_table(table);
+#endif
 }
 
 RawApiError* Deserializer::VerifyImageAlignment() {
@@ -5873,13 +6023,8 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
       *p = ReadRef();
     }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-    // Deserialize dispatch table
-    const Array& code_array =
-        Array::Handle(zone_, object_store->code_order_table());
-    thread()->isolate()->set_dispatch_table(
-        DispatchTable::Deserialize(this, code_array));
-#endif
+    // Deserialize dispatch table (when applicable)
+    ReadDispatchTable();
 
 #if defined(DEBUG)
     int32_t section_marker = Read<int32_t>();
