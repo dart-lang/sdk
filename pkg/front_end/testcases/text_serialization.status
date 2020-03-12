@@ -1272,6 +1272,7 @@ nnbd/late: TextSerializationFailure
 nnbd/later: TextSerializationFailure
 nnbd/lhs_of_if_null: TextSerializationFailure
 nnbd/list_constructor: TextSerializationFailure
+nnbd/literal_from_opt_in: TextSerializationFailure
 nnbd/member_inheritance_from_opt_in: TextSerializationFailure
 nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError

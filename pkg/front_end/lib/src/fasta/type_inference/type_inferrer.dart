@@ -1899,7 +1899,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return const DynamicType();
     }
     if (forSyntheticVariable) {
-      return nonNullifyInLibrary(initializerType, library.library);
+      return normalizeNullabilityInLibrary(initializerType, library.library);
     } else {
       return demoteTypeInLibrary(initializerType, library.library);
     }

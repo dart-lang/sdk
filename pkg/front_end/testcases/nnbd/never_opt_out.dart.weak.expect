@@ -44,7 +44,7 @@ static field core::Null? inferredOptOutNever = nev::optInNever;
 static method main() → dynamic {
   Never* localNever = null;
   core::Null? localNull = null;
-  Never inferredLocalNever = nev::optInNever;
+  Never* inferredLocalNever = nev::optInNever;
   localNever = localNever;
   self::optOutNever = localNever;
   nev::optInNever = localNever;
@@ -68,25 +68,25 @@ static method main() → dynamic {
   nev::optInNever = localNull as{TypeError} Never;
   localNull = localNull;
   self::inferredOptOutNever = localNull;
-  inferredLocalNever = localNull as{TypeError} Never;
+  inferredLocalNever = localNull;
   localNever = self::inferredOptOutNever;
   self::optOutNever = self::inferredOptOutNever;
   nev::optInNever = self::inferredOptOutNever as{TypeError} Never;
   localNull = self::inferredOptOutNever;
   self::inferredOptOutNever = self::inferredOptOutNever;
-  inferredLocalNever = self::inferredOptOutNever as{TypeError} Never;
+  inferredLocalNever = self::inferredOptOutNever;
   localNever = inferredLocalNever;
   self::optOutNever = inferredLocalNever;
   nev::optInNever = inferredLocalNever;
   localNull = inferredLocalNever;
   self::inferredOptOutNever = inferredLocalNever;
   inferredLocalNever = inferredLocalNever;
-  self::throws(() → Never => self::optOutNever = nev::throwing());
-  self::throws(() → Never => localNever = nev::throwing());
-  self::throws(() → Never => self::optOutNever = nev::throwing());
-  self::throws(() → Never => nev::optInNever = nev::throwing());
-  self::throws(() → Never => self::inferredOptOutNever = nev::throwing());
-  self::throws(() → Never => inferredLocalNever = nev::throwing());
+  self::throws(() → Never* => self::optOutNever = nev::throwing());
+  self::throws(() → Never* => localNever = nev::throwing());
+  self::throws(() → Never* => self::optOutNever = nev::throwing());
+  self::throws(() → Never* => nev::optInNever = nev::throwing());
+  self::throws(() → Never* => self::inferredOptOutNever = nev::throwing());
+  self::throws(() → Never* => inferredLocalNever = nev::throwing());
 }
 static method throws(() →* void f) → dynamic {
   try {
