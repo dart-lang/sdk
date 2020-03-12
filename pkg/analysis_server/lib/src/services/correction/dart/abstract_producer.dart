@@ -70,6 +70,11 @@ abstract class CorrectionProducer {
     return utils.getRangeText(range);
   }
 
+  /// Return `true` the lint with the given [name] is enabled.
+  bool isLintEnabled(String name) {
+    return _context.isLintEnabled(name);
+  }
+
   /// Return `true` if the selection covers an operator of the given
   /// [binaryExpression].
   bool isOperatorSelected(BinaryExpression binaryExpression) {
@@ -127,6 +132,12 @@ class CorrectionProducerContext {
         utils = CorrectionUtils(resolvedResult);
 
   AstNode get node => _node;
+
+  /// Return `true` the lint with the given [name] is enabled.
+  bool isLintEnabled(String name) {
+    var analysisOptions = session.analysisContext.analysisOptions;
+    return analysisOptions.isLintEnabled(name);
+  }
 
   bool setupCompute() {
     final locator = NodeLocator(selectionOffset, selectionEnd);
