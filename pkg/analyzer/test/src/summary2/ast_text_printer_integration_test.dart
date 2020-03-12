@@ -39,11 +39,13 @@ void _buildTests() {
 }
 
 dynamic tempSkipped(File file) {
+  const String prefix = "front_end/parser_testcases";
   String uriString = file.uri.toString();
-  if (uriString.endsWith(
-          "front_end/parser_testcases/nnbd/issue_40267_case_02.dart") ||
-      uriString.endsWith(
-          "front_end/parser_testcases/nnbd/issue_40267_case_05.dart")) {
+  if (uriString.endsWith("$prefix/nnbd/issue_40267_case_02.dart") ||
+      uriString.endsWith("$prefix/nnbd/issue_40267_case_05.dart") ||
+      uriString.endsWith("$prefix/nnbd/issue_40267_lookup_plus_plus.dart") ||
+      uriString.endsWith("$prefix/nnbd/issue_40267_lookup_plus.dart") ||
+      uriString.endsWith("$prefix/nnbd/issue_40267_plus_plus_lookup.dart")) {
     return "Temporarily skipped because of "
         "https://dart-review.googlesource.com/c/sdk/+/135903";
   }
