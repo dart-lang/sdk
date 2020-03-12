@@ -575,9 +575,7 @@ class Thread : public ThreadState {
   }
 
   const uword* dispatch_table_array() const { return dispatch_table_array_; }
-  void set_dispatch_table_array(const uword* array) {
-    dispatch_table_array_ = array;
-  }
+  void set_dispatch_table_array(uword* array) { dispatch_table_array_ = array; }
 
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
@@ -883,7 +881,7 @@ class Thread : public ThreadState {
   RelaxedAtomic<uword> stack_limit_;
   uword write_barrier_mask_;
   Isolate* isolate_;
-  const uword* dispatch_table_array_;
+  uword* dispatch_table_array_;
   uword top_;
   uword end_;
   // Offsets up to this point can all fit in a byte on X64. All of the above

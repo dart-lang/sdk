@@ -402,19 +402,6 @@ void Precompiler::DoCompileAll() {
       }
 
       TraceForRetainedFunctions();
-
-      if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
-        // Build the entries used to serialize the dispatch table before
-        // dropping functions, as we may clear references to Code objects.
-        const auto& entries =
-            Array::Handle(Z, dispatch_table_generator_->BuildCodeArray());
-        I->object_store()->set_dispatch_table_code_entries(entries);
-        // Delete the dispatch table generator to ensure there's no attempt
-        // to add new entries after this point.
-        delete dispatch_table_generator_;
-        dispatch_table_generator_ = nullptr;
-      }
-
       DropFunctions();
       DropFields();
       TraceTypesFromRetainedClasses();
@@ -453,6 +440,14 @@ void Precompiler::DoCompileAll() {
     Obfuscate();
 
     ProgramVisitor::Dedup();
+
+    if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
+      I->set_dispatch_table(dispatch_table_generator_->BuildTable());
+      // Delete the dispatch table generator while the current zone
+      // is still alive.
+      delete dispatch_table_generator_;
+      dispatch_table_generator_ = nullptr;
+    }
 
     zone_ = NULL;
   }

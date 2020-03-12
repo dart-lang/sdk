@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if defined(DART_PRECOMPILER)
+#if defined(DART_PRECOMPILER) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/aot/dispatch_table_generator.h"
 
 #include <memory>
 
 #include "vm/compiler/frontend/kernel_translation_helper.h"
-#include "vm/dispatch_table.h"
 #include "vm/stub_code.h"
 #include "vm/thread.h"
 
@@ -95,10 +94,7 @@ class CidInterval {
 class SelectorRow {
  public:
   SelectorRow(Zone* zone, TableSelector* selector)
-      : selector_(selector),
-        class_ranges_(zone, 0),
-        ranges_(zone, 0),
-        code_(Code::Handle(zone)) {}
+      : selector_(selector), class_ranges_(zone, 0), ranges_(zone, 0) {}
 
   TableSelector* selector() const { return selector_; }
 
@@ -127,7 +123,7 @@ class SelectorRow {
     selector_->offset = offset;
   }
 
-  void FillTable(ClassTable* class_table, const Array& entries);
+  void FillTable(ClassTable* class_table, DispatchTable* table);
 
  private:
   TableSelector* selector_;
@@ -135,7 +131,6 @@ class SelectorRow {
 
   GrowableArray<CidInterval> class_ranges_;
   GrowableArray<Interval> ranges_;
-  Code& code_;
 };
 
 class RowFitter {
@@ -236,9 +231,11 @@ bool SelectorRow::Finalize() {
   return true;
 }
 
-void SelectorRow::FillTable(ClassTable* class_table, const Array& entries) {
+void SelectorRow::FillTable(ClassTable* class_table, DispatchTable* table) {
   // Define the entries in the table by going top-down, which means more
   // specific ones will override more general ones.
+
+  Code& code = Code::Handle();
 
   // Sort by depth.
   struct IntervalSorter {
@@ -255,9 +252,9 @@ void SelectorRow::FillTable(ClassTable* class_table, const Array& entries) {
     const Interval& range = cid_range.range();
     const Function* function = cid_range.function();
     if (function != nullptr && function->HasCode()) {
-      code_ = function->CurrentCode();
+      code = function->CurrentCode();
       for (classid_t cid = range.begin(); cid < range.end(); cid++) {
-        entries.SetAt(selector()->offset + cid, code_);
+        table->SetCodeAt(selector()->offset + cid, code);
       }
     }
   }
@@ -637,16 +634,17 @@ void DispatchTableGenerator::ComputeSelectorOffsets() {
   table_size_ = fitter.TableSize();
 }
 
-RawArray* DispatchTableGenerator::BuildCodeArray() {
-  auto& entries = Array::Handle(zone_, Array::New(table_size_, Heap::kOld));
+DispatchTable* DispatchTableGenerator::BuildTable() {
+  // Allocate the dispatch table and fill it in.
+  DispatchTable* dispatch_table = new DispatchTable(table_size_);
   for (intptr_t i = 0; i < table_rows_.length(); i++) {
-    table_rows_[i]->FillTable(classes_, entries);
+    table_rows_[i]->FillTable(classes_, dispatch_table);
   }
-  entries.MakeImmutable();
-  return entries.raw();
+
+  return dispatch_table;
 }
 
 }  // namespace compiler
 }  // namespace dart
 
-#endif  // defined(DART_PRECOMPILER)
+#endif  // defined(DART_PRECOMPILER) && !defined(DART_PRECOMPILED_RUNTIME)

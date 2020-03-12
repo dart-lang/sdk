@@ -186,7 +186,6 @@ class ObjectPointerVisitor;
   RW(Code, array_write_barrier_stub)                                           \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
-  RW(Array, dispatch_table_code_entries)                                       \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
   RW(Class, ffi_pointer_class)                                                 \

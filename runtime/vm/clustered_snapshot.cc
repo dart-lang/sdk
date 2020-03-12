@@ -27,14 +27,9 @@
 #include "vm/timeline.h"
 #include "vm/version.h"
 
-namespace dart {
+#define LOG_SECTION_BOUNDARIES false
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-DEFINE_FLAG(bool,
-            print_cluster_information,
-            false,
-            "Print information about clusters written to snapshot");
-#endif
+namespace dart {
 
 #if defined(DART_PRECOMPILER)
 DEFINE_FLAG(charp,
@@ -106,34 +101,27 @@ void Deserializer::InitializeHeader(RawObject* raw,
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
-  intptr_t start_size = serializer->bytes_written();
-  intptr_t start_data = serializer->GetDataSize();
+  if (LOG_SECTION_BOUNDARIES) {
+    OS::PrintErr("Data + %" Px ": Alloc %s\n", serializer->bytes_written(),
+                 name_);
+  }
+  intptr_t start_size = serializer->bytes_written() + serializer->GetDataSize();
   intptr_t start_objects = serializer->next_ref_index();
   WriteAlloc(serializer);
-  intptr_t stop_size = serializer->bytes_written();
-  intptr_t stop_data = serializer->GetDataSize();
+  intptr_t stop_size = serializer->bytes_written() + serializer->GetDataSize();
   intptr_t stop_objects = serializer->next_ref_index();
-  if (FLAG_print_cluster_information) {
-    const int hex_size = kWordSize * 2;
-    OS::PrintErr("Snapshot 0x%0*.*" Px " (%" Pd "), ", hex_size, hex_size,
-                 start_size, stop_size - start_size);
-    OS::PrintErr("Data 0x%0*.*" Px " (%" Pd "): ", hex_size, hex_size,
-                 start_data, stop_data - start_data);
-    OS::PrintErr("Alloc %s (%" Pd ")\n", name(), stop_objects - start_objects);
-  }
-  size_ += (stop_size - start_size) + (stop_data - start_data);
+  size_ += (stop_size - start_size);
   num_objects_ += (stop_objects - start_objects);
 }
 
 void SerializationCluster::WriteAndMeasureFill(Serializer* serializer) {
+  if (LOG_SECTION_BOUNDARIES) {
+    OS::PrintErr("Data + %" Px ": Fill %s\n", serializer->bytes_written(),
+                 name_);
+  }
   intptr_t start = serializer->bytes_written();
   WriteFill(serializer);
   intptr_t stop = serializer->bytes_written();
-  if (FLAG_print_cluster_information) {
-    const int hex_size = kWordSize * 2;
-    OS::PrintErr("Snapshot 0x%0*.*" Px " (%" Pd "): Fill %s\n", hex_size,
-                 hex_size, start, stop - start, name());
-  }
   size_ += (stop - start);
 }
 
@@ -2020,11 +2008,8 @@ class PcDescriptorsDeserializationCluster : public DeserializationCluster {
 // PcDescriptor, CompressedStackMaps, OneByteString, TwoByteString
 class RODataSerializationCluster : public SerializationCluster {
  public:
-  RODataSerializationCluster(Zone* zone, const char* type, intptr_t cid)
-      : SerializationCluster(ImageWriter::TagObjectTypeAsReadOnly(zone, type)),
-        cid_(cid),
-        objects_(),
-        type_(type) {}
+  RODataSerializationCluster(const char* name, intptr_t cid)
+      : SerializationCluster(name), cid_(cid) {}
   ~RODataSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
@@ -2052,9 +2037,9 @@ class RODataSerializationCluster : public SerializationCluster {
       RawObject* object = objects_[i];
       s->AssignRef(object);
       if (cid_ == kOneByteStringCid || cid_ == kTwoByteStringCid) {
-        s->TraceStartWritingObject(type_, object, String::RawCast(object));
+        s->TraceStartWritingObject(name(), object, String::RawCast(object));
       } else {
-        s->TraceStartWritingObject(type_, object, nullptr);
+        s->TraceStartWritingObject(name(), object, nullptr);
       }
       uint32_t offset = s->GetDataOffset(object);
       s->TraceDataOffset(offset);
@@ -2075,7 +2060,6 @@ class RODataSerializationCluster : public SerializationCluster {
  private:
   const intptr_t cid_;
   GrowableArray<RawObject*> objects_;
-  const char* const type_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -4581,23 +4565,6 @@ void Serializer::TraceEndWritingObject() {
   }
 }
 
-const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
-  switch (cid) {
-    case kPcDescriptorsCid:
-      return "PcDescriptors";
-    case kCodeSourceMapCid:
-      return "CodeSourceMap";
-    case kCompressedStackMapsCid:
-      return "CompressedStackMaps";
-    case kOneByteStringCid:
-      return "OneByteString";
-    case kTwoByteStringCid:
-      return "TwoByteString";
-    default:
-      return nullptr;
-  }
-}
-
 SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
@@ -4619,8 +4586,18 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
   }
 
   if (Snapshot::IncludesCode(kind_)) {
-    if (auto const type = ReadOnlyObjectType(cid)) {
-      return new (Z) RODataSerializationCluster(Z, type, cid);
+    switch (cid) {
+      case kPcDescriptorsCid:
+        return new (Z) RODataSerializationCluster("(RO)PcDescriptors", cid);
+      case kCodeSourceMapCid:
+        return new (Z) RODataSerializationCluster("(RO)CodeSourceMap", cid);
+      case kCompressedStackMapsCid:
+        return new (Z)
+            RODataSerializationCluster("(RO)CompressedStackMaps", cid);
+      case kOneByteStringCid:
+        return new (Z) RODataSerializationCluster("(RO)OneByteString", cid);
+      case kTwoByteStringCid:
+        return new (Z) RODataSerializationCluster("(RO)TwoByteString", cid);
     }
   }
 
@@ -4813,6 +4790,13 @@ intptr_t Serializer::GetDataSize() const {
     return 0;
   }
   return image_writer_->data_size();
+}
+
+intptr_t Serializer::GetTextSize() const {
+  if (image_writer_ == NULL) {
+    return 0;
+  }
+  return image_writer_->text_size();
 }
 
 void Serializer::Push(RawObject* object) {
@@ -5034,127 +5018,6 @@ void Serializer::Serialize() {
     }
   }
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-// The serialized format of the dispatch table is a sequence of variable-length
-// integers (the built-in variable-length integer encoding/decoding of
-// the stream). Each encoded integer e is interpreted thus:
-// -kRecentCount .. -1   Pick value from the recent values buffer at index -1-e.
-// 0                     Empty (unused) entry.
-// 1 .. kMaxRepeat       Repeat previous entry e times.
-// kIndexBase or higher  Pick entry point from the object at index e-kIndexBase
-//                       in the snapshot code cluster. Also put it in the recent
-//                       values buffer at the next round-robin index.
-
-// Constants for serialization format. Chosen such that repeats and recent
-// values are encoded as single bytes in SLEB128 encoding.
-static constexpr intptr_t kDispatchTableSpecialEncodingBits = 6;
-static constexpr intptr_t kDispatchTableRecentCount =
-    1 << kDispatchTableSpecialEncodingBits;
-static constexpr intptr_t kDispatchTableRecentMask =
-    (1 << kDispatchTableSpecialEncodingBits) - 1;
-static constexpr intptr_t kDispatchTableMaxRepeat =
-    (1 << kDispatchTableSpecialEncodingBits) - 1;
-static constexpr intptr_t kDispatchTableIndexBase = kDispatchTableMaxRepeat + 1;
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-
-void Serializer::WriteDispatchTable(const Array& entries) {
-#if defined(DART_PRECOMPILER)
-  if (kind() != Snapshot::kFullAOT) return;
-
-  const intptr_t bytes_before = bytes_written();
-  const intptr_t table_length = entries.IsNull() ? 0 : entries.Length();
-
-  ASSERT(table_length <= compiler::target::kWordMax);
-  WriteUnsigned(table_length);
-  if (table_length == 0) {
-    dispatch_table_size_ = bytes_written() - bytes_before;
-    return;
-  }
-
-  auto const code_cluster =
-      reinterpret_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid]);
-  ASSERT(code_cluster != nullptr);
-  // Reference IDs in a cluster are allocated sequentially, so we can use the
-  // first code object's reference ID to calculate the cluster index.
-  const intptr_t first_code_id =
-      WriteRefId(code_cluster->discovered_objects()->At(0));
-  // The first object in the code cluster must have its reference ID allocated.
-  ASSERT(first_code_id != 0 && first_code_id != WriteRefId(Code::null()));
-
-  // If instructions can be deduped, the code order table in the deserializer
-  // may not contain all Code objects in the snapshot. Thus, we write the ID
-  // for the first code object here so we can retrieve it during deserialization
-  // and calculate the snapshot ID for Code objects from the cluster index.
-  //
-  // We could just use the snapshot reference ID of the Code object itself
-  // instead of the cluster index and avoid this. However, since entries are
-  // SLEB128 encoded, the size delta for serializing the first ID once is less
-  // than the size delta of serializing the ID plus kIndexBase for each entry,
-  // even when Code objects are allocated before all other non-base objects.
-  //
-  // We could also map Code objects to the first Code object in the cluster with
-  // the same entry point and serialize that ID instead, but that loses
-  // information about which Code object was originally referenced.
-  ASSERT(first_code_id <= compiler::target::kWordMax);
-  WriteUnsigned(first_code_id);
-
-  RawCode* previous_code = nullptr;
-  RawCode* recent[kDispatchTableRecentCount] = {nullptr};
-  intptr_t recent_index = 0;
-  intptr_t repeat_count = 0;
-  for (intptr_t i = 0; i < table_length; i++) {
-    auto const code = Code::RawCast(entries.At(i));
-    // First, see if we're repeating the previous entry (invalid, recent, or
-    // encoded).
-    if (code == previous_code) {
-      if (++repeat_count == kDispatchTableMaxRepeat) {
-        Write(kDispatchTableMaxRepeat);
-        repeat_count = 0;
-      }
-      continue;
-    }
-    // Emit any outsanding repeat count before handling the new code value.
-    if (repeat_count > 0) {
-      Write(repeat_count);
-      repeat_count = 0;
-    }
-    previous_code = code;
-    // The invalid entry can be repeated, but is never part of the recent list
-    // since it already encodes to a single byte..
-    if (code == Code::null()) {
-      Write(0);
-      continue;
-    }
-    // Check against the recent entries, and write an encoded reference to
-    // the recent entry if found.
-    intptr_t found_index = 0;
-    for (; found_index < kDispatchTableRecentCount; found_index++) {
-      if (recent[found_index] == code) break;
-    }
-    if (found_index < kDispatchTableRecentCount) {
-      Write(~found_index);
-      continue;
-    }
-    // We have a non-repeated, non-recent entry, so encode the reference ID of
-    // the code object and emit that.
-    auto const object_id = WriteRefId(code);
-    // Make sure that this code object has an allocated reference ID.
-    ASSERT(object_id != 0 && object_id != WriteRefId(Code::null()));
-    // Use the index in the code cluster, not in the snapshot..
-    auto const encoded = kDispatchTableIndexBase + (object_id - first_code_id);
-    ASSERT(encoded <= compiler::target::kWordMax);
-    Write(encoded);
-    recent[recent_index] = code;
-    recent_index = (recent_index + 1) & kDispatchTableRecentMask;
-  }
-  if (repeat_count > 0) {
-    Write(repeat_count);
-  }
-  dispatch_table_size_ = bytes_written() - bytes_before;
-#endif  // defined(DART_PRECOMPILER)
-}
 
 void Serializer::PrintSnapshotSizes() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5167,37 +5030,19 @@ void Serializer::PrintSnapshotSizes() {
         clusters_by_size.Add(cluster);
       }
     }
-    intptr_t text_size = 0;
-    if (image_writer_ != nullptr) {
-      auto const text_object_count = image_writer_->GetTextObjectCount();
-      text_size = image_writer_->text_size();
-      intptr_t trampoline_count, trampoline_size;
-      image_writer_->GetTrampolineInfo(&trampoline_count, &trampoline_size);
-      auto const instructions_count = text_object_count - trampoline_count;
-      auto const instructions_size = text_size - trampoline_size;
+    if (GetTextSize() != 0) {
       clusters_by_size.Add(new (zone_) FakeSerializationCluster(
-          ImageWriter::TagObjectTypeAsReadOnly(zone_, "Instructions"),
-          instructions_count, instructions_size));
-      if (trampoline_size > 0) {
-        clusters_by_size.Add(new (zone_) FakeSerializationCluster(
-            ImageWriter::TagObjectTypeAsReadOnly(zone_, "Trampoline"),
-            trampoline_count, trampoline_size));
-      }
+          "(RO)Instructions", 0, GetTextSize()));
     }
-    // The dispatch_table_size_ will be 0 if the snapshot did not include a
-    // dispatch table (i.e., the VM snapshot). For a precompiled isolate
-    // snapshot, we always serialize at least _one_ byte for the DispatchTable.
-    if (dispatch_table_size_ > 0) {
-      const auto& dispatch_table_entries = Array::Handle(
-          zone_, isolate()->object_store()->dispatch_table_code_entries());
-      auto const entry_count =
-          dispatch_table_entries.IsNull() ? 0 : dispatch_table_entries.Length();
+    // An null dispatch table will serialize to a single byte.
+    if (dispatch_table_size_ > 1) {
       clusters_by_size.Add(new (zone_) FakeSerializationCluster(
-          "DispatchTable", entry_count, dispatch_table_size_));
+          "(RO)DispatchTable", isolate()->dispatch_table()->length(),
+          dispatch_table_size_));
     }
     clusters_by_size.Sort(CompareClusters);
     double total_size =
-        static_cast<double>(bytes_written() + GetDataSize() + text_size);
+        static_cast<double>(bytes_written() + GetDataSize() + GetTextSize());
     double cumulative_fraction = 0.0;
     for (intptr_t i = 0; i < clusters_by_size.length(); i++) {
       SerializationCluster* cluster = clusters_by_size[i];
@@ -5211,7 +5056,6 @@ void Serializer::PrintSnapshotSizes() {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 void Serializer::AddVMIsolateBaseObjects() {
   // These objects are always allocated by Object::InitOnce, so they are not
   // written into the snapshot.
@@ -5355,23 +5199,6 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
     Push(*p);
   }
 
-  const auto& dispatch_table_entries =
-      Array::Handle(zone_, object_store->dispatch_table_code_entries());
-  // We should only have a dispatch table in precompiled mode.
-  ASSERT(dispatch_table_entries.IsNull() || kind() == Snapshot::kFullAOT);
-
-#if defined(DART_PRECOMPILER)
-  // We treat the dispatch table as a root object and trace the Code objects it
-  // references. Otherwise, a non-empty entry could be invalid on
-  // deserialization if the corresponding Code object was not reachable from the
-  // existing snapshot roots.
-  if (!dispatch_table_entries.IsNull()) {
-    for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-      Push(dispatch_table_entries.At(i));
-    }
-  }
-#endif
-
   Serialize();
 
   // Write roots.
@@ -5379,35 +5206,12 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
     WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
   }
 
-  // The dispatch table is serialized only for precompiled snapshots.
-  WriteDispatchTable(dispatch_table_entries);
-
-#if defined(DART_PRECOMPILER)
-  // If any bytes were written for the dispatch table, add it to the profile.
-  if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
-    // Grab an unused ref index for a unique object id for the dispatch table.
-    const auto dispatch_table_id = next_ref_index_++;
-    const V8SnapshotProfileWriter::ObjectId dispatch_table_snapshot_id(
-        V8SnapshotProfileWriter::kSnapshot, dispatch_table_id);
-    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
-    profile_writer_->SetObjectTypeAndName(dispatch_table_snapshot_id,
-                                          "DispatchTable", nullptr);
-    profile_writer_->AttributeBytesTo(dispatch_table_snapshot_id,
-                                      dispatch_table_size_);
-
-    if (!dispatch_table_entries.IsNull()) {
-      for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-        auto const code = Code::RawCast(dispatch_table_entries.At(i));
-        if (code == Code::null()) continue;
-        const V8SnapshotProfileWriter::ObjectId code_id(
-            V8SnapshotProfileWriter::kSnapshot, WriteRefId(code));
-        profile_writer_->AttributeReferenceTo(
-            dispatch_table_snapshot_id,
-            {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
-      }
-    }
-  }
-#endif
+  // Serialize dispatch table.
+  GrowableArray<RawCode*>* code_objects =
+      static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
+          ->discovered_objects();
+  dispatch_table_size_ = DispatchTable::Serialize(
+      this, isolate()->dispatch_table(), *code_objects);
 
 #if defined(DEBUG)
   Write<int32_t>(kSectionMarker);
@@ -5571,57 +5375,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
   }
   FATAL1("No cluster defined for cid %" Pd, cid);
   return NULL;
-}
-
-void Deserializer::ReadDispatchTable() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const intptr_t length = ReadUnsigned();
-  if (length == 0) return;
-
-  // Not all Code objects may be in the code_order_table when instructions can
-  // be deduplicated. Thus, we serialize the reference ID of the first code
-  // object, from which we can get the reference ID for any code object.
-  const intptr_t first_code_id = ReadUnsigned();
-
-  auto const I = isolate();
-  auto code = I->object_store()->dispatch_table_null_error_stub();
-  ASSERT(code != Code::null());
-  uword null_entry = Code::EntryPointOf(code);
-
-  auto const table = new DispatchTable(length);
-  auto const array = table->array();
-  uword value = 0;
-  uword recent[kDispatchTableRecentCount] = {0};
-  intptr_t recent_index = 0;
-  intptr_t repeat_count = 0;
-  for (intptr_t i = 0; i < length; i++) {
-    if (repeat_count > 0) {
-      array[i] = value;
-      repeat_count--;
-      continue;
-    }
-    auto const encoded = Read<intptr_t>();
-    if (encoded == 0) {
-      value = null_entry;
-    } else if (encoded < 0) {
-      intptr_t r = ~encoded;
-      ASSERT(r < kDispatchTableRecentCount);
-      value = recent[r];
-    } else if (encoded <= kDispatchTableMaxRepeat) {
-      repeat_count = encoded - 1;
-    } else {
-      intptr_t cluster_index = encoded - kDispatchTableIndexBase;
-      code = Code::RawCast(Ref(first_code_id + cluster_index));
-      value = Code::EntryPointOf(code);
-      recent[recent_index] = value;
-      recent_index = (recent_index + 1) & kDispatchTableRecentMask;
-    }
-    array[i] = value;
-  }
-  ASSERT(repeat_count == 0);
-
-  I->set_dispatch_table(table);
-#endif
 }
 
 RawApiError* Deserializer::VerifyImageAlignment() {
@@ -6023,8 +5776,11 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
       *p = ReadRef();
     }
 
-    // Deserialize dispatch table (when applicable)
-    ReadDispatchTable();
+    // Deserialize dispatch table
+    const Array& code_array =
+        Array::Handle(zone_, object_store->code_order_table());
+    thread()->isolate()->set_dispatch_table(
+        DispatchTable::Deserialize(this, code_array));
 
 #if defined(DEBUG)
     int32_t section_marker = Read<int32_t>();
