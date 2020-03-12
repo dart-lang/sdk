@@ -180,10 +180,6 @@ class FlowAnalysisHelper {
 
     var element = node.staticElement;
     if (element is LocalVariableElement) {
-      if (flow.isUnassigned(element)) {
-        dataForTesting?.definitelyUnassignedNodes?.add(node);
-      }
-
       var typeSystem = _typeOperations.typeSystem;
       if (typeSystem.isPotentiallyNonNullable(element.type)) {
         var isUnassigned = !flow.isAssigned(element);
@@ -198,6 +194,25 @@ class FlowAnalysisHelper {
         // make a significant difference.
         if (element.isLate) return false;
         return isUnassigned;
+      }
+    }
+
+    return false;
+  }
+
+  bool isReadOfDefinitelyUnassignedLateLocal(SimpleIdentifier node) {
+    if (flow == null) return false;
+
+    if (node.inDeclarationContext()) return false;
+    if (!node.inGetterContext()) return false;
+
+    var element = node.staticElement;
+    if (element is LocalVariableElement) {
+      if (flow.isUnassigned(element)) {
+        dataForTesting?.definitelyUnassignedNodes?.add(node);
+        if (element.isLate) {
+          return true;
+        }
       }
     }
 

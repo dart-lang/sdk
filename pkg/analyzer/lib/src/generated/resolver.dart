@@ -1511,14 +1511,22 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
 
-    if (_flowAnalysis != null &&
-        _flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode
-            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-        node,
-        [node.name],
-      );
+    if (_flowAnalysis != null) {
+      if (_flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          node,
+          [node.name],
+        );
+      }
+      if (_flowAnalysis.isReadOfDefinitelyUnassignedLateLocal(node)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+          node,
+          [node.name],
+        );
+      }
     }
 
     super.visitSimpleIdentifier(node);
