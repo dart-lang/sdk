@@ -54,13 +54,6 @@ class FileState {
    */
   final Source source;
 
-  /*
-   * A function that returns the digest for a file as a String. The function
-   * returns a non null value, can return an empty string if file does
-   * not exist/has no contents.
-   */
-  final String Function(String path) getFileDigest;
-
   final List<FileState> importedFiles = [];
   final List<FileState> exportedFiles = [];
   final List<FileState> partedFiles = [];
@@ -73,8 +66,7 @@ class FileState {
   UnlinkedUnit2 unlinked2;
   LibraryCycle _libraryCycle;
 
-  FileState._(
-      this._fsState, this.path, this.uri, this.source, this.getFileDigest);
+  FileState._(this._fsState, this.path, this.uri, this.source);
 
   List<int> get apiSignature => _apiSignature;
 
@@ -132,7 +124,7 @@ class FileState {
   }
 
   void refresh() {
-    var digest = utf8.encode(getFileDigest(path));
+    var digest = utf8.encode(_fsState.getFileDigest(path));
     _exists = digest.isNotEmpty;
     String unlinkedKey = path;
 
@@ -163,6 +155,9 @@ class FileState {
           bytes = unlinkedBuilder.toBuffer();
           _fsState._byteStore.put(unlinkedKey, bytes);
         });
+
+        unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes).unlinkedUnit;
+        _prefetchDirectReferences(unlinked2);
       }
     }
 
@@ -207,6 +202,41 @@ class FileState {
     }
 
     return _fsState.getFileForUri(absoluteUri);
+  }
+
+  void _prefetchDirectReferences(UnlinkedUnit2 unlinkedUnit2) {
+    if (_fsState.prefetchFiles == null) {
+      return;
+    }
+
+    var paths = <String>{};
+
+    void findPathForUri(String relativeUri) {
+      if (relativeUri.isEmpty) {
+        return;
+      }
+      Uri absoluteUri;
+      try {
+        absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
+      } on FormatException {
+        return;
+      }
+      var p = _fsState.getPathForUri(absoluteUri);
+      if (p != null) {
+        paths.add(p);
+      }
+    }
+
+    for (var directive in unlinked2.imports) {
+      findPathForUri(directive.uri);
+    }
+    for (var directive in unlinked2.exports) {
+      findPathForUri(directive.uri);
+    }
+    for (var uri in unlinked2.parts) {
+      findPathForUri(uri);
+    }
+    _fsState.prefetchFiles(paths.toList());
   }
 
   static CiderUnlinkedUnitBuilder serializeAstCiderUnlinked(
@@ -282,12 +312,24 @@ class FileSystemState {
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
   final Uint32List _linkedSalt;
+
+  /**
+   * A function that returns the digest for a file as a String. The function
+   * returns a non null value, returns an empty string if file does
+   * not exist/has no contents.
+   */
   final String Function(String path) getFileDigest;
 
   final Map<String, FileState> _pathToFile = {};
   final Map<Uri, FileState> _uriToFile = {};
 
   final FeatureSetProvider featureSetProvider;
+
+  /**
+   * A function that fetches the given list of files. This function can be used
+   * to batch file reads in systems where file fetches are expensive.
+   */
+  final void Function(List<String> paths) prefetchFiles;
 
   /**
    * The [FileState] instance that correspond to an unresolved URI.
@@ -303,6 +345,7 @@ class FileSystemState {
     this._linkedSalt,
     this.featureSetProvider,
     this.getFileDigest,
+    this.prefetchFiles,
   );
 
   /**
@@ -310,7 +353,7 @@ class FileSystemState {
    */
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      _unresolvedFile = FileState._(this, null, null, null, null);
+      _unresolvedFile = FileState._(this, null, null, null);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
@@ -325,7 +368,7 @@ class FileSystemState {
       );
 
       var source = _sourceFactory.forUri2(uri);
-      file = FileState._(this, path, uri, source, getFileDigest);
+      file = FileState._(this, path, uri, source);
 
       _pathToFile[path] = file;
       _uriToFile[uri] = file;
@@ -344,13 +387,21 @@ class FileSystemState {
       }
       var path = source.fullName;
 
-      file = FileState._(this, path, uri, source, getFileDigest);
+      file = FileState._(this, path, uri, source);
       _pathToFile[path] = file;
       _uriToFile[uri] = file;
 
       file.refresh();
     }
     return file;
+  }
+
+  String getPathForUri(Uri uri) {
+    var source = _sourceFactory.forUri2(uri);
+    if (source == null) {
+      return null;
+    }
+    return source.fullName;
   }
 }
 

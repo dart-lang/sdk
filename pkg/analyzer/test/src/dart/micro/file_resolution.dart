@@ -76,6 +76,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
           PackageMapUriResolver(resourceProvider, packageMap),
           ResourceUriResolver(resourceProvider)
         ]),
-        (String path) => _getDigest(path));
+        (String path) => _getDigest(path),
+        null);
   }
 }

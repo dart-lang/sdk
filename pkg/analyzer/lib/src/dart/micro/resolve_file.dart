@@ -49,12 +49,18 @@ class FileResolver {
    */
   final String Function(String path) getFileDigest;
 
+  /**
+   * A function that fetches the given list of files. This function can be used
+   * to batch file reads in systems where file fetches are expensive.
+   */
+  final void Function(List<String> paths) prefetchFiles;
+
   Workspace workspace;
 
   MicroAnalysisContextImpl analysisContext;
 
   FileResolver(this.logger, this.resourceProvider, this.byteStore,
-      this.sourceFactory, this.getFileDigest,
+      this.sourceFactory, this.getFileDigest, this.prefetchFiles,
       {Workspace workspace})
       : this.workspace = workspace;
 
@@ -115,6 +121,7 @@ class FileResolver {
       Uint32List(0), // linkedSalt
       featureSetProvider,
       getFileDigest,
+      prefetchFiles,
     );
 
     FileState file;
