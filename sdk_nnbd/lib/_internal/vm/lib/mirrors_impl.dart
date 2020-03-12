@@ -443,7 +443,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   _ClassMirror? _trueSuperclassField;
   _ClassMirror? get _trueSuperclass {
     if (_trueSuperclassField == null) {
-      Type supertype = isOriginalDeclaration
+      Type? supertype = isOriginalDeclaration
           ? _supertype(_reflectedType)
           : _supertypeInstantiated(_reflectedType);
       if (supertype == null) {
