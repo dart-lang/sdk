@@ -87,6 +87,18 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(invocation.toSource(), 'new C().late()');
   }
 
+  void test_parseClassMember_finalAndCovariantLateWithInitializer() {
+    createParser(
+      'covariant late final int f = 0;',
+      featureSet: nonNullable,
+    );
+    parser.parseClassMember('C');
+    assertErrors(errors: [
+      expectedError(
+          ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER, 0, 9)
+    ]);
+  }
+
   void test_parseClassMember_operator_gtgtgt() {
     CompilationUnitImpl unit = parseCompilationUnit(
         'class C { bool operator >>>(other) => false; }',

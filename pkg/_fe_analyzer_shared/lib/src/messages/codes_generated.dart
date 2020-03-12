@@ -3565,7 +3565,7 @@ const Code<Null> codeFinalAndCovariantLateWithInitializer =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalAndCovariantLateWithInitializer = const MessageCode(
     "FinalAndCovariantLateWithInitializer",
-    analyzerCodes: <String>["ParserErrorCode.FINAL_AND_COVARIANT"],
+    index: 101,
     message:
         r"""Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'.""",
     tip:
