@@ -364,7 +364,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Holds the address used to connect or bind the socket.
   late InternetAddress localAddress;
 
+  // The number of available bytes to read.
   int available = 0;
+
+  // The number of incoming connnections for Listening socket.
+  int connections = 0;
 
   int tokens = 0;
 
@@ -711,23 +715,35 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
     if (isClosing || isClosed) return null;
     try {
-      var length = count == null ? available : min(available, count);
-      if (length == 0) return null;
-      Uint8List? list = nativeRead(length);
+      Uint8List? list;
+      if (count != null) {
+        list = nativeRead(count);
+      } else {
+        // If count is null, read as many bytes as possible.
+        // Loop here to ensure bytes that arrived while this read was
+        // issued are also read.
+        BytesBuilder builder = BytesBuilder();
+        do {
+          assert(available > 0);
+          list = nativeRead(available);
+          if (list == null) {
+            break;
+          }
+          builder.add(list);
+          available = nativeAvailable();
+        } while (available > 0);
+        if (builder.isEmpty) {
+          list = null;
+        } else {
+          list = builder.toBytes();
+        }
+      }
       final resourceInformation = resourceInfo;
       assert(resourceInformation != null ||
           isPipe ||
           isInternal ||
           isInternalSignal);
       if (list != null) {
-        if (count == null) {
-          // If count is not specified, read as many bytes as possible.
-          // This checks remaining bytes, if available > 0, issue() in
-          // issueReadEvent() will keep reading.
-          available = nativeAvailable();
-        } else {
-          available -= list.length;
-        }
         if (resourceInformation != null) {
           resourceInformation.totalRead += list.length;
         }
@@ -739,6 +755,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         _SocketProfile.collectStatistic(
             nativeGetSocketId(), _SocketProfileType.readBytes, list?.length);
       }
+      available = nativeAvailable();
       return list;
     } catch (e) {
       reportError(e, StackTrace.current, "Read failed");
@@ -866,8 +883,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   _NativeSocket? accept() {
     // Don't issue accept if we're closing.
     if (isClosing || isClosed) return null;
-    assert(available > 0);
-    available--;
+    assert(connections > 0);
+    connections--;
     tokens++;
     returnTokens(listeningTokenBatchSize);
     var socket = new _NativeSocket.normal();
@@ -981,7 +998,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
         if (i == readEvent) {
           if (isListening) {
-            available++;
+            connections++;
           } else {
             available = nativeAvailable();
             issueReadEvent();
@@ -1311,7 +1328,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
     _socket.setHandlers(read: zone.bindCallbackGuarded(() {
-      while (_socket.available > 0) {
+      while (_socket.connections > 0) {
         var socket = _socket.accept();
         if (socket == null) return;
         if (!const bool.fromEnvironment("dart.vm.product")) {

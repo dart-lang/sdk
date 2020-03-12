@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -12,12 +10,44 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedShownNameTest);
-    defineReflectiveTests(UnusedShownNameWithExtensionMethodsTest);
   });
 }
 
 @reflectiveTest
 class UnusedShownNameTest extends DriverResolutionTest {
+  test_extension_instance_method_unused() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  String empty() => '';
+}
+String s = '';
+''');
+    await assertErrorsInCode('''
+import 'lib1.dart' show E, s;
+
+f() {
+  s.length;
+}
+''', [
+      error(HintCode.UNUSED_SHOWN_NAME, 24, 1),
+    ]);
+  }
+
+  test_extension_instance_method_used() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  String empty() => '';
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart' show E;
+
+f() {
+  ''.empty();
+}
+''');
+  }
+
   test_unreferenced() async {
     newFile('/test/lib/lib1.dart', content: r'''
 class A {}
@@ -89,46 +119,5 @@ int c = var3;
 ''', [
       error(HintCode.UNUSED_SHOWN_NAME, 66, 4),
     ]);
-  }
-}
-
-@reflectiveTest
-class UnusedShownNameWithExtensionMethodsTest extends UnusedShownNameTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_instance_method_unused() async {
-    newFile('/test/lib/lib1.dart', content: r'''
-extension E on String {
-  String empty() => '';
-}
-String s = '';
-''');
-    await assertErrorsInCode('''
-import 'lib1.dart' show E, s;
-
-f() {
-  s.length;
-}
-''', [
-      error(HintCode.UNUSED_SHOWN_NAME, 24, 1),
-    ]);
-  }
-
-  test_instance_method_used() async {
-    newFile('/test/lib/lib1.dart', content: r'''
-extension E on String {
-  String empty() => '';
-}
-''');
-    await assertNoErrorsInCode('''
-import 'lib1.dart' show E;
-
-f() {
-  ''.empty();
-}
-''');
   }
 }

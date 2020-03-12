@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -12,28 +11,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InferenceFailureOnFunctionReturnTypeTest);
-    defineReflectiveTests(InferenceFailureOnFunctionReturnType_InExtensionTest);
   });
-}
-
-@reflectiveTest
-class InferenceFailureOnFunctionReturnType_InExtensionTest
-    extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods])
-    ..strictInference = true;
-
-  test_extensionMethod() async {
-    await assertErrorsInCode(r'''
-extension E on List {
-  e() {
-    return 7;
-  }
-}
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 24, 23)]);
-  }
 }
 
 /// Tests of HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE with the
@@ -130,6 +108,16 @@ class C {
   static int f() => 7;
 }
 ''');
+  }
+
+  test_extensionMethod() async {
+    await assertErrorsInCode(r'''
+extension E on List {
+  e() {
+    return 7;
+  }
+}
+''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 24, 23)]);
   }
 
   test_functionTypedParameter() async {

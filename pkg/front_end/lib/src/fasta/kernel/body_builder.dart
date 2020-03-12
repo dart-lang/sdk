@@ -6,6 +6,8 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
+import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
+
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -3088,8 +3090,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         libraryBuilder.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType(
-            new NamedTypeBuilder(name,
-                libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
+            new NamedTypeBuilder(
+                name,
+                libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
+                null,
+                uri,
+                offset)
               ..bind(new InvalidTypeDeclarationBuilder(
                   name,
                   message.withLocation(
@@ -3178,7 +3184,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     int offset = offsetForToken(token);
     // "void" is always nullable.
     push(new UnresolvedType(
-        new NamedTypeBuilder("void", const NullabilityBuilder.nullable(), null)
+        new NamedTypeBuilder(
+            "void", const NullabilityBuilder.nullable(), null, uri, offset)
           ..bind(new VoidTypeBuilder(const VoidType(), libraryBuilder, offset)),
         offset,
         uri));
@@ -4456,6 +4463,53 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     enterFunction();
   }
 
+  _checkTypeParameters(FunctionNode function) {
+    if (member == null) return;
+    if (!member.isStatic) return;
+    List<TypeParameter> typeParameters;
+    if (member.parent is ClassBuilder) {
+      ClassBuilder enclosingClassBuilder = member.parent;
+      typeParameters = enclosingClassBuilder.cls.typeParameters;
+    } else if (member.parent is ExtensionBuilder) {
+      ExtensionBuilder enclosingExtensionBuilder = member.parent;
+      typeParameters = enclosingExtensionBuilder.extension.typeParameters;
+    }
+    if (typeParameters != null && typeParameters.isNotEmpty) {
+      Map<TypeParameter, DartType> substitution;
+      DartType removeTypeVariables(DartType type, int offset) {
+        if (substitution == null) {
+          substitution = <TypeParameter, DartType>{};
+          for (TypeParameter parameter in typeParameters) {
+            substitution[parameter] = const DynamicType();
+          }
+        }
+        libraryBuilder.addProblem(fasta.messageNonInstanceTypeVariableUse,
+            offset, noLength, member.fileUri);
+        return substitute(type, substitution);
+      }
+
+      Set<TypeParameter> set = typeParameters.toSet();
+      for (VariableDeclaration parameter in function.positionalParameters) {
+        parameter.fileOffset;
+        if (containsTypeVariable(parameter.type, set)) {
+          parameter.type =
+              removeTypeVariables(parameter.type, parameter.fileOffset);
+        }
+      }
+      for (VariableDeclaration parameter in function.namedParameters) {
+        if (containsTypeVariable(parameter.type, set)) {
+          parameter.type =
+              removeTypeVariables(parameter.type, parameter.fileOffset);
+        }
+      }
+      if (containsTypeVariable(function.returnType, set)) {
+        // TODO(CFE Team): The offset here doesn't actually point to the type.
+        function.returnType =
+            removeTypeVariables(function.returnType, function.fileOffset);
+      }
+    }
+  }
+
   void pushNamedFunction(Token token, bool isFunctionExpression) {
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
@@ -4472,6 +4526,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     FunctionNode function = formals.buildFunctionNode(libraryBuilder,
         returnType, typeParameters, asyncModifier, body, token.charOffset);
+    _checkTypeParameters(function);
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
@@ -4559,6 +4614,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FunctionNode function = formals.buildFunctionNode(libraryBuilder, null,
         typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
+    _checkTypeParameters(function);
 
     Expression result;
     if (constantContext != ConstantContext.none) {
@@ -5677,21 +5733,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (builder is NamedTypeBuilder && builder.declaration.isTypeVariable) {
       TypeVariableBuilder typeParameterBuilder = builder.declaration;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
-      LocatedMessage message;
-      if (!isDeclarationInstanceContext && typeParameter.parent is Class) {
-        message = fasta.messageTypeVariableInStaticContext.withLocation(
-            unresolved.fileUri,
-            unresolved.charOffset,
-            typeParameter.name.length);
-      } else if (constantContext == ConstantContext.inferred) {
-        message = fasta.messageTypeVariableInConstantContext.withLocation(
-            unresolved.fileUri,
-            unresolved.charOffset,
-            typeParameter.name.length);
-      } else {
-        return unresolved;
-      }
-      addProblem(message.messageObject, message.charOffset, message.length);
+      LocatedMessage message = _validateTypeUseIsInternal(
+          builder, unresolved.fileUri, unresolved.charOffset);
+      if (message == null) return unresolved;
       return new UnresolvedType(
           new NamedTypeBuilder(
               typeParameter.name, builder.nullabilityBuilder, null)
@@ -5699,8 +5743,54 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 new InvalidTypeDeclarationBuilder(typeParameter.name, message)),
           unresolved.charOffset,
           unresolved.fileUri);
+    } else if (builder is FunctionTypeBuilder) {
+      LocatedMessage message = _validateTypeUseIsInternal(
+          builder, unresolved.fileUri, unresolved.charOffset);
+      if (message == null) return unresolved;
+      // TODO(CFE Team): This should probably be some kind of InvalidType
+      // instead of null.
+      return new UnresolvedType(
+          null, unresolved.charOffset, unresolved.fileUri);
     }
     return unresolved;
+  }
+
+  LocatedMessage _validateTypeUseIsInternal(
+      TypeBuilder builder, Uri fileUri, int charOffset) {
+    if (builder is NamedTypeBuilder && builder.declaration.isTypeVariable) {
+      TypeVariableBuilder typeParameterBuilder = builder.declaration;
+      TypeParameter typeParameter = typeParameterBuilder.parameter;
+      LocatedMessage message;
+      if (!isDeclarationInstanceContext &&
+          (typeParameter.parent is Class ||
+              typeParameter.parent is Extension)) {
+        message = fasta.messageTypeVariableInStaticContext
+            .withLocation(fileUri, charOffset, typeParameter.name.length);
+      } else if (constantContext == ConstantContext.inferred) {
+        message = fasta.messageTypeVariableInConstantContext
+            .withLocation(fileUri, charOffset, typeParameter.name.length);
+      } else {
+        return null;
+      }
+      addProblem(message.messageObject, message.charOffset, message.length);
+      return message;
+    } else if (builder is FunctionTypeBuilder) {
+      LocatedMessage result =
+          _validateTypeUseIsInternal(builder.returnType, fileUri, charOffset);
+      if (result != null) {
+        return result;
+      }
+      if (builder.formals != null) {
+        for (FormalParameterBuilder formalParameterBuilder in builder.formals) {
+          result = _validateTypeUseIsInternal(
+              formalParameterBuilder.type, fileUri, charOffset);
+          if (result != null) {
+            return result;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   @override

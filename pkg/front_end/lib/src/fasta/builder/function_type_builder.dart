@@ -71,7 +71,8 @@ class FunctionTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
-  FunctionType build(LibraryBuilder library, [TypedefType origin]) {
+  FunctionType build(LibraryBuilder library,
+      [TypedefType origin, bool notInstanceContext]) {
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];

@@ -66,12 +66,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   bool _strictInference;
 
   /**
-   * The type representing the class containing the nodes being analyzed,
-   * or `null` if the nodes are not within a class.
-   */
-  DartType thisType;
-
-  /**
    * The object providing promoted or declared types of variables.
    */
   LocalVariableTypeProvider _localVariableTypeProvider;
@@ -661,13 +655,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    if (thisType == null ||
+    if (_resolver.thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       _recordStaticType(node, _dynamicType);
     } else {
-      _recordStaticType(node, thisType);
+      _recordStaticType(node, _resolver.thisType);
     }
   }
 
@@ -682,12 +676,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitThisExpression(ThisExpression node) {
-    if (thisType == null) {
+    if (_resolver.thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       _recordStaticType(node, _dynamicType);
     } else {
-      _recordStaticType(node, thisType);
+      _recordStaticType(node, _resolver.thisType);
     }
   }
 

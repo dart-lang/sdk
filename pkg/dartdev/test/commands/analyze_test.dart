@@ -87,10 +87,10 @@ void defineAnalyze() {
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("A value of type "));
-    expect(result.stdout, contains("lib/main.dart:1:16 "));
-    expect(result.stdout, contains("return_of_invalid_type"));
-    expect(result.stdout, contains("1 issue found."));
+    expect(result.stdout, contains('A value of type '));
+    expect(result.stdout, contains('lib/main.dart:1:16 '));
+    expect(result.stdout, contains('return_of_invalid_type'));
+    expect(result.stdout, contains('1 issue found.'));
   });
 
   test('two errors', () {
@@ -99,7 +99,7 @@ void defineAnalyze() {
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("2 issues found."));
+    expect(result.stdout, contains('2 issues found.'));
   });
 
   test('warning --fatal-warnings', () {
@@ -110,7 +110,7 @@ void defineAnalyze() {
     //  should be exitCode == 2, not greater than 0:
     expect(result.exitCode, greaterThan(0));
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("1 issue found."));
+    expect(result.stdout, contains('1 issue found.'));
   });
 
   test('warning implicit --fatal-warnings', () {
@@ -121,7 +121,7 @@ void defineAnalyze() {
     //  should be exitCode == 2, not greater than 0:
     expect(result.exitCode, greaterThan(0));
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("1 issue found."));
+    expect(result.stdout, contains('1 issue found.'));
   });
 
   test('warning --no-fatal-warnings', () {
@@ -132,24 +132,24 @@ void defineAnalyze() {
     //  should be exitCode == 0:
     // expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("1 issue found."));
+    expect(result.stdout, contains('1 issue found.'));
   });
 
   test('info implicit no --fatal-infos', () {
-    p = project(mainSrc: "String foo() {}");
+    p = project(mainSrc: 'String foo() {}');
     var result = p.runSync('analyze', [p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("1 issue found."));
+    expect(result.stdout, contains('1 issue found.'));
   });
 
   test('info --fatal-infos', () {
-    p = project(mainSrc: "String foo() {}");
+    p = project(mainSrc: 'String foo() {}');
     var result = p.runSync('analyze', ['--fatal-infos', p.dirPath]);
 
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains("1 issue found."));
+    expect(result.stdout, contains('1 issue found.'));
   });
 }

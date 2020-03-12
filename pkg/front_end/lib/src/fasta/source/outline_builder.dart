@@ -1865,7 +1865,11 @@ class OutlineBuilder extends StackListenerImpl {
                     builder.name, via.join("', '"));
             addProblem(message, builder.charOffset, builder.name.length);
             builder.bound = new NamedTypeBuilder(
-                builder.name, const NullabilityBuilder.omitted(), null)
+                builder.name,
+                const NullabilityBuilder.omitted(),
+                null,
+                uri,
+                builder.charOffset)
               ..bind(new InvalidTypeDeclarationBuilder(
                   builder.name,
                   message.withLocation(

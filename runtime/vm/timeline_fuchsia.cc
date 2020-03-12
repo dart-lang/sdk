@@ -4,13 +4,8 @@
 
 #include "vm/globals.h"
 #if defined(HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)
-#if defined(FUCHSIA_SDK)
 #include <lib/trace-engine/context.h>
 #include <lib/trace-engine/instrumentation.h>
-#else
-#include <trace-engine/context.h>
-#include <trace-engine/instrumentation.h>
-#endif  // defined(FUCHSIA_SDK)
 #include <zircon/syscalls.h>
 
 #include "platform/utils.h"

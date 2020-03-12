@@ -1,0 +1,51 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  synthetic constructor •() → self::X*
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Smi] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field dynamic unboxedSmi;
+[@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field dynamic unboxedInt;
+[@vm.inferred-type.metadata=dart.core::_Double] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field dynamic unboxedDouble;
+[@vm.inferred-type.metadata=int?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  field dynamic boxedNullableInt;
+[@vm.inferred-type.metadata=dart.core::_Double?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  field dynamic boxedNullableDouble;
+[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  field dynamic boxedNonNullableIntOrDouble;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  field dynamic boxedNullableIntOrDouble;
+[@vm.inferred-type.metadata=#lib::X?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  field dynamic boxedNullableX;
+[@vm.inferred-type.metadata=#lib::X] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:17,getterSelectorId:18]  field dynamic boxedX;
+[@vm.unboxing-info.metadata=(i,i,d,b,b,b,b,b,b)->b]  constructor •([@vm.inferred-type.metadata=dart.core::_Smi] dynamic unboxedSmi, [@vm.inferred-type.metadata=int] dynamic unboxedInt, [@vm.inferred-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-type.metadata=!] dynamic boxedNonNullableIntOrDouble, dynamic boxedNullableIntOrDouble, [@vm.inferred-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-type.metadata=#lib::X] dynamic boxedX) → self::A*
+    : self::A::unboxedSmi = unboxedSmi, self::A::unboxedInt = unboxedInt, self::A::unboxedDouble = unboxedDouble, self::A::boxedNullableInt = boxedNullableInt, self::A::boxedNullableDouble = boxedNullableDouble, self::A::boxedNonNullableIntOrDouble = boxedNonNullableIntOrDouble, self::A::boxedNullableIntOrDouble = boxedNullableIntOrDouble, self::A::boxedNullableX = boxedNullableX, self::A::boxedX = boxedX, super core::Object::•()
+    ;
+}
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(2) ?{core::bool*} true : false;
+static get mint() → core::int*
+  return -6144092014192636707;
+static get smiOrMint() → core::int*
+  return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : [@vm.inferred-type.metadata=int] self::mint;
+static method main() → dynamic {
+  final self::A* a = new self::A::•([@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : 2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : 2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : 2.2, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=dart.core::bool?] self::kFalse ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1 : null, [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{self::X*} new self::X::•() : null, new self::X::•());
+  [@vm.direct-call.metadata=#lib::A::unboxedSmi] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::unboxedSmi} = [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : 2;
+  [@vm.direct-call.metadata=#lib::A::unboxedInt] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::unboxedInt} = [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : 2;
+  [@vm.direct-call.metadata=#lib::A::unboxedDouble] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::unboxedDouble} = [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : 2.2;
+  [@vm.direct-call.metadata=#lib::A::boxedNullableInt] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::boxedNullableInt} = [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} [@vm.inferred-type.metadata=int] self::smiOrMint : null;
+  [@vm.direct-call.metadata=#lib::A::boxedNullableDouble] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::boxedNullableDouble} = [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::double*} 1.1 : null;
+  [@vm.direct-call.metadata=#lib::A::boxedNonNullableIntOrDouble] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::boxedNonNullableIntOrDouble} = [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1;
+  [@vm.direct-call.metadata=#lib::A::boxedNullableIntOrDouble] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::boxedNullableIntOrDouble} = [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::num*} [@vm.inferred-type.metadata=dart.core::bool?] self::kFalse ?{core::num*} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1 : null;
+  [@vm.direct-call.metadata=#lib::A::boxedNullableX] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::boxedNullableX} = [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{self::X*} new self::X::•() : null;
+  [@vm.direct-call.metadata=#lib::A::boxedX] [@vm.inferred-type.metadata=!? (skip check)] a.{self::A::boxedX} = new self::X::•();
+  self::use([@vm.direct-call.metadata=#lib::A::unboxedSmi] [@vm.inferred-type.metadata=dart.core::_Smi] a.{self::A::unboxedSmi});
+  self::use([@vm.direct-call.metadata=#lib::A::unboxedInt] [@vm.inferred-type.metadata=int] a.{self::A::unboxedInt});
+  self::use([@vm.direct-call.metadata=#lib::A::unboxedDouble] [@vm.inferred-type.metadata=dart.core::_Double] a.{self::A::unboxedDouble});
+  self::use([@vm.direct-call.metadata=#lib::A::boxedNullableInt] [@vm.inferred-type.metadata=int?] a.{self::A::boxedNullableInt});
+  self::use([@vm.direct-call.metadata=#lib::A::boxedNullableDouble] [@vm.inferred-type.metadata=dart.core::_Double?] a.{self::A::boxedNullableDouble});
+  self::use([@vm.direct-call.metadata=#lib::A::boxedNonNullableIntOrDouble] [@vm.inferred-type.metadata=!] a.{self::A::boxedNonNullableIntOrDouble});
+  self::use([@vm.direct-call.metadata=#lib::A::boxedNullableIntOrDouble] a.{self::A::boxedNullableIntOrDouble});
+  self::use([@vm.direct-call.metadata=#lib::A::boxedNullableX] [@vm.inferred-type.metadata=#lib::X?] a.{self::A::boxedNullableX});
+  self::use([@vm.direct-call.metadata=#lib::A::boxedX] [@vm.inferred-type.metadata=#lib::X] a.{self::A::boxedX});
+}
+static method use(dynamic object) → void {}

@@ -75,7 +75,7 @@ void format() {
     ProcessResult result = p.runSync('format', [unknownFilePath]);
     expect(result.exitCode, 0);
     expect(result.stderr,
-        startsWith('No file or directory found at "${unknownFilePath}".'));
+        startsWith('No file or directory found at "$unknownFilePath".'));
     expect(result.stdout, isEmpty);
   });
 }

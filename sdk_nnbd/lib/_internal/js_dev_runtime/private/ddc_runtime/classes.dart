@@ -573,6 +573,9 @@ addTypeTests(ctor, isClass) {
 addTypeCaches(type) {
   JS('', '#[#] = void 0', type, _cachedLegacy);
   JS('', '#[#] = void 0', type, _cachedNullable);
+  var subtypeCacheMap = JS<Object>('!', 'new Map()');
+  JS('', '#[#] = #', type, _subtypeCache, subtypeCacheMap);
+  JS('', '#.push(#)', _cacheMaps, subtypeCacheMap);
 }
 
 // TODO(jmesserly): should we do this for all interfaces?

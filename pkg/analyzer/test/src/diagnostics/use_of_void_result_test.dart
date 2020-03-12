@@ -14,7 +14,6 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseOfVoidResultTest);
-    defineReflectiveTests(UseOfVoidResultWithExtensionMethodsTest);
     defineReflectiveTests(UseOfVoidResultTest_NonNullable);
   });
 }
@@ -102,6 +101,22 @@ main() async {
   void x;
   await x;
 }''');
+  }
+
+  test_extensionApplication() async {
+    await assertErrorsInCode('''
+extension E on String {
+  int get g => 0;
+}
+
+void f() {}
+
+main() {
+  E(f()).g;
+}
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 71, 3),
+    ]);
   }
 
   test_implicitReturnValue() async {
@@ -546,6 +561,19 @@ void main() {
     ]);
   }
 
+  test_useOfVoidReturnInExtensionMethod() async {
+    await assertErrorsInCode('''
+extension on void {
+  testVoid() {
+    // No access on void. Static type of `this` is void!
+    this.toString();
+  }
+}
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
+    ]);
+  }
+
   @failingTest
   test_useOfVoidReturnInNonVoidFunctionError() async {
     // TODO(mfairhurst) Get this test to pass once codebase is compliant.
@@ -715,42 +743,5 @@ f(void x) {
 ''', [ExpectedError(StaticWarningCode.USE_OF_VOID_RESULT, 14, 2)]);
 
     assertType(findNode.postfix('x!'), 'void');
-  }
-}
-
-@reflectiveTest
-class UseOfVoidResultWithExtensionMethodsTest extends UseOfVoidResultTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_useOfVoidReturnInExtensionMethod() async {
-    await assertErrorsInCode('''
-extension on void {
-  testVoid() {
-    // No access on void. Static type of `this` is void!
-    this.toString();
-  }
-}
-''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
-    ]);
-  }
-
-  test_void() async {
-    await assertErrorsInCode('''
-extension E on String {
-  int get g => 0;
-}
-
-void f() {}
-
-main() {
-  E(f()).g;
-}
-''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 71, 3),
-    ]);
   }
 }

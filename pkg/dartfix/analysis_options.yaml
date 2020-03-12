@@ -6,6 +6,7 @@ analyzer:
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
+    unnecessary_brace_in_string_interps: warning
     # There are many pre-existing violations; this lint may not work well with
     # the Analyzer team's style.
     omit_local_variable_types: ignore

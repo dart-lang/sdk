@@ -15,12 +15,9 @@
 #include "vm/os.h"
 #include "vm/os_thread.h"
 
-#if defined(FUCHSIA_SDK)
+#if defined(FUCHSIA_SDK) || defined (HOST_OS_FUCHSIA)
 #include <lib/trace-engine/context.h>
 #include <lib/trace-engine/instrumentation.h>
-#elif defined(HOST_OS_FUCHSIA)
-#include <trace-engine/context.h>
-#include <trace-engine/instrumentation.h>
 #elif defined(HOST_OS_MACOS)
 #include <os/availability.h>
 #include <os/signpost.h>

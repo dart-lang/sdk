@@ -54,9 +54,7 @@ application_snapshot("dartdevc") {
     ":dartdevc_platform",
   ]
 
-  inputs = [
-    sdk_outline_dill,
-  ]
+  inputs = [ sdk_outline_dill ]
 }
 
 # TODO(#38701) Cleanup after merging the forked SDK into mainline.
@@ -98,17 +96,13 @@ template("dart2js_compile") {
   abs_output = rebase_path(out)
 
   prebuilt_dart_action(target_name) {
-    deps = [
-      "../compiler:compile_dart2js_platform",
-    ]
+    deps = [ "../compiler:compile_dart2js_platform" ]
 
     inputs = sdk_lib_files + compiler_files + dev_compiler_files + [
                "$root_out_dir/dart2js_platform.dill",
                "$root_out_dir/dart2js_outline.dill",
              ]
-    outputs = [
-      out,
-    ]
+    outputs = [ out ]
 
     script = "../../pkg/compiler/lib/src/dart2js.dart"
 
@@ -148,9 +142,7 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
   # Arbitrarily use the version file as a token file to check against to see if
   # the sources have changed.
   # TODO(rnystrom): List the outputs more precisely?
-  outputs = [
-    "$patched_sdk_dir/version",
-  ]
+  outputs = [ "$patched_sdk_dir/version" ]
 
   args = [
     "--libraries",
@@ -370,7 +362,10 @@ compile_platform("dartdevc_platform") {
 
   # TODO(38701): Cleanup after merging the forked SDK into mainline.
   if (use_nnbd) {
-    args += [ "--enable-experiment=non-nullable", "--force-nnbd-checks" ]
+    args += [
+      "--enable-experiment=non-nullable",
+      "--force-nnbd-checks",
+    ]
   }
 }
 

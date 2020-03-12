@@ -16,6 +16,9 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
     defineReflectiveTests(TypeMemberContributorWithExtensionMethodsTest);
+    defineReflectiveTests(
+        TypeMemberContributorWithExtensionMethodsAndNewRelevanceTest);
+    defineReflectiveTests(TypeMemberContributorWithNewRelevanceTest);
   });
 }
 
@@ -3047,8 +3050,10 @@ void main() {new C().^}''');
     expect(replacementLength, 0);
     assertSuggestGetter('f', 'X');
     assertSuggestGetter('_g', null);
-    assertSuggestField(r'$p', 'dynamic', relevance: DART_RELEVANCE_LOW);
-    assertSuggestMethod(r'$q', 'I', 'void', relevance: DART_RELEVANCE_LOW);
+    assertSuggestField(r'$p', 'dynamic',
+        relevance: useNewRelevance ? null : DART_RELEVANCE_LOW);
+    assertSuggestMethod(r'$q', 'I', 'void',
+        relevance: useNewRelevance ? null : DART_RELEVANCE_LOW);
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
@@ -3810,7 +3815,8 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('fs2');
     assertSuggestMethod('mi2', 'C2', null);
     assertNotSuggested('ms2');
-    assertSuggestMethod('m', 'C2', null, relevance: DART_RELEVANCE_HIGH);
+    assertSuggestMethod('m', 'C2', null,
+        relevance: useNewRelevance ? null : DART_RELEVANCE_HIGH);
     assertNotSuggested('fi3');
     assertNotSuggested('fs3');
     assertNotSuggested('mi3');
@@ -4229,6 +4235,13 @@ class C with M {
 }
 
 @reflectiveTest
+class TypeMemberContributorWithExtensionMethodsAndNewRelevanceTest
+    extends TypeMemberContributorWithExtensionMethodsTest {
+  @override
+  bool get useNewRelevance => true;
+}
+
+@reflectiveTest
 class TypeMemberContributorWithExtensionMethodsTest
     extends DartCompletionContributorTest {
   @override
@@ -4255,4 +4268,11 @@ void f() {
     await computeSuggestions();
     assertNotSuggested('toString');
   }
+}
+
+@reflectiveTest
+class TypeMemberContributorWithNewRelevanceTest
+    extends TypeMemberContributorTest {
+  @override
+  bool get useNewRelevance => true;
 }

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -12,7 +10,6 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedGetterTest);
-    defineReflectiveTests(UndefinedGetterWithExtensionMethodsTest);
   });
 }
 
@@ -43,6 +40,78 @@ f() {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 50, 3),
+    ]);
+  }
+
+  test_extension_instance_extendedHasSetter_extensionHasGetter() async {
+    await assertErrorsInCode('''
+class C {
+  void set foo(int _) {}
+}
+
+extension E on C {
+  int get foo => 0;
+
+  f() {
+    this.foo;
+  }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 95, 3),
+    ]);
+  }
+
+  test_extension_instance_undefined_hasSetter() async {
+    await assertErrorsInCode('''
+extension E on int {
+  void set foo(int _) {}
+}
+f() {
+  0.foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 58, 3),
+    ]);
+  }
+
+  test_extension_instance_withInference() async {
+    await assertErrorsInCode(r'''
+extension E on int {}
+var a = 3.v;
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 32, 1),
+    ]);
+  }
+
+  test_extension_instance_withoutInference() async {
+    await assertErrorsInCode(r'''
+class C {}
+
+extension E on C {}
+
+f(C c) {
+  c.a;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 1),
+    ]);
+  }
+
+  test_extension_this_extendedHasSetter_extensionHasGetter() async {
+    await assertErrorsInCode('''
+class C {
+  void set foo(int _) {}
+}
+
+extension E on C {
+  int get foo => 0;
+}
+
+f(C c) {
+  c.foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 93, 3),
     ]);
   }
 
@@ -270,85 +339,5 @@ class B extends A<List> {
   }
 }
 ''');
-  }
-}
-
-@reflectiveTest
-class UndefinedGetterWithExtensionMethodsTest extends UndefinedGetterTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_instance_extendedHasSetter_extensionHasGetter() async {
-    await assertErrorsInCode('''
-class C {
-  void set foo(int _) {}
-}
-
-extension E on C {
-  int get foo => 0;
-
-  f() {
-    this.foo;
-  }
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 95, 3),
-    ]);
-  }
-
-  test_instance_undefined_hasSetter() async {
-    await assertErrorsInCode('''
-extension E on int {
-  void set foo(int _) {}
-}
-f() {
-  0.foo;
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 58, 3),
-    ]);
-  }
-
-  test_instance_withInference() async {
-    await assertErrorsInCode(r'''
-extension E on int {}
-var a = 3.v;
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 32, 1),
-    ]);
-  }
-
-  test_instance_withoutInference() async {
-    await assertErrorsInCode(r'''
-class C {}
-
-extension E on C {}
-
-f(C c) {
-  c.a;
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 1),
-    ]);
-  }
-
-  test_this_extendedHasSetter_extensionHasGetter() async {
-    await assertErrorsInCode('''
-class C {
-  void set foo(int _) {}
-}
-
-extension E on C {
-  int get foo => 0;
-}
-
-f(C c) {
-  c.foo;
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 93, 3),
-    ]);
   }
 }

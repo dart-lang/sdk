@@ -15,8 +15,6 @@ main() {
 
 @reflectiveTest
 class ExpressionInMapTest extends DriverResolutionTest {
-  bool get isUiAsCode => analysisOptions.experimentStatus.spread_collections;
-
   test_map() async {
     await assertErrorsInCode('''
 var m = <String, int>{'a', 'b' : 2};

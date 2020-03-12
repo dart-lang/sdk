@@ -5,4 +5,4 @@ import "dart:core" as core;
 @#C3
 abstract class AbstractEmptyClass extends core::Object {
 }
-[@vm.unboxing-info.metadata=Instance of 'UnboxingInfoMetadata']static method main() → dynamic {}
+static method main() → dynamic {}

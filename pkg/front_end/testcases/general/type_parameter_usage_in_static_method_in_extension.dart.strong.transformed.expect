@@ -1,0 +1,129 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:6:12: Error: Can only use type variables in instance methods.
+//   static U foo1() { return null; }
+//            ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:7:15: Error: Can only use type variables in instance methods.
+//   static void foo2(U x) { return null; }
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:14:23: Error: Can only use type variables in instance methods.
+//   static U Function() foo8() { return null; }
+//                       ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:15:27: Error: Can only use type variables in instance methods.
+//   static void Function(U) foo9() { return null; }
+//                           ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:16:15: Error: Can only use type variables in instance methods.
+//   static void foo10(U Function()) { return null; }
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:19:15: Error: Can only use type variables in instance methods.
+//   static void foo12(void Function(U) b) { return null; }
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:21:15: Error: Can only use type variables in instance methods.
+//   static void foo13(void Function(U b)) { return null; }
+//               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:22:10: Error: Type variables can't be used in static members.
+//   static U foo14 = null;
+//          ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:7:20: Error: Type variables can't be used in static members.
+//   static void foo2(U x) { return null; }
+//                    ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:9:5: Error: Type variables can't be used in static members.
+//     U foo4;
+//     ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:10:17: Error: Can only use type variables in instance methods.
+//     void foo5(U y) => print(y);
+//                 ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:11:11: Error: Can only use type variables in instance methods.
+//     U foo6() => null;
+//           ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:12:20: Error: Type variables can't be used in static members.
+//     void Function (U y) foo7 = (U y) => y;
+//                    ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:12:35: Error: Can only use type variables in instance methods.
+//     void Function (U y) foo7 = (U y) => y;
+//                                   ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:12:19: Error: Type variables can't be used in static members.
+//     void Function (U y) foo7 = (U y) => y;
+//                   ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:16:31: Error: Type variables can't be used in static members.
+//   static void foo10(U Function()) { return null; }
+//                               ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:19:35: Error: Type variables can't be used in static members.
+//   static void foo12(void Function(U) b) { return null; }
+//                                   ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:19:34: Error: Type variables can't be used in static members.
+//   static void foo12(void Function(U) b) { return null; }
+//                                  ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_extension.dart:21:34: Error: Type variables can't be used in static members.
+//   static void foo13(void Function(U b)) { return null; }
+//                                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Foo<U extends core::Object* = dynamic> on core::List<dynamic>* {
+  static method foo1 = self::Foo|foo1;
+  static method foo2 = self::Foo|foo2;
+  static method foo3 = self::Foo|foo3;
+  static method foo8 = self::Foo|foo8;
+  static method foo9 = self::Foo|foo9;
+  static method foo10 = self::Foo|foo10;
+  static method foo11 = self::Foo|foo11;
+  static method foo12 = self::Foo|foo12;
+  static method foo13 = self::Foo|foo13;
+  static field foo14 = self::Foo|foo14;
+}
+static field invalid-type Foo|foo14 = null;
+static method Foo|foo1() → dynamic {
+  return null;
+}
+static method Foo|foo2(dynamic x) → void {
+  return null;
+}
+static method Foo|foo3() → void {
+  invalid-type foo4;
+  function foo5(dynamic y) → void
+    return core::print(y);
+  function foo6() → dynamic
+    return null;
+  (dynamic) →* dynamic foo7 = (dynamic y) → dynamic => y;
+}
+static method Foo|foo8() → () →* dynamic {
+  return null;
+}
+static method Foo|foo9() → (dynamic) →* void {
+  return null;
+}
+static method Foo|foo10(() →* dynamic Function) → void {
+  return null;
+}
+static method Foo|foo11((dynamic) →* void Function) → void {
+  return null;
+}
+static method Foo|foo12((dynamic) →* void b) → void {
+  return null;
+}
+static method Foo|foo13((dynamic) →* void Function) → void {
+  return null;
+}
+static method main() → dynamic {}

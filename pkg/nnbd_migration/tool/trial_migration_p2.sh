@@ -126,7 +126,7 @@ p2g7 () {
   echo "-g https://github.com/google/pageloader.git" # This is pageloader3.
   echo "-g https://github.com/sass/dart-sass.git"
   echo "-g https://dart.googlesource.com/shelf_packages_handler.git"
-  echo "-g https://github.com/dart-lang/source_gen.git"
+  # TODO(srawlins): Add source_gen.
   echo "-g https://dart.googlesource.com/source_map_stack_trace.git"
 }
 

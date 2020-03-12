@@ -10,6 +10,7 @@ import 'dart:math' as math;
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show convertElementToElementKind, ElementKind;
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -36,8 +37,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-
-import 'feature_computer.dart';
 
 /// Compute metrics to determine whether they should be used to compute a
 /// relevance score for completion suggestions.
@@ -570,7 +569,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
     inheritanceManager = InheritanceManager3();
-    featureComputer = FeatureComputer(typeProvider);
+    featureComputer = FeatureComputer(typeSystem, typeProvider);
 
     for (var directive in node.directives) {
       _recordTokenType('CompilationUnit (directive)', directive,

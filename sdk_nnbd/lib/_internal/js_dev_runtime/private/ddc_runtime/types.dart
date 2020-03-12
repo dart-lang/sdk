@@ -273,6 +273,9 @@ final _cachedNullable = JS('', 'Symbol("cachedNullable")');
 /// A javascript Symbol used to store a canonical version of T* on T.
 final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
 
+/// A javascript Symbol used to store prior subtype checks and their results.
+final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
+
 /// Returns a nullable (question, ?) version of [type].
 ///
 /// The resulting type returned in a normalized form based on the rules from the
@@ -407,7 +410,7 @@ class NeverType extends DartType {
 }
 
 @JSExportName('Never')
-final never_ = NeverType();
+final _never = NeverType();
 
 @JSExportName('dynamic')
 final _dynamic = DynamicType();
@@ -429,7 +432,7 @@ class VoidType extends DartType {
 @JSExportName('void')
 final void_ = VoidType();
 
-// TODO(nshahan): Cleanup and consolidate NeverType, BottomType, bottom, never_.
+// TODO(nshahan): Cleanup and consolidate NeverType, BottomType, bottom, _never.
 class BottomType extends DartType {
   toString() => 'bottom';
 }
@@ -1235,17 +1238,9 @@ _isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
 bool isSubtypeOf(Object t1, Object t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
-  // TODO: Find a way to eagerly attach this cache to the Null object at
-  // compile-time so we can remove the top-level null comparison cache entirely.
-  Object map;
-  if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
-    JS('', '#[#] = #', t1, _subtypeCache, map = JS<Object>('!', 'new Map()'));
-    _cacheMaps.add(map);
-  } else {
-    map = JS<Object>('!', '#[#]', t1, _subtypeCache);
-    bool result = JS('', '#.get(#)', map, t2);
-    if (JS('!', '# !== void 0', result)) return result;
-  }
+  var map = JS<Object>('!', '#[#]', t1, _subtypeCache);
+  bool result = JS('', '#.get(#)', map, t2);
+  if (JS('!', '# !== void 0', result)) return result;
 
   var validSubtype = _isSubtype(t1, t2, true);
   if (!validSubtype && !_strictSubtypeChecks) {
@@ -1260,8 +1255,6 @@ bool isSubtypeOf(Object t1, Object t2) {
   JS('', '#.set(#, #)', map, t2, validSubtype);
   return validSubtype;
 }
-
-final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 
 @notNull
 bool _isBottom(type, @notNull bool strictMode) =>

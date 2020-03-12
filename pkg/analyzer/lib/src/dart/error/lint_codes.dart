@@ -19,6 +19,12 @@ class LintCode extends ErrorCode {
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
 
   @override
+  int get hashCode => uniqueName.hashCode;
+
+  @override
+  bool operator ==(other) => uniqueName == other.uniqueName;
+
+  @override
   ErrorType get type => ErrorType.LINT;
 
   /**

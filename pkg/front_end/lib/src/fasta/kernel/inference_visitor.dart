@@ -5546,6 +5546,11 @@ class InferenceVisitor
       }
     }
 
+    if (inferrer.flowAnalysis.isUnassigned(variable)) {
+      inferrer.dataForTesting?.flowAnalysisResult?.definitelyUnassignedNodes
+          ?.add(node);
+    }
+
     DartType promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (inferrer.isNonNullableByDefault) {

@@ -32,7 +32,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
   @override
   FutureOr<int> run() async {
     if (argResults.rest.length > 1) {
-      usageException("Only one directory is expected.");
+      usageException('Only one directory is expected.');
     }
 
     // find directory from argResults.rest

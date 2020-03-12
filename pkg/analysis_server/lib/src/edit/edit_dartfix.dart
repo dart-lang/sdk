@@ -15,6 +15,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/source.dart' show SourceKind;
 
 class EditDartFix
     with FixCodeProcessor, FixErrorProcessor, FixLintProcessor
@@ -34,7 +35,6 @@ class EditDartFix
 
   Future<Response> compute() async {
     final params = EditDartfixParams.fromRequest(request);
-
     // Determine the fixes to be applied
     final fixInfo = <DartFixInfo>[];
     if (params.includePedanticFixes == true) {
@@ -208,6 +208,8 @@ class EditDartFix
     for (String rootPath in contextManager.includedPaths) {
       resources.add(resourceProvider.getResource(rootPath));
     }
+
+    var pathsToProcess = <String>{};
     while (resources.isNotEmpty) {
       Resource res = resources.removeLast();
       if (res is Folder) {
@@ -223,7 +225,38 @@ class EditDartFix
       if (!isIncluded(res.path)) {
         continue;
       }
-      ResolvedUnitResult result = await server.getResolvedUnit(res.path);
+      pathsToProcess.add(res.path);
+    }
+
+    var pathsProcessed = <String>{};
+    for (String path in pathsToProcess) {
+      if (pathsProcessed.contains(path)) continue;
+      var driver = server.getAnalysisDriver(path);
+      switch (await driver.getSourceKind(path)) {
+        case SourceKind.PART:
+          // Parts will either be found in a library, below, or if the library
+          // isn't [isIncluded], will be picked up in the final loop.
+          continue;
+          break;
+        case SourceKind.LIBRARY:
+          ResolvedLibraryResult result = await driver.getResolvedLibrary(path);
+          if (result != null) {
+            for (var unit in result.units) {
+              if (pathsToProcess.contains(unit.path) &&
+                  !pathsProcessed.contains(unit.path)) {
+                await process(unit);
+                pathsProcessed.add(unit.path);
+              }
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
+    for (String path in pathsToProcess.difference(pathsProcessed)) {
+      ResolvedUnitResult result = await server.getResolvedUnit(path);
       if (result == null || result.unit == null) {
         continue;
       }

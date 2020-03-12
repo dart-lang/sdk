@@ -690,9 +690,29 @@ bool _identical(a, b) => identical(a, b);
 ///
 /// Always recognized by [Expect.throws] as an unexpected error.
 class ExpectException {
+  /// Call this to provide a function that associates a test name with this
+  /// failure.
+  ///
+  /// Used by async_helper/async_minitest.dart to inject logic to bind the
+  /// `group()` and `test()` name strings to a test failure.
+  static void setTestNameCallback(String Function() getName) {
+    _getTestName = getName;
+  }
+
+  // TODO(rnystrom): Type this `String Function()?` once this library doesn't
+  // need to be NNBD-agnostic.
+  static dynamic _getTestName;
+
   final String message;
-  ExpectException(this.message);
-  String toString() => message;
+  final String name;
+
+  ExpectException(this.message)
+      : name = (_getTestName == null) ? null : _getTestName();
+
+  String toString() {
+    if (name != null) return 'In test "$name" $message';
+    return message;
+  }
 }
 
 /// Is true iff type assertions are enabled.

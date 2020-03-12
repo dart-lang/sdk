@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
@@ -13,48 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrictRawTypeTest);
-    defineReflectiveTests(StrictRawType_WithExtensionsTest);
   });
-}
-
-@reflectiveTest
-class StrictRawType_WithExtensionsTest extends DriverResolutionTest
-    with PackageMixin {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods])
-    ..strictRawTypes = true;
-
-  test_typeOnExtendedType_anonymous_missing() async {
-    await assertErrorsInCode(r'''
-extension on List {}
-''', [error(HintCode.STRICT_RAW_TYPE, 13, 4)]);
-  }
-
-  test_typeOnExtendedType_missing() async {
-    await assertErrorsInCode(r'''
-extension E on List {}
-''', [error(HintCode.STRICT_RAW_TYPE, 15, 4)]);
-  }
-
-  test_typeOnExtendedType_optionalTypeArgs() async {
-    addMetaPackage();
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-@optionalTypeArgs
-class C<T> {}
-extension E on C {}
-extension on C {}
-''');
-  }
-
-  test_typeOnExtendedType_present() async {
-    await assertNoErrorsInCode(r'''
-extension E<T> on List<T> {}
-extension F on List<int> {}
-''');
-  }
 }
 
 @reflectiveTest
@@ -273,6 +231,36 @@ class C {
 
 var c = C();
 var d = C.named();
+''');
+  }
+
+  test_typeOnExtendedType_anonymous_missing() async {
+    await assertErrorsInCode(r'''
+extension on List {}
+''', [error(HintCode.STRICT_RAW_TYPE, 13, 4)]);
+  }
+
+  test_typeOnExtendedType_missing() async {
+    await assertErrorsInCode(r'''
+extension E on List {}
+''', [error(HintCode.STRICT_RAW_TYPE, 15, 4)]);
+  }
+
+  test_typeOnExtendedType_optionalTypeArgs() async {
+    addMetaPackage();
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+class C<T> {}
+extension E on C {}
+extension on C {}
+''');
+  }
+
+  test_typeOnExtendedType_present() async {
+    await assertNoErrorsInCode(r'''
+extension E<T> on List<T> {}
+extension F on List<int> {}
 ''');
   }
 

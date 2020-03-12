@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -379,9 +380,6 @@ class FixProcessor extends BaseProcessor {
     }
     if (errorCode == HintCode.UNUSED_LABEL) {
       await _addFix_removeUnusedLabel();
-    }
-    if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
-      await _addFix_removeUnusedLocalVariable();
     }
     if (errorCode == HintCode.UNUSED_SHOWN_NAME) {
       await _addFix_removeNameFromCombinator();
@@ -3773,54 +3771,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_removeUnusedLocalVariable() async {
-    final declaration = node.parent;
-    if (!(declaration is VariableDeclaration && declaration.name == node)) {
-      return;
-    }
-    Element element = (declaration as VariableDeclaration).declaredElement;
-    if (element is! LocalElement) {
-      return;
-    }
-
-    final sourceRanges = <SourceRange>[];
-
-    final functionBody = declaration.thisOrAncestorOfType<FunctionBody>();
-    final references = findLocalElementReferences(functionBody, element);
-    for (var reference in references) {
-      final node = reference.thisOrAncestorMatching((node) =>
-          node is VariableDeclaration || node is AssignmentExpression);
-      var sourceRange;
-      if (node is VariableDeclaration) {
-        VariableDeclarationList parent = node.parent;
-        if (parent.variables.length == 1) {
-          sourceRange = utils.getLinesRange(range.node(parent.parent));
-        } else {
-          sourceRange = range.nodeInList(parent.variables, node);
-        }
-      } else if (node is AssignmentExpression) {
-        // todo (pq): consider node.parent is! ExpressionStatement to handle
-        // assignments in parens, etc.
-        if (node.parent is ArgumentList) {
-          sourceRange = range.startStart(node, node.operator.next);
-        } else {
-          sourceRange = utils.getLinesRange(range.node(node.parent));
-        }
-      } else {
-        return;
-      }
-      sourceRanges.add(sourceRange);
-    }
-
-    final changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      for (var sourceRange in sourceRanges) {
-        builder.addDeletion(sourceRange);
-      }
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE);
-  }
-
   Future<void> _addFix_renameToCamelCase() async {
     if (node is! SimpleIdentifier) {
       return;
@@ -4608,6 +4558,8 @@ class FixProcessor extends BaseProcessor {
       await compute(RemoveUnusedElement());
     } else if (errorCode == HintCode.UNUSED_FIELD) {
       await compute(RemoveUnusedField());
+    } else if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+      await compute(RemoveUnusedLocalVariable());
     } else if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
       await compute(RemoveDeadIfNull());
     } else if (errorCode is LintCode) {

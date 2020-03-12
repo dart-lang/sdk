@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -12,7 +10,6 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousExportTest);
-    defineReflectiveTests(AmbiguousExportWithExtensionMethodsTest);
   });
 }
 
@@ -32,14 +29,6 @@ export 'lib2.dart';
       error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 20, 19),
     ]);
   }
-}
-
-@reflectiveTest
-class AmbiguousExportWithExtensionMethodsTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_extensions_bothExported() async {
     newFile('/test/lib/lib1.dart', content: r'''

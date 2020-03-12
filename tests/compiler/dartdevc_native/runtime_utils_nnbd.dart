@@ -7,9 +7,6 @@ import 'dart:_runtime' as dart;
 
 import 'package:expect/expect.dart';
 
-/// The runtime representation of the never type.
-final neverType = dart.wrapType(dart.never_);
-
 /// Unwrap the user code type representation to expose the runtime
 /// representation of [t].
 ///

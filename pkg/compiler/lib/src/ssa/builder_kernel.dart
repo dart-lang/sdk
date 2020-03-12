@@ -4043,8 +4043,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     // The type should be a single type name.
     ir.DartType type = types.first;
-    DartType typeValue =
-        localsHandler.substInContext(_elementMap.getDartType(type));
+    DartType typeValue = localsHandler
+        .substInContext(_elementMap.getDartType(type).withoutNullability);
     if (typeValue is! InterfaceType) return false;
     InterfaceType interfaceType = typeValue;
     if (!dartTypes.treatAsRawType(interfaceType)) return false;

@@ -138,9 +138,10 @@ template("msvc_toolchain") {
     }
 
     tool("solink") {
-      dllname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"  # e.g. foo.dll
-      libname =
-          "{{root_out_dir}}/{{target_output_name}}{{output_extension}}.lib"  # e.g. foo.dll.lib
+      dllname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"  # e.g.
+                                                                               # foo.dll
+      libname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}.lib"  # e.g.
+                                                                                   # foo.dll.lib
       rspfile = "${dllname}.rsp"
 
       link_command = "$python_path $tool_wrapper_path link-wrapper $env False link.exe /nologo /IMPLIB:$libname /DLL /OUT:$dllname /PDB:${dllname}.pdb @$rspfile"
@@ -165,7 +166,9 @@ template("msvc_toolchain") {
     }
 
     tool("solink_module") {
-      dllname = "{{output_dir}}/{{target_output_name}}{{output_extension}}"  # e.g. foo.dll
+      dllname =
+          "{{output_dir}}/{{target_output_name}}{{output_extension}}"  # e.g.
+                                                                       # foo.dll
       pdbname = "${dllname}.pdb"
       rspfile = "${dllname}.rsp"
 

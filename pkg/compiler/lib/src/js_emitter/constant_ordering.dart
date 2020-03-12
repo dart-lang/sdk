@@ -245,17 +245,17 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
 
   @override
   int visitLegacyType(covariant LegacyType type, covariant LegacyType other) =>
-      visit(type.baseType, other.baseType);
+      compare(type.baseType, other.baseType);
 
   @override
   int visitNullableType(
           covariant NullableType type, covariant NullableType other) =>
-      visit(type.baseType, other.baseType);
+      compare(type.baseType, other.baseType);
 
   @override
   int visitFutureOrType(
           covariant FutureOrType type, covariant FutureOrType other) =>
-      visit(type.typeArgument, other.typeArgument);
+      compare(type.typeArgument, other.typeArgument);
 
   @override
   int visitNeverType(covariant NeverType type, covariant NeverType other) {

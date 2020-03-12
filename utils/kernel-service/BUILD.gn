@@ -10,13 +10,9 @@ import("../create_timestamp.gni")
 
 group("kernel-service") {
   if (create_kernel_service_snapshot) {
-    deps = [
-      ":copy_kernel-service_snapshot",
-    ]
+    deps = [ ":copy_kernel-service_snapshot" ]
   } else {
-    deps = [
-      ":kernel_service_dill",
-    ]
+    deps = [ ":kernel_service_dill" ]
   }
 }
 
@@ -37,15 +33,9 @@ kernel_application_snapshot("kernel-service_snapshot") {
 }
 
 copy("copy_kernel-service_snapshot") {
-  deps = [
-    ":kernel-service_snapshot",
-  ]
-  sources = [
-    "$root_gen_dir/kernel-service.dart.snapshot",
-  ]
-  outputs = [
-    "$root_out_dir/kernel-service.dart.snapshot",
-  ]
+  deps = [ ":kernel-service_snapshot" ]
+  sources = [ "$root_gen_dir/kernel-service.dart.snapshot" ]
+  outputs = [ "$root_out_dir/kernel-service.dart.snapshot" ]
 }
 
 create_timestamp_file("frontend_server_files_stamp") {
@@ -90,9 +80,7 @@ template("kernel_service_dill") {
       "$root_out_dir/vm_platform_strong.dill",
     ]
     output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
-    outputs = [
-      output,
-    ]
+    outputs = [ output ]
 
     depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
     abs_depfile = rebase_path(depfile)

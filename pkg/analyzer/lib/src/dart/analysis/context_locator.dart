@@ -42,11 +42,6 @@ class ContextLocatorImpl implements ContextLocator {
   static const String ANALYSIS_OPTIONS_NAME = 'analysis_options.yaml';
 
   /**
-   * The old name of the analysis options file.
-   */
-  static const String OLD_ANALYSIS_OPTIONS_NAME = '.analysis_options';
-
-  /**
    * The name of the packages file.
    */
   static const String PACKAGES_FILE_NAME = '.packages';
@@ -397,8 +392,7 @@ class ContextLocatorImpl implements ContextLocator {
    * folder does not contain an analysis options file.
    */
   File _getOptionsFile(Folder folder) =>
-      _getFile(folder, ANALYSIS_OPTIONS_NAME) ??
-      _getFile(folder, OLD_ANALYSIS_OPTIONS_NAME);
+      _getFile(folder, ANALYSIS_OPTIONS_NAME);
 
   /**
    * Return the packages file in the given [folder], or `null` if the folder

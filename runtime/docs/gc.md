@@ -139,3 +139,46 @@ For old-space objects created after marking started, the marker may see uninitia
 New-space objects and roots are only visited during a safepoint, and safepoints establish synchronization.
 
 When the mutator's mark block becomes full, it transfered to the marker by an acquire-release operation, so the marker will see the stores into the block.
+
+## Write barrier elimination
+
+Whenever there is a store into the heap, ```container.slot = value```, we need to check if the store creates references that the GC needs to be informed about.
+
+The generational write barrier, needed by the scavenger, checks if
+
+* `container` is old and not in the remembered set, and
+* `value` is new
+
+When this occurs, we must insert `container` into the remembered set.
+
+The incremental marking write barrier, needed by the marker, checks if
+
+* `container` is old, and
+* `value` is old and not marked, and
+* marking is in progress
+
+When this occurs, we must insert `value` into the marking worklist.
+
+We can eliminate these checks when the compiler can prove these cases cannot happen, or are compensated for by the runtime. The compiler can prove this when
+
+* `value` is a constant. Constants are always old, and they will be marked via the constant pools even if we fail to mark them via `container`.
+* `value` has the static type bool. All possible values of the bool type (null, false, true) are constants.
+* `value` is known to be a Smi. Smis are not heap objects.
+* `container` is the same object as `value`. The GC never needs to retain an additional object if it sees a self-reference, so ignoring a self-reference cannot cause us to free a reachable object.
+* `container` is known to be a new object or known to be an old object that is in the remembered set and is marked if marking is in progress.
+
+We can know that `container` meets the last property if `container` is the result of an allocation (instead of a heap load), and there is no instruction that can trigger a GC between the allocation and the store. This is because the allocation stubs ensure the result of AllocateObject is either a new-space object (common case, bump pointer allocation succeeds), or has been pre-emptively added to the remembered set and marking worklist (uncommon case, entered runtime to allocate object, possibly triggering GC).
+
+```
+container <- AllocateObject
+<intructions that do not trigger GC>
+StoreInstanceField(container, value, NoBarrier)
+```
+
+We can further eliminate barriers when `container` is the result of an allocation, and there is no instruction that can create an additional Dart frame between the allocation and the store. This is because after a GC, any old-space objects in the frames below an exit frame will be pre-emptively added to the remembered set and marking worklist (Thread::RestoreWriteBarrierInvariant).
+
+```
+container <- AllocateObject
+<instructions that cannot directly call Dart functions>
+StoreInstanceField(container, value, NoBarrier)
+```

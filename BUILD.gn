@@ -13,9 +13,7 @@ group("default") {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
-  deps = [
-    ":runtime",
-  ]
+  deps = [ ":runtime" ]
   if (defined(checkout_llvm) && checkout_llvm) {
     deps += [ ":llvm_codegen" ]
   }
@@ -66,9 +64,7 @@ group("runtime_kernel") {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
-  deps = [
-    ":runtime",
-  ]
+  deps = [ ":runtime" ]
 }
 
 group("runtime_precompiled") {
@@ -80,59 +76,41 @@ group("runtime_precompiled") {
 
 if (use_nnbd) {
   group("create_sdk") {
-    public_deps = [
-      "sdk_nnbd:create_sdk",
-    ]
+    public_deps = [ "sdk_nnbd:create_sdk" ]
   }
 } else {
   group("create_sdk") {
-    public_deps = [
-      "sdk:create_sdk",
-    ]
+    public_deps = [ "sdk:create_sdk" ]
   }
 }
 
 group("dart2js") {
-  deps = [
-    "utils/compiler:dart2js",
-  ]
+  deps = [ "utils/compiler:dart2js" ]
 }
 
 group("dartanalyzer") {
-  deps = [
-    "utils/dartanalyzer",
-  ]
+  deps = [ "utils/dartanalyzer" ]
 }
 
 group("dartdevc") {
-  deps = [
-    "utils/dartdevc",
-  ]
+  deps = [ "utils/dartdevc" ]
 }
 
 group("dartfmt") {
-  deps = [
-    "utils/dartfmt",
-  ]
+  deps = [ "utils/dartfmt" ]
 }
 
 group("dartfix") {
-  deps = [
-    "utils/dartfix",
-  ]
+  deps = [ "utils/dartfix" ]
 }
 
 group("analysis_server") {
-  deps = [
-    "utils/analysis_server",
-  ]
+  deps = [ "utils/analysis_server" ]
 }
 
 group("check_llvm") {
   if (defined(checkout_llvm) && checkout_llvm) {
-    deps = [
-      "runtime/llvm_codegen/test",
-    ]
+    deps = [ "runtime/llvm_codegen/test" ]
   }
 }
 
@@ -149,15 +127,11 @@ group("llvm_codegen") {
 # It must depend on anything that is required by the dart2js
 # test suites.
 group("dart2js_bot") {
-  deps = [
-    ":create_sdk",
-  ]
+  deps = [ ":create_sdk" ]
 }
 
 group("samples") {
-  deps = [
-    "runtime/bin:sample_extension",
-  ]
+  deps = [ "runtime/bin:sample_extension" ]
 }
 
 # This rule and the compressed_observatory_archive rule are for the Fuchsia
@@ -165,13 +139,9 @@ group("samples") {
 # the root build output directory for convenient access by the Fuchsia buildbot
 # scripts.
 group("observatory_archive") {
-  deps = [
-    "runtime/observatory:copy_observatory_archive",
-  ]
+  deps = [ "runtime/observatory:copy_observatory_archive" ]
 }
 
 group("compressed_observatory_archive") {
-  deps = [
-    "runtime/observatory:copy_compressed_observatory_archive",
-  ]
+  deps = [ "runtime/observatory:copy_compressed_observatory_archive" ]
 }

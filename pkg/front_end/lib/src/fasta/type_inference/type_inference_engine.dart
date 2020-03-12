@@ -238,6 +238,10 @@ class FlowAnalysisResult {
   /// the corresponding variable has been definitely assigned.
   final List<TreeNode> unassignedNodes = [];
 
+  /// The list of [Expression]s representing variable accesses that occur when
+  /// the corresponding variable has been definitely unassigned.
+  final List<TreeNode> definitelyUnassignedNodes = [];
+
   /// The assigned variables information that computed for the member.
   AssignedVariablesForTesting<TreeNode, VariableDeclaration> assignedVariables;
 }

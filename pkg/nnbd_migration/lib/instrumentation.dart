@@ -40,7 +40,7 @@ class CodeReference {
   @override
   String toString() {
     var pathAsUri = Uri.file(path);
-    return 'unknown ($pathAsUri:$line:$column)';
+    return '${function ?? 'unknown'} ($pathAsUri:$line:$column)';
   }
 }
 

@@ -10,6 +10,7 @@
   "filesets": {
     "analyzer_unit_tests": [
       ".packages",
+      ".dart_tool/package_config.json",
       "pkg/",
       "tests/compiler/dart2js/",
       "third_party/pkg/",
@@ -22,6 +23,7 @@
     ],
     "dart2js": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart-sdk/",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/gen/utils/dartdevc/",
@@ -62,6 +64,7 @@
     ],
     "dart2js_nnbd": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseIA32NNBD/dart-sdk/",
       "out/ReleaseX64NNBD/dart-sdk/",
       "out/ReleaseX64NNBD/gen/utils/dartdevc/",
@@ -105,6 +108,7 @@
     ],
     "dart2js_hostasserts": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart",
       "out/ReleaseIA32/dart2js_platform.dill",
       "out/ReleaseIA32/dart2js_platform_strong.dill",
@@ -149,6 +153,7 @@
     ],
     "dart2js_hostasserts_nnbd": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseX64NNBD/dart",
       "out/ReleaseX64NNBD/dart2js_platform.dill",
       "out/ReleaseX64NNBD/dart2js_platform_strong.dill",
@@ -187,6 +192,7 @@
     ],
     "front-end": [
       ".packages",
+      ".dart_tool/package_config.json",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
       "out/ReleaseX64NNBD/",
@@ -253,6 +259,7 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
+      ".dart_tool/package_config.json",
       ".packages"
     ],
     "vm-kernel": [
@@ -337,6 +344,7 @@
       "pkg/vm/",
       "runtime/",
       "sdk/",
+      ".dart_tool/package_config.json",
       ".packages",
       ".vpython"
     ],
@@ -423,6 +431,7 @@
       "runtime/",
       "sdk/",
       "sdk_nnbd/",
+      ".dart_tool/package_config.json",
       ".packages",
       ".vpython"
     ]
@@ -1294,7 +1303,7 @@
           ]
         },
         {
-          "name": "vm weak legacy tests with asserts",
+          "name": "vm legacy tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
           ],
@@ -1302,7 +1311,7 @@
           "shards": 6
         },
         {
-          "name": "vm co19_2 tests",
+          "name": "vm legacy tests(co19_2) in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
             "co19_2"
@@ -1311,9 +1320,19 @@
           "shards": 10
         },
         {
-          "name": "vm weak tests with asserts",
+          "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
+            "language",
+            "lib/mirrors",
+            "standalone/io"
+          ]
+        },
+	{
+          "name": "vm nnbd tests in strong mode",
+          "arguments": [
+            "-ndartkp-strong-${system}-${mode}-${arch}",
             "ffi",
             "language",
             "lib/mirrors",
@@ -1687,7 +1706,7 @@
           ]
         },
         {
-          "name": "vm weak legacy tests with asserts",
+          "name": "vm legacy tests in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}"
           ],
@@ -1695,7 +1714,7 @@
           "shards": 6
         },
         {
-          "name": "vm weak legacy tests(co19_2) with asserts",
+          "name": "vm legacy tests(co19_2) in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
             "co19_2"
@@ -1704,9 +1723,19 @@
           "shards": 6
         },
         {
-          "name": "vm weak tests with asserts",
+          "name": "vm nnbd test in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
+            "language",
+            "lib/mirrors",
+            "standalone/io"
+          ]
+        },
+        {
+          "name": "vm nnbd tests in strong mode",
+          "arguments": [
+            "-ndartk-strong-${system}-${mode}-${arch}",
             "ffi",
             "language",
             "lib/mirrors",

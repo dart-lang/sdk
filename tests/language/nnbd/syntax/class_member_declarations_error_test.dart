@@ -54,11 +54,15 @@ class A {
   //   ^^^^^^^^^
   // [analyzer] SYNTACTIC_ERROR.MODIFIER_OUT_OF_ORDER
   // [cfe] The modifier 'covariant' should be before the modifier 'late'.
+  //             ^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   late covariant x20 = '';
   //   ^^^^^^^^^
   // [analyzer] SYNTACTIC_ERROR.MODIFIER_OUT_OF_ORDER
   // [cfe] The modifier 'covariant' should be before the modifier 'late'.
-
+  //             ^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+  
   covariant var late x21;
   //            ^^^^
   // [analyzer] SYNTACTIC_ERROR.MODIFIER_OUT_OF_ORDER

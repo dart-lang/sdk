@@ -18,11 +18,6 @@ main() {
 
 @reflectiveTest
 class ExtensionOverrideArgumentNotAssignableTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
   test_subtype() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -73,8 +68,7 @@ class ExtensionOverrideArgumentNotAssignableWithNNBDTest
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0',
-        additionalFeatures: [Feature.extension_methods, Feature.non_nullable]);
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
   test_override_onNonNullable() async {
     await assertErrorsInCode(r'''

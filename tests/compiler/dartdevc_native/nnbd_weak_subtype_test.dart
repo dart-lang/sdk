@@ -38,29 +38,29 @@ void main() {
 
   // Bottom is subtype of top.
   // never <: dynamic
-  checkProperSubtype(neverType, dynamic);
+  checkProperSubtype(Never, dynamic);
   // never <: void
-  checkProperSubtype(neverType, voidType);
+  checkProperSubtype(Never, voidType);
   // never <: Object?
-  checkProperSubtype(neverType, nullable(Object));
+  checkProperSubtype(Never, nullable(Object));
 
   // Object is between top and bottom.
   // Object <: Object?
   checkSubtype(Object, nullable(Object));
   // never <: Object
-  checkProperSubtype(neverType, Object);
+  checkProperSubtype(Never, Object);
 
   // Null is between top and bottom.
   // Null <: Object?
   checkProperSubtype(Null, nullable(Object));
   // never <: Null
-  checkSubtype(neverType, Null);
+  checkSubtype(Never, Null);
 
   // Class is between Object and bottom.
   // A <: Object
   checkProperSubtype(A, dynamic);
   // never <: A
-  checkProperSubtype(neverType, A);
+  checkProperSubtype(Never, A);
 
   // Nullable types are a union of T and Null.
   // A <: A?
@@ -83,7 +83,7 @@ void main() {
   // Null <: Object*
   checkSubtype(Null, legacy(Object));
   // never <: Object*
-  checkSubtype(neverType, legacy(Object));
+  checkSubtype(Never, legacy(Object));
   // A* <: A
   checkSubtype(legacy(A), A);
   // A <: A*
@@ -99,7 +99,7 @@ void main() {
   // Null <: A*
   checkProperSubtype(Null, legacy(A));
   // never <: A*
-  checkProperSubtype(neverType, legacy(A));
+  checkProperSubtype(Never, legacy(A));
 
   // Futures.
   // Null <: FutureOr<Object?>
@@ -122,7 +122,7 @@ void main() {
   checkProperSubtype(
       generic1(Future, nullable(Object)), futureOrOf(nullable(Object)));
   // FutureOr<Never> <: Future<Never>
-  checkSubtype(futureOrOf(neverType), generic1(Future, neverType));
+  checkSubtype(futureOrOf(Never), generic1(Future, Never));
   // Future<B> <: FutureOr<A>
   checkProperSubtype(generic1(Future, B), futureOrOf(A));
   // B <: <: FutureOr<A>
@@ -271,7 +271,7 @@ void main() {
   // A? <: A
   checkSubtype(nullable(A), A);
   // Null <: never
-  checkSubtype(Null, neverType);
+  checkSubtype(Null, Never);
   // Null <: Object
   checkProperSubtype(Null, Object);
   // Null <: A

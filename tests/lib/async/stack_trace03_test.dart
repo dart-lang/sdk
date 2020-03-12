@@ -12,7 +12,7 @@ main() {
   var f = new Future(() {
     throw "foo";
   });
-  f.then((_) => 499).catchError((e, st) {
+  f.then<Object?>((_) => 499).catchError((e, st) {
     Expect.equals("foo", e);
     Expect.isNotNull(st);
     asyncEnd();

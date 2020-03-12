@@ -7,7 +7,5 @@ import("../application_snapshot.gni")
 application_snapshot("kernel_worker") {
   main_dart = "kernel_worker.dart"
   training_args = [ "--help" ]
-  deps = [
-    "../../pkg:pkg_files_stamp",
-  ]
+  deps = [ "../../pkg:pkg_files_stamp" ]
 }

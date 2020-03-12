@@ -1814,7 +1814,10 @@ main() {
         expect(
             s2.infoFor(objectQVar),
             _matchVariableModel(
-                chain: null, ofInterest: isEmpty, assigned: true));
+                chain: null,
+                ofInterest: isEmpty,
+                assigned: true,
+                unassigned: false));
       });
 
       test('un-promotes fully', () {
@@ -1829,7 +1832,10 @@ main() {
         expect(s2.reachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
-              chain: null, ofInterest: isEmpty, assigned: true)
+              chain: null,
+              ofInterest: isEmpty,
+              assigned: true,
+              unassigned: false)
         });
       });
 
@@ -1846,13 +1852,17 @@ main() {
           objectQVar: _matchVariableModel(
               chain: ['num?', 'int'],
               ofInterest: ['num?', 'int'],
-              assigned: true)
+              assigned: true,
+              unassigned: false)
         });
         var s2 = s1.write(objectQVar, _Type('num'), h);
         expect(s2.reachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
-              chain: ['num?'], ofInterest: ['num?', 'int'], assigned: true)
+              chain: ['num?'],
+              ofInterest: ['num?', 'int'],
+              assigned: true,
+              unassigned: false)
         });
       });
 
@@ -1871,7 +1881,8 @@ main() {
           objectQVar: _matchVariableModel(
               chain: ['num?', 'num', 'int'],
               ofInterest: ['num?', 'num', 'int'],
-              assigned: true)
+              assigned: true,
+              unassigned: false)
         });
         var s2 = s1.write(objectQVar, _Type('num'), h);
         expect(s2.reachable, true);
@@ -1879,7 +1890,8 @@ main() {
           objectQVar: _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'num', 'int'],
-              assigned: true)
+              assigned: true,
+              unassigned: false)
         });
       });
 
@@ -1896,7 +1908,8 @@ main() {
           objectQVar: _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'num'],
-              assigned: true)
+              assigned: true,
+              unassigned: false)
         });
         var s2 = s1.write(objectQVar, _Type('num'), h);
         expect(s2.reachable, true);
@@ -1916,7 +1929,8 @@ main() {
           objectQVar: _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'num'],
-              assigned: true)
+              assigned: true,
+              unassigned: false)
         });
         var s2 = s1.write(objectQVar, _Type('int'), h);
         expect(s2.reachable, true);
@@ -2051,14 +2065,14 @@ main() {
       test('initialized', () {
         var s = FlowModel<_Var, _Type>(true).declare(objectQVar, true);
         expect(s.variableInfo, {
-          objectQVar: _matchVariableModel(assigned: true),
+          objectQVar: _matchVariableModel(assigned: true, unassigned: false),
         });
       });
 
       test('not initialized', () {
         var s = FlowModel<_Var, _Type>(true).declare(objectQVar, false);
         expect(s.variableInfo, {
-          objectQVar: _matchVariableModel(assigned: false),
+          objectQVar: _matchVariableModel(assigned: false, unassigned: true),
         });
       });
     });
@@ -2103,6 +2117,81 @@ main() {
       });
     });
 
+    group('joinUnassigned', () {
+      test('unchanged', () {
+        var h = _Harness();
+
+        var a = _Var('a', _Type('int'));
+        var b = _Var('b', _Type('int'));
+
+        var s1 = FlowModel<_Var, _Type>(true)
+            .declare(a, false)
+            .declare(b, false)
+            .write(a, _Type('int'), h);
+        expect(s1.variableInfo, {
+          a: _matchVariableModel(assigned: true, unassigned: false),
+          b: _matchVariableModel(assigned: false, unassigned: true),
+        });
+
+        var s2 = s1.write(a, _Type('int'), h);
+        expect(s2.variableInfo, {
+          a: _matchVariableModel(assigned: true, unassigned: false),
+          b: _matchVariableModel(assigned: false, unassigned: true),
+        });
+
+        var s3 = s1.joinUnassigned(s2);
+        expect(s3, same(s1));
+      });
+
+      test('written', () {
+        var h = _Harness();
+
+        var a = _Var('a', _Type('int'));
+        var b = _Var('b', _Type('int'));
+        var c = _Var('c', _Type('int'));
+
+        var s1 = FlowModel<_Var, _Type>(true)
+            .declare(a, false)
+            .declare(b, false)
+            .declare(c, false)
+            .write(a, _Type('int'), h);
+        expect(s1.variableInfo, {
+          a: _matchVariableModel(assigned: true, unassigned: false),
+          b: _matchVariableModel(assigned: false, unassigned: true),
+          c: _matchVariableModel(assigned: false, unassigned: true),
+        });
+
+        var s2 = s1.write(b, _Type('int'), h);
+        expect(s2.variableInfo, {
+          a: _matchVariableModel(assigned: true, unassigned: false),
+          b: _matchVariableModel(assigned: true, unassigned: false),
+          c: _matchVariableModel(assigned: false, unassigned: true),
+        });
+
+        var s3 = s1.joinUnassigned(s2);
+        expect(s3.variableInfo, {
+          a: _matchVariableModel(assigned: true, unassigned: false),
+          b: _matchVariableModel(assigned: false, unassigned: false),
+          c: _matchVariableModel(assigned: false, unassigned: true),
+        });
+      });
+
+      test('write captured', () {
+        var h = _Harness();
+        var s1 = FlowModel<_Var, _Type>(true)
+            .tryPromote(h, objectQVar, _Type('int'))
+            .ifTrue
+            .tryPromote(h, intQVar, _Type('int'))
+            .ifTrue;
+        var s2 = s1.removePromotedAll([], [intQVar]);
+        expect(s2.reachable, true);
+        expect(s2.variableInfo, {
+          objectQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int']),
+          intQVar: _matchVariableModel(chain: null, ofInterest: isEmpty)
+        });
+      });
+    });
+
     group('removePromotedAll', () {
       test('unchanged', () {
         var h = _Harness();
@@ -2139,7 +2228,8 @@ main() {
         expect(s2.reachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int']),
-          intQVar: _matchVariableModel(chain: null, ofInterest: isEmpty)
+          intQVar: _matchVariableModel(
+              chain: null, ofInterest: isEmpty, unassigned: false)
         });
       });
     });
@@ -2167,8 +2257,8 @@ main() {
             .declare(c, false)
             .declare(d, false);
         var s1 = s0.write(a, _Type('int'), h).write(b, _Type('int'), h);
-        var s2 = s0.write(a, _Type('int'), h).write(c, _Type('int'), h);
-        var result = s1.restrict(h, s2, Set());
+        var s2 = s1.write(a, _Type('int'), h).write(c, _Type('int'), h);
+        var result = s2.restrict(h, s1, Set());
         expect(result.infoFor(a).assigned, true);
         expect(result.infoFor(b).assigned, true);
         expect(result.infoFor(c).assigned, true);
@@ -2188,12 +2278,24 @@ main() {
             .declare(d, false);
         // In s1, a and b are write captured.  In s2, a and c are.
         var s1 = s0.removePromotedAll([a, b], [a, b]);
-        var s2 = s0.removePromotedAll([a, c], [a, c]);
-        var result = s1.restrict(h, s2, Set());
-        expect(result.infoFor(a).writeCaptured, true);
-        expect(result.infoFor(b).writeCaptured, true);
-        expect(result.infoFor(c).writeCaptured, true);
-        expect(result.infoFor(d).writeCaptured, false);
+        var s2 = s1.removePromotedAll([a, c], [a, c]);
+        var result = s2.restrict(h, s1, Set());
+        expect(
+          result.infoFor(a),
+          _matchVariableModel(writeCaptured: true, unassigned: false),
+        );
+        expect(
+          result.infoFor(b),
+          _matchVariableModel(writeCaptured: true, unassigned: false),
+        );
+        expect(
+          result.infoFor(c),
+          _matchVariableModel(writeCaptured: true, unassigned: false),
+        );
+        expect(
+          result.infoFor(d),
+          _matchVariableModel(writeCaptured: false, unassigned: true),
+        );
       });
 
       test('promotion', () {
@@ -2491,7 +2593,7 @@ main() {
     VariableModel<_Type> model(List<_Type> promotionChain,
             [List<_Type> typesOfInterest]) =>
         VariableModel<_Type>(promotionChain,
-            typesOfInterest ?? promotionChain ?? [], false, false);
+            typesOfInterest ?? promotionChain ?? [], false, true, false);
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
@@ -2627,8 +2729,10 @@ main() {
         var joined = FlowModel.joinVariableInfo(h, p1, p2);
         expect(joined, {
           x: same(writtenModel),
-          y: _matchVariableModel(chain: null, assigned: false),
-          z: _matchVariableModel(chain: null, assigned: false),
+          y: _matchVariableModel(
+              chain: null, assigned: false, unassigned: false),
+          z: _matchVariableModel(
+              chain: null, assigned: false, unassigned: false),
           w: same(intQModel)
         });
       });
@@ -2698,6 +2802,7 @@ Matcher _matchVariableModel(
     {Object chain = anything,
     Object ofInterest = anything,
     Object assigned = anything,
+    Object unassigned = anything,
     Object writeCaptured = anything}) {
   Matcher chainMatcher =
       chain is List<String> ? _matchPromotionChain(chain) : wrapMatcher(chain);
@@ -2705,18 +2810,21 @@ Matcher _matchVariableModel(
       ? _matchOfInterestSet(ofInterest)
       : wrapMatcher(ofInterest);
   Matcher assignedMatcher = wrapMatcher(assigned);
+  Matcher unassignedMatcher = wrapMatcher(unassigned);
   Matcher writeCapturedMatcher = wrapMatcher(writeCaptured);
   return predicate((VariableModel<_Type> model) {
     if (!chainMatcher.matches(model.promotedTypes, {})) return false;
     if (!ofInterestMatcher.matches(model.tested, {})) return false;
     if (!assignedMatcher.matches(model.assigned, {})) return false;
+    if (!unassignedMatcher.matches(model.unassigned, {})) return false;
     if (!writeCapturedMatcher.matches(model.writeCaptured, {})) return false;
     return true;
   },
       'VariableModel(chain: ${_describeMatcher(chainMatcher)}, '
       'ofInterest: ${_describeMatcher(ofInterestMatcher)}, '
-      'assigned: ${_describeMatcher(assignedMatcher)}, writeCaptured: '
-      '${_describeMatcher(writeCapturedMatcher)})');
+      'assigned: ${_describeMatcher(assignedMatcher)}, '
+      'unassigned: ${_describeMatcher(unassignedMatcher)}, '
+      'writeCaptured: ${_describeMatcher(writeCapturedMatcher)})');
 }
 
 /// Representation of an expression to be visited by the test harness.  Calling

@@ -63,14 +63,12 @@ static method testRemovalOfStatementBodies() → dynamic {
       core::int* i = :sync-for-iterator.{core::Iterator::current};
     }
   }
-  try {
-  }
-  finally {
-  }
+  {}
   try {
   }
   on dynamic catch(final dynamic e) {
   }
+  {}
   switch(42) {
     #L1:
     case #C3:

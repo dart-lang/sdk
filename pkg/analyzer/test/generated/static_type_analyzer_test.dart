@@ -255,7 +255,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
   void setUp() {
     _listener = GatheringErrorListener();
-    _analyzer = _createAnalyzer();
+    _createAnalyzer();
   }
 
   void test_flatten_derived() {
@@ -981,7 +981,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    * type of 'this'.
    */
   DartType _analyze(Expression node, [InterfaceType thisType]) {
-    _analyzer.thisType = thisType;
+    _visitor.setThisInterfaceType(thisType);
     node.accept(_analyzer);
     return node.staticType;
   }
@@ -1070,7 +1070,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /**
    * Create the analyzer used by the tests.
    */
-  StaticTypeAnalyzer _createAnalyzer() {
+  void _createAnalyzer() {
     var context = TestAnalysisContext();
     var inheritance = InheritanceManager3();
     Source source = FileSource(getFile("/lib.dart"));
@@ -1091,7 +1091,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
         featureSet: featureSet, nameScope: LibraryScope(_definingLibrary));
-    return _visitor.typeAnalyzer;
+    _analyzer = _visitor.typeAnalyzer;
   }
 
   DartType _flatten(DartType type) => _typeSystem.flatten(type);

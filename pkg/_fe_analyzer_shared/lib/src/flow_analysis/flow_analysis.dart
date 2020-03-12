@@ -513,6 +513,10 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   void isExpression_end(
       Expression isExpression, Expression subExpression, bool isNot, Type type);
 
+  /// Return whether the [variable] is definitely unassigned in the current
+  /// state.
+  bool isUnassigned(Variable variable);
+
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   /// [wholeExpression] should be the whole logical binary expression.
@@ -928,6 +932,12 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  bool isUnassigned(Variable variable) {
+    return _wrap('isUnassigned($variable)', () => _wrapped.isAssigned(variable),
+        isQuery: true);
+  }
+
+  @override
   void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
       {@required bool isAnd}) {
     _wrap(
@@ -1174,6 +1184,31 @@ class FlowModel<Variable, Type> {
   VariableModel<Type> infoFor(Variable variable) =>
       variableInfo[variable] ?? _freshVariableInfo;
 
+  /// Updates the state to indicate that variables that are not definitely
+  /// unassigned in the [other] are also not definitely unassigned in the
+  /// result.
+  FlowModel<Variable, Type> joinUnassigned(FlowModel<Variable, Type> other) {
+    Map<Variable, VariableModel<Type>> newVariableInfo;
+
+    for (Variable variable in other.variableInfo.keys) {
+      VariableModel<Type> otherInfo = other.variableInfo[variable];
+      if (otherInfo.unassigned) continue;
+
+      VariableModel<Type> info = variableInfo[variable];
+      if (info == null) continue;
+
+      VariableModel<Type> newInfo = info.markNotUnassigned();
+      if (identical(newInfo, info)) continue;
+
+      (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
+          variableInfo))[variable] = newInfo;
+    }
+
+    if (newVariableInfo == null) return this;
+
+    return FlowModel<Variable, Type>._(reachable, newVariableInfo);
+  }
+
   /// Updates the state to indicate that the given [writtenVariables] are no
   /// longer promoted; they are presumed to have their declared types.
   ///
@@ -1209,7 +1244,7 @@ class FlowModel<Variable, Type> {
       if (info == null) {
         (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
                 variableInfo))[variable] =
-            new VariableModel<Type>(null, const [], false, true);
+            new VariableModel<Type>(null, const [], false, false, true);
       } else if (!info.writeCaptured) {
         (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
             variableInfo))[variable] = info.writeCapture();
@@ -1382,7 +1417,7 @@ class FlowModel<Variable, Type> {
         : _updateVariableInfo(
             variable,
             new VariableModel<Type>(info.promotedTypes, newTested,
-                info.assigned, info.writeCaptured));
+                info.assigned, info.unassigned, info.writeCaptured));
     FlowModel<Variable, Type> modelIfSuccessful =
         identical(newPromotedTypes, info.promotedTypes) &&
                 identical(newTested, info.tested)
@@ -1390,7 +1425,7 @@ class FlowModel<Variable, Type> {
             : _updateVariableInfo(
                 variable,
                 new VariableModel<Type>(newPromotedTypes, newTested,
-                    info.assigned, info.writeCaptured));
+                    info.assigned, info.unassigned, info.writeCaptured));
     return new ExpressionInfo<Variable, Type>(
         this, modelIfSuccessful, modelIfFailed);
   }
@@ -1549,14 +1584,21 @@ class VariableModel<Type> {
   /// Indicates whether the variable has definitely been assigned.
   final bool assigned;
 
+  /// Indicates whether the variable is unassigned.
+  final bool unassigned;
+
   /// Indicates whether the variable has been write captured.
   final bool writeCaptured;
 
-  VariableModel(
-      this.promotedTypes, this.tested, this.assigned, this.writeCaptured) {
+  VariableModel(this.promotedTypes, this.tested, this.assigned, this.unassigned,
+      this.writeCaptured) {
+    assert(!(assigned && unassigned),
+        "Can't be both definitely assigned and unassigned");
     assert(promotedTypes == null || promotedTypes.isNotEmpty);
     assert(!writeCaptured || promotedTypes == null,
         "Write-captured variables can't be promoted");
+    assert(!(writeCaptured && unassigned),
+        "Write-captured variables can't be definitely unassigned");
     assert(tested != null);
   }
 
@@ -1566,22 +1608,33 @@ class VariableModel<Type> {
       : promotedTypes = null,
         tested = const [],
         assigned = false,
+        unassigned = true,
         writeCaptured = false;
 
   /// Returns a new [VariableModel] in which any promotions present have been
   /// dropped.
   VariableModel<Type> discardPromotions() {
     assert(promotedTypes != null, 'No promotions to discard');
-    return new VariableModel<Type>(null, tested, assigned, writeCaptured);
+    return new VariableModel<Type>(
+        null, tested, assigned, unassigned, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just initialized.
   VariableModel<Type> initialize() {
-    if (promotedTypes == null && tested.isEmpty && assigned) {
+    if (promotedTypes == null && tested.isEmpty && assigned && !unassigned) {
       return this;
     }
-    return new VariableModel<Type>(null, const [], true, writeCaptured);
+    return new VariableModel<Type>(null, const [], true, false, writeCaptured);
+  }
+
+  /// Returns a new [VariableModel] reflecting the fact that the variable is
+  /// not definitely unassigned.
+  VariableModel<Type> markNotUnassigned() {
+    if (!unassigned) return this;
+
+    return new VariableModel<Type>(
+        promotedTypes, tested, assigned, false, writeCaptured);
   }
 
   /// Returns an updated model reflect a control path that is known to have
@@ -1592,6 +1645,7 @@ class VariableModel<Type> {
     List<Type> thisPromotedTypes = promotedTypes;
     List<Type> otherPromotedTypes = otherModel.promotedTypes;
     bool newAssigned = assigned || otherModel.assigned;
+    bool newUnassigned = unassigned;
     bool newWriteCaptured = writeCaptured || otherModel.writeCaptured;
     List<Type> newPromotedTypes;
     if (unsafe) {
@@ -1623,7 +1677,7 @@ class VariableModel<Type> {
       }
     }
     return _identicalOrNew(this, otherModel, newPromotedTypes, tested,
-        newAssigned, newWriteCaptured);
+        newAssigned, newUnassigned, newWriteCaptured);
   }
 
   @override
@@ -1637,6 +1691,9 @@ class VariableModel<Type> {
     }
     if (assigned) {
       parts.add('assigned: true');
+    }
+    if (!unassigned) {
+      parts.add('unassigned: false');
     }
     if (writeCaptured) {
       parts.add('writeCaptured: true');
@@ -1678,13 +1735,13 @@ class VariableModel<Type> {
       newTested = tested;
     }
     return new VariableModel<Type>(
-        newPromotedTypes, newTested, true, writeCaptured);
+        newPromotedTypes, newTested, true, false, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable has
   /// been write-captured.
   VariableModel<Type> writeCapture() {
-    return new VariableModel<Type>(null, const [], assigned, true);
+    return new VariableModel<Type>(null, const [], assigned, false, true);
   }
 
   /// Determines whether a variable with the given [promotedTypes] should be
@@ -1759,12 +1816,13 @@ class VariableModel<Type> {
     List<Type> newPromotedTypes = joinPromotedTypes(
         first.promotedTypes, second.promotedTypes, typeOperations);
     bool newAssigned = first.assigned && second.assigned;
+    bool newUnassigned = first.unassigned && second.unassigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
     List<Type> newTested = newWriteCaptured
         ? const []
         : joinTested(first.tested, second.tested, typeOperations);
     return _identicalOrNew(first, second, newPromotedTypes, newTested,
-        newAssigned, newWriteCaptured);
+        newAssigned, newUnassigned, newWriteCaptured);
   }
 
   /// Performs the portion of the "join" algorithm that applies to promotion
@@ -1865,20 +1923,23 @@ class VariableModel<Type> {
       List<Type> newPromotedTypes,
       List<Type> newTested,
       bool newAssigned,
+      bool newUnassigned,
       bool newWriteCaptured) {
     if (identical(first.promotedTypes, newPromotedTypes) &&
         identical(first.tested, newTested) &&
         first.assigned == newAssigned &&
+        first.unassigned == newUnassigned &&
         first.writeCaptured == newWriteCaptured) {
       return first;
     } else if (identical(second.promotedTypes, newPromotedTypes) &&
         identical(second.tested, newTested) &&
         second.assigned == newAssigned &&
+        second.unassigned == newUnassigned &&
         second.writeCaptured == newWriteCaptured) {
       return second;
     } else {
-      return new VariableModel<Type>(
-          newPromotedTypes, newTested, newAssigned, newWriteCaptured);
+      return new VariableModel<Type>(newPromotedTypes, newTested, newAssigned,
+          newUnassigned, newWriteCaptured);
     }
   }
 
@@ -2147,6 +2208,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void for_end() {
+    FlowModel<Variable, Type> afterUpdate = _current;
+
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
     // Tail of the stack: falseCondition, break
@@ -2154,6 +2217,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     FlowModel<Variable, Type> falseCondition = context._conditionInfo.ifFalse;
 
     _current = _join(falseCondition, breakState);
+    _current = _current.joinUnassigned(afterUpdate);
   }
 
   @override
@@ -2198,9 +2262,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void functionExpression_end() {
     --_functionNestingLevel;
     assert(_functionNestingLevel >= 0);
+    FlowModel<Variable, Type> afterBody = _current;
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = context._previous;
+    _current = _current.joinUnassigned(afterBody);
   }
 
   @override
@@ -2299,6 +2365,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _current.tryPromote(typeOperations, variable, type);
     _storeExpressionInfo(isExpression,
         isNot ? ExpressionInfo.invert(expressionInfo) : expressionInfo);
+  }
+
+  @override
+  bool isUnassigned(Variable variable) {
+    return _current.infoFor(variable).unassigned;
   }
 
   @override
@@ -2524,7 +2595,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_end() {
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
+    var afterBody = _current;
     _current = _join(context._conditionInfo.ifFalse, context._breakModel);
+    _current = _current.joinUnassigned(afterBody);
   }
 
   @override
