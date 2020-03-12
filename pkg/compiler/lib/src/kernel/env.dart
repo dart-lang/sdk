@@ -388,7 +388,8 @@ class KClassEnvImpl implements KClassEnv {
 
     void addProcedure(ir.Procedure member,
         {bool includeStatic, bool includeNoSuchMethodForwarders}) {
-      if (member.isForwardingStub && member.isAbstract) {
+      if ((member.isMemberSignature || member.isForwardingStub) &&
+          member.isAbstract) {
         // Skip abstract forwarding stubs. These are never emitted but they
         // might shadow the inclusion of a mixed in method in code like:
         //
@@ -403,7 +404,8 @@ class KClassEnvImpl implements KClassEnv {
         // `Mixin.method` is inherited by `Class`.
         return;
       }
-      if (member.isForwardingStub && cls.isAnonymousMixin) {
+      if ((member.isMemberSignature || member.isForwardingStub) &&
+          cls.isAnonymousMixin) {
         return;
       }
       if (!includeStatic && member.isStatic) return;
