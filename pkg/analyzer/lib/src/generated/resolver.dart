@@ -1118,7 +1118,7 @@ class ResolverVisitor extends ScopedVisitor {
     var body = node.body;
 
     if (_flowAnalysis != null) {
-      if (!isFunctionDeclaration) {
+      if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
         _flowAnalysis.executableDeclaration_enter(node, node.parameters, true);
       }
     } else {
@@ -1142,7 +1142,7 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitFunctionExpression(node);
 
     if (_flowAnalysis != null) {
-      if (!isFunctionDeclaration) {
+      if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
         _checkForBodyMayCompleteNormally(
           returnType: returnType,
           body: body,
