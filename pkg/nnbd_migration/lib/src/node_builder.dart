@@ -51,6 +51,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// seen so far.  Otherwise `null`.
   List<DecoratedType> _positionalParameters;
 
+  /// If the child types of a node are being visited, the
+  /// [NullabilityNodeTarget] that should be used in [visitTypeAnnotation].
+  /// Otherwise `null`.
+  NullabilityNodeTarget _target;
+
   final NullabilityMigrationListener /*?*/ listener;
 
   final NullabilityMigrationInstrumentation /*?*/ instrumentation;
@@ -298,7 +303,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType decoratedReturnType;
     var target = NullabilityNodeTarget.element(declaredElement);
     if (returnType != null) {
-      decoratedReturnType = returnType.accept(this);
+      _pushNullabilityNodeTarget(target.returnType(), () {
+        decoratedReturnType = returnType.accept(this);
+      });
     } else {
       // Inferred return type.
       decoratedReturnType = DecoratedType.forImplicitType(
@@ -341,7 +348,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     DecoratedType decoratedFunctionType;
     node.typeParameters?.accept(this);
-    decoratedFunctionType = node.functionType.accept(this);
+    var target = NullabilityNodeTarget.element(node.declaredElement);
+    var returnType = node.functionType.returnType;
+    if (returnType != null) {
+      _pushNullabilityNodeTarget(target.returnType(), () {
+        decoratedFunctionType = node.functionType.accept(this);
+      });
+    } else {
+      decoratedFunctionType = node.functionType.accept(this);
+    }
     _variables.recordDecoratedElementType(
         (node.declaredElement as GenericTypeAliasElement).function,
         decoratedFunctionType);
@@ -383,9 +398,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTypeAnnotation(TypeAnnotation node) {
     assert(node != null); // TODO(paulberry)
     var type = node.type;
-    // TODO(paulberry): when the enclosing element is known, use it as the
-    // target.
-    var target = NullabilityNodeTarget.codeRef('explicit type', node);
+    var target =
+        _target ?? NullabilityNodeTarget.codeRef('explicit type', node);
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(target);
       var decoratedType = DecoratedType(type, nullabilityNode);
@@ -421,7 +435,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
             DynamicTypeImpl.instance, _graph, target.returnType());
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
       } else {
-        decoratedReturnType = returnType.accept(this);
+        // If [_target] is non-null, then it represents the return type for
+        // a FunctionTypeAlias. Otherwise, create a return type target for
+        // `target`.
+        _pushNullabilityNodeTarget(_target ?? target.returnType(), () {
+          decoratedReturnType = returnType.accept(this);
+        });
       }
       positionalParameters = <DecoratedType>[];
       namedParameters = <String, DecoratedType>{};
@@ -571,7 +590,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType decoratedReturnType;
     var target = NullabilityNodeTarget.element(declaredElement);
     if (returnType != null) {
-      decoratedReturnType = returnType.accept(this);
+      _pushNullabilityNodeTarget(target.returnType(), () {
+        decoratedReturnType = returnType.accept(this);
+      });
     } else if (declaredElement is ConstructorElement) {
       // Constructors have no explicit return type annotation, so use the
       // implicit return type.
@@ -702,6 +723,16 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     _variables.recordDecoratedDirectSupertypes(
         declaredElement, decoratedSupertypes);
+  }
+
+  void _pushNullabilityNodeTarget(NullabilityNodeTarget target, Function() fn) {
+    NullabilityNodeTarget previousTarget = _target;
+    try {
+      _target = target;
+      fn();
+    } finally {
+      _target = previousTarget;
+    }
   }
 
   @alwaysThrows
