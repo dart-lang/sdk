@@ -1073,6 +1073,7 @@ class SourceLoader extends Loader {
         }
       }
     });
+    ticker.logMs("Build outline expressions");
   }
 
   void buildClassHierarchy(
