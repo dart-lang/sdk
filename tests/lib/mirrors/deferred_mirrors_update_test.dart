@@ -10,7 +10,7 @@ class D {}
 
 void main() {
   print(reflectClass(D).owner);
-  l.loadLibrary().then((_) {
+  l.loadLibrary()!.then((_) {
     l.foo();
   });
 }

@@ -11,7 +11,7 @@ import "deferred_mirrors_metatarget_lib.dart" deferred as lib;
 
 void main() {
   asyncStart();
-  lib.loadLibrary().then((_) {
+  lib.loadLibrary()!.then((_) {
     Expect.equals("A", lib.foo());
     asyncEnd();
   });

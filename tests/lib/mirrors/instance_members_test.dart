@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 import 'declarations_model.dart' as declarations_model;
 
 selectKeys<K, V>(Map<K, V> map, bool Function(V) predicate) {
-  return map.keys.where((K key) => predicate(map[key]));
+  return map.keys.where((K key) => predicate(map[key] as V));
 }
 
 main() {
