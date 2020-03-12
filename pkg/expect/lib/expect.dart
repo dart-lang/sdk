@@ -703,10 +703,10 @@ class ExpectException {
   final String name;
 
   ExpectException(this.message)
-      : name = (_getTestName == null) ? null : _getTestName();
+      : name = (_getTestName == null) ? "" : _getTestName();
 
   String toString() {
-    if (name != null) return 'In test "$name" $message';
+    if (name != "") return 'In test "$name" $message';
     return message;
   }
 }
