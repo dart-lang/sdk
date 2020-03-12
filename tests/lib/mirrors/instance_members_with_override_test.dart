@@ -29,7 +29,7 @@ abstract class C extends S {
 }
 
 selectKeys<K, V>(Map<K, V> map, bool Function(V) predicate) {
-  return map.keys.where((K key) => predicate(map[key] as V));
+  return map.keys.where((K key) => predicate(map[key]));
 }
 
 main() {

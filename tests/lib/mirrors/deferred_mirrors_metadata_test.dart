@@ -36,7 +36,7 @@ class D {
 
 void main() {
   asyncStart();
-  lib1.loadLibrary()!.then((_) {
+  lib1.loadLibrary().then((_) {
     Expect.equals("ABCD", lib1.foo());
     new C();
     new D();

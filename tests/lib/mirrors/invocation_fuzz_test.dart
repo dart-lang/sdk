@@ -55,7 +55,7 @@ class Task {
   dynamic action;
 }
 
-var queue = <Task>[];
+var queue = new List<Task>();
 
 checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
   if (isBlacklisted(m.qualifiedName)) return;
@@ -152,7 +152,7 @@ main() {
   fuzzArgument = 1; // //# smi: ok
   fuzzArgument = false; // //# false: ok
   fuzzArgument = 'string'; // //# string: ok
-  fuzzArgument = new List<dynamic>.filled(0, null); // //# emptyarray: ok
+  fuzzArgument = new List(0); // //# emptyarray: ok
 
   print('Fuzzing with $fuzzArgument');
 

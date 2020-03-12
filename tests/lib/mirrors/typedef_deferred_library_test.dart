@@ -12,7 +12,7 @@ import 'package:expect/expect.dart';
 
 main() {
   asyncStart();
-  def.loadLibrary()!.then((_) {
+  def.loadLibrary().then((_) {
     var barLibrary = currentMirrorSystem().findLibrary(new Symbol("bar"));
     var gTypedef = barLibrary.declarations[new Symbol("G")]!;
     Expect.equals("G", MirrorSystem.getName(gTypedef.simpleName));

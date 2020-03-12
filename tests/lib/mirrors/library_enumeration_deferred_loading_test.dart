@@ -16,7 +16,7 @@ main() {
       "should not be loaded yet");
 
   asyncStart();
-  other.loadLibrary()!.then((_) {
+  other.loadLibrary().then((_) {
     asyncEnd();
     LibraryMirror otherMirror = ms.findLibrary(#test.other_library);
     Expect.isNotNull(otherMirror);

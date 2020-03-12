@@ -141,7 +141,7 @@ String stringifyDependencies(LibraryMirror l) {
     if (dep.prefix != null) buffer.write(' as ${n(dep.prefix)}');
     buffer.write('\n');
 
-    var flattenedCombinators = <dynamic>[];
+    List flattenedCombinators = new List();
     dep.combinators.forEach((com) {
       com.identifiers.forEach((ident) {
         flattenedCombinators.add([n(ident), com.isShow, com.isHide]);

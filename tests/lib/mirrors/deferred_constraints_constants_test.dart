@@ -49,7 +49,7 @@ void main() {
   var a2 = myConst2;
 
   asyncStart();
-  lib.loadLibrary()!.then((_) {
+  lib.loadLibrary().then((_) {
     var instance = lib.constantInstance;
     var c1 = const lib.Const(); //# constructor1: compile-time error
     var c2 = const lib.Const.namedConstructor(); //# constructor2: compile-time error

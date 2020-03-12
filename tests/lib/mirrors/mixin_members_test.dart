@@ -32,7 +32,7 @@ class M2 {
 class C extends S with M1, M2 {}
 
 membersOf(ClassMirror cm) {
-  var result = new Map<Symbol, dynamic>();
+  var result = new Map();
   cm.declarations.forEach((k, v) {
     if (v is MethodMirror && !v.isConstructor) result[k] = v;
     if (v is VariableMirror) result[k] = v;

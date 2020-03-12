@@ -11,7 +11,7 @@ assertInstanitationErrorOnGenerativeConstructors(classMirror) {
   classMirror.declarations.values.forEach((decl) {
     if (decl is! MethodMirror) return;
     if (!decl.isGenerativeConstructor) return;
-    var args = new List<dynamic>.filled(decl.parameters.length, null);
+    var args = new List(decl.parameters.length);
     Expect.throws(
         () => classMirror.newInstance(decl.constructorName, args),
         (e) => e is AbstractClassInstantiationError,
@@ -23,7 +23,7 @@ runFactoryConstructors(classMirror) {
   classMirror.declarations.values.forEach((decl) {
     if (decl is! MethodMirror) return;
     if (!decl.isFactoryConstructor) return;
-    var args = new List<dynamic>.filled(decl.parameters.length, null);
+    var args = new List(decl.parameters.length);
     classMirror.newInstance(decl.constructorName, args); // Should not throw.
   });
 }
