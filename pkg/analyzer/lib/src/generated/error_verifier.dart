@@ -476,7 +476,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
-      _constructorFieldsVerifier.leaveClassOrMixin();
+      _constructorFieldsVerifier.leaveClass();
       _enclosingClass = outerClass;
     }
   }
@@ -1018,13 +1018,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkMixinInheritance(node, onClause, implementsClause);
       }
 
-      _constructorFieldsVerifier.enterMixin(node);
       _checkForFinalNotInitializedInClass(members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
-      _constructorFieldsVerifier.leaveClassOrMixin();
       _enclosingClass = outerClass;
     }
   }
