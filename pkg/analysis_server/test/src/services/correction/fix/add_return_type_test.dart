@@ -139,6 +139,19 @@ class A {
 ''');
   }
 
+  Future<void> test_method_getter() async {
+    await resolveTestUnit('''
+class A {
+  get foo => 0;
+}
+''');
+    await assertHasFix('''
+class A {
+  int get foo => 0;
+}
+''');
+  }
+
   Future<void> test_topLevelFunction_block() async {
     await resolveTestUnit('''
 f() {
@@ -158,6 +171,15 @@ f() => '';
 ''');
     await assertHasFix('''
 String f() => '';
+''');
+  }
+
+  Future<void> test_topLevelFunction_getter() async {
+    await resolveTestUnit('''
+get foo => 0;
+''');
+    await assertHasFix('''
+int get foo => 0;
 ''');
   }
 }

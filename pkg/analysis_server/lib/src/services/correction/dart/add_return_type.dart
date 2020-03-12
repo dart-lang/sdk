@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -22,56 +23,51 @@ class AddReturnType extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    var node = this.node;
+    SyntacticEntity insertBeforeEntity;
+    FunctionBody body;
     if (node is SimpleIdentifier) {
-      FunctionBody body;
-      var parent = node.parent;
-      if (parent is MethodDeclaration) {
-        if (parent.returnType != null) {
+      var executable = node.parent;
+      if (executable is MethodDeclaration && executable.name == node) {
+        if (executable.returnType != null) {
           return;
         }
-        body = parent.body;
-      } else if (parent is FunctionDeclaration) {
-        if (parent.returnType != null) {
+        insertBeforeEntity = executable.propertyKeyword ?? executable.name;
+        body = executable.body;
+      } else if (executable is FunctionDeclaration && executable.name == node) {
+        if (executable.returnType != null) {
           return;
         }
-        body = parent.functionExpression.body;
+        insertBeforeEntity = executable.propertyKeyword ?? executable.name;
+        body = executable.functionExpression.body;
       } else {
         return;
       }
-
-      var returnType = _inferReturnType(body);
-      if (returnType == null) {
-        return null;
-      }
-
-      await builder.addFileEdit(file, (builder) {
-        builder.addInsertion(node.offset, (builder) {
-          if (returnType.isDynamic) {
-            builder.write('dynamic');
-          } else {
-            builder.writeType(returnType);
-          }
-          builder.write(' ');
-        });
-      });
     }
-    return null;
+
+    var returnType = _inferReturnType(body);
+    if (returnType == null) {
+      return null;
+    }
+
+    await builder.addFileEdit(file, (builder) {
+      builder.addInsertion(insertBeforeEntity.offset, (builder) {
+        if (returnType.isDynamic) {
+          builder.write('dynamic');
+        } else {
+          builder.writeType(returnType);
+        }
+        builder.write(' ');
+      });
+    });
   }
 
   /// Return the type of value returned by the function [body], or `null` if a
   /// type can't be inferred.
   DartType _inferReturnType(FunctionBody body) {
-    bool isAsynchronous;
-    bool isGenerator;
     DartType baseType;
     if (body is ExpressionFunctionBody) {
-      isAsynchronous = body.isAsynchronous;
-      isGenerator = body.isGenerator;
       baseType = body.expression.staticType;
     } else if (body is BlockFunctionBody) {
-      isAsynchronous = body.isAsynchronous;
-      isGenerator = body.isGenerator;
       var computer = _ReturnTypeComputer(resolvedResult.typeSystem);
       body.block.accept(computer);
       baseType = computer.returnType;
@@ -79,23 +75,30 @@ class AddReturnType extends CorrectionProducer {
         baseType = typeProvider.voidType;
       }
     }
+
     if (baseType == null) {
       return null;
     }
+
+    var isAsynchronous = body.isAsynchronous;
+    var isGenerator = body.isGenerator;
     if (isAsynchronous) {
       if (isGenerator) {
         return typeProvider.streamElement.instantiate(
-            typeArguments: [baseType],
-            nullabilitySuffix: baseType.nullabilitySuffix);
+          typeArguments: [baseType],
+          nullabilitySuffix: baseType.nullabilitySuffix,
+        );
       } else {
         return typeProvider.futureElement.instantiate(
-            typeArguments: [baseType],
-            nullabilitySuffix: baseType.nullabilitySuffix);
+          typeArguments: [baseType],
+          nullabilitySuffix: baseType.nullabilitySuffix,
+        );
       }
     } else if (isGenerator) {
       return typeProvider.iterableElement.instantiate(
-          typeArguments: [baseType],
-          nullabilitySuffix: baseType.nullabilitySuffix);
+        typeArguments: [baseType],
+        nullabilitySuffix: baseType.nullabilitySuffix,
+      );
     }
     return baseType;
   }

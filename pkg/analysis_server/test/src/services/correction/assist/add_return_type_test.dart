@@ -11,12 +11,12 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddTypeAnnotationTest);
+    defineReflectiveTests(AddReturnTypeTest);
   });
 }
 
 @reflectiveTest
-class AddTypeAnnotationTest extends AssistProcessorTest {
+class AddReturnTypeTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ADD_RETURN_TYPE;
 
@@ -132,6 +132,19 @@ class A {
 ''');
   }
 
+  Future<void> test_method_getter() async {
+    await resolveTestUnit('''
+class A {
+  get /*caret*/foo => 0;
+}
+''');
+    await assertHasAssist('''
+class A {
+  int get foo => 0;
+}
+''');
+  }
+
   Future<void> test_topLevelFunction_block() async {
     await resolveTestUnit('''
 /*caret*/f() {
@@ -161,5 +174,14 @@ String f() => '';
 /*caret*/f() => '';
 ''');
     await assertNoAssist();
+  }
+
+  Future<void> test_topLevelFunction_getter() async {
+    await resolveTestUnit('''
+get /*caret*/foo => 0;
+''');
+    await assertHasAssist('''
+int get foo => 0;
+''');
   }
 }
