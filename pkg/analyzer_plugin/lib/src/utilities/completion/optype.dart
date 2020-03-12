@@ -74,15 +74,6 @@ class OpType {
   /// method.
   bool inStaticMethodBody = false;
 
-  /// Indicates whether the completion location is in the body of a method.
-  bool inMethodBody = false;
-
-  /// Indicates whether the completion location is in the body of a function.
-  bool inFunctionBody = false;
-
-  /// Indicates whether the completion location is in the body of a constructor.
-  bool inConstructorBody = false;
-
   /// Indicates whether the completion target is prefixed.
   bool isPrefixed = false;
 
@@ -112,16 +103,7 @@ class OpType {
     if (functionBody != null) {
       var parent = functionBody.parent;
 
-      if (parent is ConstructorDeclaration) {
-        optype.inConstructorBody = true;
-      }
-
-      if (parent is FunctionExpression) {
-        optype.inFunctionBody = true;
-      }
-
       if (parent is MethodDeclaration) {
-        optype.inMethodBody = true;
         optype.inStaticMethodBody = parent.isStatic;
       }
     }
@@ -161,13 +143,6 @@ class OpType {
   bool get includeOnlyNamedArgumentSuggestions =>
       includeNamedArgumentSuggestions &&
       !includeTypeNameSuggestions &&
-      !includeReturnValueSuggestions &&
-      !includeVoidReturnSuggestions;
-
-  /// Indicate whether only type names should be suggested
-  bool get includeOnlyTypeNameSuggestions =>
-      includeTypeNameSuggestions &&
-      !includeNamedArgumentSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
 
@@ -849,13 +824,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       // Check for named parameters in constructor calls.
       AstNode grandparent = node.parent.parent;
       if (grandparent is ConstructorReferenceNode) {
-        ConstructorElement element =
-            // TODO(paulberry): remove the unnecessary cast when we are ready to
-            // depend on a version of the analyzer that includes
-            // https://dart-review.googlesource.com/c/sdk/+/89923
-            (grandparent // ignore: unnecessary_cast
-                    as ConstructorReferenceNode)
-                .staticElement;
+        ConstructorElement element = grandparent.staticElement;
         if (element != null) {
           List<ParameterElement> parameters = element.parameters;
           ParameterElement parameterElement = parameters.firstWhere((e) {
