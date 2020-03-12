@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
+import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
@@ -586,9 +587,6 @@ class FixProcessor extends BaseProcessor {
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
-      if (name == LintNames.always_declare_return_types) {
-        await _addFix_addReturnType();
-      }
       if (name == LintNames.always_specify_types ||
           name == LintNames.type_annotate_public_apis) {
         await _addFix_addTypeAnnotation();
@@ -1266,11 +1264,6 @@ class FixProcessor extends BaseProcessor {
       builder.addSimpleInsertion(node.parent.offset, '@required ');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_REQUIRED);
-  }
-
-  Future<void> _addFix_addReturnType() async {
-    var changeBuilder = await createBuilder_addReturnType();
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_RETURN_TYPE);
   }
 
   Future<void> _addFix_addStatic() async {
@@ -4502,7 +4495,9 @@ class FixProcessor extends BaseProcessor {
       await compute(AddFieldFormalParameters());
     } else if (errorCode is LintCode) {
       String name = errorCode.name;
-      if (name == LintNames.avoid_private_typedef_functions) {
+      if (name == LintNames.always_declare_return_types) {
+        await compute(AddReturnType());
+      } else if (name == LintNames.avoid_private_typedef_functions) {
         await compute(InlineTypedef());
       } else if (name == LintNames.avoid_returning_null_for_future) {
         await compute(WrapInFuture());

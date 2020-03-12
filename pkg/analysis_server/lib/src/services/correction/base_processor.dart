@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -232,45 +231,6 @@ abstract class BaseProcessor {
       return changeBuilder;
     }
 
-    return null;
-  }
-
-  Future<ChangeBuilder> createBuilder_addReturnType() async {
-    var node = this.node;
-    if (node is SimpleIdentifier) {
-      FunctionBody body;
-      var parent = node.parent;
-      if (parent is MethodDeclaration) {
-        if (parent.returnType != null) {
-          _coverageMarker();
-          return null;
-        }
-        body = parent.body;
-      } else if (parent is FunctionDeclaration) {
-        if (parent.returnType != null) {
-          _coverageMarker();
-          return null;
-        }
-        body = parent.functionExpression.body;
-      } else {
-        _coverageMarker();
-        return null;
-      }
-      var returnType = inferReturnType(body);
-      if (returnType == null) {
-        _coverageMarker();
-        return null;
-      }
-      var changeBuilder = _newDartChangeBuilder();
-      bool validChange = true;
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(node.offset, (DartEditBuilder builder) {
-          validChange = builder.writeType(returnType);
-          builder.write(' ');
-        });
-      });
-      return validChange ? changeBuilder : null;
-    }
     return null;
   }
 
@@ -1388,47 +1348,6 @@ abstract class BaseProcessor {
     return null;
   }
 
-  /// Return the type of value returned by the function [body], or `null` if a
-  /// type can't be inferred.
-  DartType inferReturnType(FunctionBody body) {
-    bool isAsynchronous;
-    bool isGenerator;
-    DartType baseType;
-    if (body is ExpressionFunctionBody) {
-      isAsynchronous = body.isAsynchronous;
-      isGenerator = body.isGenerator;
-      baseType = body.expression.staticType;
-    } else if (body is BlockFunctionBody) {
-      isAsynchronous = body.isAsynchronous;
-      isGenerator = body.isGenerator;
-      var computer = _ReturnTypeComputer(resolvedResult.typeSystem);
-      body.block.accept(computer);
-      baseType = computer.returnType;
-      if (baseType == null && computer.hasReturn) {
-        baseType = typeProvider.voidType;
-      }
-    }
-    if (baseType == null) {
-      return null;
-    }
-    if (isAsynchronous) {
-      if (isGenerator) {
-        return typeProvider.streamElement.instantiate(
-            typeArguments: [baseType],
-            nullabilitySuffix: baseType.nullabilitySuffix);
-      } else {
-        return typeProvider.futureElement.instantiate(
-            typeArguments: [baseType],
-            nullabilitySuffix: baseType.nullabilitySuffix);
-      }
-    } else if (isGenerator) {
-      return typeProvider.iterableElement.instantiate(
-          typeArguments: [baseType],
-          nullabilitySuffix: baseType.nullabilitySuffix);
-    }
-    return baseType;
-  }
-
   bool isEnum(DartType type) {
     final element = type.element;
     return element is ClassElement && element.isEnum;
@@ -1614,48 +1533,6 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
     } else if (!node.isQualified) {
       // Only non-prefixed identifiers can be hidden.
       otherNames.add(node.name);
-    }
-  }
-}
-
-/// Copied from lib/src/services/correction/base_processor.dart, but [hasReturn]
-/// was added.
-// TODO(brianwilkerson) Decide whether to unify the two classes.
-class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
-  final TypeSystem typeSystem;
-
-  DartType returnType;
-
-  /// A flag indicating whether at least one return statement was found.
-  bool hasReturn = false;
-
-  _ReturnTypeComputer(this.typeSystem);
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {}
-
-  @override
-  void visitReturnStatement(ReturnStatement node) {
-    hasReturn = true;
-    // prepare expression
-    Expression expression = node.expression;
-    if (expression == null) {
-      return;
-    }
-    // prepare type
-    DartType type = expression.staticType;
-    if (type.isBottom) {
-      return;
-    }
-    // combine types
-    if (returnType == null) {
-      returnType = type;
-    } else {
-      if (returnType is InterfaceType && type is InterfaceType) {
-        returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
-      } else {
-        returnType = typeSystem.leastUpperBound(returnType, type);
-      }
     }
   }
 }

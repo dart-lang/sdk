@@ -76,7 +76,13 @@ class A {
   }
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+class A {
+  dynamic m(p) {
+    return p;
+  }
+}
+''');
   }
 
   Future<void> test_method_block_returnNoValue() async {
