@@ -4,12 +4,10 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'completion_driver_test.dart' as completion_driver;
-import 'relevance/test_all.dart' as relevance_tests;
+import 'type_member_relevance_test.dart' as type_member_relevance_test;
 
 void main() {
   defineReflectiveSuite(() {
-    completion_driver.main();
-    relevance_tests.main();
+    type_member_relevance_test.main();
   });
 }

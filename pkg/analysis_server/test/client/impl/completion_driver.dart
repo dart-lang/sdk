@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -77,11 +78,13 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
 
   CompletionDriver({
     @required this.supportsAvailableSuggestions,
+    AnalysisServerOptions serverOptions,
     @required MemoryResourceProvider resourceProvider,
     @required String projectPath,
     @required String testFilePath,
   })  : _resourceProvider = resourceProvider,
         super(
+            serverOptions: serverOptions ?? AnalysisServerOptions(),
             projectPath: resourceProvider.convertPath(projectPath),
             testFilePath: resourceProvider.convertPath(testFilePath),
             sdkPath: resourceProvider.convertPath('/sdk'));

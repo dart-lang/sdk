@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -27,6 +28,8 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   String get projectName => 'project';
 
   String get projectPath => '/$projectName';
+
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
   bool get supportsAvailableSuggestions;
 
@@ -131,10 +134,12 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   @mustCallSuper
   void setUp() {
     driver = CompletionDriver(
-        supportsAvailableSuggestions: supportsAvailableSuggestions,
-        projectPath: projectPath,
-        testFilePath: testFilePath,
-        resourceProvider: resourceProvider);
+      supportsAvailableSuggestions: supportsAvailableSuggestions,
+      projectPath: projectPath,
+      testFilePath: testFilePath,
+      resourceProvider: resourceProvider,
+      serverOptions: serverOptions,
+    );
     driver.createProject(packageRoots: packageRoots);
 
     newFile('$projectPath/pubspec.yaml', content: '');

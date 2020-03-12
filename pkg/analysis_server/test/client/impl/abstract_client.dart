@@ -38,10 +38,13 @@ abstract class AbstractClient {
 
   MockSdk sdk;
 
+  final AnalysisServerOptions serverOptions;
+
   AbstractClient({
     @required this.projectPath,
     @required this.testFilePath,
     @required String sdkPath,
+    @required this.serverOptions,
   })  : serverChannel = MockServerChannel(),
         pluginManager = TestPluginManager() {
     server = createAnalysisServer(sdkPath);
@@ -54,10 +57,10 @@ abstract class AbstractClient {
   AnalysisDomainHandler get analysisHandler => server.handlers
       .singleWhere((handler) => handler is AnalysisDomainHandler);
 
+  AnalysisOptions get analysisOptions => testDriver.analysisOptions;
+
   CompletionDomainHandler get completionHandler =>
       server.handlers.whereType<CompletionDomainHandler>().single;
-
-  AnalysisOptions get analysisOptions => testDriver.analysisOptions;
 
   ResourceProvider get resourceProvider;
 
@@ -104,11 +107,10 @@ abstract class AbstractClient {
   /// Create an analysis server with the given [sdkPath].
   AnalysisServer createAnalysisServer(String sdkPath) {
     sdk = MockSdk(resourceProvider: resourceProvider);
-    var options = AnalysisServerOptions();
     return AnalysisServer(
         serverChannel,
         resourceProvider,
-        options,
+        serverOptions,
         DartSdkManager(sdkPath, true),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
