@@ -604,8 +604,20 @@ class FileState {
       useFasta: useFasta,
     );
     parser.enableOptionalNewAndConst = true;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41023
+    CompilationUnit unit;
+    try {
+      unit = parser.parseCompilationUnit(token);
+      unit.lineInfo = lineInfo;
+    } catch (e) {
+      throw StateError('''
+Parser error.
+path: $path
+${'-' * 40}
+$content
+''');
+    }
 
     // StringToken uses a static instance of StringCanonicalizer, so we need
     // to clear it explicitly once we are done using it for this file.
