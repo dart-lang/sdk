@@ -832,6 +832,14 @@ class ParameterMember extends VariableMember
   @override
   bool get isInitializingFormal => declaration.isInitializingFormal;
 
+  @override
+  bool get isRequiredNamed {
+    if (isLegacy) {
+      return false;
+    }
+    return super.isRequiredNamed;
+  }
+
   @deprecated
   @override
   ParameterKind get parameterKind => declaration.parameterKind;

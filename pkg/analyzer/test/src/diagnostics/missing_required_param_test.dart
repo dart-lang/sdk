@@ -354,6 +354,22 @@ f() {
     ]);
   }
 
+  test_method_legacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  void foo({required int a}) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import "a.dart";
+
+f() {
+  A().foo();
+}
+''');
+  }
+
   test_typedef_function() async {
     await assertErrorsInCode(r'''
 String test(C c) => c.m()();
