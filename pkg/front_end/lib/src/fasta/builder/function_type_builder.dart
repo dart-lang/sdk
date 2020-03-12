@@ -74,13 +74,15 @@ class FunctionTypeBuilder extends TypeBuilder {
   FunctionType build(LibraryBuilder library,
       [TypedefType origin, bool notInstanceContext]) {
     DartType builtReturnType =
-        returnType?.build(library) ?? const DynamicType();
+        returnType?.build(library, null, notInstanceContext) ??
+            const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType> namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
-        DartType type = formal.type?.build(library) ?? const DynamicType();
+        DartType type = formal.type?.build(library, null, notInstanceContext) ??
+            const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
           if (formal.isRequired) requiredParameterCount++;

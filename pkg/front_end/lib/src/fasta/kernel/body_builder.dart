@@ -5764,8 +5764,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (!isDeclarationInstanceContext &&
           (typeParameter.parent is Class ||
               typeParameter.parent is Extension)) {
-        message = fasta.messageTypeVariableInStaticContext
-            .withLocation(fileUri, charOffset, typeParameter.name.length);
+        message = fasta.messageTypeVariableInStaticContext.withLocation(
+            builder.fileUri ?? fileUri,
+            builder.charOffset ?? charOffset,
+            typeParameter.name.length);
       } else if (constantContext == ConstantContext.inferred) {
         message = fasta.messageTypeVariableInConstantContext
             .withLocation(fileUri, charOffset, typeParameter.name.length);
