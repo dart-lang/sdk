@@ -43,6 +43,8 @@ abstract class CorrectionProducer {
   /// producer doesn't support fixes.
   FixKind get fixKind => null;
 
+  Flutter get flutter => _context.flutter;
+
   AstNode get node => _context.node;
 
   ResolvedUnitResult get resolvedResult => _context.resolvedResult;
