@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/future_or.dart';
 
 import '../names.dart';
 
@@ -15,13 +16,13 @@ import '../names.dart';
 /// uses [createGetterWithInitializerWithRecheck] instead. Late final locals
 /// cannot have writes during initialization since they are not in scope in
 /// their own initializer.
-Statement createGetterWithInitializer(
-    int fileOffset, String name, DartType type, Expression initializer,
+Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
+    String name, DartType type, Expression initializer,
     {Expression createVariableRead({bool needsPromotion}),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value)}) {
-  if (type.isPotentiallyNullable) {
+  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
     // Generate:
     //
     //    if (!_#isSet#field) {
@@ -48,7 +49,9 @@ Statement createGetterWithInitializer(
           // If [type] is a type variable with undetermined nullability we need
           // to create a read of the field that is promoted to the type variable
           // type.
-          createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
+          createVariableRead(
+              needsPromotion:
+                  isPotentiallyNonNullable(type, coreTypes.futureOrClass)))
         ..fileOffset = fileOffset
     ])
       ..fileOffset = fileOffset;
@@ -113,7 +116,7 @@ Statement createGetterWithInitializerWithRecheck(
   VariableDeclaration temp =
       new VariableDeclaration.forValue(initializer, type: type)
         ..fileOffset = fileOffset;
-  if (type.isPotentiallyNullable) {
+  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
     // Generate:
     //
     //    if (!_#isSet#field) {
@@ -150,7 +153,9 @@ Statement createGetterWithInitializerWithRecheck(
           // If [type] is a type variable with undetermined nullability we need
           // to create a read of the field that is promoted to the type variable
           // type.
-          createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
+          createVariableRead(
+              needsPromotion:
+                  isPotentiallyNonNullable(type, coreTypes.futureOrClass)))
         ..fileOffset = fileOffset
     ])
       ..fileOffset = fileOffset;
@@ -218,14 +223,16 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
         ..fileOffset = fileOffset)
     ..fileOffset = fileOffset)
     ..fileOffset = fileOffset;
-  if (type.isPotentiallyNullable) {
+  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
     // Generate:
     //
     //    return _#isSet#field ? _#field : throw '...';
     return new ReturnStatement(
         new ConditionalExpression(
             createIsSetRead()..fileOffset = fileOffset,
-            createVariableRead(needsPromotion: type.isPotentiallyNonNullable)
+            createVariableRead(
+                needsPromotion:
+                    isPotentiallyNonNullable(type, coreTypes.futureOrClass))
               ..fileOffset = fileOffset,
             exception,
             type)
@@ -262,8 +269,8 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
 
 /// Creates the body for the synthesized setter used to encode the lowering
 /// of a non-final late field or local.
-Statement createSetterBody(
-    int fileOffset, String name, VariableDeclaration parameter, DartType type,
+Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
+    VariableDeclaration parameter, DartType type,
     {bool shouldReturnValue,
     Expression createVariableWrite(Expression value),
     Expression createIsSetWrite(Expression value)}) {
@@ -279,7 +286,7 @@ Statement createSetterBody(
       createVariableWrite(new VariableGet(parameter)..fileOffset = fileOffset)
         ..fileOffset = fileOffset);
 
-  if (type.isPotentiallyNullable) {
+  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
     // Generate:
     //
     //    _#isSet#field = true;
@@ -335,7 +342,7 @@ Statement createSetterBodyFinal(
     }
   }
 
-  if (type.isPotentiallyNullable) {
+  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
     // Generate:
     //
     //    if (_#isSet#field) {

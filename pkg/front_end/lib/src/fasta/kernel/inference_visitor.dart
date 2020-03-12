@@ -2347,7 +2347,8 @@ class InferenceVisitor
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
       if (receiverType is! DynamicType &&
           receiverType is! InvalidType &&
-          receiverType.isPotentiallyNullable) {
+          isPotentiallyNullable(
+              receiverType, inferrer.coreTypes.futureOrClass)) {
         if (inferrer.nnbdMode == NnbdMode.Weak) {
           inferrer.helper.addProblem(
               templateNullableExpressionCallWarning.withArguments(
@@ -3587,7 +3588,8 @@ class InferenceVisitor
       }
     }
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (leftType is! DynamicType && leftType.isPotentiallyNullable) {
+      if (leftType is! DynamicType &&
+          isPotentiallyNullable(leftType, inferrer.coreTypes.futureOrClass)) {
         if (inferrer.nnbdMode == NnbdMode.Weak) {
           inferrer.helper.addProblem(
               templateNullableOperatorCallWarning.withArguments(
@@ -3675,7 +3677,8 @@ class InferenceVisitor
     }
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
       if (expressionType is! DynamicType &&
-          expressionType.isPotentiallyNullable) {
+          isPotentiallyNullable(
+              expressionType, inferrer.coreTypes.futureOrClass)) {
         // TODO(johnniwinther): Special case 'unary-' in messages. It should
         // probably be referred to as "Unary operator '-' ...".
         if (inferrer.nnbdMode == NnbdMode.Weak) {
@@ -3755,7 +3758,8 @@ class InferenceVisitor
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
       if (receiverType is! DynamicType &&
           receiverType is! InvalidType &&
-          receiverType.isPotentiallyNullable) {
+          isPotentiallyNullable(
+              receiverType, inferrer.coreTypes.futureOrClass)) {
         if (inferrer.nnbdMode == NnbdMode.Weak) {
           inferrer.helper.addProblem(
               templateNullableOperatorCallWarning.withArguments(
@@ -3815,7 +3819,9 @@ class InferenceVisitor
         ..fileOffset = fileOffset;
     }
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+      if (receiverType is! DynamicType &&
+          isPotentiallyNullable(
+              receiverType, inferrer.coreTypes.futureOrClass)) {
         if (inferrer.nnbdMode == NnbdMode.Weak) {
           inferrer.helper.addProblem(
               templateNullableOperatorCallWarning.withArguments(
@@ -3937,7 +3943,8 @@ class InferenceVisitor
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
       if (receiverType is! DynamicType &&
           receiverType is! InvalidType &&
-          receiverType.isPotentiallyNullable &&
+          isPotentiallyNullable(
+              receiverType, inferrer.coreTypes.futureOrClass) &&
           !inferrer.matchesObjectMemberCall(
               propertyName, const [], const [], const [])) {
         if (inferrer.nnbdMode == NnbdMode.Weak) {
@@ -4020,7 +4027,9 @@ class InferenceVisitor
         ..fileOffset = fileOffset;
     }
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+      if (receiverType is! DynamicType &&
+          isPotentiallyNullable(
+              receiverType, inferrer.coreTypes.futureOrClass)) {
         if (inferrer.nnbdMode == NnbdMode.Weak) {
           inferrer.helper.addProblem(
               templateNullablePropertyAccessWarning.withArguments(
@@ -5409,7 +5418,7 @@ class InferenceVisitor
       result.add(node);
 
       VariableDeclaration isSetVariable;
-      if (node.type.isPotentiallyNullable) {
+      if (isPotentiallyNullable(node.type, inferrer.coreTypes.futureOrClass)) {
         isSetVariable = new VariableDeclaration('#${node.name}#isSet',
             initializer: new BoolLiteral(false)..fileOffset = fileOffset,
             type: inferrer.coreTypes.boolRawType(inferrer.library.nonNullable))
@@ -5446,7 +5455,11 @@ class InferenceVisitor
                       createVariableRead: createVariableRead,
                       createIsSetRead: createIsSetRead)
                   : late_lowering.createGetterWithInitializer(
-                      fileOffset, node.name, node.type, node.initializer,
+                      inferrer.coreTypes,
+                      fileOffset,
+                      node.name,
+                      node.type,
+                      node.initializer,
                       createVariableRead: createVariableRead,
                       createVariableWrite: createVariableWrite,
                       createIsSetRead: createIsSetRead,
@@ -5481,7 +5494,7 @@ class InferenceVisitor
                             createVariableWrite: createVariableWrite,
                             createIsSetRead: createIsSetRead,
                             createIsSetWrite: createIsSetWrite)
-                        : late_lowering.createSetterBody(
+                        : late_lowering.createSetterBody(inferrer.coreTypes,
                             fileOffset, node.name, setterParameter, node.type,
                             shouldReturnValue: true,
                             createVariableWrite: createVariableWrite,
@@ -5776,7 +5789,9 @@ class InferenceVisitor
   void reportNonNullableInNullAwareWarningIfNeeded(
       DartType operandType, String operationName, int offset) {
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (operandType is! InvalidType && !operandType.isPotentiallyNullable) {
+      if (operandType is! InvalidType &&
+          !isPotentiallyNullable(
+              operandType, inferrer.coreTypes.futureOrClass)) {
         inferrer.library.addProblem(
             templateNonNullableInNullAware.withArguments(
                 operationName, operandType, inferrer.isNonNullableByDefault),
