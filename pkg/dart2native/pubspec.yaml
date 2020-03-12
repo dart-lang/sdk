@@ -1,8 +1,5 @@
 name: dart2native
-version: 0.0.1
-author: Dart Team <misc@dartlang.org>
-homepage: https://github.com/dart-lang/sdk/tree/master/pkg/aot
-
+publish_to: none
 
 # Add the bin/dart2native.dart script to the scripts pub installs.
 executables:
