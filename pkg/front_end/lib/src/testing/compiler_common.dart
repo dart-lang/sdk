@@ -105,8 +105,10 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
   options
     ..verify = true
     ..fileSystem = new HybridFileSystem(fs)
-    ..additionalDills = additionalDills.map(toTestUri).toList()
-    ..packagesFileUri = toTestUri('.packages');
+    ..additionalDills = additionalDills.map(toTestUri).toList();
+  if (options.packagesFileUri == null) {
+    options.packagesFileUri = toTestUri('.packages');
+  }
 
   if (options.sdkSummary == null) {
     options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);

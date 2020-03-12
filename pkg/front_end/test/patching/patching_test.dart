@@ -53,7 +53,7 @@ class TestConfigWithLanguageVersion extends TestConfig {
             experimentalFlags: experimentalFlags);
 
   @override
-  void customizeCompilerOptions(CompilerOptions options) {
+  void customizeCompilerOptions(CompilerOptions options, TestData testData) {
     options.currentSdkVersion = "2.9999";
   }
 }

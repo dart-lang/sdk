@@ -512,7 +512,7 @@ class ProcessedOptions {
   /// If the file does exist but is invalid an error is always reported and an
   /// empty package config is returned.
   Future<PackageConfig> _createPackagesFromFile(
-      Uri requestedUri, bool forceCreation) async {
+      Uri requestedUri, bool forceCreation, bool requireJson) async {
     Uint8List contents = await _readFile(requestedUri, forceCreation);
     if (contents == null) {
       if (forceCreation) {
@@ -524,14 +524,7 @@ class ProcessedOptions {
 
     _packagesUri = requestedUri;
     try {
-      return await loadPackageConfigUri(requestedUri, preferNewest: false,
-          loader: (uri) {
-        if (uri != requestedUri) {
-          throw new StateError(
-              "Unexpected request from package config package");
-        }
-        return new Future.value(contents);
-      }, onError: (Object error) {
+      void Function(Object error) onError = (Object error) {
         if (error is FormatException) {
           report(
               templatePackagesFileFormat
@@ -543,7 +536,19 @@ class ProcessedOptions {
               templateCantReadFile.withArguments(requestedUri, "$error"),
               Severity.error);
         }
-      });
+      };
+      if (requireJson) {
+        return PackageConfig.parseBytes(contents, requestedUri,
+            onError: onError);
+      }
+      return await loadPackageConfigUri(requestedUri, preferNewest: false,
+          loader: (uri) {
+        if (uri != requestedUri) {
+          throw new StateError(
+              "Unexpected request from package config package");
+        }
+        return new Future.value(contents);
+      }, onError: onError);
     } on FormatException catch (e) {
       report(
           templatePackagesFileFormat
@@ -566,16 +571,17 @@ class ProcessedOptions {
   /// (relative to the .packages file) `package_config.json` file exists, the
   /// `package_config.json` file will be used instead.
   Future<PackageConfig> createPackagesFromFile(Uri file) async {
-    if (file.path.endsWith("/.dart_tool/package_config.json")) {
-      // Already a package config json file.
-      return _createPackagesFromFile(file, true);
-    } else {
+    // If the input is a ".packages" file we assume the standard layout, and
+    // if a ".dart_tool/package_config.json" exists, we'll use that (and require
+    // it to be a json file).
+    if (file.path.endsWith("/.packages")) {
       // .packages -> try the package_config first.
       Uri tryFirst = file.resolve(".dart_tool/package_config.json");
-      PackageConfig result = await _createPackagesFromFile(tryFirst, false);
+      PackageConfig result =
+          await _createPackagesFromFile(tryFirst, false, true);
       if (result != null) return result;
-      return await _createPackagesFromFile(file, true);
     }
+    return _createPackagesFromFile(file, true, false);
   }
 
   /// Finds a package resolution strategy using a [FileSystem].

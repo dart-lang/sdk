@@ -51,7 +51,7 @@ class TestConfig {
       this.librariesSpecificationUri,
       this.compileSdk: false});
 
-  void customizeCompilerOptions(CompilerOptions options) {}
+  void customizeCompilerOptions(CompilerOptions options, TestData testData) {}
 }
 
 // TODO(johnniwinther): Support annotations for compile-time errors.
@@ -293,7 +293,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       options.compileSdk = config.compileSdk;
     }
   }
-  config.customizeCompilerOptions(options);
+  config.customizeCompilerOptions(options, testData);
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,
