@@ -4254,7 +4254,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
         reference: enclosingRef.getChild('@getter').getChild(name),
       );
 
-      if (!isConst && !isFinal) {
+      if (_hasSetter) {
         this.setter = PropertyAccessorElementImpl_ImplicitSetter(
           this,
           reference: enclosingRef.getChild('@setter').getChild(name),
@@ -6408,6 +6408,26 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     // We don't support type inference errors without linking.
     return null;
   }
+
+  bool get _hasInitializer {
+    return linkedNode != null && linkedContext.hasInitializer(linkedNode);
+  }
+
+  /// Return `true` if this variable needs the setter.
+  bool get _hasSetter {
+    if (isConst) {
+      return false;
+    }
+
+    if (isLate) {
+      if (isFinal) {
+        return !_hasInitializer;
+      }
+      return true;
+    }
+
+    return !isFinal;
+  }
 }
 
 /// A concrete implementation of a [ParameterElement].
@@ -7361,7 +7381,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
         reference: enclosingRef.getChild('@getter').getChild(name),
       );
 
-      if (!isConst && !isFinal) {
+      if (_hasSetter) {
         this.setter = PropertyAccessorElementImpl_ImplicitSetter(
           this,
           reference: enclosingRef.getChild('@setter').getChild(name),

@@ -964,11 +964,8 @@ class _ElementWriter {
       expect(e.getter, isNotNull);
       _assertSyntheticAccessorEnclosing(e, e.getter);
 
-      if (e.isFinal || e.isConst) {
-        expect(e.setter, isNull);
-      } else {
-        expect(e.setter, isNotNull);
-        _assertSyntheticAccessorEnclosing(e, e.getter);
+      if (e.setter != null) {
+        _assertSyntheticAccessorEnclosing(e, e.setter);
       }
     }
 
