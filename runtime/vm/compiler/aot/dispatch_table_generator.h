@@ -6,8 +6,9 @@
 #define RUNTIME_VM_COMPILER_AOT_DISPATCH_TABLE_GENERATOR_H_
 
 #include "vm/compiler/frontend/kernel_translation_helper.h"
-#include "vm/dispatch_table.h"
 #include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -84,8 +85,9 @@ class DispatchTableGenerator {
   // Find suitable selectors and compute offsets for them.
   void Initialize(ClassTable* table);
 
-  // Build up the table.
-  DispatchTable* BuildTable();
+  // Build up an array of Code objects, used to serialize the information
+  // deserialized as a DispatchTable at runtime.
+  RawArray* BuildCodeArray();
 
  private:
   void ReadTableSelectorInfo();
@@ -93,7 +95,7 @@ class DispatchTableGenerator {
   void SetupSelectorRows();
   void ComputeSelectorOffsets();
 
-  Zone* zone_;
+  Zone* const zone_;
   ClassTable* classes_;
   int32_t num_selectors_;
   int32_t num_classes_;
@@ -106,5 +108,7 @@ class DispatchTableGenerator {
 
 }  // namespace compiler
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_COMPILER_AOT_DISPATCH_TABLE_GENERATOR_H_
