@@ -187,12 +187,6 @@ class PreviewSite extends Site
     String oldContent = file.readAsStringSync();
     String newContent = oldContent.replaceRange(offset, end, replacement);
     file.writeAsStringSync(newContent);
-    int length = end - offset;
-    if (length == 0) {
-      throw UnsupportedError('Implement insertions');
-    } else {
-      throw UnsupportedError('Implement removals');
-    }
     // This is a temporary hack. It takes a small amount of time for the file
     // watcher to pick up on the change and update the analysis drivers.
     // TODO(mfairhurst): Wire this up to call fileChanged(path) on the drivers.

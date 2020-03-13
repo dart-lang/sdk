@@ -10,7 +10,7 @@ import 'package:path/path.dart' as path;
 /// The HTML that is displayed for a region of code.
 class RegionRenderer {
   /// A flag indicating whether the incremental workflow is currently supported.
-  static const bool supportsIncrementalWorkflow = false;
+  static const bool supportsIncrementalWorkflow = true;
 
   /// The region to render.
   final RegionInfo region;
