@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import '../utils.dart';
 
@@ -66,14 +66,11 @@ class FooOldCallbacks extends HtmlElement {
 var docA = document;
 var docB = document.implementation.createHtmlDocument('');
 var nullSanitizer = new NullTreeSanitizer();
-var registeredTypes = false;
 
 setupFunc() {
   // Adapted from Blink's
   // fast/dom/custom/attached-detached-document.html test.
   return customElementsReady.then((_) {
-    if (registeredTypes) return;
-    registeredTypes = true;
     document.registerElement2('x-a', {'prototype': Foo});
     document.registerElement2('x-a-old', {'prototype': FooOldCallbacks});
   });

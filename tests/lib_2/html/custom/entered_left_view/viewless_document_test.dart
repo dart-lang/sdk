@@ -9,19 +9,20 @@ import 'dart:html';
 import 'dart:js' as js;
 
 import 'entered_left_view_util.dart';
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import '../utils.dart';
 
-main() {
-  setUp(setupFunc);
+main() async {
+  await setupFunc();
   group('viewless_document', () {
     var a;
-    setUp(() {
+    setUp() {
       invocations = [];
-    });
+    }
 
     test('Created, owned by a document without a view', () {
+      setUp();
       a = docB.createElement('x-a');
       expect(a.ownerDocument, docB,
           reason: 'new instance should be owned by the document the definition '
@@ -31,6 +32,7 @@ main() {
     });
 
     test('Entered document without a view', () {
+      setUp();
       docB.body.append(a);
       expect(invocations, [],
           reason: 'attached callback should not be invoked when entering a '
@@ -38,6 +40,7 @@ main() {
     });
 
     test('Attribute changed in document without a view', () {
+      setUp();
       a.setAttribute('data-foo', 'bar');
       expect(invocations, ['attribute changed'],
           reason: 'changing an attribute should invoke the callback, even in a '
@@ -45,6 +48,7 @@ main() {
     });
 
     test('Entered document with a view', () {
+      setUp();
       document.body.append(a);
       customElementsTakeRecords();
       expect(invocations, ['attached'],
@@ -54,6 +58,7 @@ main() {
     });
 
     test('Left document with a view', () {
+      setUp();
       a.remove();
       customElementsTakeRecords();
       expect(invocations, ['detached'],
@@ -62,6 +67,7 @@ main() {
     });
 
     test('Created in a document without a view', () {
+      setUp();
       docB.body.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
       upgradeCustomElements(docB.body);
 
