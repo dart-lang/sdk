@@ -121,6 +121,13 @@ class FeatureComputer {
   double startsWithDollarFeature(String name) =>
       name.startsWith('\$') ? 0.0 : 1.0;
 
+  /// Return the value of the _super matches_ feature.
+  double superMatchesFeature(
+          String containingMethodName, String proposedMemberName) =>
+      containingMethodName == null
+          ? -1.0
+          : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
+
   /// Return the inheritance distance between the [subclass] and the
   /// [superclass]. The set of [visited] elements is used to guard against
   /// cycles in the type graph.

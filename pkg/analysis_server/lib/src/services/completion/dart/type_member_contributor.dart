@@ -271,9 +271,10 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
           if (request.useNewRelevance) {
             var contextType = featureComputer.contextTypeFeature(
                 request.target.containingNode, method.returnType);
-            var superMatches = method.name == containingMethodName ? 1.0 : 0.0;
             var startsWithDollar =
                 featureComputer.startsWithDollarFeature(method.name);
+            var superMatches = featureComputer.superMatchesFeature(
+                containingMethodName, method.name);
             relevance = _computeRelevance(
                 contextType: contextType,
                 inheritanceDistance: inheritanceDistance,
@@ -299,11 +300,13 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
                     request.target.containingNode, variable.type);
                 var startsWithDollar = featureComputer
                     .startsWithDollarFeature(propertyAccessor.name);
+                var superMatches = featureComputer.superMatchesFeature(
+                    containingMethodName, propertyAccessor.name);
                 relevance = _computeRelevance(
                     contextType: contextType,
                     inheritanceDistance: inheritanceDistance,
                     startsWithDollar: startsWithDollar,
-                    superMatches: -1.0);
+                    superMatches: superMatches);
               }
               addSuggestion(variable, relevance: relevance);
             }
@@ -317,11 +320,13 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
                   request.target.containingNode, type);
               var startsWithDollar = featureComputer
                   .startsWithDollarFeature(propertyAccessor.name);
+              var superMatches = featureComputer.superMatchesFeature(
+                  containingMethodName, propertyAccessor.name);
               relevance = _computeRelevance(
                   contextType: contextType,
                   inheritanceDistance: inheritanceDistance,
                   startsWithDollar: startsWithDollar,
-                  superMatches: -1.0);
+                  superMatches: superMatches);
             }
             addSuggestion(propertyAccessor, relevance: relevance);
           }
