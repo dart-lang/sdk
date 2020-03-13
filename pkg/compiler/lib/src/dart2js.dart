@@ -1165,9 +1165,29 @@ void batchMain(List<String> batchArguments) {
       subscription.pause();
       exitCode = 0;
       if (line == null) exit(0);
-      List<String> args = <String>[];
-      args.addAll(batchArguments);
-      args.addAll(splitLine(line, windows: Platform.isWindows));
+      List<String> testArgs = splitLine(line, windows: Platform.isWindows);
+
+      // Merge experiment flags from the batch and the test arguments.
+      //
+      // Batch arguments are provided when the batch compiler is created, and
+      // contain flags that are generally enabled for all tests. Tests
+      // may have more specific flags that could conflict with the batch flags.
+      // For example, the compiler might be setup to run the non-nullable
+      // experiment, but the test may enable more experiments.
+      //
+      // At this time we are only aware of these kind of conflicts with
+      // experiment flags, so we handle those directly. We know that if the
+      // batch compiler has an experiment flag, the test itself will
+      // have it too (either identical or more accurate when the test requires
+      // additional experiments).
+      bool hasExperiment(List<String> list) =>
+          list.any((a) => a.startsWith('--enable-experiment'));
+      assert(!hasExperiment(batchArguments) || hasExperiment(testArgs));
+      List<String> args = [
+        for (var arg in batchArguments)
+          if (!arg.startsWith('--enable-experiment')) arg,
+        ...testArgs,
+      ];
       return internalMain(args,
           kernelInitializedCompilerState: kernelInitializedCompilerState);
     }).catchError((exception, trace) {
