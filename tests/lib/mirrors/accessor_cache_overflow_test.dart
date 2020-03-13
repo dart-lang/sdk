@@ -32,7 +32,7 @@ main() {
     'E',
     'F'
   ];
-  var symbols = new List();
+  var symbols = <dynamic>[];
   for (var high in digits) {
     for (var low in digits) {
       symbols.add(MirrorSystem.getSymbol("v$high$low"));
