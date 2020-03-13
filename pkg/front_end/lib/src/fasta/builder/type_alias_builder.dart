@@ -186,7 +186,8 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   }
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -236,7 +237,8 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     DartType thisType = buildThisType(library);
     if (thisType is InvalidType) return thisType;
     // TODO(dmitryas): Remove the following comment when FutureOr has its own

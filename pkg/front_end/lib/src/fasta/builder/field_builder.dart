@@ -270,7 +270,10 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
 
   void build(SourceLibraryBuilder libraryBuilder) {
     if (type != null) {
-      fieldType = type.build(libraryBuilder, null, isStatic);
+      // notInstanceContext is set to true for extension fields as they
+      // ultimately become static.
+      fieldType =
+          type.build(libraryBuilder, null, isStatic || isExtensionMember);
     }
     _fieldEncoding.build(libraryBuilder, this);
   }

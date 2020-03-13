@@ -252,7 +252,8 @@ class NamedTypeBuilder extends TypeBuilder {
       }
     }
 
-    return declaration.buildType(library, nullabilityBuilder, arguments);
+    return declaration.buildType(
+        library, nullabilityBuilder, arguments, notInstanceContext);
   }
 
   Supertype buildSupertype(

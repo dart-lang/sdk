@@ -373,7 +373,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
-        VariableDeclaration parameter = formal.build(library, 0);
+        VariableDeclaration parameter = formal.build(
+            library, 0, !isConstructor && !isDeclarationInstanceMember);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
             parameter.isGenericCovariantImpl = true;
@@ -427,7 +428,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       result.requiredParameterCount = 1;
     }
     if (returnType != null) {
-      result.returnType = returnType.build(library);
+      result.returnType = returnType.build(
+          library, null, !isConstructor && !isDeclarationInstanceMember);
     }
     if (!isConstructor && !isDeclarationInstanceMember) {
       List<TypeParameter> typeParameters;

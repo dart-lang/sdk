@@ -32,6 +32,7 @@ extensions/explicit_this: TextSerializationFailure
 extensions/export_twice: TextSerializationFailure
 extensions/extension_call: TextSerializationFailure
 extensions/extension_constructor: TextSerializationFailure
+extensions/extension_field_with_type_parameter_usage: TextSerializationFailure
 extensions/extension_methods: TextSerializationFailure
 extensions/extension_setter: TextSerializationFailure
 extensions/extension_setter_error: TypeCheckError

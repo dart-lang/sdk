@@ -1,0 +1,84 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:6:5: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   U field1 = null;
+//     ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:7:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int field2 = () { U x = null; return null; }();
+//       ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:8:11: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   List<U> field3 = null;
+//           ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:9:17: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   U Function(U) field4 = null;
+//                 ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:10:29: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   List<U> Function(List<U>) field5 = null;
+//                             ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:11:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int field6 = <E>() { E x = null; return null; }<String>();
+//       ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:12:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int field7 = <E>() { E x = null; return null; }<U>();
+//       ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:6:3: Error: Type variables can't be used in static members.
+//   U field1 = null;
+//   ^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:8:8: Error: Type variables can't be used in static members.
+//   List<U> field3 = null;
+//        ^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:9:3: Error: Type variables can't be used in static members.
+//   U Function(U) field4 = null;
+//   ^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:9:14: Error: Type variables can't be used in static members.
+//   U Function(U) field4 = null;
+//              ^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:10:8: Error: Type variables can't be used in static members.
+//   List<U> Function(List<U>) field5 = null;
+//        ^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:10:25: Error: Type variables can't be used in static members.
+//   List<U> Function(List<U>) field5 = null;
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension E<U extends core::Object* = dynamic> on core::String* {
+  field field1 = self::E|field1;
+  field field2 = self::E|field2;
+  field field3 = self::E|field3;
+  field field4 = self::E|field4;
+  field field5 = self::E|field5;
+  field field6 = self::E|field6;
+  field field7 = self::E|field7;
+}
+static field invalid-type E|field1;
+static field core::int* E|field2;
+static field core::List<invalid-type>* E|field3;
+static field (invalid-type) →* invalid-type E|field4;
+static field (core::List<invalid-type>*) →* core::List<invalid-type>* E|field5;
+static field core::int* E|field6;
+static field core::int* E|field7;
+static method main() → dynamic
+  ;

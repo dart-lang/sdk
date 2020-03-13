@@ -646,14 +646,6 @@ TypeArgumentsOnTypeVariable/part_wrapped_script1: Fail
 TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/example: Fail
 TypeVariableDuplicatedName/example: Fail
-TypeVariableInStaticContext/declaration1: Fail # Unfortunate message from outline phase.
-TypeVariableInStaticContext/declaration2: Fail # Unfortunate message from outline phase.
-TypeVariableInStaticContext/declaration3: Fail # Unfortunate message from outline phase.
-TypeVariableInStaticContext/declaration4: Fail # Unfortunate message from outline phase.
-TypeVariableInStaticContext/part_wrapped_declaration1: Fail
-TypeVariableInStaticContext/part_wrapped_declaration2: Fail
-TypeVariableInStaticContext/part_wrapped_declaration3: Fail
-TypeVariableInStaticContext/part_wrapped_declaration4: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
 TypedefNotType/example: Fail # Feature not yet enabled by default.

@@ -74,7 +74,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     throw new UnsupportedError("ExtensionBuilder.buildType is not supported.");
   }
 

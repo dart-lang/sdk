@@ -337,7 +337,8 @@ class EnumBuilder extends SourceClassBuilder {
   TypeBuilder get mixedInType => null;
 
   InterfaceType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     return rawType(nullabilityBuilder.build(library));
   }
 
