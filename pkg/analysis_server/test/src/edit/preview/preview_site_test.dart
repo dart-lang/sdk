@@ -32,7 +32,7 @@ class PreviewSiteTest with ResourceProviderMixin {
     state = MigrationState(null, null, dartfixListener, null, null);
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
-    site = PreviewSite(state);
+    site = PreviewSite(state, () => null);
   }
 
   void test_applyChangesEmpty() {

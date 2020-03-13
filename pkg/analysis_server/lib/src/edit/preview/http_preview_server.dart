@@ -32,8 +32,11 @@ class HttpPreviewServer {
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer> _serverFuture;
 
+  // A function which allows the migration to be rerun.
+  final Future<MigrationState> Function() rerunFunction;
+
   /// Initialize a newly created HTTP server.
-  HttpPreviewServer(this.migrationState);
+  HttpPreviewServer(this.migrationState, this.rerunFunction);
 
   /// Return the port this server is bound to.
   Future<int> get boundPort async {
@@ -70,13 +73,13 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    previewSite ??= PreviewSite(migrationState);
+    previewSite ??= PreviewSite(migrationState, rerunFunction);
     await previewSite.handleGetRequest(request);
   }
 
   /// Handle a POST request received by the HTTP server.
   Future<void> _handlePostRequest(HttpRequest request) async {
-    previewSite ??= PreviewSite(migrationState);
+    previewSite ??= PreviewSite(migrationState, rerunFunction);
     await previewSite.handlePostRequest(request);
   }
 

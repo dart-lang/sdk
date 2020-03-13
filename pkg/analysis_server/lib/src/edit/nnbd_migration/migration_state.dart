@@ -44,7 +44,7 @@ class MigrationState {
       this.instrumentationListener, this.adapter);
 
   /// Refresh the state of the migration after the migration has been updated.
-  void refresh() async {
+  Future<void> refresh() async {
     assert(!hasBeenApplied);
     OverlayResourceProvider provider = listener.server.resourceProvider;
     InfoBuilder infoBuilder = InfoBuilder(provider, includedRoot,

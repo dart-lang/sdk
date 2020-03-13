@@ -55,14 +55,12 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
+  Future<void> Function() rerunFunction;
+
   NonNullableFix(this.listener, {List<String> included = const []})
       : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
-    instrumentationListener = InstrumentationListener();
-    adapter = NullabilityMigrationAdapter(listener);
-    migration = NullabilityMigration(adapter,
-        permissive: _usePermissiveMode,
-        instrumentation: instrumentationListener);
+    reset();
   }
 
   @override
@@ -76,15 +74,15 @@ class NonNullableFix extends FixCodeTask {
 
   @override
   Future<void> finish() async {
-    migration.finish();
-
-    var state = MigrationState(
+    final state = MigrationState(
         migration, includedRoot, listener, instrumentationListener, adapter);
     await state.refresh();
 
-    server = HttpPreviewServer(state);
-    server.serveHttp();
-    port = await server.boundPort;
+    if (server == null) {
+      server = HttpPreviewServer(state, rerun);
+      server.serveHttp();
+      port = await server.boundPort;
+    }
   }
 
   /// If the package contains an analysis_options.yaml file, then update the
@@ -218,6 +216,23 @@ analyzer:
         - non-nullable
 ''');
     _packageIsNNBD = false;
+  }
+
+  Future<MigrationState> rerun() async {
+    reset();
+    await rerunFunction();
+    final state = MigrationState(
+        migration, includedRoot, listener, instrumentationListener, adapter);
+    await state.refresh();
+    return state;
+  }
+
+  void reset() {
+    instrumentationListener = InstrumentationListener();
+    adapter = NullabilityMigrationAdapter(listener);
+    migration = NullabilityMigration(adapter,
+        permissive: _usePermissiveMode,
+        instrumentation: instrumentationListener);
   }
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,

@@ -121,6 +121,9 @@ class EditDartFix
       };
     });
 
+    // Set up the rerun function on the NNBD migration for interactivity.
+    nonNullableFixTask?.rerunFunction = runAllTasks;
+
     bool hasErrors;
     try {
       hasErrors = await runAllTasks();
