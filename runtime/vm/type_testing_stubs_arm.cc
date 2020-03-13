@@ -53,10 +53,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     const AbstractType& type_arg,
     intptr_t type_param_value_offset_i,
     compiler::Label* check_failed) {
-  const Register kInstantiatorTypeArgumentsReg = R2;
-  const Register kFunctionTypeArgumentsReg = R1;
   const Register kInstanceTypeArguments = R4;
-
   const Register kClassIdReg = R9;
   const Register kOwnTypeArgumentValue = TMP;
 

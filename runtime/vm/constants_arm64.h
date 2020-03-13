@@ -142,6 +142,15 @@ const Register kWriteBarrierSlotReg = R25;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = R1;
 
+// ABI for instantiation stubs.
+const Register kUninstantiatedTypeArgumentsReg = R3;
+const Register kInstantiatorTypeArgumentsReg = R2;
+const Register kFunctionTypeArgumentsReg = R1;
+const Register kResultTypeArgumentsReg = R0;
+
+// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
+// of reusing the constants of the instantiation stubs ABI.
+
 // Masks, sizes, etc.
 const int kXRegSizeInBits = 64;
 const int kWRegSizeInBits = 32;

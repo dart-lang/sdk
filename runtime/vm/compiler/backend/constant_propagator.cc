@@ -923,67 +923,94 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
 }
 
 void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
-  const Object& object =
-      instr->instantiator_type_arguments()->definition()->constant_value();
-  if (IsNonConstant(object)) {
-    SetValue(instr, non_constant_);
-    return;
-  }
-  if (IsConstant(object)) {
-    if (instr->type().IsTypeParameter() &&
-        TypeParameter::Cast(instr->type()).IsClassTypeParameter()) {
-      if (object.IsNull()) {
-        SetValue(instr, Object::dynamic_type());
-        return;
-      }
-      // We could try to instantiate the type parameter and return it if no
-      // malformed error is reported.
+  TypeArguments& instantiator_type_args = TypeArguments::Handle(Z);
+  TypeArguments& function_type_args = TypeArguments::Handle(Z);
+  if (!instr->type().IsInstantiated(kCurrentClass)) {
+    // Type refers to class type parameters.
+    const Object& instantiator_type_args_obj =
+        instr->instantiator_type_arguments()->definition()->constant_value();
+    if (IsNonConstant(instantiator_type_args_obj)) {
+      SetValue(instr, non_constant_);
+      return;
     }
-    SetValue(instr, non_constant_);
+    if (IsConstant(instantiator_type_args_obj)) {
+      instantiator_type_args ^= instantiator_type_args_obj.raw();
+    } else {
+      return;
+    }
   }
-  // TODO(regis): We can do the same as above for a function type parameter.
-  // Better: If both instantiator type arguments and function type arguments are
-  // constant, instantiate the type if no bound error is reported.
+  if (!instr->type().IsInstantiated(kFunctions)) {
+    // Type refers to function type parameters.
+    const Object& function_type_args_obj =
+        instr->function_type_arguments()->definition()->constant_value();
+    if (IsNonConstant(function_type_args_obj)) {
+      SetValue(instr, non_constant_);
+      return;
+    }
+    if (IsConstant(function_type_args_obj)) {
+      function_type_args ^= function_type_args_obj.raw();
+    } else {
+      return;
+    }
+  }
+  AbstractType& result = AbstractType::Handle(
+      Z,
+      instr->type().InstantiateFrom(instantiator_type_args, function_type_args,
+                                    kAllFree, nullptr, Heap::kOld));
+  ASSERT(result.IsInstantiated());
+  result = result.Canonicalize();
+  SetValue(instr, result);
 }
 
 void ConstantPropagator::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsInstr* instr) {
-  const Object& instantiator_type_args =
-      instr->instantiator_type_arguments()->definition()->constant_value();
-  const Object& function_type_args =
-      instr->function_type_arguments()->definition()->constant_value();
-  if (IsNonConstant(instantiator_type_args) ||
-      IsNonConstant(function_type_args)) {
-    SetValue(instr, non_constant_);
-    return;
-  }
-  if (IsConstant(instantiator_type_args) && IsConstant(function_type_args)) {
-    if (instantiator_type_args.IsNull() && function_type_args.IsNull()) {
-      const intptr_t len = instr->type_arguments().Length();
-      if (instr->type_arguments().IsRawWhenInstantiatedFromRaw(len)) {
+  TypeArguments& instantiator_type_args = TypeArguments::Handle(Z);
+  TypeArguments& function_type_args = TypeArguments::Handle(Z);
+  if (!instr->type_arguments().IsInstantiated(kCurrentClass)) {
+    // Type arguments refer to class type parameters.
+    const Object& instantiator_type_args_obj =
+        instr->instantiator_type_arguments()->definition()->constant_value();
+    if (IsNonConstant(instantiator_type_args_obj)) {
+      SetValue(instr, non_constant_);
+      return;
+    }
+    if (IsConstant(instantiator_type_args_obj)) {
+      instantiator_type_args ^= instantiator_type_args_obj.raw();
+      if (instr->type_arguments().CanShareInstantiatorTypeArguments(
+              instr->instantiator_class())) {
         SetValue(instr, instantiator_type_args);
         return;
       }
-    }
-    if (instr->type_arguments().CanShareInstantiatorTypeArguments(
-            instr->instantiator_class())) {
-      SetValue(instr, instantiator_type_args);
+    } else {
       return;
     }
-    if (instr->type_arguments().CanShareFunctionTypeArguments(
-            instr->function())) {
-      SetValue(instr, function_type_args);
-      return;
-    }
-    SetValue(instr, non_constant_);
   }
-  // TODO(regis): If both instantiator type arguments and function type
-  // arguments are constant, instantiate the type arguments if no bound error
-  // is reported.
-  // TODO(regis): If either instantiator type arguments or function type
-  // arguments are constant null, check
-  // type_arguments().IsRawWhenInstantiatedFromRaw() separately for each
-  // genericity.
+  if (!instr->type_arguments().IsInstantiated(kFunctions)) {
+    // Type arguments refer to function type parameters.
+    const Object& function_type_args_obj =
+        instr->function_type_arguments()->definition()->constant_value();
+    if (IsNonConstant(function_type_args_obj)) {
+      SetValue(instr, non_constant_);
+      return;
+    }
+    if (IsConstant(function_type_args_obj)) {
+      function_type_args ^= function_type_args_obj.raw();
+      if (instr->type_arguments().CanShareFunctionTypeArguments(
+              instr->function())) {
+        SetValue(instr, function_type_args);
+        return;
+      }
+    } else {
+      return;
+    }
+  }
+  TypeArguments& result =
+      TypeArguments::Handle(Z, instr->type_arguments().InstantiateFrom(
+                                   instantiator_type_args, function_type_args,
+                                   kAllFree, nullptr, Heap::kOld));
+  ASSERT(result.IsInstantiated());
+  result = result.Canonicalize();
+  SetValue(instr, result);
 }
 
 void ConstantPropagator::VisitAllocateContext(AllocateContextInstr* instr) {

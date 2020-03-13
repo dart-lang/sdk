@@ -417,6 +417,8 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
       s->Write<bool>(type_args->IsCanonical());
       intptr_t hash = Smi::Value(type_args->ptr()->hash_);
       s->Write<int32_t>(hash);
+      const intptr_t nullability = Smi::Value(type_args->ptr()->nullability_);
+      s->WriteUnsigned(nullability);
       WriteField(type_args, instantiations_);
       for (intptr_t j = 0; j < length; j++) {
         s->WriteElementRef(type_args->ptr()->types()[j], j);
@@ -457,6 +459,7 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
                                      is_canonical);
       type_args->ptr()->length_ = Smi::New(length);
       type_args->ptr()->hash_ = Smi::New(d->Read<int32_t>());
+      type_args->ptr()->nullability_ = Smi::New(d->ReadUnsigned());
       type_args->ptr()->instantiations_ =
           reinterpret_cast<RawArray*>(d->ReadRef());
       for (intptr_t j = 0; j < length; j++) {

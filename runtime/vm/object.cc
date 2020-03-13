@@ -5573,6 +5573,40 @@ void Class::RehashConstants(Zone* zone) const {
   set.Release();
 }
 
+intptr_t TypeArguments::ComputeNullability() const {
+  if (IsNull()) return 0;
+  const intptr_t num_types = Length();
+  intptr_t result = 0;
+  if (num_types <= kNullabilityMaxTypes) {
+    AbstractType& type = AbstractType::Handle();
+    for (intptr_t i = 0; i < num_types; i++) {
+      result <<= kNullabilityBitsPerType;
+      type = TypeAt(i);
+      if (!type.IsNull() && !type.IsNullTypeRef()) {
+        switch (type.nullability()) {
+          case Nullability::kNullable:
+            result |= kNullableBits;
+            break;
+          case Nullability::kNonNullable:
+            result |= kNonNullableBits;
+            break;
+          case Nullability::kLegacy:
+            result |= kLegacyBits;
+            break;
+          default:
+            UNREACHABLE();
+        }
+      }
+    }
+  }
+  set_nullability(result);
+  return result;
+}
+
+void TypeArguments::set_nullability(intptr_t value) const {
+  StoreSmi(&raw_ptr()->nullability_, Smi::New(value));
+}
+
 intptr_t TypeArguments::ComputeHash() const {
   if (IsNull()) return 0;
   const intptr_t num_types = Length();
@@ -5810,6 +5844,13 @@ intptr_t TypeArguments::Length() const {
   return Smi::Value(raw_ptr()->length_);
 }
 
+intptr_t TypeArguments::nullability() const {
+  if (IsNull()) {
+    return 0;
+  }
+  return Smi::Value(raw_ptr()->nullability_);
+}
+
 RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
   ASSERT(!IsNull());
   return *TypeAddr(index);
@@ -5883,9 +5924,14 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
 
 // Return true if this uninstantiated type argument vector, once instantiated
 // at runtime, is a prefix of the type argument vector of its instantiator.
+// A runtime check may be required, as indicated by with_runtime_check.
 bool TypeArguments::CanShareInstantiatorTypeArguments(
-    const Class& instantiator_class) const {
+    const Class& instantiator_class,
+    bool* with_runtime_check) const {
   ASSERT(!IsInstantiated());
+  if (with_runtime_check != nullptr) {
+    *with_runtime_check = false;
+  }
   const intptr_t num_type_args = Length();
   const intptr_t num_instantiator_type_args =
       instantiator_class.NumTypeArguments();
@@ -5923,6 +5969,19 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
     if ((type_param.index() != i) || type_param.IsFunctionTypeParameter()) {
       return false;
     }
+    // Instantiating nullable and legacy type parameters may change nullability
+    // of a type, so type arguments vector containing such type parameters
+    // cannot be substituted with instantiator type arguments, unless we check
+    // at runtime the nullability of the first 1 or 2 type arguments of the
+    // instantiator.
+    // Note that the presence of non-overlapping super type arguments (i.e.
+    // first_type_param_offset > 0) will prevent this optimization.
+    if (type_param.IsNullable() || type_param.IsLegacy()) {
+      if (with_runtime_check == nullptr || i >= kNullabilityMaxTypes) {
+        return false;
+      }
+      *with_runtime_check = true;
+    }
   }
   // As a second requirement, the type arguments corresponding to the super type
   // must be identical. Overlapping ones have already been checked starting at
@@ -5953,9 +6012,14 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
 
 // Return true if this uninstantiated type argument vector, once instantiated
 // at runtime, is a prefix of the enclosing function type arguments.
+// A runtime check may be required, as indicated by with_runtime_check.
 bool TypeArguments::CanShareFunctionTypeArguments(
-    const Function& function) const {
+    const Function& function,
+    bool* with_runtime_check) const {
   ASSERT(!IsInstantiated());
+  if (with_runtime_check != nullptr) {
+    *with_runtime_check = false;
+  }
   const intptr_t num_type_args = Length();
   const intptr_t num_parent_type_params = function.NumParentTypeParameters();
   const intptr_t num_function_type_params = function.NumTypeParameters();
@@ -5975,6 +6039,17 @@ bool TypeArguments::CanShareFunctionTypeArguments(
     ASSERT(type_param.IsFinalized());
     if ((type_param.index() != i) || !type_param.IsFunctionTypeParameter()) {
       return false;
+    }
+    // Instantiating nullable and legacy type parameters may change nullability
+    // of a type, so type arguments vector containing such type parameters
+    // cannot be substituted with the enclosing function type arguments, unless
+    // we check at runtime the nullability of the first 1 or 2 type arguments of
+    // the enclosing function type arguments.
+    if (type_param.IsNullable() || type_param.IsLegacy()) {
+      if (with_runtime_check == nullptr || i >= kNullabilityMaxTypes) {
+        return false;
+      }
+      *with_runtime_check = true;
     }
   }
   return true;
@@ -6118,6 +6193,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
     // Length must be set before we start storing into the array.
     result.SetLength(len);
     result.SetHash(0);
+    result.set_nullability(0);
   }
   // The zero array should have been initialized.
   ASSERT(Object::zero_array().raw() != Array::null());
@@ -6173,9 +6249,9 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
       SetTypeAt(i, type_arg);
     }
     // Canonicalization of a type argument of a recursive type argument vector
-    // may change the hash of the vector, so recompute.
+    // may change the hash of the vector, so invalidate.
     if (IsRecursive()) {
-      ComputeHash();
+      SetHash(0);
     }
     SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
     CanonicalTypeArgumentsSet table(zone,
@@ -6192,6 +6268,7 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
         result = this->raw();
       }
       ASSERT(result.IsOld());
+      result.ComputeNullability();
       result.SetCanonical();  // Mark object as being canonical.
       // Now add this TypeArgument into the canonical list of type arguments.
       bool present = table.Insert(result);

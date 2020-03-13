@@ -2747,9 +2747,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   const Register kCacheReg = R3;
   const Register kInstanceReg = R0;
-  const Register kInstantiatorTypeArgumentsReg = R2;
-  const Register kFunctionTypeArgumentsReg = R1;
-
   const Register kInstanceCidOrFunction = R8;
   const Register kInstanceInstantiatorTypeArgumentsReg = R4;
   const Register kInstanceDelayedFunctionTypeArgumentsReg = PP;
@@ -2983,8 +2980,6 @@ void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
 static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
                                             TypeCheckMode mode) {
   const Register kInstanceReg = R0;
-  const Register kInstantiatorTypeArgumentsReg = R2;
-  const Register kFunctionTypeArgumentsReg = R1;
   const Register kDstTypeReg = R8;
   const Register kSubtypeTestCacheReg = R3;
 
@@ -3040,7 +3035,6 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
   const Register kInstanceReg = R0;
-  const Register kFunctionTypeArgumentsReg = R1;
   const Register kDstTypeReg = R8;
   const Register kSubtypeTestCacheReg = R3;
 
@@ -3561,6 +3555,107 @@ void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
 
 void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ bkpt(0);
+}
+
+// Instantiate type arguments from instantiator and function type args.
+// R3 uninstantiated type arguments.
+// R2 instantiator type arguments.
+// R1: function type arguments.
+// Returns instantiated type arguments in R0.
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
+    Assembler* assembler) {
+  // Lookup cache before calling runtime.
+  __ ldr(R0, compiler::FieldAddress(
+                 kUninstantiatedTypeArgumentsReg,
+                 target::TypeArguments::instantiations_offset()));
+  __ AddImmediate(R0, compiler::target::Array::data_offset() - kHeapObjectTag);
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
+  compiler::Label loop, next, found;
+  __ Bind(&loop);
+  __ ldr(R4, compiler::Address(
+                 R0, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                         target::kWordSize));
+  __ cmp(R4, compiler::Operand(kInstantiatorTypeArgumentsReg));
+  __ b(&next, NE);
+  // Using IP as destination register and reading it immediately is safe.
+  __ ldr(IP, compiler::Address(
+                 R0, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
+                         target::kWordSize));
+  __ cmp(IP, compiler::Operand(kFunctionTypeArgumentsReg));
+  __ b(&found, EQ);
+  __ Bind(&next);
+  __ AddImmediate(
+      R0, TypeArguments::Instantiation::kSizeInWords * target::kWordSize);
+  __ CompareImmediate(R4, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ b(&loop, NE);
+
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object());  // Make room for the result.
+  static_assert(
+      (kUninstantiatedTypeArgumentsReg > kInstantiatorTypeArgumentsReg) &&
+          (kInstantiatorTypeArgumentsReg > kFunctionTypeArgumentsReg),
+      "Should be ordered to push arguments with one instruction");
+  __ PushList((1 << kUninstantiatedTypeArgumentsReg) |
+              (1 << kInstantiatorTypeArgumentsReg) |
+              (1 << kFunctionTypeArgumentsReg));
+  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
+  __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
+  __ Pop(kResultTypeArgumentsReg);  // Pop instantiated type arguments.
+  __ LeaveStubFrame();
+  __ Ret();
+
+  __ Bind(&found);
+  __ ldr(kResultTypeArgumentsReg,
+         compiler::Address(
+             R0, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
+                     target::kWordSize));
+  __ Ret();
+}
+
+void StubCodeCompiler::
+    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
+        Assembler* assembler) {
+  // Return the instantiator type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ ldr(R0,
+         compiler::FieldAddress(kUninstantiatedTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
+  __ ldr(R4,
+         compiler::FieldAddress(kInstantiatorTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
+  __ and_(R4, R4, Operand(R0));
+  __ cmp(R4, Operand(R0));
+  __ b(&cache_lookup, NE);
+  __ mov(kResultTypeArgumentsReg, Operand(kInstantiatorTypeArgumentsReg));
+  __ Ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
+    Assembler* assembler) {
+  // Return the function type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ ldr(R0,
+         compiler::FieldAddress(kUninstantiatedTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
+  __ ldr(R4,
+         compiler::FieldAddress(kFunctionTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
+  __ and_(R4, R4, Operand(R0));
+  __ cmp(R4, Operand(R0));
+  __ b(&cache_lookup, NE);
+  __ mov(kResultTypeArgumentsReg, Operand(kFunctionTypeArgumentsReg));
+  __ Ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
 }  // namespace compiler

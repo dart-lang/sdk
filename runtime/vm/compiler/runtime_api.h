@@ -1232,6 +1232,7 @@ class Field : public AllStatic {
 class TypeArguments : public AllStatic {
  public:
   static word instantiations_offset();
+  static word nullability_offset();
   static word type_at_offset(intptr_t i);
   static word InstanceSize();
   static word NextFieldOffset();

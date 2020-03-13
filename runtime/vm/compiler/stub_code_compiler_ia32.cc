@@ -2907,6 +2907,107 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ int3();  // Marker stub.
 }
 
+// Instantiate type arguments from instantiator and function type args.
+// EBX: uninstantiated type arguments.
+// EDX: instantiator type arguments.
+// ECX: function type arguments.
+// Returns instantiated type arguments in EAX.
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
+    Assembler* assembler) {
+  // Lookup cache before calling runtime.
+  __ pushl(kUninstantiatedTypeArgumentsReg);  // Preserve reg.
+  __ movl(EAX, compiler::FieldAddress(
+                   kUninstantiatedTypeArgumentsReg,
+                   target::TypeArguments::instantiations_offset()));
+  __ leal(EAX, compiler::FieldAddress(EAX, Array::data_offset()));
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
+  compiler::Label loop, next, found;
+  __ Bind(&loop);
+  __ movl(EDI,
+          compiler::Address(
+              EAX, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                       target::kWordSize));
+  __ cmpl(EDI, kInstantiatorTypeArgumentsReg);
+  __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
+  __ movl(EBX, compiler::Address(
+                   EAX, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
+                            target::kWordSize));
+  __ cmpl(EBX, kFunctionTypeArgumentsReg);
+  __ j(EQUAL, &found, compiler::Assembler::kNearJump);
+  __ Bind(&next);
+  __ addl(EAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
+                                   target::kWordSize));
+  __ cmpl(EDI,
+          compiler::Immediate(Smi::RawValue(TypeArguments::kNoInstantiator)));
+  __ j(NOT_EQUAL, &loop, compiler::Assembler::kNearJump);
+
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ popl(kUninstantiatedTypeArgumentsReg);  // Restore reg.
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object());  // Make room for the result.
+  __ pushl(kUninstantiatedTypeArgumentsReg);
+  __ pushl(kInstantiatorTypeArgumentsReg);  // Push instantiator type arguments.
+  __ pushl(kFunctionTypeArgumentsReg);      // Push function type arguments.
+  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
+  __ Drop(3);  // Drop 2 type vectors, and uninstantiated args.
+  __ popl(kResultTypeArgumentsReg);  // Pop instantiated type arguments.
+  __ LeaveFrame();
+  __ ret();
+
+  __ Bind(&found);
+  __ popl(kUninstantiatedTypeArgumentsReg);  // Drop reg.
+  __ movl(kResultTypeArgumentsReg,
+          compiler::Address(
+              EAX, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
+                       target::kWordSize));
+  __ ret();
+}
+
+void StubCodeCompiler::
+    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
+        Assembler* assembler) {
+  // Return the instantiator type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ movl(EAX,
+          compiler::FieldAddress(kUninstantiatedTypeArgumentsReg,
+                                 target::TypeArguments::nullability_offset()));
+  __ movl(EDI,
+          compiler::FieldAddress(kInstantiatorTypeArgumentsReg,
+                                 target::TypeArguments::nullability_offset()));
+  __ andl(EDI, EAX);
+  __ cmpl(EDI, EAX);
+  __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
+  __ movl(kResultTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
+  __ ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
+    Assembler* assembler) {
+  // Return the function type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ movl(EAX,
+          compiler::FieldAddress(kUninstantiatedTypeArgumentsReg,
+                                 target::TypeArguments::nullability_offset()));
+  __ movl(EDI,
+          compiler::FieldAddress(kFunctionTypeArgumentsReg,
+                                 target::TypeArguments::nullability_offset()));
+  __ andl(EDI, EAX);
+  __ cmpl(EDI, EAX);
+  __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
+  __ movl(kResultTypeArgumentsReg, kFunctionTypeArgumentsReg);
+  __ ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
 }  // namespace compiler
 
 }  // namespace dart

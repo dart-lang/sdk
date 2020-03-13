@@ -6176,6 +6176,20 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  const Code& GetStub() const {
+    bool with_runtime_check;
+    if (type_arguments().CanShareInstantiatorTypeArguments(
+            instantiator_class(), &with_runtime_check)) {
+      ASSERT(with_runtime_check);
+      return StubCode::InstantiateTypeArgumentsMayShareInstantiatorTA();
+    } else if (type_arguments().CanShareFunctionTypeArguments(
+                   function(), &with_runtime_check)) {
+      ASSERT(with_runtime_check);
+      return StubCode::InstantiateTypeArgumentsMayShareFunctionTA();
+    }
+    return StubCode::InstantiateTypeArguments();
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:

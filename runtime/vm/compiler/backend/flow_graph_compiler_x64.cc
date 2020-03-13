@@ -466,8 +466,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
   const Register kInstanceReg = RAX;
-  const Register kInstantiatorTypeArgumentsReg = RDX;
-  const Register kFunctionTypeArgumentsReg = RCX;
   const Register kTempReg = kNoRegister;
   __ Comment("UninstantiatedTypeTest");
   ASSERT(!type.IsInstantiated());
@@ -478,8 +476,9 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 
     // RDX: instantiator type arguments.
     // RCX: function type arguments.
-    const Register kTypeArgumentsReg =
-        type_param.IsClassTypeParameter() ? RDX : RCX;
+    const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
+                                           ? kInstantiatorTypeArgumentsReg
+                                           : kFunctionTypeArgumentsReg;
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ j(EQUAL, is_instance_lbl);
@@ -541,8 +540,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateFunctionTypeTest(
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
   const Register kInstanceReg = RAX;
-  const Register kInstantiatorTypeArgumentsReg = RDX;
-  const Register kFunctionTypeArgumentsReg = RCX;
   const Register kTempReg = kNoRegister;
   __ Comment("FunctionTypeTest");
 
@@ -648,8 +645,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     __ PushObject(Object::null_object());  // Make room for the result.
     __ pushq(RAX);                         // Push the instance.
     __ PushObject(type);                   // Push the type.
-    __ pushq(RDX);                         // Instantiator type arguments.
-    __ pushq(RCX);                         // Function type arguments.
+    __ pushq(kInstantiatorTypeArgumentsReg);
+    __ pushq(kFunctionTypeArgumentsReg);
     __ LoadUniqueObject(RAX, test_cache);
     __ pushq(RAX);
     GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
@@ -690,9 +687,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(!dst_type.IsTopTypeForAssignability());
-
-  const Register kInstantiatorTypeArgumentsReg = RDX;
-  const Register kFunctionTypeArgumentsReg = RCX;
 
   if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
     GenerateAssertAssignableViaTypeTestingStub(token_pos, deopt_id, dst_type,
@@ -737,8 +731,6 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const String& dst_name,
     LocationSummary* locs) {
   const Register kInstanceReg = RAX;
-  const Register kInstantiatorTypeArgumentsReg = RDX;
-  const Register kFunctionTypeArgumentsReg = RCX;
 
   compiler::Label done;
 

@@ -310,6 +310,15 @@ const Register kWriteBarrierSlotReg = R9;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = R3;
 
+// ABI for instantiation stubs.
+const Register kUninstantiatedTypeArgumentsReg = R3;
+const Register kInstantiatorTypeArgumentsReg = R2;
+const Register kFunctionTypeArgumentsReg = R1;
+const Register kResultTypeArgumentsReg = R0;
+
+// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
+// of reusing the constants of the instantiation stubs ABI.
+
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;

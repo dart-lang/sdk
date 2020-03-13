@@ -213,8 +213,8 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
 }
 
 // R0: instance (must be preserved).
-// R1: instantiator type arguments (if used).
-// R2: function type arguments (if used).
+// R2: instantiator type arguments (if used).
+// R1: function type arguments (if used).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     Register instance_reg,
@@ -237,12 +237,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     ASSERT(function_type_arguments_reg == kNoRegister);
     __ BranchLink(StubCode::Subtype2TestCache());
   } else if (test_kind == kTestTypeFourArgs) {
-    ASSERT(instantiator_type_arguments_reg == R1);
-    ASSERT(function_type_arguments_reg == R2);
+    ASSERT(instantiator_type_arguments_reg == kInstantiatorTypeArgumentsReg);
+    ASSERT(function_type_arguments_reg == kFunctionTypeArgumentsReg);
     __ BranchLink(StubCode::Subtype4TestCache());
   } else if (test_kind == kTestTypeSixArgs) {
-    ASSERT(instantiator_type_arguments_reg == R1);
-    ASSERT(function_type_arguments_reg == R2);
+    ASSERT(instantiator_type_arguments_reg == kInstantiatorTypeArgumentsReg);
+    ASSERT(function_type_arguments_reg == kFunctionTypeArgumentsReg);
     __ BranchLink(StubCode::Subtype6TestCache());
   } else {
     UNREACHABLE();
@@ -441,8 +441,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     compiler::Label* is_not_instance_lbl) {
   __ Comment("UninstantiatedTypeTest");
   const Register kInstanceReg = R0;
-  const Register kInstantiatorTypeArgumentsReg = R1;
-  const Register kFunctionTypeArgumentsReg = R2;
   const Register kTempReg = kNoRegister;
   ASSERT(!type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
@@ -450,8 +448,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
 
-    // Get instantiator type args (high, R1) and function type args (low, R2).
-    __ ldp(R2, R1,
+    // Get instantiator type args (high) and function type args (low).
+    __ ldp(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg,
            compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
     const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
                                            ? kInstantiatorTypeArgumentsReg
@@ -514,8 +512,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateFunctionTypeTest(
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
   const Register kInstanceReg = R0;
-  const Register kInstantiatorTypeArgumentsReg = R1;
-  const Register kFunctionTypeArgumentsReg = R2;
   __ BranchIfSmi(kInstanceReg, is_not_instance_lbl);
   __ ldp(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg,
          compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
@@ -530,12 +526,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateFunctionTypeTest(
 
 // Inputs:
 // - R0: instance being type checked (preserved).
-// - R1: optional instantiator type arguments (preserved).
-// - R2: optional function type arguments (preserved).
+// - R2: optional instantiator type arguments (preserved).
+// - R1: optional function type arguments (preserved).
 // Clobbers R3, R4, R8, R9.
 // Returns:
-// - preserved instance in R0, optional instantiator type arguments in R1, and
-//   optional function type arguments in R2.
+// - preserved instance in R0, optional instantiator type arguments in R2, and
+//   optional function type arguments in R1.
 // Note that this inlined code must be followed by the runtime_call code, as it
 // may fall through to it. Otherwise, this inline code will jump to the label
 // is_instance or to the label is_not_instance.
@@ -583,8 +579,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - R0: object.
-// - R1: instantiator type arguments or raw_null.
-// - R2: function type arguments or raw_null.
+// - R2: instantiator type arguments or raw_null.
+// - R1: function type arguments or raw_null.
 // Returns:
 // - true or false in R0.
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
@@ -593,8 +589,6 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsTopType());  // Already checked.
-  const Register kInstantiatorTypeArgumentsReg = R1;
-  const Register kFunctionTypeArgumentsReg = R2;
   __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
 
   compiler::Label is_instance, is_not_instance;
@@ -623,8 +617,6 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   compiler::Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    const Register kInstantiatorTypeArgumentsReg = R1;
-    const Register kFunctionTypeArgumentsReg = R2;
     __ ldp(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg,
            compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
     __ PushPair(R0, NULL_REG);  // Make room for the result and
@@ -658,8 +650,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - R0: instance being type checked.
-// - R1: instantiator type arguments or raw_null.
-// - R2: function type arguments or raw_null.
+// - R2: instantiator type arguments or raw_null.
+// - R1: function type arguments or raw_null.
 // Returns:
 // - object in R0 for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
@@ -674,9 +666,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(!dst_type.IsTopTypeForAssignability());
-
-  const Register kInstantiatorTypeArgumentsReg = R1;
-  const Register kFunctionTypeArgumentsReg = R2;
 
   if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
     GenerateAssertAssignableViaTypeTestingStub(token_pos, deopt_id, dst_type,
@@ -727,9 +716,6 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const String& dst_name,
     LocationSummary* locs) {
   const Register kInstanceReg = R0;
-  const Register kInstantiatorTypeArgumentsReg = R1;
-  const Register kFunctionTypeArgumentsReg = R2;
-
   const Register kSubtypeTestCacheReg = R3;
   const Register kDstTypeReg = R8;
   const Register kRegToCall = dst_type.IsTypeParameter() ? R9 : kDstTypeReg;

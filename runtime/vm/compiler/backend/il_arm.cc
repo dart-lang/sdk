@@ -668,8 +668,6 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   // all the other registers as temporary registers.
   // TODO(http://dartbug.com/32788): Simplify this.
   const Register kInstanceReg = R0;
-  const Register kInstantiatorTypeArgumentsReg = R2;
-  const Register kFunctionTypeArgumentsReg = R1;
 
   const bool using_stub =
       FlowGraphCompiler::ShouldUseTypeTestingStubFor(opt, dst_type());
@@ -701,11 +699,8 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
       zone, kNumInputs, kNumTemps,
       using_stub ? LocationSummary::kCallCalleeSafe : LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(kInstanceReg));  // Value.
-  summary->set_in(1,
-                  Location::RegisterLocation(
-                      kInstantiatorTypeArgumentsReg));  // Instant. type args.
-  summary->set_in(2, Location::RegisterLocation(
-                         kFunctionTypeArgumentsReg));  // Function type args.
+  summary->set_in(1, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
+  summary->set_in(2, Location::RegisterLocation(kFunctionTypeArgumentsReg));
 
   // TODO(http://dartbug.com/32787): Use Location::SameAsFirstInput() instead,
   // once register allocator no longer hits assertion.
@@ -740,8 +735,8 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R2));  // Instant. type args.
-  summary->set_in(1, Location::RegisterLocation(R1));  // Function type args.
+  summary->set_in(0, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
+  summary->set_in(1, Location::RegisterLocation(kFunctionTypeArgumentsReg));
   return summary;
 }
 
@@ -3006,16 +3001,16 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // Instance.
-  summary->set_in(1, Location::RegisterLocation(R2));  // Instant. type args.
-  summary->set_in(2, Location::RegisterLocation(R1));  // Function type args.
+  summary->set_in(1, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
+  summary->set_in(2, Location::RegisterLocation(kFunctionTypeArgumentsReg));
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R0);  // Value.
-  ASSERT(locs()->in(1).reg() == R2);  // Instantiator type arguments.
-  ASSERT(locs()->in(2).reg() == R1);  // Function type arguments.
+  ASSERT(locs()->in(1).reg() == kInstantiatorTypeArgumentsReg);
+  ASSERT(locs()->in(2).reg() == kFunctionTypeArgumentsReg);
 
   compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == R0);
@@ -3320,8 +3315,8 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(R1));  // Instant. type args.
-  locs->set_in(1, Location::RegisterLocation(R0));  // Function type args.
+  locs->set_in(0, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(kFunctionTypeArgumentsReg));
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
@@ -3336,6 +3331,8 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // A runtime call to instantiate the type is required.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ PushObject(type());
+  static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+                "Should be ordered to push arguments with one instruction");
   __ PushList((1 << instantiator_type_args_reg) |
               (1 << function_type_args_reg));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
@@ -3351,9 +3348,9 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(R1));  // Instant. type args.
-  locs->set_in(1, Location::RegisterLocation(R0));  // Function type args.
-  locs->set_out(0, Location::RegisterLocation(R0));
+  locs->set_in(0, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(kFunctionTypeArgumentsReg));
+  locs->set_out(0, Location::RegisterLocation(kResultTypeArgumentsReg));
   return locs;
 }
 
@@ -3362,74 +3359,27 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   const Register instantiator_type_args_reg = locs()->in(0).reg();
   const Register function_type_args_reg = locs()->in(1).reg();
   const Register result_reg = locs()->out(0).reg();
-  ASSERT(instantiator_type_args_reg == R1);
-  ASSERT(function_type_args_reg == R0);
 
   // 'instantiator_type_args_reg' is a TypeArguments object (or null).
   // 'function_type_args_reg' is a TypeArguments object (or null).
-  ASSERT(!type_arguments().CanShareInstantiatorTypeArguments(
-             instantiator_class()) &&
-         !type_arguments().CanShareFunctionTypeArguments(
-             compiler->parsed_function().function()));
+
   // If both the instantiator and function type arguments are null and if the
   // type argument vector instantiated from null becomes a vector of dynamic,
   // then use null as the type arguments.
   compiler::Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
   if (type_arguments().IsRawWhenInstantiatedFromRaw(len)) {
-    __ LoadObject(IP, Object::null_object());
-    __ cmp(instantiator_type_args_reg, compiler::Operand(IP));
-    __ cmp(function_type_args_reg, compiler::Operand(IP), EQ);
+    ASSERT(result_reg != instantiator_type_args_reg &&
+           result_reg != function_type_args_reg);
+    __ LoadObject(result_reg, Object::null_object());
+    __ cmp(instantiator_type_args_reg, compiler::Operand(result_reg));
+    __ cmp(function_type_args_reg, compiler::Operand(result_reg), EQ);
     __ b(&type_arguments_instantiated, EQ);
-    ASSERT(function_type_args_reg == result_reg);
   }
-
-  // Lookup cache before calling runtime.
-  // TODO(regis): Consider moving this into a shared stub to reduce
-  // generated code size.
-  __ LoadObject(R3, type_arguments());
-  __ ldr(R3, compiler::FieldAddress(
-                 R3, compiler::target::TypeArguments::instantiations_offset()));
-  __ AddImmediate(R3, compiler::target::Array::data_offset() - kHeapObjectTag);
-  // The instantiations cache is initialized with Object::zero_array() and is
-  // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found, slow_case;
-  __ Bind(&loop);
-  __ ldr(R2, compiler::Address(
-                 R3, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                         compiler::target::kWordSize));
-  __ cmp(R2, compiler::Operand(instantiator_type_args_reg));
-  __ b(&next, NE);
-  __ ldr(IP, compiler::Address(
-                 R3, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
-                         compiler::target::kWordSize));
-  __ cmp(IP, compiler::Operand(function_type_args_reg));
-  __ b(&found, EQ);
-  __ Bind(&next);
-  __ AddImmediate(R3, TypeArguments::Instantiation::kSizeInWords *
-                          compiler::target::kWordSize);
-  __ CompareImmediate(R2, Smi::RawValue(TypeArguments::kNoInstantiator));
-  __ b(&loop, NE);
-  __ b(&slow_case);
-  __ Bind(&found);
-  __ ldr(result_reg,
-         compiler::Address(
-             R3, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
-                     compiler::target::kWordSize));
-  __ b(&type_arguments_instantiated);
-
-  __ Bind(&slow_case);
-  // Instantiate non-null type arguments.
-  // A runtime call to instantiate the type arguments is required.
-  __ PushObject(Object::null_object());  // Make room for the result.
-  __ PushObject(type_arguments());
-  __ PushList((1 << instantiator_type_args_reg) |
-              (1 << function_type_args_reg));
-  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry, 3,
-                                locs());
-  __ Drop(3);          // Drop 2 type vectors, and uninstantiated type.
-  __ Pop(result_reg);  // Pop instantiated type arguments.
+  // Lookup cache in stub before calling runtime.
+  __ LoadObject(kUninstantiatedTypeArgumentsReg, type_arguments());
+  compiler->GenerateCall(token_pos(), GetStub(), RawPcDescriptors::kOther,
+                         locs());
   __ Bind(&type_arguments_instantiated);
 }
 

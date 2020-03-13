@@ -52,9 +52,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     intptr_t type_param_value_offset_i,
     compiler::Label* check_failed) {
   const Register kInstanceTypeArguments = RSI;
-  const Register kInstantiatorTypeArgumentsReg = RDX;
-  const Register kFunctionTypeArgumentsReg = RCX;
-
   const Register kClassIdReg = TMP;
   const Register kOwnTypeArgumentValue = RDI;
 

@@ -85,7 +85,10 @@ namespace dart {
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
-  V(CallNativeThroughSafepoint)
+  V(CallNativeThroughSafepoint)                                                \
+  V(InstantiateTypeArguments)                                                  \
+  V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
+  V(InstantiateTypeArgumentsMayShareFunctionTA)
 
 }  // namespace dart
 

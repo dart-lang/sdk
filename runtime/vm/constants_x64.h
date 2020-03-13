@@ -132,6 +132,15 @@ const Register kWriteBarrierSlotReg = R13;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = RDX;
 
+// ABI for instantiation stubs.
+const Register kUninstantiatedTypeArgumentsReg = RBX;
+const Register kInstantiatorTypeArgumentsReg = RDX;
+const Register kFunctionTypeArgumentsReg = RCX;
+const Register kResultTypeArgumentsReg = RAX;
+
+// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
+// of reusing the constants of the instantiation stubs ABI.
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
 const RegList kAllFpuRegistersList = 0xFFFF;
