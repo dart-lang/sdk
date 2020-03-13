@@ -31,6 +31,8 @@ import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/future_or.dart';
 
+import 'package:kernel/src/legacy_erasure.dart';
+
 import 'type_schema.dart' show UnknownType;
 
 import '../problems.dart';
@@ -270,13 +272,16 @@ abstract class StandardBounds {
   DartType getStandardLowerBound(
       DartType type1, DartType type2, Library clientLibrary) {
     if (clientLibrary.isNonNullableByDefault) {
-      return getNullabilityAwareStandardLowerBound(type1, type2, clientLibrary);
+      return _getNullabilityAwareStandardLowerBound(
+          type1, type2, clientLibrary);
     }
-    return getNullabilityObliviousStandardLowerBound(
-        type1, type2, clientLibrary);
+    return _getNullabilityObliviousStandardLowerBound(
+        legacyErasure(coreTypes, type1),
+        legacyErasure(coreTypes, type2),
+        clientLibrary);
   }
 
-  DartType getNullabilityAwareStandardLowerBound(
+  DartType _getNullabilityAwareStandardLowerBound(
       DartType type1, DartType type2, Library clientLibrary) {
     // DOWN(T, T) = T.
     if (identical(type1, type2)) return type1;
@@ -417,7 +422,7 @@ abstract class StandardBounds {
         intersectNullabilities(type1.nullability, type2.nullability));
   }
 
-  DartType getNullabilityObliviousStandardLowerBound(
+  DartType _getNullabilityObliviousStandardLowerBound(
       DartType type1, DartType type2, Library clientLibrary) {
     // Do legacy erasure on the argument, so that the result types that are
     // computed from arguments are legacy.
@@ -551,13 +556,16 @@ abstract class StandardBounds {
   DartType getStandardUpperBound(
       DartType type1, DartType type2, Library clientLibrary) {
     if (clientLibrary.isNonNullableByDefault) {
-      return getNullabilityAwareStandardUpperBound(type1, type2, clientLibrary);
+      return _getNullabilityAwareStandardUpperBound(
+          type1, type2, clientLibrary);
     }
-    return getNullabilityObliviousStandardUpperBound(
-        type1, type2, clientLibrary);
+    return _getNullabilityObliviousStandardUpperBound(
+        legacyErasure(coreTypes, type1),
+        legacyErasure(coreTypes, type2),
+        clientLibrary);
   }
 
-  DartType getNullabilityAwareStandardUpperBound(
+  DartType _getNullabilityAwareStandardUpperBound(
       DartType type1, DartType type2, Library clientLibrary) {
     // UP(T, T) = T
     if (identical(type1, type2)) return type1;
@@ -715,7 +723,7 @@ abstract class StandardBounds {
         for (int i = 0; i < n; ++i) {
           int variance = klass.typeParameters[i].variance;
           if (variance == Variance.contravariant) {
-            typeArguments[i] = getNullabilityAwareStandardLowerBound(
+            typeArguments[i] = _getNullabilityAwareStandardLowerBound(
                 leftArguments[i], rightArguments[i], clientLibrary);
           } else if (variance == Variance.invariant) {
             if (!areMutualSubtypes(leftArguments[i], rightArguments[i],
@@ -723,7 +731,7 @@ abstract class StandardBounds {
               return getLegacyLeastUpperBound(type1, type2, clientLibrary);
             }
           } else {
-            typeArguments[i] = getNullabilityAwareStandardUpperBound(
+            typeArguments[i] = _getNullabilityAwareStandardUpperBound(
                 leftArguments[i], rightArguments[i], clientLibrary);
           }
         }
@@ -833,7 +841,7 @@ abstract class StandardBounds {
     List<DartType> positionalParameters =
         new List<DartType>.filled(maxPos, null);
     for (int i = 0; i < minPos; ++i) {
-      positionalParameters[i] = getNullabilityAwareStandardUpperBound(
+      positionalParameters[i] = _getNullabilityAwareStandardUpperBound(
           f.positionalParameters[i],
           substitution.substituteType(g.positionalParameters[i]),
           clientLibrary);
@@ -870,7 +878,7 @@ abstract class StandardBounds {
         } else {
           named = new NamedType(
               named1.name,
-              getNullabilityAwareStandardUpperBound(named1.type,
+              _getNullabilityAwareStandardUpperBound(named1.type,
                   substitution.substituteType(named2.type), clientLibrary),
               isRequired: named1.isRequired && named2.isRequired);
           ++i;
@@ -894,7 +902,7 @@ abstract class StandardBounds {
       }
     }
 
-    DartType returnType = getNullabilityAwareStandardLowerBound(
+    DartType returnType = _getNullabilityAwareStandardLowerBound(
         f.returnType, substitution.substituteType(g.returnType), clientLibrary);
 
     return new FunctionType(positionalParameters, returnType,
@@ -1030,7 +1038,7 @@ abstract class StandardBounds {
     List<DartType> positionalParameters =
         new List<DartType>.filled(minPos, null);
     for (int i = 0; i < minPos; ++i) {
-      positionalParameters[i] = getNullabilityAwareStandardLowerBound(
+      positionalParameters[i] = _getNullabilityAwareStandardLowerBound(
           f.positionalParameters[i],
           substitution.substituteType(g.positionalParameters[i]),
           clientLibrary);
@@ -1053,7 +1061,7 @@ abstract class StandardBounds {
         } else {
           namedParameters.add(new NamedType(
               named1.name,
-              getNullabilityAwareStandardLowerBound(named1.type,
+              _getNullabilityAwareStandardLowerBound(named1.type,
                   substitution.substituteType(named2.type), clientLibrary),
               isRequired: named1.isRequired || named2.isRequired));
           ++i;
@@ -1062,7 +1070,7 @@ abstract class StandardBounds {
       }
     }
 
-    DartType returnType = getNullabilityAwareStandardUpperBound(
+    DartType returnType = _getNullabilityAwareStandardUpperBound(
         f.returnType, substitution.substituteType(g.returnType), clientLibrary);
 
     return new FunctionType(positionalParameters, returnType,
@@ -1090,7 +1098,7 @@ abstract class StandardBounds {
       Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{
         type1.parameter: coreTypes.objectNonNullableRawType
       };
-      return getNullabilityAwareStandardUpperBound(
+      return _getNullabilityAwareStandardUpperBound(
               substitute(type1.parameter.bound, substitution),
               type2,
               clientLibrary)
@@ -1114,7 +1122,7 @@ abstract class StandardBounds {
       Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{
         type1.parameter: coreTypes.objectNonNullableRawType
       };
-      return getNullabilityAwareStandardUpperBound(
+      return _getNullabilityAwareStandardUpperBound(
               substitute(type1.promotedBound, substitution),
               type2,
               clientLibrary)
@@ -1123,8 +1131,12 @@ abstract class StandardBounds {
     }
   }
 
-  DartType getNullabilityObliviousStandardUpperBound(
+  DartType _getNullabilityObliviousStandardUpperBound(
       DartType type1, DartType type2, Library clientLibrary) {
+    /*assert(type1 == legacyErasure(coreTypes, type1),
+        "Non-legacy type $type1 in inference.");
+    assert(type2 == legacyErasure(coreTypes, type2),
+        "Non-legacy type $type2 in inference.");*/
     // For all types T, SUB(T,T) = T.  Note that we don't test for equality
     // because we don't want to make the algorithm quadratic.  This is ok
     // because the check is not needed for correctness; it's just a speed
