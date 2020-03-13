@@ -4333,8 +4333,12 @@ void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
       return;
     }
 
-    if (HasNonSmiAssignableInterface(zone)) {
-      set_receiver_is_not_smi(true);
+    if (!interface_target().IsNull()) {
+      const AbstractType& target_type = AbstractType::Handle(
+          zone, Class::Handle(zone, interface_target().Owner()).RareType());
+      if (!CompileType::Smi().IsAssignableTo(target_type)) {
+        set_receiver_is_not_smi(true);
+      }
     }
   }
 }

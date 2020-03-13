@@ -125,16 +125,13 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
         Token::IsEqualityOperator(op_kind) ||
         Token::IsBinaryOperator(op_kind)) {
       // Guess cid: if one of the inputs is a number assume that the other
-      // is a number of same type, unless the interface target tells us this
-      // is impossible.
-      if (!call->HasNonSmiAssignableInterface(zone())) {
-        const intptr_t cid_0 = class_ids[0];
-        const intptr_t cid_1 = class_ids[1];
-        if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
-          class_ids[0] = cid_1;
-        } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
-          class_ids[1] = cid_0;
-        }
+      // is a number of same type.
+      const intptr_t cid_0 = class_ids[0];
+      const intptr_t cid_1 = class_ids[1];
+      if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
+        class_ids[0] = cid_1;
+      } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
+        class_ids[1] = cid_0;
       }
     }
   }
