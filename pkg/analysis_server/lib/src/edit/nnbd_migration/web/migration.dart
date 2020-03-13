@@ -166,19 +166,22 @@ void handleNavLinkClick(
   event.preventDefault();
 }
 
-void handlePostLinkClick(MouseEvent event) {
+void handlePostLinkClick(MouseEvent event) async {
   String path = (event.currentTarget as Element).getAttribute('href');
-
-  // Directing the server to produce an edit; request it, then do work with the
-  // response.
-  doPost(path).catchError((e, st) {
-    logError('handlePostLinkClick: $e', st);
-
-    window.alert('Could not load $path ($e).');
-  });
 
   // Don't navigate on link click.
   event.preventDefault();
+
+  try {
+    // Directing the server to produce an edit; request it, then do work with the
+    // response.
+    await doPost(path);
+    (document.window.location as Location).reload();
+  } catch (e, st) {
+    logError('handlePostLinkClick: $e', st);
+
+    window.alert('Could not load $path ($e).');
+  }
 }
 
 void highlightAllCode() {

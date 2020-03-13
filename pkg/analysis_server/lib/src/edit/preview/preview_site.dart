@@ -145,7 +145,7 @@ class PreviewSite extends Site
         respondOk(request);
         return;
       } else if (uri.queryParameters.containsKey('replacement')) {
-        performEdit(uri);
+        await performEdit(uri);
 
         respondOk(request);
         return;
