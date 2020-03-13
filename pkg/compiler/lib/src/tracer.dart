@@ -12,9 +12,9 @@ import 'world.dart' show JClosedWorld;
 
 /// If non-null, we only trace methods whose name match the regexp defined by
 /// the given pattern.
-String get TRACE_FILTER_PATTERN => TRACE_FILTER_PATTERN_FROM_ENVIRONMENT == ''
-    ? TRACE_FILTER_PATTERN_FOR_TEST
-    : null;
+String get TRACE_FILTER_PATTERN => TRACE_FILTER_PATTERN_FROM_ENVIRONMENT != ''
+    ? TRACE_FILTER_PATTERN_FROM_ENVIRONMENT
+    : TRACE_FILTER_PATTERN_FOR_TEST;
 
 const String TRACE_FILTER_PATTERN_FROM_ENVIRONMENT =
     // TODO(sigmund): remove `?? ''` once #40678 is backported.
