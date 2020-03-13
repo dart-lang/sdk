@@ -706,30 +706,55 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   String get _serviceTypePath => throw new UnimplementedError();
   String get _serviceTypeName => throw new UnimplementedError();
 
-  Uint8List read(int len) {
-    if (len != null && len <= 0) {
-      throw new ArgumentError("Illegal length $len");
+  Uint8List? read(int? count) {
+    if (count != null && count <= 0) {
+      throw ArgumentError("Illegal length $count");
     }
     if (isClosing || isClosed) return null;
-    len = min(available, len == null ? available : len);
-    if (len == 0) return null;
-    var result = nativeRead(len);
-    if (result is OSError) {
-      reportError(result, StackTrace.current, "Read failed");
-      return null;
-    }
-    if (result != null) {
-      available -= result.length;
-      // TODO(ricow): Remove when we track internal and pipe uses.
-      assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-      if (resourceInfo != null) {
-        resourceInfo.totalRead += result.length;
+    var list;
+    if (count != null) {
+      list = nativeRead(count);
+      if (list is OSError) {
+        reportError(list, StackTrace.current, "Read failed");
+        return null;
+      }
+    } else {
+      // If count is null, read as many bytes as possible.
+      // Loop here to ensure bytes that arrived while this read was
+      // issued are also read.
+      BytesBuilder builder = BytesBuilder();
+      do {
+        assert(available > 0);
+        list = nativeRead(available);
+        if (list is OSError) {
+          reportError(list, StackTrace.current, "Read failed");
+          return null;
+        }
+        if (list == null) {
+          break;
+        }
+        builder.add(list);
+        available = nativeAvailable();
+      } while (available > 0);
+      if (builder.isEmpty) {
+        list = null;
+      } else {
+        list = builder.toBytes();
       }
     }
-    // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
-    if (resourceInfo != null) {
-      resourceInfo.didRead();
+    final result = list as Uint8List?;
+    final resourceInformation = resourceInfo;
+    assert(resourceInformation != null ||
+        isPipe ||
+        isInternal ||
+        isInternalSignal);
+    if (result != null) {
+      if (resourceInformation != null) {
+        resourceInformation.totalRead += result.length;
+      }
+    }
+    if (resourceInformation != null) {
+      resourceInformation.didRead();
     }
     return result;
   }
