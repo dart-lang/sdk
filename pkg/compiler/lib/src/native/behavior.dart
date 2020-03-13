@@ -781,12 +781,12 @@ abstract class BehaviorBuilder {
   /// Models the behavior of having instances of [type] escape from Dart code
   /// into native code.
   void _escape(DartType type, bool isJsInterop) {
+    type = type.withoutNullability;
     if (type is FunctionType) {
-      FunctionType functionType = type;
       // A function might be called from native code, passing us novel
       // parameters.
-      _escape(functionType.returnType, isJsInterop);
-      for (DartType parameter in functionType.parameterTypes) {
+      _escape(type.returnType, isJsInterop);
+      for (DartType parameter in type.parameterTypes) {
         _capture(parameter, isJsInterop);
       }
     }
