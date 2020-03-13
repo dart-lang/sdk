@@ -289,6 +289,7 @@ class DartFixKind {
   static const REMOVE_ARGUMENT =
       FixKind('REMOVE_ARGUMENT', 50, 'Remove argument');
   static const REMOVE_AWAIT = FixKind('REMOVE_AWAIT', 50, 'Remove await');
+  static const REMOVE_CONST = FixKind('REMOVE_CONST', 50, 'Remove const');
   static const REMOVE_DEAD_CODE =
       FixKind('REMOVE_DEAD_CODE', 50, 'Remove dead code');
   static const REMOVE_DUPLICATE_CASE =

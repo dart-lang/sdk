@@ -496,6 +496,9 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createClass();
       await _addFix_createMixin();
     }
+    if (errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST) {
+      await _addFix_removeConstKeyword(DartFixKind.REMOVE_CONST);
+    }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       await _addFix_createClass();
       await _addFix_importLibrary_withExtension();
@@ -730,7 +733,7 @@ class FixProcessor extends BaseProcessor {
         await _addFix_removeInterpolationBraces();
       }
       if (name == LintNames.unnecessary_const) {
-        await _addFix_removeConstKeyword();
+        await _addFix_removeConstKeyword(DartFixKind.REMOVE_UNNECESSARY_CONST);
       }
       if (name == LintNames.unnecessary_lambdas) {
         await _addFix_replaceWithTearOff();
@@ -3320,7 +3323,7 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_removeConstKeyword() async {
+  Future<void> _addFix_removeConstKeyword(FixKind kind) async {
     final expression = node;
     if (expression is InstanceCreationExpression) {
       final constToken = expression.keyword;
@@ -3328,14 +3331,14 @@ class FixProcessor extends BaseProcessor {
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startStart(constToken, constToken.next));
       });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CONST);
+      _addFixFromBuilder(changeBuilder, kind);
     } else if (expression is TypedLiteralImpl) {
       final constToken = expression.constKeyword;
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startStart(constToken, constToken.next));
       });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CONST);
+      _addFixFromBuilder(changeBuilder, kind);
     }
   }
 
