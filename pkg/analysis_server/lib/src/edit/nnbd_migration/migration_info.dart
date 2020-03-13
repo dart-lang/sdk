@@ -123,7 +123,7 @@ class NavigationTarget extends NavigationRegion {
   }
 
   @override
-  String toString() => 'NavigationTarget["$filePath", $offset, $length]';
+  String toString() => 'NavigationTarget["$filePath", $line, $offset, $length]';
 }
 
 /// An additional detail related to a region.

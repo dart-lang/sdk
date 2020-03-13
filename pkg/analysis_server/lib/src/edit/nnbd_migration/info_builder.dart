@@ -514,7 +514,27 @@ class InfoBuilder {
     }).toList();
   }
 
-  void _computeTraceInfo(NullabilityNodeInfo node, List<TraceInfo> traces) {
+  void _computeTraceNonNullableInfo(
+      NullabilityNodeInfo node, List<TraceInfo> traces) {
+    List<TraceEntryInfo> entries = [];
+    var step = node.whyNotNullable;
+    if (step == null) {
+      return;
+    }
+    assert(identical(step.node, node));
+    while (step != null) {
+      entries.add(_nodeToTraceEntry(step.node));
+      if (step.codeReference != null) {
+        entries.add(_stepToTraceEntry(step));
+      }
+      step = step.principalCause;
+    }
+    var description = 'Non-nullability reason';
+    traces.add(TraceInfo(description, entries));
+  }
+
+  void _computeTraceNullableInfo(
+      NullabilityNodeInfo node, List<TraceInfo> traces) {
     List<TraceEntryInfo> entries = [];
     var step = node.whyNullable;
     if (step == null) {
@@ -537,12 +557,13 @@ class InfoBuilder {
     for (var reason in fixReasons) {
       if (reason is NullabilityNodeInfo) {
         if (reason.isNullable) {
-          _computeTraceInfo(reason, traces);
+          _computeTraceNullableInfo(reason, traces);
         }
       } else if (reason is EdgeInfo) {
         assert(reason.sourceNode.isNullable);
         assert(!reason.destinationNode.isNullable);
-        _computeTraceInfo(reason.sourceNode, traces);
+        _computeTraceNullableInfo(reason.sourceNode, traces);
+        _computeTraceNonNullableInfo(reason.destinationNode, traces);
       } else {
         assert(false, 'Unrecognized reason type: ${reason.runtimeType}');
       }
