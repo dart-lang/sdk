@@ -356,6 +356,28 @@ footer .wide {
   cursor: pointer;
 }
 
+.rerunning-pane {
+  display: none;
+}
+
+body.rerunning .rerunning-pane {
+  display: block;
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  background-color: #000000AA; /* translucent black */
+  z-index: 400;
+}
+
+.rerunning-pane h1 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 p.trace .type-description {
   /* From HLJS's .hljs-keyword, .hljs-selector-tag, .hljs-deletion */
   color: #cc7832;

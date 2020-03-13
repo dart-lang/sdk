@@ -172,6 +172,8 @@ void handlePostLinkClick(MouseEvent event) async {
   // Don't navigate on link click.
   event.preventDefault();
 
+  document.body.classes.add('rerunning');
+
   try {
     // Directing the server to produce an edit; request it, then do work with the
     // response.
@@ -181,6 +183,8 @@ void handlePostLinkClick(MouseEvent event) async {
     logError('handlePostLinkClick: $e', st);
 
     window.alert('Could not load $path ($e).');
+  } finally {
+    document.body.classes.remove('rerunning');
   }
 }
 
