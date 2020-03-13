@@ -1466,7 +1466,10 @@ class OutputUnitData {
   /// Returns the [OutputUnit] where [constant] belongs.
   OutputUnit outputUnitForConstant(ConstantValue constant) {
     if (!isProgramSplit) return mainOutputUnit;
-    return _constantToUnit[constant];
+    OutputUnit unit = _constantToUnit[constant];
+    // TODO(sigmund): enforce unit is not null: it is sometimes null on some
+    // corner cases on internal apps.
+    return unit ?? mainOutputUnit;
   }
 
   OutputUnit outputUnitForConstantForTesting(ConstantValue constant) =>
