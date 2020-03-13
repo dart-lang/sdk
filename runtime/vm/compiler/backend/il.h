@@ -7110,6 +7110,10 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
                     TemplateDartCall<0>* call)
       : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
     ASSERT(call->type_args_len() == 0);
+    ASSERT(!call->IsInstanceCallBase() ||
+           !call->AsInstanceCallBase()->HasNonSmiAssignableInterface(
+               Thread::Current()->zone()));
+
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -7150,6 +7154,10 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
         call_(call),
         is_negated_(false) {
     ASSERT(call->type_args_len() == 0);
+    ASSERT(!call->IsInstanceCallBase() ||
+           !call->AsInstanceCallBase()->HasNonSmiAssignableInterface(
+               Thread::Current()->zone()));
+
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
