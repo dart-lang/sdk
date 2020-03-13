@@ -195,6 +195,14 @@ Matcher predicate(bool fn(dynamic value), [String description = ""]) =>
       Expect.isTrue(fn(v), description);
     };
 
+Matcher anyOf(List<String> expected) => (dynamic actual) {
+      for (var string in expected) {
+        if (actual == string) return;
+      }
+
+      Expect.fail("Expected $actual to be one of $expected.");
+    };
+
 void isTrue(dynamic v) {
   Expect.isTrue(v);
 }
