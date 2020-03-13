@@ -110,16 +110,33 @@ Dwarf::Dwarf(Zone* zone, StreamingWriteStream* stream, Elf* elf)
   RELEASE_ASSERT(stream != nullptr || elf != nullptr);
 }
 
-intptr_t Dwarf::AddCode(const Code& code, intptr_t virtual_address) {
-  RELEASE_ASSERT(!code.IsNull());
-  RELEASE_ASSERT(code_to_address_.Lookup(&code) == nullptr);
-  const Code& zone_code = Code::ZoneHandle(zone_, code.raw());
-  if (elf_ != nullptr) {
-    RELEASE_ASSERT(virtual_address >= 0);
-    code_to_address_.Insert(CodeAddressPair(&zone_code, virtual_address));
-  }
+intptr_t Dwarf::AddCode(const Code& code) {
+  ASSERT(elf_ == nullptr);
+  ASSERT(!code.IsNull());
+  return AddCodeHelper(Code::ZoneHandle(zone_, code.raw()));
+}
+
+void Dwarf::AddCode(const Code& code,
+                    const char* name,
+                    intptr_t payload_start) {
+  ASSERT(elf_ != nullptr);
+
+  ASSERT(name != nullptr);
+  ASSERT(payload_start >= 0);
+  auto const virtual_address = elf_->NextMemoryOffset() + payload_start;
+  elf_->AddStaticSymbol(elf_->NextSectionIndex(), name, virtual_address);
+
+  ASSERT(!code.IsNull());
+  ASSERT(code_to_address_.Lookup(&code) == nullptr);
+  const auto& zone_code = Code::ZoneHandle(zone_, code.raw());
+  code_to_address_.Insert(CodeAddressPair(&zone_code, virtual_address));
+
+  AddCodeHelper(zone_code);
+}
+
+intptr_t Dwarf::AddCodeHelper(const Code& code) {
   const intptr_t index = codes_.length();
-  codes_.Add(&zone_code);
+  codes_.Add(&code);
   if (code.IsFunctionCode()) {
     const Function& function = Function::Handle(zone_, code.function());
     AddFunction(function);

@@ -747,20 +747,22 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     }
 
     intptr_t dwarf_index = i;
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER)
     // Create a label for use by DWARF.
     if (assembly_dwarf_ != nullptr) {
       dwarf_index = assembly_dwarf_->AddCode(code);
     }
+#endif
+    auto const assembly_name = namer.AssemblyNameFor(dwarf_index, code);
+#if defined(DART_PRECOMPILER)
     if (debug_dwarf_ != nullptr) {
-      auto const virtual_address =
-          debug_segment_base + section_headers_size + text_offset;
-      debug_dwarf_->AddCode(code, virtual_address);
+      auto const payload_offset = section_headers_size + text_offset;
+      debug_dwarf_->AddCode(code, assembly_name, payload_offset);
     }
 #endif
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
-    assembly_stream_.Print("%s:\n", namer.AssemblyNameFor(dwarf_index, code));
+    assembly_stream_.Print("%s:\n", assembly_name);
 
     {
       // 3. Write from the payload start to payload end. For AOT snapshots
@@ -846,20 +848,23 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     // We need to generate a text segment of the appropriate size in the ELF
     // for two reasons:
     //
-    // * We use Elf::NextMemoryOffset() as the current segment base when
-    //   calling Dwarf::AddCode above, so we get unique virtual addresses in
-    //   the DWARF line number program.
+    // * We need unique virtual addresses for each text section in the DWARF
+    //   file and that the virtual addresses for payloads within those sections
+    //   do not overlap.
     //
     // * Our tools for converting DWARF stack traces back to "normal" Dart
     //   stack traces calculate an offset into the appropriate instructions
     //   section, and then add that offset to the virtual address of the
     //   corresponding segment to get the virtual address for the frame.
     //
-    // Since we won't actually be adding the instructions to the ELF output,
-    // we can pass nullptr for the bytes of the section/segment.
+    // Since we don't want to add the actual contents of the segment in the
+    // separate debugging information, we pass nullptr for the bytes, which
+    // creates an appropriate NOBITS section instead of PROGBITS.
     auto const debug_segment_base2 =
         debug_dwarf_->elf()->AddText(instructions_symbol, /*bytes=*/nullptr,
                                      section_headers_size + text_offset);
+    // Double-check that no other ELF sections were added in the middle of
+    // writing the text section.
     ASSERT(debug_segment_base2 == debug_segment_base);
   }
 
@@ -1153,7 +1158,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       ASSERT(Utils::IsAligned(instructions_blob_stream_.Position(),
                               kBareInstructionsAlignment));
     }
-    const intptr_t payload_stream_start = instructions_blob_stream_.Position();
+    const intptr_t payload_offset = instructions_blob_stream_.Position();
     instructions_blob_stream_.WriteBytes(
         reinterpret_cast<const void*>(insns.PayloadStart()), insns.Size());
     const intptr_t alignment =
@@ -1181,22 +1186,18 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       ASSERT(Utils::IsAligned(instructions_blob_stream_.Position(),
                               kBareInstructionsAlignment));
     }
-    const intptr_t payload_stream_start = instructions_blob_stream_.Position();
+    const intptr_t payload_offset = instructions_blob_stream_.Position();
     text_offset += WriteByteSequence(payload_start, object_end);
 #endif
 
 #if defined(DART_PRECOMPILER)
-    if (elf_ != nullptr && elf_dwarf_ != nullptr) {
-      const auto& code = *instructions_[i].code_;
-      auto const virtual_address = segment_base + payload_stream_start;
-      elf_dwarf_->AddCode(code, virtual_address);
-      elf_->AddStaticSymbol(elf_->NextSectionIndex(),
-                            namer.AssemblyNameFor(i, code), virtual_address);
+    const auto& code = *instructions_[i].code_;
+    auto const assembly_name = namer.AssemblyNameFor(i, code);
+    if (elf_dwarf_ != nullptr) {
+      elf_dwarf_->AddCode(code, assembly_name, payload_offset);
     }
     if (debug_dwarf_ != nullptr) {
-      const auto& code = *instructions_[i].code_;
-      auto const virtual_address = debug_segment_base + payload_stream_start;
-      debug_dwarf_->AddCode(code, virtual_address);
+      debug_dwarf_->AddCode(code, assembly_name, payload_offset);
     }
 
     // Don't patch the relocation if we're not generating ELF. The regular blobs
@@ -1224,12 +1225,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         // Overwrite the relocation position in the instruction stream with the
         // (positive) offset of the start of the payload from the start of the
         // BSS segment plus the addend in the relocation.
-        instructions_blob_stream_.SetPosition(payload_stream_start +
-                                              reloc_offset);
+        instructions_blob_stream_.SetPosition(payload_offset + reloc_offset);
 
         const compiler::target::word offset =
-            bss_base_ - (segment_base + payload_stream_start + reloc_offset) +
-            addend;
+            bss_base_ - (segment_base + payload_offset + reloc_offset) + addend;
         instructions_blob_stream_.WriteTargetWord(offset);
       }
 
@@ -1237,7 +1236,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       instructions_blob_stream_.SetPosition(current_stream_position);
     }
 #else
-    USE(payload_stream_start);
+    USE(payload_offset);
 #endif
 
     ASSERT((text_offset - instr_start) ==

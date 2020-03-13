@@ -201,10 +201,19 @@ class Dwarf : public ZoneAllocated {
 
   // Stores the code object for later creating the line number program.
   //
-  // If [elf()] is not nullptr, then [virtual_address] must be non-negative.
+  // Should only be called when the output is not ELF.
   //
   // Returns the stored index of the code object.
-  intptr_t AddCode(const Code& code, intptr_t virtual_address = -1);
+  intptr_t AddCode(const Code& code);
+
+  // Stores the code object for later creating the line number program.
+  //
+  // [payload_offset] should be the offset of the payload within the text
+  // section. [name] is used to create an ELF static symbol for the payload.
+  //
+  // Should only be called when the output is ELF.
+  void AddCode(const Code& code, const char* name, intptr_t payload_offset);
+
   intptr_t AddFunction(const Function& function);
   intptr_t AddScript(const Script& script);
   intptr_t LookupFunction(const Function& function);
@@ -217,6 +226,10 @@ class Dwarf : public ZoneAllocated {
   }
 
  private:
+  // Implements shared functionality for the two AddCode calls. Assumes the
+  // Code handle is appropriately zoned.
+  intptr_t AddCodeHelper(const Code& code);
+
   static const intptr_t DW_TAG_compile_unit = 0x11;
   static const intptr_t DW_TAG_inlined_subroutine = 0x1d;
   static const intptr_t DW_TAG_subprogram = 0x2e;
