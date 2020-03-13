@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/completion/dart/common_usage_sorter
 import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/inherited_reference_contributor.dart';
@@ -370,6 +371,15 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   OpType _opType;
 
+  @override
+  final FeatureComputer featureComputer;
+
+  /// A flag indicating whether the [_contextType] has been computed.
+  bool _hasComputedContextType = false;
+
+  /// The context type associated with the target's `containingNode`.
+  DartType _contextType;
+
   final CompletionRequest _originalRequest;
 
   final CompletionPerformance performance;
@@ -383,8 +393,19 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.offset,
       CompilationUnit unit,
       this._originalRequest,
-      this.performance) {
+      this.performance)
+      : featureComputer =
+            FeatureComputer(result.typeSystem, result.typeProvider) {
     _updateTargets(unit);
+  }
+
+  @override
+  DartType get contextType {
+    if (!_hasComputedContextType) {
+      _contextType = featureComputer.computeContextType(target.containingNode);
+      _hasComputedContextType = true;
+    }
+    return _contextType;
   }
 
   @override

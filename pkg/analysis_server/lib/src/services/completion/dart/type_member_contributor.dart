@@ -257,8 +257,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     if (superclassConstraints != null) {
       types.addAll(superclassConstraints);
     }
-    var featureComputer =
-        FeatureComputer(request.result.typeSystem, request.result.typeProvider);
+    var featureComputer = request.featureComputer;
     for (InterfaceType targetType in types) {
       var inheritanceDistance = featureComputer.inheritanceDistanceFeature(
           type.element, targetType.element);
@@ -270,7 +269,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
           int relevance;
           if (request.useNewRelevance) {
             var contextType = featureComputer.contextTypeFeature(
-                request.target.containingNode, method.returnType);
+                request.contextType, method.returnType);
             var startsWithDollar =
                 featureComputer.startsWithDollarFeature(method.name);
             var superMatches = featureComputer.superMatchesFeature(
@@ -297,7 +296,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
               int relevance;
               if (request.useNewRelevance) {
                 var contextType = featureComputer.contextTypeFeature(
-                    request.target.containingNode, variable.type);
+                    request.contextType, variable.type);
                 var startsWithDollar = featureComputer
                     .startsWithDollarFeature(propertyAccessor.name);
                 var superMatches = featureComputer.superMatchesFeature(
@@ -316,8 +315,8 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
                 : propertyAccessor.parameters[0].type;
             int relevance;
             if (request.useNewRelevance) {
-              var contextType = featureComputer.contextTypeFeature(
-                  request.target.containingNode, type);
+              var contextType =
+                  featureComputer.contextTypeFeature(request.contextType, type);
               var startsWithDollar = featureComputer
                   .startsWithDollarFeature(propertyAccessor.name);
               var superMatches = featureComputer.superMatchesFeature(
