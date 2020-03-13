@@ -53,10 +53,10 @@ class C = self::B with self::M implements self::I<core::int*> {
   synthetic constructor •() → self::C*
     : super self::B::•()
     ;
-  forwarding-stub set y(covariant core::Object* value) → void
-    return super.{self::B::y} = value;
   forwarding-stub set x(generic-covariant-impl core::int* value) → void
     return super.{self::B::x} = value;
+  forwarding-stub set y(covariant core::Object* value) → void
+    return super.{self::B::y} = value;
 }
 static method expectTypeError(() →* void callback) → void
   ;

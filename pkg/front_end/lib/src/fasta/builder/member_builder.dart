@@ -254,5 +254,37 @@ abstract class BuilderClassMember implements ClassMember {
   }
 
   @override
-  String toString() => '$runtimeType($fullName)';
+  bool get needsComputation => false;
+
+  @override
+  bool get isSynthesized => false;
+
+  @override
+  bool get isInheritableConflict => false;
+
+  @override
+  ClassMember withParent(ClassBuilder classBuilder) =>
+      throw new UnsupportedError("$runtimeType.withParent");
+
+  @override
+  bool get hasDeclarations => false;
+
+  @override
+  List<ClassMember> get declarations =>
+      throw new UnsupportedError("$runtimeType.declarations");
+
+  @override
+  ClassMember get abstract => this;
+
+  @override
+  ClassMember get concrete => this;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return false;
+  }
+
+  @override
+  String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
 }

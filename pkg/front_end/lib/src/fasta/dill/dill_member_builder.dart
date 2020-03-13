@@ -132,12 +132,12 @@ class DillMemberBuilder extends MemberBuilderImpl {
   @override
   List<ClassMember> get localMembers => isSetter
       ? const <ClassMember>[]
-      : <ClassMember>[new DillClassMember(this)];
+      : <ClassMember>[new DillClassMember(this, forSetter: false)];
 
   @override
   List<ClassMember> get localSetters =>
       isSetter || member is Field && member.hasSetter
-          ? <ClassMember>[new DillClassMember(this)]
+          ? <ClassMember>[new DillClassMember(this, forSetter: true)]
           : const <ClassMember>[];
 }
 
@@ -145,7 +145,11 @@ class DillClassMember extends BuilderClassMember {
   @override
   final DillMemberBuilder memberBuilder;
 
-  DillClassMember(this.memberBuilder);
+  @override
+  final bool forSetter;
+
+  DillClassMember(this.memberBuilder, {this.forSetter})
+      : assert(forSetter != null);
 
   @override
   bool get isProperty =>
@@ -162,7 +166,7 @@ class DillClassMember extends BuilderClassMember {
   @override
   bool hasExplicitlyTypedFormalParameter(int index) => true;
 
-  String toString() => 'DillClassMember($memberBuilder)';
+  String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';
 }
 
 int computeModifiers(Member member) {

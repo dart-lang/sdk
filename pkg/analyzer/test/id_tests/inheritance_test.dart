@@ -89,11 +89,15 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
           if (element.isSetter) {
             setterNames.add(Name(element, isSetter: true));
           }
-          var getter = element.correspondingGetter;
+          var getter = element.declaration.correspondingGetter != null
+              ? element.correspondingGetter
+              : null;
           if (getter != null) {
             getterNames.add(Name(getter));
           }
-          var setter = element.correspondingSetter;
+          var setter = element.declaration.correspondingSetter != null
+              ? element.correspondingSetter
+              : null;
           if (setter != null) {
             setterNames.add(Name(setter, isSetter: true));
           }

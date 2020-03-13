@@ -210,6 +210,8 @@ general/import_conflicting_type_member: TextSerializationFailure
 general/import_conflicting_types: TextSerializationFailure
 general/incomplete_field_formal_parameter: TextSerializationFailure # Was: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
+general/infer_field_type: TextSerializationFailure
+general/infer_fixed_generic_return_type: TextSerializationFailure
 general/infer_map_literal_with_closure: TextSerializationFailure
 general/interface_conflict: TextSerializationFailure
 general/interface_contravariant_from_class: TextSerializationFailure
@@ -257,6 +259,7 @@ general/mixin_application_override: ExpectationFileMismatch
 general/mixin_application_override: TypeCheckError
 general/mixin_conflicts: TextSerializationFailure
 general/mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
+general/mixin_covariant: TextSerializationFailure
 general/mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
 general/mixin_interface_conflict: TextSerializationFailure
 general/mixin_super_repeated: TextSerializationFailure # Was: Pass
@@ -358,6 +361,7 @@ general/uninitialized_fields: TextSerializationFailure # Was: Pass
 general/unsound_promotion: TypeCheckError
 general/unused_methods: TextSerializationFailure # Was: Pass
 general/var_as_type_name: TextSerializationFailure # Was: Pass
+general/vm_type_ops: TextSerializationFailure
 general/void_methods: TextSerializationFailure
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general/well_boundness_checks_in_outline: TextSerializationFailure
@@ -1256,6 +1260,7 @@ nnbd/infer_from_opt_in: TextSerializationFailure
 nnbd/infer_from_opt_out: TextSerializationFailure
 nnbd/infer_if_null: TextSerializationFailure
 nnbd/infer_in_legacy_from_opted_in: TextSerializationFailure
+nnbd/infer_method_types: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
 nnbd/injected_late_field_checks/main: TextSerializationFailure

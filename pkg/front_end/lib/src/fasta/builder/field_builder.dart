@@ -16,8 +16,7 @@ import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/class_hierarchy_builder.dart'
-    show ClassHierarchyBuilder, ClassMember;
+import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 import '../kernel/late_lowering.dart' as late_lowering;
 
@@ -172,6 +171,24 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       assert(setterReferenceFrom == null);
       _fieldEncoding = new RegularFieldEncoding(fileUri, charOffset,
           charEndOffset, reference, library.isNonNullableByDefault);
+    }
+  }
+
+  List<DelayedHierarchyComputation> _computations;
+
+  void registerComputation(DelayedHierarchyComputation computation) {
+    _computations ??= <DelayedHierarchyComputation>[];
+    _computations.add(computation);
+  }
+
+  void _ensureType(ClassHierarchyBuilder hierarchy) {
+    if (_computations != null) {
+      for (DelayedHierarchyComputation computation in _computations) {
+        computation.compute(hierarchy);
+      }
+      _computations = null;
+    } else {
+      inferType();
     }
   }
 
@@ -581,12 +598,12 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
-      <ClassMember>[new SourceFieldMember(fieldBuilder)];
+      <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: false)];
 
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
       fieldBuilder.isAssignable
-          ? <ClassMember>[new SourceFieldMember(fieldBuilder)]
+          ? <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: true)]
           : const <ClassMember>[];
 }
 
@@ -594,7 +611,21 @@ class SourceFieldMember extends BuilderClassMember {
   @override
   final SourceFieldBuilder memberBuilder;
 
-  SourceFieldMember(this.memberBuilder);
+  @override
+  final bool forSetter;
+
+  SourceFieldMember(this.memberBuilder, {this.forSetter})
+      : assert(forSetter != null);
+
+  void registerComputation(DelayedHierarchyComputation computation) {
+    memberBuilder.registerComputation(computation);
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    memberBuilder._ensureType(hierarchy);
+    return memberBuilder.member;
+  }
 
   @override
   bool get isProperty => true;
@@ -921,10 +952,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) {
     List<ClassMember> list = <ClassMember>[];
     if (_lateIsSetField != null) {
-      list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField));
+      list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField,
+          forSetter: true));
     }
     if (_lateSetter != null) {
-      list.add(new _LateFieldClassMember(fieldBuilder, _lateSetter));
+      list.add(new _LateFieldClassMember(fieldBuilder, _lateSetter,
+          forSetter: true));
     }
     return list;
   }
@@ -1073,9 +1106,16 @@ class _LateFieldClassMember implements ClassMember {
 
   final Member _member;
 
-  _LateFieldClassMember(this.fieldBuilder, this._member);
+  @override
+  final bool forSetter;
 
-  Member getMember(ClassHierarchyBuilder hierarchy) => _member;
+  _LateFieldClassMember(this.fieldBuilder, this._member,
+      {this.forSetter: false});
+
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    fieldBuilder._ensureType(hierarchy);
+    return _member;
+  }
 
   @override
   bool get isProperty => isField || isGetter || isSetter;
@@ -1168,5 +1208,38 @@ class _LateFieldClassMember implements ClassMember {
   }
 
   @override
-  String toString() => '_ClassMember($fieldBuilder,$_member)';
+  bool get needsComputation => false;
+
+  @override
+  bool get isSynthesized => false;
+
+  @override
+  bool get isInheritableConflict => false;
+
+  @override
+  ClassMember withParent(ClassBuilder classBuilder) =>
+      throw new UnsupportedError("$runtimeType.withParent");
+
+  @override
+  bool get hasDeclarations => false;
+
+  @override
+  List<ClassMember> get declarations =>
+      throw new UnsupportedError("$runtimeType.declarations");
+
+  @override
+  ClassMember get abstract => this;
+
+  @override
+  ClassMember get concrete => this;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return false;
+  }
+
+  @override
+  String toString() =>
+      '_ClassMember($fieldBuilder,$_member,forSetter=${forSetter})';
 }

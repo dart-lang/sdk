@@ -591,11 +591,18 @@ L1:
   AssertAssignable     0, CP#5
   Drop1
 L2:
+  Push                 FP[-6]
+  PushConstant         CP#6
+  PushNull
+  PushNull
+  PushConstant         CP#7
+  AssertAssignable     1, CP#8
+  Drop1
   PushNull
   ReturnTOS
 }
-Parameter flags: [0, 0, 2]
-Default function type arguments: CP#6
+Parameter flags: [0, 1, 2]
+Default function type arguments: CP#9
 ConstantPool {
   [0] = TypeArgumentsField #lib::H
   [1] = Type #lib::H::foo8::TypeParam/0
@@ -603,7 +610,10 @@ ConstantPool {
   [3] = ObjectRef 'Q'
   [4] = ObjectRef 'c'
   [5] = SubtypeTestCache
-  [6] = ObjectRef < #lib::H::TypeParam/0 >
+  [6] = Type dart:core::int
+  [7] = ObjectRef 'b'
+  [8] = SubtypeTestCache
+  [9] = ObjectRef < #lib::H::TypeParam/0 >
 }
 
 
@@ -734,7 +744,7 @@ ConstantPool {
     synthetic constructor •() → #lib::H<#lib::H::T*>*
       : super #lib::G::•()
       ;
-    method foo8<generic-covariant-impl Q extends #lib::H::T* = #lib::H::T*>(#lib::H::foo8::Q* a, dart.core::int* b, generic-covariant-impl #lib::H::T* c) → void {}
+    method foo8<generic-covariant-impl Q extends #lib::H::T* = #lib::H::T*>(#lib::H::foo8::Q* a, covariant dart.core::int* b, generic-covariant-impl #lib::H::T* c) → void {}
     forwarding-stub method foo7<generic-covariant-impl Q extends #lib::H::T*>(#lib::H::foo7::Q* a, covariant dart.core::num* b, generic-covariant-impl #lib::H::T* c) → void
       return super.{#lib::G::foo7}<#lib::H::foo7::Q*>(a, b, c);
   }

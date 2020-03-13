@@ -17,11 +17,6 @@ library test;
 //   f(x, {y}) {}
 //         ^
 //
-// pkg/front_end/testcases/inference/inconsistent_overrides.dart:18:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   h(x, {y}) {}
-//         ^
-//
 // pkg/front_end/testcases/inference/inconsistent_overrides.dart:17:5: Error: Can't infer a type for 'x' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   g(x, {y}) {}
@@ -30,6 +25,11 @@ library test;
 // pkg/front_end/testcases/inference/inconsistent_overrides.dart:17:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   g(x, {y}) {}
+//         ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:18:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   h(x, {y}) {}
 //         ^
 //
 import self as self;

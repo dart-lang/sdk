@@ -2,26 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/override_check_basic.dart:27:10: Error: The return type of the method 'E.f4' is 'Object', which does not match the return type, 'A', of the overridden method, 'C.f4'.
-//  - 'Object' is from 'dart:core'.
-//  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
-// Change to a subtype of 'A'.
-//   Object f4() {}
-//          ^
-// pkg/front_end/testcases/general/override_check_basic.dart:13:5: Context: This is the overridden method ('f4').
-//   A f4() {}
-//     ^
-//
-// pkg/front_end/testcases/general/override_check_basic.dart:26:14: Error: The parameter 'x' of the method 'E.f3' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f3'.
-//  - 'B' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
-//  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
-// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
-//   void f3({B x}) {}
-//              ^
-// pkg/front_end/testcases/general/override_check_basic.dart:12:8: Context: This is the overridden method ('f3').
-//   void f3({A x}) {}
-//        ^
-//
 // pkg/front_end/testcases/general/override_check_basic.dart:24:13: Error: The parameter 'x' of the method 'E.f1' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f1'.
 //  - 'B' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
@@ -41,6 +21,26 @@ library;
 // pkg/front_end/testcases/general/override_check_basic.dart:11:8: Context: This is the overridden method ('f2').
 //   void f2([A x]) {}
 //        ^
+//
+// pkg/front_end/testcases/general/override_check_basic.dart:26:14: Error: The parameter 'x' of the method 'E.f3' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f3'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void f3({B x}) {}
+//              ^
+// pkg/front_end/testcases/general/override_check_basic.dart:12:8: Context: This is the overridden method ('f3').
+//   void f3({A x}) {}
+//        ^
+//
+// pkg/front_end/testcases/general/override_check_basic.dart:27:10: Error: The return type of the method 'E.f4' is 'Object', which does not match the return type, 'A', of the overridden method, 'C.f4'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+// Change to a subtype of 'A'.
+//   Object f4() {}
+//          ^
+// pkg/front_end/testcases/general/override_check_basic.dart:13:5: Context: This is the overridden method ('f4').
+//   A f4() {}
+//     ^
 //
 import self as self;
 import "dart:core" as core;

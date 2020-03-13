@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
-import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -514,7 +514,28 @@ class SourceProcedureMember extends BuilderClassMember {
   @override
   final ProcedureBuilderImpl memberBuilder;
 
+  List<DelayedHierarchyComputation> _computations;
+
   SourceProcedureMember(this.memberBuilder);
+
+  void registerComputation(DelayedHierarchyComputation computation) {
+    _computations ??= <DelayedHierarchyComputation>[];
+    _computations.add(computation);
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    if (_computations != null) {
+      for (DelayedHierarchyComputation computation in _computations) {
+        computation.compute(hierarchy);
+      }
+      _computations = null;
+    }
+    return memberBuilder.member;
+  }
+
+  @override
+  bool get forSetter => isSetter;
 
   @override
   bool get isProperty =>

@@ -9,8 +9,7 @@ import 'opt_out.dart';
 
 /*class: SubClass1:Class,Interface,LegacyClass1,Object,SubClass1*/
 class SubClass1 extends LegacyClass1 {
-  /*cfe|cfe:builder.member: SubClass1.method:int Function(int?)*/
-  /*analyzer.member: SubClass1.method:int* Function(int*)**/
+  /*member: SubClass1.method:int* Function(int*)**/
 }
 
 /*class: SubClass2:Class,Interface,LegacyClass2,Object,SubClass2*/
