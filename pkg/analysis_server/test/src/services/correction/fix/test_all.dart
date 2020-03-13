@@ -152,6 +152,7 @@ import 'use_is_not_empty_test.dart' as use_is_not_empty;
 import 'use_not_eq_null_test.dart' as use_not_eq_null;
 import 'use_rethrow_test.dart' as use_rethrow;
 import 'wrap_in_future_test.dart' as wrap_in_future;
+import 'wrap_in_text_test.dart' as wrap_in_text;
 
 void main() {
   defineReflectiveSuite(() {
@@ -287,5 +288,6 @@ void main() {
     use_not_eq_null.main();
     use_rethrow.main();
     wrap_in_future.main();
+    wrap_in_text.main();
   }, name: 'fix');
 }

@@ -413,6 +413,8 @@ class DartFixKind {
       FixKind('USE_RETHROW', 50, 'Replace throw with rethrow');
   static const WRAP_IN_FUTURE =
       FixKind('WRAP_IN_FUTURE', 50, "Wrap in 'Future.value'");
+  static const WRAP_IN_TEXT =
+      FixKind('WRAP_IN_TEXT', 50, "Wrap in a 'Text' widget");
 }
 
 /// An enumeration of quick fix kinds for the errors found in an Android

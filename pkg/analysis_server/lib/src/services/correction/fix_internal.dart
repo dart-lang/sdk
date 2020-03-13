@@ -27,6 +27,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused.dart'
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
+import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -4485,6 +4486,8 @@ class FixProcessor extends BaseProcessor {
       await compute(RemoveUnusedField());
     } else if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
       await compute(RemoveUnusedLocalVariable());
+    } else if (errorCode == StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
+      await compute(WrapInText());
     } else if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
       await compute(RemoveDeadIfNull());
     } else if (errorCode ==
