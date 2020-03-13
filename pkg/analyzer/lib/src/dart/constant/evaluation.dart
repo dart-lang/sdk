@@ -1579,7 +1579,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// failed.
   bool _addElementsToMap(
       Map<DartObjectImpl, DartObjectImpl> map, CollectionElement element) {
-    if (element is IfElement) {
+    if (element is ForElement) {
+      _error(element, null);
+    } else if (element is IfElement) {
       bool conditionValue = _evaluateCondition(element.condition);
       if (conditionValue == null) {
         return true;
@@ -1614,7 +1616,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// the given [set]. Return `true` if the evaluation of one or more of the
   /// elements failed.
   bool _addElementsToSet(Set<DartObject> set, CollectionElement element) {
-    if (element is IfElement) {
+    if (element is ForElement) {
+      _error(element, null);
+    } else if (element is IfElement) {
       bool conditionValue = _evaluateCondition(element.condition);
       if (conditionValue == null) {
         return true;
@@ -1814,27 +1818,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     return false;
   }
-}
-
-/// A visitor to find if a type contains any [TypeParameterType]s.
-///
-/// To find the result, check [result] on this instance after visiting the tree.
-/// The actual value returned by the visit methods is merely used so that
-/// [RecursiveTypeVisitor] stops visiting the type once the first type parameter
-/// type is found.
-class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
-  /// The result of whether any type parameters were found.
-  bool result = false;
-
-  @override
-  bool visitTypeParameterType(_) {
-    result = true;
-    // Stop visiting at this point.
-    return false;
-  }
-
-  @override
-  bool defaultDartType(_) => true; // Continue visiting in this case.
 }
 
 /// A utility class that contains methods for manipulating instances of a Dart
@@ -2331,4 +2314,25 @@ class EvaluationResultImpl {
     }
     return value.toString();
   }
+}
+
+/// A visitor to find if a type contains any [TypeParameterType]s.
+///
+/// To find the result, check [result] on this instance after visiting the tree.
+/// The actual value returned by the visit methods is merely used so that
+/// [RecursiveTypeVisitor] stops visiting the type once the first type parameter
+/// type is found.
+class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
+  /// The result of whether any type parameters were found.
+  bool result = false;
+
+  @override
+  bool defaultDartType(_) => true;
+
+  @override
+  bool visitTypeParameterType(_) {
+    result = true;
+    // Stop visiting at this point.
+    return false;
+  } // Continue visiting in this case.
 }

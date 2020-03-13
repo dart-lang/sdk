@@ -259,9 +259,27 @@ var x = const [for (var i = 0; i < 4; i++) i];
     expect(result.value, isNull);
   }
 
+  test_hasError_mapLiteral_forElement() async {
+    await resolve('''
+var x = const {for (var i = 0; i < 4; i++) i: 0};
+''');
+    var result = _evaluateX();
+    expect(result.errors, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
   test_hasError_methodInvocation() async {
     await resolve('''
 var x = 42.abs();
+''');
+    var result = _evaluateX();
+    expect(result.errors, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
+  test_hasError_setLiteral_forElement() async {
+    await resolve('''
+var x = const {for (var i = 0; i < 4; i++) i};
 ''');
     var result = _evaluateX();
     expect(result.errors, isNotEmpty);
