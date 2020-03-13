@@ -2,11 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:27:5: Error: Too many positional arguments: 0 allowed, but 1 found.
-// Try removing the extra positional arguments.
-//   ""();
-//     ^
-//
 // pkg/front_end/testcases/extensions/call_methods.dart:31:4: Error: 'call' isn't a function or method and can't be invoked.
 //   1(10);
 //    ^
@@ -70,7 +65,7 @@ static method _extension#1|get#call(final core::num* #this) → core::String*
 static method _extension#2|get#call(final core::String* #this) → () →* core::String*
   return () → core::String* => "My name is String";
 static method main() → dynamic {
-  self::_extension#2|get#call("");
+  self::_extension#2|get#call("").call();
 }
 static method errors() → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:31:4: Error: 'call' isn't a function or method and can't be invoked.

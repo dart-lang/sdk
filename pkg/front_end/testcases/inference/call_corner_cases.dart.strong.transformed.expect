@@ -1,15 +1,4 @@
 library test;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference/call_corner_cases.dart:29:71: Error: 'fieldB' isn't a function or method and can't be invoked.
-//   var /*@ type=dynamic */ callFieldB = new D(). /*@target=D::fieldB*/ fieldB();
-//                                                                       ^
-//
-// pkg/front_end/testcases/inference/call_corner_cases.dart:30:67: Error: 'getB' isn't a function or method and can't be invoked.
-//   var /*@ type=dynamic */ callGetB = new D(). /*@target=D::getB*/ getB();
-//                                                                   ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -42,11 +31,7 @@ static method test() → dynamic {
   core::int* callA = new self::A::•().{self::A::call}();
   core::int* callFieldA = new self::D::•().{self::D::fieldA}.{self::A::call}();
   core::int* callGetA = new self::D::•().{self::D::getA}.{self::A::call}();
-  dynamic callFieldB = invalid-expression "pkg/front_end/testcases/inference/call_corner_cases.dart:29:71: Error: 'fieldB' isn't a function or method and can't be invoked.
-  var /*@ type=dynamic */ callFieldB = new D(). /*@target=D::fieldB*/ fieldB();
-                                                                      ^";
-  dynamic callGetB = invalid-expression "pkg/front_end/testcases/inference/call_corner_cases.dart:30:67: Error: 'getB' isn't a function or method and can't be invoked.
-  var /*@ type=dynamic */ callGetB = new D(). /*@target=D::getB*/ getB();
-                                                                  ^";
+  core::int* callFieldB = new self::D::•().{self::D::fieldB}.{self::B::call}.{self::A::call}();
+  core::int* callGetB = new self::D::•().{self::D::getB}.{self::B::call}.{self::A::call}();
 }
 static method main() → dynamic {}

@@ -641,8 +641,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           (expression is! ReadOnlyAccessGenerator ||
               expression is TypeUseGenerator ||
               expression is ParenthesizedExpressionGenerator)) {
-        push(wrapInProblem(
-            toValue(expression), fasta.messageExpressionNotMetadata, noLength));
+        Expression value = toValue(expression);
+        push(wrapInProblem(value, fasta.messageExpressionNotMetadata,
+            value.fileOffset, noLength));
       } else {
         push(toValue(expression));
       }
@@ -860,8 +861,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       Expression value = toValue(node);
       if (!forest.isThrow(node)) {
-        value =
-            wrapInProblem(value, fasta.messageExpectedAnInitializer, noLength);
+        value = wrapInProblem(value, fasta.messageExpectedAnInitializer,
+            value.fileOffset, noLength);
       }
       initializers = <Initializer>[
         buildInvalidInitializer(node, token.charOffset)
@@ -3679,8 +3680,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(generator.buildPrefixIncrement(incrementOperator(token),
           offset: token.charOffset));
     } else {
+      Expression value = toValue(generator);
       push(wrapInProblem(
-          toValue(generator), fasta.messageNotAnLvalue, noLength));
+          value, fasta.messageNotAnLvalue, value.fileOffset, noLength));
     }
   }
 
@@ -3692,8 +3694,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(new DelayedPostfixIncrement(
           this, token, generator, incrementOperator(token)));
     } else {
+      Expression value = toValue(generator);
       push(wrapInProblem(
-          toValue(generator), fasta.messageNotAnLvalue, noLength));
+          value, fasta.messageNotAnLvalue, value.fileOffset, noLength));
     }
   }
 
@@ -5465,16 +5468,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  Expression wrapInProblem(Expression expression, Message message, int length,
+  Expression wrapInProblem(
+      Expression expression, Message message, int fileOffset, int length,
       {List<LocatedMessage> context}) {
-    int charOffset = expression.fileOffset;
     Severity severity = message.code.severity;
     if (severity == Severity.error) {
       return wrapInLocatedProblem(
-          expression, message.withLocation(uri, charOffset, length),
+          expression, message.withLocation(uri, fileOffset, length),
           context: context);
     } else {
-      addProblem(message, charOffset, length, context: context);
+      addProblem(message, fileOffset, length, context: context);
       return expression;
     }
   }

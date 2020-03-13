@@ -23,7 +23,6 @@ extension on String {
 }
 
 main() {
-  // TODO(johnniwinther): Should the be an error?
   ""();
 }
 

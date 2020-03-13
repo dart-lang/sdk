@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {}
+class C {}
 
-class B {}
-
-extension on A {
-  void foo(A a, B b) {}
+extension E on C {
+  void f(String b) {}
 }
 
 void main() {
-  dynamic a = A();
-  dynamic b = B();
-  A().foo(a, b);
+  dynamic b = '456';
+  var c = C();
+  c.f(b);
 }

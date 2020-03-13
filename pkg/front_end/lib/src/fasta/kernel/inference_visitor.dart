@@ -741,8 +741,8 @@ class InferenceVisitor
           inferrer.library.addProblem(messageDefaultListConstructorWarning,
               node.fileOffset, noLength, inferrer.helper.uri);
         } else {
-          resultNode = inferrer.helper.wrapInProblem(
-              node, messageDefaultListConstructorError, noLength);
+          resultNode = inferrer.helper.wrapInProblem(node,
+              messageDefaultListConstructorError, node.fileOffset, noLength);
         }
       }
     }
@@ -2362,6 +2362,7 @@ class InferenceVisitor
                   invocationResult.expression..fileOffset = node.fileOffset,
                   templateNullableExpressionCallError.withArguments(
                       receiverType, inferrer.isNonNullableByDefault),
+                  node.fileOffset,
                   noLength));
         }
       }
@@ -3605,6 +3606,7 @@ class InferenceVisitor
                       binaryName.name,
                       leftType,
                       inferrer.isNonNullableByDefault),
+                  binary.fileOffset,
                   binaryName.name.length));
         }
       }
@@ -3696,6 +3698,7 @@ class InferenceVisitor
                       unaryName.name,
                       expressionType,
                       inferrer.isNonNullableByDefault),
+                  unary.fileOffset,
                   unaryName == unaryMinusName ? 1 : unaryName.name.length));
         }
       }
@@ -3777,6 +3780,7 @@ class InferenceVisitor
                       indexGetName.name,
                       receiverType,
                       inferrer.isNonNullableByDefault),
+                  read.fileOffset,
                   noLength));
         }
       }
@@ -3835,6 +3839,7 @@ class InferenceVisitor
               write,
               templateNullableOperatorCallError.withArguments(indexSetName.name,
                   receiverType, inferrer.isNonNullableByDefault),
+              write.fileOffset,
               noLength);
         }
       }
@@ -3964,6 +3969,7 @@ class InferenceVisitor
                       propertyName.name,
                       receiverType,
                       inferrer.isNonNullableByDefault),
+                  read.fileOffset,
                   propertyName.name.length));
         }
       }
@@ -4045,6 +4051,7 @@ class InferenceVisitor
                   propertyName.name,
                   receiverType,
                   inferrer.isNonNullableByDefault),
+              write.fileOffset,
               propertyName.name.length);
         }
       }
@@ -5553,6 +5560,7 @@ class InferenceVisitor
                     node,
                     templateNonNullableNotAssignedError
                         .withArguments(node.variable.name),
+                    node.fileOffset,
                     node.variable.name.length));
           }
         }

@@ -4,7 +4,7 @@ library test;
 //
 // pkg/front_end/testcases/inference/dynamic_methods.dart:16:39: Error: 'hashCode' isn't a function or method and can't be invoked.
 //       d. /*@target=Object::hashCode*/ hashCode();
-//                                       ^
+//                                       ^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -21,7 +21,7 @@ static method test() → dynamic {
   core::int* get_hashCode = d.{core::Object::hashCode};
   dynamic call_hashCode = invalid-expression "pkg/front_end/testcases/inference/dynamic_methods.dart:16:39: Error: 'hashCode' isn't a function or method and can't be invoked.
       d. /*@target=Object::hashCode*/ hashCode();
-                                      ^";
+                                      ^^^^^^^^";
   core::String* call_toString = d.{core::Object::toString}();
   dynamic call_toStringArg = d.toString(color: "pink");
   dynamic call_foo0 = d.foo();
