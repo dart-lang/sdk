@@ -235,6 +235,14 @@ representation soon.
 
 [17207]: https://github.com/dart-lang/sdk/issues/17207
 
+## 2.7.2 - 2020-03-16
+
+This is a patch release that improves compatibility with ARMv8 processors
+(issue [40001][]) and dart:io stability (issue [40589][]).
+
+[40001]: https://github.com/dart-lang/sdk/issues/40001
+[40589]: https://github.com/dart-lang/sdk/issues/40589
+
 ## 2.7.1 - 2020-01-23
 
 This is a patch release that improves dart2js compile-time (issue [40217][]).
