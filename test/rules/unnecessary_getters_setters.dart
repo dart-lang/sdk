@@ -51,8 +51,16 @@ class Box5 {
   var _contents;
   @protected
   get contents => _contents; //OK (protected)
-  set contents(value)
-  {
+  set contents(value) {
+    _contents = value;
+  }
+}
+
+class Box6 {
+  var _contents;
+  @Deprecated('blah')
+  get contents => _contents; //OK (deprecated)
+  set contents(value) {
     _contents = value;
   }
 }

@@ -87,6 +87,10 @@ bool inPrivateMember(AstNode node) {
   return false;
 }
 
+/// Returns `true` if the given [declaration] is annotated `@deprecated`.
+bool isDeprecated(Declaration declaration) =>
+    declaration.declaredElement.hasDeprecated;
+
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
     element is MethodDeclaration && element.name?.name == '==';
@@ -329,6 +333,7 @@ typedef ElementProcessor = bool Function(Element element);
 /// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor {
   final ElementProcessor processor;
+
   _ElementVisitorAdapter(this.processor);
 
   @override

@@ -97,7 +97,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (isSimpleSetter(setter) &&
         isSimpleGetter(getter) &&
         !isProtected(getter) &&
-        !isProtected(setter)) {
+        !isProtected(setter) &&
+        !isDeprecated(getter) &&
+        !isDeprecated(setter)) {
       rule..reportLint(getter.name)..reportLint(setter.name);
     }
   }
