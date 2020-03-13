@@ -269,6 +269,7 @@ import 'mixin_application_not_implemented_interface_test.dart'
     as mixin_application_not_implemented_interface;
 import 'mixin_class_declares_constructor_test.dart'
     as mixin_class_declares_constructor;
+import 'mixin_declares_constructor_test.dart' as mixin_declares_constructor;
 import 'mixin_deferred_class_test.dart' as mixin_deferred_class;
 import 'mixin_inherits_from_not_object_test.dart'
     as mixin_inherits_from_not_object;
@@ -681,6 +682,7 @@ main() {
     missing_return.main();
     mixin_application_not_implemented_interface.main();
     mixin_class_declares_constructor.main();
+    mixin_declares_constructor.main();
     mixin_deferred_class.main();
     mixin_inherits_from_not_object.main();
     mixin_of_disallowed_class.main();
