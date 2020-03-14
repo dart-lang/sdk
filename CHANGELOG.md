@@ -113,10 +113,14 @@ additional details see the [announcement].
   `external`. Previously the external could be omitted in some cases with DDC
   but doing so would cause incorrect behavior with `dart2js`.
 * JS interop classes with an index operator are now static errors.
-* Removed the `dart:mirrors` library from the SDK. Use of this library on the
-  web has been unsupported and prevented by the Dart build systems since Dart
-  v2.0.0. All known exception cases have been cleaned up. This change makes DDC
-  and dart2js now issue a compile-time error directly as well.
+* All remaining support from the `dart:mirrors` library has been removed.
+  Use of this library on the web has been unsupported and prevented by the Dart
+  build systems since Dart v2.0.0. All known exception cases have been cleaned
+  up. This change makes DDC and dart2js now behave consistently.
+  
+  The library can still be imported on web apps, but all APIs throw. In a future
+  breaking change release, imports to this library will likely become a
+  compile-time error.
 
  [announcement]: https://github.com/dart-lang/sdk/issues/38994
 
@@ -128,10 +132,6 @@ additional details see the [announcement].
   forgiving. Corresponding type parameter bounds now only need to be mutual
   subtypes rather than structurally equal up to renaming of bound type variables
   and equating all top types.
-* Removed the `dart:mirrors` library from the SDK. Use of this library on the
-  web has been unsupported and prevented by the Dart build systems since Dart
-  v2.0.0. All known exception cases have been cleaned up. This change makes DDC
-  and dart2js now issue a compile-time error directly as well.
 * **Breaking Change**: Types are now normalized. See [normalization] for the
   full specification. Types will now be printed in their normal form, and
   mutual subtypes with the same normal form will now be considered equal.
