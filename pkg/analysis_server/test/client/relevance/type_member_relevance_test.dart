@@ -24,7 +24,7 @@ class TypeMemberRelevanceTest extends AbstractCompletionDriverTest {
   @override
   bool get supportsAvailableSuggestions => true;
 
-  /// Assert that all of the given completions were produces and that the
+  /// Assert that all of the given completions were produced and that the
   /// suggestions are ordered in decreasing order based on relevance scores.
   void assertOrder(List<CompletionSuggestion> suggestions) {
     var length = suggestions.length;
