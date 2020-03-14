@@ -591,7 +591,7 @@ class Primitives {
 
     // Type inference does not understand that [name] is now always a non-null
     // String. (There is some imprecision in the negation of the disjunction.)
-    name = JS('String', '#', name)!;
+    name = JS<String>('String', '#', name);
 
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
