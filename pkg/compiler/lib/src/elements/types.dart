@@ -130,7 +130,7 @@ abstract class DartType {
   @override
   String toString() => toStructuredText();
 
-  String toStructuredText({bool printLegacyStars = false}) =>
+  String toStructuredText({bool printLegacyStars = true}) =>
       _DartTypeToStringVisitor(printLegacyStars).run(this);
 }
 
