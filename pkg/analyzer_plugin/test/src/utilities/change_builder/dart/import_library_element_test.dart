@@ -70,6 +70,19 @@ import 'package:test/b.dart';
     );
   }
 
+  Future<void> test_withoutPrefix_hasInvalidImport() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import ':[invalidUri]';
+import 'package:test/a.dart';
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+    );
+  }
+
   Future<void> test_withoutPrefix_referencedNames_sameElements() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
