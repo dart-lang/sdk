@@ -14,7 +14,7 @@ const _details = r'''
 **DO** reference only in scope identifiers in doc comments.
 
 If you surround things like variable, method, or type names in square brackets,
-then [dartdoc](https://www.dartlang.org/effective-dart/documentation/) will look
+then [dartdoc](https://dart.dev/guides/language/effective-dart/documentation) will look
 up the name and link to its docs.  For this all to work, ensure that all
 identifiers in docs wrapped in brackets are in scope.
 

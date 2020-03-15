@@ -13,7 +13,7 @@ const _desc =
 
 const _details = r'''
 
-From the [design guide](https://www.dartlang.org/guides/language/effective-dart/design):
+From the [design guide](https://dart.dev/guides/language/effective-dart/design):
 
 **PREFER** naming a method to___() if it copies the object's state to a new object.
 

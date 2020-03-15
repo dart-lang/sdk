@@ -154,13 +154,13 @@ void defineLinterEngineTests() {
     group('dtos', () {
       group('hyperlink', () {
         test('html', () {
-          final link = Hyperlink('dart', 'http://dartlang.org');
-          expect(link.html, '<a href="http://dartlang.org">dart</a>');
+          final link = Hyperlink('dart', 'http://dart.dev');
+          expect(link.html, '<a href="http://dart.dev">dart</a>');
         });
         test('html - strong', () {
-          final link = Hyperlink('dart', 'http://dartlang.org', bold: true);
-          expect(link.html,
-              '<a href="http://dartlang.org"><strong>dart</strong></a>');
+          final link = Hyperlink('dart', 'http://dart.dev', bold: true);
+          expect(
+              link.html, '<a href="http://dart.dev"><strong>dart</strong></a>');
         });
       });
 

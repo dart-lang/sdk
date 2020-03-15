@@ -11,7 +11,7 @@ void main() async {
   print('Getting latest linter package info from pub...');
 
   final packageInfo =
-      jsonDecode(await getBody('https://pub.dartlang.org/api/packages/linter'));
+      jsonDecode(await getBody('https://pub.dev/api/packages/linter'));
   final latestVersion = packageInfo['latest']['pubspec']['version'];
   print('Found: $latestVersion.');
   print('Checking for a git release tag corresponding to $latestVersion...');

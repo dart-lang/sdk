@@ -79,7 +79,7 @@ Thanks!
 
 ### Dart Language Specification
 
-When writing lints, it can be useful to have the [Dart Language Specification](https://www.dartlang.org/guides/language/spec) handy.  If you're working to support bleeding edge language features, you'll want the [latest draft](https://spec.dart.dev/DartLangSpecDraft.pdf). 
+When writing lints, it can be useful to have the [Dart Language Specification](https://dart.dev/guides/language/spec) handy.  If you're working to support bleeding edge language features, you'll want the [latest draft](https://spec.dart.dev/DartLangSpecDraft.pdf). 
 
 ### Writing Tests that Depend on Dart SDK Details
 
