@@ -3028,7 +3028,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // Check that the field has an initializer if its type is potentially
     // non-nullable.
-    if (isNonNullableByDefault && loader.performNnbdChecks) {
+    if (isNonNullableByDefault) {
       // Only static and top-level fields are checked here.  Instance fields are
       // checked elsewhere.
       DartType fieldType = fieldBuilder.field.type;
@@ -3062,9 +3062,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void checkInitializersInFormals(
       List<FormalParameterBuilder> formals, TypeEnvironment typeEnvironment) {
-    bool performInitializerChecks =
-        isNonNullableByDefault && loader.performNnbdChecks;
-    if (!performInitializerChecks) return;
+    if (!isNonNullableByDefault) return;
 
     for (FormalParameterBuilder formal in formals) {
       bool isOptionalPositional = formal.isOptional && formal.isPositional;
@@ -3129,17 +3127,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
               allowSuperBounded: true)
           ?.toSet();
-      Set<TypeArgumentIssue> nnbdIssues =
-          isNonNullableByDefault && loader.performNnbdChecks
-              ? findTypeArgumentIssues(returnType, typeEnvironment,
-                      SubtypeCheckMode.withNullabilities)
-                  ?.toSet()
-              : null;
+      Set<TypeArgumentIssue> nnbdIssues = isNonNullableByDefault
+          ? findTypeArgumentIssues(returnType, typeEnvironment,
+                  SubtypeCheckMode.withNullabilities)
+              ?.toSet()
+          : null;
       if (legacyIssues != null || nnbdIssues != null) {
         Set<TypeArgumentIssue> mergedIssues = legacyIssues ?? {};
         if (nnbdIssues != null) {
-          mergedIssues.addAll(nnbdIssues.where((issue) =>
-              legacyIssues == null || !legacyIssues.contains(issue)));
+          nnbdIssues = nnbdIssues
+              .where((issue) =>
+                  legacyIssues == null || !legacyIssues.contains(issue))
+              .toSet();
+          mergedIssues.addAll(nnbdIssues);
         }
         int offset = fileOffset;
         for (TypeArgumentIssue issue in mergedIssues) {
@@ -3229,13 +3229,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             type, typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
             allowSuperBounded: allowSuperBounded)
         ?.toSet();
-    Set<TypeArgumentIssue> nnbdIssues =
-        isNonNullableByDefault && loader.performNnbdChecks
-            ? findTypeArgumentIssues(
-                    type, typeEnvironment, SubtypeCheckMode.withNullabilities,
-                    allowSuperBounded: allowSuperBounded)
-                ?.toSet()
-            : null;
+    Set<TypeArgumentIssue> nnbdIssues = isNonNullableByDefault
+        ? findTypeArgumentIssues(
+                type, typeEnvironment, SubtypeCheckMode.withNullabilities,
+                allowSuperBounded: allowSuperBounded)
+            ?.toSet()
+        : null;
     if (legacyIssues != null) {
       reportTypeArgumentIssues(legacyIssues, fileUri, offset,
           inferred: inferred);
@@ -3305,12 +3304,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeEnvironment,
             SubtypeCheckMode.ignoringNullabilities)
         ?.toSet();
-    Set<TypeArgumentIssue> nnbdIssues =
-        isNonNullableByDefault && loader.performNnbdChecks
-            ? findTypeArgumentIssuesForInvocation(parameters, arguments,
-                    typeEnvironment, SubtypeCheckMode.withNullabilities)
-                ?.toSet()
-            : null;
+    Set<TypeArgumentIssue> nnbdIssues = isNonNullableByDefault
+        ? findTypeArgumentIssuesForInvocation(parameters, arguments,
+                typeEnvironment, SubtypeCheckMode.withNullabilities)
+            ?.toSet()
+        : null;
     if (legacyIssues != null) {
       DartType targetReceiver;
       if (klass != null) {
@@ -3331,7 +3329,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
       String targetName = node.target.name.name;
       if (legacyIssues != null) {
-        nnbdIssues = nnbdIssues.where((issue) => !legacyIssues.contains(issue));
+        nnbdIssues =
+            nnbdIssues.where((issue) => !legacyIssues.contains(issue)).toSet();
       }
       reportTypeArgumentIssues(nnbdIssues, fileUri, node.fileOffset,
           typeArgumentsInfo: typeArgumentsInfo,
@@ -3397,15 +3396,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeEnvironment,
             SubtypeCheckMode.ignoringNullabilities)
         ?.toSet();
-    Set<TypeArgumentIssue> nnbdIssues =
-        isNonNullableByDefault && loader.performNnbdChecks
-            ? findTypeArgumentIssuesForInvocation(
-                    instantiatedMethodParameters,
-                    arguments.types,
-                    typeEnvironment,
-                    SubtypeCheckMode.withNullabilities)
-                ?.toSet()
-            : null;
+    Set<TypeArgumentIssue> nnbdIssues = isNonNullableByDefault
+        ? findTypeArgumentIssuesForInvocation(
+                instantiatedMethodParameters,
+                arguments.types,
+                typeEnvironment,
+                SubtypeCheckMode.withNullabilities)
+            ?.toSet()
+        : null;
     if (legacyIssues != null) {
       reportTypeArgumentIssues(legacyIssues, fileUri, offset,
           typeArgumentsInfo: getTypeArgumentsInfo(arguments),
@@ -3414,7 +3412,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (nnbdIssues != null) {
       if (legacyIssues != null) {
-        nnbdIssues = nnbdIssues.where((issue) => !legacyIssues.contains(issue));
+        nnbdIssues =
+            nnbdIssues.where((issue) => !legacyIssues.contains(issue)).toSet();
       }
       reportTypeArgumentIssues(nnbdIssues, fileUri, offset,
           typeArgumentsInfo: getTypeArgumentsInfo(arguments),

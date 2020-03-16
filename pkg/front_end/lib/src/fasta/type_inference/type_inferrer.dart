@@ -530,12 +530,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   NnbdMode get nnbdMode => library.loader.nnbdMode;
 
-  bool get performNnbdChecks {
-    return !isTopLevel &&
-        isNonNullableByDefault &&
-        library.loader.performNnbdChecks;
-  }
-
   DartType computeNullable(DartType type) {
     if (type == coreTypes.nullType || type is NeverType) {
       return coreTypes.nullType;
@@ -702,9 +696,8 @@ class TypeInferrerImpl implements TypeInferrer {
         preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(expression);
     AssignabilityKind kind = _computeAssignabilityKind(
         contextType, expressionType,
-        isStrongNullabilityMode: isNonNullableByDefault &&
-            performNnbdChecks &&
-            nnbdMode != NnbdMode.Weak,
+        isStrongNullabilityMode:
+            isNonNullableByDefault && nnbdMode != NnbdMode.Weak,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null);
 
@@ -763,9 +756,7 @@ class TypeInferrerImpl implements TypeInferrer {
         // of code generation, and the inability to tear off from a
         // potentially nullable receiver shouldn't arise as an issue in any
         // mode other than the strong mode.
-        assert(isNonNullableByDefault &&
-            performNnbdChecks &&
-            nnbdMode != NnbdMode.Weak);
+        assert(isNonNullableByDefault && nnbdMode != NnbdMode.Weak);
 
         result = _wrapTearoffErrorExpression(
             expression, contextType, templateNullableTearoffError);
@@ -775,9 +766,7 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     // Report warnings in weak mode.
-    if (isNonNullableByDefault &&
-        performNnbdChecks &&
-        nnbdMode == NnbdMode.Weak) {
+    if (isNonNullableByDefault && nnbdMode == NnbdMode.Weak) {
       AssignabilityKind weakKind = _computeAssignabilityKind(
           contextType, expressionType,
           isStrongNullabilityMode: true,
@@ -843,7 +832,7 @@ class TypeInferrerImpl implements TypeInferrer {
           // mode.
           assert(nnbdMode == NnbdMode.Weak);
 
-          if (isNonNullableByDefault && performNnbdChecks) {
+          if (isNonNullableByDefault) {
             result = _wrapTearoffErrorExpression(
                 expression, contextType, templateNullableTearoffWarning);
           }
@@ -2435,7 +2424,7 @@ class TypeInferrerImpl implements TypeInferrer {
         "Inferred return type $inferredType contains free variables."
         "Inferred function type: $calleeType.");
 
-    if (isNonNullableByDefault && performNnbdChecks) {
+    if (isNonNullableByDefault) {
       if (receiverType != null &&
           receiverType is! DynamicType &&
           isPotentiallyNullable(receiverType, coreTypes.futureOrClass) &&
@@ -2572,7 +2561,7 @@ class TypeInferrerImpl implements TypeInferrer {
         formal.type = demoteTypeInLibrary(inferredType, library.library);
       }
 
-      if (isNonNullableByDefault && performNnbdChecks) {
+      if (isNonNullableByDefault) {
         // If a parameter is a positional or named optional parameter and its
         // type is potentially non-nullable, it should have an initializer.
         bool isOptionalPositional = function.requiredParameterCount <= i &&
@@ -2603,7 +2592,7 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
 
-    if (isNonNullableByDefault && performNnbdChecks) {
+    if (isNonNullableByDefault) {
       for (VariableDeclarationImpl formal in function.namedParameters) {
         // Required named parameters shouldn't have initializers.
         if (formal.isRequired && formal.hasDeclaredInitializer) {

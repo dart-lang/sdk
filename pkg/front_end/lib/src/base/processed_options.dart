@@ -169,8 +169,6 @@ class ProcessedOptions {
 
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
 
-  bool get performNnbdChecks => _raw.performNnbdChecks;
-
   NnbdMode get nnbdMode => _raw.nnbdMode;
 
   /// The entry-points provided to the compiler.

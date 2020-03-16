@@ -75,7 +75,7 @@ Nullability computeNullability(DartType type, Class futureOrClass) {
   if (_isFutureOr(type, futureOrClass)) {
     return computeNullabilityOfFutureOr(type, futureOrClass);
   }
-  return type.nullability;
+  return type is InvalidType ? Nullability.undetermined : type.nullability;
 }
 
 bool isPotentiallyNullable(DartType type, Class futureOrClass) {

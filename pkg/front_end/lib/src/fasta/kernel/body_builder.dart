@@ -3920,8 +3920,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      if (libraryBuilder.isNonNullableByDefault &&
-          libraryBuilder.loader.performNnbdChecks) {
+      if (libraryBuilder.isNonNullableByDefault) {
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (VariableDeclaration parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
@@ -3988,8 +3987,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      if (libraryBuilder.isNonNullableByDefault &&
-          libraryBuilder.loader.performNnbdChecks) {
+      if (libraryBuilder.isNonNullableByDefault) {
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (NamedType parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {

@@ -572,9 +572,7 @@ class ConstantsTransformer extends Transformer {
   SwitchStatement visitSwitchStatement(SwitchStatement node) {
     SwitchStatement result = super.visitSwitchStatement(node);
     Library library = constantEvaluator.libraryOf(node);
-    if (library != null &&
-        library.isNonNullableByDefault &&
-        constantEvaluator.errorReporter.performNnbdChecks) {
+    if (library != null && library.isNonNullableByDefault) {
       for (SwitchCase switchCase in node.cases) {
         for (Expression caseExpression in switchCase.expressions) {
           if (caseExpression is ConstantExpression) {
@@ -2488,20 +2486,13 @@ class _AbortDueToInvalidExpression {
 abstract class ErrorReporter {
   const ErrorReporter();
 
-  // TODO(johnniwinther,dmitryas): Remove the getter when the NNBD error
-  // reporting is enabled by default.
-  bool get performNnbdChecks;
-
   void report(LocatedMessage message, List<LocatedMessage> context);
 
   void reportInvalidExpression(InvalidExpression node);
 }
 
 class SimpleErrorReporter implements ErrorReporter {
-  @override
-  final bool performNnbdChecks;
-
-  const SimpleErrorReporter(this.performNnbdChecks);
+  const SimpleErrorReporter();
 
   @override
   void report(LocatedMessage message, List<LocatedMessage> context) {

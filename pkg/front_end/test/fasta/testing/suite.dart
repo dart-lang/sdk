@@ -153,7 +153,6 @@ const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
 class TestOptions {
   final Map<ExperimentalFlag, bool> _experimentalFlags;
   final bool forceLateLowering;
-  final bool forceNnbdChecks;
   final bool forceNoExplicitGetterCalls;
   final bool nnbdAgnosticMode;
   final String target;
@@ -161,14 +160,12 @@ class TestOptions {
 
   TestOptions(this._experimentalFlags,
       {this.forceLateLowering: false,
-      this.forceNnbdChecks: false,
       this.forceNoExplicitGetterCalls: false,
       this.nnbdAgnosticMode: false,
       this.target: "vm",
       // can be null
       this.overwriteCurrentSdkVersion})
       : assert(forceLateLowering != null),
-        assert(forceNnbdChecks != null),
         assert(forceNoExplicitGetterCalls != null),
         assert(nnbdAgnosticMode != null),
         assert(target != null);
@@ -294,14 +291,12 @@ class FastaContext extends ChainContext with MatchContext {
     TestOptions testOptions = _testOptions[directory.uri];
     if (testOptions == null) {
       bool forceLateLowering = false;
-      bool forceNnbdChecks = false;
       bool forceNoExplicitGetterCalls = false;
       bool nnbdAgnosticMode = false;
       String target = "vm";
       if (directory.uri == baseUri) {
         testOptions = new TestOptions({},
             forceLateLowering: forceLateLowering,
-            forceNnbdChecks: forceNnbdChecks,
             forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
             nnbdAgnosticMode: nnbdAgnosticMode,
             target: target);
@@ -321,8 +316,6 @@ class FastaContext extends ChainContext with MatchContext {
                   line.substring(overwriteCurrentSdkVersion.length);
             } else if (line.startsWith(Flags.forceLateLowering)) {
               forceLateLowering = true;
-            } else if (line.startsWith(Flags.forceNnbdChecks)) {
-              forceNnbdChecks = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
               forceNoExplicitGetterCalls = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
@@ -344,7 +337,6 @@ class FastaContext extends ChainContext with MatchContext {
                   onWarning: (String message) =>
                       throw new ArgumentError(message)),
               forceLateLowering: forceLateLowering,
-              forceNnbdChecks: forceNnbdChecks,
               forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
               nnbdAgnosticMode: nnbdAgnosticMode,
               target: target,
@@ -621,7 +613,6 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         }
         ..environmentDefines = {}
         ..experimentalFlags = experimentalFlags
-        ..performNnbdChecks = testOptions.forceNnbdChecks
         ..nnbdMode = nnbdMode
         ..librariesSpecificationUri = librariesSpecificationUri;
       if (testOptions.overwriteCurrentSdkVersion != null) {

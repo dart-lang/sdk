@@ -152,7 +152,6 @@ template("gen_vm_platform") {
     ]
     if (use_nnbd) {
       args += [ "--enable-experiment=non-nullable" ]
-      args += [ "--force-nnbd-checks" ]
       args += [ "--nnbd-agnostic" ]
     }
     if (defined(invoker.exclude_source) && invoker.exclude_source) {

@@ -33,7 +33,7 @@ class Export {
       }
     }
     bool changed = exporter.addToExportScope(name, member, charOffset);
-    if (changed && exporter.loader.target.performNnbdChecks) {
+    if (changed) {
       if (exporter.isNonNullableByDefault) {
         // TODO(johnniwinther): Add a common interface for exportable builders.
         Builder memberLibrary = member.parent;

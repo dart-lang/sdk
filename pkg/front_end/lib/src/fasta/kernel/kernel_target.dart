@@ -862,8 +862,7 @@ class KernelTarget extends TargetImplementation {
           nonFinalFields.clear();
         }
         SourceLibraryBuilder library = builder.library;
-        if (library.isNonNullableByDefault &&
-            library.loader.performNnbdChecks) {
+        if (library.isNonNullableByDefault) {
           if (constructor.isConst && lateFinalFields.isNotEmpty) {
             if (library.loader.nnbdMode == NnbdMode.Weak) {
               builder.addProblem(messageConstConstructorLateFinalFieldWarning,
@@ -950,8 +949,7 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.field.type, loader.coreTypes.futureOrClass) &&
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
-            if (library.isNonNullableByDefault &&
-                library.loader.performNnbdChecks) {
+            if (library.isNonNullableByDefault) {
               if (library.loader.nnbdMode == NnbdMode.Weak) {
                 library.addProblem(
                     templateFieldNonNullableWithoutInitializerWarning
@@ -1009,8 +1007,7 @@ class KernelTarget extends TargetImplementation {
               isPotentiallyNonNullable(
                   fieldBuilder.field.type, loader.coreTypes.futureOrClass)) {
             SourceLibraryBuilder library = builder.library;
-            if (library.isNonNullableByDefault &&
-                library.loader.performNnbdChecks) {
+            if (library.isNonNullableByDefault) {
               if (library.loader.nnbdMode == NnbdMode.Weak) {
                 library.addProblem(
                     templateFieldNonNullableNotInitializedByConstructorWarning

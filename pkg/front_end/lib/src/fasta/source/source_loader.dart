@@ -192,8 +192,6 @@ class SourceLoader extends Loader {
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
 
-  bool get performNnbdChecks => target.context.options.performNnbdChecks;
-
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
     return _coreTypes;

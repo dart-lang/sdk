@@ -390,8 +390,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
           result.requiredParameterCount++;
         }
 
-        if (library.isNonNullableByDefault &&
-            library.loader.target.performNnbdChecks) {
+        if (library.isNonNullableByDefault) {
           // Required named parameters can't have default values.
           if (formal.isNamedRequired && formal.initializerToken != null) {
             if (library.loader.nnbdMode == NnbdMode.Weak) {

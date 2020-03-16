@@ -760,21 +760,23 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             SubtypeCheckMode.ignoringNullabilities,
             allowSuperBounded: false)
         ?.toSet();
-    Set<TypeArgumentIssue> nnbdIssues =
-        library.isNonNullableByDefault && library.loader.performNnbdChecks
-            ? findTypeArgumentIssues(
-                    new InterfaceType(supertype.classNode, library.nonNullable,
-                        supertype.typeArguments),
-                    typeEnvironment,
-                    SubtypeCheckMode.withNullabilities,
-                    allowSuperBounded: false)
-                ?.toSet()
-            : null;
+    Set<TypeArgumentIssue> nnbdIssues = library.isNonNullableByDefault
+        ? findTypeArgumentIssues(
+                new InterfaceType(supertype.classNode, library.nonNullable,
+                    supertype.typeArguments),
+                typeEnvironment,
+                SubtypeCheckMode.withNullabilities,
+                allowSuperBounded: false)
+            ?.toSet()
+        : null;
     if (legacyIssues != null || nnbdIssues != null) {
       Set<TypeArgumentIssue> mergedIssues = legacyIssues ?? {};
       if (nnbdIssues != null) {
-        mergedIssues.addAll(nnbdIssues.where(
-            (issue) => legacyIssues == null || !legacyIssues.contains(issue)));
+        nnbdIssues = nnbdIssues
+            .where((issue) =>
+                legacyIssues == null || !legacyIssues.contains(issue))
+            .toSet();
+        mergedIssues.addAll(nnbdIssues);
       }
       for (TypeArgumentIssue issue in mergedIssues) {
         DartType argument = issue.argument;
@@ -849,18 +851,20 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
               SubtypeCheckMode.ignoringNullabilities,
               allowSuperBounded: true)
           ?.toSet();
-      Set<TypeArgumentIssue> nnbdIssues =
-          library.isNonNullableByDefault && library.loader.performNnbdChecks
-              ? findTypeArgumentIssues(parameter.bound, typeEnvironment,
-                      SubtypeCheckMode.withNullabilities,
-                      allowSuperBounded: true)
-                  ?.toSet()
-              : null;
+      Set<TypeArgumentIssue> nnbdIssues = library.isNonNullableByDefault
+          ? findTypeArgumentIssues(parameter.bound, typeEnvironment,
+                  SubtypeCheckMode.withNullabilities,
+                  allowSuperBounded: true)
+              ?.toSet()
+          : null;
       if (legacyIssues != null || nnbdIssues != null) {
         Set<TypeArgumentIssue> mergedIssues = legacyIssues ?? {};
         if (nnbdIssues != null) {
-          mergedIssues.addAll(nnbdIssues.where((issue) =>
-              legacyIssues == null || !legacyIssues.contains(issue)));
+          nnbdIssues = nnbdIssues
+              .where((issue) =>
+                  legacyIssues == null || !legacyIssues.contains(issue))
+              .toSet();
+          mergedIssues.addAll(nnbdIssues);
         }
         for (TypeArgumentIssue issue in mergedIssues) {
           DartType argument = issue.argument;
@@ -1329,15 +1333,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
               !types.isSubtypeOfKernel(
                   supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
       Loader loader = library.loader;
-      bool performNnbdChecks = loader is SourceLoader &&
-          library.isNonNullableByDefault &&
-          loader.performNnbdChecks;
       bool nnbdWeakMode =
           loader is SourceLoader && loader.nnbdMode == NnbdMode.Weak;
-      bool isError =
-          isErrorInNnbdOptedOutMode || performNnbdChecks && !nnbdWeakMode;
-      bool isWarning =
-          !isErrorInNnbdOptedOutMode && performNnbdChecks && nnbdWeakMode;
+      bool isError = isErrorInNnbdOptedOutMode || !nnbdWeakMode;
+      bool isWarning = !isErrorInNnbdOptedOutMode && nnbdWeakMode;
       assert(
           !isError || !isWarning,
           "A compile-time problem can't be an error and a warning "
@@ -1829,9 +1828,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
               redirectionTarget.charOffset,
               noLength);
           hasProblem = true;
-        } else if (library.isNonNullableByDefault &&
-            loader is SourceLoader &&
-            loader.performNnbdChecks) {
+        } else if (library.isNonNullableByDefault && loader is SourceLoader) {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
             if (loader.nnbdMode == NnbdMode.Weak) {
@@ -1914,9 +1911,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
               redirecteeType, factoryType, library.isNonNullableByDefault),
           factory.redirectionTarget.charOffset,
           noLength);
-    } else if (library.isNonNullableByDefault &&
-        loader is SourceLoader &&
-        loader.performNnbdChecks) {
+    } else if (library.isNonNullableByDefault && loader is SourceLoader) {
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
         if (loader.nnbdMode == NnbdMode.Weak) {
