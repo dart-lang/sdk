@@ -1221,6 +1221,7 @@ late_lowering/instance_nullable_final_field_without_initializer: TextSerializati
 late_lowering/issue40093: TextSerializationFailure
 late_lowering/issue40373: TextSerializationFailure
 late_lowering/issue40373b: TextSerializationFailure
+late_lowering/issue40805: TextSerializationFailure
 late_lowering/late_field_inference: TextSerializationFailure
 late_lowering/late_field_with_initializer: TextSerializationFailure
 late_lowering/late_field_without_initializer: TextSerializationFailure
@@ -1277,6 +1278,7 @@ nnbd/issue40093: TextSerializationFailure
 nnbd/issue40134: TextSerializationFailure
 nnbd/issue40512/issue40512: TextSerializationFailure
 nnbd/issue40600: TextSerializationFailure
+nnbd/issue40805: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
