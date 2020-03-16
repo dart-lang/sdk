@@ -1,6 +1,6 @@
 library IndexedDB1Test;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:math' as math;
