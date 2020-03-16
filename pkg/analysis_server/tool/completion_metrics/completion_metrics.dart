@@ -178,6 +178,7 @@ class CompletionMetricsComputer {
                 var suggestions = await _computeCompletionSuggestions(
                     _resolvedUnitResult,
                     expectedCompletion.offset,
+                    metricsOldMode,
                     declarationsTracker,
                     false);
 
@@ -188,6 +189,7 @@ class CompletionMetricsComputer {
                 suggestions = await _computeCompletionSuggestions(
                     _resolvedUnitResult,
                     expectedCompletion.offset,
+                    metricsNewMode,
                     declarationsTracker,
                     true);
 
@@ -269,6 +271,7 @@ class CompletionMetricsComputer {
     print('');
 
     print('Summary for $_rootPath:');
+    metrics.meanCompletionMS.printMean();
     metrics.completionCounter.printCounterValues();
     print('====================');
 
@@ -282,7 +285,9 @@ class CompletionMetricsComputer {
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
-      ResolvedUnitResult resolvedUnitResult, int offset,
+      ResolvedUnitResult resolvedUnitResult,
+      int offset,
+      CompletionMetrics metrics,
       [DeclarationsTracker declarationsTracker,
       bool useNewRelevance = false]) async {
     var completionRequestImpl = CompletionRequestImpl(
@@ -291,6 +296,8 @@ class CompletionMetricsComputer {
       useNewRelevance,
       CompletionPerformance(),
     );
+
+    var stopwatch = Stopwatch()..start();
 
     // This gets all of the suggestions with relevances.
     var suggestions =
@@ -318,6 +325,8 @@ class CompletionMetricsComputer {
             false));
       }
     }
+    stopwatch.stop();
+    metrics.meanCompletionMS.addValue(stopwatch.elapsedMilliseconds);
 
     suggestions.sort(completionComparator);
     return suggestions;
@@ -375,6 +384,7 @@ class CompletionMetrics {
   var completionKindCounter = Counter('unsuccessful completion kind counter');
   var completionElementKindCounter =
       Counter('unsuccessful completion element kind counter');
+  var meanCompletionMS = ArithmeticMeanComputer('ms per completion');
   var mRRComputer =
       MeanReciprocalRankComputer('successful/ unsuccessful completions');
   var typeMemberMRRComputer =
