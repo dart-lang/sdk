@@ -26,6 +26,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_if_null_oper
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -4513,6 +4514,8 @@ class FixProcessor extends BaseProcessor {
         await compute(ConvertToSetLiteral());
       } else if (name == LintNames.prefer_contains) {
         await compute(ConvertToContains());
+      } else if (name == LintNames.prefer_interpolation_to_compose_strings) {
+        await compute(ReplaceWithInterpolation());
       } else if (name == LintNames.prefer_iterable_whereType) {
         await compute(ConvertToWhereType());
       } else if (name == LintNames.prefer_null_aware_operators) {

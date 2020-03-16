@@ -381,6 +381,8 @@ class DartFixKind {
       FixKind('REPLACE_WITH_EXTENSION_NAME', 50, "Replace with '{0}'");
   static const REPLACE_WITH_IDENTIFIER =
       FixKind('REPLACE_WITH_IDENTIFIER', 50, 'Replace with identifier');
+  static const REPLACE_WITH_INTERPOLATION =
+      FixKind('REPLACE_WITH_INTERPOLATION', 50, 'Replace with interpolation');
   static const REPLACE_WITH_IS_EMPTY =
       FixKind('REPLACE_WITH_IS_EMPTY', 50, "Replace with 'isEmpty'");
   static const REPLACE_WITH_IS_NOT_EMPTY =
