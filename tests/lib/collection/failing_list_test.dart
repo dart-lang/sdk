@@ -90,7 +90,6 @@ class MyIndexableNoSuchMethod<E> {
 void testRetainWhere() {
   List<int> list = <int>[1, 2, 3];
   list.retainWhere((x) => x % 2 == 0);
-  Expect.equals(true, false);
   Expect.equals(1, list.length);
   Expect.equals(2, list.first);
   Expect.equals(2, list[0]);
