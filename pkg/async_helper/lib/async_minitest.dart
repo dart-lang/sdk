@@ -58,7 +58,7 @@ void test(String name, body()) {
   _popName(oldName);
 }
 
-void expect(dynamic value, dynamic matcher, {String reason}) {
+void expect(dynamic value, dynamic matcher, {String reason = ""}) {
   Matcher m;
   if (matcher is _Matcher) {
     m = matcher.call;
@@ -215,10 +215,6 @@ void isNull(dynamic o) {
   Expect.isNull(o);
 }
 
-bool isStateError(dynamic o) {
-  Expect.type<StateError>(o);
-}
-
 void _checkThrow<T>(dynamic v, void onError(error)) {
   if (v is Future) {
     asyncStart();
@@ -300,7 +296,11 @@ void throwsArgumentError(dynamic v) {
   _checkThrow<ArgumentError>(v, (_) {});
 }
 
-String fail(String message) {
+void throwsStateError(dynamic v) {
+  _checkThrow<StateError>(v, (_) {});
+}
+
+void fail(String message) {
   Expect.fail("$message");
 }
 
@@ -310,7 +310,9 @@ final _testToken = Object();
 bool _initializedTestNameCallback = false;
 
 /// The current combined name of the nesting [group] or [test].
-String _currentName = null;
+// TODO(rnystrom): Type this "String?" when this library does not need to be
+// NNBD agnostic.
+dynamic _currentName = null;
 
 String _pushName(String newName) {
   // Look up the current test name from the zone created for the test.
