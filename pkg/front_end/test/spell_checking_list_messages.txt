@@ -42,6 +42,7 @@ nativetype
 nosuchmethod
 num1%.3ms
 o
+opt
 opts
 part(s)
 patch(es)

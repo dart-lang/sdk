@@ -4046,3 +4046,13 @@ NonNullableNotAssignedWarning:
 
 NonAgnosticConstant:
   template: "Constant value is not strong/weak mode agnostic."
+
+ExportOptOutFromOptIn:
+  template: "Null safe libraries are not allowed to export declarations from of opt-out libraries."
+  configuration: nnbd-strong
+  script:
+    main.dart: |
+      export 'lib.dart';
+    lib.dart: |
+      // @dart=2.5
+      class A {}

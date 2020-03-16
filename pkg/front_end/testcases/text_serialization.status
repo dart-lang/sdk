@@ -1254,6 +1254,7 @@ nnbd/covariant_nnbd_top_merge: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
 nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
+nnbd/export_from_opt_out: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
 nnbd/from_agnostic/from_agnostic: TextSerializationFailure

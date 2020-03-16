@@ -219,6 +219,8 @@ ExplicitExtensionTypeArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionTypeArgumentMismatch/example: Fail
 ExportAfterPart/part_wrapped_script1: Fail
 ExportAfterPart/script1: Fail
+ExportOptOutFromOptIn/analyzerCode: Fail
+ExportOptOutFromOptIn/part_wrapped_script: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
 ExtendingEnum/example: Fail

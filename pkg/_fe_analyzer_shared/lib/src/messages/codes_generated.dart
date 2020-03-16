@@ -2941,6 +2941,15 @@ Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExportOptOutFromOptIn = messageExportOptOutFromOptIn;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExportOptOutFromOptIn = const MessageCode(
+    "ExportOptOutFromOptIn",
+    message:
+        r"""Null safe libraries are not allowed to export declarations from of opt-out libraries.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpressionNotMetadata = messageExpressionNotMetadata;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
