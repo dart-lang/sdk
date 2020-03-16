@@ -12,6 +12,7 @@ import 'package:analysis_server_client/server.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:nnbd_migration/src/messages.dart';
 
 import '../util.dart';
 import 'apply.dart';
@@ -429,6 +430,18 @@ class _ServerNotifications with NotificationHandler {
   @override
   void onAnalysisErrors(AnalysisErrorsParams event) {
     _analysisErrorsController.add(event);
+  }
+
+  @override
+  void onServerError(ServerErrorParams event) {
+    stderr.writeln('encountered error: ${event.message}');
+
+    for (String fatal in [migratedAlready, nnbdExperimentOff, sdkNnbdOff]) {
+      if (event.message.contains(fatal)) {
+        server.kill();
+        exit(2);
+      }
+    }
   }
 }
 
