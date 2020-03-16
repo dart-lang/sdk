@@ -55,7 +55,7 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  Future<void> Function() rerunFunction;
+  Future<void> Function(List<String>) rerunFunction;
 
   NonNullableFix(this.listener, {List<String> included = const []})
       : includedRoot =
@@ -218,9 +218,9 @@ analyzer:
     _packageIsNNBD = false;
   }
 
-  Future<MigrationState> rerun() async {
+  Future<MigrationState> rerun(List<String> changedPaths) async {
     reset();
-    await rerunFunction();
+    await rerunFunction(changedPaths);
     final state = MigrationState(
         migration, includedRoot, listener, instrumentationListener, adapter);
     await state.refresh();

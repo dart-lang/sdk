@@ -43,7 +43,7 @@ class PreviewSite extends Site
   final Map<String, UnitInfo> unitInfoMap = {};
 
   // A function provided by DartFix to rerun the migration.
-  final Future<MigrationState> Function() rerunFunction;
+  final Future<MigrationState> Function(List<String>) rerunFunction;
 
   /// Initialize a newly created site to serve a preview of the results of an
   /// NNBD migration.
@@ -187,15 +187,11 @@ class PreviewSite extends Site
     String oldContent = file.readAsStringSync();
     String newContent = oldContent.replaceRange(offset, end, replacement);
     file.writeAsStringSync(newContent);
-    // This is a temporary hack. It takes a small amount of time for the file
-    // watcher to pick up on the change and update the analysis drivers.
-    // TODO(mfairhurst): Wire this up to call fileChanged(path) on the drivers.
-    await Future.delayed(const Duration(milliseconds: 25));
-    await rerunMigration();
+    await rerunMigration([path]);
   }
 
-  Future<void> rerunMigration() async {
-    migrationState = await rerunFunction();
+  Future<void> rerunMigration(List<String> changedPaths) async {
+    migrationState = await rerunFunction(changedPaths);
     reset();
   }
 

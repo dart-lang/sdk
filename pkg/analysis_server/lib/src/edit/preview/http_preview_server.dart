@@ -32,8 +32,8 @@ class HttpPreviewServer {
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer> _serverFuture;
 
-  // A function which allows the migration to be rerun.
-  final Future<MigrationState> Function() rerunFunction;
+  // A function which allows the migration to be rerun, taking changed paths.
+  final Future<MigrationState> Function(List<String>) rerunFunction;
 
   /// Initialize a newly created HTTP server.
   HttpPreviewServer(this.migrationState, this.rerunFunction);

@@ -122,7 +122,7 @@ class EditDartFix
     });
 
     // Set up the rerun function on the NNBD migration for interactivity.
-    nonNullableFixTask?.rerunFunction = runAllTasks;
+    nonNullableFixTask?.rerunFunction = rerunTasks;
 
     bool hasErrors;
     try {
@@ -243,6 +243,15 @@ class EditDartFix
       }
       await process(result);
     }
+  }
+
+  Future<bool> rerunTasks(List<String> changedPaths) async {
+    for (String path in changedPaths) {
+      var driver = server.getAnalysisDriver(path);
+      driver.changeFile(path);
+    }
+
+    return await runAllTasks();
   }
 
   Future<bool> runAllTasks() async {
