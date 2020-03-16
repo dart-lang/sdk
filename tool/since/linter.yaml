@@ -63,6 +63,7 @@ implementation_imports: 0.1.4
 invariant_booleans: 0.1.25
 iterable_contains_unrelated_type: 0.1.17
 join_return_with_assignment: 0.1.31
+leading_newlines_in_multiline_strings : 0.1.113
 library_names: 0.1.1
 library_prefixes: 0.1.1
 lines_longer_than_80_chars: 0.1.56
