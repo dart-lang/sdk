@@ -152,13 +152,13 @@ additional details see the [announcement].
 
 #### Linter
 
-The Linter was updated to `0.1.112`, which includes:
+The Linter was updated to `0.1.113`, which includes:
 
-* new lint: `use_raw_strings`
-* new lint: `unnecessary_raw_strings`
-* new lint: `avoid_escaping_inner_quotes`
-* new lint: `unnecessary_string_escapes`
-* incompatible rule documentation improvements
+* updated documentation links
+* `one_member_abstracts` updated to not lint classes with mixins or implementing interfaces
+* `unnecessary_getters_setters` fixed to ignore cases where a getter/setter is deprecated
+* new lint: `leading_newlines_in_multiline_strings`
+* improved highlight ranges for `avoid_private_typedef_functions` and `avoid_returning_null_for_future`
 
 #### Analyzer
 
