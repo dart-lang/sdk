@@ -2408,6 +2408,11 @@ class PhiInstr : public Definition {
   // A phi is redundant if all input operands are the same.
   bool IsRedundant() const;
 
+  // A phi is redundant if all input operands are redefinitions of the same
+  // value. Returns the replacement for this phi if it is redundant.
+  // The replacement is selected among values redefined by inputs.
+  Definition* GetReplacementForRedundantPhi() const;
+
   PRINT_TO_SUPPORT
 
   enum ReceiverType { kUnknownReceiver = -1, kNotReceiver = 0, kReceiver = 1 };

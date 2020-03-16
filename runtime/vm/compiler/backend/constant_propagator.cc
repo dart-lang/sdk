@@ -1374,9 +1374,15 @@ void ConstantPropagator::Analyze() {
   }
 }
 
+static bool HasPhis(BlockEntryInstr* block) {
+  if (auto* join = block->AsJoinEntry()) {
+    return (join->phis() != nullptr) && !join->phis()->is_empty();
+  }
+  return false;
+}
+
 static bool IsEmptyBlock(BlockEntryInstr* block) {
-  return block->next()->IsGoto() &&
-         (!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL)) &&
+  return block->next()->IsGoto() && !HasPhis(block) &&
          !block->IsIndirectEntry();
 }
 
@@ -1387,7 +1393,7 @@ static BlockEntryInstr* FindFirstNonEmptySuccessor(TargetEntryInstr* block,
                                                    BitVector* empty_blocks) {
   BlockEntryInstr* current = block;
   while (IsEmptyBlock(current) && block->Dominates(current)) {
-    ASSERT(!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL));
+    ASSERT(!HasPhis(block));
     empty_blocks->Add(current->preorder_number());
     current = current->next()->AsGoto()->successor();
   }
@@ -1413,10 +1419,9 @@ void ConstantPropagator::EliminateRedundantBranches() {
         // Replace the branch with a jump to the common successor.
         // Drop the comparison, which does not have side effects
         JoinEntryInstr* join = if_true->AsJoinEntry();
-        if (join->phis() == NULL) {
-          GotoInstr* jump =
-              new (Z) GotoInstr(if_true->AsJoinEntry(), DeoptId::kNone);
-          jump->InheritDeoptTarget(Z, branch);
+        if (!HasPhis(join)) {
+          GotoInstr* jump = new (Z) GotoInstr(join, DeoptId::kNone);
+          graph_->CopyDeoptTarget(jump, branch);
 
           Instruction* previous = branch->previous();
           branch->set_previous(NULL);
@@ -1443,6 +1448,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
 
   if (changed) {
     graph_->DiscoverBlocks();
+    graph_->MergeBlocks();
     // TODO(fschneider): Update dominator tree in place instead of recomputing.
     GrowableArray<BitVector*> dominance_frontier;
     graph_->ComputeDominators(&dominance_frontier);
@@ -1546,14 +1552,14 @@ void ConstantPropagator::Transform() {
         ASSERT(if_false->parallel_move() == NULL);
         join = new (Z) JoinEntryInstr(if_false->block_id(),
                                       if_false->try_index(), DeoptId::kNone);
-        join->InheritDeoptTarget(Z, if_false);
+        graph_->CopyDeoptTarget(join, if_false);
         if_false->UnuseAllInputs();
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
         join = new (Z) JoinEntryInstr(if_true->block_id(), if_true->try_index(),
                                       DeoptId::kNone);
-        join->InheritDeoptTarget(Z, if_true);
+        graph_->CopyDeoptTarget(join, if_true);
         if_true->UnuseAllInputs();
         next = if_true->next();
       }
@@ -1564,7 +1570,7 @@ void ConstantPropagator::Transform() {
         // as it is a strict compare (the only one we can determine is
         // constant with the current analysis).
         GotoInstr* jump = new (Z) GotoInstr(join, DeoptId::kNone);
-        jump->InheritDeoptTarget(Z, branch);
+        graph_->CopyDeoptTarget(jump, branch);
 
         Instruction* previous = branch->previous();
         branch->set_previous(NULL);

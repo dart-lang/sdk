@@ -5195,6 +5195,46 @@ bool PhiInstr::IsRedundant() const {
   return true;
 }
 
+Definition* PhiInstr::GetReplacementForRedundantPhi() const {
+  ASSERT(InputCount() > 1);
+  Definition* first = InputAt(0)->definition();
+  Definition* first_origin = first->OriginalDefinition();
+  bool look_for_redefinition = false;
+  for (intptr_t i = 1; i < InputCount(); ++i) {
+    Definition* def = InputAt(i)->definition();
+    if (def != first) {
+      if (def->OriginalDefinition() != first_origin) return nullptr;
+      look_for_redefinition = true;
+    }
+  }
+  if (look_for_redefinition) {
+    // Find the most specific redefinition which is common for all inputs
+    // (the longest common chain).
+    Definition* redef = first;
+    for (intptr_t i = 1, n = InputCount(); redef != first_origin && i < n;) {
+      Value* value = InputAt(i);
+      bool found = false;
+      do {
+        Definition* def = value->definition();
+        if (def == redef) {
+          found = true;
+          break;
+        }
+        value = def->RedefinedValue();
+      } while (value != nullptr);
+      if (found) {
+        ++i;
+      } else {
+        ASSERT(redef != first_origin);
+        redef = redef->RedefinedValue()->definition();
+      }
+    }
+    return redef;
+  } else {
+    return first;
+  }
+}
+
 Instruction* CheckConditionInstr::Canonicalize(FlowGraph* graph) {
   if (StrictCompareInstr* strict_compare = comparison()->AsStrictCompare()) {
     if ((InputAt(0)->definition()->OriginalDefinition() ==

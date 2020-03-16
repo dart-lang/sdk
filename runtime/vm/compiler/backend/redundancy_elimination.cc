@@ -3661,8 +3661,8 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
             if (FLAG_trace_optimization) {
               THR_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
             }
-          } else if (phi->IsRedundant()) {
-            phi->ReplaceUsesWith(phi->InputAt(0)->definition());
+          } else if (auto* replacement = phi->GetReplacementForRedundantPhi()) {
+            phi->ReplaceUsesWith(replacement);
             phi->UnuseAllInputs();
             (*join->phis_)[i] = nullptr;
             if (FLAG_trace_optimization) {
