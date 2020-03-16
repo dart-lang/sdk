@@ -189,8 +189,7 @@ external ClassMirror reflectClass(Type key);
  * function can only be used to obtain type mirrors on types of the current
  * isolate.
  */
-external TypeMirror reflectType(Type key,
-    [List<Type> typeArguments = const <Type>[]]);
+external TypeMirror reflectType(Type key, [List<Type>? typeArguments]);
 
 /**
  * A [Mirror] reflects some Dart language entity.

@@ -1474,9 +1474,8 @@ class _Mirrors {
     return classMirror;
   }
 
-  static TypeMirror reflectType(Type key,
-      [List<Type> typeArguments = const <Type>[]]) {
-    if (typeArguments.length != 0) {
+  static TypeMirror reflectType(Type key, [List<Type>? typeArguments]) {
+    if (typeArguments != null) {
       key = _instantiateType(key, typeArguments);
     }
     var typeMirror = _instantiationCache[key];
