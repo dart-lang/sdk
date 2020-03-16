@@ -8441,7 +8441,9 @@ void Function::PrintSignature(NameVisibility name_visibility,
       name = type_param.name();
       printer->AddString(name.ToCString());
       bound = type_param.bound();
-      if (!bound.IsNull() && !bound.IsObjectType()) {
+      // Do not print default bound or non-nullable Object bound in weak mode.
+      if (!bound.IsNull() && (!bound.IsObjectType() ||
+                              (FLAG_null_safety && bound.IsNonNullable()))) {
         printer->AddString(" extends ");
         bound.PrintName(name_visibility, printer);
       }
