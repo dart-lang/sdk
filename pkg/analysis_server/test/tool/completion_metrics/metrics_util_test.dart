@@ -7,6 +7,41 @@ import 'package:test/test.dart';
 import '../../../tool/completion_metrics/metrics_util.dart';
 
 void main() {
+  group('ArithmeticMeanComputer', () {
+    test('empty', () {
+      var computer = ArithmeticMeanComputer('empty');
+      expect(computer.sum, equals(0));
+      expect(computer.count, equals(0));
+    });
+
+    test('clear', () {
+      var computer = ArithmeticMeanComputer('name');
+      computer.addValue(5);
+      computer.addValue(5);
+      computer.addValue(5);
+
+      expect(computer.sum, equals(15));
+      expect(computer.count, equals(3));
+      computer.clear();
+
+      expect(computer.sum, equals(0));
+      expect(computer.count, equals(0));
+    });
+
+    test('mean', () {
+      var computer = ArithmeticMeanComputer('name');
+      computer.addValue(1);
+      computer.addValue(2);
+      computer.addValue(3);
+      computer.addValue(4);
+      computer.addValue(5);
+
+      expect(computer.sum, equals(15));
+      expect(computer.count, equals(5));
+      expect(computer.mean, equals(15 / 5));
+    });
+  });
+
   group('Counter', () {
     test('empty', () {
       var counter = Counter('empty');
