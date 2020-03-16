@@ -212,7 +212,7 @@ class DartCompletionManager implements CompletionContributor {
                 stackTrace));
         await contributionSorter.sort(dartRequest, suggestions);
       }
-    } else {
+    } else if (!request.useNewRelevance) {
       await contributionSorter.sort(dartRequest, suggestions);
     }
     performance.logElapseTime(SORT_TAG);
