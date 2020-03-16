@@ -678,6 +678,13 @@ class bool {
   }
 
   @patch
+  factory bool.hasEnvironment(String name) {
+    // ignore: const_constructor_throws_exception
+    throw UnsupportedError(
+        'bool.hasEnvironment can only be used as a const constructor');
+  }
+
+  @patch
   int get hashCode => super.hashCode;
 
   @JSExportName('is')

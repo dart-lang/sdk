@@ -47,6 +47,7 @@ namespace dart {
   V(Integer_shlFromInteger, 2)                                                 \
   V(Integer_shrFromInteger, 2)                                                 \
   V(Bool_fromEnvironment, 3)                                                   \
+  V(Bool_hasEnvironment, 2)                                                    \
   V(CapabilityImpl_factory, 1)                                                 \
   V(CapabilityImpl_equals, 2)                                                  \
   V(CapabilityImpl_get_hashcode, 1)                                            \
