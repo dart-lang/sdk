@@ -8028,6 +8028,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 ///    postfixExpression ::=
 ///        [Expression] [Token]
 class PostfixExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
     implements PostfixExpression {
   /// The expression computing the operand for the operator.
   ExpressionImpl _operand;
@@ -8068,6 +8069,9 @@ class PostfixExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
+  @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
   /// representing the parameter to which the value of the operand will be
@@ -8090,6 +8094,9 @@ class PostfixExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     _operand?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, operand);
 }
 
 /// An identifier that is prefixed or an access to an object property where the
@@ -8189,7 +8196,9 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 ///
 ///    prefixExpression ::=
 ///        [Token] [Expression]
-class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
+class PrefixExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
+    implements PrefixExpression {
   /// The prefix operator being applied to the operand.
   @override
   Token operator;
@@ -8229,6 +8238,9 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   @override
   Precedence get precedence => Precedence.prefix;
 
+  @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
   /// representing the parameter to which the value of the operand will be
@@ -8251,6 +8263,9 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   void visitChildren(AstVisitor visitor) {
     _operand?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, operand);
 }
 
 /// The access of a property of an object.

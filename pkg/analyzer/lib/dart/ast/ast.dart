@@ -4190,7 +4190,7 @@ abstract class PartOfDirective implements Directive {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PostfixExpression
-    implements Expression, MethodReferenceExpression {
+    implements Expression, NullShortableExpression, MethodReferenceExpression {
   /// Return the expression computing the operand for the operator.
   Expression get operand;
 
@@ -4250,7 +4250,7 @@ abstract class PrefixedIdentifier implements Identifier {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixExpression
-    implements Expression, MethodReferenceExpression {
+    implements Expression, NullShortableExpression, MethodReferenceExpression {
   /// Return the expression computing the operand for the operator.
   Expression get operand;
 

@@ -188,6 +188,7 @@ class PostfixExpressionResolver {
     }
 
     _inferenceHelper.recordStaticType(node, receiverType);
+    _resolver.nullShortingTermination(node);
   }
 
   void _resolveNullCheck(PostfixExpressionImpl node) {

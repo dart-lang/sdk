@@ -119,6 +119,24 @@ f(Object x) {
     assertType(findNode.simple('x; // ref'), 'Object');
   }
 
+  test_inc_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo = 0;
+}
+
+f(A? a) {
+  a?.foo++;
+}
+''');
+
+    assertPostfixExpression(
+      findNode.postfix('foo++'),
+      element: numElement.getMethod('+'),
+      type: 'int?',
+    );
+  }
+
   test_nullCheck() async {
     await assertNoErrorsInCode(r'''
 f(int? x) {

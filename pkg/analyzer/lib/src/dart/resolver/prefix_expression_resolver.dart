@@ -248,6 +248,7 @@ class PrefixExpressionResolver {
       }
       _recordStaticType(node, staticType);
     }
+    _resolver.nullShortingTermination(node);
   }
 
   void _resolveNegation(PrefixExpressionImpl node) {
