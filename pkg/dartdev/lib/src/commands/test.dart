@@ -50,7 +50,7 @@ class TestCommand extends DartdevCommand<int> {
 In order to run tests, you need to add a dependency on package:test in your
 pubspec.yaml file:
 
-${ansi.emphasized('dev_dependencies:\n  test: ^1.0.0')}
+${ansi.emphasized('dev_dependencies:\n  test: any')}
 
 See https://pub.dev/packages/test#-installing-tab- for more information on
 adding package:test, and https://dart.dev/guides/testing for general
