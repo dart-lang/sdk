@@ -34,10 +34,18 @@ class AnalysisSessionHelper {
   }
 
   /// Return the declaration of the [element], or `null` is the [element]
-  /// is synthetic.
+  /// is synthetic, or is declared in a file that is not a part of a library.
   Future<ElementDeclarationResult> getElementDeclaration(
       Element element) async {
     var libraryPath = element.library.source.fullName;
+
+    // This should not happen in valid code, but sometimes we treat a file
+    // with a `part of` directive as a library, because there is no library
+    // that contains this part, or because it is imported as a library.
+    if (isPart(libraryPath)) {
+      return null;
+    }
+
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
     return resolvedLibrary.getElementDeclaration(element);
   }
@@ -65,6 +73,11 @@ class AnalysisSessionHelper {
     } else {
       return null;
     }
+  }
+
+  /// Return `true` if the file with the [path] is a part.
+  bool isPart(String path) {
+    return session.getFile(path).isPart;
   }
 
   /// Return a newly resolved, or cached library with the given [path].
