@@ -201,6 +201,7 @@ void validateHttpStartEvent(Map event, String method) {
   final args = event['args'];
   expect(args.containsKey('method'), isTrue);
   expect(args['method'], method);
+  expect(args['filterKey'], 'HTTP/client');
   if (!args.containsKey('error')) {
     expect(args.containsKey('requestHeaders'), isTrue);
     expect(args['requestHeaders'] != null, isTrue);
@@ -226,6 +227,7 @@ void validateHttpStartEvent(Map event, String method) {
 void validateHttpFinishEvent(Map event) {
   expect(event.containsKey('args'), isTrue);
   final args = event['args'];
+  expect(args['filterKey'], 'HTTP/client');
   expect(args.containsKey('compressionState'), isTrue);
   expect(args.containsKey('connectionInfo'), isTrue);
   expect(args.containsKey('contentLength'), isTrue);

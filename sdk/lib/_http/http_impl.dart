@@ -2257,8 +2257,6 @@ class _HttpClient implements HttpClient {
   static void _startRequestTimelineEvent(
       TimelineTask timeline, String method, Uri uri) {
     timeline?.start('HTTP CLIENT ${method.toUpperCase()}', arguments: {
-      'filterKey':
-          'HTTP/client', // key used to filter network requests from timeline
       'method': method.toUpperCase(),
       'uri': uri.toString(),
     });
@@ -2304,7 +2302,7 @@ class _HttpClient implements HttpClient {
     TimelineTask timeline;
     // TODO(bkonyi): do we want this to be opt-in?
     if (HttpClient.enableTimelineLogging) {
-      timeline = TimelineTask();
+      timeline = TimelineTask(filterKey: 'HTTP/client');
       _startRequestTimelineEvent(timeline, method, uri);
     }
     return _getConnection(uri.host, port, proxyConf, isSecure, timeline).then(
