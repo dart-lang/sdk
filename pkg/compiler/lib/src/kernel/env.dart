@@ -764,9 +764,7 @@ abstract class KFunctionDataMixin implements KFunctionData {
               .map<TypeVariableType>((ir.TypeParameter typeParameter) {
             return elementMap
                 .getDartType(new ir.TypeParameterType(
-                    typeParameter,
-                    ir.TypeParameterType.computeNullabilityFromBound(
-                        typeParameter)))
+                    typeParameter, ir.Nullability.nonNullable))
                 .withoutNullability;
           }).toList();
         }

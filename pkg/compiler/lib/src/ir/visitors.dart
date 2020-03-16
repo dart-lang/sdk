@@ -97,8 +97,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       // variables.
       return _dartTypes.dynamicType();
     }
-    // We assume the incoming type is already normalized, so the bound is not
-    // `Never`. Attempting to check the bound here will overflow the stack.
     return _convertNullability(
         _dartTypes.typeVariableType(elementMap.getTypeVariable(node.parameter)),
         node.nullability);

@@ -619,9 +619,7 @@ abstract class FunctionDataTypeVariablesMixin implements FunctionData {
               .map<TypeVariableType>((ir.TypeParameter typeParameter) {
             return elementMap
                 .getDartType(new ir.TypeParameterType(
-                    typeParameter,
-                    ir.TypeParameterType.computeNullabilityFromBound(
-                        typeParameter)))
+                    typeParameter, ir.Nullability.nonNullable))
                 .withoutNullability;
           }).toList();
         }
@@ -781,8 +779,8 @@ class SignatureFunctionData implements FunctionData {
     return typeParameters
         .map<TypeVariableType>((ir.TypeParameter typeParameter) {
       return elementMap
-          .getDartType(new ir.TypeParameterType(typeParameter,
-              ir.TypeParameterType.computeNullabilityFromBound(typeParameter)))
+          .getDartType(new ir.TypeParameterType(
+              typeParameter, ir.Nullability.nonNullable))
           .withoutNullability;
     }).toList();
   }
