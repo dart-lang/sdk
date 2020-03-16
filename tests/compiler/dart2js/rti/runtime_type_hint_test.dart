@@ -42,13 +42,13 @@ main() {
   asyncTest(() async {
     await test(runtimeTypeToStringObject, [], []);
     await test(runtimeTypeToStringObject, [Flags.omitImplicitChecks],
-        [MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT]);
+        [MessageKind.RUNTIME_TYPE_TO_STRING]);
     await test(runtimeTypeToStringObject,
         [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString], []);
 
     await test(runtimeTypeToStringClass, [], []);
     await test(runtimeTypeToStringClass, [Flags.omitImplicitChecks],
-        [MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE]);
+        [MessageKind.RUNTIME_TYPE_TO_STRING]);
     await test(runtimeTypeToStringClass,
         [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString], []);
   });

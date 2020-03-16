@@ -1515,9 +1515,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             _elementMap);
         HInstruction newParameter = localsHandler.directLocals[local];
         DartType bound = _getDartTypeIfValid(typeParameter.bound);
-        if (bound is! DynamicType &&
-            bound is! VoidType &&
-            bound != _commonElements.objectType) {
+        if (!dartTypes.isTopType(bound)) {
           registry.registerTypeUse(TypeUse.typeVariableBoundCheck(bound));
           if (options.useNewRti) {
             // TODO(sigmund): method name here is not minified, should it be?
@@ -5041,6 +5039,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
+    type = type.withoutNullability;
     if (type is InterfaceType && _nativeData.isNativeClass(type.element)) {
       nativeBehavior.typesInstantiated.add(type);
     }

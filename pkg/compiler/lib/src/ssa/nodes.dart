@@ -1410,9 +1410,7 @@ abstract class HInstruction implements Spannable {
     // available.
     assert(type is! TypeVariableType);
     assert(closedWorld.dartTypes.treatAsRawType(type) || type is FunctionType);
-    if (type is DynamicType) return this;
-    if (type is VoidType) return this;
-    if (type == closedWorld.commonElements.objectType) return this;
+    if (closedWorld.dartTypes.isTopType(type)) return this;
     if (type is FunctionType || type is FutureOrType) {
       return new HTypeConversion(type, kind,
           closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);

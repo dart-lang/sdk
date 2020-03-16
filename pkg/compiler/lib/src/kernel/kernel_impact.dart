@@ -666,15 +666,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       switch (kind) {
         case RuntimeTypeUseKind.string:
           if (!_options.laxRuntimeTypeToString) {
-            if (receiverDartType == commonElements.objectType) {
-              reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
-                  MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT);
-            } else {
-              reporter.reportHintMessage(
-                  computeSourceSpanFromTreeNode(node),
-                  MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
-                  {'receiverType': '${receiverDartType}.'});
-            }
+            reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
+                MessageKind.RUNTIME_TYPE_TO_STRING);
           }
           break;
         case RuntimeTypeUseKind.equals:
