@@ -1,3 +1,11 @@
+# 0.1.113
+
+* updated documentation links
+* `one_member_abstracts` updated to not lint classes with mixins or implementing interfaces
+* `unnecessary_getters_setters` fixed to ignore cases where a getter/setter is deprecated
+* new lint: `leading_newlines_in_multiline_strings`
+* improved highlight ranges for `avoid_private_typedef_functions` and `avoid_returning_null_for_future`
+
 # 0.1.112
 
 * marked `prefer_typing_uninitialized_variables` and `omit_local_variable_types` as compatible
