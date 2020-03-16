@@ -14,6 +14,14 @@
   was allowed. The value of that getter on a `TypeError` was the same
   string as returned by `toString`, so it is still available.
 
+#### `dart:developer`
+
+* The constructors for `TimelineTask` now accept an optional `filterKey`
+  parameter. If provided, the arguments for all events associated with the task
+  will contain an entry named `filterKey`, set to the value of the `filterKey`
+  parameter provided in the constructor. This will be used by tooling to allow
+  for better filtering of timeline events.
+
 #### `dart:html`
 
 * **Breaking Change**: Changed the return type of several html native methods
