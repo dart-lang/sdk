@@ -120,7 +120,7 @@ vars = {
   "pool_tag": "1.3.6",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
   "pub_rev": "429a06039d185149f387a65e3503b0693ce6d24e",
-  "pub_semver_tag": "1.4.2",
+  "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
