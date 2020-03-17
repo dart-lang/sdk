@@ -14,10 +14,11 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
-/// to a relevance value between `0` and `1000`.
-int toRelevance(double score) {
-  if (score < 0.0) {
-    return 0;
+/// to a relevance value between `0` and `1000`. If the score is outside that
+/// range, return the [defaultValue].
+int toRelevance(double score, int defaultValue) {
+  if (score < 0.0 || score > 1.0) {
+    return defaultValue;
   }
   return (score * 1000).truncate();
 }

@@ -110,7 +110,7 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
     if (request.useNewRelevance) {
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, elementType);
-      relevance = toRelevance(contextType);
+      relevance = toRelevance(contextType, 500);
     }
     CompletionSuggestion suggestion =
         createSuggestion(element, completion: completion, relevance: relevance);

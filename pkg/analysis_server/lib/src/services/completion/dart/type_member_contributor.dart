@@ -353,9 +353,10 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
       @required double inheritanceDistance,
       @required double startsWithDollar,
       @required double superMatches}) {
-    return toRelevance(weightedAverage(
+    var score = weightedAverage(
         [contextType, inheritanceDistance, startsWithDollar, superMatches],
-        [1.0, 1.0, 0.5, 1.0]));
+        [1.0, 1.0, 0.5, 1.0]);
+    return toRelevance(score, 500);
   }
 
   /// Get a list of [InterfaceType]s that should be searched to find the
