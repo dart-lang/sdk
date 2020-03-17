@@ -225,7 +225,7 @@ class EnumBuilder extends SourceClassBuilder {
       ..registerInitializedField(members["_name"])
       ..registerInitializedField(members["index"])
       ..registerInitializedField(valuesBuilder);
-    ProcedureBuilder toStringBuilder = new ProcedureBuilderImpl(
+    ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
         null,
         0,
         stringType,

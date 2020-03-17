@@ -2108,7 +2108,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration) {
           bool extensionIsStatic = (modifiers & staticMask) != 0;
-          String nameToLookup = ProcedureBuilderImpl.createProcedureName(
+          String nameToLookup = SourceProcedureBuilder.createProcedureName(
               true,
               extensionIsStatic,
               kind,
@@ -2123,7 +2123,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
           if (kind == ProcedureKind.Method) {
             String tearOffNameToLookup =
-                ProcedureBuilderImpl.createProcedureName(
+                SourceProcedureBuilder.createProcedureName(
                     true,
                     false,
                     ProcedureKind.Getter,
@@ -2142,7 +2142,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-    ProcedureBuilder procedureBuilder = new ProcedureBuilderImpl(
+    ProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
         metadata,
         modifiers,
         returnType,
@@ -2220,11 +2220,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOpenParenOffset,
           charEndOffset,
           referenceFrom,
-          null,
           nativeMethodName,
           redirectionTarget);
     } else {
-      procedureBuilder = new ProcedureBuilderImpl(
+      procedureBuilder = new SourceProcedureBuilder(
           metadata,
           staticMask | modifiers,
           returnType,

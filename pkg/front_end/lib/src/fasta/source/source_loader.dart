@@ -381,7 +381,7 @@ class SourceLoader extends Loader {
               "debugExpression in $enclosingClass");
       }
     }
-    ProcedureBuilder builder = new ProcedureBuilderImpl(
+    ProcedureBuilder builder = new SourceProcedureBuilder(
         null,
         0,
         null,
@@ -1091,7 +1091,6 @@ class SourceLoader extends Loader {
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     builderHierarchy.computeTypes();
-    builderHierarchy.computeSignatures();
 
     List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
     for (LibraryBuilder library in builders.values) {

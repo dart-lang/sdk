@@ -174,22 +174,23 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     }
   }
 
-  List<DelayedHierarchyComputation> _computations;
+  bool _typeEnsured = false;
+  Set<ClassMember> _overrideDependencies;
 
-  void registerComputation(DelayedHierarchyComputation computation) {
-    _computations ??= <DelayedHierarchyComputation>[];
-    _computations.add(computation);
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    _overrideDependencies ??= {};
+    _overrideDependencies.add(overriddenMember);
   }
 
   void _ensureType(ClassHierarchyBuilder hierarchy) {
-    if (_computations != null) {
-      for (DelayedHierarchyComputation computation in _computations) {
-        computation.compute(hierarchy);
-      }
-      _computations = null;
+    if (_typeEnsured) return;
+    if (_overrideDependencies != null) {
+      hierarchy.inferFieldType(this, _overrideDependencies);
+      _overrideDependencies = null;
     } else {
       inferType();
     }
+    _typeEnsured = true;
   }
 
   SourceLibraryBuilder get library => super.library;
@@ -620,8 +621,14 @@ class SourceFieldMember extends BuilderClassMember {
   SourceFieldMember(this.memberBuilder, {this.forSetter})
       : assert(forSetter != null);
 
-  void registerComputation(DelayedHierarchyComputation computation) {
-    memberBuilder.registerComputation(computation);
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    memberBuilder._ensureType(hierarchy);
+  }
+
+  @override
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    memberBuilder.registerOverrideDependency(overriddenMember);
   }
 
   @override
@@ -629,6 +636,9 @@ class SourceFieldMember extends BuilderClassMember {
     memberBuilder._ensureType(hierarchy);
     return memberBuilder.member;
   }
+
+  @override
+  bool get isSourceDeclaration => true;
 
   @override
   bool get isProperty => true;
@@ -1119,6 +1129,19 @@ class _LateFieldClassMember implements ClassMember {
     fieldBuilder._ensureType(hierarchy);
     return _member;
   }
+
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    fieldBuilder._ensureType(hierarchy);
+  }
+
+  @override
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    fieldBuilder.registerOverrideDependency(overriddenMember);
+  }
+
+  @override
+  bool get isSourceDeclaration => true;
 
   @override
   bool get isProperty => isField || isGetter || isSetter;

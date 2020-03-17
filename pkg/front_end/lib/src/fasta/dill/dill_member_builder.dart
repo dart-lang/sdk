@@ -11,7 +11,8 @@ import '../builder/builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/library_builder.dart';
 
-import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/class_hierarchy_builder.dart'
+    show ClassHierarchyBuilder, ClassMember;
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
 
@@ -152,6 +153,9 @@ class DillClassMember extends BuilderClassMember {
       : assert(forSetter != null);
 
   @override
+  bool get isSourceDeclaration => false;
+
+  @override
   bool get isProperty =>
       memberBuilder.kind == null ||
       memberBuilder.kind == ProcedureKind.Getter ||
@@ -165,6 +169,16 @@ class DillClassMember extends BuilderClassMember {
 
   @override
   bool hasExplicitlyTypedFormalParameter(int index) => true;
+
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    // Do nothing; this is only for source members.
+  }
+
+  @override
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    // Do nothing; this is only for source members.
+  }
 
   String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';
 }
