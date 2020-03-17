@@ -1,6 +1,6 @@
 library HistoryTest;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:html';
 import 'dart:async';
 
