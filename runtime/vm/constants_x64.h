@@ -138,6 +138,29 @@ const Register kInstantiatorTypeArgumentsReg = RDX;
 const Register kFunctionTypeArgumentsReg = RCX;
 const Register kResultTypeArgumentsReg = RAX;
 
+// Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
+struct TypeTestABI {
+  static const Register kInstanceReg = RAX;
+  static const Register kDstTypeReg = RBX;
+  static const Register kInstantiatorTypeArgumentsReg = RDX;
+  static const Register kFunctionTypeArgumentsReg = RCX;
+  static const Register kSubtypeTestCacheReg = R9;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kInstanceReg) | (1 << kDstTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kSubtypeTestCacheReg);
+};
+
+// Registers used inside the implementation of type testing stubs.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = RSI;
+  static const Register kScratchReg = R8;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 

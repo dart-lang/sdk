@@ -478,6 +478,10 @@ class Assembler : public AssemblerBase {
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
+    CompareWithMemoryValue(value, address);
+  }
+
+  void CompareWithMemoryValue(Register value, Address address) {
     ldr(TMP, address);
     cmp(value, Operand(TMP));
   }

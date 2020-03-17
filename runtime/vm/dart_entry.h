@@ -201,6 +201,13 @@ class DartEntry : public AllStatic {
   static RawObject* InvokeFunction(const Function& function,
                                    const Array& arguments);
 
+  // Invokes the specified code as if it was a Dart function.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeCode(const Code& code,
+                               const Array& arguments_descriptor,
+                               const Array& arguments,
+                               Thread* thread);
+
   // Invokes the specified instance, static, or closure function.
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* InvokeFunction(

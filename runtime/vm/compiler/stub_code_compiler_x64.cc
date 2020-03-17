@@ -2830,8 +2830,6 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
 
-  const Register kCacheReg = R9;
-  const Register kInstanceReg = RAX;
   const Register kInstanceCidOrFunction = R10;
   const Register kInstanceInstantiatorTypeArgumentsReg = R13;
   const Register kInstanceParentFunctionTypeArgumentsReg = PP;
@@ -2849,15 +2847,15 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other).
-  __ movq(RSI,
-          FieldAddress(kCacheReg, target::SubtypeTestCache::cache_offset()));
+  __ movq(RSI, FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
+                            target::SubtypeTestCache::cache_offset()));
   __ addq(RSI, Immediate(target::Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
   if (n >= 4) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, kInstanceReg);
+    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   }
   __ cmpq(kInstanceCidOrFunction, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
@@ -2865,20 +2863,21 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Closure handling.
   {
     __ movq(kInstanceCidOrFunction,
-            FieldAddress(kInstanceReg, target::Closure::function_offset()));
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::function_offset()));
     if (n >= 2) {
       __ movq(
           kInstanceInstantiatorTypeArgumentsReg,
-          FieldAddress(kInstanceReg,
+          FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
       if (n >= 6) {
         ASSERT(n == 6);
         __ movq(
             kInstanceParentFunctionTypeArgumentsReg,
-            FieldAddress(kInstanceReg,
+            FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_type_arguments_offset()));
         __ movq(kInstanceDelayedFunctionTypeArgumentsReg,
-                FieldAddress(kInstanceReg,
+                FieldAddress(TypeTestABI::kInstanceReg,
                              target::Closure::delayed_type_arguments_offset()));
       }
     }
@@ -2899,7 +2898,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ cmpl(RDI, Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
       __ movq(kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(kInstanceReg, RDI, TIMES_8, 0));
+              FieldAddress(TypeTestABI::kInstanceReg, RDI, TIMES_8, 0));
       __ Bind(&has_no_type_arguments);
 
       if (n >= 6) {
@@ -2933,13 +2932,13 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ cmpq(
-          kInstantiatorTypeArgumentsReg,
+          TypeTestABI::kInstantiatorTypeArgumentsReg,
           Address(RSI,
                   target::kWordSize *
                       target::SubtypeTestCache::kInstantiatorTypeArguments));
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ cmpq(
-          kFunctionTypeArgumentsReg,
+          TypeTestABI::kFunctionTypeArgumentsReg,
           Address(RSI, target::kWordSize *
                            target::SubtypeTestCache::kFunctionTypeArguments));
 
@@ -3054,26 +3053,22 @@ void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
 
 static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
                                             TypeCheckMode mode) {
-  const Register kInstanceReg = RAX;
-  const Register kDstTypeReg = RBX;
-  const Register kSubtypeTestCacheReg = R9;
-
   __ PushObject(NullObject());  // Make room for result.
-  __ pushq(kInstanceReg);
-  __ pushq(kDstTypeReg);
-  __ pushq(kInstantiatorTypeArgumentsReg);
-  __ pushq(kFunctionTypeArgumentsReg);
+  __ pushq(TypeTestABI::kInstanceReg);
+  __ pushq(TypeTestABI::kDstTypeReg);
+  __ pushq(TypeTestABI::kInstantiatorTypeArgumentsReg);
+  __ pushq(TypeTestABI::kFunctionTypeArgumentsReg);
   __ PushObject(NullObject());
-  __ pushq(kSubtypeTestCacheReg);
+  __ pushq(TypeTestABI::kSubtypeTestCacheReg);
   __ PushImmediate(Immediate(target::ToRawSmi(mode)));
   __ CallRuntime(kTypeCheckRuntimeEntry, 7);
   __ Drop(1);  // mode
-  __ popq(kSubtypeTestCacheReg);
+  __ popq(TypeTestABI::kSubtypeTestCacheReg);
   __ Drop(1);
-  __ popq(kFunctionTypeArgumentsReg);
-  __ popq(kInstantiatorTypeArgumentsReg);
-  __ popq(kDstTypeReg);
-  __ popq(kInstanceReg);
+  __ popq(TypeTestABI::kFunctionTypeArgumentsReg);
+  __ popq(TypeTestABI::kInstantiatorTypeArgumentsReg);
+  __ popq(TypeTestABI::kDstTypeReg);
+  __ popq(TypeTestABI::kInstanceReg);
   __ Drop(1);  // Discard return value.
 }
 

@@ -246,12 +246,16 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     ASSERT(function_type_arguments_reg == kNoRegister);
     __ BranchLink(StubCode::Subtype2TestCache());
   } else if (test_kind == kTestTypeFourArgs) {
-    ASSERT(instantiator_type_arguments_reg == kInstantiatorTypeArgumentsReg);
-    ASSERT(function_type_arguments_reg == kFunctionTypeArgumentsReg);
+    ASSERT(instantiator_type_arguments_reg ==
+           TypeTestABI::kInstantiatorTypeArgumentsReg);
+    ASSERT(function_type_arguments_reg ==
+           TypeTestABI::kFunctionTypeArgumentsReg);
     __ BranchLink(StubCode::Subtype4TestCache());
   } else if (test_kind == kTestTypeSixArgs) {
-    ASSERT(instantiator_type_arguments_reg == kInstantiatorTypeArgumentsReg);
-    ASSERT(function_type_arguments_reg == kFunctionTypeArgumentsReg);
+    ASSERT(instantiator_type_arguments_reg ==
+           TypeTestABI::kInstantiatorTypeArgumentsReg);
+    ASSERT(function_type_arguments_reg ==
+           TypeTestABI::kFunctionTypeArgumentsReg);
     __ BranchLink(StubCode::Subtype6TestCache());
   } else {
     UNREACHABLE();
@@ -277,10 +281,9 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   ASSERT(!type.IsFunctionType());
   const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() > 0);
-  const Register kInstanceReg = R0;
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
   const bool smi_is_ok = smi_type.IsSubtypeOf(type, Heap::kOld);
-  __ tst(kInstanceReg, compiler::Operand(kSmiTagMask));
+  __ tst(TypeTestABI::kInstanceReg, compiler::Operand(kSmiTagMask));
   if (smi_is_ok) {
     // Fast case for type = FutureOr<int/num/top-type>.
     __ b(is_instance_lbl, EQ);
@@ -297,7 +300,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   if (is_raw_type) {
     const Register kClassIdReg = R2;
     // dynamic type argument, check only classes.
-    __ LoadClassId(kClassIdReg, kInstanceReg);
+    __ LoadClassId(kClassIdReg, TypeTestABI::kInstanceReg);
     __ CompareImmediate(kClassIdReg, type_class.id());
     __ b(is_instance_lbl, EQ);
     // List is a very common case.
@@ -328,10 +331,10 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Register kFunctionTypeArgumentsReg = kNoRegister;
   const Register kTempReg = kNoRegister;
   // R0: instance (must be preserved).
-  return GenerateCallSubtypeTestStub(kTestTypeTwoArgs, kInstanceReg,
-                                     kInstantiatorTypeArgumentsReg,
-                                     kFunctionTypeArgumentsReg, kTempReg,
-                                     is_instance_lbl, is_not_instance_lbl);
+  return GenerateCallSubtypeTestStub(
+      kTestTypeTwoArgs, TypeTestABI::kInstanceReg,
+      kInstantiatorTypeArgumentsReg, kFunctionTypeArgumentsReg, kTempReg,
+      is_instance_lbl, is_not_instance_lbl);
 }
 
 void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
@@ -422,14 +425,13 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
   __ Comment("Subtype1TestCacheLookup");
-  const Register kInstanceReg = R0;
 #if defined(DEBUG)
   compiler::Label ok;
-  __ BranchIfNotSmi(kInstanceReg, &ok);
+  __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &ok);
   __ Breakpoint();
   __ Bind(&ok);
 #endif
-  __ LoadClassId(R2, kInstanceReg);
+  __ LoadClassId(R2, TypeTestABI::kInstanceReg);
   __ LoadClassById(R1, R2);
   // R1: instance class.
   // Check immediate superclass equality.
@@ -443,7 +445,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   const Register kInstantiatorTypeArgumentsReg = kNoRegister;
   const Register kFunctionTypeArgumentsReg = kNoRegister;
   const Register kTempReg = kNoRegister;
-  return GenerateCallSubtypeTestStub(kTestTypeOneArg, kInstanceReg,
+  return GenerateCallSubtypeTestStub(kTestTypeOneArg, TypeTestABI::kInstanceReg,
                                      kInstantiatorTypeArgumentsReg,
                                      kFunctionTypeArgumentsReg, kTempReg,
                                      is_instance_lbl, is_not_instance_lbl);
@@ -457,7 +459,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
   __ Comment("UninstantiatedTypeTest");
-  const Register kInstanceReg = R0;
   const Register kTempReg = kNoRegister;
   ASSERT(!type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
@@ -467,13 +468,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
                   "Should be ordered to load arguments with one instruction");
     __ ldm(IA, SP,
-           (1 << kFunctionTypeArgumentsReg) |
-               (1 << kInstantiatorTypeArgumentsReg));
-    // R2: instantiator type arguments.
-    // R1: function type arguments.
-    const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
-                                           ? kInstantiatorTypeArgumentsReg
-                                           : kFunctionTypeArgumentsReg;
+           (1 << TypeTestABI::kFunctionTypeArgumentsReg) |
+               (1 << TypeTestABI::kInstantiatorTypeArgumentsReg));
+    const Register kTypeArgumentsReg =
+        type_param.IsClassTypeParameter()
+            ? TypeTestABI::kInstantiatorTypeArgumentsReg
+            : TypeTestABI::kFunctionTypeArgumentsReg;
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ b(is_instance_lbl, EQ);
@@ -504,27 +504,30 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     const auto test_kind = GetTypeTestStubKindForTypeParameter(type_param);
     const SubtypeTestCache& type_test_cache = SubtypeTestCache::ZoneHandle(
         zone(), GenerateCallSubtypeTestStub(
-                    test_kind, kInstanceReg, kInstantiatorTypeArgumentsReg,
-                    kFunctionTypeArgumentsReg, kTempReg, is_instance_lbl,
-                    is_not_instance_lbl));
+                    test_kind, TypeTestABI::kInstanceReg,
+                    TypeTestABI::kInstantiatorTypeArgumentsReg,
+                    TypeTestABI::kFunctionTypeArgumentsReg, kTempReg,
+                    is_instance_lbl, is_not_instance_lbl));
     return type_test_cache.raw();
   }
   if (type.IsType()) {
     // Smi is FutureOr<T>, when T is a top type or int or num.
     if (!type.IsFutureOrType()) {
-      __ BranchIfSmi(kInstanceReg, is_not_instance_lbl);
+      __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
     }
-    static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+    static_assert(TypeTestABI::kFunctionTypeArgumentsReg <
+                      TypeTestABI::kInstantiatorTypeArgumentsReg,
                   "Should be ordered to load arguments with one instruction");
     __ ldm(IA, SP,
-           (1 << kFunctionTypeArgumentsReg) |
-               (1 << kInstantiatorTypeArgumentsReg));
+           (1 << TypeTestABI::kFunctionTypeArgumentsReg) |
+               (1 << TypeTestABI::kInstantiatorTypeArgumentsReg));
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator(s).
-    return GenerateCallSubtypeTestStub(kTestTypeFourArgs, kInstanceReg,
-                                       kInstantiatorTypeArgumentsReg,
-                                       kFunctionTypeArgumentsReg, kTempReg,
-                                       is_instance_lbl, is_not_instance_lbl);
+    return GenerateCallSubtypeTestStub(
+        kTestTypeFourArgs, TypeTestABI::kInstanceReg,
+        TypeTestABI::kInstantiatorTypeArgumentsReg,
+        TypeTestABI::kFunctionTypeArgumentsReg, kTempReg, is_instance_lbl,
+        is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
 }
@@ -537,20 +540,21 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateFunctionTypeTest(
     const AbstractType& type,
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
-  const Register kInstanceReg = R0;
-  __ BranchIfSmi(kInstanceReg, is_not_instance_lbl);
-  static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+  __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
+  static_assert(TypeTestABI::kFunctionTypeArgumentsReg <
+                    TypeTestABI::kInstantiatorTypeArgumentsReg,
                 "Should be ordered to load arguments with one instruction");
-  __ ldm(
-      IA, SP,
-      (1 << kFunctionTypeArgumentsReg) | (1 << kInstantiatorTypeArgumentsReg));
+  __ ldm(IA, SP,
+         (1 << TypeTestABI::kFunctionTypeArgumentsReg) |
+             (1 << TypeTestABI::kInstantiatorTypeArgumentsReg));
   // Uninstantiated type class is known at compile time, but the type
   // arguments are determined at runtime by the instantiator(s).
   const Register kTempReg = kNoRegister;
-  return GenerateCallSubtypeTestStub(kTestTypeSixArgs, kInstanceReg,
-                                     kInstantiatorTypeArgumentsReg,
-                                     kFunctionTypeArgumentsReg, kTempReg,
-                                     is_instance_lbl, is_not_instance_lbl);
+  return GenerateCallSubtypeTestStub(
+      kTestTypeSixArgs, TypeTestABI::kInstanceReg,
+      TypeTestABI::kInstantiatorTypeArgumentsReg,
+      TypeTestABI::kFunctionTypeArgumentsReg, kTempReg, is_instance_lbl,
+      is_not_instance_lbl);
 }
 
 // Inputs:
@@ -618,10 +622,11 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsTopType());  // Already checked.
-  static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+  static_assert(TypeTestABI::kFunctionTypeArgumentsReg <
+                    TypeTestABI::kInstantiatorTypeArgumentsReg,
                 "Should be ordered to push arguments with one instruction");
-  __ PushList((1 << kInstantiatorTypeArgumentsReg) |
-              (1 << kFunctionTypeArgumentsReg));
+  __ PushList((1 << TypeTestABI::kInstantiatorTypeArgumentsReg) |
+              (1 << TypeTestABI::kFunctionTypeArgumentsReg));
 
   compiler::Label is_instance, is_not_instance;
   // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
@@ -632,7 +637,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
     // Only nullable type parameter remains nullable after instantiation.
     // See NullIsInstanceOf().
-    __ CompareObject(R0, Object::null_object());
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ b((unwrapped_type.IsNullable() ||
           (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType()))
              ? &is_instance
@@ -649,16 +654,17 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   compiler::Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+    static_assert(TypeTestABI::kFunctionTypeArgumentsReg <
+                      TypeTestABI::kInstantiatorTypeArgumentsReg,
                   "Should be ordered to load arguments with one instruction");
     __ ldm(IA, SP,
-           (1 << kFunctionTypeArgumentsReg) |
-               (1 << kInstantiatorTypeArgumentsReg));
+           (1 << TypeTestABI::kFunctionTypeArgumentsReg) |
+               (1 << TypeTestABI::kInstantiatorTypeArgumentsReg));
     __ PushObject(Object::null_object());  // Make room for the result.
-    __ Push(R0);                           // Push the instance.
+    __ Push(TypeTestABI::kInstanceReg);    // Push the instance.
     __ PushObject(type);                   // Push the type.
-    __ PushList((1 << kInstantiatorTypeArgumentsReg) |
-                (1 << kFunctionTypeArgumentsReg));
+    __ PushList((1 << TypeTestABI::kInstantiatorTypeArgumentsReg) |
+                (1 << TypeTestABI::kFunctionTypeArgumentsReg));
     __ LoadUniqueObject(R0, test_cache);
     __ Push(R0);
     GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
@@ -709,14 +715,15 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     compiler::Label is_assignable_fast, is_assignable, runtime_call;
 
     if (Instance::NullIsAssignableTo(dst_type)) {
-      __ CompareObject(R0, Object::null_object());
+      __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
       __ b(&is_assignable_fast, EQ);
     }
 
-    static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+    static_assert(TypeTestABI::kFunctionTypeArgumentsReg <
+                      TypeTestABI::kInstantiatorTypeArgumentsReg,
                   "Should be ordered to push arguments with one instruction");
-    __ PushList((1 << kInstantiatorTypeArgumentsReg) |
-                (1 << kFunctionTypeArgumentsReg));
+    __ PushList((1 << TypeTestABI::kInstantiatorTypeArgumentsReg) |
+                (1 << TypeTestABI::kFunctionTypeArgumentsReg));
 
     // Generate inline type check, linking to runtime call if not assignable.
     SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
@@ -724,16 +731,17 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                           &runtime_call);
 
     __ Bind(&runtime_call);
-    static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+    static_assert(TypeTestABI::kFunctionTypeArgumentsReg <
+                      TypeTestABI::kInstantiatorTypeArgumentsReg,
                   "Should be ordered to load arguments with one instruction");
     __ ldm(IA, SP,
-           (1 << kFunctionTypeArgumentsReg) |
-               (1 << kInstantiatorTypeArgumentsReg));
+           (1 << TypeTestABI::kFunctionTypeArgumentsReg) |
+               (1 << TypeTestABI::kInstantiatorTypeArgumentsReg));
     __ PushObject(Object::null_object());  // Make room for the result.
-    __ Push(R0);                           // Push the source object.
+    __ Push(TypeTestABI::kInstanceReg);    // Push the source object.
     __ PushObject(dst_type);               // Push the type of the destination.
-    __ PushList((1 << kInstantiatorTypeArgumentsReg) |
-                (1 << kFunctionTypeArgumentsReg));
+    __ PushList((1 << TypeTestABI::kInstantiatorTypeArgumentsReg) |
+                (1 << TypeTestABI::kFunctionTypeArgumentsReg));
     __ PushObject(dst_name);  // Push the name of the destination.
     __ LoadUniqueObject(R0, test_cache);
     __ Push(R0);
@@ -744,8 +752,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     __ Drop(7);
     __ Pop(R0);
     __ Bind(&is_assignable);
-    __ PopList((1 << kFunctionTypeArgumentsReg) |
-               (1 << kInstantiatorTypeArgumentsReg));
+    __ PopList((1 << TypeTestABI::kFunctionTypeArgumentsReg) |
+               (1 << TypeTestABI::kInstantiatorTypeArgumentsReg));
     __ Bind(&is_assignable_fast);
   }
 }
@@ -756,18 +764,14 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const AbstractType& dst_type,
     const String& dst_name,
     LocationSummary* locs) {
-  const Register kInstanceReg = R0;
-  const Register kSubtypeTestCacheReg = R3;
-  const Register kDstTypeReg = R8;
-  const Register kRegToCall = dst_type.IsTypeParameter() ? R9 : kDstTypeReg;
+  const Register kRegToCall =
+      dst_type.IsTypeParameter() ? R9 : TypeTestABI::kDstTypeReg;
   const Register kScratchReg = R4;
 
   compiler::Label done;
 
-  GenerateAssertAssignableViaTypeTestingStub(
-      dst_type, dst_name, kInstanceReg, kInstantiatorTypeArgumentsReg,
-      kFunctionTypeArgumentsReg, kSubtypeTestCacheReg, kDstTypeReg, kRegToCall,
-      kScratchReg, &done);
+  GenerateAssertAssignableViaTypeTestingStub(dst_type, dst_name, kRegToCall,
+                                             kScratchReg, &done);
 
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,
@@ -790,8 +794,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
       compiler::FieldAddress(
           kRegToCall,
           compiler::target::AbstractType::type_test_stub_entry_point_offset()));
-  __ LoadWordFromPoolOffset(kSubtypeTestCacheReg, sub_type_cache_offset, PP,
-                            AL);
+  __ LoadWordFromPoolOffset(TypeTestABI::kSubtypeTestCacheReg,
+                            sub_type_cache_offset, PP, AL);
   __ blx(R9);
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Bind(&done);

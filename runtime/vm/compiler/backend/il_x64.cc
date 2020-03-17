@@ -516,14 +516,13 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   // modified by the stub. To tell the register allocator about it, we reserve
   // all the other registers as temporary registers.
   // TODO(http://dartbug.com/32788): Simplify this.
-  const Register kInstanceReg = RAX;
-
   const bool using_stub =
       FlowGraphCompiler::ShouldUseTypeTestingStubFor(opt, dst_type());
 
   const intptr_t kNonChangeableInputRegs =
-      (1 << kInstanceReg) | (1 << kInstantiatorTypeArgumentsReg) |
-      (1 << kFunctionTypeArgumentsReg);
+      (1 << TypeTestABI::kInstanceReg) |
+      (1 << TypeTestABI::kInstantiatorTypeArgumentsReg) |
+      (1 << TypeTestABI::kFunctionTypeArgumentsReg);
 
   const intptr_t kNumInputs = 3;
 
@@ -544,13 +543,15 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       using_stub ? LocationSummary::kCallCalleeSafe : LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(kInstanceReg));  // Value.
-  summary->set_in(1, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
-  summary->set_in(2, Location::RegisterLocation(kFunctionTypeArgumentsReg));
+  summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
+  summary->set_in(1, Location::RegisterLocation(
+                         TypeTestABI::kInstantiatorTypeArgumentsReg));
+  summary->set_in(
+      2, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
 
   // TODO(http://dartbug.com/32787): Use Location::SameAsFirstInput() instead,
   // once register allocator no longer hits assertion.
-  summary->set_out(0, Location::RegisterLocation(kInstanceReg));
+  summary->set_out(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
 
   if (using_stub) {
     // Let's reserve all registers except for the input ones.
@@ -2493,15 +2494,17 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(RAX));  // Instance.
-  summary->set_in(1, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
-  summary->set_in(2, Location::RegisterLocation(kFunctionTypeArgumentsReg));
+  summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
+  summary->set_in(1, Location::RegisterLocation(
+                         TypeTestABI::kInstantiatorTypeArgumentsReg));
+  summary->set_in(
+      2, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
   summary->set_out(0, Location::RegisterLocation(RAX));
   return summary;
 }
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->in(0).reg() == RAX);  // Value.
+  ASSERT(locs()->in(0).reg() == TypeTestABI::kInstanceReg);
   ASSERT(locs()->in(1).reg() == kInstantiatorTypeArgumentsReg);
   ASSERT(locs()->in(2).reg() == kFunctionTypeArgumentsReg);
 

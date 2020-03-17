@@ -59,8 +59,11 @@ RawLibrary* LoadTestScript(const char* script,
 
 RawFunction* GetFunction(const Library& lib, const char* name);
 RawClass* GetClass(const Library& lib, const char* name);
+RawTypeParameter* GetClassTypeParameter(const Class& klass, const char* name);
+RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
+                                           const char* name);
 
-void Invoke(const Library& lib, const char* name);
+RawObject* Invoke(const Library& lib, const char* name);
 
 class TestPipeline : public ValueObject {
  public:

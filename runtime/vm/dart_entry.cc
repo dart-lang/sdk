@@ -96,7 +96,6 @@ class SuspendLongJumpScope : public ThreadStackResource {
   LongJumpScope* saved_long_jump_base_;
 };
 
-NO_SANITIZE_SAFE_STACK
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
                                      const Array& arguments_descriptor,
@@ -165,11 +164,20 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Now Call the invoke stub which will invoke the dart function.
-  invokestub entrypoint =
-      reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
   const Code& code = Code::Handle(zone, function.CurrentCode());
+  return InvokeCode(code, arguments_descriptor, arguments, thread);
+}
+
+NO_SANITIZE_SAFE_STACK
+RawObject* DartEntry::InvokeCode(const Code& code,
+                                 const Array& arguments_descriptor,
+                                 const Array& arguments,
+                                 Thread* thread) {
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
+
+  invokestub entrypoint =
+      reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
 #if defined(USING_SIMULATOR)

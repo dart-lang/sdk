@@ -2340,14 +2340,13 @@ FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const AbstractType& dst_type,
     const String& dst_name,
-    const Register instance_reg,
-    const Register instantiator_type_args_reg,
-    const Register function_type_args_reg,
-    const Register subtype_cache_reg,
-    const Register dst_type_reg,
     const Register dst_type_reg_to_call,
     const Register scratch_reg,
     compiler::Label* done) {
+#if defined(TARGET_ARCH_IA32)
+  // ia32 does not have support for TypeTestingStubs.
+  UNREACHABLE();
+#else
   TypeUsageInfo* type_usage_info = thread()->type_usage_info();
 
   // If the int type is assignable to [dst_type] we special case it on the
@@ -2355,14 +2354,16 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   const Type& int_type = Type::Handle(zone(), Type::IntType());
   bool is_non_smi = false;
   if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
-    __ BranchIfSmi(instance_reg, done);
+    __ BranchIfSmi(TypeTestABI::kInstanceReg, done);
     is_non_smi = true;
   }
 
   // We use two type registers iff the dst type is a type parameter.
   // We "dereference" the type parameter for the TTS call but leave the type
-  // parameter in the dst_type_reg for fallback into SubtypeTestCache.
-  ASSERT(dst_type.IsTypeParameter() == (dst_type_reg != dst_type_reg_to_call));
+  // parameter in the TypeTestABI::kDstTypeReg for fallback into
+  // SubtypeTestCache.
+  ASSERT(dst_type.IsTypeParameter() ==
+         (TypeTestABI::kDstTypeReg != dst_type_reg_to_call));
 
   // We can handle certain types very efficiently on the call site (with a
   // bailout to the normal stub, which will do a runtime call).
@@ -2373,13 +2374,14 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     // In NNBD weak mode or if type parameter is non-nullable or has
     // undetermined nullability null instance is correctly handled by TTS.
     if (FLAG_null_safety && (dst_type.IsNullable() || dst_type.IsLegacy())) {
-      __ CompareObject(instance_reg, Object::null_object());
+      __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
       __ BranchIf(EQUAL, done);
     }
     const TypeParameter& type_param = TypeParameter::Cast(dst_type);
-    const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
-                                           ? instantiator_type_args_reg
-                                           : function_type_args_reg;
+    const Register kTypeArgumentsReg =
+        type_param.IsClassTypeParameter()
+            ? TypeTestABI::kInstantiatorTypeArgumentsReg
+            : TypeTestABI::kFunctionTypeArgumentsReg;
 
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
@@ -2389,7 +2391,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
         compiler::FieldAddress(kTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(
                                    type_param.index())));
-    __ LoadObject(dst_type_reg, type_param);
+    __ LoadObject(TypeTestABI::kDstTypeReg, type_param);
     if (type_usage_info != NULL) {
       type_usage_info->UseTypeInAssertAssignable(dst_type);
     }
@@ -2409,9 +2411,9 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
             /*exclude_null=*/!Instance::NullIsAssignableTo(dst_type));
         if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
           if (is_non_smi) {
-            __ LoadClassId(scratch_reg, instance_reg);
+            __ LoadClassId(scratch_reg, TypeTestABI::kInstanceReg);
           } else {
-            __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
+            __ LoadClassIdMayBeSmi(scratch_reg, TypeTestABI::kInstanceReg);
           }
           GenerateCidRangesCheck(assembler(), scratch_reg, ranges, done);
           used_cid_range_check = true;
@@ -2421,7 +2423,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 
       if (!used_cid_range_check && can_use_simple_cid_range_test &&
           IsListClass(type_class)) {
-        __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
+        __ LoadClassIdMayBeSmi(scratch_reg, TypeTestABI::kInstanceReg);
         GenerateListTypeCheck(scratch_reg, done);
         used_cid_range_check = true;
       }
@@ -2437,8 +2439,9 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
         }
       }
     }
-    __ LoadObject(dst_type_reg, dst_type);
+    __ LoadObject(TypeTestABI::kDstTypeReg, dst_type);
   }
+#endif  // defined(TARGET_ARCH_IA32)
 }
 
 #undef __

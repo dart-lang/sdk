@@ -6182,12 +6182,12 @@ class Code : public Object {
 #endif
   }
 
- private:
-  void set_state_bits(intptr_t bits) const;
-
   void set_object_pool(RawObjectPool* object_pool) const {
     StorePointer(&raw_ptr()->object_pool_, object_pool);
   }
+
+ private:
+  void set_state_bits(intptr_t bits) const;
 
   friend class RawObject;  // For RawObject::SizeFromClass().
   friend class RawCode;
