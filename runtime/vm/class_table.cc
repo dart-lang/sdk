@@ -27,13 +27,15 @@ SharedClassTable::SharedClassTable()
     ASSERT(kInitialCapacity >= kNumPredefinedCids);
     capacity_ = kInitialCapacity;
     // Note that [calloc] will zero-initialize the memory.
-    table_ = static_cast<intptr_t*>(calloc(capacity_, sizeof(intptr_t)));
+    table_ = reinterpret_cast<RelaxedAtomic<intptr_t>*>(
+        calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>)));
   } else {
     // Duplicate the class table from the VM isolate.
     auto vm_shared_class_table = Dart::vm_isolate()->group()->class_table();
     capacity_ = vm_shared_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
-    table_ = static_cast<intptr_t*>(calloc(capacity_, sizeof(RawClass*)));
+    table_ = reinterpret_cast<RelaxedAtomic<intptr_t>*>(
+        calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>)));
     // The following cids don't have a corresponding class object in Dart code.
     // We therefore need to initialize them eagerly.
     for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
@@ -237,8 +239,9 @@ void SharedClassTable::AllocateIndex(intptr_t index) {
 void SharedClassTable::Grow(intptr_t new_capacity) {
   ASSERT(new_capacity >= capacity_);
 
-  intptr_t* new_table = static_cast<intptr_t*>(
-      malloc(new_capacity * sizeof(intptr_t)));  // NOLINT
+  RelaxedAtomic<intptr_t>* new_table =
+      reinterpret_cast<RelaxedAtomic<intptr_t>*>(
+          malloc(new_capacity * sizeof(RelaxedAtomic<intptr_t>)));  // NOLINT
 
   memmove(new_table, table_, capacity_ * sizeof(intptr_t));
   memset(new_table + capacity_, 0,
