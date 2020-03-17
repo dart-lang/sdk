@@ -13,7 +13,7 @@ class A<Q extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::Q*>*
     ;
 }
-abstract class _B&Object&A<X extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin*/  {
+abstract class _B&Object&A<X extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_B&Object&A<self::_B&Object&A::X*>*
     : super core::Object::•()
     ;

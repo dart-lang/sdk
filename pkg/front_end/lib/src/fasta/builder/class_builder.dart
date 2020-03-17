@@ -130,7 +130,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get isAbstract;
 
-  bool get hasConstConstructor;
+  bool get declaresConstConstructor;
 
   bool get isMixin;
 
@@ -375,7 +375,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return isMixinApplication && !isNamedMixinApplication;
   }
 
-  bool get hasConstConstructor => (modifiers & hasConstConstructorMask) != 0;
+  bool get declaresConstConstructor =>
+      (modifiers & declaresConstConstructorMask) != 0;
 
   @override
   List<ConstructorReferenceBuilder> get constructorReferences => null;

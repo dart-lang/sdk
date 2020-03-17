@@ -21,7 +21,7 @@ class B extends core::Object implements self::A {
   no-such-method-forwarder set foo(core::int* value) → void
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
-abstract class _C&Object&B extends core::Object implements self::B /*isAnonymousMixin,isEliminatedMixin*/  {
+abstract class _C&Object&B extends core::Object implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&B*
     : super core::Object::•()
     ;

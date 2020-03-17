@@ -21,12 +21,12 @@ class M2 extends core::Object {
   method method(core::int* a, covariant core::int* b) → dynamic
     ;
 }
-abstract class _C&Object&M1 = core::Object with self::M1 /*isAnonymousMixin*/  {
+abstract class _C&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&M1*
     : super core::Object::•()
     ;
 }
-abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 /*isAnonymousMixin*/  {
+abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&M1&M2*
     : super self::_C&Object&M1::•()
     ;

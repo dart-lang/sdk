@@ -5,7 +5,7 @@ import "mixin_from_opt_in_lib.dart" as mix;
 
 import "org-dartlang-testcase:///mixin_from_opt_in_lib.dart";
 
-abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousMixin*/  {
+abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class&Object&Mixin*
     : super core::Object::•()
     ;

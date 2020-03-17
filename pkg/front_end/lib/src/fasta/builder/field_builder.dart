@@ -294,7 +294,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             (isFinal &&
                 !isStatic &&
                 isClassMember &&
-                classBuilder.hasConstConstructor)) &&
+                classBuilder.declaresConstConstructor)) &&
         constInitializerToken != null) {
       Scope scope = classBuilder?.scope ?? library.scope;
       BodyBuilder bodyBuilder = library.loader

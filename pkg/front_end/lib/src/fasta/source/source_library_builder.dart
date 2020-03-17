@@ -146,7 +146,7 @@ import '../modifier.dart'
         abstractMask,
         constMask,
         finalMask,
-        hasConstConstructorMask,
+        declaresConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
         lateMask,
@@ -1418,8 +1418,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       isMixinDeclaration = true;
       modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
     }
-    if (declaration.hasConstConstructor) {
-      modifiers |= hasConstConstructorMask;
+    if (declaration.declaresConstConstructor) {
+      modifiers |= declaresConstConstructorMask;
     }
     Class referencesFromClass;
     if (referencesFrom != null) {
@@ -2061,7 +2061,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       addNativeMethod(constructorBuilder);
     }
     if (constructorBuilder.isConst) {
-      currentTypeParameterScopeBuilder?.hasConstConstructor = true;
+      currentTypeParameterScopeBuilder?.declaresConstConstructor = true;
       // const constructors will have their initializers compiled and written
       // into the outline.
       constructorBuilder.beginInitializers =
@@ -3548,7 +3548,7 @@ class TypeParameterScopeBuilder {
   /// with a synthesized parameter of this type.
   TypeBuilder _extensionThisType;
 
-  bool hasConstConstructor = false;
+  bool declaresConstConstructor = false;
 
   TypeParameterScopeBuilder(
       this._kind,

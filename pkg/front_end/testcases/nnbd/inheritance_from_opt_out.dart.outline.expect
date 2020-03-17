@@ -72,7 +72,7 @@ class LegacyClass5<T extends core::Object* = dynamic> extends inh::LegacyClass3<
   synthetic constructor •() → inh::LegacyClass5<inh::LegacyClass5::T*>*
     ;
 }
-abstract class _LegacyClass6&Object&LegacyClass3<T extends core::Object* = dynamic> = core::Object with inh::LegacyClass3<inh::_LegacyClass6&Object&LegacyClass3::T*> /*isAnonymousMixin*/  {
+abstract class _LegacyClass6&Object&LegacyClass3<T extends core::Object* = dynamic> = core::Object with inh::LegacyClass3<inh::_LegacyClass6&Object&LegacyClass3::T*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → inh::_LegacyClass6&Object&LegacyClass3<inh::_LegacyClass6&Object&LegacyClass3::T*>*
     : super core::Object::•()
     ;
@@ -85,7 +85,7 @@ class LegacyClass7<T extends core::Object* = dynamic> extends inh::LegacyClass3<
   synthetic constructor •() → inh::LegacyClass7<inh::LegacyClass7::T*>*
     ;
 }
-abstract class _LegacyClass8&Object&LegacyClass3<T extends core::Object* = dynamic> = core::Object with inh::LegacyClass3<inh::_LegacyClass8&Object&LegacyClass3::T*> /*isAnonymousMixin*/  {
+abstract class _LegacyClass8&Object&LegacyClass3<T extends core::Object* = dynamic> = core::Object with inh::LegacyClass3<inh::_LegacyClass8&Object&LegacyClass3::T*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → inh::_LegacyClass8&Object&LegacyClass3<inh::_LegacyClass8&Object&LegacyClass3::T*>*
     : super core::Object::•()
     ;

@@ -112,7 +112,7 @@ class Am1<X extends core::Object* = dynamic, Y extends core::Object* = dynamic> 
     : super core::Object::•()
     ;
 }
-abstract class _Bm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::int*) →* dynamic, self::_Bm1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Bm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::int*) →* dynamic, self::_Bm1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Bm1&Object&Am1<self::_Bm1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -122,7 +122,7 @@ class Bm1<Z extends core::Object* = dynamic> extends self::_Bm1&Object&Am1<self:
     : super self::_Bm1&Object&Am1::•()
     ;
 }
-abstract class _Cm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::int*) →* dynamic, self::_Cm1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Cm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::int*) →* dynamic, self::_Cm1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Cm1&Object&Am1<self::_Cm1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -132,7 +132,7 @@ class Cm1<Z extends core::Object* = dynamic> extends self::_Cm1&Object&Am1<self:
     : super self::_Cm1&Object&Am1::•()
     ;
 }
-abstract class _Dm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* core::int*, self::_Dm1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Dm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* core::int*, self::_Dm1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Dm1&Object&Am1<self::_Dm1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -142,7 +142,7 @@ class Dm1<Z extends core::Object* = dynamic> extends self::_Dm1&Object&Am1<self:
     : super self::_Dm1&Object&Am1::•()
     ;
 }
-abstract class _Em1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* dynamic, self::_Em1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Em1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* dynamic, self::_Em1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Em1&Object&Am1<self::_Em1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -152,7 +152,7 @@ class Em1<Z extends core::Object* = dynamic> extends self::_Em1&Object&Am1<self:
     : super self::_Em1&Object&Am1::•()
     ;
 }
-abstract class _Fm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* dynamic, self::_Fm1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Fm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* dynamic, self::_Fm1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Fm1&Object&Am1<self::_Fm1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -162,7 +162,7 @@ class Fm1<Z extends core::Object* = dynamic> extends self::_Fm1&Object&Am1<self:
     : super self::_Fm1&Object&Am1::•()
     ;
 }
-abstract class _Gm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<({x: core::int*}) →* dynamic, self::_Gm1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Gm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<({x: core::int*}) →* dynamic, self::_Gm1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Gm1&Object&Am1<self::_Gm1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -172,7 +172,7 @@ class Gm1<Z extends core::Object* = dynamic> extends self::_Gm1&Object&Am1<self:
     : super self::_Gm1&Object&Am1::•()
     ;
 }
-abstract class _Hm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<([core::int*]) →* dynamic, self::_Hm1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Hm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<([core::int*]) →* dynamic, self::_Hm1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Hm1&Object&Am1<self::_Hm1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -182,7 +182,7 @@ class Hm1<Z extends core::Object* = dynamic> extends self::_Hm1&Object&Am1<self:
     : super self::_Hm1&Object&Am1::•()
     ;
 }
-abstract class _Im1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<([core::int*]) →* dynamic, self::_Im1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Im1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<([core::int*]) →* dynamic, self::_Im1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Im1&Object&Am1<self::_Im1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -192,7 +192,7 @@ class Im1<Z extends core::Object* = dynamic> extends self::_Im1&Object&Am1<self:
     : super self::_Im1&Object&Am1::•()
     ;
 }
-abstract class _Jm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<core::Function*, self::_Jm1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Jm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<core::Function*, self::_Jm1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Jm1&Object&Am1<self::_Jm1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -202,7 +202,7 @@ class Jm1<Z extends core::Object* = dynamic> extends self::_Jm1&Object&Am1<self:
     : super self::_Jm1&Object&Am1::•()
     ;
 }
-abstract class _Km1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::Function*) →* dynamic, self::_Km1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Km1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::Function*) →* dynamic, self::_Km1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Km1&Object&Am1<self::_Km1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -212,7 +212,7 @@ class Km1<Z extends core::Object* = dynamic> extends self::_Km1&Object&Am1<self:
     : super self::_Km1&Object&Am1::•()
     ;
 }
-abstract class _Lm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* (() →* core::Function*) →* dynamic, self::_Lm1&Object&Am1::Z*> /*isAnonymousMixin*/  {
+abstract class _Lm1&Object&Am1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* (() →* core::Function*) →* dynamic, self::_Lm1&Object&Am1::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Lm1&Object&Am1<self::_Lm1&Object&Am1::Z*>*
     : super core::Object::•()
     ;
@@ -222,57 +222,57 @@ class Lm1<Z extends core::Object* = dynamic> extends self::_Lm1&Object&Am1<self:
     : super self::_Lm1&Object&Am1::•()
     ;
 }
-class Mm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::int*) →* dynamic, self::Mm1::Z*> {
+class Mm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::int*) →* dynamic, self::Mm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Mm1<self::Mm1::Z*>*
     : super core::Object::•()
     ;
 }
-class Nm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::int*) →* dynamic, self::Nm1::Z*> {
+class Nm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::int*) →* dynamic, self::Nm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Nm1<self::Nm1::Z*>*
     : super core::Object::•()
     ;
 }
-class Om1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* core::int*, self::Om1::Z*> {
+class Om1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* core::int*, self::Om1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Om1<self::Om1::Z*>*
     : super core::Object::•()
     ;
 }
-class Pm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* dynamic, self::Pm1::Z*> {
+class Pm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* dynamic, self::Pm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Pm1<self::Pm1::Z*>*
     : super core::Object::•()
     ;
 }
-class Qm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* dynamic, self::Qm1::Z*> {
+class Qm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* dynamic, self::Qm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Qm1<self::Qm1::Z*>*
     : super core::Object::•()
     ;
 }
-class Rm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<({x: core::int*}) →* dynamic, self::Rm1::Z*> {
+class Rm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<({x: core::int*}) →* dynamic, self::Rm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Rm1<self::Rm1::Z*>*
     : super core::Object::•()
     ;
 }
-class Sm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<([core::int*]) →* dynamic, self::Sm1::Z*> {
+class Sm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<([core::int*]) →* dynamic, self::Sm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Sm1<self::Sm1::Z*>*
     : super core::Object::•()
     ;
 }
-class Tm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<([core::int*]) →* dynamic, self::Tm1::Z*> {
+class Tm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<([core::int*]) →* dynamic, self::Tm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Tm1<self::Tm1::Z*>*
     : super core::Object::•()
     ;
 }
-class Um1<Z extends core::Object* = dynamic> = core::Object with self::Am1<core::Function*, self::Um1::Z*> {
+class Um1<Z extends core::Object* = dynamic> = core::Object with self::Am1<core::Function*, self::Um1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Um1<self::Um1::Z*>*
     : super core::Object::•()
     ;
 }
-class Vm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::Function*) →* dynamic, self::Vm1::Z*> {
+class Vm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<(core::Function*) →* dynamic, self::Vm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Vm1<self::Vm1::Z*>*
     : super core::Object::•()
     ;
 }
-class Wm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* (() →* core::Function*) →* dynamic, self::Wm1::Z*> {
+class Wm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() →* (() →* core::Function*) →* dynamic, self::Wm1::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Wm1<self::Wm1::Z*>*
     : super core::Object::•()
     ;
@@ -282,7 +282,7 @@ class Am2<X extends () →* dynamic = () →* dynamic, Y extends core::Object* =
     : super core::Object::•()
     ;
 }
-abstract class _Bm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::int*) →* dynamic, self::_Bm2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Bm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::int*) →* dynamic, self::_Bm2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Bm2&Object&Am2<self::_Bm2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -292,7 +292,7 @@ class Bm2<Z extends core::Object* = dynamic> extends self::_Bm2&Object&Am2<self:
     : super self::_Bm2&Object&Am2::•()
     ;
 }
-abstract class _Cm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::int*) →* dynamic, self::_Cm2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Cm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::int*) →* dynamic, self::_Cm2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Cm2&Object&Am2<self::_Cm2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -302,7 +302,7 @@ class Cm2<Z extends core::Object* = dynamic> extends self::_Cm2&Object&Am2<self:
     : super self::_Cm2&Object&Am2::•()
     ;
 }
-abstract class _Dm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* core::int*, self::_Dm2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Dm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* core::int*, self::_Dm2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Dm2&Object&Am2<self::_Dm2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -312,7 +312,7 @@ class Dm2<Z extends core::Object* = dynamic> extends self::_Dm2&Object&Am2<self:
     : super self::_Dm2&Object&Am2::•()
     ;
 }
-abstract class _Em2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* dynamic, self::_Em2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Em2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* dynamic, self::_Em2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Em2&Object&Am2<self::_Em2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -322,7 +322,7 @@ class Em2<Z extends core::Object* = dynamic> extends self::_Em2&Object&Am2<self:
     : super self::_Em2&Object&Am2::•()
     ;
 }
-abstract class _Fm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* dynamic, self::_Fm2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Fm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* dynamic, self::_Fm2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Fm2&Object&Am2<self::_Fm2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -332,7 +332,7 @@ class Fm2<Z extends core::Object* = dynamic> extends self::_Fm2&Object&Am2<self:
     : super self::_Fm2&Object&Am2::•()
     ;
 }
-abstract class _Gm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<({x: core::int*}) →* dynamic, self::_Gm2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Gm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<({x: core::int*}) →* dynamic, self::_Gm2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Gm2&Object&Am2<self::_Gm2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -342,7 +342,7 @@ class Gm2<Z extends core::Object* = dynamic> extends self::_Gm2&Object&Am2<self:
     : super self::_Gm2&Object&Am2::•()
     ;
 }
-abstract class _Hm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<([core::int*]) →* dynamic, self::_Hm2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Hm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<([core::int*]) →* dynamic, self::_Hm2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Hm2&Object&Am2<self::_Hm2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -352,7 +352,7 @@ class Hm2<Z extends core::Object* = dynamic> extends self::_Hm2&Object&Am2<self:
     : super self::_Hm2&Object&Am2::•()
     ;
 }
-abstract class _Im2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<([core::int*]) →* dynamic, self::_Im2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Im2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<([core::int*]) →* dynamic, self::_Im2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Im2&Object&Am2<self::_Im2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -362,7 +362,7 @@ class Im2<Z extends core::Object* = dynamic> extends self::_Im2&Object&Am2<self:
     : super self::_Im2&Object&Am2::•()
     ;
 }
-abstract class _Jm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<core::Function*, self::_Jm2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Jm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<core::Function*, self::_Jm2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Jm2&Object&Am2<self::_Jm2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -372,7 +372,7 @@ class Jm2<Z extends core::Object* = dynamic> extends self::_Jm2&Object&Am2<self:
     : super self::_Jm2&Object&Am2::•()
     ;
 }
-abstract class _Km2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::Function*) →* dynamic, self::_Km2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Km2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::Function*) →* dynamic, self::_Km2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Km2&Object&Am2<self::_Km2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -382,7 +382,7 @@ class Km2<Z extends core::Object* = dynamic> extends self::_Km2&Object&Am2<self:
     : super self::_Km2&Object&Am2::•()
     ;
 }
-abstract class _Lm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* (() →* core::Function*) →* dynamic, self::_Lm2&Object&Am2::Z*> /*isAnonymousMixin*/  {
+abstract class _Lm2&Object&Am2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* (() →* core::Function*) →* dynamic, self::_Lm2&Object&Am2::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Lm2&Object&Am2<self::_Lm2&Object&Am2::Z*>*
     : super core::Object::•()
     ;
@@ -392,57 +392,57 @@ class Lm2<Z extends core::Object* = dynamic> extends self::_Lm2&Object&Am2<self:
     : super self::_Lm2&Object&Am2::•()
     ;
 }
-class Mm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::int*) →* dynamic, self::Mm2::Z*> {
+class Mm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::int*) →* dynamic, self::Mm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Mm2<self::Mm2::Z*>*
     : super core::Object::•()
     ;
 }
-class Nm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::int*) →* dynamic, self::Nm2::Z*> {
+class Nm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::int*) →* dynamic, self::Nm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Nm2<self::Nm2::Z*>*
     : super core::Object::•()
     ;
 }
-class Om2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* core::int*, self::Om2::Z*> {
+class Om2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* core::int*, self::Om2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Om2<self::Om2::Z*>*
     : super core::Object::•()
     ;
 }
-class Pm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* dynamic, self::Pm2::Z*> {
+class Pm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* dynamic, self::Pm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Pm2<self::Pm2::Z*>*
     : super core::Object::•()
     ;
 }
-class Qm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* dynamic, self::Qm2::Z*> {
+class Qm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* dynamic, self::Qm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Qm2<self::Qm2::Z*>*
     : super core::Object::•()
     ;
 }
-class Rm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<({x: core::int*}) →* dynamic, self::Rm2::Z*> {
+class Rm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<({x: core::int*}) →* dynamic, self::Rm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Rm2<self::Rm2::Z*>*
     : super core::Object::•()
     ;
 }
-class Sm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<([core::int*]) →* dynamic, self::Sm2::Z*> {
+class Sm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<([core::int*]) →* dynamic, self::Sm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Sm2<self::Sm2::Z*>*
     : super core::Object::•()
     ;
 }
-class Tm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<([core::int*]) →* dynamic, self::Tm2::Z*> {
+class Tm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<([core::int*]) →* dynamic, self::Tm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Tm2<self::Tm2::Z*>*
     : super core::Object::•()
     ;
 }
-class Um2<Z extends core::Object* = dynamic> = core::Object with self::Am2<core::Function*, self::Um2::Z*> {
+class Um2<Z extends core::Object* = dynamic> = core::Object with self::Am2<core::Function*, self::Um2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Um2<self::Um2::Z*>*
     : super core::Object::•()
     ;
 }
-class Vm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::Function*) →* dynamic, self::Vm2::Z*> {
+class Vm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<(core::Function*) →* dynamic, self::Vm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Vm2<self::Vm2::Z*>*
     : super core::Object::•()
     ;
 }
-class Wm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* (() →* core::Function*) →* dynamic, self::Wm2::Z*> {
+class Wm2<Z extends core::Object* = dynamic> = core::Object with self::Am2<() →* (() →* core::Function*) →* dynamic, self::Wm2::Z*> /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Wm2<self::Wm2::Z*>*
     : super core::Object::•()
     ;
@@ -452,7 +452,7 @@ class Am3<L extends core::Object* = dynamic, Y extends core::Object* = dynamic> 
     : super core::Object::•()
     ;
 }
-abstract class _Bm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<(core::int*) →* dynamic, self::_Bm3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Bm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<(core::int*) →* dynamic, self::_Bm3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Bm3&Object&Am3<self::_Bm3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -462,7 +462,7 @@ class Bm3<Z extends core::Object* = dynamic> extends self::_Bm3&Object&Am3<self:
     : super self::_Bm3&Object&Am3::•()
     ;
 }
-abstract class _Cm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<(core::int*) →* dynamic, self::_Cm3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Cm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<(core::int*) →* dynamic, self::_Cm3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Cm3&Object&Am3<self::_Cm3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -472,7 +472,7 @@ class Cm3<Z extends core::Object* = dynamic> extends self::_Cm3&Object&Am3<self:
     : super self::_Cm3&Object&Am3::•()
     ;
 }
-abstract class _Dm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<() →* core::int*, self::_Dm3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Dm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<() →* core::int*, self::_Dm3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Dm3&Object&Am3<self::_Dm3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -482,7 +482,7 @@ class Dm3<Z extends core::Object* = dynamic> extends self::_Dm3&Object&Am3<self:
     : super self::_Dm3&Object&Am3::•()
     ;
 }
-abstract class _Em3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<() →* dynamic, self::_Em3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Em3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<() →* dynamic, self::_Em3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Em3&Object&Am3<self::_Em3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -492,7 +492,7 @@ class Em3<Z extends core::Object* = dynamic> extends self::_Em3&Object&Am3<self:
     : super self::_Em3&Object&Am3::•()
     ;
 }
-abstract class _Fm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<() →* dynamic, self::_Fm3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Fm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<() →* dynamic, self::_Fm3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Fm3&Object&Am3<self::_Fm3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -502,7 +502,7 @@ class Fm3<Z extends core::Object* = dynamic> extends self::_Fm3&Object&Am3<self:
     : super self::_Fm3&Object&Am3::•()
     ;
 }
-abstract class _Gm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<({x: core::int*}) →* dynamic, self::_Gm3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Gm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<({x: core::int*}) →* dynamic, self::_Gm3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Gm3&Object&Am3<self::_Gm3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -512,7 +512,7 @@ class Gm3<Z extends core::Object* = dynamic> extends self::_Gm3&Object&Am3<self:
     : super self::_Gm3&Object&Am3::•()
     ;
 }
-abstract class _Hm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<([core::int*]) →* dynamic, self::_Hm3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Hm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<([core::int*]) →* dynamic, self::_Hm3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Hm3&Object&Am3<self::_Hm3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -522,7 +522,7 @@ class Hm3<Z extends core::Object* = dynamic> extends self::_Hm3&Object&Am3<self:
     : super self::_Hm3&Object&Am3::•()
     ;
 }
-abstract class _Im3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<([core::int*]) →* dynamic, self::_Im3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Im3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<([core::int*]) →* dynamic, self::_Im3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Im3&Object&Am3<self::_Im3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -532,7 +532,7 @@ class Im3<Z extends core::Object* = dynamic> extends self::_Im3&Object&Am3<self:
     : super self::_Im3&Object&Am3::•()
     ;
 }
-abstract class _Jm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<(core::Function*) →* dynamic, self::_Jm3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Jm3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<(core::Function*) →* dynamic, self::_Jm3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Jm3&Object&Am3<self::_Jm3&Object&Am3::Z*>*
     : super core::Object::•()
     ;
@@ -542,7 +542,7 @@ class Jm3<Z extends core::Object* = dynamic> extends self::_Jm3&Object&Am3<self:
     : super self::_Jm3&Object&Am3::•()
     ;
 }
-abstract class _Km3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<() →* (() →* core::Function*) →* dynamic, self::_Km3&Object&Am3::Z*> /*isAnonymousMixin*/  {
+abstract class _Km3&Object&Am3<Z extends core::Object* = dynamic> = core::Object with self::Am3<() →* (() →* core::Function*) →* dynamic, self::_Km3&Object&Am3::Z*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Km3&Object&Am3<self::_Km3&Object&Am3::Z*>*
     : super core::Object::•()
     ;

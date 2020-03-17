@@ -1876,7 +1876,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ? ConstantContext.inferred
             : !member.isStatic &&
                     classBuilder != null &&
-                    classBuilder.hasConstConstructor
+                    classBuilder.declaresConstConstructor
                 ? ConstantContext.required
                 : ConstantContext.none;
       }

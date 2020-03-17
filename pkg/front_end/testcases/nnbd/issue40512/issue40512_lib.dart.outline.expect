@@ -5,12 +5,12 @@ import "issue40512_lib.dart" as baz2;
 
 import "org-dartlang-testcase:///issue40512_lib.dart";
 
-abstract class _C&Object&A = core::Object with baz2::A /*isAnonymousMixin*/  {
+abstract class _C&Object&A = core::Object with baz2::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&A*
     : super core::Object::•()
     ;
 }
-abstract class _C&Object&A&B = self::_C&Object&A with baz2::B /*isAnonymousMixin*/  {
+abstract class _C&Object&A&B = self::_C&Object&A with baz2::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
