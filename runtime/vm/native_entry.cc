@@ -50,8 +50,8 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
     Api::Scope api_scope(T);
     Dart_Handle api_function_name = Api::NewHandle(T, function_name.raw());
     {
-      TransitionVMToNative transition(T);
       Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+      TransitionVMToNative transition(T);
       native_function =
           resolver(api_function_name, number_of_arguments, auto_setup_scope);
     }

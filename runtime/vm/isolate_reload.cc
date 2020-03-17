@@ -998,9 +998,10 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
 
   Dart_KernelCompilationResult retval = {};
   {
+    const char* root_lib_url = root_lib_url_.ToCString();
     TransitionVMToNative transition(Thread::Current());
-    retval = KernelIsolate::CompileToKernel(root_lib_url_.ToCString(), nullptr,
-                                            0, modified_scripts_count,
+    retval = KernelIsolate::CompileToKernel(root_lib_url, nullptr, 0,
+                                            modified_scripts_count,
                                             modified_scripts, true, nullptr);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
