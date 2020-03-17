@@ -88,7 +88,7 @@ class L {
 class M {
   M._internal(int n); // LINT
 
-  factory M(int a, int b) => new M._internal(a); // LINT
+  factory M(int a, int b) => M._internal(a); // LINT
   factory M.redirect(int n) = M._internal; // OK because target constructor have parameters
 }
 
@@ -99,4 +99,8 @@ class N {
 
 class O {
   O(@Deprecated('') int x); // OK because the parameter is deprecated
+}
+
+class P {
+  P(int _, Object __); // OK by naming convention: https://github.com/dart-lang/linter/issues/1793
 }

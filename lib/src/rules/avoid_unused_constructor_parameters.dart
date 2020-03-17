@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../utils.dart';
 
 const _desc = r'Avoid defining unused parameters in constructors.';
 
@@ -54,11 +55,12 @@ class _ConstructorVisitor extends RecursiveAstVisitor {
   final Set<FormalParameter> unusedParameters;
 
   _ConstructorVisitor(this.rule, this.element)
-      : unusedParameters = element.parameters.parameters
-            .where((p) =>
-                p.declaredElement is! FieldFormalParameterElement &&
-                !p.declaredElement.hasDeprecated)
-            .toSet();
+      : unusedParameters = element.parameters.parameters.where((p) {
+          final element = p.declaredElement;
+          return element is! FieldFormalParameterElement &&
+              !element.hasDeprecated &&
+              !isJustUnderscores(element.name);
+        }).toSet();
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
