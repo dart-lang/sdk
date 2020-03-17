@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show HtmlEscape, HtmlEscapeMode, jsonEncode, LineSplitter;
+import 'dart:convert' show HtmlEscape, HtmlEscapeMode, LineSplitter;
 
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/file_details.dart';
 import 'package:path/path.dart' as path;
 
 /// Instrumentation display output for a library that was migrated to use
@@ -35,27 +36,21 @@ class UnitRenderer {
   path.Context get pathContext => migrationInfo.pathContext;
 
   /// Builds a JSON view of the instrumentation information in [unitInfo].
-  String render() {
-    // TODO(devoncarew): Both _computeNavigationContent() and
-    // _computeRegionContent() send html back to the client; convert this to
-    // instead sending data back (instead of presentation).
-    Map<String, dynamic> response = {
-      'regions': _computeRegionContent(unitInfo),
-      'navigationContent': _computeNavigationContent(),
-      'sourceCode': unitInfo.content,
-      'edits': _computeEditList(),
-    };
-    return jsonEncode(response);
+  FileDetails render() {
+    return FileDetails(
+        regions: _computeRegionContent(unitInfo),
+        navigationContent: _computeNavigationContent(),
+        sourceCode: unitInfo.content,
+        edits: _computeEditList());
   }
 
   /// Returns the list of edits, as JSON.
-  List<Map<String, dynamic>> _computeEditList() {
+  List<EditListItem> _computeEditList() {
     return unitInfo.fixRegions.map((RegionInfo region) {
-      return {
-        'line': region.lineNumber,
-        'explanation': region.explanation,
-        'offset': region.offset,
-      };
+      return EditListItem(
+          line: region.lineNumber,
+          explanation: region.explanation,
+          offset: region.offset);
     }).toList();
   }
 

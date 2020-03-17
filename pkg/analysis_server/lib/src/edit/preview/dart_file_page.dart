@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/unit_renderer.dart';
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
@@ -28,6 +30,6 @@ class DartFilePage extends PreviewPage {
   Future<void> generatePage(Map<String, String> params) async {
     UnitRenderer renderer =
         UnitRenderer(unitInfo, site.migrationInfo, site.pathMapper);
-    buf.write(renderer.render());
+    buf.write(jsonEncode(renderer.render().toJson()));
   }
 }

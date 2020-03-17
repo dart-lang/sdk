@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show jsonDecode;
-
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/unit_renderer.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/file_details.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,12 +21,12 @@ void main() {
 class UnitRendererTest extends NnbdMigrationTestBase {
   /// Render [libraryInfo], using a [MigrationInfo] which knows only about this
   /// library.
-  List<String> renderUnits() {
+  List<FileDetails> renderUnits() {
     String packageRoot = convertPath('/package');
     MigrationInfo migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
 
-    List<String> contents = [];
+    List<FileDetails> contents = [];
     for (UnitInfo unitInfo in infos) {
       contents.add(
           UnitRenderer(unitInfo, migrationInfo, PathMapper(resourceProvider))
@@ -44,9 +43,8 @@ bool b = a.isEven;
 int? a = null;
 bool b = a!.isEven;
 ''');
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    var editList = output['edits'];
+    var output = renderUnits()[0];
+    var editList = output.edits;
     expect(editList, hasLength(2));
   }
 
@@ -58,16 +56,15 @@ bool b = a.isEven;
 int? a = null;
 bool b = a!.isEven;
 ''');
-    var outputJson = renderUnits()[0];
-    var editList = jsonDecode(outputJson);
-    expect(editList['edits'], hasLength(2));
-    expect(editList['edits'][0]['line'], equals(1));
-    expect(editList['edits'][0]['offset'], equals(3));
-    expect(editList['edits'][0]['explanation'],
+    var output = renderUnits()[0];
+    expect(output.edits, hasLength(2));
+    expect(output.edits[0].line, equals(1));
+    expect(output.edits[0].offset, equals(3));
+    expect(output.edits[0].explanation,
         equals("Changed type 'int' to be nullable"));
-    expect(editList['edits'][1]['line'], equals(2));
-    expect(editList['edits'][1]['offset'], equals(25));
-    expect(editList['edits'][1]['explanation'],
+    expect(output.edits[1].line, equals(2));
+    expect(output.edits[1].offset, equals(25));
+    expect(output.edits[1].explanation,
         equals('Added a non-null assertion to nullable expression'));
   }
 
@@ -123,10 +120,9 @@ class C {
 
 List<int?> x = [null];
 ''', removeViaComments: false);
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
+    var output = renderUnits()[0];
     // Strip out URLs and span IDs; they're not being tested here.
-    var navContent = output['navigationContent']
+    var navContent = output.navigationContent
         .replaceAll(RegExp('href="[^"]*"'), 'href="..."')
         .replaceAll(RegExp('id="[^"]*"'), 'id="..."');
     expect(navContent, '''
@@ -146,12 +142,10 @@ class <span id="...">C</span> {
   Future<void> test_navContentContainsEscapedHtml() async {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String>? a = null;');
-    var outputJson = renderUnits()[0];
-
-    var output = jsonDecode(outputJson);
+    var output = renderUnits()[0];
     // Strip out URLs which will change; not being tested here.
-    var navContent = output['navigationContent']
-        .replaceAll(RegExp('href=".*?"'), 'href="..."');
+    var navContent =
+        output.navigationContent.replaceAll(RegExp('href=".*?"'), 'href="..."');
     expect(
         navContent,
         contains(r'<a href="..." class="nav-link">List</a>'
@@ -162,9 +156,8 @@ class <span id="...">C</span> {
   Future<void> test_outputContainsModifiedAndUnmodifiedRegions() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    var regions = _stripDataAttributes(output['regions']);
+    var output = renderUnits()[0];
+    var regions = _stripDataAttributes(output.regions);
     expect(regions,
         contains('int<span class="region added-region">?</span> a = null;'));
   }
@@ -187,9 +180,9 @@ int g() => null;
     };
     var packageRoot = convertPath('/project');
     await buildInfoForTestFiles(files, includedRoot: packageRoot);
-    var outputJson = renderUnits();
-    expect(jsonDecode(outputJson[0])['sourceCode'], contains('int?'));
-    expect(jsonDecode(outputJson[1])['sourceCode'], contains('int?'));
+    var output = renderUnits();
+    expect(output[0].sourceCode, contains('int?'));
+    expect(output[1].sourceCode, contains('int?'));
   }
 
   Future<void> test_reference_to_sdk_file_with_parts() async {
@@ -211,17 +204,15 @@ Future<int> f(Future<int> x) {
   Future<void> test_regionsContainsEscapedHtml_ampersand() async {
     await buildInfoForSingleTestFile('bool a = true && false;',
         migratedContent: 'bool a = true && false;');
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    expect(output['regions'], contains('bool a = true &amp;&amp; false;'));
+    var output = renderUnits()[0];
+    expect(output.regions, contains('bool a = true &amp;&amp; false;'));
   }
 
   Future<void> test_regionsContainsEscapedHtml_betweenRegions() async {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String>? a = null;');
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    var regions = _stripDataAttributes(output['regions']);
+    var output = renderUnits()[0];
+    var regions = _stripDataAttributes(output.regions);
     expect(
         regions,
         contains('List&lt;String&gt;'
@@ -231,9 +222,8 @@ Future<int> f(Future<int> x) {
   Future<void> test_regionsContainsEscapedHtml_region() async {
     await buildInfoForSingleTestFile('f(List<String> a) => a.join(",");',
         migratedContent: 'f(List<String> a) => a.join(",");');
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    var regions = _stripDataAttributes(output['regions']);
+    var output = renderUnits()[0];
+    var regions = _stripDataAttributes(output.regions);
     expect(
         regions,
         contains(
