@@ -56,7 +56,7 @@ vars = {
   "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
 
   # Revisions of /third_party/* dependencies.
-  "args_tag": "1.5.3",
+  "args_tag": "1.6.0",
   "async_tag": "2.4.1",
   "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
