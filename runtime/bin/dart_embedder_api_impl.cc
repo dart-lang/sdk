@@ -7,6 +7,8 @@
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
 #include "bin/isolate_data.h"
+#include "bin/process.h"
+#include "bin/secure_socket_filter.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
@@ -37,8 +39,22 @@ bool InitOnce(char** error) {
     return false;
   }
   bin::TimerUtils::InitOnce();
+  bin::Process::Init();
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+  bin::SSLFilter::Init();
+#endif
   bin::EventHandler::Start();
   return true;
+}
+
+void Cleanup() {
+  bin::Process::ClearAllSignalHandlers();
+
+  bin::EventHandler::Stop();
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+  bin::SSLFilter::Cleanup();
+#endif
+  bin::Process::Cleanup();
 }
 
 Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,

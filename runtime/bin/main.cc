@@ -860,8 +860,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       Syslog::PrintErr("VM cleanup failed: %s\n", error);
       free(error);
     }
-    Process::ClearAllSignalHandlers();
-    EventHandler::Stop();
+    dart::embedder::Cleanup();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   main_isolate = isolate;
@@ -1190,7 +1189,7 @@ void main(int argc, char** argv) {
 
   error = Dart_Initialize(&init_params);
   if (error != NULL) {
-    EventHandler::Stop();
+    dart::embedder::Cleanup();
     Syslog::PrintErr("VM initialization failed: %s\n", error);
     free(error);
     Platform::Exit(kErrorExitCode);
@@ -1214,8 +1213,8 @@ void main(int argc, char** argv) {
     Syslog::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
-  Process::ClearAllSignalHandlers();
-  EventHandler::Stop();
+  const intptr_t global_exit_code = Process::GlobalExitCode();
+  dart::embedder::Cleanup();
 
   delete app_snapshot;
   free(app_script_uri);
@@ -1230,7 +1229,7 @@ void main(int argc, char** argv) {
   // Free environment if any.
   Options::DestroyEnvironment();
 
-  Platform::Exit(Process::GlobalExitCode());
+  Platform::Exit(global_exit_code);
 }
 
 }  // namespace bin

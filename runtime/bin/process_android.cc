@@ -35,7 +35,7 @@ namespace dart {
 namespace bin {
 
 int Process::global_exit_code_ = 0;
-Mutex* Process::global_exit_code_mutex_ = new Mutex();
+Mutex* Process::global_exit_code_mutex_ = nullptr;
 Process::ExitHook Process::exit_hook_ = NULL;
 
 // ProcessInfo is used to map a process id to the file descriptor for
@@ -68,6 +68,9 @@ class ProcessInfo {
 // started from Dart.
 class ProcessInfoList {
  public:
+  static void Init();
+  static void Cleanup();
+
   static void AddProcess(pid_t pid, intptr_t fd) {
     MutexLocker locker(mutex_);
     ProcessInfo* info = new ProcessInfo(pid, fd);
@@ -119,7 +122,7 @@ class ProcessInfoList {
 };
 
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
-Mutex* ProcessInfoList::mutex_ = new Mutex();
+Mutex* ProcessInfoList::mutex_ = nullptr;
 
 // The exit code handler sets up a separate thread which waits for child
 // processes to terminate. That separate thread can then get the exit code from
@@ -127,6 +130,9 @@ Mutex* ProcessInfoList::mutex_ = new Mutex();
 // event loop.
 class ExitCodeHandler {
  public:
+  static void Init();
+  static void Cleanup();
+
   // Notify the ExitCodeHandler that another process exists.
   static void ProcessStarted() {
     // Multiple isolates could be starting processes at the same
@@ -241,7 +247,7 @@ class ExitCodeHandler {
 bool ExitCodeHandler::running_ = false;
 int ExitCodeHandler::process_count_ = 0;
 bool ExitCodeHandler::terminate_done_ = false;
-Monitor* ExitCodeHandler::monitor_ = new Monitor();
+Monitor* ExitCodeHandler::monitor_ = nullptr;
 
 class ProcessStarter {
  public:
@@ -953,7 +959,7 @@ int64_t Process::MaxRSS() {
   return usage.ru_maxrss * KB;
 }
 
-static Mutex* signal_mutex = new Mutex();
+static Mutex* signal_mutex = nullptr;
 static SignalInfo* signal_handlers = NULL;
 static const int kSignalsCount = 7;
 static const int kSignals[kSignalsCount] = {
@@ -1055,6 +1061,54 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
     act.sa_handler = SIG_DFL;
     VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
+}
+
+void ProcessInfoList::Init() {
+  ASSERT(ProcessInfoList::mutex_ == nullptr);
+  ProcessInfoList::mutex_ = new Mutex();
+}
+
+void ProcessInfoList::Cleanup() {
+  ASSERT(ProcessInfoList::mutex_ != nullptr);
+  delete ProcessInfoList::mutex_;
+  ProcessInfoList::mutex_ = nullptr;
+}
+
+void ExitCodeHandler::Init() {
+  ASSERT(ExitCodeHandler::monitor_ == nullptr);
+  ExitCodeHandler::monitor_ = new Monitor();
+}
+
+void ExitCodeHandler::Cleanup() {
+  ASSERT(ExitCodeHandler::monitor_ != nullptr);
+  delete ExitCodeHandler::monitor_;
+  ExitCodeHandler::monitor_ = nullptr;
+}
+
+void Process::Init() {
+  ExitCodeHandler::Init();
+  ProcessInfoList::Init();
+
+  ASSERT(signal_mutex == nullptr);
+  signal_mutex = new Mutex();
+
+  ASSERT(Process::global_exit_code_mutex_ == nullptr);
+  Process::global_exit_code_mutex_ = new Mutex();
+}
+
+void Process::Cleanup() {
+  ClearAllSignalHandlers();
+
+  ASSERT(signal_mutex != nullptr);
+  delete signal_mutex;
+  signal_mutex = nullptr;
+
+  ASSERT(Process::global_exit_code_mutex_ != nullptr);
+  delete Process::global_exit_code_mutex_;
+  Process::global_exit_code_mutex_ = nullptr;
+
+  ProcessInfoList::Cleanup();
+  ExitCodeHandler::Cleanup();
 }
 
 }  // namespace bin
