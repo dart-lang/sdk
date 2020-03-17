@@ -17,10 +17,8 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
-/// An object used to produce completions
-/// at a specific location within a Dart file.
-///
-/// Clients may implement this class when implementing plugins.
+/// An object that contributes results for the `completion.getSuggestions`
+/// request results.
 abstract class DartCompletionContributor {
   /// Return a [Future] that completes with a list of suggestions
   /// for the given completion [request].

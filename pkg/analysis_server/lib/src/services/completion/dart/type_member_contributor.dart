@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -15,11 +17,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:meta/meta.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
-
-/// A contributor for calculating instance invocation / access suggestions
-/// `completion.getSuggestions` request results.
+/// A contributor that produces suggestions based on the instance members of a
+/// given type, whether declared by that type directly or inherited from a
+/// superinterface. More concretely, this class produces suggestions for
+/// expressions of the form `o.^`, where `o` is an expression denoting an
+/// instance of a type.
 class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
