@@ -2862,6 +2862,10 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // interface, so rather than iterating over the Ci, we can instead look up
   // [t] in our ruleset.
   // TODO(fishythefish): Handle variance correctly.
+
+  // We don't list Object explicitly as a supertype of each interface, so check
+  // this trivial case first.
+  if (isObjectType(t)) return true;
   Object? rule = _Universe.findRule(universe, sName);
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
