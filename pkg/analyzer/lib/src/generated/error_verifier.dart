@@ -4637,6 +4637,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    // Ignore if the constructor is external. See
+    // https://github.com/dart-lang/language/issues/869.
+    if (constructor.externalKeyword != null) {
+      return;
+    }
+
     // Ignore if the constructor has either an implicit super constructor
     // invocation or a redirecting constructor invocation.
     for (ConstructorInitializer constructorInitializer
