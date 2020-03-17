@@ -85,6 +85,9 @@ class ProcessInfo {
 // started from Dart.
 class ProcessInfoList {
  public:
+  static void Init();
+  static void Cleanup();
+
   static void AddProcess(zx_handle_t process, intptr_t fd) {
     MutexLocker locker(mutex_);
     ProcessInfo* info = new ProcessInfo(process, fd);
@@ -148,6 +151,9 @@ Mutex* ProcessInfoList::mutex_ = nullptr;
 // event loop.
 class ExitCodeHandler {
  public:
+  static void Init();
+  static void Cleanup();
+
   // Notify the ExitCodeHandler that another process exists.
   static void Start() {
     // Multiple isolates could be starting processes at the same
@@ -838,20 +844,11 @@ void Process::Init() {
   ExitCodeHandler::Init();
   ProcessInfoList::Init();
 
-  ASSERT(signal_mutex == nullptr);
-  signal_mutex = new Mutex();
-
   ASSERT(Process::global_exit_code_mutex_ == nullptr);
   Process::global_exit_code_mutex_ = new Mutex();
 }
 
 void Process::Cleanup() {
-  ClearAllSignalHandlers();
-
-  ASSERT(signal_mutex != nullptr);
-  delete signal_mutex;
-  signal_mutex = nullptr;
-
   ASSERT(Process::global_exit_code_mutex_ != nullptr);
   delete Process::global_exit_code_mutex_;
   Process::global_exit_code_mutex_ = nullptr;
