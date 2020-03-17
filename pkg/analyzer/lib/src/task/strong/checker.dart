@@ -37,10 +37,14 @@ DartType getExpressionType(
 
 DartType getReadType(Expression expression) {
   if (expression is IndexExpression) {
-    var staticElement = expression.auxiliaryElements?.staticElement;
-    return staticElement == null
-        ? DynamicTypeImpl.instance
-        : staticElement.returnType;
+    var aux = expression.auxiliaryElements;
+    if (aux != null) {
+      var staticElement = aux.staticElement;
+      return staticElement == null
+          ? DynamicTypeImpl.instance
+          : staticElement.returnType;
+    }
+    return expression.staticType;
   }
   {
     Element setter;

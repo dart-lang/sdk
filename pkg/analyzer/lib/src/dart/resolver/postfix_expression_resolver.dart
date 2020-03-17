@@ -204,9 +204,7 @@ class PostfixExpressionResolver {
     operand.accept(_resolver);
     operand = node.operand;
 
-    var operandType = getReadType(
-      operand,
-    );
+    var operandType = getReadType(operand);
 
     var type = _typeSystem.promoteToNonNull(operandType);
     _inferenceHelper.recordStaticType(node, type);

@@ -159,6 +159,31 @@ main(Function f2) {
 ''');
   }
 
+  test_nullCheck_indexExpression() async {
+    await assertNoErrorsInCode(r'''
+main(Map<String, int> a) {
+  int v = a['foo']!;
+  v;
+}
+''');
+
+    assertIndexExpression(
+      findNode.index('a['),
+      readElement: elementMatcher(
+        mapElement.getMethod('[]'),
+        substitution: {'K': 'String', 'V': 'int'},
+      ),
+      writeElement: null,
+      type: 'int?',
+    );
+
+    assertPostfixExpression(
+      findNode.postfix(']!'),
+      element: null,
+      type: 'int',
+    );
+  }
+
   test_nullCheck_null() async {
     await assertNoErrorsInCode('''
 main(Null x) {
