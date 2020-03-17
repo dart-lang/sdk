@@ -116,7 +116,8 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
     if (FLAG_precompiled_mode) {
       // In precompiler speculate that both sides of bitwise operation
       // are Smi-s.
-      if (Token::IsBinaryBitwiseOperator(op_kind)) {
+      if (Token::IsBinaryBitwiseOperator(op_kind) &&
+          !call->HasNonSmiAssignableInterface(zone())) {
         class_ids[0] = kSmiCid;
         class_ids[1] = kSmiCid;
       }
