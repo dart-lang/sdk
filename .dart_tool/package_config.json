@@ -392,7 +392,7 @@
       "name": "meta",
       "rootUri": "../pkg/meta",
       "packageUri": "lib/",
-      "languageVersion": "1.12"
+      "languageVersion": "2.8"
     },
     {
       "name": "metatest",
