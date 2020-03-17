@@ -9,6 +9,18 @@ import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/unit_link.dart';
 import 'package:path/path.dart' as path;
 
+/// Groups the items in [iterable] by the result of applying [groupFn] to each
+/// item.
+Map<K, List<T>> _groupBy<K, T>(
+    Iterable<T> iterable, K Function(T item) groupFn) {
+  var result = <K, List<T>>{};
+  for (var item in iterable) {
+    var key = groupFn(item);
+    result.putIfAbsent(key, () => <T>[]).add(item);
+  }
+  return result;
+}
+
 /// The HTML that is displayed for a region of code.
 class NavigationTreeRenderer {
   final MigrationInfo migrationInfo;
@@ -53,16 +65,4 @@ class NavigationTreeRenderer {
         },
     ];
   }
-}
-
-/// Groups the items in [iterable] by the result of applying [groupFn] to each
-/// item.
-Map<K, List<T>> _groupBy<K, T>(
-    Iterable<T> iterable, K Function(T item) groupFn) {
-  var result = <K, List<T>>{};
-  for (var item in iterable) {
-    var key = groupFn(item);
-    result.putIfAbsent(key, () => <T>[]).add(item);
-  }
-  return result;
 }
