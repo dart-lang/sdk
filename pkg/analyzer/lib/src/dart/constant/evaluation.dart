@@ -418,41 +418,6 @@ class ConstantEvaluationEngine {
     }
   }
 
-  /// Evaluate a call to fromEnvironment() on the bool, int, or String class.
-  /// The [environmentValue] is the value fetched from the environment. The
-  /// [builtInDefaultValue] is the value that should be used as the default if
-  /// no "defaultValue" argument appears in [namedArgumentValues]. The
-  /// [namedArgumentValues] are the values of the named parameters passed to
-  /// fromEnvironment(). Return a [DartObjectImpl] object corresponding to the
-  /// evaluated result.
-  DartObjectImpl computeValueFromEnvironment(
-      DartObject environmentValue,
-      DartObjectImpl builtInDefaultValue,
-      Map<String, DartObjectImpl> namedArgumentValues) {
-    DartObjectImpl value = environmentValue as DartObjectImpl;
-    if (value.isUnknown || value.isNull) {
-      // The name either doesn't exist in the environment or we couldn't parse
-      // the corresponding value.
-      // If the code supplied an explicit default, use it.
-      if (namedArgumentValues.containsKey(_DEFAULT_VALUE_PARAM)) {
-        value = namedArgumentValues[_DEFAULT_VALUE_PARAM];
-      } else if (value.isNull) {
-        // The code didn't supply an explicit default.
-        // The name exists in the environment but we couldn't parse the
-        // corresponding value.
-        // So use the built-in default value, because this is what the VM does.
-        value = builtInDefaultValue;
-      } else {
-        // The code didn't supply an explicit default.
-        // The name doesn't exist in the environment.
-        // The VM would use the built-in default value, but we don't want to do
-        // that for analysis because it's likely to lead to cascading errors.
-        // So just leave [value] in the unknown state.
-      }
-    }
-    return value;
-  }
-
   DartObjectImpl evaluateConstructorCall(
       AstNode node,
       List<Expression> arguments,
@@ -527,43 +492,14 @@ class ConstantEvaluationEngine {
         String variableName =
             argumentCount < 1 ? null : argumentValues[0].toStringValue();
         if (definingClass == typeProvider.boolType) {
-          DartObject valueFromEnvironment;
-          valueFromEnvironment =
-              _fromEnvironmentEvaluator.getBool(variableName);
-          return computeValueFromEnvironment(
-            valueFromEnvironment,
-            DartObjectImpl(
-              typeSystem,
-              typeProvider.boolType,
-              BoolState.FALSE_STATE,
-            ),
-            namedValues,
-          );
+          return _fromEnvironmentEvaluator.getBool2(
+              variableName, namedValues, constructor);
         } else if (definingClass == typeProvider.intType) {
-          DartObject valueFromEnvironment;
-          valueFromEnvironment = _fromEnvironmentEvaluator.getInt(variableName);
-          return computeValueFromEnvironment(
-            valueFromEnvironment,
-            DartObjectImpl(
-              typeSystem,
-              typeProvider.nullType,
-              NullState.NULL_STATE,
-            ),
-            namedValues,
-          );
+          return _fromEnvironmentEvaluator.getInt2(
+              variableName, namedValues, constructor);
         } else if (definingClass == typeProvider.stringType) {
-          DartObject valueFromEnvironment;
-          valueFromEnvironment =
-              _fromEnvironmentEvaluator.getString(variableName);
-          return computeValueFromEnvironment(
-            valueFromEnvironment,
-            DartObjectImpl(
-              typeSystem,
-              typeProvider.nullType,
-              NullState.NULL_STATE,
-            ),
-            namedValues,
-          );
+          return _fromEnvironmentEvaluator.getString2(
+              variableName, namedValues, constructor);
         }
       } else if (constructor.name == "" &&
           definingClass == typeProvider.symbolType &&

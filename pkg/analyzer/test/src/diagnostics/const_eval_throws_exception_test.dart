@@ -166,7 +166,7 @@ var x = const C(2);
   test_fromEnvironment_assertInitializer() async {
     await assertNoErrorsInCode('''
 class A {
-  const A(int x) : assert(x > 5);
+  const A(int x) : assert(x >= 0);
 }
 
 main() {
