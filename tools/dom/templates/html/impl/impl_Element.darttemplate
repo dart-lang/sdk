@@ -1253,7 +1253,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     return Element._offsetToHelper(this, parent);
   }
 
-  static Point _offsetToHelper(Element current, Element parent) {
+  static Point _offsetToHelper(Element$NULLABLE current, Element parent) {
     // We're hopping from _offsetParent_ to offsetParent (not just parent), so
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
@@ -1265,7 +1265,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
-    Element parentOffset = current.offsetParent;
+    Element$NULLABLE parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
@@ -1497,7 +1497,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     return result;
   }
 
-  Element get offsetParent native;
+  Element$NULLABLE get offsetParent native;
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
