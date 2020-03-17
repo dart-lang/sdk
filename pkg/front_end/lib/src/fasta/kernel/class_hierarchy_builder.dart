@@ -1109,8 +1109,11 @@ class ClassHierarchyNodeBuilder {
       Iterable<ClassMember> overriddenMembers) {
     if (fieldBuilder.classBuilder == classBuilder &&
         fieldBuilder.type == null) {
-      for (ClassMember overriddenMember
-          in toSet(classBuilder, overriddenMembers)) {
+      DartType inferredType;
+
+      void inferFrom(ClassMember overriddenMember) {
+        if (inferredType is InvalidType) return;
+
         assert(useConsolidated || !overriddenMember.hasDeclarations);
         Member bTarget = overriddenMember.getMember(hierarchy);
         DartType inheritedType;
@@ -1128,7 +1131,7 @@ class ClassHierarchyNodeBuilder {
         if (inheritedType == null) {
           debug
               ?.log("Giving up (inheritedType == null)\n${StackTrace.current}");
-          continue;
+          return;
         }
         Substitution bSubstitution;
         if (classBuilder.cls != bTarget.enclosingClass) {
@@ -1140,39 +1143,59 @@ class ClassHierarchyNodeBuilder {
           debug?.log("${classBuilder.fullNameForErrors} -> "
               "${bTarget.enclosingClass.name} $bSubstitution");
         }
-        if (inheritedType is! ImplicitFieldType) {
-          if (bSubstitution != null) {
-            inheritedType = bSubstitution.substituteType(inheritedType);
-          }
-          if (!classBuilder.library.isNonNullableByDefault) {
-            inheritedType = legacyErasure(hierarchy.coreTypes, inheritedType);
-          }
+        assert(inheritedType is! ImplicitFieldType);
+        if (bSubstitution != null) {
+          inheritedType = bSubstitution.substituteType(inheritedType);
+        }
+        if (!classBuilder.library.isNonNullableByDefault) {
+          inheritedType = legacyErasure(hierarchy.coreTypes, inheritedType);
         }
 
-        DartType declaredType = fieldBuilder.fieldType;
-        if (declaredType == inheritedType) {
-          continue;
-        }
-
-        if (declaredType is ImplicitFieldType) {
-          if (inheritedType is ImplicitFieldType) {
-            declaredType.addOverride(inheritedType);
-          } else {
-            // The concrete type has already been inferred.
-            fieldBuilder.hadTypesInferred = true;
-            fieldBuilder.fieldType = inheritedType;
+        if (inferredType == null) {
+          inferredType = inheritedType;
+        } else {
+          if (classBuilder.library.isNonNullableByDefault) {
+            DartType topMerge =
+                nnbdTopMerge(hierarchy.coreTypes, inferredType, inheritedType);
+            if (topMerge != null) {
+              inferredType = topMerge;
+              return;
+            }
           }
-        } else if (fieldBuilder.hadTypesInferred) {
-          if (inheritedType is! ImplicitFieldType) {
+          if (inferredType != inheritedType) {
+            inferredType = const InvalidType();
             // A different type has already been inferred.
             reportCantInferFieldType(classBuilder, fieldBuilder);
-            fieldBuilder.fieldType = const InvalidType();
           }
-        } else {
-          fieldBuilder.hadTypesInferred = true;
-          fieldBuilder.fieldType = inheritedType;
         }
       }
+
+      overriddenMembers = toSet(classBuilder, overriddenMembers);
+      if (fieldBuilder.isAssignable) {
+        // The field type must be inferred from both getters and setters.
+        for (ClassMember overriddenMember in overriddenMembers) {
+          inferFrom(overriddenMember);
+        }
+      } else {
+        // The field type must be inferred from getters first.
+        for (ClassMember overriddenMember in overriddenMembers) {
+          if (!overriddenMember.forSetter) {
+            inferFrom(overriddenMember);
+          }
+        }
+        if (inferredType == null) {
+          // The field type must be inferred from setters if no type was
+          // inferred from getters.
+          for (ClassMember overriddenMember in overriddenMembers) {
+            if (overriddenMember.forSetter) {
+              inferFrom(overriddenMember);
+            }
+          }
+        }
+      }
+
+      inferredType ??= const DynamicType();
+      fieldBuilder.fieldType = inferredType;
     }
   }
 
@@ -1850,9 +1873,7 @@ class ClassHierarchyNodeBuilder {
             overriddenMember.classBuilder != classBuilder) {
           if (member is SourceFieldMember) {
             if (member.isFinal && overriddenMember.isSetter) {
-              // TODO(johnniwinther): Enable this when we can handle
-              // inference/infer_final_field_getter_and_setter
-              //registerOverrideDependency(member, overriddenMember);
+              registerOverrideDependency(member, overriddenMember);
               hierarchy.registerOverrideCheck(
                   classBuilder, member, overriddenMember);
             } else {
@@ -2530,49 +2551,6 @@ class DelayedOverrideCheck {
                 type, a.hadTypesInferredFrom, inferTypesFrom, hierarchy);
           }
         }
-      } else if (a is SourceFieldMember && a.type == null) {
-        DartType type;
-        if (bMember is Field) {
-          type = bMember.type;
-        } else if (bMember is Procedure) {
-          if (bMember.kind == ProcedureKind.Getter) {
-            type = bMember.function.returnType;
-          } else if (bMember.kind == ProcedureKind.Setter) {
-            type = bMember.function.positionalParameters.single.type;
-          }
-        }
-        if (type != null) {
-          type = Substitution.fromInterfaceType(
-                  hierarchy.getKernelTypeAsInstanceOf(
-                      hierarchy.coreTypes.thisInterfaceType(
-                          classBuilder.cls, classBuilder.library.nonNullable),
-                      bMember.enclosingClass,
-                      classBuilder.library.library))
-              .substituteType(type);
-          if (!a.classBuilder.library.isNonNullableByDefault) {
-            type = legacyErasure(hierarchy.coreTypes, type);
-          }
-          if (type != a.fieldType) {
-            if (a.hadTypesInferred) {
-              if (b.isSetter &&
-                  (!a.isAssignable ||
-                      hierarchy.types.isSubtypeOfKernel(
-                          type,
-                          a.fieldType,
-                          classBuilder.library.isNonNullableByDefault
-                              ? SubtypeCheckMode.withNullabilities
-                              : SubtypeCheckMode.ignoringNullabilities))) {
-                type = a.fieldType;
-              } else {
-                reportCantInferFieldType(classBuilder, a.memberBuilder);
-                type = const InvalidType();
-              }
-            }
-            debug?.log("Inferred type ${type} for ${a.fullName}");
-            a.fieldType = type;
-          }
-        }
-        a.hadTypesInferred = true;
       }
     }
 
