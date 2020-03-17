@@ -21,6 +21,9 @@ abstract class Decoration {
   /// const constructors so that they can be used in const expressions.
   const Decoration();
 
+  /// Whether this decoration is complex enough to benefit from caching its painting.
+  bool get isComplex => false;
+
   /// Returns the insets to apply when using this decoration on a box
   /// that has contents, so that the contents do not overlap the edges
   /// of the decoration. For example, if the decoration draws a frame
@@ -41,7 +44,4 @@ abstract class Decoration {
   /// example, [BorderDirectional] will return an [EdgeInsetsDirectional] for
   /// its [padding].)
   EdgeInsetsGeometry get padding => EdgeInsets.zero;
-
-  /// Whether this decoration is complex enough to benefit from caching its painting.
-  bool get isComplex => false;
 }

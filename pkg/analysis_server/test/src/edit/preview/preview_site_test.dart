@@ -8,10 +8,10 @@ import 'package:analysis_server/src/edit/nnbd_migration/migration_state.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 void main() {
   defineReflectiveSuite(() {

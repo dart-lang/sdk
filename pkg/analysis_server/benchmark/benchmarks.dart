@@ -30,6 +30,127 @@ Future main(List<String> args) async {
   runner.run(args);
 }
 
+String get analysisServerSrcPath {
+  String script = Platform.script.toFilePath(windows: Platform.isWindows);
+  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
+  return path.join(pkgPath, 'analysis_server');
+}
+
+void deleteServerCache() {
+  // ~/.dartServer/.analysis-driver/
+  ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  Folder stateLocation = resourceProvider.getStateLocation('.analysis-driver');
+  try {
+    if (stateLocation.exists) {
+      stateLocation.delete();
+    }
+  } catch (e) {
+    // ignore any exception
+  }
+}
+
+List<String> getProjectRoots({bool quick = false}) {
+  String script = Platform.script.toFilePath(windows: Platform.isWindows);
+  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
+  return <String>[path.join(pkgPath, quick ? 'meta' : 'analysis_server')];
+}
+
+abstract class Benchmark {
+  final String id;
+  final String description;
+  final bool enabled;
+
+  /// One of 'memory', 'cpu', or 'group'.
+  final String kind;
+
+  Benchmark(this.id, this.description,
+      {this.enabled = true, this.kind = 'cpu'});
+
+  int get maxIterations => 0;
+
+  bool get needsSetup => false;
+
+  Future oneTimeCleanup() => Future.value();
+
+  Future oneTimeSetup() => Future.value();
+
+  Future<BenchMarkResult> run({
+    bool quick = false,
+    bool verbose = false,
+  });
+
+  Map toJson() =>
+      {'id': id, 'description': description, 'enabled': enabled, 'kind': kind};
+
+  @override
+  String toString() => '$id: $description';
+}
+
+class BenchMarkResult {
+  static final NumberFormat nf = NumberFormat.decimalPattern();
+
+  /// One of 'bytes', 'micros', or 'compound'.
+  final String kindName;
+
+  final int value;
+
+  BenchMarkResult(this.kindName, this.value);
+
+  BenchMarkResult combine(BenchMarkResult other) {
+    return BenchMarkResult(kindName, math.min(value, other.value));
+  }
+
+  Map toJson() => {kindName: value};
+
+  @override
+  String toString() => '$kindName: ${nf.format(value)}';
+}
+
+class CompoundBenchMarkResult extends BenchMarkResult {
+  final String name;
+
+  Map<String, BenchMarkResult> results = {};
+
+  CompoundBenchMarkResult(this.name) : super('compound', 0);
+
+  void add(String name, BenchMarkResult result) {
+    results[name] = result;
+  }
+
+  @override
+  BenchMarkResult combine(BenchMarkResult other) {
+    BenchMarkResult _combine(BenchMarkResult a, BenchMarkResult b) {
+      if (a == null) return b;
+      if (b == null) return a;
+      return a.combine(b);
+    }
+
+    CompoundBenchMarkResult o = other as CompoundBenchMarkResult;
+
+    CompoundBenchMarkResult combined = CompoundBenchMarkResult(name);
+    List<String> keys =
+        (<String>{}..addAll(results.keys)..addAll(o.results.keys)).toList();
+
+    for (String key in keys) {
+      combined.add(key, _combine(results[key], o.results[key]));
+    }
+
+    return combined;
+  }
+
+  @override
+  Map toJson() {
+    Map m = {};
+    for (String key in results.keys) {
+      m['$name-$key'] = results[key].toJson();
+    }
+    return m;
+  }
+
+  @override
+  String toString() => '${toJson()}';
+}
+
 class ListCommand extends Command {
   final List<Benchmark> benchmarks;
 
@@ -39,13 +160,13 @@ class ListCommand extends Command {
   }
 
   @override
-  String get name => 'list';
-
-  @override
   String get description => 'List available benchmarks.';
 
   @override
   String get invocation => '${runner.executableName} $name';
+
+  @override
+  String get name => 'list';
 
   @override
   void run() {
@@ -79,13 +200,13 @@ class RunCommand extends Command {
   }
 
   @override
-  String get name => 'run';
-
-  @override
   String get description => 'Run a given benchmark.';
 
   @override
   String get invocation => '${runner.executableName} $name <benchmark-id>';
+
+  @override
+  String get name => 'run';
 
   @override
   Future run() async {
@@ -142,126 +263,5 @@ class RunCommand extends Command {
       print(st);
       exit(1);
     }
-  }
-}
-
-abstract class Benchmark {
-  final String id;
-  final String description;
-  final bool enabled;
-
-  /// One of 'memory', 'cpu', or 'group'.
-  final String kind;
-
-  Benchmark(this.id, this.description,
-      {this.enabled = true, this.kind = 'cpu'});
-
-  bool get needsSetup => false;
-
-  Future oneTimeSetup() => Future.value();
-
-  Future oneTimeCleanup() => Future.value();
-
-  Future<BenchMarkResult> run({
-    bool quick = false,
-    bool verbose = false,
-  });
-
-  int get maxIterations => 0;
-
-  Map toJson() =>
-      {'id': id, 'description': description, 'enabled': enabled, 'kind': kind};
-
-  @override
-  String toString() => '$id: $description';
-}
-
-class BenchMarkResult {
-  static final NumberFormat nf = NumberFormat.decimalPattern();
-
-  /// One of 'bytes', 'micros', or 'compound'.
-  final String kindName;
-
-  final int value;
-
-  BenchMarkResult(this.kindName, this.value);
-
-  BenchMarkResult combine(BenchMarkResult other) {
-    return BenchMarkResult(kindName, math.min(value, other.value));
-  }
-
-  Map toJson() => {kindName: value};
-
-  @override
-  String toString() => '$kindName: ${nf.format(value)}';
-}
-
-class CompoundBenchMarkResult extends BenchMarkResult {
-  final String name;
-
-  CompoundBenchMarkResult(this.name) : super('compound', 0);
-
-  Map<String, BenchMarkResult> results = {};
-
-  void add(String name, BenchMarkResult result) {
-    results[name] = result;
-  }
-
-  @override
-  BenchMarkResult combine(BenchMarkResult other) {
-    BenchMarkResult _combine(BenchMarkResult a, BenchMarkResult b) {
-      if (a == null) return b;
-      if (b == null) return a;
-      return a.combine(b);
-    }
-
-    CompoundBenchMarkResult o = other as CompoundBenchMarkResult;
-
-    CompoundBenchMarkResult combined = CompoundBenchMarkResult(name);
-    List<String> keys =
-        (<String>{}..addAll(results.keys)..addAll(o.results.keys)).toList();
-
-    for (String key in keys) {
-      combined.add(key, _combine(results[key], o.results[key]));
-    }
-
-    return combined;
-  }
-
-  @override
-  Map toJson() {
-    Map m = {};
-    for (String key in results.keys) {
-      m['$name-$key'] = results[key].toJson();
-    }
-    return m;
-  }
-
-  @override
-  String toString() => '${toJson()}';
-}
-
-List<String> getProjectRoots({bool quick = false}) {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return <String>[path.join(pkgPath, quick ? 'meta' : 'analysis_server')];
-}
-
-String get analysisServerSrcPath {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return path.join(pkgPath, 'analysis_server');
-}
-
-void deleteServerCache() {
-  // ~/.dartServer/.analysis-driver/
-  ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-  Folder stateLocation = resourceProvider.getStateLocation('.analysis-driver');
-  try {
-    if (stateLocation.exists) {
-      stateLocation.delete();
-    }
-  } catch (e) {
-    // ignore any exception
   }
 }

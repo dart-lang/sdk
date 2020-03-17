@@ -13,6 +13,16 @@ abstract class BuildContext {
   Widget get widget;
 }
 
+abstract class RenderObjectWidget extends Widget {
+  const RenderObjectWidget({Key key}) : super(key: key);
+}
+
+abstract class SingleChildRenderObjectWidget extends RenderObjectWidget {
+  final Widget child;
+
+  const SingleChildRenderObjectWidget({Key key, this.child}) : super(key: key);
+}
+
 abstract class State<T extends StatefulWidget> {
   BuildContext get context => null;
 
@@ -43,14 +53,4 @@ class Widget {
   const Widget({this.key});
 
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
-}
-
-abstract class SingleChildRenderObjectWidget extends RenderObjectWidget {
-  final Widget child;
-
-  const SingleChildRenderObjectWidget({Key key, this.child}) : super(key: key);
-}
-
-abstract class RenderObjectWidget extends Widget {
-  const RenderObjectWidget({Key key}) : super(key: key);
 }

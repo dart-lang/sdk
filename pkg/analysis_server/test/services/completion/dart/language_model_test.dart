@@ -9,10 +9,6 @@ import 'package:analysis_server/src/services/completion/dart/language_model.dart
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-final directory = path.join(File.fromUri(Platform.script).parent.path, '..',
-    '..', '..', '..', 'language_model', 'lexeme');
-const expectedLookback = 100;
-
 void main() {
   if (sizeOf<IntPtr>() == 4) {
     // We don't yet support running tflite on 32-bit systems.
@@ -74,6 +70,11 @@ void main() {
     expect(model.isNumber('0.0'), true);
   });
 }
+
+const expectedLookback = 100;
+
+final directory = path.join(File.fromUri(Platform.script).parent.path, '..',
+    '..', '..', '..', 'language_model', 'lexeme');
 
 /// Tokenizes the input string.
 ///

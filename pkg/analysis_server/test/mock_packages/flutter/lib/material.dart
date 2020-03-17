@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-export 'widgets.dart';
 export 'src/material/app_bar.dart';
 export 'src/material/icons.dart';
 export 'src/material/scaffold.dart';
+export 'widgets.dart';

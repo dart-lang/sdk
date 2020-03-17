@@ -11,14 +11,6 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-class MockCompletionRequest extends Mock implements DartCompletionRequest {}
-
-class MockCompletionTarget extends Mock implements CompletionTarget {}
-
-class MockAstNode extends Mock implements AstNode {}
-
-class MockToken extends Mock implements Token {}
-
 void main() {
   group('getCursorToken', () {
     MockCompletionRequest request;
@@ -267,3 +259,11 @@ void main() {
         equals(true));
   });
 }
+
+class MockAstNode extends Mock implements AstNode {}
+
+class MockCompletionRequest extends Mock implements DartCompletionRequest {}
+
+class MockCompletionTarget extends Mock implements CompletionTarget {}
+
+class MockToken extends Mock implements Token {}

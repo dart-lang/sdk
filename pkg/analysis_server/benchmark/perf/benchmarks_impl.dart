@@ -13,51 +13,6 @@ import '../benchmarks.dart';
 import 'memory_tests.dart';
 
 /// benchmarks:
-///   - analysis-server-cold-analysis
-///   - analysis-server-cold-memory
-class ColdAnalysisBenchmark extends Benchmark {
-  ColdAnalysisBenchmark()
-      : super(
-            'analysis-server-cold',
-            'Analysis server benchmarks of a large project on start-up, no '
-                'existing driver cache.',
-            kind: 'group');
-
-  @override
-  int get maxIterations => 3;
-
-  @override
-  Future<BenchMarkResult> run({
-    bool quick = false,
-    bool verbose = false,
-  }) async {
-    if (!quick) {
-      deleteServerCache();
-    }
-
-    Stopwatch stopwatch = Stopwatch()..start();
-
-    AnalysisServerMemoryUsageTest test = AnalysisServerMemoryUsageTest();
-    await test.setUp();
-    await test.subscribeToStatusNotifications();
-    await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);
-    await test.analysisFinished;
-
-    stopwatch.stop();
-    int usedBytes = await test.getMemoryUsage();
-
-    CompoundBenchMarkResult result = CompoundBenchMarkResult(id);
-    result.add(
-        'analysis', BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
-    result.add('memory', BenchMarkResult('bytes', usedBytes));
-
-    await test.shutdown();
-
-    return result;
-  }
-}
-
-/// benchmarks:
 ///   - analysis-server-warm-analysis
 ///   - analysis-server-warm-memory
 ///   - analysis-server-edit
@@ -107,35 +62,6 @@ class AnalysisBenchmark extends Benchmark {
     await test.shutdown();
 
     return result;
-  }
-
-  Future<int> _calcEditTiming(
-      AbstractAnalysisServerIntegrationTest test) async {
-    const int kGroupCount = 5;
-
-    final String filePath =
-        path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
-    String contents = File(filePath).readAsStringSync();
-
-    await test
-        .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
-
-    final Stopwatch stopwatch = Stopwatch()..start();
-
-    for (int i = 0; i < kGroupCount; i++) {
-      int startIndex = i * (contents.length ~/ (kGroupCount + 2));
-      int index = contents.indexOf(';', startIndex);
-      contents = contents.substring(0, index + 1) +
-          ' ' +
-          contents.substring(index + 1);
-      await test
-          .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
-      await test.analysisFinished;
-    }
-
-    stopwatch.stop();
-
-    return stopwatch.elapsedMicroseconds ~/ kGroupCount;
   }
 
   Future<int> _calcCompletionTiming(
@@ -199,5 +125,79 @@ class AnalysisBenchmark extends Benchmark {
     stopwatch.stop();
 
     return stopwatch.elapsedMicroseconds ~/ completionCount;
+  }
+
+  Future<int> _calcEditTiming(
+      AbstractAnalysisServerIntegrationTest test) async {
+    const int kGroupCount = 5;
+
+    final String filePath =
+        path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
+    String contents = File(filePath).readAsStringSync();
+
+    await test
+        .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+
+    final Stopwatch stopwatch = Stopwatch()..start();
+
+    for (int i = 0; i < kGroupCount; i++) {
+      int startIndex = i * (contents.length ~/ (kGroupCount + 2));
+      int index = contents.indexOf(';', startIndex);
+      contents = contents.substring(0, index + 1) +
+          ' ' +
+          contents.substring(index + 1);
+      await test
+          .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+      await test.analysisFinished;
+    }
+
+    stopwatch.stop();
+
+    return stopwatch.elapsedMicroseconds ~/ kGroupCount;
+  }
+}
+
+/// benchmarks:
+///   - analysis-server-cold-analysis
+///   - analysis-server-cold-memory
+class ColdAnalysisBenchmark extends Benchmark {
+  ColdAnalysisBenchmark()
+      : super(
+            'analysis-server-cold',
+            'Analysis server benchmarks of a large project on start-up, no '
+                'existing driver cache.',
+            kind: 'group');
+
+  @override
+  int get maxIterations => 3;
+
+  @override
+  Future<BenchMarkResult> run({
+    bool quick = false,
+    bool verbose = false,
+  }) async {
+    if (!quick) {
+      deleteServerCache();
+    }
+
+    Stopwatch stopwatch = Stopwatch()..start();
+
+    AnalysisServerMemoryUsageTest test = AnalysisServerMemoryUsageTest();
+    await test.setUp();
+    await test.subscribeToStatusNotifications();
+    await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);
+    await test.analysisFinished;
+
+    stopwatch.stop();
+    int usedBytes = await test.getMemoryUsage();
+
+    CompoundBenchMarkResult result = CompoundBenchMarkResult(id);
+    result.add(
+        'analysis', BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
+    result.add('memory', BenchMarkResult('bytes', usedBytes));
+
+    await test.shutdown();
+
+    return result;
   }
 }

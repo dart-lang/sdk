@@ -6,21 +6,6 @@ import 'package:flutter/foundation.dart';
 
 import 'basic_types.dart';
 
-/// Base class for [BorderRadius] that allows for text-direction aware resolution.
-///
-/// A property or argument of this type accepts classes created either with [new
-/// BorderRadius.only] and its variants, or [new BorderRadiusDirectional.only]
-/// and its variants.
-///
-/// To convert a [BorderRadiusGeometry] object of indeterminate type into a
-/// [BorderRadius] object, call the [resolve] method.
-@immutable
-abstract class BorderRadiusGeometry {
-  /// Abstract const constructor. This constructor enables subclasses to provide
-  /// const constructors so that they can be used in const expressions.
-  const BorderRadiusGeometry();
-}
-
 /// An immutable set of radii for each corner of a rectangle.
 ///
 /// Used by [BoxDecoration] when the shape is a [BoxShape.rectangle].
@@ -31,6 +16,21 @@ abstract class BorderRadiusGeometry {
 /// [BorderRadiusDirectional], which is expressed in terms that are relative to
 /// a [TextDirection] (typically obtained from the ambient [Directionality]).
 class BorderRadius extends BorderRadiusGeometry {
+  /// A border radius with all zero radii.
+  static const BorderRadius zero = BorderRadius.all(Radius.zero);
+
+  /// The top-left [Radius].
+  final Radius topLeft;
+
+  /// The top-right [Radius].
+  final Radius topRight;
+
+  /// The bottom-left [Radius].
+  final Radius bottomLeft;
+
+  /// The bottom-right [Radius].
+  final Radius bottomRight;
+
   /// Creates a border radius where all radii are [radius].
   const BorderRadius.all(Radius radius)
       : this.only(
@@ -44,18 +44,6 @@ class BorderRadius extends BorderRadiusGeometry {
   BorderRadius.circular(double radius)
       : this.all(
           Radius.circular(radius),
-        );
-
-  /// Creates a vertically symmetric border radius where the top and bottom
-  /// sides of the rectangle have the same radii.
-  const BorderRadius.vertical({
-    Radius top = Radius.zero,
-    Radius bottom = Radius.zero,
-  }) : this.only(
-          topLeft: top,
-          topRight: top,
-          bottomLeft: bottom,
-          bottomRight: bottom,
         );
 
   /// Creates a horizontally symmetrical border radius where the left and right
@@ -79,20 +67,17 @@ class BorderRadius extends BorderRadiusGeometry {
     this.bottomRight = Radius.zero,
   });
 
-  /// A border radius with all zero radii.
-  static const BorderRadius zero = BorderRadius.all(Radius.zero);
-
-  /// The top-left [Radius].
-  final Radius topLeft;
-
-  /// The top-right [Radius].
-  final Radius topRight;
-
-  /// The bottom-left [Radius].
-  final Radius bottomLeft;
-
-  /// The bottom-right [Radius].
-  final Radius bottomRight;
+  /// Creates a vertically symmetric border radius where the top and bottom
+  /// sides of the rectangle have the same radii.
+  const BorderRadius.vertical({
+    Radius top = Radius.zero,
+    Radius bottom = Radius.zero,
+  }) : this.only(
+          topLeft: top,
+          topRight: top,
+          bottomLeft: bottom,
+          bottomRight: bottom,
+        );
 }
 
 /// An immutable set of radii for each corner of a rectangle, but with the
@@ -108,6 +93,25 @@ class BorderRadius extends BorderRadiusGeometry {
 ///  * [BorderRadius], a variant that uses physical labels (`topLeft` and
 ///    `topRight` instead of `topStart` and `topEnd`).
 class BorderRadiusDirectional extends BorderRadiusGeometry {
+  /// A border radius with all zero radii.
+  ///
+  /// Consider using [EdgeInsets.zero] instead, since that object has the same
+  /// effect, but will be cheaper to [resolve].
+  static const BorderRadiusDirectional zero =
+      BorderRadiusDirectional.all(Radius.zero);
+
+  /// The top-start [Radius].
+  final Radius topStart;
+
+  /// The top-end [Radius].
+  final Radius topEnd;
+
+  /// The bottom-start [Radius].
+  final Radius bottomStart;
+
+  /// The bottom-end [Radius].
+  final Radius bottomEnd;
+
   /// Creates a border radius where all radii are [radius].
   const BorderRadiusDirectional.all(Radius radius)
       : this.only(
@@ -121,18 +125,6 @@ class BorderRadiusDirectional extends BorderRadiusGeometry {
   BorderRadiusDirectional.circular(double radius)
       : this.all(
           Radius.circular(radius),
-        );
-
-  /// Creates a vertically symmetric border radius where the top and bottom
-  /// sides of the rectangle have the same radii.
-  const BorderRadiusDirectional.vertical({
-    Radius top = Radius.zero,
-    Radius bottom = Radius.zero,
-  }) : this.only(
-          topStart: top,
-          topEnd: top,
-          bottomStart: bottom,
-          bottomEnd: bottom,
         );
 
   /// Creates a horizontally symmetrical border radius where the start and end
@@ -156,22 +148,30 @@ class BorderRadiusDirectional extends BorderRadiusGeometry {
     this.bottomEnd = Radius.zero,
   });
 
-  /// A border radius with all zero radii.
-  ///
-  /// Consider using [EdgeInsets.zero] instead, since that object has the same
-  /// effect, but will be cheaper to [resolve].
-  static const BorderRadiusDirectional zero =
-      BorderRadiusDirectional.all(Radius.zero);
+  /// Creates a vertically symmetric border radius where the top and bottom
+  /// sides of the rectangle have the same radii.
+  const BorderRadiusDirectional.vertical({
+    Radius top = Radius.zero,
+    Radius bottom = Radius.zero,
+  }) : this.only(
+          topStart: top,
+          topEnd: top,
+          bottomStart: bottom,
+          bottomEnd: bottom,
+        );
+}
 
-  /// The top-start [Radius].
-  final Radius topStart;
-
-  /// The top-end [Radius].
-  final Radius topEnd;
-
-  /// The bottom-start [Radius].
-  final Radius bottomStart;
-
-  /// The bottom-end [Radius].
-  final Radius bottomEnd;
+/// Base class for [BorderRadius] that allows for text-direction aware resolution.
+///
+/// A property or argument of this type accepts classes created either with [new
+/// BorderRadius.only] and its variants, or [new BorderRadiusDirectional.only]
+/// and its variants.
+///
+/// To convert a [BorderRadiusGeometry] object of indeterminate type into a
+/// [BorderRadius] object, call the [resolve] method.
+@immutable
+abstract class BorderRadiusGeometry {
+  /// Abstract const constructor. This constructor enables subclasses to provide
+  /// const constructors so that they can be used in const expressions.
+  const BorderRadiusGeometry();
 }
