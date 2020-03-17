@@ -1610,15 +1610,11 @@ abstract class StreamSubscription<T> {
    * Returns a future that is completed once the stream has finished
    * its cleanup.
    *
-   * For historical reasons, may also return `null` if no cleanup was necessary.
-   * Returning `null` is deprecated and should be avoided.
-   *
-   * Typically, futures are returned when the stream needs to release resources.
+   * Typically, cleanup happens when the stream needs to release resources.
    * For example, a stream might need to close an open file (as an asynchronous
    * operation). If the listener wants to delete the file after having
    * canceled the subscription, it must wait for the cleanup future to complete.
    *
-   * A returned future completes with a `null` value.
    * If the cleanup throws, which it really shouldn't, the returned future
    * completes with that error.
    */
