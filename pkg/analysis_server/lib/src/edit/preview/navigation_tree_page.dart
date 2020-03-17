@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/src/edit/nnbd_migration/navigation_tree_renderer.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/navigation_tree.dart';
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
@@ -22,6 +25,6 @@ class NavigationTreePage extends PreviewPage {
   @override
   Future<void> generatePage(Map<String, String> params) async {
     var renderer = NavigationTreeRenderer(site.migrationInfo, site.pathMapper);
-    buf.write(renderer.render());
+    buf.write(jsonEncode(NavigationTreeNode.listToJson(renderer.render())));
   }
 }

@@ -8,6 +8,7 @@ import 'dart:html';
 
 import 'package:analysis_server/src/edit/nnbd_migration/web/edit_details.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/web/file_details.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/navigation_tree.dart';
 import 'package:path/path.dart' as _p;
 
 import 'highlight_js.dart';
@@ -269,7 +270,8 @@ void loadNavigationTree() {
       dynamic response = jsonDecode(xhr.responseText);
       var navTree = document.querySelector('.nav-tree');
       navTree.innerHtml = '';
-      writeNavigationSubtree(navTree, response);
+      writeNavigationSubtree(
+          navTree, NavigationTreeNode.listFromJson(response));
     } else {
       window.alert('Request failed; status of ${xhr.status}');
     }
@@ -540,29 +542,30 @@ void writeCodeAndRegions(String path, FileDetails data) {
   addClickHandlers('.regions');
 }
 
-void writeNavigationSubtree(Element parentElement, dynamic tree) {
+void writeNavigationSubtree(
+    Element parentElement, List<NavigationTreeNode> tree) {
   Element ul = parentElement.append(document.createElement('ul'));
   for (var entity in tree) {
     Element li = ul.append(document.createElement('li'));
-    if (entity['type'] == 'directory') {
+    if (entity.type == NavigationTreeNodeType.directory) {
       li.classes.add('dir');
       Element arrow = li.append(document.createElement('span'));
       arrow.classes.add('arrow');
       arrow.innerHtml = '&#x25BC;';
       Element icon = li.append(document.createElement('span'));
       icon.innerHtml = '&#x1F4C1;';
-      li.append(Text(entity['name']));
-      writeNavigationSubtree(li, entity['subtree']);
+      li.append(Text(entity.name));
+      writeNavigationSubtree(li, entity.subtree);
       addArrowClickHandler(arrow);
     } else {
       li.innerHtml = '&#x1F4C4;';
       Element a = li.append(document.createElement('a'));
       a.classes.add('nav-link');
-      a.dataset['name'] = entity['path'];
-      a.setAttribute('href', entity['href']);
-      a.append(Text(entity['name']));
+      a.dataset['name'] = entity.path;
+      a.setAttribute('href', entity.href);
+      a.append(Text(entity.name));
       a.onClick.listen(handleNavLinkClick);
-      int editCount = entity['editCount'];
+      int editCount = entity.editCount;
       if (editCount > 0) {
         Element editsBadge = li.append(document.createElement('span'));
         editsBadge.classes.add('edit-count');

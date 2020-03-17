@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show jsonEncode;
-
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/unit_link.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/navigation_tree.dart';
 import 'package:path/path.dart' as path;
 
 /// Groups the items in [iterable] by the result of applying [groupFn] to each
@@ -37,32 +36,30 @@ class NavigationTreeRenderer {
   path.Context get pathContext => migrationInfo.pathContext;
 
   /// Renders the navigation link tree.
-  String render() {
+  List<NavigationTreeNode> render() {
     var linkData = migrationInfo.unitLinks();
-    var tree = _renderNavigationSubtree(linkData, 0);
-    return jsonEncode(tree);
+    return _renderNavigationSubtree(linkData, 0);
   }
 
   /// Renders the navigation link subtree at [depth].
-  List<Object> _renderNavigationSubtree(List<UnitLink> links, int depth) {
+  List<NavigationTreeNode> _renderNavigationSubtree(
+      List<UnitLink> links, int depth) {
     var linksGroupedByDirectory = _groupBy(
         links.where((link) => link.depth > depth),
         (UnitLink link) => link.pathParts[depth]);
     return [
       for (var entry in linksGroupedByDirectory.entries)
-        {
-          'type': 'directory',
-          'name': entry.key,
-          'subtree': _renderNavigationSubtree(entry.value, depth + 1),
-        },
+        NavigationTreeNode.directory(
+          name: entry.key,
+          subtree: _renderNavigationSubtree(entry.value, depth + 1),
+        ),
       for (var link in links.where((link) => link.depth == depth))
-        {
-          'type': 'file',
-          'name': link.fileName,
-          'path': pathContext.joinAll(link.pathParts),
-          'href': link.url,
-          'editCount': link.editCount,
-        },
+        NavigationTreeNode.file(
+          name: link.fileName,
+          path: pathContext.joinAll(link.pathParts),
+          href: link.url,
+          editCount: link.editCount,
+        ),
     ];
   }
 }
