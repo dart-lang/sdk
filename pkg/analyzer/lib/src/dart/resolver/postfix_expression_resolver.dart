@@ -95,12 +95,11 @@ class PostfixExpressionResolver {
       FunctionType propertyType = element.type;
       if (propertyType != null) {
         return _resolver.inferenceHelper.computeInvokeReturnType(
-            propertyType.returnType,
-            isNullAware: false);
+          propertyType.returnType,
+        );
       }
     } else if (element is ExecutableElement) {
-      return _resolver.inferenceHelper
-          .computeInvokeReturnType(element.type, isNullAware: false);
+      return _resolver.inferenceHelper.computeInvokeReturnType(element.type);
     }
     return DynamicTypeImpl.instance;
   }

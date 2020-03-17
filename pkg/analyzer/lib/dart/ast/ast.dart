@@ -3727,7 +3727,8 @@ abstract class MethodDeclaration implements ClassMember {
 ///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodInvocation implements InvocationExpression {
+abstract class MethodInvocation
+    implements NullShortableExpression, InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
   set argumentList(ArgumentList argumentList);
 

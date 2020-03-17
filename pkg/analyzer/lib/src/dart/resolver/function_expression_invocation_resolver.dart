@@ -72,7 +72,6 @@ class FunctionExpressionInvocationResolver {
 
     var returnType = _inferenceHelper.computeInvokeReturnType(
       node.staticInvokeType,
-      isNullAware: false,
     );
     _inferenceHelper.recordStaticType(node, returnType);
   }

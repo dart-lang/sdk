@@ -1358,11 +1358,15 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    //
-    // We visit the target and argument list, but do not visit the method name
-    // because it needs to be visited in the context of the invocation.
-    //
-    node.target?.accept(this);
+    if (node.target != null) {
+      node.target.accept(this);
+      if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
+          _isNonNullableByDefault) {
+        _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
+        _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
+    }
+
     node.typeArguments?.accept(this);
     node.accept(elementResolver);
 

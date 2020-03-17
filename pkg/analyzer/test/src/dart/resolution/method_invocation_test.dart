@@ -1765,6 +1765,35 @@ void main(Function? foo) {
     );
   }
 
+  test_hasReceiver_interfaceQ_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C foo() => throw 0;
+  C bar() => throw 0;
+}
+
+void testShort(C? c) {
+  c?.foo().bar();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('c?.foo()'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'C Function()',
+      type: 'C',
+    );
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('bar();'),
+      element: findElement.method('bar'),
+      typeArgumentTypes: [],
+      invokeType: 'C Function()',
+      type: 'C?',
+    );
+  }
+
   test_hasReceiver_interfaceTypeQ_defined() async {
     await assertErrorsInCode(r'''
 class A {

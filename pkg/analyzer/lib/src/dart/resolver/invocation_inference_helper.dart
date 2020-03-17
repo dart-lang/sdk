@@ -44,20 +44,13 @@ class InvocationInferenceHelper {
 
   /// Compute the return type of the method or function represented by the given
   /// type that is being invoked.
-  DartType computeInvokeReturnType(DartType type,
-      {@required bool isNullAware}) {
-    TypeImpl returnType;
+  DartType computeInvokeReturnType(DartType type) {
     if (type is FunctionType) {
-      returnType = type.returnType ?? DynamicTypeImpl.instance;
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41065
+      return type.returnType ?? DynamicTypeImpl.instance;
     } else {
-      returnType = DynamicTypeImpl.instance;
+      return DynamicTypeImpl.instance;
     }
-
-    if (isNullAware && _typeSystem.isNonNullableByDefault) {
-      returnType = _typeSystem.makeNullable(returnType);
-    }
-
-    return returnType;
   }
 
   FunctionType inferArgumentTypesForGeneric(AstNode inferenceNode,
@@ -273,10 +266,7 @@ class InvocationInferenceHelper {
     node.typeArgumentTypes = _typeArgumentTypes;
     node.staticInvokeType = _invokeType;
 
-    var returnType = computeInvokeReturnType(
-      _invokeType,
-      isNullAware: node.isNullAware,
-    );
+    var returnType = computeInvokeReturnType(_invokeType);
     recordStaticType(node, returnType);
   }
 
