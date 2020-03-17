@@ -251,11 +251,19 @@ class CompilerResult {
 // the full (isolate specific) environment as a finite, static map.
 class EnvironmentMap extends UnmodifiableMapBase<String, String> {
   @override
+  bool containsKey(Object key) {
+    return new bool.hasEnvironment(key);
+  }
+
+  @override
   String operator [](Object key) {
     // The fromEnvironment constructor is specified to throw when called using
     // new. However, the VM implementation actually looks up the given name in
     // the environment.
-    return new String.fromEnvironment(key);
+    if (containsKey(key)) {
+      return new String.fromEnvironment(key);
+    }
+    return null;
   }
 
   @override

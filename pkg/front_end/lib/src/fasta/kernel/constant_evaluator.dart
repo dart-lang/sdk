@@ -1843,25 +1843,34 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return reportInvalid(node, 'Variable get of a non-const variable.');
   }
 
+  /// Computes the constant for [expression] defined in the context of [member].
+  ///
+  /// This compute the constant as seen in the current evaluation mode even when
+  /// the constant is defined in a library compiled with the agnostic evaluation
+  /// mode.
+  Constant _evaluateExpressionInContext(Member member, Expression expression) {
+    StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = new StaticTypeContext(member, typeEnvironment);
+    Constant constant = runInsideContext(member, () {
+      Constant constant = _evaluateSubexpression(expression);
+      if (_staticTypeContext.nonNullableByDefaultCompiledMode ==
+              NonNullableByDefaultCompiledMode.Agnostic &&
+          evaluationMode == EvaluationMode.weak) {
+        constant = _weakener.visitConstant(constant) ?? constant;
+      }
+      return constant;
+    });
+    _staticTypeContext = oldStaticTypeContext;
+    return constant;
+  }
+
   @override
   Constant visitStaticGet(StaticGet node) {
     return withNewEnvironment(() {
       final Member target = node.target;
       if (target is Field) {
         if (target.isConst) {
-          StaticTypeContext oldStaticTypeContext = _staticTypeContext;
-          _staticTypeContext = new StaticTypeContext(target, typeEnvironment);
-          Constant constant = runInsideContext(target, () {
-            Constant constant = _evaluateSubexpression(target.initializer);
-            if (_staticTypeContext.nonNullableByDefaultCompiledMode ==
-                    NonNullableByDefaultCompiledMode.Agnostic &&
-                evaluationMode == EvaluationMode.weak) {
-              constant = _weakener.visitConstant(constant) ?? constant;
-            }
-            return constant;
-          });
-          _staticTypeContext = oldStaticTypeContext;
-          return constant;
+          return _evaluateExpressionInContext(target, target.initializer);
         }
         return report(
             node,
@@ -1932,6 +1941,77 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return canonicalize(new StringConstant(concatenated.single.toString()));
   }
 
+  Constant _getFromEnvironmentDefaultValue(Procedure target) {
+    VariableDeclaration variable = target.function.namedParameters
+        .singleWhere((v) => v.name == 'defaultValue');
+    return variable.initializer != null
+        ? _evaluateExpressionInContext(target, variable.initializer)
+        : nullConstant;
+  }
+
+  Constant _handleFromEnvironment(
+      Procedure target, StringConstant name, Map<String, Constant> named) {
+    String value = environmentDefines[name.value];
+    Constant defaultValue = named["defaultValue"];
+    if (target.enclosingClass == coreTypes.boolClass) {
+      Constant boolConstant;
+      if (value == "true") {
+        boolConstant = trueConstant;
+      } else if (value == "false") {
+        boolConstant = falseConstant;
+      } else if (defaultValue != null) {
+        if (defaultValue is BoolConstant) {
+          boolConstant = makeBoolConstant(defaultValue.value);
+        } else if (defaultValue is NullConstant) {
+          boolConstant = nullConstant;
+        } else {
+          boolConstant = falseConstant;
+        }
+      } else {
+        boolConstant = _getFromEnvironmentDefaultValue(target);
+      }
+      return boolConstant;
+    } else if (target.enclosingClass == coreTypes.intClass) {
+      int intValue = value != null ? int.tryParse(value) : null;
+      Constant intConstant;
+      if (intValue != null) {
+        bool negated = value.startsWith('-');
+        intConstant = intFolder.makeIntConstant(intValue, unsigned: !negated);
+      } else if (defaultValue != null) {
+        if (intFolder.isInt(defaultValue)) {
+          intConstant = defaultValue;
+        } else {
+          intConstant = nullConstant;
+        }
+      } else {
+        intConstant = _getFromEnvironmentDefaultValue(target);
+      }
+      return canonicalize(intConstant);
+    } else if (target.enclosingClass == coreTypes.stringClass) {
+      Constant stringConstant;
+      if (value != null) {
+        stringConstant = canonicalize(new StringConstant(value));
+      } else if (defaultValue != null) {
+        if (defaultValue is StringConstant) {
+          stringConstant = defaultValue;
+        } else {
+          stringConstant = nullConstant;
+        }
+      } else {
+        stringConstant = _getFromEnvironmentDefaultValue(target);
+      }
+      return stringConstant;
+    }
+    throw new UnsupportedError(
+        'Unexpected fromEnvironment constructor: $target');
+  }
+
+  Constant _handleHasEnvironment(StringConstant name) {
+    return environmentDefines.containsKey(name.value)
+        ? trueConstant
+        : falseConstant;
+  }
+
   @override
   Constant visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
@@ -1947,45 +2027,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     if (target.kind == ProcedureKind.Factory) {
       if (target.isConst &&
-          target.name.name == "fromEnvironment" &&
           target.enclosingLibrary == coreTypes.coreLibrary &&
-          positionals.length == 1) {
+          positionals.length == 1 &&
+          (target.name.name == "fromEnvironment" ||
+              target.name.name == "hasEnvironment")) {
         if (environmentDefines != null) {
           // Evaluate environment constant.
           Constant name = positionals.single;
           if (name is StringConstant) {
-            String value = environmentDefines[name.value];
-            Constant defaultValue = named["defaultValue"];
-
-            if (target.enclosingClass == coreTypes.boolClass) {
-              Constant boolConstant = value == "true"
-                  ? trueConstant
-                  : value == "false"
-                      ? falseConstant
-                      : defaultValue is BoolConstant
-                          ? makeBoolConstant(defaultValue.value)
-                          : defaultValue is NullConstant
-                              ? nullConstant
-                              : falseConstant;
-              return boolConstant;
-            } else if (target.enclosingClass == coreTypes.intClass) {
-              int intValue = value != null ? int.tryParse(value) : null;
-              Constant intConstant;
-              if (intValue != null) {
-                bool negated = value.startsWith('-');
-                intConstant =
-                    intFolder.makeIntConstant(intValue, unsigned: !negated);
-              } else if (intFolder.isInt(defaultValue)) {
-                intConstant = defaultValue;
-              } else {
-                intConstant = nullConstant;
-              }
-              return canonicalize(intConstant);
-            } else if (target.enclosingClass == coreTypes.stringClass) {
-              value ??=
-                  defaultValue is StringConstant ? defaultValue.value : null;
-              if (value == null) return nullConstant;
-              return canonicalize(new StringConstant(value));
+            if (target.name.name == "fromEnvironment") {
+              return _handleFromEnvironment(target, name, named);
+            } else {
+              return _handleHasEnvironment(name);
             }
           } else if (name is NullConstant) {
             return report(node, messageConstEvalNullValue);
