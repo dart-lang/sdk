@@ -21,18 +21,18 @@ class _<T> {}
 
 main() {
   // FutureOr types are normalized when they appear explicitly in the source.
-  Expect.identical(dynamic, extractType<FutureOr>());
-  Expect.identical(dynamic, extractType<FutureOr<dynamic>>());
-  Expect.identical(extractType<Object>(), extractType<FutureOr<Object>>());
-  Expect.identical(extractType<void>(), extractType<FutureOr<void>>());
-  Expect.identical(nullSafe.embeddedNullableFutureOfNull,
+  Expect.equals(dynamic, extractType<FutureOr>());
+  Expect.equals(dynamic, extractType<FutureOr<dynamic>>());
+  Expect.equals(extractType<Object>(), extractType<FutureOr<Object>>());
+  Expect.equals(extractType<void>(), extractType<FutureOr<void>>());
+  Expect.equals(nullSafe.embeddedNullableFutureOfNull,
       extractType<nullSafe.Embed<FutureOr<Null>>>());
 
   // FutureOr types are normalized when they are created at runtime.
-  Expect.identical(extractType<_<dynamic>>(), extractFutureOrType());
-  Expect.identical(extractType<_<dynamic>>(), extractFutureOrType<dynamic>());
-  Expect.identical(extractType<_<Object>>(), extractFutureOrType<Object>());
-  Expect.identical(extractType<_<void>>(), extractFutureOrType<void>());
-  Expect.identical(
+  Expect.equals(extractType<_<dynamic>>(), extractFutureOrType());
+  Expect.equals(extractType<_<dynamic>>(), extractFutureOrType<dynamic>());
+  Expect.equals(extractType<_<Object>>(), extractFutureOrType<Object>());
+  Expect.equals(extractType<_<void>>(), extractFutureOrType<void>());
+  Expect.equals(
       nullSafe.embeddedNullableFutureOfNull, embedFutureOrType<Null>());
 }
