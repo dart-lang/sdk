@@ -3685,7 +3685,6 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 
 void Class::Finalize() const {
   auto thread = Thread::Current();
-  auto Z = thread->zone();
   Isolate* isolate = thread->isolate();
   ASSERT(thread->IsMutatorThread());
   ASSERT(!isolate->all_classes_finalized());
@@ -3706,22 +3705,21 @@ void Class::Finalize() const {
     }
   }
 
-  if (SuperClass() == Class::null() ||
-      Class::Handle(Z, SuperClass()).is_const()) {
+#if defined(DEBUG)
+  if (is_const()) {
+    // Double-check that all fields are final (CFE should guarantee that if it
+    // marks the class as having a constant constructor).
+    auto Z = thread->zone();
+    const auto& super_class = Class::Handle(Z, SuperClass());
+    ASSERT(super_class.IsNull() || super_class.is_const());
     const auto& fields = Array::Handle(Z, this->fields());
     auto& field = Field::Handle(Z);
-    bool is_const = true;
     for (intptr_t i = 0; i < fields.Length(); ++i) {
       field ^= fields.At(i);
-      if (!field.is_static() && !field.is_final()) {
-        is_const = false;
-        break;
-      }
-    }
-    if (is_const) {
-      set_is_const();
+      ASSERT(field.is_static() || field.is_final());
     }
   }
+#endif
 
   set_is_finalized();
 }
