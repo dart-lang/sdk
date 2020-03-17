@@ -73,6 +73,8 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     _eventSink.addError(error, stackTrace);
   }
 

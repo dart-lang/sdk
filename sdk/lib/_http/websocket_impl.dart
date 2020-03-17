@@ -115,6 +115,7 @@ class _WebSocketProtocolTransformer extends StreamTransformerBase<List<int>,
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
     _eventSink.addError(error, stackTrace);
   }
 
@@ -723,6 +724,7 @@ class _WebSocketOutgoingTransformer
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
     _eventSink.addError(error, stackTrace);
   }
 

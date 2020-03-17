@@ -600,6 +600,8 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
    * Send or enqueue an error event.
    */
   void addError(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     if (!_mayAddEvent) throw _badEventState();
     AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {

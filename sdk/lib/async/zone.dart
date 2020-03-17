@@ -43,7 +43,9 @@ class AsyncError implements Error {
   final Object error;
   final StackTrace stackTrace;
 
-  AsyncError(this.error, this.stackTrace);
+  AsyncError(this.error, this.stackTrace) {
+    ArgumentError.checkNotNull(error, "error");
+  }
 
   String toString() => '$error';
 }
@@ -750,6 +752,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   AsyncError errorCallback(Zone zone, Object error, StackTrace stackTrace) {
+    ArgumentError.checkNotNull(error, "error");
     var implementation = _delegationTarget._errorCallback;
     _Zone implZone = implementation.zone;
     if (identical(implZone, _rootZone)) return null;
@@ -1065,6 +1068,7 @@ class _CustomZone extends _Zone {
   }
 
   AsyncError errorCallback(Object error, StackTrace stackTrace) {
+    ArgumentError.checkNotNull(error, "error");
     var implementation = this._errorCallback;
     assert(implementation != null);
     final Zone implementationZone = implementation.zone;
@@ -1109,8 +1113,11 @@ class _CustomZone extends _Zone {
 
 void _rootHandleUncaughtError(
     Zone self, ZoneDelegate parent, Zone zone, error, StackTrace stackTrace) {
+  if (error == null) {
+    error = ArgumentError.notNull("error");
+    stackTrace = StackTrace.current;
+  }
   _schedulePriorityAsyncCallback(() {
-    error ??= new NullThrownError();
     if (stackTrace == null) throw error;
     _rethrow(error, stackTrace);
   });
