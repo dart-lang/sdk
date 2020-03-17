@@ -30,29 +30,26 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
     final sourceRanges = <SourceRange>[];
 
     final functionBody = declaration.thisOrAncestorOfType<FunctionBody>();
+    if (functionBody == null) {
+      return;
+    }
+
     final references = findLocalElementReferences(functionBody, element);
     for (var reference in references) {
       final node = reference.thisOrAncestorMatching((node) =>
           node is VariableDeclaration || node is AssignmentExpression);
-      var sourceRange;
-      if (node is VariableDeclaration) {
-        VariableDeclarationList parent = node.parent;
-        if (parent.variables.length == 1) {
-          sourceRange = utils.getLinesRange(range.node(parent.parent));
-        } else {
-          sourceRange = range.nodeInList(parent.variables, node);
-        }
-      } else if (node is AssignmentExpression) {
-        // todo (pq): consider node.parent is! ExpressionStatement to handle
-        // assignments in parens, etc.
-        if (node.parent is ArgumentList) {
-          sourceRange = range.startStart(node, node.operator.next);
-        } else {
-          sourceRange = utils.getLinesRange(range.node(node.parent));
-        }
-      } else {
+
+      SourceRange sourceRange;
+      if (node is AssignmentExpression) {
+        sourceRange = _forAssignmentExpression(node);
+      } else if (node is VariableDeclaration) {
+        sourceRange = _forVariableDeclaration(node);
+      }
+
+      if (sourceRange == null) {
         return;
       }
+
       sourceRanges.add(sourceRange);
     }
 
@@ -61,5 +58,30 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
         builder.addDeletion(sourceRange);
       }
     });
+  }
+
+  SourceRange _forAssignmentExpression(AssignmentExpression node) {
+    // todo (pq): consider node.parent is! ExpressionStatement to handle
+    // assignments in parens, etc.
+    if (node.parent is ArgumentList) {
+      return range.startStart(node, node.operator.next);
+    } else {
+      return utils.getLinesRange(range.node(node.parent));
+    }
+  }
+
+  SourceRange _forVariableDeclaration(VariableDeclaration node) {
+    var declarationList = node.parent as VariableDeclarationList;
+
+    var declarationListParent = declarationList.parent;
+    if (declarationListParent is VariableDeclarationStatement) {
+      if (declarationList.variables.length == 1) {
+        return utils.getLinesRange(range.node(declarationListParent));
+      } else {
+        return range.nodeInList(declarationList.variables, node);
+      }
+    } else {
+      return null;
+    }
   }
 }

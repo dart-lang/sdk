@@ -524,6 +524,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       // See similar logic in `imported_reference_contributor`.
 
       _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.VOID);
     } else {
       super.visitMethodInvocation(node);
     }
@@ -666,6 +667,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     _addSuggestion(Keyword.DYNAMIC);
+    _addSuggestion(Keyword.VOID);
   }
 
   @override

@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
@@ -161,9 +162,6 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposal_addDiagnosticPropertyReference();
     }
-    if (!_containsErrorCode({LintNames.always_declare_return_types})) {
-      await _addProposal_addReturnType();
-    }
     if (experimentStatus.control_flow_collections) {
       if (!_containsErrorCode(
         {LintNames.prefer_if_elements_to_conditional_expressions},
@@ -269,6 +267,10 @@ class AssistProcessor extends BaseProcessor {
     }
 
     await computeIfNotErrorCode(
+      AddReturnType(),
+      {LintNames.always_declare_return_types},
+    );
+    await computeIfNotErrorCode(
       ConvertToListLiteral(),
       {LintNames.prefer_collection_literals},
     );
@@ -347,11 +349,6 @@ class AssistProcessor extends BaseProcessor {
         }
       }
     }
-  }
-
-  Future<void> _addProposal_addReturnType() async {
-    final changeBuilder = await createBuilder_addReturnType();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_RETURN_TYPE);
   }
 
   Future<void> _addProposal_assignToLocalVariable() async {

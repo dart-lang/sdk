@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "literal_from_opt_in_lib.dart" as lit;
+
+import "org-dartlang-testcase:///literal_from_opt_in_lib.dart";
+
+static method main() → dynamic {
+  core::List<lit::Const<core::int*>*>* l1 = #C3;
+  core::List<lit::Const<core::int*>*>* l2 = #C3;
+  core::List<lit::Const<core::int*>*>* l3 = #C6;
+  core::List<lit::Const<core::int*>*>* l4 = #C3;
+  core::List<lit::Const<core::int*>*>* l5 = #C7;
+}
+
+library /*isNonNullableByDefault*/;
+import self as lit;
+import "dart:core" as core;
+
+class Const<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field lit::Const::T% field;
+  const constructor •(lit::Const::T% field) → lit::Const<lit::Const::T%>
+    : lit::Const::field = field, super core::Object::•()
+    ;
+}
+static const field lit::Const<core::int> a = #C2;
+static const field lit::Const<core::int?> b = #C2;
+static const field lit::Const<core::int?> c = #C5;
+static const field lit::Const<core::int>? d = #C2;
+static const field lit::Const<core::int>? e = #C4;
+
+constants  {
+  #C1 = 0
+  #C2 = lit::Const<core::int*> {field:#C1}
+  #C3 = <lit::Const<core::int*>*>[#C2]
+  #C4 = null
+  #C5 = lit::Const<core::int*> {field:#C4}
+  #C6 = <lit::Const<core::int*>*>[#C5]
+  #C7 = <lit::Const<core::int*>*>[#C4]
+}

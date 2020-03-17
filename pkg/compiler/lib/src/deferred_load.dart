@@ -314,10 +314,10 @@ abstract class DeferredLoadTask extends CompilerTask {
           DartType type = typeUse.type;
           switch (typeUse.kind) {
             case TypeUseKind.TYPE_LITERAL:
-              if (type is InterfaceType) {
-                InterfaceType interface = type;
+              var typeWithoutNullability = type.withoutNullability;
+              if (typeWithoutNullability is InterfaceType) {
                 dependencies.addClass(
-                    interface.element, typeUse.deferredImport);
+                    typeWithoutNullability.element, typeUse.deferredImport);
               }
               break;
             case TypeUseKind.CONST_INSTANTIATION:
@@ -395,6 +395,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
       if (constant is InstantiationConstantValue) {
         for (DartType type in constant.typeArguments) {
+          type = type.withoutNullability;
           if (type is InterfaceType) {
             _updateClassRecursive(
                 closedWorld, type.element, oldSet, newSet, queue);
@@ -549,7 +550,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       LibraryEntity library, Spannable context) {
     if (info.isDeferred || compiler.options.newDeferredSplit) return;
     if (constant is TypeConstantValue) {
-      var type = constant.representedType;
+      var type = constant.representedType.withoutNullability;
       if (type is InterfaceType) {
         var imports = classImportsTo(type.element, library);
         _fixDependencyInfo(
@@ -1465,7 +1466,10 @@ class OutputUnitData {
   /// Returns the [OutputUnit] where [constant] belongs.
   OutputUnit outputUnitForConstant(ConstantValue constant) {
     if (!isProgramSplit) return mainOutputUnit;
-    return _constantToUnit[constant];
+    OutputUnit unit = _constantToUnit[constant];
+    // TODO(sigmund): enforce unit is not null: it is sometimes null on some
+    // corner cases on internal apps.
+    return unit ?? mainOutputUnit;
   }
 
   OutputUnit outputUnitForConstantForTesting(ConstantValue constant) =>

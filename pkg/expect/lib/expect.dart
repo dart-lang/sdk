@@ -594,10 +594,6 @@ class Expect {
     Expect.throws(f, (error) => error is AssertionError, reason);
   }
 
-  static void throwsCastError(void f(), [String reason = "CastError"]) {
-    Expect.throws(f, (error) => error is CastError, reason);
-  }
-
   static void throwsFormatException(void f(),
       [String reason = "FormatException"]) {
     Expect.throws(f, (error) => error is FormatException, reason);
@@ -707,10 +703,10 @@ class ExpectException {
   final String name;
 
   ExpectException(this.message)
-      : name = (_getTestName == null) ? null : _getTestName();
+      : name = (_getTestName == null) ? "" : _getTestName();
 
   String toString() {
-    if (name != null) return 'In test "$name" $message';
+    if (name != "") return 'In test "$name" $message';
     return message;
   }
 }

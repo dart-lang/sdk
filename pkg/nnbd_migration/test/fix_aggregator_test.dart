@@ -9,6 +9,7 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -785,7 +786,8 @@ class MockDecoratedType implements DecoratedType {
   const MockDecoratedType(this.type);
 
   @override
-  NullabilityNode get node => NullabilityNode.forTypeAnnotation(0);
+  NullabilityNode get node =>
+      NullabilityNode.forTypeAnnotation(NullabilityNodeTarget.text('test'));
 
   @override
   noSuchMethod(Invocation invocation) {

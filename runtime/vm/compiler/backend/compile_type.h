@@ -81,7 +81,11 @@ class CompileType : public ZoneAllocated {
 
   // Return true if value of this type is assignable to a location of the
   // given type.
-  bool IsAssignableTo(const AbstractType& type);
+  bool IsAssignableTo(const AbstractType& other);
+
+  // Return true if value of this type always passes 'is' test
+  // against given type.
+  bool IsInstanceOf(const AbstractType& other);
 
   // Create a new CompileType representing given combination of class id and
   // abstract type. The pair is assumed to be coherent.

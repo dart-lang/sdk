@@ -352,6 +352,9 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode FINAL_AND_COVARIANT = _FINAL_AND_COVARIANT;
 
+  static const ParserErrorCode FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER =
+      _FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER;
+
   static const ParserErrorCode FINAL_AND_VAR = _FINAL_AND_VAR;
 
   static const ParserErrorCode FINAL_CLASS = ParserErrorCode(

@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/future_or.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
@@ -774,7 +775,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       if (_lateSetter != null) {
         _lateSetter.function.positionalParameters.single.type = value;
       }
-      if (!_type.isPotentiallyNullable && !_forceIncludeIsSetField) {
+      if (!isPotentiallyNullable(_type, null) && !_forceIncludeIsSetField) {
         // We only need the is-set field if the field is potentially nullable.
         //  Otherwise we use `null` to signal that the field is uninitialized.
         _lateIsSetField = null;
@@ -934,7 +935,8 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
   Statement _createSetterBody(
       CoreTypes coreTypes, String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
-    return late_lowering.createSetterBody(fileOffset, name, parameter, _type,
+    return late_lowering.createSetterBody(
+        coreTypes, fileOffset, name, parameter, _type,
         shouldReturnValue: false,
         createVariableWrite: (Expression value) =>
             _createFieldSet(_field, value),
@@ -989,7 +991,7 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
       CoreTypes coreTypes, String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterWithInitializer(
-        fileOffset, name, _type, initializer,
+        coreTypes, fileOffset, name, _type, initializer,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
             _createFieldSet(_field, value),

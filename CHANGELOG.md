@@ -61,6 +61,11 @@ used (see Issue [39627][]).
   `ProcessStartMode.inheritStdio`) upon accessing the `stdin`, `stdout`, and
   `stderr` getters. Previously these getters would all return `null`.
 
+* **Breaking change** [#40706](https://github.com/dart-lang/sdk/issues/40706):
+  The dummy object returned if `FileStat.stat()` and `FileStat.statSync()` fail
+  now contains Unix epoch timestamps instead of `null` for the `accessed`,
+  `changed`, and `modified` getters.
+
 #### `dart:mirrors`
 
 * Added `MirrorSystem.neverType`.

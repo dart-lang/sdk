@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerResult, scanString;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -111,7 +112,12 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
    * For any analyzer test where the last token is not EOF, set this value.
    * It is ignored when not using the fasta parser.
    */
-  void createParser(String content, {int expectedEndOffset});
+  void createParser(
+    String content, {
+    int expectedEndOffset,
+    LanguageVersion languageVersion,
+    FeatureSet featureSet,
+  });
 
   ExpectedError expectedError(ErrorCode code, int offset, int length);
 
@@ -9467,7 +9473,12 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
    * prepared to parse the tokens scanned from the given [content].
    */
   @override
-  void createParser(String content, {int expectedEndOffset}) {
+  void createParser(
+    String content, {
+    int expectedEndOffset,
+    LanguageVersion languageVersion,
+    FeatureSet featureSet,
+  }) {
     Source source = TestSource();
     listener = GatheringErrorListener();
 
@@ -9477,8 +9488,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     parser = Parser(
       source,
       listener,
-      languageVersion: null,
-      featureSet: FeatureSet.forTesting(),
+      languageVersion: languageVersion,
+      featureSet: featureSet,
     );
     parser.allowNativeClause = allowNativeClause;
     parser.parseFunctionBodies = parseFunctionBodies;

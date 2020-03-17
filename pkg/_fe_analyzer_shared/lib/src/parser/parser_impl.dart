@@ -4267,21 +4267,6 @@ class Parser {
     return isConditional;
   }
 
-  Token parseNullAwareBracketOrConditionalExpressionRest(
-      Token token, TypeParamOrArgInfo typeArg) {
-    Token question = token.next;
-    assert(optional('?', question));
-    Token bracket = question.next;
-    assert(optional('[', bracket));
-
-    bool isConditional = canParseAsConditional(question);
-    if (isConditional) {
-      return parseConditionalExpressionRest(token);
-    }
-    // It wasn't a conditional expression. Must be a null aware bracket then.
-    return parseArgumentOrIndexStar(token, typeArg, true);
-  }
-
   Token parseConditionalExpressionRest(Token token) {
     Token question = token = token.next;
     assert(optional('?', question));
@@ -4375,6 +4360,10 @@ class Parser {
               identical(type, TokenType.OPEN_SQUARE_BRACKET) ||
               identical(type, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
             token = parseArgumentOrIndexStar(token, typeArg, false);
+          } else if (identical(type, TokenType.QUESTION)) {
+            // We have determined selector precedence so this is a null-aware
+            // bracket operator.
+            token = parseArgumentOrIndexStar(token, typeArg, true);
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
@@ -4397,12 +4386,7 @@ class Parser {
         } else if (identical(type, TokenType.AS)) {
           token = parseAsOperatorRest(token);
         } else if (identical(type, TokenType.QUESTION)) {
-          if (optional('[', next.next)) {
-            token = parseNullAwareBracketOrConditionalExpressionRest(
-                token, typeArg);
-          } else {
-            token = parseConditionalExpressionRest(token);
-          }
+          token = parseConditionalExpressionRest(token);
         } else {
           if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
             // We don't allow (a == b == c) or (a < b < c).
@@ -4444,6 +4428,14 @@ class Parser {
         return SELECTOR_PRECEDENCE;
       }
       return POSTFIX_PRECEDENCE;
+    } else if (identical(type, TokenType.QUESTION) &&
+        optional('[', token.next)) {
+      // "?[" can be a null-aware bracket or a conditional. If it's a
+      // null-aware bracket it has selector precedence.
+      bool isConditional = canParseAsConditional(token);
+      if (!isConditional) {
+        return SELECTOR_PRECEDENCE;
+      }
     }
     return type.precedence;
   }

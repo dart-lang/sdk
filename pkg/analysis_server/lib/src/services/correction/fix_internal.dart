@@ -12,6 +12,8 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
+import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
@@ -52,7 +54,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -453,12 +454,6 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED) {
       await _addFix_createConstructor_forUninitializedFinalFields();
     }
-    if (errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
-        errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
-        errorCode ==
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS) {
-      await _addFix_updateConstructor_forUninitializedFinalFields();
-    }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
       await _addFix_undefinedClassAccessor_useSimilar();
       await _addFix_createClass();
@@ -592,9 +587,6 @@ class FixProcessor extends BaseProcessor {
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
-      if (name == LintNames.always_declare_return_types) {
-        await _addFix_addReturnType();
-      }
       if (name == LintNames.always_specify_types ||
           name == LintNames.type_annotate_public_apis) {
         await _addFix_addTypeAnnotation();
@@ -1272,11 +1264,6 @@ class FixProcessor extends BaseProcessor {
       builder.addSimpleInsertion(node.parent.offset, '@required ');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_REQUIRED);
-  }
-
-  Future<void> _addFix_addReturnType() async {
-    var changeBuilder = await createBuilder_addReturnType();
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_RETURN_TYPE);
   }
 
   Future<void> _addFix_addStatic() async {
@@ -4349,68 +4336,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  /// Here we handle cases when a constructors does not initialize all of the
-  /// final fields.
-  Future<void> _addFix_updateConstructor_forUninitializedFinalFields() async {
-    if (node is! SimpleIdentifier || node.parent is! ConstructorDeclaration) {
-      return;
-    }
-    ConstructorDeclaration constructor = node.parent;
-    List<FormalParameter> parameters = constructor.parameters.parameters;
-
-    ClassDeclaration classNode = constructor.parent;
-    InterfaceType superType = classNode.declaredElement.supertype;
-
-    // Compute uninitialized final fields.
-    List<FieldElement> fields =
-        ErrorVerifier.computeNotInitializedFields(constructor);
-    fields.retainWhere((FieldElement field) => field.isFinal);
-
-    // Prepare new parameters code.
-    fields.sort((a, b) => a.nameOffset - b.nameOffset);
-    String fieldParametersCode =
-        fields.map((field) => 'this.${field.name}').join(', ');
-
-    // Specialize for Flutter widgets.
-    if (flutter.isExactlyStatelessWidgetType(superType) ||
-        flutter.isExactlyStatefulWidgetType(superType)) {
-      if (parameters.isNotEmpty && parameters.last.isNamed) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addSimpleInsertion(
-              parameters.last.end, ', $fieldParametersCode');
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.ADD_FIELD_FORMAL_PARAMETERS);
-        return;
-      }
-    }
-
-    // Prepare the last required parameter.
-    FormalParameter lastRequiredParameter;
-    for (FormalParameter parameter in parameters) {
-      if (parameter.isRequiredPositional) {
-        lastRequiredParameter = parameter;
-      }
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      // append new field formal initializers
-      if (lastRequiredParameter != null) {
-        builder.addSimpleInsertion(
-            lastRequiredParameter.end, ', $fieldParametersCode');
-      } else {
-        int offset = constructor.parameters.leftParenthesis.end;
-        if (parameters.isNotEmpty) {
-          fieldParametersCode += ', ';
-        }
-        builder.addSimpleInsertion(offset, fieldParametersCode);
-      }
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_FIELD_FORMAL_PARAMETERS);
-  }
-
   Future<void> _addFix_updateSdkConstraints(String minimumVersion) async {
     Context context = resourceProvider.pathContext;
     File pubspecFile;
@@ -4562,9 +4487,17 @@ class FixProcessor extends BaseProcessor {
       await compute(RemoveUnusedLocalVariable());
     } else if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
       await compute(RemoveDeadIfNull());
+    } else if (errorCode ==
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
+        errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
+        errorCode ==
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS) {
+      await compute(AddFieldFormalParameters());
     } else if (errorCode is LintCode) {
       String name = errorCode.name;
-      if (name == LintNames.avoid_private_typedef_functions) {
+      if (name == LintNames.always_declare_return_types) {
+        await compute(AddReturnType());
+      } else if (name == LintNames.avoid_private_typedef_functions) {
         await compute(InlineTypedef());
       } else if (name == LintNames.avoid_returning_null_for_future) {
         await compute(WrapInFuture());

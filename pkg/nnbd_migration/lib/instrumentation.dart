@@ -22,11 +22,30 @@ class CodeReference {
 
   CodeReference(this.path, this.line, this.column, this.function);
 
+  /// Creates a [CodeReference] pointing to the given [node].
+  factory CodeReference.fromAstNode(AstNode node) {
+    var compilationUnit = node.thisOrAncestorOfType<CompilationUnit>();
+    var source = compilationUnit.declaredElement.source;
+    var location = compilationUnit.lineInfo.getLocation(node.offset);
+    return CodeReference(source.fullName, location.lineNumber,
+        location.columnNumber, _computeEnclosingName(node));
+  }
+
   CodeReference.fromJson(dynamic json)
       : path = json['path'] as String,
         line = json['line'] as int,
         column = json['col'] as int,
         function = json['function'] as String;
+
+  /// Gets a short description of this code reference (using the last component
+  /// of the path rather than the full path)
+  String get shortName => '$shortPath:$line:$column';
+
+  /// Gets the last component of the path part of this code reference.
+  String get shortPath {
+    var pathAsUri = Uri.file(path);
+    return pathAsUri.pathSegments.last;
+  }
 
   Map<String, Object> toJson() {
     return {
@@ -41,6 +60,27 @@ class CodeReference {
   String toString() {
     var pathAsUri = Uri.file(path);
     return '${function ?? 'unknown'} ($pathAsUri:$line:$column)';
+  }
+
+  static String _computeEnclosingName(AstNode node) {
+    List<String> parts = [];
+    while (node != null) {
+      var nodeName = _computeNodeDeclarationName(node);
+      if (nodeName != null) {
+        parts.add(nodeName);
+      }
+      node = node.parent;
+    }
+    if (parts.isEmpty) return null;
+    return parts.reversed.join('.');
+  }
+
+  static String _computeNodeDeclarationName(AstNode node) {
+    if (node is Declaration) {
+      return node.declaredElement?.name;
+    } else {
+      return null;
+    }
   }
 }
 
@@ -70,6 +110,20 @@ abstract class DecoratedTypeInfo {
   /// If [type] is an interface type, looks up information about the set of
   /// nullability nodes decorating one of the type's type arguments.
   DecoratedTypeInfo typeArgument(int i);
+}
+
+/// Information about a propagation stup that occurred during downstream
+/// propagation.
+abstract class DownstreamPropagationStepInfo implements PropagationStepInfo {
+  DownstreamPropagationStepInfo get principalCause;
+
+  /// The node whose nullability was changed.
+  ///
+  /// Any propagation step that took effect should have a non-null value here.
+  /// Propagation steps that are pending but have not taken effect yet, or that
+  /// never had an effect (e.g. because an edge was not triggered) will have a
+  /// `null` value for this field.
+  NullabilityNodeInfo get targetNode;
 }
 
 /// Information exposed to the migration client about an edge in the nullability
@@ -284,6 +338,10 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// List of compound nodes wrapping this node.
   final List<NullabilityNodeInfo> outerCompoundNodes = <NullabilityNodeInfo>[];
 
+  /// Source code location corresponding to this nullability node, or `null` if
+  /// not known.
+  CodeReference get codeReference;
+
   /// Some nodes get nullability from downstream, so the downstream edges are
   /// available to query as well.
   Iterable<EdgeInfo> get downstreamEdges;
@@ -304,13 +362,13 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// The edges that caused this node to have the nullability that it has.
   Iterable<EdgeInfo> get upstreamEdges;
 
-  PropagationStepInfo get whyNullable;
+  /// If [isNullable] is true, the propagation step that caused this node to
+  /// become nullable.
+  DownstreamPropagationStepInfo get whyNullable;
 }
 
 abstract class PropagationStepInfo {
   CodeReference get codeReference;
-
-  PropagationStepInfo get principalCause;
 }
 
 /// Information exposed to the migration client about a node in the nullability

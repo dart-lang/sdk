@@ -1,0 +1,2 @@
+# Point to .packages => Standard layout; redirect to .dart_tool/package_config.json
+--packages=.packages

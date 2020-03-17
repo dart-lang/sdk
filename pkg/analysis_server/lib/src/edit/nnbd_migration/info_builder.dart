@@ -514,27 +514,18 @@ class InfoBuilder {
     }).toList();
   }
 
-  TraceEntryInfo _computeTraceEntry(PropagationStepInfo step) {
-    var codeReference = step.codeReference;
-    var length = 1; // TODO(paulberry): figure out the correct value.
-    var description = step.toString(); // TODO(paulberry): improve this message.
-    return TraceEntryInfo(
-        description,
-        codeReference?.function,
-        codeReference == null
-            ? null
-            : NavigationTarget(codeReference.path, codeReference.column,
-                codeReference.line, length));
-  }
-
   TraceInfo _computeTraceInfo(NullabilityNodeInfo node) {
     List<TraceEntryInfo> entries = [];
     var step = node.whyNullable;
+    assert(identical(step.targetNode, node));
     while (step != null) {
-      entries.add(_computeTraceEntry(step));
+      entries.add(_nodeToTraceEntry(step.targetNode));
+      if (step.codeReference != null) {
+        entries.add(_stepToTraceEntry(step));
+      }
       step = step.principalCause;
     }
-    var description = node.toString(); // TODO(paulberry): improve this message.
+    var description = 'Nullability reason';
     return TraceInfo(description, entries);
   }
 
@@ -728,6 +719,23 @@ class InfoBuilder {
     return resourceProvider.pathContext.split(filePath).contains('test');
   }
 
+  TraceEntryInfo _makeTraceEntry(
+      String description, CodeReference codeReference) {
+    var length = 1; // TODO(paulberry): figure out the correct value.
+    return TraceEntryInfo(
+        description,
+        codeReference?.function,
+        codeReference == null
+            ? null
+            : NavigationTarget(codeReference.path, codeReference.column,
+                codeReference.line, length));
+  }
+
+  TraceEntryInfo _nodeToTraceEntry(NullabilityNodeInfo node) {
+    var description = node.toString(); // TODO(paulberry): improve this message
+    return _makeTraceEntry(description, node.codeReference);
+  }
+
   /// Return the navigation target corresponding to the given [node] in the file
   /// with the given [filePath].
   ///
@@ -762,6 +770,11 @@ class InfoBuilder {
     } else {
       return _targetForNode(filePath, node, unit);
     }
+  }
+
+  TraceEntryInfo _stepToTraceEntry(PropagationStepInfo step) {
+    var description = step.toString(); // TODO(paulberry): improve this message.
+    return _makeTraceEntry(description, step.codeReference);
   }
 
   /// Return the navigation target in the file with the given [filePath] at the

@@ -209,7 +209,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   String namedGroup(String name) {
-    var groups = JS('Object', '#.groups', _match);
+    var groups = JS('Object|Null', '#.groups', _match);
     if (groups != null) {
       var result = JS('String|Null', '#[#]', groups, name);
       if (result != null || JS('bool', '# in #', name, groups)) {
@@ -220,7 +220,7 @@ class _MatchImplementation implements RegExpMatch {
   }
 
   Iterable<String> get groupNames {
-    var groups = JS('Object', '#.groups', _match);
+    var groups = JS('Object|Null', '#.groups', _match);
     if (groups != null) {
       var keys = new JSArray<String>.markGrowable(
           JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', groups));

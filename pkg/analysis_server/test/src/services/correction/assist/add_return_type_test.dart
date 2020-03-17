@@ -11,12 +11,12 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddTypeAnnotationTest);
+    defineReflectiveTests(AddReturnTypeTest);
   });
 }
 
 @reflectiveTest
-class AddTypeAnnotationTest extends AssistProcessorTest {
+class AddReturnTypeTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ADD_RETURN_TYPE;
 
@@ -76,7 +76,13 @@ class A {
   }
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+class A {
+  dynamic m(p) {
+    return p;
+  }
+}
+''');
   }
 
   Future<void> test_method_block_returnNoValue() async {
@@ -126,6 +132,50 @@ class A {
 ''');
   }
 
+  Future<void> test_method_getter() async {
+    await resolveTestUnit('''
+class A {
+  get /*caret*/foo => 0;
+}
+''');
+    await assertHasAssist('''
+class A {
+  int get foo => 0;
+}
+''');
+  }
+
+  Future<void> test_method_setter() async {
+    await resolveTestUnit('''
+class A {
+  set /*caret*/foo(int a) {
+    if (a == 0) return;
+  }
+}
+''');
+    await assertHasAssist('''
+class A {
+  void set foo(int a) {
+    if (a == 0) return;
+  }
+}
+''');
+  }
+
+  Future<void> test_method_setter_lint_avoidReturnTypesOnSetters() async {
+    createAnalysisOptionsFile(lints: [
+      LintNames.avoid_return_types_on_setters,
+    ]);
+    await resolveTestUnit('''
+class A {
+  set /*caret*/foo(int a) {
+    if (a == 0) return;
+  }
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_topLevelFunction_block() async {
     await resolveTestUnit('''
 /*caret*/f() {
@@ -153,6 +203,41 @@ String f() => '';
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 /*caret*/f() => '';
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_topLevelFunction_getter() async {
+    await resolveTestUnit('''
+get /*caret*/foo => 0;
+''');
+    await assertHasAssist('''
+int get foo => 0;
+''');
+  }
+
+  Future<void> test_topLevelFunction_setter() async {
+    await resolveTestUnit('''
+set /*caret*/foo(int a) {
+  if (a == 0) return;
+}
+''');
+    await assertHasAssist('''
+void set foo(int a) {
+  if (a == 0) return;
+}
+''');
+  }
+
+  Future<void>
+      test_topLevelFunction_setter_lint_avoidReturnTypesOnSetters() async {
+    createAnalysisOptionsFile(lints: [
+      LintNames.avoid_return_types_on_setters,
+    ]);
+    await resolveTestUnit('''
+set /*caret*/foo(int a) {
+  if (a == 0) return;
+}
 ''');
     await assertNoAssist();
   }

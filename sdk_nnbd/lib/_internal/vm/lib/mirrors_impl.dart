@@ -145,7 +145,7 @@ class _IsolateMirror extends Mirror implements IsolateMirror {
     return result;
   }
 
-  static LibraryMirror _loadUri(String uri) native "IsolateMirror_loadUri";
+  static LibraryMirror? _loadUri(String uri) native "IsolateMirror_loadUri";
 }
 
 class _SyntheticAccessor implements MethodMirror {
@@ -443,7 +443,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   _ClassMirror? _trueSuperclassField;
   _ClassMirror? get _trueSuperclass {
     if (_trueSuperclassField == null) {
-      Type supertype = isOriginalDeclaration
+      Type? supertype = isOriginalDeclaration
           ? _supertype(_reflectedType)
           : _supertypeInstantiated(_reflectedType);
       if (supertype == null) {
@@ -497,7 +497,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     var m = _mixin;
     if (m != null) return m;
 
-    Type mixinType = _nativeMixinInstantiated(_reflectedType, _instantiator);
+    Type? mixinType = _nativeMixinInstantiated(_reflectedType, _instantiator);
     if (mixinType == null) {
       // The reflectee is not a mixin application.
       return _mixin = this;
@@ -714,9 +714,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
 
   static String _libraryUri(reflectee) native "ClassMirror_libraryUri";
 
-  static Type _supertype(reflectedType) native "ClassMirror_supertype";
+  static Type? _supertype(reflectedType) native "ClassMirror_supertype";
 
-  static Type _supertypeInstantiated(reflectedType)
+  static Type? _supertypeInstantiated(reflectedType)
       native "ClassMirror_supertype_instantiated";
 
   static List<dynamic> _nativeInterfaces(reflectedType)
@@ -725,9 +725,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   static List<dynamic> _nativeInterfacesInstantiated(reflectedType)
       native "ClassMirror_interfaces_instantiated";
 
-  static Type _nativeMixin(reflectedType) native "ClassMirror_mixin";
+  static Type? _nativeMixin(reflectedType) native "ClassMirror_mixin";
 
-  static Type _nativeMixinInstantiated(reflectedType, instantiator)
+  static Type? _nativeMixinInstantiated(reflectedType, instantiator)
       native "ClassMirror_mixin_instantiated";
 
   static List<dynamic> _computeMembers(owner, reflectee, instantiator)

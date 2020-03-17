@@ -97,6 +97,13 @@ main() {
 ''');
   }
 
+  Future<void> test_notInFunctionBody() async {
+    await resolveTestUnit(r'''
+var a = [for (var v = 0;;) 0];
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_withReferences() async {
     await resolveTestUnit(r'''
 main() {

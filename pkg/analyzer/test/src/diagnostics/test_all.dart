@@ -69,6 +69,8 @@ import 'default_value_in_redirecting_factory_constructor_test.dart'
 import 'default_value_on_required_parameter_test.dart'
     as default_value_on_required_parameter;
 import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
+import 'definitely_unassigned_late_local_variable_test.dart'
+    as definitely_unassigned_late_local_variable;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
 import 'deprecated_function_class_declaration_test.dart'
     as deprecated_function_class_declaration;
@@ -267,6 +269,7 @@ import 'mixin_application_not_implemented_interface_test.dart'
     as mixin_application_not_implemented_interface;
 import 'mixin_class_declares_constructor_test.dart'
     as mixin_class_declares_constructor;
+import 'mixin_declares_constructor_test.dart' as mixin_declares_constructor;
 import 'mixin_deferred_class_test.dart' as mixin_deferred_class;
 import 'mixin_inherits_from_not_object_test.dart'
     as mixin_inherits_from_not_object;
@@ -545,6 +548,7 @@ main() {
     default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();
     deferred_import_of_extension.main();
+    definitely_unassigned_late_local_variable.main();
     deprecated_extends_function.main();
     deprecated_function_class_declaration.main();
     deprecated_member_use.main();
@@ -678,6 +682,7 @@ main() {
     missing_return.main();
     mixin_application_not_implemented_interface.main();
     mixin_class_declares_constructor.main();
+    mixin_declares_constructor.main();
     mixin_deferred_class.main();
     mixin_inherits_from_not_object.main();
     mixin_of_disallowed_class.main();

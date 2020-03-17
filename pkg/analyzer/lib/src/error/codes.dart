@@ -1430,6 +1430,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "extensions.");
 
   /**
+   * It is a compile time error to read a local variable marked `late` when the
+   * variable is definitely unassigned. This includes all forms of reads,
+   * including implicit reads via the composite assignment operators as well
+   * as pre and post-fix operators.
+   *
+   * Parameters:
+   * 0: the name of the variable that is invalid
+   */
+  static const CompileTimeErrorCode DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE =
+      CompileTimeErrorCode('DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
+          "The late local variable '{0}' is definitely unassigned.",
+          correction:
+              "Ensure that it is assigned on necessary execution paths.");
+
+  /**
    * No parameters.
    */
   // #### Description

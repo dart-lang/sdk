@@ -2422,6 +2422,10 @@ abstract class IntegrationTestMixin {
   /// If the location does not have a support widget, an error of type
   /// FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET will be generated.
   ///
+  /// If a change to a file happens while widget descriptions are computed, an
+  /// error of type FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED will be
+  /// generated.
+  ///
   /// Parameters
   ///
   /// file: FilePath

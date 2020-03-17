@@ -286,7 +286,8 @@ class IsSubtypeOf {
       return const IsSubtypeOf.onlyIfIgnoringNullabilities();
     }
 
-    if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
+    if (isPotentiallyNullable(subtype, futureOrClass) &&
+        isPotentiallyNonNullable(supertype, futureOrClass)) {
       // It's a special case to test X% <: X%, FutureOr<X%> <: FutureOr<X%>,
       // FutureOr<FutureOr<X%>> <: FutureOr<FutureOr<X%>>, etc, where X is a
       // type parameter.  In that case, the nullabilities of the subtype and the

@@ -34,11 +34,20 @@ library;
 //   static U foo14 = null;
 //          ^
 //
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:23:10: Error: Type variables can't be used in static members.
+//   static U Function(U) foo15 = null;
+//          ^
+//
+// pkg/front_end/testcases/general/type_parameter_usage_in_static_method_in_class.dart:23:21: Error: Type variables can't be used in static members.
+//   static U Function(U) foo15 = null;
+//                     ^
+//
 import self as self;
 import "dart:core" as core;
 
 class Foo<U extends core::Object* = dynamic> extends core::Object {
   static field invalid-type foo14;
+  static field (invalid-type) →* invalid-type foo15;
   synthetic constructor •() → self::Foo<self::Foo::U*>*
     ;
   static method foo1() → dynamic

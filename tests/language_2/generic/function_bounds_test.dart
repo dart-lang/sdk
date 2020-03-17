@@ -68,29 +68,29 @@ void testSubtype() {
   Expect.equals((d as F<num>)(40), 42);
 
   // Check that casting to a generic function with more specific bounds fails
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (f as G<int>), "Generic functions are invariant");
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (d as G<int>), "Generic functions are invariant");
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (f as G<double>), "Generic functions are invariant");
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (d as G<double>), "Generic functions are invariant");
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (f as G<Null>), "Generic functions are invariant");
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (d as G<Null>), "Generic functions are invariant");
 
   // Check that casting to a generic function with a more general bound fails
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (f as G<Object>), "Generic functions are invariant");
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (d as G<Object>), "Generic functions are invariant");
 
   // Check that casting to a generic function with an unrelated bound fails
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (f as G<String>), "Generic functions are invariant");
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => (d as G<String>), "Generic functions are invariant");
 }
 

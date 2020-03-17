@@ -30,12 +30,17 @@ Future<void> main(List<String> args) async {
   ArgParser parser = createArgParser();
   ArgResults result = parser.parse(args);
 
-  if (validArguments(parser, result)) {
-    var code = await CompletionCoverageMetrics(result.rest[0])
-        .compute(corpus: result['corpus'], verbose: result['verbose']);
-    io.exit(code);
+  var stopwatch = Stopwatch()..start();
+  if (!validArguments(parser, result)) {
+    return io.exit(1);
   }
-  return io.exit(1);
+  var code = await CompletionMetricsComputer(result.rest[0])
+      .compute(corpus: result['corpus'], verbose: result['verbose']);
+  stopwatch.stop();
+
+  var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
+  print('\nMetrics computed in $duration');
+  return io.exit(code);
 }
 
 /// Create a parser that can be used to parse the command-line arguments.
@@ -94,7 +99,7 @@ bool validArguments(ArgParser parser, ArgResults result) {
 /// This is the main metrics computer class for code completions. After the
 /// object is constructed, [computeCompletionMetrics] is executed to do analysis
 /// and print a summary of the metrics gathered from the completion tests.
-class CompletionCoverageMetrics {
+class CompletionMetricsComputer {
   final String _rootPath;
 
   String _currentFilePath;
@@ -106,20 +111,9 @@ class CompletionCoverageMetrics {
   /// The int to be returned from the [compute] call.
   int resultCode;
 
-  var completionCounter = Counter('successful/ unsuccessful completions');
-  var completionMissedTokenCounter =
-      Counter('unsuccessful completion token counter');
-  var completionKindCounter = Counter('unsuccessful completion kind counter');
-  var completionElementKindCounter =
-      Counter('unsuccessful completion element kind counter');
-  var mRRComputer =
-      MeanReciprocalRankComputer('successful/ unsuccessful completions');
-  var typeMemberMRRComputer =
-      MeanReciprocalRankComputer('type member completions');
-  var nonTypeMemberMRRComputer =
-      MeanReciprocalRankComputer('non-type member completions');
+  CompletionMetrics metricsOldMode, metricsNewMode;
 
-  CompletionCoverageMetrics(this._rootPath);
+  CompletionMetricsComputer(this._rootPath);
 
   /// The path to the current file.
   String get currentFilePath => _currentFilePath;
@@ -130,6 +124,8 @@ class CompletionCoverageMetrics {
   Future<int> compute({bool corpus = false, bool verbose = false}) async {
     _verbose = verbose;
     resultCode = 0;
+    metricsOldMode = CompletionMetrics('useNewRelevance = false');
+    metricsNewMode = CompletionMetrics('useNewRelevance = true');
 
     var roots = _computeRootPaths(_rootPath, corpus);
     for (var root in roots) {
@@ -173,10 +169,30 @@ class CompletionCoverageMetrics {
               _resolvedUnitResult.unit.accept(visitor);
 
               for (var expectedCompletion in visitor.expectedCompletions) {
+                // As this point the completion suggestions are computed,
+                // and results are collected with varying settings for
+                // comparison:
+
+                // First we compute the completions useNewRelevance set to
+                // false:
+                var suggestions = await _computeCompletionSuggestions(
+                    _resolvedUnitResult,
+                    expectedCompletion.offset,
+                    declarationsTracker,
+                    false);
+
                 forEachExpectedCompletion(
-                    expectedCompletion,
-                    await _computeCompletionSuggestions(_resolvedUnitResult,
-                        expectedCompletion.offset, declarationsTracker));
+                    expectedCompletion, suggestions, metricsOldMode);
+
+                // And again here with useNewRelevance set to true:
+                suggestions = await _computeCompletionSuggestions(
+                    _resolvedUnitResult,
+                    expectedCompletion.offset,
+                    declarationsTracker,
+                    true);
+
+                forEachExpectedCompletion(
+                    expectedCompletion, suggestions, metricsNewMode);
               }
             } catch (e) {
               print('Exception caught analyzing: $filePath');
@@ -187,32 +203,33 @@ class CompletionCoverageMetrics {
         }
       }
     }
-    printAndClearComputers();
+    printAndClearComputers(metricsOldMode);
+    printAndClearComputers(metricsNewMode);
     return resultCode;
   }
 
   void forEachExpectedCompletion(ExpectedCompletion expectedCompletion,
-      List<CompletionSuggestion> suggestions) {
+      List<CompletionSuggestion> suggestions, CompletionMetrics metrics) {
     assert(suggestions != null);
 
     var place = placementInSuggestionList(suggestions, expectedCompletion);
 
-    mRRComputer.addRank(place.rank);
+    metrics.mRRComputer.addRank(place.rank);
 
     if (place.denominator != 0) {
-      completionCounter.count('successful');
+      metrics.completionCounter.count('successful');
 
       if (isTypeMember(expectedCompletion.syntacticEntity)) {
-        typeMemberMRRComputer.addRank(place.rank);
+        metrics.typeMemberMRRComputer.addRank(place.rank);
       } else {
-        nonTypeMemberMRRComputer.addRank(place.rank);
+        metrics.nonTypeMemberMRRComputer.addRank(place.rank);
       }
     } else {
-      completionCounter.count('unsuccessful');
+      metrics.completionCounter.count('unsuccessful');
 
-      completionMissedTokenCounter.count(expectedCompletion.completion);
-      completionKindCounter.count(expectedCompletion.kind.toString());
-      completionElementKindCounter
+      metrics.completionMissedTokenCounter.count(expectedCompletion.completion);
+      metrics.completionKindCounter.count(expectedCompletion.kind.toString());
+      metrics.completionElementKindCounter
           .count(expectedCompletion.elementKind.toString());
 
       if (_verbose) {
@@ -227,45 +244,51 @@ class CompletionCoverageMetrics {
     }
   }
 
-  void printAndClearComputers() {
-    print('');
-    completionMissedTokenCounter.printCounterValues();
+  void printAndClearComputers(CompletionMetrics metrics) {
+    print('\n\n');
+    print('====================');
+    print('Completion metrics for ${metrics.name}:');
+    if (_verbose) {
+      metrics.completionMissedTokenCounter.printCounterValues();
+      print('');
+
+      metrics.completionKindCounter.printCounterValues();
+      print('');
+
+      metrics.completionElementKindCounter.printCounterValues();
+      print('');
+    }
+
+    metrics.mRRComputer.printMean();
     print('');
 
-    completionKindCounter.printCounterValues();
+    metrics.typeMemberMRRComputer.printMean();
     print('');
 
-    completionElementKindCounter.printCounterValues();
-    print('');
-
-    mRRComputer.printMean();
-    print('');
-
-    typeMemberMRRComputer.printMean();
-    print('');
-
-    nonTypeMemberMRRComputer.printMean();
+    metrics.nonTypeMemberMRRComputer.printMean();
     print('');
 
     print('Summary for $_rootPath:');
-    completionCounter.printCounterValues();
+    metrics.completionCounter.printCounterValues();
+    print('====================');
 
-    completionMissedTokenCounter.clear();
-    completionKindCounter.clear();
-    completionElementKindCounter.clear();
-    completionCounter.clear();
-    mRRComputer.clear();
-    typeMemberMRRComputer.clear();
-    nonTypeMemberMRRComputer.clear();
+    metrics.completionMissedTokenCounter.clear();
+    metrics.completionKindCounter.clear();
+    metrics.completionElementKindCounter.clear();
+    metrics.completionCounter.clear();
+    metrics.mRRComputer.clear();
+    metrics.typeMemberMRRComputer.clear();
+    metrics.nonTypeMemberMRRComputer.clear();
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
       ResolvedUnitResult resolvedUnitResult, int offset,
-      [DeclarationsTracker declarationsTracker]) async {
+      [DeclarationsTracker declarationsTracker,
+      bool useNewRelevance = false]) async {
     var completionRequestImpl = CompletionRequestImpl(
       resolvedUnitResult,
       offset,
-      false,
+      useNewRelevance,
       CompletionPerformance(),
     );
 
@@ -337,4 +360,25 @@ class CompletionCoverageMetrics {
     }
     return roots;
   }
+}
+
+/// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
+/// objects for a run of [CompletionMetricsComputer].
+class CompletionMetrics {
+  final String name;
+
+  CompletionMetrics(this.name);
+
+  var completionCounter = Counter('successful/ unsuccessful completions');
+  var completionMissedTokenCounter =
+      Counter('unsuccessful completion token counter');
+  var completionKindCounter = Counter('unsuccessful completion kind counter');
+  var completionElementKindCounter =
+      Counter('unsuccessful completion element kind counter');
+  var mRRComputer =
+      MeanReciprocalRankComputer('successful/ unsuccessful completions');
+  var typeMemberMRRComputer =
+      MeanReciprocalRankComputer('type member completions');
+  var nonTypeMemberMRRComputer =
+      MeanReciprocalRankComputer('non-type member completions');
 }

@@ -5,6 +5,7 @@
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +19,7 @@ main() {
 class NullabilityNodeTest {
   final graph = NullabilityGraphForTesting();
 
+  /// A list of all edges that couldn't be satisfied.  May contain duplicates.
   List<NullabilityEdge> unsatisfiedEdges;
 
   List<NullabilityNodeForSubstitution> unsatisfiedSubstitutions;
@@ -27,7 +29,7 @@ class NullabilityNodeTest {
   NullabilityNode get never => graph.never;
 
   void assertUnsatisfied(List<NullabilityEdge> expectedUnsatisfiedEdges) {
-    expect(unsatisfiedEdges, unorderedEquals(expectedUnsatisfiedEdges));
+    expect(unsatisfiedEdges.toSet(), expectedUnsatisfiedEdges.toSet());
   }
 
   NullabilityEdge connect(NullabilityNode source, NullabilityNode destination,
@@ -42,8 +44,8 @@ class NullabilityNodeTest {
     return NullabilityNode.forLUB(left, right);
   }
 
-  NullabilityNode newNode(int offset) =>
-      NullabilityNode.forTypeAnnotation(offset);
+  NullabilityNode newNode(int id) =>
+      NullabilityNode.forTypeAnnotation(NullabilityNodeTarget.text('node $id'));
 
   void propagate() {
     var propagationResult = graph.propagate(null);
@@ -177,6 +179,32 @@ class NullabilityNodeTest {
     // takes precedence over ordinary nullability propagation.
     expect(n3.isNullable, false);
     assertUnsatisfied([edge_1_never, edge_1_3]);
+  }
+
+  void test_propagation_downstream_breadth_first() {
+    // always -> 1 -> 2
+    //           1 -> 3 -> 4
+    // always -> 5 -> 4
+    //           5 -> 6 -> 2
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    var n4 = newNode(4);
+    var n5 = newNode(5);
+    var n6 = newNode(6);
+    connect(always, n1);
+    connect(n1, n2);
+    connect(n1, n3);
+    connect(n3, n4);
+    connect(always, n5);
+    connect(n5, n4);
+    connect(n5, n6);
+    connect(n6, n2);
+    propagate();
+    // Node 2 should be caused by node 1, since that's the shortest path back to
+    // "always".  Similarly, node 4 should be caused by node 5.
+    expect(_downstreamCauseNode(n2), same(n1));
+    expect(_downstreamCauseNode(n4), same(n5));
   }
 
   void test_propagation_downstream_guarded_multiple_guards_all_satisfied() {
@@ -545,6 +573,32 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge_1_2]);
   }
 
+  void test_propagation_upstream_breadth_first() {
+    // never <- 1 <- 2
+    //          1 <- 3 <- 4
+    // never <- 5 <- 4
+    //          5 <- 6 <- 2
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    var n4 = newNode(4);
+    var n5 = newNode(5);
+    var n6 = newNode(6);
+    connect(n1, never, hard: true);
+    connect(n2, n1, hard: true);
+    connect(n3, n1, hard: true);
+    connect(n4, n3, hard: true);
+    connect(n5, never, hard: true);
+    connect(n4, n5, hard: true);
+    connect(n6, n5, hard: true);
+    connect(n2, n6, hard: true);
+    propagate();
+    // Node 2 should be caused by node 1, since that's the shortest path back to
+    // "always".  Similarly, node 4 should be caused by node 5.
+    expect(_upstreamCauseNode(n2), same(n1));
+    expect(_upstreamCauseNode(n4), same(n5));
+  }
+
   void test_propagation_upstream_through_union() {
     // always -> 1
     // always -> 2
@@ -669,6 +723,12 @@ class NullabilityNodeTest {
   void union(NullabilityNode x, NullabilityNode y) {
     graph.union(x, y, _TestEdgeOrigin());
   }
+
+  NullabilityNode _downstreamCauseNode(NullabilityNode node) =>
+      (node.whyNullable as SimpleDownstreamPropagationStep).edge.sourceNode;
+
+  NullabilityNode _upstreamCauseNode(NullabilityNode node) =>
+      node.whyNotNullable.principalCause.node;
 }
 
 class _TestEdgeOrigin implements EdgeOrigin {

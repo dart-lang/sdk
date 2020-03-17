@@ -177,7 +177,6 @@ mixin ClientCapabilitiesHelperMixin {
       'references': {'dynamicRegistration': true},
       'documentHighlight': {'dynamicRegistration': true},
       'documentSymbol': {'dynamicRegistration': true},
-      'synchronization': {'dynamicRegistration': true},
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
       'declaration': {'dynamicRegistration': true},

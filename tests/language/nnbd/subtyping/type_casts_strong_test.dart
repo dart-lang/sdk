@@ -16,7 +16,7 @@ doTests() {
   ac.asT(new C());
   ac.asT(new D());
   ac.asT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     ac.asT(new Y());
   });
 
@@ -25,10 +25,10 @@ doTests() {
   abc.asT(new B<C>());
   abc.asT(new B<D>());
   abc.asT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     abc.asT(new B<dynamic>());
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     abc.asT(new B<Y>());
   });
 
@@ -37,7 +37,7 @@ doTests() {
   ay.asT(new Y());
   ay.asT(new Z());
   ay.asT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     ay.asT(new C());
   });
 
@@ -46,7 +46,7 @@ doTests() {
   wc.asT(new C());
   wc.asT(new D());
   wc.asT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wc.asT(new Y());
   });
 
@@ -54,7 +54,7 @@ doTests() {
   wc.asNullableT(new C());
   wc.asNullableT(new D());
   wc.asNullableT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wc.asNullableT(new Y());
   });
 
@@ -63,10 +63,10 @@ doTests() {
   wby.asT(new B<C>());
   wby.asT(new B<D>());
   wby.asT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wby.asT(new B<dynamic>());
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wby.asT(new B<Y>());
   });
 
@@ -74,10 +74,10 @@ doTests() {
   wby.asNullableT(new B<C>());
   wby.asNullableT(new B<D>());
   wby.asNullableT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wby.asNullableT(new B<dynamic>());
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wby.asNullableT(new B<Y>());
   });
 
@@ -85,10 +85,10 @@ doTests() {
   final wy = new W<Y>();
   wy.asT(new Y());
   wy.asT(new Z());
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asT(null);
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asT(new C());
   });
 
@@ -96,7 +96,7 @@ doTests() {
   wy.asNullableT(new Y());
   wy.asNullableT(new Z());
   wy.asNullableT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asNullableT(new C());
   });
 
@@ -104,10 +104,10 @@ doTests() {
   ay.asBT(new B<Y>());
   ay.asBT(new B<Z>());
   ay.asBT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     ay.asBT(new B<dynamic>());
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     ay.asBT(new B<C>());
   });
 
@@ -115,13 +115,13 @@ doTests() {
   wy.asXT(new X<Y>());
   wy.asXT(new X<Z>());
   wy.asXT(newXOfLegacyY());
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asXT(null);
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asXT(new X<dynamic>());
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asXT(new X<Y?>());
   });
 
@@ -130,10 +130,10 @@ doTests() {
   wy.asNullableXT(new X<Z>());
   wy.asNullableXT(newXOfLegacyY());
   wy.asNullableXT(null);
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asNullableXT(new X<dynamic>());
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asNullableXT(new X<Y?>());
   });
 
@@ -142,10 +142,10 @@ doTests() {
   wy.asXNullableT(new X<Z>());
   wy.asXNullableT(new X<Y?>());
   wy.asXNullableT(newXOfLegacyY());
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asXNullableT(null);
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wy.asXNullableT(new X<dynamic>());
   });
 
@@ -155,10 +155,10 @@ doTests() {
   wny.asXT(new X<Z>());
   wny.asXT(new X<Y?>());
   wny.asXT(newXOfLegacyY());
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wny.asXT(null);
   });
-  Expect.throwsCastError(() {
+  Expect.throwsTypeError(() {
     wny.asXT(new X<dynamic>());
   });
 }

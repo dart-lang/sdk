@@ -140,8 +140,10 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
     // Normalize raw FutureOr --> dynamic
     if (JS<bool>('!', '# == void 0', typeArg)) return _dynamic;
 
-    // FutureOr<dynamic|void|Object?|Object*> --> dynamic|void|Object?|Object*
+    // FutureOr<dynamic|void|Object?|Object*|Object> -->
+    //   dynamic|void|Object?|Object*|Object
     if (_isTop(typeArg) ||
+        _equalType(typeArg, Object) ||
         (_jsInstanceOf(typeArg, LegacyType) &&
             JS<bool>('!', '#.type === #', typeArg, Object))) {
       return typeArg;

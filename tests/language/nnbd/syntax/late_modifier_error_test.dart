@@ -10,12 +10,12 @@ late //# 01: syntax error
 int f1(
   late //# 02: compile-time error
   int x
-) {}
+) => throw 0;
 
 late //# 03: syntax error
 class C1 {
   late //# 04: syntax error
-  int m() {}
+  int m() => throw 0;
 }
 
 main() {

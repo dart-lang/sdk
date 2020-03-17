@@ -695,6 +695,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _dfeErrorExitCode = 252;
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
+  static const _adbInfraFailureCodes = [10];
 
   VMCommandOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time, int pid)
@@ -751,8 +752,20 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
     if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
     if (exitCode != 0) {
-      // This is a general fail, in case we get an unknown nonzero exitcode.
-      return Expectation.fail;
+      var ourExit = 5;
+      // Unknown nonzero exit code from vm command.
+      // Consider this a failure of testing, and exit the test script.
+      if (testCase.configuration.system == System.android &&
+          _adbInfraFailureCodes.contains(exitCode)) {
+        print('Android device failed to run test');
+        ourExit = 3;
+      } else {
+        print('Unexpected exit code $exitCode');
+      }
+      print(command);
+      print(decodeUtf8(stdout));
+      print(decodeUtf8(stderr));
+      io.exit(ourExit);
     }
     var testOutput = decodeUtf8(stdout);
     if (_isAsyncTest(testOutput) && !_isAsyncTestSuccessful(testOutput)) {

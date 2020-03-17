@@ -43,6 +43,8 @@ abstract class CorrectionProducer {
   /// producer doesn't support fixes.
   FixKind get fixKind => null;
 
+  Flutter get flutter => _context.flutter;
+
   AstNode get node => _context.node;
 
   ResolvedUnitResult get resolvedResult => _context.resolvedResult;
@@ -66,6 +68,11 @@ abstract class CorrectionProducer {
   /// Return the text of the given [range] in the unit.
   String getRangeText(SourceRange range) {
     return utils.getRangeText(range);
+  }
+
+  /// Return `true` the lint with the given [name] is enabled.
+  bool isLintEnabled(String name) {
+    return _context.isLintEnabled(name);
   }
 
   /// Return `true` if the selection covers an operator of the given
@@ -125,6 +132,12 @@ class CorrectionProducerContext {
         utils = CorrectionUtils(resolvedResult);
 
   AstNode get node => _node;
+
+  /// Return `true` the lint with the given [name] is enabled.
+  bool isLintEnabled(String name) {
+    var analysisOptions = session.analysisContext.analysisOptions;
+    return analysisOptions.isLintEnabled(name);
+  }
 
   bool setupCompute() {
     final locator = NodeLocator(selectionOffset, selectionEnd);

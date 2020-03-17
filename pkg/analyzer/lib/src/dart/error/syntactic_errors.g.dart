@@ -108,6 +108,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _INVALID_USE_OF_COVARIANT_IN_EXTENSION,
   _TYPE_PARAMETER_ON_CONSTRUCTOR,
   _VOID_WITH_TYPE_ARGUMENTS,
+  _FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -327,6 +328,12 @@ const ParserErrorCode _FINAL_AND_COVARIANT = ParserErrorCode(
     'FINAL_AND_COVARIANT',
     r"Members can't be declared to be both 'final' and 'covariant'.",
     correction: "Try removing either the 'final' or 'covariant' keyword.");
+
+const ParserErrorCode _FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER = ParserErrorCode(
+    'FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER',
+    r"Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'.",
+    correction:
+        "Try removing either the 'final' or 'covariant' keyword, or removing the initializer.");
 
 const ParserErrorCode _FINAL_AND_VAR = ParserErrorCode(
     'FINAL_AND_VAR', r"Members can't be declared to be both 'final' and 'var'.",

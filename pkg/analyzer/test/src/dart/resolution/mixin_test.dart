@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -306,38 +305,6 @@ mixin M {
   final int f = 0;
 }
 ''');
-  }
-
-  test_error_finalNotInitializedConstructor() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  final int f;
-  M();
-}
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
-    ]);
-  }
-
-  test_error_finalNotInitializedConstructor_OK() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  final int f;
-  M(this.f);
-}
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
-    ]);
-
-    var element = findElement.mixin('M');
-    var constructorElement = element.constructors.single;
-
-    var fpNode = findNode.fieldFormalParameter('f);');
-    assertElement(fpNode.identifier, constructorElement.parameters[0]);
-
-    FieldFormalParameterElement fpElement = fpNode.declaredElement;
-    expect(fpElement.field, same(findElement.field('f')));
   }
 
   test_error_implementsClause_deferredClass() async {
@@ -818,37 +785,6 @@ class X = C with M;
       error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
           71, 1),
     ]);
-  }
-
-  test_error_mixinDeclaresConstructor() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  M(int a) {
-    a; // read
-  }
-}
-''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-    ]);
-
-    // Even though it is an error for a mixin to declare a constructor,
-    // we still build elements for constructors, and resolve them.
-
-    var element = findElement.mixin('M');
-    var constructors = element.constructors;
-    expect(constructors, hasLength(1));
-    var constructorElement = constructors[0];
-
-    var constructorNode = findNode.constructor('M(int a)');
-    assertElement(constructorNode, constructorElement);
-
-    var aElement = constructorElement.parameters[0];
-    var aNode = constructorNode.parameters.parameters[0];
-    assertElement(aNode, aElement);
-
-    var aRef = findNode.simple('a; // read');
-    assertElement(aRef, aElement);
-    assertType(aRef, 'int');
   }
 
   test_error_mixinInstantiate_default() async {

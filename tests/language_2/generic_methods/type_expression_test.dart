@@ -45,9 +45,9 @@ main() {
   Expect.isFalse(f4<int>(<int>[42]));
   Expect.isTrue(f4<String>(<int>[42])); // `is! List<dynamic>` is true.
   Expect.equals(f5<String>(s), s); // `s as String == s`
-  Expect.throwsCastError(() => f5<int>(s)); // `s as int == s`
+  Expect.throwsTypeError(() => f5<int>(s)); // `s as int == s`
   Expect.equals(f6<String>(ss), ss);
-  Expect.throwsCastError(() => f6<int>(ss)); // `as List<int>` fails.
+  Expect.throwsTypeError(() => f6<int>(ss)); // `as List<int>` fails.
   Expect.equals(f7<int>(), int);
 
   // Returns `List<int>`.

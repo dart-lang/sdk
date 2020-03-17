@@ -72,6 +72,16 @@ f() {
       error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
     ]);
   }
+
+  test_mixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  final int x;
+}
+''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 22, 1),
+    ]);
+  }
 }
 
 @reflectiveTest

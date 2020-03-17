@@ -55,45 +55,64 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
 }
 
 /// Returns [type] in which all promoted type variables have been replace with
-/// their unpromoted equivalents, and, if [library] is non-nullable by default,
-/// replaces all legacy types with their non-nullable equivalents.
+/// their unpromoted equivalents, and where all nullabilities have been
+/// normalized to the default nullability of [library].
+///
+/// If [library] is non-nullable by default all legacy types have been replaced
+/// with non-nullable types. Otherwise all non-legacy types have been replaced
+/// with legacy types.
 DartType demoteTypeInLibrary(DartType type, Library library) {
   if (library.isNonNullableByDefault) {
-    return type.accept(const _DemotionNonNullification()) ?? type;
+    return type.accept(const _DemotionNullabilityNormalization(
+            demoteTypeVariables: true, forNonNullableByDefault: true)) ??
+        type;
   } else {
-    return type
-            .accept(const _DemotionNonNullification(nonNullifyTypes: false)) ??
+    return type.accept(const _DemotionNullabilityNormalization(
+            demoteTypeVariables: true, forNonNullableByDefault: false)) ??
         type;
   }
 }
 
-/// Returns [type] in which all legacy types have been replaced with
-/// non-nullable types.
-DartType nonNullifyInLibrary(DartType type, Library library) {
+/// Returns [type] normalized to the default nullability of [library].
+///
+/// If [library] is non-nullable by default all legacy types have been replaced
+/// with non-nullable types. Otherwise all non-legacy types have been replaced
+/// with legacy types.
+DartType normalizeNullabilityInLibrary(DartType type, Library library) {
   if (library.isNonNullableByDefault) {
-    return type.accept(
-            const _DemotionNonNullification(demoteTypeVariables: false)) ??
+    return type.accept(const _DemotionNullabilityNormalization(
+            demoteTypeVariables: false, forNonNullableByDefault: true)) ??
+        type;
+  } else {
+    return type.accept(const _DemotionNullabilityNormalization(
+            demoteTypeVariables: false, forNonNullableByDefault: false)) ??
         type;
   }
-  return type;
 }
 
 /// Visitor that replaces all promoted type variables the type variable itself
-/// and/or replaces all legacy types with non-nullable types.
+/// and normalizes the type nullabilities.
 ///
 /// The visitor returns `null` if the type wasn't changed.
-class _DemotionNonNullification extends ReplacementVisitor {
+class _DemotionNullabilityNormalization extends ReplacementVisitor {
   final bool demoteTypeVariables;
-  final bool nonNullifyTypes;
+  final bool forNonNullableByDefault;
 
-  const _DemotionNonNullification(
-      {this.demoteTypeVariables: true, this.nonNullifyTypes: true})
-      : assert(demoteTypeVariables || nonNullifyTypes);
+  const _DemotionNullabilityNormalization(
+      {this.demoteTypeVariables, this.forNonNullableByDefault})
+      : assert(demoteTypeVariables != null),
+        assert(forNonNullableByDefault != null);
 
   @override
   Nullability visitNullability(DartType node) {
-    if (nonNullifyTypes && node.nullability == Nullability.legacy) {
-      return Nullability.nonNullable;
+    if (forNonNullableByDefault) {
+      if (node.nullability == Nullability.legacy) {
+        return Nullability.nonNullable;
+      }
+    } else {
+      if (node.nullability != Nullability.legacy) {
+        return Nullability.legacy;
+      }
     }
     return null;
   }

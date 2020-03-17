@@ -7,6 +7,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 
 /// A [RequestHandler] that handles requests in the `flutter` domain.
 class FlutterDomainHandler extends AbstractRequestHandler {
@@ -31,10 +32,24 @@ class FlutterDomainHandler extends AbstractRequestHandler {
 
     var computer = server.flutterWidgetDescriptions;
 
-    var result = await computer.getDescription(
-      resolvedUnit,
-      offset,
-    );
+    FlutterGetWidgetDescriptionResult result;
+    try {
+      result = await computer.getDescription(
+        resolvedUnit,
+        offset,
+      );
+    } on InconsistentAnalysisException {
+      server.sendResponse(
+        Response(
+          request.id,
+          error: RequestError(
+            RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED,
+            'Concurrent modification detected.',
+          ),
+        ),
+      );
+      return;
+    }
 
     if (result == null) {
       server.sendResponse(

@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:meta/meta.dart';
+// ignore: deprecated_member_use
 import 'package:package_config/packages_file.dart' as dot_packages;
 import 'package:pub_semver/pub_semver.dart';
 

@@ -1474,6 +1474,12 @@ class AstBuilder extends StackListener {
       TypeAnnotation returnType = pop();
       List<Annotation> metadata = pop();
       Comment comment = _findComment(metadata, typedefKeyword);
+
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41023
+      if (parameters == null) {
+        throw StateError('FunctionTypeAlias without parameters.');
+      }
+
       declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
           returnType, name, typeParameters, parameters, semicolon));
     } else {

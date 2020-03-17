@@ -10,7 +10,7 @@ required //# 01: syntax error
 int f1(
   required //# 02: syntax error
   int x
-) {}
+) => throw 0;
 
 required //# 03: syntax error
 class C1 {

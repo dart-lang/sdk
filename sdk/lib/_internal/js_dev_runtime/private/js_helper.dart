@@ -705,7 +705,7 @@ class JSName {
 abstract class JavaScriptIndexingBehavior<E> {}
 
 /// Thrown by type assertions that fail.
-class TypeErrorImpl extends Error implements TypeError {
+class TypeErrorImpl extends Error implements TypeError, CastError {
   final String _message;
 
   TypeErrorImpl(this._message);
@@ -714,7 +714,7 @@ class TypeErrorImpl extends Error implements TypeError {
 }
 
 /// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImpl extends Error implements CastError {
+class CastErrorImpl extends Error implements CastError, TypeError {
   final String _message;
 
   CastErrorImpl(this._message);

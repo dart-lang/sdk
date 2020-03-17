@@ -960,13 +960,58 @@ class C {
 
   test_class_fields_late() async {
     featureSet = enableNnbd;
-    var library = await checkLibrary('class C { int i; late int j; }');
-    checkElementText(library, r'''
+    var library = await checkLibrary('''
 class C {
-  int i;
-  late int j;
+  late int foo;
 }
 ''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  late int foo;
+  synthetic int get foo {}
+  synthetic void set foo(int _foo) {}
+}
+''',
+        withSyntheticAccessors: true);
+  }
+
+  test_class_fields_late_final() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class C {
+  late final int foo;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  late final int foo;
+  synthetic int get foo {}
+  synthetic void set foo(int _foo) {}
+}
+''',
+        withSyntheticAccessors: true);
+  }
+
+  test_class_fields_late_final_initialized() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class C {
+  late final int foo = 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  late final int foo;
+  synthetic int get foo {}
+}
+''',
+        withSyntheticAccessors: true);
   }
 
   test_class_getter_abstract() async {
@@ -11240,14 +11285,6 @@ final int x;
 ''');
   }
 
-  test_variable_final_late() async {
-    featureSet = enableNnbd;
-    var library = await checkLibrary('late final int x = 0;');
-    checkElementText(library, r'''
-late final int x;
-''');
-  }
-
   test_variable_getterInLib_setterInPart() async {
     addSource('/a.dart', '''
 part of my.lib;
@@ -11373,9 +11410,39 @@ int v;
   test_variable_late() async {
     featureSet = enableNnbd;
     var library = await checkLibrary('late int x = 0;');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 late int x;
-''');
+synthetic int get x {}
+synthetic void set x(int _x) {}
+''',
+        withSyntheticAccessors: true);
+  }
+
+  test_variable_late_final() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('late final int x;');
+    checkElementText(
+        library,
+        r'''
+late final int x;
+synthetic int get x {}
+synthetic void set x(int _x) {}
+''',
+        withSyntheticAccessors: true);
+  }
+
+  test_variable_late_final_initialized() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('late final int x = 0;');
+    checkElementText(
+        library,
+        r'''
+late final int x;
+synthetic int get x {}
+''',
+        withSyntheticAccessors: true);
   }
 
   test_variable_propagatedType_const_noDep() async {

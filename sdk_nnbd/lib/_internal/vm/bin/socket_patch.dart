@@ -1016,7 +1016,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               isInternal ||
               isInternalSignal);
           if (resourceInformation != null) {
-            _SocketResourceInfo.SocketClosed(resourceInformation!);
+            _SocketResourceInfo.SocketClosed(resourceInformation);
           }
           isClosed = true;
           closeCompleter.complete();

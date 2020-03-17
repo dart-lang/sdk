@@ -41,11 +41,7 @@ class ConstructorFieldsVerifier {
     _initFieldsMap(node.declaredElement);
   }
 
-  void enterMixin(MixinDeclaration node) {
-    _initFieldsMap(node.declaredElement);
-  }
-
-  void leaveClassOrMixin() {
+  void leaveClass() {
     _isInNativeClass = false;
     _initialFieldMap = null;
   }
@@ -57,6 +53,10 @@ class ConstructorFieldsVerifier {
     if (node.factoryKeyword != null ||
         node.redirectedConstructor != null ||
         node.externalKeyword != null) {
+      return;
+    }
+
+    if (node.parent is! ClassDeclaration) {
       return;
     }
 

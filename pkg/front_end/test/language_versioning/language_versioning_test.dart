@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, Platform;
+import 'dart:io' show Directory, File, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter, runTests;
@@ -43,8 +43,24 @@ class TestConfigWithLanguageVersion extends TestConfig {
       : super(marker, name);
 
   @override
-  void customizeCompilerOptions(CompilerOptions options) {
+  void customizeCompilerOptions(CompilerOptions options, TestData testData) {
     options.currentSdkVersion = "2.8";
+
+    File f = new File.fromUri(testData.testFileUri.resolve("test.options"));
+    if (f.existsSync()) {
+      List<String> lines = f.readAsStringSync().split("\n");
+      for (String line in lines) {
+        const String packages = "--packages=";
+        if (line == "" || line.startsWith("#")) continue;
+        if (line.startsWith(packages)) {
+          String value = line.substring(packages.length);
+          options.packagesFileUri = testData.entryPoint.resolve(value);
+          print("Setting package file uri to ${options.packagesFileUri}");
+        } else {
+          throw "Unsupported: $line";
+        }
+      }
+    }
   }
 }
 

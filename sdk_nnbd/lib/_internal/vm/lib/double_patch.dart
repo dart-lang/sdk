@@ -8,7 +8,7 @@
 
 @patch
 class double {
-  static double _nativeParse(String str, int start, int end)
+  static double? _nativeParse(String str, int start, int end)
       native "Double_parse";
 
   static double? _tryParseDouble(String str, int start, int end) {

@@ -1118,7 +1118,7 @@ class ResolverVisitor extends ScopedVisitor {
     var body = node.body;
 
     if (_flowAnalysis != null) {
-      if (!isFunctionDeclaration) {
+      if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
         _flowAnalysis.executableDeclaration_enter(node, node.parameters, true);
       }
     } else {
@@ -1142,7 +1142,7 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitFunctionExpression(node);
 
     if (_flowAnalysis != null) {
-      if (!isFunctionDeclaration) {
+      if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
         _checkForBodyMayCompleteNormally(
           returnType: returnType,
           body: body,
@@ -1511,14 +1511,22 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
 
-    if (_flowAnalysis != null &&
-        _flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode
-            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-        node,
-        [node.name],
-      );
+    if (_flowAnalysis != null) {
+      if (_flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          node,
+          [node.name],
+        );
+      }
+      if (_flowAnalysis.isReadOfDefinitelyUnassignedLateLocal(node)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+          node,
+          [node.name],
+        );
+      }
     }
 
     super.visitSimpleIdentifier(node);

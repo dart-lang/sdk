@@ -1218,18 +1218,6 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseNullAwareBracketOrConditionalExpressionRest(
-      Token token, TypeParamOrArgInfo typeArg) {
-    doPrint('parseNullAwareBracketOrConditionalExpressionRest('
-        '$token, '
-        '$typeArg)');
-    indent++;
-    var result =
-        super.parseNullAwareBracketOrConditionalExpressionRest(token, typeArg);
-    indent--;
-    return result;
-  }
-
   Token parseConditionalExpressionRest(Token token) {
     doPrint('parseConditionalExpressionRest(' '$token)');
     indent++;
@@ -1755,10 +1743,26 @@ class TestParser extends Parser {
     return result;
   }
 
+  bool looksLikeExpression(Token token) {
+    doPrint('looksLikeExpression(' '$token)');
+    indent++;
+    var result = super.looksLikeExpression(token);
+    indent--;
+    return result;
+  }
+
   bool looksLikeAwaitExpression(Token token) {
     doPrint('looksLikeAwaitExpression(' '$token)');
     indent++;
     var result = super.looksLikeAwaitExpression(token);
+    indent--;
+    return result;
+  }
+
+  bool looksLikeYieldStatement(Token token) {
+    doPrint('looksLikeYieldStatement(' '$token)');
+    indent++;
+    var result = super.looksLikeYieldStatement(token);
     indent--;
     return result;
   }

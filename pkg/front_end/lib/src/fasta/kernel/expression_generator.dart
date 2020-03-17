@@ -2943,7 +2943,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
       }
     }
     return new NamedTypeBuilder(
-        targetName, nullabilityBuilder, argumentBuilders)
+        targetName, nullabilityBuilder, argumentBuilders, _uri, fileOffset)
       ..bind(declaration);
   }
 

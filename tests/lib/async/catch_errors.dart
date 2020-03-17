@@ -19,7 +19,7 @@ Stream catchErrors(dynamic body()) {
 }
 
 runZonedScheduleMicrotask(body(),
-    {void onScheduleMicrotask(void callback()), Function onError}) {
+    {void onScheduleMicrotask(void callback()), Function? onError}) {
   if (onScheduleMicrotask == null) {
     return runZoned(body, onError: onError);
   }

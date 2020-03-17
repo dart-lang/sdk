@@ -13,7 +13,7 @@ bool fooIs(x) {
 bool fooAs(x) {
   try {
     return (x as A).p;
-  } on CastError catch (e) {
+  } on TypeError {
     return false;
   }
 }
@@ -22,7 +22,7 @@ bool fooAnnotation(x) {
   try {
     A y = x;
     return y is! String;
-  } on TypeError catch (e) {
+  } on TypeError {
     return false;
   }
 }

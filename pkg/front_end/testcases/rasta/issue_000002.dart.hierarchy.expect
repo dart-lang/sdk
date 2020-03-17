@@ -42,7 +42,7 @@ Expect:
   interfaces:
   classMembers:
     Expect.identical
-    Expect.throwsCastError
+    Expect.throwsTypeError
     Expect._fail
     Expect.notIdentical
     Expect.isNotNull

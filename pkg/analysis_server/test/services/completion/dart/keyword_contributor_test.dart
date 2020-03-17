@@ -2153,7 +2153,7 @@ f() => [...^];
   Future<void> test_variable_decl_type_args() async {
     addTestSource('void m() {List<^> list;}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.DYNAMIC]);
+    assertSuggestKeywords([Keyword.DYNAMIC, Keyword.VOID]);
   }
 
   Future<void> test_while_break_continue() async {
@@ -2273,7 +2273,7 @@ void m() {
 ''');
 
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.DYNAMIC]);
+    assertSuggestKeywords([Keyword.DYNAMIC, Keyword.VOID]);
   }
 }
 

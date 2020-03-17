@@ -828,6 +828,19 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
   return compile_type.IsSubtypeOf(other, Heap::kOld);
 }
 
+bool CompileType::IsInstanceOf(const AbstractType& other) {
+  if (other.IsTopType()) {
+    return true;
+  }
+  if (IsNone() || !other.IsInstantiated()) {
+    return false;
+  }
+  if (is_nullable() && !other.IsNullable()) {
+    return false;
+  }
+  return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
+}
+
 bool CompileType::Specialize(GrowableArray<intptr_t>* class_ids) {
   ToNullableCid();
   if (cid_ != kDynamicCid) {

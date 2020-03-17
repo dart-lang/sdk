@@ -945,7 +945,8 @@ class TypeInferrerImpl implements TypeInferrer {
       if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
         if (_shouldTearOffCall(contextType, expressionType)) {
           needsTearoff = true;
-          if (isStrongNullabilityMode && expressionType.isPotentiallyNullable) {
+          if (isStrongNullabilityMode &&
+              isPotentiallyNullable(expressionType, coreTypes.futureOrClass)) {
             return AssignabilityKind.unassignableCantTearoff;
           }
           expressionType =
@@ -1898,7 +1899,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return const DynamicType();
     }
     if (forSyntheticVariable) {
-      return nonNullifyInLibrary(initializerType, library.library);
+      return normalizeNullabilityInLibrary(initializerType, library.library);
     } else {
       return demoteTypeInLibrary(initializerType, library.library);
     }
@@ -2424,7 +2425,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (isNonNullableByDefault && performNnbdChecks) {
       if (receiverType != null &&
           receiverType is! DynamicType &&
-          receiverType.isPotentiallyNullable &&
+          isPotentiallyNullable(receiverType, coreTypes.futureOrClass) &&
           !matchesObjectMemberCall(targetName, inferredTypes,
               positionalArgumentTypes, namedArgumentTypes)) {
         // Use length 1 for .call -- in most cases its name is skipped.

@@ -146,6 +146,11 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
       // No nullability or type arguments needed to be substituted.
       return null;
     } else {
+      if (node.classNode.name == 'Null' &&
+          node.classNode.enclosingLibrary.importUri.scheme == 'dart' &&
+          node.classNode.enclosingLibrary.importUri.path == 'core') {
+        return null;
+      }
       return new InterfaceType(
           node.classNode,
           newNullability ?? node.nullability,

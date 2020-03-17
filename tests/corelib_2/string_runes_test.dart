@@ -41,16 +41,16 @@ main() {
 
     // Reset, moveNext.
     it.reset(1);
-    Expect.equals(null, it.rawIndex);
-    Expect.equals(null, it.current);
+    Expect.equals(-1, it.rawIndex);
+    Expect.equals(-1, it.current);
     it.moveNext();
     Expect.equals(1, it.rawIndex);
     Expect.equals(expectedRunes[1], it.current);
 
     // Reset, movePrevious.
     it.reset(1);
-    Expect.equals(null, it.rawIndex);
-    Expect.equals(null, it.current);
+    Expect.equals(-1, it.rawIndex);
+    Expect.equals(-1, it.current);
     it.movePrevious();
     Expect.equals(0, it.rawIndex);
     Expect.equals(expectedRunes[0], it.current);

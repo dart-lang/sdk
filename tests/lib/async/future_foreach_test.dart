@@ -63,9 +63,9 @@ void testForeachIterableThrows(Iterable<int> elements, n, error) {
       Expect.isTrue(n >= 0);
       switch (delay) {
         case 1:
-          return new Future<String>(() {});
+          return new Future(() {});
         case 2:
-          return new Future<String>.microtask(() {});
+          return new Future.microtask(() {});
       }
     }).then((_) {
       Expect.fail("Did not throw");

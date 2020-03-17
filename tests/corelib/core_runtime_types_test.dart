@@ -51,7 +51,6 @@ class CoreRuntimeTypesTest {
         f,
         (exception) =>
             (exception is TypeError) ||
-            (exception is CastError) ||
             (exception is AssertionError) ||
             (exception is NoSuchMethodError) ||
             (exception is ArgumentError),

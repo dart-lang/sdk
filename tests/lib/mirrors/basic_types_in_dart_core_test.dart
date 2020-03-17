@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 main() {
   LibraryMirror dartcore = currentMirrorSystem().findLibrary(#dart.core);
   ClassMirror cm;
-  TypeMirror tm;
+  TypeMirror? tm;
 
   cm = dartcore.declarations[#int] as ClassMirror;
   Expect.equals(reflectClass(int), cm);
@@ -44,9 +44,9 @@ main() {
   Expect.equals(reflectClass(Object), cm);
   Expect.equals(#Object, cm.simpleName);
 
-  tm = dartcore.declarations[#dynamic] as TypeMirror;
+  tm = dartcore.declarations[#dynamic] as TypeMirror?;
   Expect.isNull(tm);
 
-  tm = dartcore.declarations[const Symbol('void')] as TypeMirror;
+  tm = dartcore.declarations[const Symbol('void')] as TypeMirror?;
   Expect.isNull(tm);
 }
