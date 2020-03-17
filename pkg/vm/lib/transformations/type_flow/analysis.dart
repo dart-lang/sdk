@@ -1405,6 +1405,11 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   List<VariableDeclaration> uncheckedParameters(Member member) =>
       _summaries[member]?.uncheckedParameters;
 
+  // The set of optional and named parameters to this procedure which
+  // are passed at all call-sites.
+  Set<String> alwaysPassedOptionalParameters(Member member) =>
+      _summaries[member]?.alwaysPassedOptionalParameters() ?? const {};
+
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 
   /// Returns true if this member is called on a receiver with static type

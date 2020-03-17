@@ -13,6 +13,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/external_name.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
@@ -37,7 +38,7 @@ const bool kDumpClassHierarchy =
 /// Assumes strong mode and closed world.
 Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
-    [PragmaAnnotationParser matcher]) {
+    {PragmaAnnotationParser matcher, bool treeShakeSignatures: true}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
@@ -70,7 +71,9 @@ Component transformComponent(
 
   final transformsStopWatch = new Stopwatch()..start();
 
-  new TreeShaker(component, typeFlowAnalysis).transformComponent(component);
+  final treeShaker = new TreeShaker(component, typeFlowAnalysis,
+      treeShakeSignatures: treeShakeSignatures)
+    ..transformComponent(component);
 
   new TFADevirtualization(component, typeFlowAnalysis, hierarchy)
       .visitComponent(component);
@@ -81,6 +84,8 @@ Component transformComponent(
 
   new AnnotateKernel(component, typeFlowAnalysis, unboxingInfo)
       .visitComponent(component);
+
+  treeShaker.finalizeSignatures();
 
   transformsStopWatch.stop();
 
@@ -561,17 +566,25 @@ class TreeShaker {
   _TreeShakerConstantVisitor constantVisitor;
   _TreeShakerPass1 _pass1;
   _TreeShakerPass2 _pass2;
+  _SignatureShaker _signatureShaker;
 
-  TreeShaker(Component component, this.typeFlowAnalysis) {
+  TreeShaker(Component component, this.typeFlowAnalysis,
+      {bool treeShakeSignatures: true}) {
     typeVisitor = new _TreeShakerTypeVisitor(this);
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
     _pass1 = new _TreeShakerPass1(this);
     _pass2 = new _TreeShakerPass2(this);
+    _signatureShaker = new _SignatureShaker(this.typeFlowAnalysis,
+        treeShakeSignatures: treeShakeSignatures);
   }
 
   transformComponent(Component component) {
     _pass1.transform(component);
     _pass2.transform(component);
+  }
+
+  finalizeSignatures() {
+    _signatureShaker.transform();
   }
 
   bool isClassReferencedFromNativeCode(Class c) =>
@@ -728,9 +741,24 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
 /// transforms unreachable calls into 'throw' expressions.
 class _TreeShakerPass1 extends Transformer {
   final TreeShaker shaker;
+  final TypeEnvironment environment;
+  final List<Initializer> additionalInitializers = [];
   Procedure _unsafeCast;
 
-  _TreeShakerPass1(this.shaker);
+  StaticTypeContext _staticTypeContext;
+  Member _currentMember;
+
+  StaticTypeContext get staticTypeContext =>
+      _staticTypeContext ??= StaticTypeContext(currentMember, environment);
+
+  Member get currentMember => _currentMember;
+  set currentMember(Member m) {
+    _currentMember = m;
+    _staticTypeContext = null;
+  }
+
+  _TreeShakerPass1(this.shaker)
+      : environment = shaker.typeFlowAnalysis.environment;
 
   void transform(Component component) {
     component.transformChildren(this);
@@ -831,12 +859,27 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
+  Constructor visitConstructor(Constructor node) {
+    additionalInitializers.clear();
+    node = defaultMember(node);
+    if (additionalInitializers.isNotEmpty) {
+      assertx(node.initializers.last is SuperInitializer ||
+          node.initializers.last is RedirectingInitializer);
+      additionalInitializers.forEach((i) => i.parent = node);
+      node.initializers
+          .insertAll(node.initializers.length - 1, additionalInitializers);
+    }
+    return node;
+  }
+
+  @override
   TreeNode defaultMember(Member node) {
     if (shaker.isMemberBodyReachable(node)) {
       if (kPrintTrace) {
         tracePrint("Visiting $node");
       }
       shaker.addUsedMember(node);
+      currentMember = node;
       node.transformChildren(this);
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
       // Preserve members referenced from native code to satisfy lookups, even
@@ -951,15 +994,99 @@ class _TreeShakerPass1 extends Transformer {
     }
   }
 
+  Expression _fixArgumentEvaluationOrder(
+      Expression invocation, Arguments args) {
+    if (args.named.isEmpty) return invocation;
+
+    Expression outer = invocation;
+    int argIdx = args.named.length + args.positional.length;
+    for (int i = args.named.length - 1; i >= 0; --i) {
+      final arg = args.named[i];
+      final variable = VariableDeclaration("#arg${argIdx--}",
+          initializer: arg.value,
+          type: arg.value.getStaticType(staticTypeContext));
+      arg.value = VariableGet(variable)..parent = arg;
+      outer = Let(variable, outer);
+    }
+    for (int i = args.positional.length - 1; i >= 0; --i) {
+      final variable = VariableDeclaration("#arg${argIdx--}",
+          initializer: args.positional[i],
+          type: args.positional[i].getStaticType(staticTypeContext));
+      args.positional[i] = VariableGet(variable)..parent = args;
+      outer = Let(variable, outer);
+    }
+    return outer;
+  }
+
+  void _fixArgumentEvaluationOrderInInitializer(Arguments args) {
+    if (args.named.isEmpty) return;
+
+    int argIndex = 0;
+    for (int i = 0; i < args.positional.length; ++i) {
+      final variable = VariableDeclaration("#arg${argIndex++}",
+          initializer: args.positional[i]);
+      args.positional[i] = VariableGet(variable)..parent = args;
+      additionalInitializers.add(LocalInitializer(variable));
+    }
+    for (int i = 0; i < args.named.length; ++i) {
+      final variable = VariableDeclaration("#arg${argIndex++}",
+          initializer: args.named[i].value);
+      args.named[i].value = VariableGet(variable)..parent = args.named[i];
+      additionalInitializers.add(LocalInitializer(variable));
+    }
+  }
+
+  void _rewriteArguments(Arguments args, Member member) {
+    final alwaysPassedParams =
+        shaker.typeFlowAnalysis.alwaysPassedOptionalParameters(member);
+    final func = member.function;
+    final positional = args.positional.toList();
+    final newPositional = args.positional;
+    newPositional.removeRange(
+        func.requiredParameterCount, newPositional.length);
+
+    for (int i = func.requiredParameterCount; i < positional.length; ++i) {
+      if (alwaysPassedParams.contains(func.positionalParameters[i].name)) {
+        newPositional.add(positional[i]);
+      }
+    }
+
+    final newNamed = <NamedExpression>[];
+    final namedPositionals = <NamedExpression>[];
+    for (int i = 0; i < args.named.length; i++) {
+      final arg = args.named[i];
+      if (alwaysPassedParams.contains(arg.name)) {
+        namedPositionals.add(arg);
+      } else {
+        newNamed.add(arg);
+      }
+    }
+    args.named = newNamed;
+    namedPositionals.sort((x, y) => x.name.compareTo(y.name));
+    newPositional
+        .addAll(namedPositionals.map((expr) => expr.value..parent = args));
+
+    for (int i = func.requiredParameterCount; i < positional.length; ++i) {
+      if (!alwaysPassedParams.contains(func.positionalParameters[i].name)) {
+        newPositional.add(positional[i]);
+      }
+    }
+  }
+
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
-    } else {
-      assertx(shaker.isMemberBodyReachable(node.target), details: node.target);
-      return node;
     }
+
+    final target = node.target;
+    assertx(shaker.isMemberBodyReachable(target), details: target);
+
+    if (!shaker._signatureShaker.isShakingSignature(target)) return node;
+    final result = _fixArgumentEvaluationOrder(node, node.arguments);
+    _rewriteArguments(node.arguments, target);
+    return result;
   }
 
   @override
@@ -1039,7 +1166,10 @@ class _TreeShakerPass1 extends Transformer {
         assertx(node.isConst);
         shaker.addUsedMember(node.target);
       }
-      return node;
+      if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
+      final result = _fixArgumentEvaluationOrder(node, node.arguments);
+      _rewriteArguments(node.arguments, node.target);
+      return result;
     }
   }
 
@@ -1050,6 +1180,9 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableInitializer(_flattenArguments(node.arguments));
     } else {
       assertx(shaker.isMemberBodyReachable(node.target), details: node.target);
+      if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
+      _fixArgumentEvaluationOrderInInitializer(node.arguments);
+      _rewriteArguments(node.arguments, node.target);
       return node;
     }
   }
@@ -1061,6 +1194,9 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableInitializer(_flattenArguments(node.arguments));
     } else {
       // Can't assert that node.target is used due to partial mixin resolution.
+      if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
+      _fixArgumentEvaluationOrderInInitializer(node.arguments);
+      _rewriteArguments(node.arguments, node.target);
       return node;
     }
   }
@@ -1112,7 +1248,7 @@ class _TreeShakerPass1 extends Transformer {
 
 /// The second pass of [TreeShaker]. It is called after set of used
 /// classes, members and typedefs is determined during the first pass.
-/// This pass visits classes and members and removes unused classes and member.
+/// This pass visits classes and members and removes unused classes and members.
 /// Bodies of unreachable but used members are replaced with 'throw'
 /// expressions. This pass does not dive deeper than member level.
 class _TreeShakerPass2 extends Transformer {
@@ -1191,6 +1327,34 @@ class _TreeShakerPass2 extends Transformer {
       node.enclosingClass.isEnum;
 
   @override
+  Member visitProcedure(Procedure proc) {
+    proc = defaultMember(proc);
+    if (proc == null || !shaker._signatureShaker.isShakingSignature(proc)) {
+      return proc;
+    }
+    final optionals =
+        shaker.typeFlowAnalysis.alwaysPassedOptionalParameters(proc);
+    if (optionals.isNotEmpty) {
+      shaker._signatureShaker.defer(proc);
+    }
+    return proc;
+  }
+
+  @override
+  Member visitConstructor(Constructor ctor) {
+    ctor = defaultMember(ctor);
+    if (ctor == null || !shaker._signatureShaker.isShakingSignature(ctor)) {
+      return ctor;
+    }
+    final optionals =
+        shaker.typeFlowAnalysis.alwaysPassedOptionalParameters(ctor);
+    if (optionals.isNotEmpty) {
+      shaker._signatureShaker.defer(ctor);
+    }
+    return ctor;
+  }
+
+  @override
   Member defaultMember(Member node) {
     if (!shaker.isMemberUsed(node) && !_preserveSpecialMember(node)) {
       node.canonicalName?.unbind();
@@ -1264,6 +1428,84 @@ class _TreeShakerPass2 extends Transformer {
   @override
   TreeNode defaultTreeNode(TreeNode node) {
     return node; // Do not traverse into other nodes.
+  }
+}
+
+// Transform signatures of functions to convert optional named and
+// positional parameters to required parameters if we know that all call sites
+// will pass them.
+//
+// Because the AnnotateKernel pass expects signatures to match up with the
+// corresponding summaries, we enqueue the functions which need to be transformed
+// during the _TreeShakerPass1 and delay the actual transformation until after
+// AnnotateKernel has run.
+class _SignatureShaker {
+  final TypeFlowAnalysis analysis;
+  final List<Member> deferred = [];
+  final bool treeShakeSignatures;
+  _SignatureShaker(this.analysis, {this.treeShakeSignatures});
+
+  bool isShakingSignature(Member member) {
+    if (!treeShakeSignatures) return false;
+    if (member is Procedure && member.isStatic || member is Constructor) {
+      if (getExternalName(member) != null) {
+        // This member has a native implementation which we cannot rewrite
+        // to accomodate the new signature.
+        return false;
+      }
+    } else {
+      return false;
+    }
+    final alwaysPassedParams = analysis.alwaysPassedOptionalParameters(member);
+    return alwaysPassedParams.isNotEmpty;
+  }
+
+  void defer(Member m) {
+    assertx(isShakingSignature(m));
+    deferred.add(m);
+  }
+
+  void transform() => deferred.forEach(_update);
+
+  void _update(Member member) {
+    final alwaysPassedOptionals =
+        analysis.alwaysPassedOptionalParameters(member);
+    assertx(alwaysPassedOptionals.isNotEmpty);
+
+    final func = member.function;
+    final newPositional =
+        func.positionalParameters.sublist(0, func.requiredParameterCount);
+    final optionalPositional =
+        func.positionalParameters.sublist(func.requiredParameterCount);
+
+    for (final param in optionalPositional) {
+      if (alwaysPassedOptionals.contains(param.name)) {
+        newPositional.add(param..initializer = null);
+      }
+    }
+
+    final namedPositionals = <VariableDeclaration>[];
+    final namedParameters = <VariableDeclaration>[];
+    for (final param in func.namedParameters) {
+      if (alwaysPassedOptionals.contains(param.name)) {
+        namedPositionals.add(param..initializer = null);
+      } else {
+        namedParameters.add(param);
+      }
+    }
+    namedPositionals.sort((x, y) => x.name.compareTo(y.name));
+    newPositional.addAll(namedPositionals);
+
+    func.requiredParameterCount = newPositional.length;
+
+    for (final param in optionalPositional) {
+      if (!alwaysPassedOptionals.contains(param.name)) {
+        newPositional.add(param);
+      }
+    }
+
+    func.positionalParameters = newPositional;
+    func.namedParameters = namedParameters;
   }
 }
 

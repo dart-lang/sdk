@@ -42,7 +42,7 @@ static method callerA1([@vm.inferred-type.metadata=!] self::A* aa) → void {
 static method callerA2([@vm.inferred-type.metadata=#lib::B] self::A* aa) → void {
   [@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
-static method callerA3({[@vm.inferred-type.metadata=#lib::C] self::A* aa = #C1}) → void {
+static method callerA3([@vm.inferred-type.metadata=#lib::C] self::A* aa) → void {
   [@vm.direct-call.metadata=#lib::C::foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
 static method callerA4([@vm.inferred-type.metadata=#lib::D?] self::A* aa) → void {
@@ -58,7 +58,7 @@ static method main(core::List<core::String*>* args) → dynamic {
   self::callerA1(new self::B::•());
   self::callerA1(new self::C::•());
   self::callerA2(new self::B::•());
-  self::callerA3(aa: new self::C::•());
+  let self::C* #arg1 = new self::C::•() in self::callerA3(#arg1);
   self::callerA4([@vm.inferred-type.metadata=#lib::D?] self::dd);
   self::dd = new self::D::•();
   self::callerE1("abc");

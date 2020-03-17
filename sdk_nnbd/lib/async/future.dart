@@ -257,6 +257,7 @@ abstract class Future<T> {
    *
    * Use [Completer] to create a future and complete it later.
    */
+  @pragma("vm:entry-point")
   factory Future.value([FutureOr<T>? value]) {
     return new _Future<T>.immediate(value as FutureOr<T>);
   }
