@@ -760,7 +760,8 @@ class FunctionType extends AbstractFunctionType {
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
         buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
-      if (JS('!', 'Object.keys(#).length > 0', requiredNamed)) buffer += ', ';
+      if (JS('!', 'Object.keys(#).length > 0 && #.length > 0', requiredNamed,
+          names)) buffer += ', ';
       names = getOwnPropertyNames(requiredNamed);
       JS('', '#.sort()', names);
       for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
