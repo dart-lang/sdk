@@ -411,10 +411,10 @@ void populateEditDetails([EditDetails response]) {
   for (var trace in response.traces) {
     var traceParagraph =
         editPanel.append(document.createElement('p')..classes = ['trace']);
-    traceParagraph.append(Text('Nullability trace for: '));
     traceParagraph.append(document.createElement('span')
       ..classes = ['type-description']
       ..append(Text(trace.description)));
+    traceParagraph.append(Text(':'));
     var ul = traceParagraph
         .append(document.createElement('ul')..classes = ['trace']);
     for (var entry in trace.entries) {
