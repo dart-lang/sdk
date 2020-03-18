@@ -74,6 +74,37 @@ used (see Issue [39627][]).
   now contains Unix epoch timestamps instead of `null` for the `accessed`,
   `changed`, and `modified` getters.
 
+* **Breaking change** [#40709](https://github.com/dart-lang/sdk/issues/40709):
+  The `HeaderValue` class now parses more strictly in two invalid edge cases.
+  This is the class used to parse the semicolon delimited parameters used in the
+  `Accept`, `Authorization`, `Content-Type`, and other such HTTP headers.
+
+  The empty parameter value without double quotes (which is not allowed by the
+  standards) is now parsed as the empty string rather than `null`. E.g.
+  `HeaderValue.parse("v;a=").parameters` now gives `{"a": ""}` rather than
+  `{"a": null}`.
+
+  Invalid inputs with unbalanced double quotes are now rejected. E.g.
+  `HeaderValue.parse('v;a="b').parameters` will now throw a `HttpException`
+  instead of giving `{"a": "b"}`.
+
+* The `HeaderValue.toString()` method now supports parameters with `null` values
+  by omitting the value. `HeaderValue("v", {"a": null, "b": "c"}).toString()`
+  now gives `v; a; b=c`. This behavior can be used to implement some features in
+  the `Accept` and `Sec-WebSocket-Extensions` headers.
+
+  Likewise the empty value and values using characters outside of
+  [RFC 7230 tokens](https://tools.ietf.org/html/rfc7230#section-3.2.6) are now
+  correctly implemented by double quoting such values with escape sequences.
+  E.g:
+
+  ```dart
+  HeaderValue("v",
+      {"a": "A", "b": "(B)", "c": "", "d": "ø", "e": "\\\""}).toString()
+  ```
+
+  now gives `v;a=A;b="(B)";c="";d="ø";e="\\\""`.
+
 #### `dart:mirrors`
 
 * Added `MirrorSystem.neverType`.
