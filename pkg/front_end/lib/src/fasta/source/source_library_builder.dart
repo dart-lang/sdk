@@ -394,25 +394,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (String testDir in ['/tests/', '/generated_tests/']) {
       int start = path.indexOf(testDir);
       if (start == -1) continue;
-      int end = path.indexOf('/', start + testDir.length + 1);
-      if (end == -1) continue;
-      return optOutTestPaths.contains(path.substring(start, end));
+      String rest = path.substring(start + testDir.length);
+      return optOutTestPaths.any(rest.startsWith);
     }
     return false;
   }
 
-  static final Set<String> optOutTestPaths = {
-    '/tests/co19_2',
-    '/tests/corelib_2',
-    '/tests/language_2',
-    '/tests/lib_2',
-    '/tests/standalone_2',
-    '/generated_tests/co19_2',
-    '/generated_tests/corelib_2',
-    '/generated_tests/language_2',
-    '/generated_tests/lib_2',
-    '/generated_tests/standalone_2',
-  };
+  static const List<String> optOutTestPaths = [
+    'co19_2/',
+    'compiler/dart2js/',
+    'compiler/dart2js_extra/',
+    'compiler/dart2js_native/',
+    'corelib_2/',
+    'language_2/',
+    'lib_2/',
+    'standalone_2/',
+  ];
 
   LanguageVersion get languageVersion => _languageVersion;
 
