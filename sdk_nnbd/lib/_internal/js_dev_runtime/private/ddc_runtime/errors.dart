@@ -56,11 +56,10 @@ throwNullValueError() {
   throw NoSuchMethodError(null, Symbol('<Unexpected Null Value>'), null, null);
 }
 
-castError(obj, expectedType, [@notNull bool isImplicit = false]) {
+castError(obj, expectedType) {
   var actualType = getReifiedType(obj);
   var message = _castErrorMessage(actualType, expectedType);
-  var error = isImplicit ? TypeErrorImpl(message) : CastErrorImpl(message);
-  throw error;
+  throw TypeErrorImpl(message);
 }
 
 String _castErrorMessage(from, to) {
