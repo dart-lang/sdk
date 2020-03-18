@@ -207,7 +207,7 @@ class SharedClassTable {
 #ifndef PRODUCT
   // Copy-on-write is used for trace_allocation_table_, with old copies stored
   // in old_tables_.
-  uint8_t* trace_allocation_table_ = nullptr;
+  AcqRelAtomic<uint8_t*> trace_allocation_table_ = nullptr;
 #endif  // !PRODUCT
 
   void AddOldTable(intptr_t* old_table);
@@ -219,7 +219,7 @@ class SharedClassTable {
 
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
   // Maps the cid to the instance size.
-  RelaxedAtomic<intptr_t>* table_ = nullptr;
+  AcqRelAtomic<RelaxedAtomic<intptr_t>*> table_ = nullptr;
   MallocGrowableArray<void*>* old_tables_;
 
   IsolateGroupReloadContext* reload_context_ = nullptr;
@@ -375,7 +375,7 @@ class ClassTable {
 
   // Copy-on-write is used for table_, with old copies stored in
   // old_class_tables_.
-  RawClass** table_;
+  AcqRelAtomic<RawClass**> table_;
   MallocGrowableArray<RawClass**>* old_class_tables_;
   SharedClassTable* shared_class_table_;
 

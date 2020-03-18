@@ -88,18 +88,20 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     ClassTable* vm_class_table = Dart::vm_isolate()->class_table();
     capacity_ = vm_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
-    table_ = static_cast<RawClass**>(calloc(capacity_, sizeof(RawClass*)));
+    RawClass** table =
+        static_cast<RawClass**>(calloc(capacity_, sizeof(RawClass*)));
     // The following cids don't have a corresponding class object in Dart code.
     // We therefore need to initialize them eagerly.
     for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
-      table_[i] = vm_class_table->At(i);
+      table[i] = vm_class_table->At(i);
     }
-    table_[kTypeArgumentsCid] = vm_class_table->At(kTypeArgumentsCid);
-    table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
-    table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
-    table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
-    table_[kVoidCid] = vm_class_table->At(kVoidCid);
-    table_[kNeverCid] = vm_class_table->At(kNeverCid);
+    table[kTypeArgumentsCid] = vm_class_table->At(kTypeArgumentsCid);
+    table[kFreeListElement] = vm_class_table->At(kFreeListElement);
+    table[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
+    table[kDynamicCid] = vm_class_table->At(kDynamicCid);
+    table[kVoidCid] = vm_class_table->At(kVoidCid);
+    table[kNeverCid] = vm_class_table->At(kNeverCid);
+    table_ = table;
   }
 }
 
@@ -216,7 +218,7 @@ void ClassTable::Grow(intptr_t new_capacity) {
   memset(new_table + capacity_, 0,
          (new_capacity - capacity_) * sizeof(RawClass*));
   old_class_tables_->Add(table_);
-  table_ = new_table;  // TODO(koda): This should use atomics.
+  table_ = new_table;
 
   capacity_ = new_capacity;
 }
@@ -257,7 +259,7 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
 #endif
 
   old_tables_->Add(table_);
-  table_ = new_table;  // TODO(koda): This should use atomics.
+  table_ = new_table;
   NOT_IN_PRODUCT(old_tables_->Add(trace_allocation_table_));
   NOT_IN_PRODUCT(trace_allocation_table_ = new_trace_table);
 
