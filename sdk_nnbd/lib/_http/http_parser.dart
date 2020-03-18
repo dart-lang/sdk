@@ -680,10 +680,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
                     (isUpgrade && isResponse && isUpgradeCode)) {
                   _connectionUpgrade = true;
                 }
-                headers._add(headerField, tokens[i]);
+                headers.add(headerField, tokens[i]);
               }
             } else {
-              headers._add(headerField, headerValue);
+              headers.add(headerField, headerValue);
             }
             _headerField.clear();
             _headerValue.clear();

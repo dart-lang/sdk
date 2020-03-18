@@ -1760,9 +1760,9 @@ class _HttpClientConnection {
     request.headers
       ..host = host
       ..port = port
-      .._add(HttpHeaders.acceptEncodingHeader, "gzip");
+      ..add(HttpHeaders.acceptEncodingHeader, "gzip");
     if (_httpClient.userAgent != null) {
-      request.headers._add(HttpHeaders.userAgentHeader, _httpClient.userAgent);
+      request.headers.add(HttpHeaders.userAgentHeader, _httpClient.userAgent);
     }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
