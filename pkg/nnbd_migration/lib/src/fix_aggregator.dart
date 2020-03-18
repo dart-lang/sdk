@@ -94,6 +94,10 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 abstract class NodeChange<N extends AstNode> {
   NodeChange._();
 
+  /// Indicates whether this node exists solely to provide informative
+  /// information.
+  bool get isInformative => false;
+
   /// Applies this change to the given [node], producing an [EditPlan].  The
   /// [aggregator] may be used to gather up any edits to the node's descendants
   /// into their own [EditPlan]s.
@@ -461,20 +465,35 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   /// Indicates whether the type should be made nullable by adding a `?`.
   bool makeNullable = false;
 
-  /// If [makeNullable] is `true`, the decorated type that results.
-  DecoratedType makeNullableType;
+  /// The decorated type of the type annotation, or `null` if there is no
+  /// decorated type info of interest.  If [makeNullable] is `true`, the node
+  /// from this type will be attached to the edit that adds the `?`. If
+  /// [makeNullable] is `false`, the node from this type will be attached to the
+  /// information about why the node wasn't made nullable.
+  DecoratedType decoratedType;
 
   NodeChangeForTypeAnnotation() : super._();
 
   @override
+  bool get isInformative => !makeNullable;
+
+  @override
   EditPlan _apply(TypeAnnotation node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
-    if (!makeNullable) return innerPlan;
-    return aggregator.planner.makeNullable(innerPlan,
-        info: AtomicEditInfo(
-            NullabilityFixDescription.makeTypeNullable(
-                makeNullableType.type.getDisplayString(withNullability: false)),
-            [makeNullableType.node]));
+    if (decoratedType == null) return innerPlan;
+    if (makeNullable) {
+      return aggregator.planner.makeNullable(innerPlan,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.makeTypeNullable(
+                  decoratedType.type.getDisplayString(withNullability: false)),
+              [decoratedType.node]));
+    } else {
+      return aggregator.planner.explainNonNullable(innerPlan,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.typeNotMadeNullable(
+                  decoratedType.type.getDisplayString(withNullability: false)),
+              [decoratedType.node]));
+    }
   }
 }
 

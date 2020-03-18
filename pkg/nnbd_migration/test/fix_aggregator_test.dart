@@ -408,10 +408,31 @@ void f(int i, String callback()) {
     var previewInfo = run({
       typeName: NodeChangeForTypeAnnotation()
         ..makeNullable = true
-        ..makeNullableType = MockDecoratedType(
+        ..decoratedType = MockDecoratedType(
             MockDartType(toStringValueWithoutNullability: 'int'))
     });
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
+  }
+
+  Future<void> test_noChangeToTypeAnnotation() async {
+    await analyze('int x = 0;');
+    var typeName = findNode.typeName('int');
+    var previewInfo = run({
+      typeName: NodeChangeForTypeAnnotation()
+        ..decoratedType = MockDecoratedType(
+            MockDartType(toStringValueWithoutNullability: 'int'))
+    });
+    expect(previewInfo.applyTo(code), 'int x = 0;');
+    expect(previewInfo.applyTo(code, includeInformative: true), 'int  x = 0;');
+    expect(previewInfo.values.single.single.info.description.appliedMessage,
+        "Type 'int' was not made nullable");
+  }
+
+  Future<void> test_noInfoForTypeAnnotation() async {
+    await analyze('int x = 0;');
+    var typeName = findNode.typeName('int');
+    var previewInfo = run({typeName: NodeChangeForTypeAnnotation()});
+    expect(previewInfo, null);
   }
 
   Future<void> test_nullCheck_index_cascadeResult() async {
@@ -614,7 +635,7 @@ void f(int i, String callback()) {
         ..removeNullAwareness = true,
       typeAnnotation: NodeChangeForTypeAnnotation()
         ..makeNullable = true
-        ..makeNullableType = MockDecoratedType(
+        ..decoratedType = MockDecoratedType(
             MockDartType(toStringValueWithoutNullability: 'int'))
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m<int?>();');

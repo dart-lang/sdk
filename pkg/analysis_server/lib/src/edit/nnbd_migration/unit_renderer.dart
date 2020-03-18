@@ -174,11 +174,10 @@ class UnitRenderer {
           return 'added-region';
         case RegionType.remove:
           return 'removed-region';
-        case RegionType.unchanged:
-          return 'unchanged-region';
-        default:
-          return null;
+        case RegionType.informative:
+          return 'informative-region';
       }
+      throw StateError('Unexpected RegionType $type');
     }
 
     int previousOffset = 0;

@@ -280,13 +280,9 @@ footer .wide {
   color: #001100;
 }
 
-.region.unchanged-region {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-bottom: solid 2px #ccc;
-  /* Invisible text; use underlying highlighting. */
-  color: rgba(0, 0, 0, 0);
-  /* Reduce line height to make room for border. */
-  line-height: 1;
+.region.informative-region {
+  background-color: #888888;
+  color: #000000;
 }
 
 .target {

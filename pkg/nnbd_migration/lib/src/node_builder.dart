@@ -22,6 +22,7 @@ import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
+import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 
 import 'edge_origin.dart';
 
@@ -457,13 +458,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     NullabilityNode nullabilityNode;
-    var parent = node.parent;
-    if (parent is ExtendsClause ||
-        parent is ImplementsClause ||
-        parent is WithClause ||
-        parent is OnClause ||
-        parent is ClassTypeAlias ||
-        parent is GenericTypeAlias) {
+    if (typeIsNonNullableByContext(node)) {
       nullabilityNode = _graph.never;
     } else {
       nullabilityNode = NullabilityNode.forTypeAnnotation(target);

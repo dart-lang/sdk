@@ -2,7 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+
+/// Determines whether a type annotation's position in the AST makes it
+/// impossible to be nullable.
+bool typeIsNonNullableByContext(TypeAnnotation node) {
+  var parent = node.parent;
+  return parent is ExtendsClause ||
+      parent is ImplementsClause ||
+      parent is WithClause ||
+      parent is OnClause ||
+      parent is ClassTypeAlias ||
+      parent is GenericTypeAlias ||
+      parent is ConstructorName;
+}
 
 /// This mixin provides utilities that are useful to visitors implementing
 /// resolution-like behaviors.

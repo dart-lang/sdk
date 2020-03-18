@@ -69,19 +69,26 @@ class AtomicEdit {
   /// if no characters should be inserted.
   final String replacement;
 
+  /// If `true`, this edit shouldn't actually be made to the source file; it
+  /// exists merely to provide additional information to be shown in the preview
+  /// tool.
+  final bool isInformative;
+
   /// Initialize an edit to delete [length] characters.
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
   const AtomicEdit.delete(this.length, {this.info})
       : assert(length > 0),
-        replacement = '';
+        replacement = '',
+        isInformative = false;
 
   /// Initialize an edit to insert the [replacement] characters.
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
-  const AtomicEdit.insert(this.replacement, {this.info})
+  const AtomicEdit.insert(this.replacement,
+      {this.info, this.isInformative: false})
       : assert(replacement.length > 0),
         length = 0;
 
@@ -91,7 +98,8 @@ class AtomicEdit {
   /// Optional argument [info] contains information about why the change was
   /// made.
   const AtomicEdit.replace(this.length, this.replacement, {this.info})
-      : assert(length > 0 || replacement.length > 0);
+      : assert(length > 0 || replacement.length > 0),
+        isInformative = false;
 
   /// Return `true` if this edit is a deletion (no characters added).
   bool get isDeletion => replacement.length == 0;
@@ -253,6 +261,18 @@ class EditPlanner {
   @visibleForTesting
   PassThroughBuilder createPassThroughBuilder(AstNode node) =>
       _PassThroughBuilderImpl(node);
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending an informative ` `, to illustrate that the type is non-nullable.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan explainNonNullable(NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is TypeAnnotation);
+    return surround(innerPlan,
+        suffix: [AtomicEdit.insert(' ', info: info, isInformative: true)]);
+  }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// removing from the source code any code that is in [sourceNode] but not in
@@ -1498,12 +1518,17 @@ class _TokenChangePlan extends EditPlan {
 extension AtomicEditList on List<AtomicEdit> {
   /// Converts a list of [AtomicEdits] to a single [SourceEdit] by concatenating
   /// them.
-  SourceEdit toSourceEdit(int offset) {
+  ///
+  /// If [includeInformative] is `true`, informative edits are included;
+  /// otherwise they are ignored.
+  SourceEdit toSourceEdit(int offset, {bool includeInformative = false}) {
     var totalLength = 0;
     var replacement = '';
     for (var edit in this) {
-      totalLength += edit.length;
-      replacement += edit.replacement;
+      if (!edit.isInformative || includeInformative) {
+        totalLength += edit.length;
+        replacement += edit.replacement;
+      }
     }
     return SourceEdit(offset, totalLength, replacement);
   }
@@ -1514,16 +1539,24 @@ extension AtomicEditList on List<AtomicEdit> {
 /// source file changes.
 extension AtomicEditMap on Map<int, List<AtomicEdit>> {
   /// Applies the changes to source file text.
-  String applyTo(String code) {
-    return SourceEdit.applySequence(code, toSourceEdits());
+  ///
+  /// If [includeInformative] is `true`, informative edits are included;
+  /// otherwise they are ignored.
+  String applyTo(String code, {bool includeInformative = false}) {
+    return SourceEdit.applySequence(
+        code, toSourceEdits(includeInformative: includeInformative));
   }
 
   /// Converts the changes to a list of [SourceEdit]s.  The list is reverse
   /// sorted by offset so that they can be applied in order.
-  List<SourceEdit> toSourceEdits() {
+  ///
+  /// If [includeInformative] is `true`, informative edits are included;
+  /// otherwise they are ignored.
+  List<SourceEdit> toSourceEdits({bool includeInformative = false}) {
     return [
       for (var offset in keys.toList()..sort((a, b) => b.compareTo(a)))
-        this[offset].toSourceEdit(offset)
+        this[offset]
+            .toSourceEdit(offset, includeInformative: includeInformative)
     ];
   }
 

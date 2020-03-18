@@ -40,9 +40,13 @@ class EditPlanTest extends AbstractSingleUnitTest {
     await resolveTestUnit(code);
   }
 
-  Map<int, List<AtomicEdit>> checkPlan(EditPlan plan, String expected) {
+  Map<int, List<AtomicEdit>> checkPlan(EditPlan plan, String expected,
+      {String expectedIncludingInformative}) {
+    expectedIncludingInformative ??= expected;
     var changes = planner.finalize(plan);
     expect(changes.applyTo(code), expected);
+    expect(changes.applyTo(code, includeInformative: true),
+        expectedIncludingInformative);
     return changes;
   }
 
@@ -282,6 +286,15 @@ class EditPlanTest extends AbstractSingleUnitTest {
       expect(plan.endsInCascade, false);
       checkPlan(plan, 'f(a, c) => a..b = (c = 1..isEven);');
     }
+  }
+
+  Future<void> test_explainNonNullable() async {
+    await analyze('int x = 0;');
+    checkPlan(
+        planner.explainNonNullable(
+            planner.passThrough(findNode.typeAnnotation('int'))),
+        'int x = 0;',
+        expectedIncludingInformative: 'int  x = 0;');
   }
 
   Future<void> test_extract_add_parens() async {
