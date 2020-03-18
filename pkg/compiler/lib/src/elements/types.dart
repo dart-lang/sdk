@@ -1649,10 +1649,10 @@ abstract class DartTypes {
         t is NullableType ||
         t is LegacyType && _isNullable(t.baseType) ||
         t is FutureOrType && _isNullable(t.typeArgument) ||
-        _isStrongTopType(t);
+        isStrongTopType(t);
 
     DartType result;
-    if (_isStrongTopType(baseType) ||
+    if (isStrongTopType(baseType) ||
         baseType.isNull ||
         baseType is NullableType ||
         baseType is FutureOrType && _isNullable(baseType.typeArgument)) {
@@ -1775,7 +1775,7 @@ abstract class DartTypes {
   /// Returns `true` if [t] is a top type, that is, a supertype of every type.
   bool isTopType(DartType t) => t._isTop(useNullSafety);
 
-  bool _isStrongTopType(DartType t) => t._isStrongTop(useNullSafety);
+  bool isStrongTopType(DartType t) => t._isStrongTop(useNullSafety);
 
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtype(DartType s, DartType t) => _subtypeHelper(s, t);
@@ -1818,7 +1818,7 @@ abstract class DartTypes {
       if (isTopType(t)) return true;
 
       // Left Top:
-      if (_isStrongTopType(s)) return false;
+      if (isStrongTopType(s)) return false;
 
       // Left Bottom:
       if (useLegacySubtyping) {
