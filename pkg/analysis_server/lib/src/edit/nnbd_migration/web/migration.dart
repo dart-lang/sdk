@@ -378,60 +378,9 @@ void populateEditDetails([EditDetails response]) {
   int line = response.line;
   Element explanation = editPanel.append(document.createElement('p'));
   explanation.append(Text('$explanationMessage at $relPath:$line.'));
-  int detailCount = response.details.length;
-  if (detailCount == 0) {
-    // Having 0 details is not necessarily an expected possibility, but handling
-    // the possibility prevents awkward text, "for 0 reasons:".
-  } else {
-    editPanel.append(ParagraphElement()..text = 'Edit rationale:');
-
-    Element detailList = editPanel.append(document.createElement('ul'));
-    for (var detail in response.details) {
-      var detailItem = detailList.append(document.createElement('li'));
-      detailItem.append(Text(detail.description));
-      var link = detail.link;
-      if (link != null) {
-        detailItem.append(Text(' ('));
-        detailItem.append(_aElementForLink(link, parentDirectory));
-        detailItem.append(Text(')'));
-      }
-    }
-  }
-
-  if (response.edits != null) {
-    for (var edit in response.edits) {
-      Element editParagraph = editPanel.append(document.createElement('p'));
-      Element a = editParagraph.append(document.createElement('a'));
-      a.append(Text(edit.description));
-      a.setAttribute('href', edit.href);
-      a.classes = ['post-link', 'before-apply'];
-    }
-  }
-
-  for (var trace in response.traces) {
-    var traceParagraph =
-        editPanel.append(document.createElement('p')..classes = ['trace']);
-    traceParagraph.append(document.createElement('span')
-      ..classes = ['type-description']
-      ..append(Text(trace.description)));
-    traceParagraph.append(Text(':'));
-    var ul = traceParagraph
-        .append(document.createElement('ul')..classes = ['trace']);
-    for (var entry in trace.entries) {
-      var li = ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
-      li.append(document.createElement('span')
-        ..classes = ['function']
-        ..append(Text(entry.function ?? 'unknown')));
-      var link = entry.link;
-      if (link != null) {
-        li.append(Text(' ('));
-        li.append(_aElementForLink(link, parentDirectory));
-        li.append(Text(')'));
-      }
-      li.append(Text(': '));
-      li.append(Text(entry.description));
-    }
-  }
+  _populateEditTraces(response, editPanel, parentDirectory);
+  _populateEditLinks(response, editPanel);
+  _populateEditRationale(response, editPanel, parentDirectory);
 }
 
 /// Write the contents of the Edit List, from JSON data [editListData].
@@ -588,6 +537,70 @@ AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
   a.setAttribute('href', fullPath);
   a.classes.add('nav-link');
   return a;
+}
+
+void _populateEditLinks(EditDetails response, Element editPanel) {
+  if (response.edits != null) {
+    for (var edit in response.edits) {
+      Element editParagraph = editPanel.append(document.createElement('p'));
+      Element a = editParagraph.append(document.createElement('a'));
+      a.append(Text(edit.description));
+      a.setAttribute('href', edit.href);
+      a.classes = ['post-link', 'before-apply'];
+    }
+  }
+}
+
+void _populateEditRationale(
+    EditDetails response, Element editPanel, String parentDirectory) {
+  int detailCount = response.details.length;
+  if (detailCount == 0) {
+    // Having 0 details is not necessarily an expected possibility, but handling
+    // the possibility prevents awkward text, "for 0 reasons:".
+  } else {
+    editPanel
+        .append(ParagraphElement()..text = 'Edit rationale (experimental):');
+
+    Element detailList = editPanel.append(document.createElement('ul'));
+    for (var detail in response.details) {
+      var detailItem = detailList.append(document.createElement('li'));
+      detailItem.append(Text(detail.description));
+      var link = detail.link;
+      if (link != null) {
+        detailItem.append(Text(' ('));
+        detailItem.append(_aElementForLink(link, parentDirectory));
+        detailItem.append(Text(')'));
+      }
+    }
+  }
+}
+
+void _populateEditTraces(
+    EditDetails response, Element editPanel, String parentDirectory) {
+  for (var trace in response.traces) {
+    var traceParagraph =
+        editPanel.append(document.createElement('p')..classes = ['trace']);
+    traceParagraph.append(document.createElement('span')
+      ..classes = ['type-description']
+      ..append(Text(trace.description)));
+    traceParagraph.append(Text(':'));
+    var ul = traceParagraph
+        .append(document.createElement('ul')..classes = ['trace']);
+    for (var entry in trace.entries) {
+      var li = ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
+      li.append(document.createElement('span')
+        ..classes = ['function']
+        ..append(Text(entry.function ?? 'unknown')));
+      var link = entry.link;
+      if (link != null) {
+        li.append(Text(' ('));
+        li.append(_aElementForLink(link, parentDirectory));
+        li.append(Text(')'));
+      }
+      li.append(Text(': '));
+      li.append(Text(entry.description));
+    }
+  }
 }
 
 class _PermissiveNodeValidator implements NodeValidator {
