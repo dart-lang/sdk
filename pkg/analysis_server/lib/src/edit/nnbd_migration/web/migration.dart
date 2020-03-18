@@ -25,7 +25,7 @@ void main() {
     loadNavigationTree();
     if (path != '/' && path != rootPath) {
       // TODO(srawlins): replaceState?
-      loadFile(path, offset, lineNumber, callback: () {
+      loadFile(path, offset, lineNumber, true, callback: () {
         pushState(path, offset, lineNumber);
       });
     }
@@ -49,10 +49,10 @@ void main() {
     int offset = getOffset(window.location.href);
     int lineNumber = getLine(window.location.href);
     if (path.length > 1) {
-      loadFile(path, offset, lineNumber);
+      loadFile(path, offset, lineNumber, false);
     } else {
       // Blank out the page, for the index screen.
-      writeCodeAndRegions(path, FileDetails.empty());
+      writeCodeAndRegions(path, FileDetails.empty(), true);
       updatePage('&nbsp;', null);
     }
   });
@@ -79,7 +79,7 @@ void addArrowClickHandler(Element arrow) {
   });
 }
 
-void addClickHandlers(String selector) {
+void addClickHandlers(String selector, bool clearEditDetails) {
   Element parentElement = document.querySelector(selector);
 
   // Add navigation handlers for navigation links in the source code.
@@ -88,7 +88,7 @@ void addClickHandlers(String selector) {
     link.onClick.listen((event) {
       Element tableElement = document.querySelector('table[data-path]');
       String parentPath = tableElement.dataset['path'];
-      handleNavLinkClick(event, relativeTo: parentPath);
+      handleNavLinkClick(event, clearEditDetails, relativeTo: parentPath);
     });
   });
 
@@ -134,7 +134,8 @@ int getOffset(String location) {
 }
 
 void handleNavLinkClick(
-  MouseEvent event, {
+  MouseEvent event,
+  bool clearEditDetails, {
   String relativeTo,
 }) {
   Element target = event.currentTarget;
@@ -153,11 +154,11 @@ void handleNavLinkClick(
   int lineNumber = getLine(location);
 
   if (offset != null) {
-    navigate(path, offset, lineNumber, callback: () {
+    navigate(path, offset, lineNumber, clearEditDetails, callback: () {
       pushState(path, offset, lineNumber);
     });
   } else {
-    navigate(path, null, null, callback: () {
+    navigate(path, null, null, clearEditDetails, callback: () {
       pushState(path, null, null);
     });
   }
@@ -202,7 +203,7 @@ void loadAndPopulateEditDetails(String path, int offset) {
     if (xhr.status == 200) {
       var response = EditDetails.fromJson(jsonDecode(xhr.responseText));
       populateEditDetails(response);
-      addClickHandlers('.edit-panel .panel-content');
+      addClickHandlers('.edit-panel .panel-content', false);
     } else {
       window.alert('Request failed; status of ${xhr.status}');
     }
@@ -218,12 +219,13 @@ void loadAndPopulateEditDetails(String path, int offset) {
 void loadFile(
   String path,
   int offset,
-  int line, {
+  int line,
+  bool clearEditDetails, {
   VoidCallback callback,
 }) {
   // Handle the case where we're requesting a directory.
   if (!path.endsWith('.dart')) {
-    writeCodeAndRegions(path, FileDetails.empty());
+    writeCodeAndRegions(path, FileDetails.empty(), clearEditDetails);
     updatePage(path);
     if (callback != null) {
       callback();
@@ -239,7 +241,8 @@ void loadFile(
   ).then((HttpRequest xhr) {
     if (xhr.status == 200) {
       Map<String, dynamic> response = jsonDecode(xhr.responseText);
-      writeCodeAndRegions(path, FileDetails.fromJson(response));
+      writeCodeAndRegions(
+          path, FileDetails.fromJson(response), clearEditDetails);
       maybeScrollToAndHighlight(offset, line);
       String filePathPart =
           path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
@@ -336,7 +339,8 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
 void navigate(
   String path,
   int offset,
-  int lineNumber, {
+  int lineNumber,
+  bool clearEditDetails, {
   VoidCallback callback,
 }) {
   int currentOffset = getOffset(window.location.href);
@@ -349,7 +353,7 @@ void navigate(
       callback();
     }
   } else {
-    loadFile(path, offset, lineNumber, callback: callback);
+    loadFile(path, offset, lineNumber, clearEditDetails, callback: callback);
   }
 }
 
@@ -384,7 +388,8 @@ void populateEditDetails([EditDetails response]) {
 }
 
 /// Write the contents of the Edit List, from JSON data [editListData].
-void populateProposedEdits(String path, List<EditListItem> edits) {
+void populateProposedEdits(
+    String path, List<EditListItem> edits, bool clearEditDetails) {
   Element editListElement = document.querySelector('.edit-list .panel-content');
   editListElement.innerHtml = '';
 
@@ -408,7 +413,7 @@ void populateProposedEdits(String path, List<EditListItem> edits) {
     anchor.dataset['line'] = '$line';
     anchor.append(Text('line $line'));
     anchor.onClick.listen((MouseEvent event) {
-      navigate(window.location.pathname, offset, line, callback: () {
+      navigate(window.location.pathname, offset, line, true, callback: () {
         pushState(window.location.pathname, offset, line);
       });
       loadAndPopulateEditDetails(path, offset);
@@ -416,8 +421,9 @@ void populateProposedEdits(String path, List<EditListItem> edits) {
     item.append(Text(': ${edit.explanation}'));
   }
 
-  // Clear out any existing edit details.
-  populateEditDetails();
+  if (clearEditDetails) {
+    populateEditDetails();
+  }
 }
 
 void pushState(String path, int offset, int line) {
@@ -478,17 +484,17 @@ void updatePage(String path, [int offset]) {
 }
 
 /// Load data from [data] into the .code and the .regions divs.
-void writeCodeAndRegions(String path, FileDetails data) {
+void writeCodeAndRegions(String path, FileDetails data, bool clearEditDetails) {
   Element regionsElement = document.querySelector('.regions');
   Element codeElement = document.querySelector('.code');
 
   _PermissiveNodeValidator.setInnerHtml(regionsElement, data.regions);
   _PermissiveNodeValidator.setInnerHtml(codeElement, data.navigationContent);
-  populateProposedEdits(path, data.edits);
+  populateProposedEdits(path, data.edits, clearEditDetails);
 
   highlightAllCode();
-  addClickHandlers('.code');
-  addClickHandlers('.regions');
+  addClickHandlers('.code', true);
+  addClickHandlers('.regions', true);
 }
 
 void writeNavigationSubtree(
@@ -513,7 +519,7 @@ void writeNavigationSubtree(
       a.dataset['name'] = entity.path;
       a.setAttribute('href', entity.href);
       a.append(Text(entity.name));
-      a.onClick.listen(handleNavLinkClick);
+      a.onClick.listen((MouseEvent event) => handleNavLinkClick(event, true));
       int editCount = entity.editCount;
       if (editCount > 0) {
         Element editsBadge = li.append(document.createElement('span'));
