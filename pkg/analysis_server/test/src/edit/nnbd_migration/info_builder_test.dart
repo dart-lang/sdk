@@ -1778,9 +1778,21 @@ void f(int /*!*/ i) {
         .where(
             (regionInfo) => regionInfo.offset == unit.content.indexOf('/* if'))
         .single;
-    // The reason data associated with dead code removal is a non-nullable node,
-    // and we don't currently generate a trace for non-nullable nodes.
-    expect(region.traces, isEmpty);
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Non-nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(3));
+    // Entry 0 is the nullability of f's argument
+    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int'));
+    // Entry 1 is the edge from f's argument to never, due to the `/*!*/` hint.
+    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int'));
+    // Entry 2 is the "never" node.
+    // TODO(paulberry): this node provides no additional useful information and
+    // shouldn't be included in the trace.
+    expect(entries[2].description, 'never');
+    expect(entries[2].function, null);
+    expect(entries[2].target, null);
   }
 
   Future<void> test_trace_nullableType() async {

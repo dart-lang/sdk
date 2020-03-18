@@ -551,6 +551,8 @@ class InfoBuilder {
       if (reason is NullabilityNodeInfo) {
         if (reason.isNullable) {
           _computeTraceNullableInfo(reason, traces);
+        } else {
+          _computeTraceNonNullableInfo(reason, traces);
         }
       } else if (reason is EdgeInfo) {
         assert(reason.sourceNode.isNullable);
