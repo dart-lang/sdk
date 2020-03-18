@@ -3681,11 +3681,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         LibraryElement library = type.element.library;
         if (library != _currentLibrary) {
           for (PropertyAccessorElement accessor in type.accessors) {
+            if (accessor.isStatic) {
+              continue;
+            }
             if (isConflictingName(accessor.name, library, mixinType)) {
               return;
             }
           }
           for (MethodElement method in type.methods) {
+            if (method.isStatic) {
+              continue;
+            }
             if (isConflictingName(method.name, library, mixinType)) {
               return;
             }

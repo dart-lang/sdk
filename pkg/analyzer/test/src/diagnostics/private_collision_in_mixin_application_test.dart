@@ -71,6 +71,42 @@ class D extends C with B {}
     ]);
   }
 
+  test_class_staticAndInstanceElement() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  static void _foo() {}
+}
+
+class B {
+  void _foo() {}
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+class C extends Object with A, B {}
+''');
+  }
+
+  test_class_staticElements() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  static void _foo() {}
+}
+
+class B {
+  static void _foo() {}
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+class C extends Object with A, B {}
+''');
+  }
+
   test_class_superclassAndMixin_getter2() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
