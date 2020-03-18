@@ -33,9 +33,9 @@ void test(Future<Process> future, int expectedExitCode) {
 
 main() {
   var scriptName = "process_stdin_transform_unsubscribe_script.dart";
-  var scriptFile = new File("tests/standalone_2/io/$scriptName");
+  var scriptFile = new File("tests/standalone/io/$scriptName");
   if (!scriptFile.existsSync()) {
-    scriptFile = new File("../tests/standalone_2/io/$scriptName");
+    scriptFile = new File("../tests/standalone/io/$scriptName");
   }
   Expect.isTrue(scriptFile.existsSync());
   test(

@@ -15,9 +15,10 @@ import "package:async_helper/async_helper.dart";
 
 fuzzSyncMethods() {
   typeMapping.forEach((k, v) {
-    late File f;
-    doItSync(() => f = new File(v as String));
-    if (f == null) return;
+    File? file;
+    doItSync(() => file = new File(v as String));
+    if (file == null) return;
+    final f = file!;
     doItSync(f.existsSync);
     doItSync(f.createSync);
     doItSync(f.deleteSync);
@@ -41,9 +42,10 @@ fuzzAsyncMethods() {
   asyncStart();
   var futures = <Future>[];
   typeMapping.forEach((k, v) {
-    late File f;
-    doItSync(() => f = new File(v as String));
-    if (f == null) return;
+    File? file;
+    doItSync(() => file = new File(v as String));
+    if (file == null) return;
+    final f = file!;
     futures.add(doItAsync(f.exists));
     futures.add(doItAsync(f.delete));
     futures.add(doItAsync(() => f.parent));

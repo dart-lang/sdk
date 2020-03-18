@@ -16,16 +16,16 @@ main() {
   // All of these tests test that resolveSymbolicLinks gives a path
   // that points to the same place as the original, and that it removes
   // all links, .., and . segments, and that it produces an absolute path.
-  asyncTest(() => testFile(join(
-      testsDir, 'standalone_2', 'io', 'resolve_symbolic_links_test.dart')));
-  asyncTest(() => testFile(join(testsDir, 'standalone_2', 'io', '..', 'io',
+  asyncTest(() => testFile(
+      join(testsDir, 'standalone', 'io', 'resolve_symbolic_links_test.dart')));
+  asyncTest(() => testFile(join(testsDir, 'standalone', 'io', '..', 'io',
       'resolve_symbolic_links_test.dart')));
 
-  asyncTest(() => testDir(join(testsDir, 'standalone_2', 'io')));
-  asyncTest(() => testDir(join(testsDir, 'lib_2', '..', 'standalone_2', 'io')));
+  asyncTest(() => testDir(join(testsDir, 'standalone', 'io')));
+  asyncTest(() => testDir(join(testsDir, 'lib_2', '..', 'standalone', 'io')));
   // Test a relative path.
   if (Platform.isWindows) {
-    asyncTest(() => testFile(join('\\\\?\\$testsDir', 'standalone_2', 'io',
+    asyncTest(() => testFile(join('\\\\?\\$testsDir', 'standalone', 'io',
         'resolve_symbolic_links_test.dart')));
     asyncTest(() => testDir('\\\\?\\$testsDir'));
   }

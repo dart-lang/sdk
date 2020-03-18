@@ -12,7 +12,7 @@ import "process_test_util.dart";
 runEnvironmentProcess(
     Map<String, String> environment, name, includeParent, callback) {
   var dartExecutable = Platform.executable;
-  var printEnv = 'tests/standalone_2/io/print_env.dart';
+  var printEnv = 'tests/standalone/io/print_env.dart';
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }

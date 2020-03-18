@@ -55,11 +55,9 @@ test(scriptFile, String encoding, stream) {
 }
 
 main() {
-  var scriptFile =
-      new File("tests/standalone_2/io/process_std_io_script2.dart");
+  var scriptFile = new File("tests/standalone/io/process_std_io_script2.dart");
   if (!scriptFile.existsSync()) {
-    scriptFile =
-        new File("../tests/standalone_2/io/process_std_io_script2.dart");
+    scriptFile = new File("../tests/standalone/io/process_std_io_script2.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
   test(scriptFile.path, 'ascii', 'stdout');

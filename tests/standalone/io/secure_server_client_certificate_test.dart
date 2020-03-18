@@ -67,7 +67,7 @@ Future testClientCertificate(
       : clientNoCertContext(certType, password);
   var clientEndFuture =
       SecureSocket.connect(HOST, server.port, context: clientContext);
-  if (required && sendCert) {
+  if (required && !sendCert) {
     try {
       await server.first;
     } catch (e) {
