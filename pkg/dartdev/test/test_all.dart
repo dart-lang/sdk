@@ -8,6 +8,7 @@ import 'commands/analyze_test.dart' as analyze;
 import 'commands/create_test.dart' as create;
 import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
+import 'commands/help_test.dart' as help;
 import 'commands/migrate_test.dart' as migrate;
 import 'commands/pub_test.dart' as pub;
 import 'commands/test_test.dart' as test;
@@ -16,11 +17,12 @@ import 'sdk_test.dart' as sdk;
 import 'utils_test.dart' as utils;
 
 main() {
-  group('dartdev', () {
+  group('dart', () {
     analyze.main();
     create.main();
     flag.main();
     format.main();
+    help.main();
     migrate.main();
     pub.main();
     test.main();
