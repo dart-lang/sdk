@@ -623,7 +623,11 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
     if (instantiator_type_arguments_.IsNull()) {
       return Type::DynamicType();
     }
-    return instantiator_type_arguments_.TypeAt(parameter.index());
+    AbstractType& result = AbstractType::Handle(
+        instantiator_type_arguments_.TypeAt(parameter.index()));
+    result = result.SetInstantiatedNullability(TypeParameter::Cast(type),
+                                               Heap::kOld);
+    return result.NormalizeInstantiatedType(Heap::kOld);
   } else if (type.IsFunctionType()) {
     // No support for function types yet.
     UNREACHABLE();
@@ -847,7 +851,7 @@ void TypeUsageInfo::UpdateAssertAssignableTypes(
   // eagerly and avoid doing it down inside the loop.
   type = Type::DynamicType();
   UseTypeInAssertAssignable(type);
-  type = Type::ObjectType();
+  type = Type::ObjectType();  // TODO(regis): Add nullable Object?
   UseTypeInAssertAssignable(type);
 
   for (intptr_t cid = 0; cid < cid_count; ++cid) {

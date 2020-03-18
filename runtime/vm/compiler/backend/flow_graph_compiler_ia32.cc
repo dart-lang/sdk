@@ -286,18 +286,14 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     return GenerateSubtype1TestCacheLookup(
         token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
   }
-  // If one type argument only, check if type argument is Object or dynamic.
+  // If one type argument only, check if type argument is a top type.
   if (type_arguments.Length() == 1) {
     const AbstractType& tp_argument =
         AbstractType::ZoneHandle(zone(), type_arguments.TypeAt(0));
-    if (tp_argument.IsType()) {
-      // Check if type argument is dynamic, Object, or void.
-      const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-      if (object_type.IsSubtypeOf(tp_argument, Heap::kOld)) {
-        // Instance class test only necessary.
-        return GenerateSubtype1TestCacheLookup(
-            token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
-      }
+    if (tp_argument.IsTopType()) {
+      // Instance class test only necessary.
+      return GenerateSubtype1TestCacheLookup(
+          token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
     }
   }
   // Regular subtype test cache involving instance's type arguments.
@@ -458,10 +454,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
                      kTypeArgumentsReg,
                      TypeArguments::type_at_offset(type_param.index())));
     // EDI: concrete type of type.
-    // Check if type argument is dynamic, Object, or void.
+    // Check if type argument is dynamic, Object?, or void.
     __ CompareObject(EDI, Object::dynamic_type());
     __ j(EQUAL, is_instance_lbl);
-    __ CompareObject(EDI, Type::ZoneHandle(zone(), Type::ObjectType()));
+    __ CompareObject(
+        EDI, Type::ZoneHandle(
+                 zone(), isolate()->object_store()->nullable_object_type()));
     __ j(EQUAL, is_instance_lbl);
     __ CompareObject(EDI, Object::void_type());
     __ j(EQUAL, is_instance_lbl);
