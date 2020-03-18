@@ -254,6 +254,8 @@ abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue: false});
 
+  external const factory bool.hasEnvironment(String name);
+
   bool operator &(bool other);
   bool operator |(bool other);
   bool operator ^(bool other);

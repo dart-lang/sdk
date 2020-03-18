@@ -132,6 +132,21 @@ const b = bool.fromEnvironment('b', defaultValue: true);
     );
   }
 
+  test_visitInstanceCreationExpression_bool_hasEnvironment() async {
+    await resolveTestCode('''
+const a = bool.hasEnvironment('a');
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+
+    expect(
+      _evaluateConstant('a', declaredVariables: {'a': '42'}),
+      _boolValue(true),
+    );
+  }
+
   test_visitInstanceCreationExpression_int_fromEnvironment() async {
     await resolveTestCode('''
 const a = int.fromEnvironment('a');

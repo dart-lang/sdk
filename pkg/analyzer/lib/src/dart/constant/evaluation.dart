@@ -501,6 +501,10 @@ class ConstantEvaluationEngine {
           return _fromEnvironmentEvaluator.getString2(
               variableName, namedValues, constructor);
         }
+      } else if (constructor.name == 'hasEnvironment' &&
+          definingClass == typeProvider.boolType) {
+        var name = argumentCount < 1 ? null : argumentValues[0].toStringValue();
+        return _fromEnvironmentEvaluator.hasEnvironment(name);
       } else if (constructor.name == "" &&
           definingClass == typeProvider.symbolType &&
           argumentCount == 1) {
