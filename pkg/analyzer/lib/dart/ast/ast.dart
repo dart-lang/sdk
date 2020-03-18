@@ -837,9 +837,13 @@ abstract class BreakStatement implements Statement {
 ///      | identifier
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class CascadeExpression implements Expression {
+abstract class CascadeExpression
+    implements Expression, NullShortableExpression {
   /// Return the cascade sections sharing the common target.
   NodeList<Expression> get cascadeSections;
+
+  /// Whether this cascade is null aware (as opposed to non-null).
+  bool get isNullAware;
 
   /// Return the target of the cascade sections.
   Expression get target;

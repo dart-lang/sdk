@@ -1794,6 +1794,66 @@ void testShort(C? c) {
     );
   }
 
+  test_nullShorting_cascade_firstMethodInvocation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo() => 0;
+  int bar() => 0;
+}
+
+main(A? a) {
+  a?..foo()..bar();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('..foo()'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('..bar()'),
+      element: findElement.method('bar'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertType(findNode.cascade('a?'), 'A?');
+  }
+
+  test_nullShorting_cascade_firstPropertyAccess() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+  int bar() => 0;
+}
+
+main(A? a) {
+  a?..foo..bar();
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('..foo'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('..bar()'),
+      element: findElement.method('bar'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertType(findNode.cascade('a?'), 'A?');
+  }
+
   test_hasReceiver_interfaceTypeQ_defined() async {
     await assertErrorsInCode(r'''
 class A {

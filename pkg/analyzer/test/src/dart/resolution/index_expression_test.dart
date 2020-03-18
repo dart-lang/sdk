@@ -247,14 +247,14 @@ class IndexExpressionWithNnbdTest extends IndexExpressionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  test_cascade_read_nullable() async {
+  test_read_cascade_nullShorting() async {
     await assertNoErrorsInCode(r'''
 class A {
   bool operator[](int index) => false;
 }
 
 main(A? a) {
-  a?..[0];
+  a?..[0]..[1];
 }
 ''');
 
@@ -264,8 +264,17 @@ main(A? a) {
       findNode.index('..[0]'),
       readElement: indexElement,
       writeElement: null,
-      type: 'bool?',
+      type: 'bool',
     );
+
+    assertIndexExpression(
+      findNode.index('..[1]'),
+      readElement: indexElement,
+      writeElement: null,
+      type: 'bool',
+    );
+
+    assertType(findNode.cascade('a?'), 'A?');
   }
 
   test_read_nullable() async {
@@ -390,6 +399,36 @@ main(A? a) {
       assignment.rightHandSide,
       numPlusElement.parameters[0],
     );
+  }
+
+  test_write_cascade_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void operator[]=(int index, A a) {}
+}
+
+main(A? a) {
+  a?..[0] = a..[1] = a;
+}
+''');
+
+    var indexEqElement = findElement.method('[]=');
+
+    assertIndexExpression(
+      findNode.index('..[0]'),
+      readElement: null,
+      writeElement: indexEqElement,
+      type: null,
+    );
+
+    assertIndexExpression(
+      findNode.index('..[1]'),
+      readElement: null,
+      writeElement: indexEqElement,
+      type: null,
+    );
+
+    assertType(findNode.cascade('a?'), 'A?');
   }
 
   test_write_nullable() async {

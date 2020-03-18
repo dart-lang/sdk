@@ -535,6 +535,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(access, expectedType);
   }
 
+  void assertPropertyAccess2(
+    PropertyAccess node, {
+    @required Object element,
+    @required String type,
+  }) {
+    assertElement(node.propertyName.staticElement, element);
+    assertType(node.staticType, type);
+  }
+
   void assertSimpleIdentifier(
     SimpleIdentifier node, {
     @required Object element,
