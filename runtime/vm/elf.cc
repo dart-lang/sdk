@@ -650,7 +650,8 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
 
 void Elf::AddStaticSymbol(intptr_t section,
                           const char* name,
-                          size_t memory_offset) {
+                          intptr_t address,
+                          intptr_t size) {
   // Lazily allocate the static string and symbol tables, as we only add static
   // symbols in unstripped ELF files.
   if (strtab_ == nullptr) {
@@ -661,8 +662,8 @@ void Elf::AddStaticSymbol(intptr_t section,
 
   auto const name_index = strtab_->AddString(name);
   auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
-  Symbol* symbol = new (zone_)
-      Symbol(name, name_index, info, section, memory_offset, /*size=*/0);
+  Symbol* symbol =
+      new (zone_) Symbol(name, name_index, info, section, address, size);
   symtab_->AddSymbol(symbol);
 }
 

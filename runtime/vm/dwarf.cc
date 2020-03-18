@@ -124,7 +124,8 @@ void Dwarf::AddCode(const Code& code,
   ASSERT(name != nullptr);
   ASSERT(payload_start >= 0);
   auto const virtual_address = elf_->NextMemoryOffset() + payload_start;
-  elf_->AddStaticSymbol(elf_->NextSectionIndex(), name, virtual_address);
+  elf_->AddStaticSymbol(elf_->NextSectionIndex(), name, virtual_address,
+                        code.Size());
 
   ASSERT(!code.IsNull());
   ASSERT(code_to_address_.Lookup(&code) == nullptr);
