@@ -18062,17 +18062,29 @@ RawAbstractType* AbstractType::SetInstantiatedNullability(
       .SetInstantiatedNullability(type_param, space);
 }
 
-RawAbstractType* AbstractType::NormalizeInstantiatedType() const {
+RawAbstractType* AbstractType::NormalizeInstantiatedType(
+    Heap::Space space) const {
   if (Dart::non_nullable_flag()) {
     // Normalize FutureOr<T>.
     if (IsFutureOrType()) {
       const AbstractType& unwrapped_type =
           AbstractType::Handle(UnwrapFutureOr());
       const classid_t cid = unwrapped_type.type_class_id();
-      if (cid == kDynamicCid || cid == kVoidCid || cid == kInstanceCid) {
+      if (cid == kDynamicCid || cid == kVoidCid) {
         return unwrapped_type.raw();
       }
-      if (cid == kNeverCid && IsNonNullable()) {
+      if (cid == kInstanceCid) {
+        if (IsNonNullable()) {
+          return unwrapped_type.raw();
+        }
+        if (IsNullable() || unwrapped_type.IsNullable()) {
+          return Type::Cast(unwrapped_type)
+              .ToNullability(Nullability::kNullable, space);
+        }
+        return Type::Cast(unwrapped_type)
+            .ToNullability(Nullability::kLegacy, space);
+      }
+      if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
         ObjectStore* object_store = Isolate::Current()->object_store();
         if (object_store->non_nullable_future_never_type() == Type::null()) {
           const Class& cls = Class::Handle(object_store->future_class());
@@ -18087,7 +18099,9 @@ RawAbstractType* AbstractType::NormalizeInstantiatedType() const {
           type ^= type.Canonicalize();
           object_store->set_non_nullable_future_never_type(type);
         }
-        return object_store->non_nullable_future_never_type();
+        const Type& future_never_type =
+            Type::Handle(object_store->non_nullable_future_never_type());
+        return future_never_type.ToNullability(nullability(), space);
       }
       if (cid == kNullCid) {
         ObjectStore* object_store = Isolate::Current()->object_store();
@@ -18105,6 +18119,10 @@ RawAbstractType* AbstractType::NormalizeInstantiatedType() const {
           object_store->set_nullable_future_null_type(type);
         }
         return object_store->nullable_future_null_type();
+      }
+      if (IsNullable() && unwrapped_type.IsNullable()) {
+        return Type::Cast(*this).ToNullability(Nullability::kNonNullable,
+                                               space);
       }
     }
   }
@@ -18972,7 +18990,7 @@ RawAbstractType* Type::InstantiateFrom(
     }
   }
   // Canonicalization is not part of instantiation.
-  return instantiated_type.NormalizeInstantiatedType();
+  return instantiated_type.NormalizeInstantiatedType(space);
 }
 
 bool Type::IsEquivalent(const Instance& other,
@@ -19836,7 +19854,7 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     AbstractType& result =
         AbstractType::Handle(function_type_arguments.TypeAt(index()));
     result = result.SetInstantiatedNullability(*this, space);
-    return result.NormalizeInstantiatedType();
+    return result.NormalizeInstantiatedType(space);
   }
   ASSERT(IsClassTypeParameter());
   if (instantiator_type_arguments.IsNull()) {
@@ -19854,7 +19872,7 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   AbstractType& result =
       AbstractType::Handle(instantiator_type_arguments.TypeAt(index()));
   result = result.SetInstantiatedNullability(*this, space);
-  return result.NormalizeInstantiatedType();
+  return result.NormalizeInstantiatedType(space);
   // There is no need to canonicalize the instantiated type parameter, since all
   // type arguments are canonicalized at type finalization time. It would be too
   // early to canonicalize the returned type argument here, since instantiation
