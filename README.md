@@ -61,6 +61,6 @@ You can also contribute patches, as described in [Contributing][contrib].
 [tools]: https://www.dartlang.org/tools/
 [codelab]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
-[contrib]: https://github.com/dart-lang/sdk/wiki/Contributing
+[contrib]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
 [pubsite]: https://pub.dev
 [patent_grant]: https://github.com/dart-lang/sdk/blob/master/PATENT_GRANT
