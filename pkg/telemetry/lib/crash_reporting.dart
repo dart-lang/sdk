@@ -126,15 +126,20 @@ class CrashReportSender {
       }
 
       final Chain chain = new Chain.forTrace(stackTrace);
-      req.files.add(new http.MultipartFile.fromString(
-          _stackTraceFileField, chain.terse.toString(),
-          filename: _stackTraceFilename));
+      req.files.add(
+        new http.MultipartFile.fromString(
+          _stackTraceFileField,
+          chain.terse.toString(),
+          filename: _stackTraceFilename,
+        ),
+      );
 
       for (var attachment in attachments) {
         req.files.add(
           new http.MultipartFile.fromString(
             attachment._field,
             attachment._value,
+            filename: attachment._field,
           ),
         );
       }
