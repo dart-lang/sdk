@@ -1323,9 +1323,10 @@
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "corelib",
             "ffi",
             "language",
-            "lib/mirrors",
+            "lib",
             "standalone/io"
           ]
         },
@@ -1333,9 +1334,10 @@
           "name": "vm nnbd tests in strong mode",
           "arguments": [
             "-ndartkp-strong-${system}-${mode}-${arch}",
+            "corelib",
             "ffi",
             "language",
-            "lib/mirrors",
+            "lib",
             "standalone/io"
           ]
         }
@@ -1726,9 +1728,10 @@
           "name": "vm nnbd test in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "corelib",
             "ffi",
             "language",
-            "lib/mirrors",
+            "lib",
             "standalone/io"
           ]
         },
@@ -1736,9 +1739,10 @@
           "name": "vm nnbd tests in strong mode",
           "arguments": [
             "-ndartk-strong-${system}-${mode}-${arch}",
+            "corelib",
             "ffi",
             "language",
-            "lib/mirrors",
+            "lib",
             "standalone/io"
           ]
         }
