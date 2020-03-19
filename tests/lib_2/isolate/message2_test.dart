@@ -11,8 +11,8 @@
 library Message2Test;
 
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 // ---------------------------------------------------------------------------
 // Message passing test 2.
@@ -20,14 +20,12 @@ import "remote_unittest_helper.dart";
 
 class MessageTest {
   static void mapEqualsDeep(Map expected, Map actual) {
-    expect(expected, isMap);
-    expect(actual, isMap);
-    expect(actual.length, expected.length);
+    Expect.equals(actual.length, expected.length);
     testForEachMap(key, value) {
       if (value is List) {
         listEqualsDeep(value, actual[key]);
       } else {
-        expect(actual[key], value);
+        Expect.equals(actual[key], value);
       }
     }
 
@@ -37,11 +35,13 @@ class MessageTest {
   static void listEqualsDeep(List expected, List actual) {
     for (int i = 0; i < expected.length; i++) {
       if (expected[i] is List) {
+        Expect.type<List>(actual[i]);
         listEqualsDeep(expected[i], actual[i]);
       } else if (expected[i] is Map) {
+        Expect.type<Map>(actual[i]);
         mapEqualsDeep(expected[i], actual[i]);
       } else {
-        expect(actual[i], expected[i]);
+        Expect.equals(actual[i], expected[i]);
       }
     }
   }
@@ -50,7 +50,8 @@ class MessageTest {
 void pingPong(replyPort) {
   ReceivePort port = new ReceivePort();
   port.listen((message) {
-    if (message == null) {
+    if (message is SendPort) {
+      message.send('done');
       port.close();
     } else {
       // Bounce the received object back so that the sender
@@ -62,22 +63,25 @@ void pingPong(replyPort) {
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
-  test("map is equal after it is sent back and forth", () {
-    ReceivePort port = new ReceivePort();
-    Isolate.spawn(pingPong, port.sendPort);
-    port.first.then(expectAsync((remote) {
-      Map m = new Map();
-      m[1] = "eins";
-      m[2] = "deux";
-      m[3] = "tre";
-      m[4] = "four";
-      ReceivePort replyPort = new ReceivePort();
-      remote.send([m, replyPort.sendPort]);
-      replyPort.first.then(expectAsync((var received) {
+  ReceivePort port = new ReceivePort();
+  Isolate.spawn(pingPong, port.sendPort);
+  asyncStart();
+  port.first.then((remote) {
+    Map m = new Map();
+    m[1] = "eins";
+    m[2] = "deux";
+    m[3] = "tre";
+    m[4] = "four";
+    ReceivePort replyPort = new ReceivePort();
+    remote.send([m, replyPort.sendPort]);
+    replyPort.listen((var received) {
+      if (received == 'done') {
+        replyPort.close();
+        asyncEnd();
+      } else {
         MessageTest.mapEqualsDeep(m, received);
-        remote.send(null);
-      }));
-    }));
+        remote.send(replyPort.sendPort);
+      }
+    });
   });
 }

@@ -8,8 +8,8 @@
 library RequestReplyTest;
 
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 void entry(initPort) {
   ReceivePort port = new ReceivePort();
@@ -23,17 +23,16 @@ void entry(initPort) {
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
-  test("send", () {
-    ReceivePort init = new ReceivePort();
-    Isolate.spawn(entry, init.sendPort);
-    init.first.then(expectAsync((port) {
-      ReceivePort reply = new ReceivePort();
-      port.send([99, reply.sendPort]);
-      reply.listen(expectAsync((message) {
-        expect(message, 99 + 87);
-        reply.close();
-      }));
-    }));
+  ReceivePort init = new ReceivePort();
+  Isolate.spawn(entry, init.sendPort);
+  asyncStart();
+  init.first.then((port) {
+    ReceivePort reply = new ReceivePort();
+    port.send([99, reply.sendPort]);
+    reply.listen((message) {
+      Expect.equals(message, 99 + 87);
+      reply.close();
+      asyncEnd();
+    });
   });
 }

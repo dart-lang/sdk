@@ -10,8 +10,8 @@ library unresolved_ports;
 
 import 'dart:async';
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 // This test does the following:
 //  - main spawns two isolates: 'tim' and 'beth'
@@ -57,32 +57,27 @@ ReceivePort initIsolate(SendPort starter) {
 }
 
 baseTest({bool failForNegativeTest: false}) {
-  test('Message chain with unresolved ports', () {
-    ReceivePort port = new ReceivePort();
-    port.listen(expectAsync((msg) {
-      expect(
-          msg,
-          equals('main says: Beth, find out if Tim is coming.'
-              '\nBeth says: Tim are you coming? And Bob?'
-              '\nTim says: Can you tell "main" that we are all coming?'
-              '\nBob says: we are all coming!'));
-      expect(failForNegativeTest, isFalse);
-      port.close();
-    }));
+  // Message chain with unresolved ports
+  ReceivePort port = new ReceivePort();
+  asyncStart();
+  port.listen((msg) {
+    Expect.equals(
+        msg,
+        'main says: Beth, find out if Tim is coming.'
+        '\nBeth says: Tim are you coming? And Bob?'
+        '\nTim says: Can you tell "main" that we are all coming?'
+        '\nBob says: we are all coming!');
+    Expect.isFalse(failForNegativeTest);
+    port.close();
+    asyncEnd();
+  });
 
-    spawnFunction(timIsolate).then((tim) {
-      spawnFunction(bethIsolate).then((beth) {
-        beth.send([
-          'main says: Beth, find out if Tim is coming.',
-          tim,
-          port.sendPort
-        ]);
-      });
+  spawnFunction(timIsolate).then((tim) {
+    spawnFunction(bethIsolate).then((beth) {
+      beth.send(
+          ['main says: Beth, find out if Tim is coming.', tim, port.sendPort]);
     });
   });
 }
 
-void main([args, port]) {
-  if (testRemote(main, port)) return;
-  baseTest();
-}
+void main([args, port]) => baseTest();

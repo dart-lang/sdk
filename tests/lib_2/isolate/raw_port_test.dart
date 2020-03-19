@@ -9,9 +9,10 @@
 
 library raw_port_test;
 
+import 'dart:async';
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import 'remote_unittest_helper.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 void remote(SendPort port) {
   port.send("reply");
@@ -22,52 +23,63 @@ void remote2(SendPort port) {
   port.send("reply 2");
 }
 
-main([args, port]) {
-  if (testRemote(main, port)) return;
-
-  test("raw receive", () {
+main([args, port]) async {
+  // Raw receive
+  asyncTest(() {
+    final completer = Completer<void>();
     RawReceivePort port = new RawReceivePort();
     Isolate.spawn(remote, port.sendPort);
-    port.handler = expectAsync((v) {
-      expect(v, "reply");
+    port.handler = (v) {
+      Expect.equals(v, "reply");
       port.close();
-    });
+      completer.complete();
+    };
+    return completer.future;
   });
 
-  test("raw receive hashCode", () {
+  // Raw receive hashCode
+  {
     RawReceivePort port = new RawReceivePort();
-    expect(port.hashCode is int, true);
+    Expect.isTrue(port.hashCode is int);
     port.close();
-  });
+  }
 
-  test("raw receive twice - change handler", () {
+  // Raw receive twice - change handler
+  asyncTest(() {
+    final completer = Completer<void>();
     RawReceivePort port = new RawReceivePort();
     Isolate.spawn(remote2, port.sendPort);
-    port.handler = expectAsync((v) {
-      expect(v, "reply 1");
-      port.handler = expectAsync((v) {
-        expect(v, "reply 2");
+    port.handler = (v) {
+      Expect.equals(v, "reply 1");
+      port.handler = (v) {
+        Expect.equals(v, "reply 2");
         port.close();
-      });
-    });
+        completer.complete();
+      };
+    };
+    return completer.future;
   });
 
-  test("from-raw-port", () {
+  // From raw port
+  asyncTest(() {
+    final completer = Completer<void>();
     RawReceivePort rawPort = new RawReceivePort();
     Isolate.spawn(remote, rawPort.sendPort);
-    rawPort.handler = expectAsync((v) {
-      expect(v, "reply");
+    rawPort.handler = (v) {
+      Expect.equals(v, "reply");
       ReceivePort port = new ReceivePort.fromRawReceivePort(rawPort);
       Isolate.spawn(remote, rawPort.sendPort);
       Isolate.spawn(remote, port.sendPort);
       int ctr = 2;
       port.listen(
-          expectAsync((v) {
-            expect(v, "reply");
-            ctr--;
-            if (ctr == 0) port.close();
-          }, count: 2),
-          onDone: expectAsync(() {}));
-    });
+        (v) {
+          Expect.equals(v, "reply");
+          ctr--;
+          if (ctr == 0) port.close();
+        },
+        onDone: () => completer.complete(),
+      );
+    };
+    return completer.future;
   });
 }

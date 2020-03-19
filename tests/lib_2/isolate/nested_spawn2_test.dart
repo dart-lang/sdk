@@ -12,14 +12,14 @@
 library NestedSpawn2Test;
 
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 void isolateA(SendPort init) {
   ReceivePort port = new ReceivePort();
   init.send(port.sendPort);
   port.first.then((message) {
-    expect(message[0], "launch nested!");
+    Expect.equals(message[0], "launch nested!");
     SendPort replyTo = message[1];
     Isolate.spawn(isolateB, replyTo);
   });
@@ -45,11 +45,11 @@ void isolateB(SendPort mainPort) {
   // Do a little ping-pong dance to give the intermediate isolate
   // time to die.
   _call(mainPort, msg0, ((msg, replyTo) {
-    expect(msg[0], "1");
+    Expect.equals(msg[0], "1");
     _call(replyTo, msg2, ((msg, replyTo) {
-      expect(msg[0], "3");
+      Expect.equals(msg[0], "3");
       _call(replyTo, msg4, ((msg, replyTo) {
-        expect(msg[0], "5");
+        Expect.equals(msg[0], "5");
         replyTo.send([msg6, null]);
       }));
     }));
@@ -57,23 +57,23 @@ void isolateB(SendPort mainPort) {
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
-  test("spawned isolate can spawn other isolates", () {
-    ReceivePort init = new ReceivePort();
-    Isolate.spawn(isolateA, init.sendPort);
-    return init.first.then(expectAsync((port) {
-      _call(port, "launch nested!", expectAsync((msg, replyTo) {
-        expect(msg[0], "0");
-        _call(replyTo, msg1, expectAsync((msg, replyTo) {
-          expect(msg[0], "2");
-          _call(replyTo, msg3, expectAsync((msg, replyTo) {
-            expect(msg[0], "4");
-            _call(replyTo, msg5, expectAsync((msg, _) {
-              expect(msg[0], "6");
-            }));
-          }));
-        }));
-      }));
-    }));
+  // spawned isolate can spawn other isolates
+  ReceivePort init = new ReceivePort();
+  Isolate.spawn(isolateA, init.sendPort);
+  asyncStart();
+  init.first.then((port) {
+    _call(port, "launch nested!", (msg, replyTo) {
+      Expect.equals(msg[0], "0");
+      _call(replyTo, msg1, (msg, replyTo) {
+        Expect.equals(msg[0], "2");
+        _call(replyTo, msg3, (msg, replyTo) {
+          Expect.equals(msg[0], "4");
+          _call(replyTo, msg5, (msg, _) {
+            Expect.equals(msg[0], "6");
+            asyncEnd();
+          });
+        });
+      });
+    });
   });
 }

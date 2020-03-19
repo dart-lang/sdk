@@ -13,8 +13,7 @@
 library spawn_tests;
 
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'package:expect/expect.dart';
 
 class MyClass {
   final myVar = 'there';
@@ -29,26 +28,21 @@ isolateEntryPoint(args) {
   reply.send('re: ${new MyClass().myFunc(msg)}');
 }
 
-void main([args, port]) {
-  if (testRemote(main, port)) {
-    return;
-  }
+Future<void> main([args, port]) async {
+  // message - reply chain'
+  final exitPort = ReceivePort();
+  final replyPort = ReceivePort();
 
-  test('message - reply chain', () async {
-    final exitPort = ReceivePort();
-    final replyPort = ReceivePort();
+  Isolate.spawn(isolateEntryPoint, ['hi', replyPort.sendPort],
+      onExit: exitPort.sendPort);
 
-    final isolate = Isolate.spawn(isolateEntryPoint, ['hi', replyPort.sendPort],
-        onExit: exitPort.sendPort);
-
-    replyPort.listen((msg) {
-      replyPort.close();
-      expect(msg, equals('re: hi there'));
-    });
-
-    // Explicitly await spawned isolate exit to enforce main isolate not
-    // completing (and the stand-alone runtime exiting) before the spawned
-    // isolate is done.
-    await exitPort.first;
+  replyPort.listen((msg) {
+    replyPort.close();
+    Expect.equals(msg, 're: hi there');
   });
+
+  // Explicitly await spawned isolate exit to enforce main isolate not
+  // completing (and the stand-alone runtime exiting) before the spawned
+  // isolate is done.
+  await exitPort.first;
 }
