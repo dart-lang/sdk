@@ -812,29 +812,21 @@ class BackendImpacts {
           _commonElements.rtiBindMethod,
           _commonElements.generalIsTestImplementation,
           _commonElements.generalAsCheckImplementation,
-          _commonElements.generalTypeCheckImplementation,
           // Specialized checks.
           _commonElements.specializedIsBool,
           _commonElements.specializedAsBoolNullable,
-          _commonElements.specializedCheckBoolNullable,
           // no specializedIsDouble.
           _commonElements.specializedAsDoubleNullable,
-          _commonElements.specializedCheckDoubleNullable,
           _commonElements.specializedIsInt,
           _commonElements.specializedAsIntNullable,
-          _commonElements.specializedCheckIntNullable,
           _commonElements.specializedIsNum,
           _commonElements.specializedAsNumNullable,
-          _commonElements.specializedCheckNumNullable,
           _commonElements.specializedIsString,
           _commonElements.specializedAsStringNullable,
-          _commonElements.specializedCheckStringNullable,
           _commonElements.specializedIsTop,
           _commonElements.specializedAsTop,
-          // no specializedCheckTop
           _commonElements.specializedIsObject,
           _commonElements.specializedAsObject,
-          _commonElements.specializedCheckObject,
         ], globalClasses: [
           _commonElements.closureClass, // instanceOrFunctionType uses this.
         ])

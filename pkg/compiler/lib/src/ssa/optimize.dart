@@ -2133,8 +2133,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (typeInput is HLoadType) {
       TypeExpressionRecipe recipe = typeInput.typeExpression;
       DartType dartType = recipe.type;
-      MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
-          dartType, node.isTypeError, _closedWorld.commonElements);
+      MemberEntity specializedCheck =
+          SpecializedChecks.findAsCheck(dartType, _closedWorld.commonElements);
       if (specializedCheck != null) {
         AbstractValueWithPrecision checkedType =
             _abstractValueDomain.createFromStaticType(dartType, nullable: true);

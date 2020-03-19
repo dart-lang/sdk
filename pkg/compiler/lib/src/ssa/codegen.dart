@@ -3535,9 +3535,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     _registry.registerTypeUse(TypeUse.isCheck(node.checkedTypeExpression));
 
-    FieldEntity field = node.isTypeError
-        ? _commonElements.rtiCheckField
-        : _commonElements.rtiAsField;
+    FieldEntity field = _commonElements.rtiAsField;
     js.Name name = _namer.instanceFieldPropertyName(field);
 
     push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
