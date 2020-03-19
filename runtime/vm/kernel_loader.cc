@@ -1958,6 +1958,9 @@ void KernelLoader::LoadProcedure(const Library& library,
       (function.is_static() && (library.raw() == Library::InternalLibrary()))) {
     function.set_is_reflectable(false);
   }
+  if (procedure_helper.IsMemberSignature()) {
+    function.set_is_reflectable(false);
+  }
 
   ActiveMemberScope active_member(&active_class_, &function);
 

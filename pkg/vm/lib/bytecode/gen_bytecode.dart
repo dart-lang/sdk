@@ -820,6 +820,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         library.importUri.toString() == 'dart:_internal') {
       return false;
     }
+    if (member is Procedure && member.isMemberSignature) {
+      return false;
+    }
     return true;
   }
 
