@@ -14,10 +14,11 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
-/// to a relevance value between `0` and `1000`.
-int toRelevance(double score) {
-  if (score < 0.0) {
-    return 0;
+/// to a relevance value between `0` and `1000`. If the score is outside that
+/// range, return the [defaultValue].
+int toRelevance(double score, int defaultValue) {
+  if (score < 0.0 || score > 1.0) {
+    return defaultValue;
   }
   return (score * 1000).truncate();
 }
@@ -58,8 +59,6 @@ class FeatureComputer {
   /// Return the type imposed on the given [node] based on its context, or
   /// `null` if the context does not impose any type.
   DartType computeContextType(AstNode node) {
-    // This method is only visible for the metrics computation and might be made
-    // private at some future date.
     var type = node.parent?.accept(_ContextTypeVisitor(typeProvider, node));
     if (type == null || type.isDynamic) {
       return null;
@@ -70,12 +69,9 @@ class FeatureComputer {
   /// Return the value of the _context type_ feature for an element with the
   /// given [elementType] when completing in a location with the given
   /// [contextType].
-  double contextTypeFeature(AstNode node, DartType elementType) {
-    if (elementType == null) {
-      return -1.0;
-    }
-    var contextType = computeContextType(node);
-    if (contextType == null) {
+  double contextTypeFeature(DartType contextType, DartType elementType) {
+    if (contextType == null || elementType == null) {
+      // Disable the feature if we don't have both types.
       return -1.0;
     }
     if (elementType == contextType) {

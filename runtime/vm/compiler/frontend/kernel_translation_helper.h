@@ -689,6 +689,8 @@ class ClassHelper {
     kIsEnumClass = 1 << 3,
     kIsAnonymousMixin = 1 << 4,
     kIsEliminatedMixin = 1 << 5,
+    kFlagMixinDeclaration = 1 << 6,
+    kHasConstConstructor = 1 << 7,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -709,6 +711,10 @@ class ClassHelper {
 
   bool is_transformed_mixin_application() const {
     return (flags_ & Flag::kIsEliminatedMixin) != 0;
+  }
+
+  bool has_const_constructor() const {
+    return (flags_ & Flag::kHasConstConstructor) != 0;
   }
 
   NameIndex canonical_name_;

@@ -10,9 +10,40 @@ import 'package:path/path.dart' as path;
 
 import '../benchmarks.dart';
 
+Future<int> _runProcess(
+  String command,
+  List<String> args, {
+  String cwd,
+  bool failOnError = true,
+}) async {
+  print('\n$command ${args.join(' ')}');
+
+  Process process = await Process.start(command, args, workingDirectory: cwd);
+
+  process.stdout
+      .transform(utf8.decoder)
+      .transform(LineSplitter())
+      .listen((line) {
+    print('  $line');
+  });
+  process.stderr
+      .transform(utf8.decoder)
+      .transform(LineSplitter())
+      .listen((line) => print('  $line'));
+
+  int exitCode = await process.exitCode;
+  if (exitCode != 0 && failOnError) {
+    throw '$command exited with $exitCode';
+  }
+
+  return exitCode;
+}
+
 /// benchmarks:
 ///   - analysis-flutter-analyze
 class FlutterAnalyzeBenchmark extends Benchmark {
+  Directory flutterDir;
+
   FlutterAnalyzeBenchmark()
       : super(
           'analysis-flutter-analyze',
@@ -23,9 +54,21 @@ class FlutterAnalyzeBenchmark extends Benchmark {
         );
 
   @override
+  int get maxIterations => 3;
+
+  @override
   bool get needsSetup => true;
 
-  Directory flutterDir;
+  @override
+  Future oneTimeCleanup() {
+    try {
+      flutterDir.deleteSync(recursive: true);
+    } on FileSystemException catch (e) {
+      print(e);
+    }
+
+    return Future.value();
+  }
 
   @override
   Future oneTimeSetup() async {
@@ -49,20 +92,6 @@ class FlutterAnalyzeBenchmark extends Benchmark {
     // flutter update-packages
     await _runProcess(flutterTool, ['update-packages'], cwd: flutterDir.path);
   }
-
-  @override
-  Future oneTimeCleanup() {
-    try {
-      flutterDir.deleteSync(recursive: true);
-    } on FileSystemException catch (e) {
-      print(e);
-    }
-
-    return Future.value();
-  }
-
-  @override
-  int get maxIterations => 3;
 
   @override
   Future<BenchMarkResult> run({
@@ -95,33 +124,4 @@ class FlutterAnalyzeBenchmark extends Benchmark {
 
     return BenchMarkResult('micros', stopwatch.elapsedMicroseconds);
   }
-}
-
-Future<int> _runProcess(
-  String command,
-  List<String> args, {
-  String cwd,
-  bool failOnError = true,
-}) async {
-  print('\n$command ${args.join(' ')}');
-
-  Process process = await Process.start(command, args, workingDirectory: cwd);
-
-  process.stdout
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) {
-    print('  $line');
-  });
-  process.stderr
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) => print('  $line'));
-
-  int exitCode = await process.exitCode;
-  if (exitCode != 0 && failOnError) {
-    throw '$command exited with $exitCode';
-  }
-
-  return exitCode;
 }

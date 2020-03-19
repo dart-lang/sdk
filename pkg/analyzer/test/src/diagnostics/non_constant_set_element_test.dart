@@ -19,6 +19,15 @@ main() {
 
 @reflectiveTest
 class NonConstantSetElementTest extends DriverResolutionTest {
+  test_const_forElement() async {
+    await assertErrorsInCode(r'''
+const Set set = {};
+var v = const {for (final x in set) x};
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 35, 22),
+    ]);
+  }
+
   test_const_ifElement_thenElseFalse_finalElse() async {
     await assertErrorsInCode(
         '''

@@ -36,33 +36,20 @@ class PreviewSite extends Site
   static const applyMigrationPath = '/apply-migration';
 
   /// The state of the migration being previewed.
-  final MigrationState migrationState;
+  MigrationState migrationState;
 
   /// A table mapping the paths of files to the information about the
   /// compilation units at those paths.
   final Map<String, UnitInfo> unitInfoMap = {};
 
+  // A function provided by DartFix to rerun the migration.
+  final Future<MigrationState> Function(List<String>) rerunFunction;
+
   /// Initialize a newly created site to serve a preview of the results of an
   /// NNBD migration.
-  PreviewSite(this.migrationState) : super('NNBD Migration Preview') {
-    Set<UnitInfo> unitInfos = migrationInfo.units;
-    ResourceProvider provider = pathMapper.provider;
-    for (UnitInfo unit in unitInfos) {
-      unitInfoMap[unit.path] = unit;
-    }
-    for (UnitInfo unit in migrationInfo.unitMap.values) {
-      if (!unitInfos.contains(unit)) {
-        if (unit.content == null) {
-          try {
-            unit.content = provider.getFile(unit.path).readAsStringSync();
-          } catch (_) {
-            // If we can't read the content of the file, then skip it.
-            continue;
-          }
-        }
-        unitInfoMap[unit.path] = unit;
-      }
-    }
+  PreviewSite(this.migrationState, this.rerunFunction)
+      : super('NNBD Migration Preview') {
+    reset();
   }
 
   /// Return the information about the migration that will be used to serve up
@@ -158,7 +145,7 @@ class PreviewSite extends Site
         respondOk(request);
         return;
       } else if (uri.queryParameters.containsKey('replacement')) {
-        performEdit(uri);
+        await performEdit(uri);
 
         respondOk(request);
         return;
@@ -187,7 +174,7 @@ class PreviewSite extends Site
   }
 
   /// Perform the edit indicated by the [uri].
-  void performEdit(Uri uri) {
+  Future<void> performEdit(Uri uri) async {
     //
     // Update the code on disk.
     //
@@ -200,19 +187,34 @@ class PreviewSite extends Site
     String oldContent = file.readAsStringSync();
     String newContent = oldContent.replaceRange(offset, end, replacement);
     file.writeAsStringSync(newContent);
-    //
-    // Update the graph by adding or removing an edge.
-    //
-    int length = end - offset;
-    if (length == 0) {
-      throw UnsupportedError('Implement insertions');
-    } else {
-      throw UnsupportedError('Implement removals');
+    await rerunMigration([path]);
+  }
+
+  Future<void> rerunMigration(List<String> changedPaths) async {
+    migrationState = await rerunFunction(changedPaths);
+    reset();
+  }
+
+  void reset() {
+    unitInfoMap.clear();
+    Set<UnitInfo> unitInfos = migrationInfo.units;
+    ResourceProvider provider = pathMapper.provider;
+    for (UnitInfo unit in unitInfos) {
+      unitInfoMap[unit.path] = unit;
     }
-    //
-    // Refresh the state of the migration.
-    //
-    //migrationState.refresh();
+    for (UnitInfo unit in migrationInfo.unitMap.values) {
+      if (!unitInfos.contains(unit)) {
+        if (unit.content == null) {
+          try {
+            unit.content = provider.getFile(unit.path).readAsStringSync();
+          } catch (_) {
+            // If we can't read the content of the file, then skip it.
+            continue;
+          }
+        }
+        unitInfoMap[unit.path] = unit;
+      }
+    }
   }
 
   @override

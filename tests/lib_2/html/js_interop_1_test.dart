@@ -4,7 +4,8 @@
 
 library JsInterop1Test;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_helper.dart';
+import 'dart:async';
 import 'dart:html';
 
 injectSource(code) {
@@ -15,17 +16,17 @@ injectSource(code) {
 }
 
 main() {
-  var callback;
-
-  test('js-to-dart-post-message', () {
-    var subscription = null;
-    var complete = false;
-    subscription = window.onMessage.listen(expectAsyncUntil((e) {
-      if (e.data == 'hello') {
+  asyncTest(() async {
+    var subscription;
+    var completer = Completer<void>();
+    subscription = window.onMessage.listen((e) {
+      if (!completer.isCompleted && e.data == 'hello') {
+        completer.complete();
         subscription.cancel();
-        complete = true;
       }
-    }, () => complete));
+    });
     injectSource("window.postMessage('hello', '*');");
+
+    await completer;
   });
 }

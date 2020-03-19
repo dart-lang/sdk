@@ -16,7 +16,7 @@ class M extends core::Object {
     return null;
   }
 }
-abstract class _A&Object&M = core::Object with self::M /*isAnonymousMixin*/  {
+abstract class _A&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_A&Object&M*
     : super core::Object::•()
     ;

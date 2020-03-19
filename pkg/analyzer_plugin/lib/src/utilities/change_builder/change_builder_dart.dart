@@ -1305,7 +1305,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     for (var import in resolvedUnit.libraryElement.imports) {
-      if (import.importedLibrary.source.uri == uri) {
+      var importedLibrary = import.importedLibrary;
+      if (importedLibrary != null && importedLibrary.source.uri == uri) {
         return ImportLibraryElementResultImpl(import.prefix?.name);
       }
     }

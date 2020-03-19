@@ -143,6 +143,7 @@ namespace dart {
   F(TypeArguments, instantiations_)                                            \
   F(TypeArguments, length_)                                                    \
   F(TypeArguments, hash_)                                                      \
+  F(TypeArguments, nullability_)                                               \
   F(AbstractType, type_test_stub_)                                             \
   F(Type, type_test_stub_)                                                     \
   F(Type, type_class_id_)                                                      \

@@ -354,7 +354,7 @@ class Scavenger {
   intptr_t idle_scavenge_threshold_in_words_;
 
   // The total size of external data associated with objects in this scavenger.
-  intptr_t external_size_;
+  RelaxedAtomic<intptr_t> external_size_;
 
   bool failed_to_promote_;
 

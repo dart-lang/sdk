@@ -217,6 +217,11 @@
         "uri": "math/math.dart",
         "patches": "_internal/js_runtime/lib/math_patch.dart"
       },
+      "mirrors": {
+        "uri": "mirrors/mirrors.dart",
+        "patches": "_internal/js_runtime/lib/mirrors_patch_cfe.dart",
+        "supported": false
+      },
       "typed_data": {
         "uri": "typed_data/typed_data.dart",
         "patches": "_internal/js_runtime/lib/typed_data_patch.dart"
@@ -322,6 +327,11 @@
         "uri": "math/math.dart",
         "patches": "_internal/js_runtime/lib/math_patch.dart"
       },
+      "mirrors": {
+        "uri": "mirrors/mirrors.dart",
+        "patches": "_internal/js_runtime/lib/mirrors_patch_cfe.dart",
+        "supported": false
+      },
       "typed_data": {
         "uri": "typed_data/typed_data.dart",
         "patches": "_internal/js_runtime/lib/typed_data_patch.dart"
@@ -426,6 +436,11 @@
       "isolate": {
         "uri": "isolate/isolate.dart",
         "patches": "_internal/js_dev_runtime/patch/isolate_patch.dart",
+        "supported": false
+      },
+      "mirrors": {
+        "uri": "mirrors/mirrors.dart",
+        "patches": "_internal/js_runtime/lib/mirrors_patch_cfe.dart",
         "supported": false
       },
       "math": {

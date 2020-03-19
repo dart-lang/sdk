@@ -71,6 +71,7 @@ var x = [0];
 import 'a.dart';
 
 f() {
+  x?[0];
   x?.[0];
   x?..[0];
 }
@@ -80,18 +81,21 @@ f() {
   test_index_nonNullable() async {
     await assertErrorsInCode('''
 f(List<int> x) {
+  x?[0];
   x?.[0];
   x?..[0];
 }
 ''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 3),
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 30, 3),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 2),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 29, 3),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 39, 3),
     ]);
   }
 
   test_index_nullable() async {
     await assertNoErrorsInCode('''
 f(List<int>? x) {
+  x?[0];
   x?.[0];
   x?..[0];
 }

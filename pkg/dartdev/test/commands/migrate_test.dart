@@ -7,6 +7,10 @@ import 'package:test/test.dart';
 
 import '../utils.dart';
 
+// TODO(jcollins-g): Set to true and/or remove when when NNBD is enabled in the
+//  SDK running this test.
+bool _nnbdIsEnabled = false;
+
 void main() {
   group('migrate', defineMigrateTests);
 }
@@ -30,24 +34,34 @@ void defineMigrateTests() {
 
   test('directory implicit', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result =
-        p.runSync('migrate', ['--no-web-preview'], workingDir: p.dirPath);
-    expect(result.exitCode, 0);
-    expect(result.stderr, isEmpty);
+    var result = p.runSync(
+        'migrate',
+        [
+          '--no-web-preview',
+          '--server-path=${p.absolutePathToAnalysisServerFile}'
+        ],
+        workingDir: p.dirPath);
+    expect(result.exitCode, _nnbdIsEnabled ? 0 : 2);
+    expect(result.stderr, _nnbdIsEnabled ? isEmpty : isNotEmpty);
     expect(result.stdout, contains('Generating migration suggestions'));
   });
 
   test('directory explicit', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('migrate', ['--no-web-preview', p.dirPath]);
-    expect(result.exitCode, 0);
-    expect(result.stderr, isEmpty);
+    var result = p.runSync('migrate', [
+      '--no-web-preview',
+      '--server-path=${p.absolutePathToAnalysisServerFile}',
+      p.dirPath
+    ]);
+    expect(result.exitCode, _nnbdIsEnabled ? 0 : 2);
+    expect(result.stderr, _nnbdIsEnabled ? isEmpty : isNotEmpty);
     expect(result.stdout, contains('Generating migration suggestions'));
   });
 
   test('bad directory', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync('migrate', ['foo_bar_dir']);
+    var result = p.runSync('migrate',
+        ['--server-path=${p.absolutePathToAnalysisServerFile}', 'foo_bar_dir']);
     expect(result.exitCode, 64);
     expect(result.stderr,
         contains('not found; please provide a path to a package or directory'));

@@ -63,18 +63,34 @@ class TestProject {
     );
   }
 
-  /// The path relative from `Directory.current.path` to `dartdev.dart` is
-  /// different when executing these tests locally versus on the Dart
-  /// buildbots, this if-else captures this change and branches for each case.
-  String get absolutePathToDartdevFile {
-    var dartdevFilePathOnBots = path.absolute(path.join(
-        Directory.current.path, 'pkg', 'dartdev', 'bin', 'dartdev.dart'));
-    if (File(dartdevFilePathOnBots).existsSync()) {
-      return dartdevFilePathOnBots;
-    } else {
-      return path
-          .absolute(path.join(Directory.current.path, 'bin', 'dartdev.dart'));
+  String _sdkRootPath;
+
+  /// Return the root of the SDK.
+  String get sdkRootPath {
+    if (_sdkRootPath == null) {
+      // Assumes the script importing this one is somewhere under the SDK.
+      String current = path.canonicalize(Platform.script.toFilePath());
+      do {
+        String tryDir = path.dirname(current);
+        if (File(path.join(tryDir, 'pkg', 'dartdev', 'bin', 'dartdev.dart'))
+            .existsSync()) {
+          _sdkRootPath = tryDir;
+          return _sdkRootPath;
+        }
+        current = tryDir;
+      } while (path.dirname(current) != current);
+      throw StateError('can not find SDK repository root');
     }
+    return _sdkRootPath;
+  }
+
+  String get absolutePathToDartdevFile {
+    return path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
+  }
+
+  String get absolutePathToAnalysisServerFile {
+    return path.join(
+        sdkRootPath, 'pkg', 'analysis_server', 'bin', 'server.dart');
   }
 
   File findFile(String name) {

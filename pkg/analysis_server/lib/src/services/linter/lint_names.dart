@@ -14,13 +14,13 @@ class LintNames {
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_private_typedef_functions =
+      'avoid_private_typedef_functions';
   static const String avoid_redundant_argument_values =
       'avoid_redundant_argument_values';
   static const String avoid_relative_lib_imports = 'avoid_relative_lib_imports';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';
-  static const String avoid_private_typedef_functions =
-      'avoid_private_typedef_functions';
   static const String avoid_returning_null_for_future =
       'avoid_returning_null_for_future';
   static const String avoid_types_on_closure_parameters =
@@ -44,9 +44,9 @@ class LintNames {
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';
-  static const String prefer_contains = 'prefer_contains';
   static const String prefer_const_constructors = 'prefer_const_constructors';
   static const String prefer_const_declarations = 'prefer_const_declarations';
+  static const String prefer_contains = 'prefer_contains';
   static const String prefer_equal_for_default_values =
       'prefer_equal_for_default_values';
   static const String prefer_expression_function_bodies =
@@ -62,6 +62,8 @@ class LintNames {
   static const String prefer_if_null_operators = 'prefer_if_null_operators';
   static const String prefer_inlined_adds = 'prefer_inlined_adds';
   static const String prefer_int_literals = 'prefer_int_literals';
+  static const String prefer_interpolation_to_compose_strings =
+      'prefer_interpolation_to_compose_strings';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String prefer_iterable_whereType = 'prefer_iterable_whereType';

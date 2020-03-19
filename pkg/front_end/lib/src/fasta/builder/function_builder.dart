@@ -373,7 +373,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
-        VariableDeclaration parameter = formal.build(library, 0);
+        VariableDeclaration parameter = formal.build(
+            library, 0, !isConstructor && !isDeclarationInstanceMember);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
             parameter.isGenericCovariantImpl = true;
@@ -389,8 +390,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
           result.requiredParameterCount++;
         }
 
-        if (library.isNonNullableByDefault &&
-            library.loader.target.performNnbdChecks) {
+        if (library.isNonNullableByDefault) {
           // Required named parameters can't have default values.
           if (formal.isNamedRequired && formal.initializerToken != null) {
             if (library.loader.nnbdMode == NnbdMode.Weak) {
@@ -427,7 +427,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       result.requiredParameterCount = 1;
     }
     if (returnType != null) {
-      result.returnType = returnType.build(library);
+      result.returnType = returnType.build(
+          library, null, !isConstructor && !isDeclarationInstanceMember);
     }
     if (!isConstructor && !isDeclarationInstanceMember) {
       List<TypeParameter> typeParameters;

@@ -280,9 +280,13 @@ static_assert((1 << kWordSizeLog2) == kWordSize,
 
 using ObjectAlignment = dart::ObjectAlignment<kWordSize, kWordSizeLog2>;
 
-const intptr_t kSmiBits = kBitsPerWord - 2;
-const intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
-const intptr_t kSmiMin = -(static_cast<intptr_t>(1) << kSmiBits);
+constexpr word kWordMax = (static_cast<uword>(1) << (kBitsPerWord - 1)) - 1;
+constexpr word kWordMin = -(static_cast<uword>(1) << (kBitsPerWord - 1));
+constexpr uword kUwordMax = static_cast<word>(-1);
+
+constexpr int kSmiBits = kBitsPerWord - 2;
+constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
+constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
 
 // Information about heap pages.
 extern const word kPageSize;
@@ -1228,6 +1232,7 @@ class Field : public AllStatic {
 class TypeArguments : public AllStatic {
  public:
   static word instantiations_offset();
+  static word nullability_offset();
   static word type_at_offset(intptr_t i);
   static word InstanceSize();
   static word NextFieldOffset();

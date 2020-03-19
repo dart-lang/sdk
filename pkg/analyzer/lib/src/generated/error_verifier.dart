@@ -879,7 +879,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (node.isNullAware) {
       _checkForUnnecessaryNullAware(
         node.realTarget,
-        node.period ?? node.leftBracket,
+        node.question ?? node.period ?? node.leftBracket,
       );
     }
     super.visitIndexExpression(node);
@@ -3681,11 +3681,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         LibraryElement library = type.element.library;
         if (library != _currentLibrary) {
           for (PropertyAccessorElement accessor in type.accessors) {
+            if (accessor.isStatic) {
+              continue;
+            }
             if (isConflictingName(accessor.name, library, mixinType)) {
               return;
             }
           }
           for (MethodElement method in type.methods) {
+            if (method.isStatic) {
+              continue;
+            }
             if (isConflictingName(method.name, library, mixinType)) {
               return;
             }
@@ -4637,6 +4643,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    // Ignore if the constructor is external. See
+    // https://github.com/dart-lang/language/issues/869.
+    if (constructor.externalKeyword != null) {
+      return;
+    }
+
     // Ignore if the constructor has either an implicit super constructor
     // invocation or a redirecting constructor invocation.
     for (ConstructorInitializer constructorInitializer
@@ -4687,8 +4699,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     ErrorCode errorCode;
+    Token endToken = operator;
     List<Object> arguments = const [];
-    if (operator.type == TokenType.QUESTION_PERIOD) {
+    if (operator.type == TokenType.QUESTION) {
+      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      endToken = operator.next;
+      arguments = ['?[', '['];
+    } else if (operator.type == TokenType.QUESTION_PERIOD) {
       errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '.'];
     } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
@@ -4707,7 +4724,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (_typeSystem.isStrictlyNonNullable(target.staticType)) {
-      _errorReporter.reportErrorForToken(errorCode, operator, arguments);
+      _errorReporter.reportErrorForOffset(
+        errorCode,
+        operator.offset,
+        endToken.end - operator.offset,
+        arguments,
+      );
     }
   }
 

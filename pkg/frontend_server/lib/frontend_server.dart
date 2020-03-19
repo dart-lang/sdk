@@ -521,11 +521,10 @@ class FrontendCompiler implements CompilerInterface {
       if (_compilerOptions.target.name == 'dartdevc') {
         await writeJavascriptBundle(
             results, _kernelBinaryFilename, options['filesystem-scheme']);
-      } else {
-        await writeDillFile(results, _kernelBinaryFilename,
-            filterExternal: importDill != null,
-            incrementalSerializer: incrementalSerializer);
       }
+      await writeDillFile(results, _kernelBinaryFilename,
+          filterExternal: importDill != null,
+          incrementalSerializer: incrementalSerializer);
 
       _outputStream.writeln(boundaryKey);
       await _outputDependenciesDelta(results.compiledSources);

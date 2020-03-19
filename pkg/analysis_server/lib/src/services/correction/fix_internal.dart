@@ -26,7 +26,9 @@ import 'package:analysis_server/src/services/correction/dart/remove_if_null_oper
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
+import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -495,6 +497,9 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createClass();
       await _addFix_createMixin();
     }
+    if (errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST) {
+      await _addFix_removeConstKeyword(DartFixKind.REMOVE_CONST);
+    }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       await _addFix_createClass();
       await _addFix_importLibrary_withExtension();
@@ -729,7 +734,7 @@ class FixProcessor extends BaseProcessor {
         await _addFix_removeInterpolationBraces();
       }
       if (name == LintNames.unnecessary_const) {
-        await _addFix_removeConstKeyword();
+        await _addFix_removeConstKeyword(DartFixKind.REMOVE_UNNECESSARY_CONST);
       }
       if (name == LintNames.unnecessary_lambdas) {
         await _addFix_replaceWithTearOff();
@@ -2109,6 +2114,9 @@ class FixProcessor extends BaseProcessor {
     // prepare target ClassDeclaration
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetClassElement);
+    if (targetDeclarationResult == null) {
+      return;
+    }
     if (targetDeclarationResult.node is! ClassOrMixinDeclaration) {
       return;
     }
@@ -3319,7 +3327,7 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_removeConstKeyword() async {
+  Future<void> _addFix_removeConstKeyword(FixKind kind) async {
     final expression = node;
     if (expression is InstanceCreationExpression) {
       final constToken = expression.keyword;
@@ -3327,14 +3335,14 @@ class FixProcessor extends BaseProcessor {
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startStart(constToken, constToken.next));
       });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CONST);
+      _addFixFromBuilder(changeBuilder, kind);
     } else if (expression is TypedLiteralImpl) {
       final constToken = expression.constKeyword;
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startStart(constToken, constToken.next));
       });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CONST);
+      _addFixFromBuilder(changeBuilder, kind);
     }
   }
 
@@ -4485,6 +4493,8 @@ class FixProcessor extends BaseProcessor {
       await compute(RemoveUnusedField());
     } else if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
       await compute(RemoveUnusedLocalVariable());
+    } else if (errorCode == StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
+      await compute(WrapInText());
     } else if (errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION) {
       await compute(RemoveDeadIfNull());
     } else if (errorCode ==
@@ -4507,6 +4517,8 @@ class FixProcessor extends BaseProcessor {
         await compute(ConvertToSetLiteral());
       } else if (name == LintNames.prefer_contains) {
         await compute(ConvertToContains());
+      } else if (name == LintNames.prefer_interpolation_to_compose_strings) {
+        await compute(ReplaceWithInterpolation());
       } else if (name == LintNames.prefer_iterable_whereType) {
         await compute(ConvertToWhereType());
       } else if (name == LintNames.prefer_null_aware_operators) {

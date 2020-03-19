@@ -1,6 +1,6 @@
 library IndexedDB4Test;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db';
@@ -69,25 +69,18 @@ testRange(db, range, expectedFirst, expectedLast) {
 
   return cursors.length.then((length) {
     if (expectedFirst == null) {
-      expect(length, isZero);
+      expect(length, 0);
     } else {
       expect(length, expectedLast - expectedFirst + 1);
     }
   });
 }
 
-main() {
+main() async {
   // Don't bother with these tests if it's unsupported.
   // Support is tested in indexeddb_1_test
   if (IdbFactory.supported) {
-    var db;
-    setUp(() {
-      if (db == null) {
-        return setupDb().then((result) {
-          db = result;
-        });
-      }
-    });
+    var db = await setupDb();
     test('only1', () => testRange(db, new KeyRange.only(55), 55, 55));
     test('only2', () => testRange(db, new KeyRange.only(100), null, null));
     test('only3', () => testRange(db, new KeyRange.only(-1), null, null));

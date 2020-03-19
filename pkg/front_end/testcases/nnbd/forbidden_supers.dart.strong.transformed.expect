@@ -199,7 +199,7 @@ class Goo extends self::Boo implements self::Aoo /*isEliminatedMixin*/  {
     : super self::Boo::•()
     ;
 }
-abstract class _Hoo&Object&Aoo extends core::Object implements self::Aoo /*isAnonymousMixin,isEliminatedMixin*/  {
+abstract class _Hoo&Object&Aoo extends core::Object implements self::Aoo /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Hoo&Object&Aoo
     : super core::Object::•()
     ;
@@ -209,7 +209,7 @@ class Hoo extends self::_Hoo&Object&Aoo implements self::Boo {
     : super self::_Hoo&Object&Aoo::•()
     ;
 }
-class Ioo extends core::Object implements self::Boo, self::Aoo /*isEliminatedMixin*/  {
+class Ioo extends core::Object implements self::Boo, self::Aoo /*isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::Ioo
     : super core::Object::•()
     ;

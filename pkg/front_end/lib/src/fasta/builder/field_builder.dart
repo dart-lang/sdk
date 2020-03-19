@@ -16,8 +16,7 @@ import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/class_hierarchy_builder.dart'
-    show ClassHierarchyBuilder, ClassMember;
+import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 import '../kernel/late_lowering.dart' as late_lowering;
 
@@ -175,6 +174,25 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     }
   }
 
+  bool _typeEnsured = false;
+  Set<ClassMember> _overrideDependencies;
+
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    _overrideDependencies ??= {};
+    _overrideDependencies.add(overriddenMember);
+  }
+
+  void _ensureType(ClassHierarchyBuilder hierarchy) {
+    if (_typeEnsured) return;
+    if (_overrideDependencies != null) {
+      hierarchy.inferFieldType(this, _overrideDependencies);
+      _overrideDependencies = null;
+    } else {
+      inferType();
+    }
+    _typeEnsured = true;
+  }
+
   SourceLibraryBuilder get library => super.library;
 
   Member get member => _fieldEncoding.field;
@@ -253,7 +271,10 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
 
   void build(SourceLibraryBuilder libraryBuilder) {
     if (type != null) {
-      fieldType = type.build(libraryBuilder, null, isStatic);
+      // notInstanceContext is set to true for extension fields as they
+      // ultimately become static.
+      fieldType =
+          type.build(libraryBuilder, null, isStatic || isExtensionMember);
     }
     _fieldEncoding.build(libraryBuilder, this);
   }
@@ -273,7 +294,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             (isFinal &&
                 !isStatic &&
                 isClassMember &&
-                classBuilder.hasConstConstructor)) &&
+                classBuilder.declaresConstConstructor)) &&
         constInitializerToken != null) {
       Scope scope = classBuilder?.scope ?? library.scope;
       BodyBuilder bodyBuilder = library.loader
@@ -581,12 +602,12 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
-      <ClassMember>[new SourceFieldMember(fieldBuilder)];
+      <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: false)];
 
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
       fieldBuilder.isAssignable
-          ? <ClassMember>[new SourceFieldMember(fieldBuilder)]
+          ? <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: true)]
           : const <ClassMember>[];
 }
 
@@ -594,7 +615,30 @@ class SourceFieldMember extends BuilderClassMember {
   @override
   final SourceFieldBuilder memberBuilder;
 
-  SourceFieldMember(this.memberBuilder);
+  @override
+  final bool forSetter;
+
+  SourceFieldMember(this.memberBuilder, {this.forSetter})
+      : assert(forSetter != null);
+
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    memberBuilder._ensureType(hierarchy);
+  }
+
+  @override
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    memberBuilder.registerOverrideDependency(overriddenMember);
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    memberBuilder._ensureType(hierarchy);
+    return memberBuilder.member;
+  }
+
+  @override
+  bool get isSourceDeclaration => true;
 
   @override
   bool get isProperty => true;
@@ -921,10 +965,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) {
     List<ClassMember> list = <ClassMember>[];
     if (_lateIsSetField != null) {
-      list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField));
+      list.add(new _LateFieldClassMember(fieldBuilder, _lateIsSetField,
+          forSetter: true));
     }
     if (_lateSetter != null) {
-      list.add(new _LateFieldClassMember(fieldBuilder, _lateSetter));
+      list.add(new _LateFieldClassMember(fieldBuilder, _lateSetter,
+          forSetter: true));
     }
     return list;
   }
@@ -1073,9 +1119,29 @@ class _LateFieldClassMember implements ClassMember {
 
   final Member _member;
 
-  _LateFieldClassMember(this.fieldBuilder, this._member);
+  @override
+  final bool forSetter;
 
-  Member getMember(ClassHierarchyBuilder hierarchy) => _member;
+  _LateFieldClassMember(this.fieldBuilder, this._member,
+      {this.forSetter: false});
+
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    fieldBuilder._ensureType(hierarchy);
+    return _member;
+  }
+
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {
+    fieldBuilder._ensureType(hierarchy);
+  }
+
+  @override
+  void registerOverrideDependency(ClassMember overriddenMember) {
+    fieldBuilder.registerOverrideDependency(overriddenMember);
+  }
+
+  @override
+  bool get isSourceDeclaration => true;
 
   @override
   bool get isProperty => isField || isGetter || isSetter;
@@ -1168,5 +1234,38 @@ class _LateFieldClassMember implements ClassMember {
   }
 
   @override
-  String toString() => '_ClassMember($fieldBuilder,$_member)';
+  bool get needsComputation => false;
+
+  @override
+  bool get isSynthesized => false;
+
+  @override
+  bool get isInheritableConflict => false;
+
+  @override
+  ClassMember withParent(ClassBuilder classBuilder) =>
+      throw new UnsupportedError("$runtimeType.withParent");
+
+  @override
+  bool get hasDeclarations => false;
+
+  @override
+  List<ClassMember> get declarations =>
+      throw new UnsupportedError("$runtimeType.declarations");
+
+  @override
+  ClassMember get abstract => this;
+
+  @override
+  ClassMember get concrete => this;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return false;
+  }
+
+  @override
+  String toString() =>
+      '_ClassMember($fieldBuilder,$_member,forSetter=${forSetter})';
 }

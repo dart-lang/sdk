@@ -39,7 +39,8 @@ Future<void> main(List<String> args) async {
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
-  print('\nMetrics computed in $duration');
+  print('');
+  print('Metrics computed in $duration');
   return io.exit(code);
 }
 
@@ -96,6 +97,44 @@ bool validArguments(ArgParser parser, ArgResults result) {
   return true;
 }
 
+/// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
+/// objects for a run of [CompletionMetricsComputer].
+class CompletionMetrics {
+  /// The name associated with this set of metrics.
+  final String name;
+
+  Counter completionCounter = Counter('successful/ unsuccessful completions');
+
+  Counter completionMissedTokenCounter =
+      Counter('unsuccessful completion token counter');
+
+  Counter completionKindCounter =
+      Counter('unsuccessful completion kind counter');
+
+  Counter completionElementKindCounter =
+      Counter('unsuccessful completion element kind counter');
+
+  ArithmeticMeanComputer meanCompletionMS =
+      ArithmeticMeanComputer('ms per completion');
+
+  MeanReciprocalRankComputer mrrComputer =
+      MeanReciprocalRankComputer('successful/ unsuccessful completions');
+
+  MeanReciprocalRankComputer successfulMrrComputer =
+      MeanReciprocalRankComputer('successful completions');
+
+  MeanReciprocalRankComputer instanceMemberMrrComputer =
+      MeanReciprocalRankComputer('instance member completions');
+
+  MeanReciprocalRankComputer staticMemberMrrComputer =
+      MeanReciprocalRankComputer('static member completions');
+
+  MeanReciprocalRankComputer nonTypeMemberMrrComputer =
+      MeanReciprocalRankComputer('non-type member completions');
+
+  CompletionMetrics(this.name);
+}
+
 /// This is the main metrics computer class for code completions. After the
 /// object is constructed, [computeCompletionMetrics] is executed to do analysis
 /// and print a summary of the metrics gathered from the completion tests.
@@ -129,7 +168,7 @@ class CompletionMetricsComputer {
 
     var roots = _computeRootPaths(_rootPath, corpus);
     for (var root in roots) {
-      print('Analyzing root: \"$root\"');
+      print('Analyzing root: "$root"');
       final collection = AnalysisContextCollection(
         includedPaths: [root],
         resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -178,6 +217,7 @@ class CompletionMetricsComputer {
                 var suggestions = await _computeCompletionSuggestions(
                     _resolvedUnitResult,
                     expectedCompletion.offset,
+                    metricsOldMode,
                     declarationsTracker,
                     false);
 
@@ -188,6 +228,7 @@ class CompletionMetricsComputer {
                 suggestions = await _computeCompletionSuggestions(
                     _resolvedUnitResult,
                     expectedCompletion.offset,
+                    metricsNewMode,
                     declarationsTracker,
                     true);
 
@@ -203,8 +244,8 @@ class CompletionMetricsComputer {
         }
       }
     }
-    printAndClearComputers(metricsOldMode);
-    printAndClearComputers(metricsNewMode);
+    printMetrics(metricsOldMode);
+    printMetrics(metricsNewMode);
     return resultCode;
   }
 
@@ -214,15 +255,19 @@ class CompletionMetricsComputer {
 
     var place = placementInSuggestionList(suggestions, expectedCompletion);
 
-    metrics.mRRComputer.addRank(place.rank);
+    metrics.mrrComputer.addRank(place.rank);
 
     if (place.denominator != 0) {
+      metrics.successfulMrrComputer.addRank(place.rank);
       metrics.completionCounter.count('successful');
 
-      if (isTypeMember(expectedCompletion.syntacticEntity)) {
-        metrics.typeMemberMRRComputer.addRank(place.rank);
+      var element = getElement(expectedCompletion.syntacticEntity);
+      if (isInstanceMember(element)) {
+        metrics.instanceMemberMrrComputer.addRank(place.rank);
+      } else if (isStaticMember(element)) {
+        metrics.staticMemberMrrComputer.addRank(place.rank);
       } else {
-        metrics.nonTypeMemberMRRComputer.addRank(place.rank);
+        metrics.nonTypeMemberMrrComputer.addRank(place.rank);
       }
     } else {
       metrics.completionCounter.count('unsuccessful');
@@ -234,18 +279,21 @@ class CompletionMetricsComputer {
 
       if (_verbose) {
         // The format "/file/path/foo.dart:3:4" makes for easier input
-        // with the Files dialog in IntelliJ
-        print(
-            '$currentFilePath:${expectedCompletion.lineNumber}:${expectedCompletion.columnNumber}');
-        print(
-            '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
+        // with the Files dialog in IntelliJ.
+        var lineNumber = expectedCompletion.lineNumber;
+        var columnNumber = expectedCompletion.columnNumber;
+        print('$currentFilePath:$lineNumber:$columnNumber');
+        print('  missing completion: "${expectedCompletion.completion}"');
+        print('  completion kind: ${expectedCompletion.kind}');
+        print('  element kind: ${expectedCompletion.elementKind}');
         print('');
       }
     }
   }
 
-  void printAndClearComputers(CompletionMetrics metrics) {
-    print('\n\n');
+  void printMetrics(CompletionMetrics metrics) {
+    print('');
+    print('');
     print('====================');
     print('Completion metrics for ${metrics.name}:');
     if (_verbose) {
@@ -259,30 +307,31 @@ class CompletionMetricsComputer {
       print('');
     }
 
-    metrics.mRRComputer.printMean();
+    metrics.mrrComputer.printMean();
     print('');
 
-    metrics.typeMemberMRRComputer.printMean();
+    metrics.successfulMrrComputer.printMean();
     print('');
 
-    metrics.nonTypeMemberMRRComputer.printMean();
+    metrics.instanceMemberMrrComputer.printMean();
+    print('');
+
+    metrics.staticMemberMrrComputer.printMean();
+    print('');
+
+    metrics.nonTypeMemberMrrComputer.printMean();
     print('');
 
     print('Summary for $_rootPath:');
+    metrics.meanCompletionMS.printMean();
     metrics.completionCounter.printCounterValues();
     print('====================');
-
-    metrics.completionMissedTokenCounter.clear();
-    metrics.completionKindCounter.clear();
-    metrics.completionElementKindCounter.clear();
-    metrics.completionCounter.clear();
-    metrics.mRRComputer.clear();
-    metrics.typeMemberMRRComputer.clear();
-    metrics.nonTypeMemberMRRComputer.clear();
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
-      ResolvedUnitResult resolvedUnitResult, int offset,
+      ResolvedUnitResult resolvedUnitResult,
+      int offset,
+      CompletionMetrics metrics,
       [DeclarationsTracker declarationsTracker,
       bool useNewRelevance = false]) async {
     var completionRequestImpl = CompletionRequestImpl(
@@ -291,6 +340,8 @@ class CompletionMetricsComputer {
       useNewRelevance,
       CompletionPerformance(),
     );
+
+    var stopwatch = Stopwatch()..start();
 
     // This gets all of the suggestions with relevances.
     var suggestions =
@@ -318,13 +369,15 @@ class CompletionMetricsComputer {
             false));
       }
     }
+    stopwatch.stop();
+    metrics.meanCompletionMS.addValue(stopwatch.elapsedMilliseconds);
 
     suggestions.sort(completionComparator);
     return suggestions;
   }
 
   /// Given some [ResolvedUnitResult] return the first error of high severity
-  /// if such an error exists, null otherwise.
+  /// if such an error exists, `null` otherwise.
   static err.AnalysisError getFirstErrorOrNull(
       ResolvedUnitResult resolvedUnitResult) {
     for (var error in resolvedUnitResult.errors) {
@@ -360,25 +413,4 @@ class CompletionMetricsComputer {
     }
     return roots;
   }
-}
-
-/// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
-/// objects for a run of [CompletionMetricsComputer].
-class CompletionMetrics {
-  final String name;
-
-  CompletionMetrics(this.name);
-
-  var completionCounter = Counter('successful/ unsuccessful completions');
-  var completionMissedTokenCounter =
-      Counter('unsuccessful completion token counter');
-  var completionKindCounter = Counter('unsuccessful completion kind counter');
-  var completionElementKindCounter =
-      Counter('unsuccessful completion element kind counter');
-  var mRRComputer =
-      MeanReciprocalRankComputer('successful/ unsuccessful completions');
-  var typeMemberMRRComputer =
-      MeanReciprocalRankComputer('type member completions');
-  var nonTypeMemberMRRComputer =
-      MeanReciprocalRankComputer('non-type member completions');
 }

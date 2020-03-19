@@ -8,10 +8,8 @@ import "opt_out.dart";
 
 /*class: B:A,B,NONNULLABLE,NULLABLE,Object*/
 class B extends A {
-  /*cfe|cfe:builder.member: B.i:int*/
-  /*analyzer.member: B.i:int**/
-  /*cfe|cfe:builder.member: B.i=:int?*/
-  /*analyzer.member: B.i=:int**/
+  /*member: B.i:int**/
+  /*member: B.i=:int**/
 }
 
 /*class: C:A,C,NONNULLABLE,NULLABLE,Object*/

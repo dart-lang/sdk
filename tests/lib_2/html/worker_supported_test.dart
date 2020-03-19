@@ -4,7 +4,7 @@
 
 library worker_test;
 
-import 'package:unittest/unittest.dart';
+import 'package:expect/minitest.dart';
 import 'dart:html';
 
 main() {

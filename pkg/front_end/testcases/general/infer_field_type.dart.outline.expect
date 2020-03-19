@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends self::B {
+  field core::int* field;
+  synthetic constructor •() → self::C*
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+  get field() → core::int*
+    ;
+  set field(core::int* value) → void
+    ;
+}
+class A extends core::Object {
+  field core::int* field;
+  synthetic constructor •() → self::A*
+    ;
+}
+static field core::int* topLevelFieldFromA;
+static field core::int* topLevelFieldFromB;
+static field core::int* topLevelFieldFromC;
+static method main() → dynamic
+  ;

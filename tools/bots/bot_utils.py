@@ -43,12 +43,13 @@ ARCH_RENAMES = {
 
 
 class Channel(object):
+    BETA = 'beta'
     BLEEDING_EDGE = 'be'
     DEV = 'dev'
     STABLE = 'stable'
     TRY = 'try'
     INTEGRATION = 'integration'
-    ALL_CHANNELS = [BLEEDING_EDGE, DEV, STABLE, TRY, INTEGRATION]
+    ALL_CHANNELS = [BETA, BLEEDING_EDGE, DEV, STABLE, TRY, INTEGRATION]
 
 
 class ReleaseType(object):

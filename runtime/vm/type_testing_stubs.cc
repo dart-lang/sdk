@@ -237,21 +237,19 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     compiler::Assembler* assembler,
     HierarchyInfo* hi,
     const Type& type,
-    const Class& type_class,
-    Register instance_reg,
-    Register class_id_reg) {
+    const Class& type_class) {
   // These are handled via the TopTypeTypeTestStub!
   ASSERT(!type.IsTopTypeForAssignability());
 
   // Fast case for 'int'.
   if (type.IsIntType()) {
     compiler::Label non_smi_value;
-    __ BranchIfNotSmi(instance_reg, &non_smi_value);
+    __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &non_smi_value);
     __ Ret();
     __ Bind(&non_smi_value);
   } else if (type.IsDartFunctionType()) {
     compiler::Label continue_checking;
-    __ CompareImmediate(class_id_reg, kClosureCid);
+    __ CompareImmediate(TTSInternalRegs::kScratchReg, kClosureCid);
     __ BranchIf(NOT_EQUAL, &continue_checking);
     __ Ret();
     __ Bind(&continue_checking);
@@ -271,8 +269,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     const Type& int_type = Type::Handle(Type::IntType());
     const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
 
-    BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
-                                    instance_reg, smi_is_ok);
+    BuildOptimizedSubtypeRangeCheck(assembler, ranges, smi_is_ok);
   } else {
     ASSERT(hi->CanUseGenericSubtypeRangeCheckFor(type));
 
@@ -293,7 +290,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
   if (Instance::NullIsAssignableTo(type)) {
     // Fast case for 'null'.
     compiler::Label non_null;
-    __ CompareObject(instance_reg, Object::null_object());
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(NOT_EQUAL, &non_null);
     __ Ret();
     __ Bind(&non_null);
@@ -303,20 +300,20 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
 void TypeTestingStubGenerator::BuildOptimizedSubtypeRangeCheck(
     compiler::Assembler* assembler,
     const CidRangeVector& ranges,
-    Register class_id_reg,
-    Register instance_reg,
     bool smi_is_ok) {
   compiler::Label cid_range_failed, is_subtype;
 
   if (smi_is_ok) {
-    __ LoadClassIdMayBeSmi(class_id_reg, instance_reg);
+    __ LoadClassIdMayBeSmi(TTSInternalRegs::kScratchReg,
+                           TypeTestABI::kInstanceReg);
   } else {
-    __ BranchIfSmi(instance_reg, &cid_range_failed);
-    __ LoadClassId(class_id_reg, instance_reg);
+    __ BranchIfSmi(TypeTestABI::kInstanceReg, &cid_range_failed);
+    __ LoadClassId(TTSInternalRegs::kScratchReg, TypeTestABI::kInstanceReg);
   }
 
   FlowGraphCompiler::GenerateCidRangesCheck(
-      assembler, class_id_reg, ranges, &is_subtype, &cid_range_failed, true);
+      assembler, TTSInternalRegs::kScratchReg, ranges, &is_subtype,
+      &cid_range_failed, true);
   __ Bind(&is_subtype);
   __ Ret();
   __ Bind(&cid_range_failed);
@@ -329,23 +326,19 @@ void TypeTestingStubGenerator::
         const Type& type,
         const Class& type_class,
         const TypeArguments& tp,
-        const TypeArguments& ta,
-        const Register class_id_reg,
-        const Register instance_reg,
-        const Register instance_type_args_reg) {
+        const TypeArguments& ta) {
   // a) First we make a quick sub*class* cid-range check.
   compiler::Label check_failed;
   ASSERT(!type_class.is_implemented());
   const CidRangeVector& ranges = hi->SubclassRangesForClass(type_class);
-  BuildOptimizedSubclassRangeCheck(assembler, ranges, class_id_reg,
-                                   instance_reg, &check_failed);
+  BuildOptimizedSubclassRangeCheck(assembler, ranges, &check_failed);
   // fall through to continue
 
   // b) Then we'll load the values for the type parameters.
   __ LoadField(
-      instance_type_args_reg,
+      TTSInternalRegs::kInstanceTypeArgumentsReg,
       compiler::FieldAddress(
-          instance_reg,
+          TypeTestABI::kInstanceReg,
           compiler::target::Class::TypeArgumentsFieldOffset(type_class)));
 
   // The kernel frontend should fill in any non-assigned type parameters on
@@ -355,7 +348,8 @@ void TypeTestingStubGenerator::
   // TODO(kustermann): We could consider not using "null" as type argument
   // vector representing all-dynamic to avoid this extra check (which will be
   // uncommon because most Dart code in 2.0 will be strongly typed)!
-  __ CompareObject(instance_type_args_reg, Object::null_object());
+  __ CompareObject(TTSInternalRegs::kInstanceTypeArgumentsReg,
+                   Object::null_object());
   const Type& rare_type = Type::Handle(Type::RawCast(type_class.RareType()));
   if (rare_type.IsSubtypeOf(type, Heap::kNew)) {
     compiler::Label process_done;
@@ -391,14 +385,14 @@ void TypeTestingStubGenerator::
 void TypeTestingStubGenerator::BuildOptimizedSubclassRangeCheck(
     compiler::Assembler* assembler,
     const CidRangeVector& ranges,
-    Register class_id_reg,
-    Register instance_reg,
     compiler::Label* check_failed) {
-  __ LoadClassIdMayBeSmi(class_id_reg, instance_reg);
+  __ LoadClassIdMayBeSmi(TTSInternalRegs::kScratchReg,
+                         TypeTestABI::kInstanceReg);
 
   compiler::Label is_subtype;
-  FlowGraphCompiler::GenerateCidRangesCheck(assembler, class_id_reg, ranges,
-                                            &is_subtype, check_failed, true);
+  FlowGraphCompiler::GenerateCidRangesCheck(
+      assembler, TTSInternalRegs::kScratchReg, ranges, &is_subtype,
+      check_failed, true);
   __ Bind(&is_subtype);
 }
 
@@ -409,40 +403,34 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     HierarchyInfo* hi,
     const AbstractType& type_arg,
     intptr_t type_param_value_offset_i,
-    const Register class_id_reg,
-    const Register instance_type_args_reg,
-    const Register instantiator_type_args_reg,
-    const Register function_type_args_reg,
-    const Register own_type_arg_reg,
     compiler::Label* check_failed) {
   if (type_arg.IsTopType()) {
     return;
   }
-  // TODO(dartbug.com/40736): Even though it should be safe to use TMP here,
-  //  we should avoid using TMP outside the assembler. Try to find a free
-  //  register to use here!
-  __ LoadField(TMP, compiler::FieldAddress(
-                        instance_type_args_reg,
-                        compiler::target::TypeArguments::type_at_offset(
-                            type_param_value_offset_i)));
-  __ LoadField(class_id_reg,
-               compiler::FieldAddress(
-                   TMP, compiler::target::Type::type_class_id_offset()));
 
+  // If the upper bound is a type parameter and its value is "dynamic"
+  // we always succeed.
+  compiler::Label is_dynamic;
   if (type_arg.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type_arg);
-    const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
-                                           ? instantiator_type_args_reg
-                                           : function_type_args_reg;
+    const Register kTypeArgumentsReg =
+        type_param.IsClassTypeParameter()
+            ? TypeTestABI::kInstantiatorTypeArgumentsReg
+            : TypeTestABI::kFunctionTypeArgumentsReg;
+
+    __ CompareObject(kTypeArgumentsReg, Object::null_object());
+    __ BranchIf(EQUAL, &is_dynamic);
+
     __ LoadField(
-        own_type_arg_reg,
+        TTSInternalRegs::kScratchReg,
         compiler::FieldAddress(kTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(
                                    type_param.index())));
     __ CompareWithFieldValue(
-        class_id_reg,
-        compiler::FieldAddress(own_type_arg_reg,
-                               compiler::target::Type::type_class_id_offset()));
+        TTSInternalRegs::kScratchReg,
+        compiler::FieldAddress(TTSInternalRegs::kInstanceTypeArgumentsReg,
+                               compiler::target::TypeArguments::type_at_offset(
+                                   type_param_value_offset_i)));
     __ BranchIf(NOT_EQUAL, check_failed);
   } else {
     const Class& type_class = Class::Handle(type_arg.type_class());
@@ -451,55 +439,47 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
         /*include_abstract=*/true,
         /*exclude_null=*/!Instance::NullIsAssignableTo(type_arg));
 
-    compiler::Label is_subtype;
-    __ SmiUntag(class_id_reg);
-    FlowGraphCompiler::GenerateCidRangesCheck(assembler, class_id_reg, ranges,
-                                              &is_subtype, check_failed, true);
-    __ Bind(&is_subtype);
-  }
-
-  // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
-  // We don't need to check nullability of LHS for nullable and legacy RHS
-  // ("Right Legacy", "Right Nullable" rules).
-  if (FLAG_null_safety && !type_arg.IsNullable() && !type_arg.IsLegacy()) {
-    compiler::Label skip_nullable_check;
-    if (type_arg.IsTypeParameter()) {
-      // Skip the nullability check if actual RHS is nullable or legacy.
-      // TODO(dartbug.com/40736): Allocate register for own_type_arg_reg
-      //  which is not clobbered and avoid reloading own_type_arg_reg.
-      //  Currently own_type_arg_reg == TMP on certain
-      //  architectures and it is clobbered by CompareWithFieldValue.
-      const TypeParameter& type_param = TypeParameter::Cast(type_arg);
-      const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
-                                             ? instantiator_type_args_reg
-                                             : function_type_args_reg;
-      __ LoadField(own_type_arg_reg,
-                   compiler::FieldAddress(
-                       kTypeArgumentsReg,
-                       compiler::target::TypeArguments::type_at_offset(
-                           type_param.index())));
-      __ CompareTypeNullabilityWith(
-          own_type_arg_reg, compiler::target::Nullability::kNonNullable);
-      __ BranchIf(NOT_EQUAL, &skip_nullable_check);
-    }
-
-    // Nullable type is not a subtype of non-nullable type.
-    // TODO(dartbug.com/40736): allocate a register for instance type argument
-    //  and avoid reloading it. Note that class_id_reg == TMP on certain
-    //  architectures.
     __ LoadField(
-        class_id_reg,
-        compiler::FieldAddress(instance_type_args_reg,
+        TTSInternalRegs::kScratchReg,
+        compiler::FieldAddress(TTSInternalRegs::kInstanceTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(
                                    type_param_value_offset_i)));
-    __ CompareTypeNullabilityWith(class_id_reg,
-                                  compiler::target::Nullability::kNullable);
-    __ BranchIf(EQUAL, check_failed);
+    __ LoadField(
+        TTSInternalRegs::kScratchReg,
+        compiler::FieldAddress(TTSInternalRegs::kScratchReg,
+                               compiler::target::Type::type_class_id_offset()));
 
-    if (type_arg.IsTypeParameter()) {
-      __ Bind(&skip_nullable_check);
+    compiler::Label is_subtype;
+    __ SmiUntag(TTSInternalRegs::kScratchReg);
+    FlowGraphCompiler::GenerateCidRangesCheck(
+        assembler, TTSInternalRegs::kScratchReg, ranges, &is_subtype,
+        check_failed, true);
+    __ Bind(&is_subtype);
+
+    // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
+    // We don't need to check nullability of LHS for nullable and legacy RHS
+    // ("Right Legacy", "Right Nullable" rules).
+    if (FLAG_null_safety && !type_arg.IsNullable() && !type_arg.IsLegacy()) {
+      compiler::Label skip_nullable_check;
+      // Nullable type is not a subtype of non-nullable type.
+      // TODO(dartbug.com/40736): Allocate a register for instance type argument
+      // and avoid reloading it.
+      __ LoadField(TTSInternalRegs::kScratchReg,
+                   compiler::FieldAddress(
+                       TTSInternalRegs::kInstanceTypeArgumentsReg,
+                       compiler::target::TypeArguments::type_at_offset(
+                           type_param_value_offset_i)));
+      __ CompareTypeNullabilityWith(TTSInternalRegs::kScratchReg,
+                                    compiler::target::Nullability::kNullable);
+      __ BranchIf(EQUAL, check_failed);
+
+      if (type_arg.IsTypeParameter()) {
+        __ Bind(&skip_nullable_check);
+      }
     }
   }
+
+  __ Bind(&is_dynamic);
 }
 
 void RegisterTypeArgumentsUse(const Function& function,

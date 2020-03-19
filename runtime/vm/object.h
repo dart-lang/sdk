@@ -6182,12 +6182,12 @@ class Code : public Object {
 #endif
   }
 
- private:
-  void set_state_bits(intptr_t bits) const;
-
   void set_object_pool(RawObjectPool* object_pool) const {
     StorePointer(&raw_ptr()->object_pool_, object_pool);
   }
+
+ private:
+  void set_state_bits(intptr_t bits) const;
 
   friend class RawObject;  // For RawObject::SizeFromClass().
   friend class RawCode;
@@ -7188,6 +7188,31 @@ class TypeArguments : public Instance {
     static constexpr intptr_t kElementSize = kWordSize;
   };
 
+  // The nullability of a type argument vector represents the nullability of its
+  // type elements (up to a maximum number of them, i.e. kNullabilityMaxTypes).
+  // It is used at runtime in some cases (predetermined by the compiler) to
+  // decide whether the instantiator type arguments (ITA) can be shared instead
+  // of performing a more costly instantiation of the uninstantiated type
+  // arguments (UTA).
+  // The vector nullability is stored as a bit vector (in a Smi field), using
+  // 2 bits per type:
+  //  - the high bit is set if the type is nullable or legacy.
+  //  - the low bit is set if the type is nullable.
+  // The nullabilty is 0 if the vector is longer than kNullabilityMaxTypes.
+  // The condition evaluated at runtime to decide whether UTA can share ITA is
+  //   (UTA.nullability & ITA.nullability) == UTA.nullability
+  // Note that this allows for ITA to be longer than UTA.
+  static const intptr_t kNullabilityBitsPerType = 2;
+  static const intptr_t kNullabilityMaxTypes =
+      kSmiBits / kNullabilityBitsPerType;
+  static const intptr_t kNonNullableBits = 0;
+  static const intptr_t kNullableBits = 3;
+  static const intptr_t kLegacyBits = 2;
+  intptr_t nullability() const;
+  static intptr_t nullability_offset() {
+    return OFFSET_OF(RawTypeArguments, nullability_);
+  }
+
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   RawString* Name() const;
 
@@ -7209,7 +7234,7 @@ class TypeArguments : public Instance {
   }
 
   // Check if this type argument vector would consist solely of DynamicType if
-  // it was instantiated from both a raw (null) instantiator typearguments and
+  // it was instantiated from both a raw (null) instantiator type arguments and
   // a raw (null) function type arguments, i.e. consider each class type
   // parameter and function type parameters as it would be first instantiated
   // from a vector of dynamic types.
@@ -7270,8 +7295,19 @@ class TypeArguments : public Instance {
                                intptr_t num_free_fun_type_params = kAllFree,
                                TrailPtr trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
-  bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
-  bool CanShareFunctionTypeArguments(const Function& function) const;
+
+  // Determine whether this uninstantiated type argument vector can share its
+  // instantiator (resp. function) type argument vector instead of being
+  // instantiated at runtime.
+  // If null is passed in for 'with_runtime_check', the answer is unconditional
+  // (i.e. the answer will be false even if a runtime check may allow sharing),
+  // otherwise, in case the function returns true, 'with_runtime_check'
+  // indicates if a check is still required at runtime before allowing sharing.
+  bool CanShareInstantiatorTypeArguments(
+      const Class& instantiator_class,
+      bool* with_runtime_check = nullptr) const;
+  bool CanShareFunctionTypeArguments(const Function& function,
+                                     bool* with_runtime_check = nullptr) const;
 
   // Return true if all types of this vector are finalized.
   bool IsFinalized() const;
@@ -7346,7 +7382,7 @@ class TypeArguments : public Instance {
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that the types() is not adding to the object size, which includes
-    // 3 fields: instantiations_, length_ and hash_.
+    // 4 fields: instantiations_, length_, hash_, and nullability_.
     ASSERT(sizeof(RawTypeArguments) ==
            (sizeof(RawObject) + (kNumFields * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
@@ -7363,6 +7399,9 @@ class TypeArguments : public Instance {
   static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
 
  private:
+  intptr_t ComputeNullability() const;
+  void set_nullability(intptr_t value) const;
+
   intptr_t ComputeHash() const;
   void SetHash(intptr_t value) const;
 
@@ -7378,8 +7417,9 @@ class TypeArguments : public Instance {
   void set_instantiations(const Array& value) const;
   RawAbstractType* const* TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
-  // Number of fields in the raw object=3 (instantiations_, length_ and hash_).
-  static const int kNumFields = 3;
+  // Number of fields in the raw object is 4:
+  // instantiations_, length_, hash_ and nullability_.
+  static const int kNumFields = 4;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Instance);
   friend class AbstractType;

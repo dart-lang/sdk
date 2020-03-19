@@ -161,6 +161,32 @@ main() {
 ''');
   }
 
+  Future<void> test_withClass_catchClause() async {
+    addSource('/home/test/lib/lib.dart', '''
+class Test {}
+''');
+    await resolveTestUnit('''
+void f() {
+  try {
+    print(1);
+  } on Test {
+    print(2);
+  }
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f() {
+  try {
+    print(1);
+  } on Test {
+    print(2);
+  }
+}
+''');
+  }
+
   Future<void> test_withClass_hasOtherLibraryWithPrefix() async {
     addSource('/home/test/lib/a.dart', '''
 library a;
@@ -493,32 +519,6 @@ class X = Object with Test;
 ''', errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.UNDEFINED_CLASS;
     });
-  }
-
-  Future<void> test_withClass_catchClause() async {
-    addSource('/home/test/lib/lib.dart', '''
-class Test {}
-''');
-    await resolveTestUnit('''
-void f() {
-  try {
-    print(1);
-  } on Test {
-    print(2);
-  }
-}
-''');
-    await assertHasFix('''
-import 'package:test/lib.dart';
-
-void f() {
-  try {
-    print(1);
-  } on Test {
-    print(2);
-  }
-}
-''');
   }
 
   Future<void> test_withTopLevelVariable() async {

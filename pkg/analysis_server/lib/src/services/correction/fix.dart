@@ -289,6 +289,7 @@ class DartFixKind {
   static const REMOVE_ARGUMENT =
       FixKind('REMOVE_ARGUMENT', 50, 'Remove argument');
   static const REMOVE_AWAIT = FixKind('REMOVE_AWAIT', 50, 'Remove await');
+  static const REMOVE_CONST = FixKind('REMOVE_CONST', 50, 'Remove const');
   static const REMOVE_DEAD_CODE =
       FixKind('REMOVE_DEAD_CODE', 50, 'Remove dead code');
   static const REMOVE_DUPLICATE_CASE =
@@ -380,6 +381,8 @@ class DartFixKind {
       FixKind('REPLACE_WITH_EXTENSION_NAME', 50, "Replace with '{0}'");
   static const REPLACE_WITH_IDENTIFIER =
       FixKind('REPLACE_WITH_IDENTIFIER', 50, 'Replace with identifier');
+  static const REPLACE_WITH_INTERPOLATION =
+      FixKind('REPLACE_WITH_INTERPOLATION', 50, 'Replace with interpolation');
   static const REPLACE_WITH_IS_EMPTY =
       FixKind('REPLACE_WITH_IS_EMPTY', 50, "Replace with 'isEmpty'");
   static const REPLACE_WITH_IS_NOT_EMPTY =
@@ -413,6 +416,8 @@ class DartFixKind {
       FixKind('USE_RETHROW', 50, 'Replace throw with rethrow');
   static const WRAP_IN_FUTURE =
       FixKind('WRAP_IN_FUTURE', 50, "Wrap in 'Future.value'");
+  static const WRAP_IN_TEXT =
+      FixKind('WRAP_IN_TEXT', 50, "Wrap in a 'Text' widget");
 }
 
 /// An enumeration of quick fix kinds for the errors found in an Android

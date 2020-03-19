@@ -6,7 +6,7 @@ library custom_elements_name_clash;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'utils.dart';
 
 class CustomElement extends HtmlElement {
@@ -18,8 +18,8 @@ class CustomElement extends HtmlElement {
   var appendChild = 123;
 }
 
-main() {
-  setUp(() => customElementsReady);
+main() async {
+  await customElementsReady;
 
   group('test', () {
     test('test', () {

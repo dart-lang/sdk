@@ -13573,7 +13573,7 @@ class Element extends Node
     return Element._offsetToHelper(this, parent);
   }
 
-  static Point _offsetToHelper(Element current, Element parent) {
+  static Point _offsetToHelper(Element? current, Element parent) {
     // We're hopping from _offsetParent_ to offsetParent (not just parent), so
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
@@ -13585,7 +13585,7 @@ class Element extends Node
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
-    Element parentOffset = current.offsetParent;
+    Element? parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
@@ -13837,7 +13837,7 @@ class Element extends Node
     return result;
   }
 
-  Element get offsetParent native;
+  Element? get offsetParent native;
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 

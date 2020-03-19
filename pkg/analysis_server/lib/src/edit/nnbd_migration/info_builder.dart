@@ -514,9 +514,32 @@ class InfoBuilder {
     }).toList();
   }
 
-  TraceInfo _computeTraceInfo(NullabilityNodeInfo node) {
+  void _computeTraceNonNullableInfo(
+      NullabilityNodeInfo node, List<TraceInfo> traces) {
+    List<TraceEntryInfo> entries = [];
+    var step = node.whyNotNullable;
+    if (step == null) {
+      return;
+    }
+    assert(identical(step.node, node));
+    while (step != null) {
+      entries.add(_nodeToTraceEntry(step.node));
+      if (step.codeReference != null) {
+        entries.add(_stepToTraceEntry(step));
+      }
+      step = step.principalCause;
+    }
+    var description = 'Non-nullability reason';
+    traces.add(TraceInfo(description, entries));
+  }
+
+  void _computeTraceNullableInfo(
+      NullabilityNodeInfo node, List<TraceInfo> traces) {
     List<TraceEntryInfo> entries = [];
     var step = node.whyNullable;
+    if (step == null) {
+      return;
+    }
     assert(identical(step.targetNode, node));
     while (step != null) {
       entries.add(_nodeToTraceEntry(step.targetNode));
@@ -526,25 +549,26 @@ class InfoBuilder {
       step = step.principalCause;
     }
     var description = 'Nullability reason';
-    return TraceInfo(description, entries);
+    traces.add(TraceInfo(description, entries));
   }
 
   List<TraceInfo> _computeTraces(List<FixReasonInfo> fixReasons) {
-    var nodes = <NullabilityNodeInfo>[];
+    List<TraceInfo> traces = [];
     for (var reason in fixReasons) {
       if (reason is NullabilityNodeInfo) {
         if (reason.isNullable) {
-          nodes.add(reason);
+          _computeTraceNullableInfo(reason, traces);
         }
       } else if (reason is EdgeInfo) {
         assert(reason.sourceNode.isNullable);
         assert(!reason.destinationNode.isNullable);
-        nodes.add(reason.sourceNode);
+        _computeTraceNullableInfo(reason.sourceNode, traces);
+        _computeTraceNonNullableInfo(reason.destinationNode, traces);
       } else {
         assert(false, 'Unrecognized reason type: ${reason.runtimeType}');
       }
     }
-    return [for (var node in nodes) _computeTraceInfo(node)];
+    return traces;
   }
 
   /// Compute details about [edgeInfos] which are upstream triggered.
@@ -815,81 +839,93 @@ class InfoBuilder {
   /// enclosing top-level member.
   @visibleForTesting
   static String buildEnclosingMemberDescription(AstNode node) {
-    String functionName;
-    String baseDescription;
-
-    void describeFunction(AstNode node) {
-      if (node is ConstructorDeclaration) {
-        if (node.name == null) {
-          baseDescription = 'the default constructor of';
-          functionName = '';
+    for (var enclosingNode = node;
+        enclosingNode != null;
+        enclosingNode = enclosingNode.parent) {
+      if (enclosingNode is ConstructorDeclaration) {
+        if (enclosingNode.name == null) {
+          return _describeClassOrExtensionMember(
+              enclosingNode.parent, 'the default constructor of', '');
         } else {
-          baseDescription = 'the constructor';
-          functionName = node.name.name;
+          return _describeClassOrExtensionMember(
+              enclosingNode.parent, 'the constructor', enclosingNode.name.name);
         }
-      } else if (node is MethodDeclaration) {
-        functionName = node.name.name;
-        if (node.isGetter) {
+      } else if (enclosingNode is MethodDeclaration) {
+        var functionName = enclosingNode.name.name;
+        String baseDescription;
+        if (enclosingNode.isGetter) {
           baseDescription = 'the getter';
-        } else if (node.isOperator) {
+        } else if (enclosingNode.isOperator) {
           baseDescription = 'the operator';
-        } else if (node.isSetter) {
+        } else if (enclosingNode.isSetter) {
           baseDescription = 'the setter';
           functionName += '=';
         } else {
           baseDescription = 'the method';
         }
-      } else if (node is FunctionDeclaration) {
-        functionName = node.name.name;
-        if (node.isGetter) {
+        return _describeClassOrExtensionMember(
+            enclosingNode.parent, baseDescription, functionName);
+      } else if (enclosingNode is FunctionDeclaration &&
+          enclosingNode.parent is CompilationUnit) {
+        var functionName = enclosingNode.name.name;
+        String baseDescription;
+        if (enclosingNode.isGetter) {
           baseDescription = 'the getter';
-        } else if (node.isSetter) {
+        } else if (enclosingNode.isSetter) {
           baseDescription = 'the setter';
           functionName += '=';
         } else {
           baseDescription = 'the function';
         }
-      } else if (node is FieldDeclaration) {
-        var field = node.thisOrAncestorOfType<VariableDeclaration>();
-        field ??= node.fields.variables[0];
-        functionName = field.name.name;
-        baseDescription = 'the field';
+        return "$baseDescription '$functionName'";
+      } else if (enclosingNode is VariableDeclaration) {
+        var description = _describeVariableDeclaration(enclosingNode);
+        if (description != null) return description;
+      } else if (enclosingNode is VariableDeclarationList) {
+        var description =
+            _describeVariableDeclaration(enclosingNode.variables[0]);
+        if (description != null) return description;
+      }
+    }
+    throw ArgumentError(
+        "Can't describe enclosing member of ${node.runtimeType}");
+  }
+
+  static String _describeClassOrExtensionMember(CompilationUnitMember parent,
+      String baseDescription, String functionName) {
+    if (parent is NamedCompilationUnitMember) {
+      String parentName = parent.name.name;
+      if (functionName.isEmpty) {
+        return "$baseDescription '$parentName'";
       } else {
-        // Throwing here allows us to gather more information. Not throwing here
-        // causes an NPE on line 709.
-        throw ArgumentError("Can't describe function in ${node.runtimeType}");
+        return "$baseDescription '$parentName.$functionName'";
       }
-    }
-
-    var enclosingClassMember = node.thisOrAncestorOfType<ClassMember>();
-
-    if (enclosingClassMember != null) {
-      describeFunction(enclosingClassMember);
-      CompilationUnitMember member = enclosingClassMember.parent;
-      if (member is NamedCompilationUnitMember) {
-        String memberName = member.name.name;
-        if (functionName.isEmpty) {
-          return "$baseDescription '$memberName'";
-        } else {
-          return "$baseDescription '$memberName.$functionName'";
-        }
-      } else if (member is ExtensionDeclaration) {
-        if (member.name == null) {
-          var extendedTypeString = member.extendedType.type.getDisplayString(
-            withNullability: false,
-          );
-          return "$baseDescription '$functionName' in unnamed extension on $extendedTypeString";
-        } else {
-          return "$baseDescription '${member.name.name}.$functionName'";
-        }
+    } else if (parent is ExtensionDeclaration) {
+      if (parent.name == null) {
+        var extendedTypeString = parent.extendedType.type.getDisplayString(
+          withNullability: false,
+        );
+        return "$baseDescription '$functionName' in unnamed extension on $extendedTypeString";
+      } else {
+        return "$baseDescription '${parent.name.name}.$functionName'";
       }
+    } else {
+      throw ArgumentError(
+          'Unexpected class or extension type ${parent.runtimeType}');
     }
-    FunctionDeclaration enclosingFunction =
-        node.thisOrAncestorOfType<FunctionDeclaration>();
-    if (enclosingFunction is FunctionDeclaration) {
-      describeFunction(enclosingFunction);
-      return "$baseDescription '$functionName'";
+  }
+
+  static String _describeVariableDeclaration(VariableDeclaration node) {
+    var variableName = node.name.name;
+    var parent = node.parent;
+    var grandParent = parent.parent;
+    if (grandParent is FieldDeclaration) {
+      return _describeClassOrExtensionMember(
+          grandParent.parent, 'the field', variableName);
+    } else if (grandParent is TopLevelVariableDeclaration) {
+      return "the variable '$variableName'";
+    } else {
+      return null;
     }
-    return null;
   }
 }

@@ -572,6 +572,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
     _token(node.period);
+    _token(node.question);
     _token(node.leftBracket);
     node.index.accept(this);
     _token(node.rightBracket);

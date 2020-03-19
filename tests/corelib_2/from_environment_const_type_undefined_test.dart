@@ -35,8 +35,8 @@ const
     d = const String.fromEnvironment('d');
 
 main() {
-  Expect.equals(a, false);
-  Expect.equals(b, false);
-  Expect.equals(c, null);
-  Expect.equals(d, null);
+  Expect.equals(false, a);
+  Expect.equals(false, b);
+  Expect.equals(0, c);
+  Expect.equals('', d);
 }

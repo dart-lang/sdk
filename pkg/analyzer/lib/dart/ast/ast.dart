@@ -837,9 +837,13 @@ abstract class BreakStatement implements Statement {
 ///      | identifier
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class CascadeExpression implements Expression {
+abstract class CascadeExpression
+    implements Expression, NullShortableExpression {
   /// Return the cascade sections sharing the common target.
   NodeList<Expression> get cascadeSections;
+
+  /// Whether this cascade is null aware (as opposed to non-null).
+  bool get isNullAware;
 
   /// Return the target of the cascade sections.
   Expression get target;
@@ -3727,7 +3731,8 @@ abstract class MethodDeclaration implements ClassMember {
 ///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodInvocation implements InvocationExpression {
+abstract class MethodInvocation
+    implements NullShortableExpression, InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
   set argumentList(ArgumentList argumentList);
 
@@ -4190,7 +4195,7 @@ abstract class PartOfDirective implements Directive {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PostfixExpression
-    implements Expression, MethodReferenceExpression {
+    implements Expression, NullShortableExpression, MethodReferenceExpression {
   /// Return the expression computing the operand for the operator.
   Expression get operand;
 
@@ -4250,7 +4255,7 @@ abstract class PrefixedIdentifier implements Identifier {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixExpression
-    implements Expression, MethodReferenceExpression {
+    implements Expression, NullShortableExpression, MethodReferenceExpression {
   /// Return the expression computing the operand for the operator.
   Expression get operand;
 

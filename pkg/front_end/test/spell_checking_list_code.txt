@@ -344,6 +344,7 @@ existentially
 exp
 expect
 expense
+exportable
 exportee
 exportees
 expr

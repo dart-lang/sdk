@@ -64,7 +64,8 @@ static void Finish(Thread* thread) {
   // VM creates instances of _Closure without compiling its constructors,
   // so it won't get nullability info from a constructor.
   field ^= fields.At(fields.Length() - 1);
-  ASSERT(String::Handle(zone, field.UserVisibleName()).Equals("_hash"));
+  // Note that UserVisibleName depends on --show-internal-names.
+  ASSERT(strncmp(field.UserVisibleNameCString(), "_hash", 5) == 0);
   field.RecordStore(Object::null_object());
 
 #if defined(DEBUG)

@@ -63,14 +63,10 @@ class TypeTestingStubGenerator {
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const Type& type,
-      const Class& type_class,
-      Register instance_reg,
-      Register class_id_reg);
+      const Class& type_class);
 
   static void BuildOptimizedSubtypeRangeCheck(compiler::Assembler* assembler,
                                               const CidRangeVector& ranges,
-                                              Register class_id_reg,
-                                              Register instance_reg,
                                               bool smi_is_ok);
 
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
@@ -89,13 +85,10 @@ class TypeTestingStubGenerator {
       const TypeArguments& type_parameters,
       const TypeArguments& type_arguments,
       const Register class_id_reg,
-      const Register instance_reg,
       const Register instance_type_args_reg);
 
   static void BuildOptimizedSubclassRangeCheck(compiler::Assembler* assembler,
                                                const CidRangeVector& ranges,
-                                               Register class_id_reg,
-                                               Register instance_reg,
                                                compiler::Label* check_failed);
 
   static void BuildOptimizedTypeArgumentValueCheck(
@@ -103,18 +96,6 @@ class TypeTestingStubGenerator {
       HierarchyInfo* hi,
       const AbstractType& type_arg,
       intptr_t type_param_value_offset_i,
-      compiler::Label* check_failed);
-
-  static void BuildOptimizedTypeArgumentValueCheck(
-      compiler::Assembler* assembler,
-      HierarchyInfo* hi,
-      const AbstractType& type_arg,
-      intptr_t type_param_value_offset_i,
-      const Register class_id_reg,
-      const Register instance_type_args_reg,
-      const Register instantiator_type_args_reg,
-      const Register function_type_args_reg,
-      const Register type_arg_reg,
       compiler::Label* check_failed);
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

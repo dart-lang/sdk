@@ -1,6 +1,7 @@
 library IndexedDB3Test;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db';
@@ -92,18 +93,10 @@ main() {
   // Don't bother with these tests if it's unsupported.
   // Support is tested in indexeddb_1_test
   if (IdbFactory.supported) {
-    var db;
-    test('prepare', () {
-      return setupDb().then((result) {
-        db = result;
-      });
-    });
-    test('readAll1', () {
-      return readAllViaCursor(db);
-    });
-
-    test('readAll2', () {
-      return readAllReversedViaCursor(db);
+    asyncTest(() async {
+      var db = await setupDb();
+      await readAllViaCursor(db);
+      await readAllReversedViaCursor(db);
     });
   }
 }

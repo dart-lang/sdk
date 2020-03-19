@@ -9,20 +9,21 @@ import 'dart:html';
 import 'dart:js' as js;
 
 import 'entered_left_view_util.dart';
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import '../utils.dart';
 
-main() {
-  setUp(setupFunc);
+main() async {
+  await setupFunc();
   group('disconnected_subtree', () {
     var div = new DivElement();
 
-    setUp(() {
+    setUp() {
       invocations = [];
-    });
+    }
 
     test('Enters a disconnected subtree of DOM', () {
+      setUp();
       div.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
       upgradeCustomElements(div);
 
@@ -32,6 +33,7 @@ main() {
     });
 
     test('Leaves a disconnected subtree of DOM', () {
+      setUp();
       div.innerHtml = '';
       expect(invocations, [],
           reason:
@@ -40,6 +42,7 @@ main() {
     });
 
     test('Enters a document with a view as a constituent of a subtree', () {
+      setUp();
       div.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
       upgradeCustomElements(div);
       invocations = [];

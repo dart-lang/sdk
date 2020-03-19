@@ -362,10 +362,7 @@ compile_platform("dartdevc_platform") {
 
   # TODO(38701): Cleanup after merging the forked SDK into mainline.
   if (use_nnbd) {
-    args += [
-      "--enable-experiment=non-nullable",
-      "--force-nnbd-checks",
-    ]
+    args += [ "--enable-experiment=non-nullable" ]
   }
 }
 

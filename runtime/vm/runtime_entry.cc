@@ -848,7 +848,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   }
 
   bool should_update_cache = true;
-#if !defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(TARGET_ARCH_IA32)
+  bool would_update_cache_if_not_lazy = false;
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (mode == kTypeCheckFromLazySpecializeStub) {
     // Checks against type parameters are done by loading the value of the type
     // parameter and calling its type testing stub.
@@ -863,8 +865,15 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
                    dst_type.ToCString());
     }
     TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
-    // Only create the cache when we come from a normal stub.
-    should_update_cache = false;
+
+    // Only create the cache if we failed to create a specialized TTS and doing
+    // the same check would cause an update to the cache.
+    would_update_cache_if_not_lazy =
+        (!src_instance.IsNull() &&
+         dst_type.type_test_stub() ==
+             StubCode::DefaultNullableTypeTest().raw()) ||
+        dst_type.type_test_stub() == StubCode::DefaultTypeTest().raw();
+    should_update_cache = would_update_cache_if_not_lazy && cache.IsNull();
   }
 
   // Fast path of type testing stub wasn't able to handle given type, yet it
@@ -889,12 +898,15 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
     // Only create the cache when we come from a normal stub.
     should_update_cache = false;
   }
-#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(TARGET_ARCH_IA32)
 
   if (should_update_cache) {
     if (cache.IsNull()) {
 #if !defined(TARGET_ARCH_IA32)
-      ASSERT(mode == kTypeCheckFromSlowStub);
+      ASSERT(mode == kTypeCheckFromSlowStub ||
+             (mode == kTypeCheckFromLazySpecializeStub &&
+              would_update_cache_if_not_lazy));
       // We lazily create [SubtypeTestCache] for those call sites which actually
       // need one and will patch the pool entry.
       DartFrameIterator iterator(thread,

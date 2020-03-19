@@ -30,6 +30,7 @@ class FromEnvironmentEvaluatorTest {
     typeSystem = analysisContext.typeSystemLegacy;
   }
 
+  @deprecated
   void test_getBool_false() {
     String variableName = "var";
     var variables = FromEnvironmentEvaluator(
@@ -41,6 +42,7 @@ class FromEnvironmentEvaluatorTest {
     expect(object.toBoolValue(), false);
   }
 
+  @deprecated
   void test_getBool_invalid() {
     String variableName = "var";
     var variables = FromEnvironmentEvaluator(
@@ -52,6 +54,7 @@ class FromEnvironmentEvaluatorTest {
     );
   }
 
+  @deprecated
   void test_getBool_true() {
     String variableName = "var";
     var variables = FromEnvironmentEvaluator(
@@ -63,6 +66,7 @@ class FromEnvironmentEvaluatorTest {
     expect(object.toBoolValue(), true);
   }
 
+  @deprecated
   void test_getBool_undefined() {
     String variableName = "var";
     var variables = FromEnvironmentEvaluator(
@@ -75,6 +79,7 @@ class FromEnvironmentEvaluatorTest {
     );
   }
 
+  @deprecated
   void test_getInt_invalid() {
     String variableName = "var";
     var variables = FromEnvironmentEvaluator(
@@ -86,6 +91,7 @@ class FromEnvironmentEvaluatorTest {
     );
   }
 
+  @deprecated
   void test_getInt_undefined() {
     String variableName = "var";
     var variables = FromEnvironmentEvaluator(
@@ -98,6 +104,7 @@ class FromEnvironmentEvaluatorTest {
     );
   }
 
+  @deprecated
   void test_getInt_valid() {
     String variableName = "var";
     var variables = FromEnvironmentEvaluator(
@@ -109,6 +116,7 @@ class FromEnvironmentEvaluatorTest {
     expect(object.toIntValue(), 23);
   }
 
+  @deprecated
   void test_getString_defined() {
     String variableName = "var";
     String value = "value";
@@ -121,6 +129,7 @@ class FromEnvironmentEvaluatorTest {
     expect(object.toStringValue(), value);
   }
 
+  @deprecated
   void test_getString_undefined() {
     String variableName = "var";
     var variables = FromEnvironmentEvaluator(

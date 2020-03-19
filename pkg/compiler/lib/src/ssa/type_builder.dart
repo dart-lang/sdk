@@ -52,9 +52,8 @@ abstract class TypeBuilder {
   AbstractValue trustTypeMask(DartType type) {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
-    if (type is DynamicType) return null;
+    if (_closedWorld.dartTypes.isTopType(type)) return null;
     if (type is! InterfaceType) return null;
-    if (type == _closedWorld.commonElements.objectType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = (type as InterfaceType).element;
     return _abstractValueDomain.createNullableSubtype(element);
@@ -466,9 +465,7 @@ abstract class TypeBuilder {
   HInstruction buildAsCheck(HInstruction original, DartType type,
       {bool isTypeError, SourceInformation sourceInformation}) {
     if (type == null) return original;
-    if (type is DynamicType) return original;
-    if (type is VoidType) return original;
-    if (type == _closedWorld.commonElements.objectType) return original;
+    if (_closedWorld.dartTypes.isTopType(type)) return original;
 
     HInstruction reifiedType = analyzeTypeArgumentNewRti(
         type, builder.sourceElement,

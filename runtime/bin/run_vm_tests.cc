@@ -10,6 +10,7 @@
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/platform.h"
+#include "bin/process.h"
 #include "bin/snapshot_utils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -355,6 +356,7 @@ static int Main(int argc, const char** argv) {
   }
 
   bin::TimerUtils::InitOnce();
+  bin::Process::Init();
   bin::EventHandler::Start();
 
   char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
@@ -393,6 +395,7 @@ static int Main(int argc, const char** argv) {
   // Apply the filter to all registered benchmarks.
   Benchmark::RunAll(argv[0]);
 
+  bin::Process::TerminateExitCodeHandler();
   error = Dart::Cleanup();
   if (error != nullptr) {
     Syslog::PrintErr("Failed shutdown VM: %s\n", error);
@@ -403,6 +406,7 @@ static int Main(int argc, const char** argv) {
   TestCaseBase::RunAllRaw();
 
   bin::EventHandler::Stop();
+  bin::Process::Cleanup();
 
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {

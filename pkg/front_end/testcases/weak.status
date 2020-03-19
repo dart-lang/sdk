@@ -4,9 +4,11 @@
 
 # Status file for the weak_suite.dart test suite.
 
+extensions/call_methods: TypeCheckError
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
+extensions/issue40713: TypeCheckError
 extensions/static_access_of_instance: RuntimeError
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/accessors: RuntimeError

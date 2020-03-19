@@ -163,8 +163,11 @@ class AstTestFactory {
           identifier3(propertyName));
 
   static CascadeExpression cascadeExpression(Expression target,
-          [List<Expression> cascadeSections]) =>
-      astFactory.cascadeExpression(target, cascadeSections);
+      [List<Expression> cascadeSections]) {
+    var cascade = astFactory.cascadeExpression(target, cascadeSections);
+    cascade.target.endToken.next = cascadeSections.first.beginToken;
+    return cascade;
+  }
 
   static CatchClause catchClause(String exceptionParameter,
           [List<Statement> statements]) =>

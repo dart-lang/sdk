@@ -225,7 +225,7 @@ class EnumBuilder extends SourceClassBuilder {
       ..registerInitializedField(members["_name"])
       ..registerInitializedField(members["index"])
       ..registerInitializedField(valuesBuilder);
-    ProcedureBuilder toStringBuilder = new ProcedureBuilderImpl(
+    ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
         null,
         0,
         stringType,
@@ -337,7 +337,8 @@ class EnumBuilder extends SourceClassBuilder {
   TypeBuilder get mixedInType => null;
 
   InterfaceType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
+      [bool notInstanceContext]) {
     return rawType(nullabilityBuilder.build(library));
   }
 

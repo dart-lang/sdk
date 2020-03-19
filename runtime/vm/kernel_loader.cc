@@ -1435,6 +1435,9 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (class_helper->is_transformed_mixin_application()) {
     klass->set_is_transformed_mixin_application();
   }
+  if (class_helper->has_const_constructor()) {
+    klass->set_is_const();
+  }
 }
 
 void KernelLoader::LoadClass(const Library& library,

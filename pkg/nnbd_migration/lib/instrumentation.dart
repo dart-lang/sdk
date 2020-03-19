@@ -112,7 +112,7 @@ abstract class DecoratedTypeInfo {
   DecoratedTypeInfo typeArgument(int i);
 }
 
-/// Information about a propagation stup that occurred during downstream
+/// Information about a propagation step that occurred during downstream
 /// propagation.
 abstract class DownstreamPropagationStepInfo implements PropagationStepInfo {
   DownstreamPropagationStepInfo get principalCause;
@@ -362,6 +362,10 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// The edges that caused this node to have the nullability that it has.
   Iterable<EdgeInfo> get upstreamEdges;
 
+  /// If [isNullable] is false, the propagation step that caused this node to
+  /// become non-nullable (if any).
+  UpstreamPropagationStepInfo get whyNotNullable;
+
   /// If [isNullable] is true, the propagation step that caused this node to
   /// become nullable.
   DownstreamPropagationStepInfo get whyNullable;
@@ -387,4 +391,18 @@ abstract class SubstitutionNodeInfo extends NullabilityNodeInfo {
   /// `T` in the type `T*`, [innerNode] is the nullability corresponding to the
   /// `*` in `T*`.
   NullabilityNodeInfo get outerNode;
+}
+
+/// Information about a propagation step that occurred during upstream
+/// propagation.
+abstract class UpstreamPropagationStepInfo implements PropagationStepInfo {
+  /// The node whose nullability was changed.
+  ///
+  /// Any propagation step that took effect should have a non-null value here.
+  /// Propagation steps that are pending but have not taken effect yet, or that
+  /// never had an effect (e.g. because an edge was not triggered) will have a
+  /// `null` value for this field.
+  NullabilityNodeInfo get node;
+
+  UpstreamPropagationStepInfo get principalCause;
 }

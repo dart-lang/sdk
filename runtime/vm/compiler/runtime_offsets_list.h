@@ -236,6 +236,7 @@
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
   FIELD(TypeArguments, instantiations_offset)                                  \
+  FIELD(TypeArguments, nullability_offset)                                     \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, data_offset)                                            \

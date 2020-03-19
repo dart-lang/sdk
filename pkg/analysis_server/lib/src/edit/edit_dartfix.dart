@@ -112,12 +112,6 @@ class EditDartFix
       }
     }
 
-    // Process each package
-    for (Folder pkgFolder in pkgFolders) {
-      await processPackage(pkgFolder);
-    }
-
-    bool hasErrors = false;
     String changedPath;
     contextManager.driverMap.values.forEach((driver) {
       // Setup a listener to remember the resource that changed during analysis
@@ -127,22 +121,12 @@ class EditDartFix
       };
     });
 
-    // Process each source file.
+    // Set up the rerun function on the NNBD migration for interactivity.
+    nonNullableFixTask?.rerunFunction = rerunTasks;
+
+    bool hasErrors;
     try {
-      await processResources((ResolvedUnitResult result) async {
-        if (await processErrors(result)) {
-          hasErrors = true;
-        }
-        if (numPhases > 0) {
-          await processCodeTasks(0, result);
-        }
-      });
-      for (int phase = 1; phase < numPhases; phase++) {
-        await processResources((ResolvedUnitResult result) async {
-          await processCodeTasks(phase, result);
-        });
-      }
-      await finishCodeTasks();
+      hasErrors = await runAllTasks();
     } on InconsistentAnalysisException catch (_) {
       // If a resource changed, report the problem without suggesting fixes
       var changedMessage = changedPath != null
@@ -151,13 +135,10 @@ class EditDartFix
       return EditDartfixResult(
         [DartFixSuggestion('Analysis canceled because $changedMessage')],
         listener.otherSuggestions,
-        hasErrors,
+        false, // We may have errors, but we do not know, and it doesn't matter.
         listener.sourceChange.edits,
         details: listener.details,
       ).toResponse(request.id);
-    } finally {
-      server.contextManager.driverMap.values
-          .forEach((d) => d.onCurrentSessionAboutToBeDiscarded = null);
     }
 
     return EditDartfixResult(
@@ -262,5 +243,46 @@ class EditDartFix
       }
       await process(result);
     }
+  }
+
+  Future<bool> rerunTasks(List<String> changedPaths) async {
+    for (String path in changedPaths) {
+      var driver = server.getAnalysisDriver(path);
+      driver.changeFile(path);
+    }
+
+    return await runAllTasks();
+  }
+
+  Future<bool> runAllTasks() async {
+    // Process each package
+    for (Folder pkgFolder in pkgFolders) {
+      await processPackage(pkgFolder);
+    }
+
+    bool hasErrors = false;
+
+    // Process each source file.
+    try {
+      await processResources((ResolvedUnitResult result) async {
+        if (await processErrors(result)) {
+          hasErrors = true;
+        }
+        if (numPhases > 0) {
+          await processCodeTasks(0, result);
+        }
+      });
+      for (int phase = 1; phase < numPhases; phase++) {
+        await processResources((ResolvedUnitResult result) async {
+          await processCodeTasks(phase, result);
+        });
+      }
+      await finishCodeTasks();
+    } finally {
+      server.contextManager.driverMap.values
+          .forEach((d) => d.onCurrentSessionAboutToBeDiscarded = null);
+    }
+
+    return hasErrors;
   }
 }

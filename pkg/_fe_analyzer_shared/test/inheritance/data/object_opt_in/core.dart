@@ -15,6 +15,8 @@ class Object {
 
   bool operator ==(Object other) => true;
 
+  int get hashCode => 0;
+
   noSuchMethod(Invocation invocation) => null;
 
   String toString() => '';

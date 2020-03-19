@@ -2745,11 +2745,6 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
 
-  const Register kCacheReg = R3;
-  const Register kInstanceReg = R0;
-  const Register kInstantiatorTypeArgumentsReg = R2;
-  const Register kFunctionTypeArgumentsReg = R1;
-
   const Register kInstanceCidOrFunction = R8;
   const Register kInstanceInstantiatorTypeArgumentsReg = R4;
   const Register kInstanceDelayedFunctionTypeArgumentsReg = PP;
@@ -2776,15 +2771,17 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other).
-  __ ldr(kCacheReg,
-         FieldAddress(kCacheReg, target::SubtypeTestCache::cache_offset()));
-  __ AddImmediate(kCacheReg, target::Array::data_offset() - kHeapObjectTag);
+  __ ldr(TypeTestABI::kSubtypeTestCacheReg,
+         FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
+                      target::SubtypeTestCache::cache_offset()));
+  __ AddImmediate(TypeTestABI::kSubtypeTestCacheReg,
+                  target::Array::data_offset() - kHeapObjectTag);
 
   Label loop, not_closure;
   if (n >= 4) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, kInstanceReg);
+    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   }
   __ CompareImmediate(kInstanceCidOrFunction, kClosureCid);
   __ b(&not_closure, NE);
@@ -2792,19 +2789,20 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Closure handling.
   {
     __ ldr(kInstanceCidOrFunction,
-           FieldAddress(kInstanceReg, target::Closure::function_offset()));
+           FieldAddress(TypeTestABI::kInstanceReg,
+                        target::Closure::function_offset()));
     if (n >= 2) {
       __ ldr(
           kInstanceInstantiatorTypeArgumentsReg,
-          FieldAddress(kInstanceReg,
+          FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
       if (n >= 6) {
         ASSERT(n == 6);
         __ ldr(kInstanceParentFunctionTypeArgumentsReg,
-               FieldAddress(kInstanceReg,
+               FieldAddress(TypeTestABI::kInstanceReg,
                             target::Closure::function_type_arguments_offset()));
         __ ldr(kInstanceDelayedFunctionTypeArgumentsReg,
-               FieldAddress(kInstanceReg,
+               FieldAddress(TypeTestABI::kInstanceReg,
                             target::Closure::delayed_type_arguments_offset()));
       }
     }
@@ -2824,7 +2822,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                          host_type_arguments_field_offset_in_words_offset()));
       __ CompareImmediate(R9, target::Class::kNoTypeArguments);
       __ b(&has_no_type_arguments, EQ);
-      __ add(R9, kInstanceReg, Operand(R9, LSL, 2));
+      __ add(R9, TypeTestABI::kInstanceReg, Operand(R9, LSL, 2));
       __ ldr(kInstanceInstantiatorTypeArgumentsReg, FieldAddress(R9, 0));
       __ Bind(&has_no_type_arguments);
 
@@ -2840,7 +2838,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Loop header.
   __ Bind(&loop);
-  __ ldr(R9, Address(kCacheReg,
+  __ ldr(R9, Address(TypeTestABI::kSubtypeTestCacheReg,
                      target::kWordSize *
                          target::SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmp(R9, Operand(kNullReg));
@@ -2850,7 +2848,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ b(&found, EQ);
   } else {
     __ b(&next_iteration, NE);
-    __ ldr(R9, Address(kCacheReg,
+    __ ldr(R9, Address(TypeTestABI::kSubtypeTestCacheReg,
                        target::kWordSize *
                            target::SubtypeTestCache::kInstanceTypeArguments));
     __ cmp(R9, Operand(kInstanceInstantiatorTypeArgumentsReg));
@@ -2859,29 +2857,29 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     } else {
       __ b(&next_iteration, NE);
       __ ldr(R9,
-             Address(kCacheReg,
+             Address(TypeTestABI::kSubtypeTestCacheReg,
                      target::kWordSize *
                          target::SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmp(R9, Operand(kInstantiatorTypeArgumentsReg));
+      __ cmp(R9, Operand(TypeTestABI::kInstantiatorTypeArgumentsReg));
       __ b(&next_iteration, NE);
-      __ ldr(R9, Address(kCacheReg,
+      __ ldr(R9, Address(TypeTestABI::kSubtypeTestCacheReg,
                          target::kWordSize *
                              target::SubtypeTestCache::kFunctionTypeArguments));
-      __ cmp(R9, Operand(kFunctionTypeArgumentsReg));
+      __ cmp(R9, Operand(TypeTestABI::kFunctionTypeArgumentsReg));
       if (n == 4) {
         __ b(&found, EQ);
       } else {
         ASSERT(n == 6);
         __ b(&next_iteration, NE);
 
-        __ ldr(R9, Address(kCacheReg,
+        __ ldr(R9, Address(TypeTestABI::kSubtypeTestCacheReg,
                            target::kWordSize *
                                target::SubtypeTestCache::
                                    kInstanceParentFunctionTypeArguments));
         __ cmp(R9, Operand(kInstanceParentFunctionTypeArgumentsReg));
         __ b(&next_iteration, NE);
 
-        __ ldr(R9, Address(kCacheReg,
+        __ ldr(R9, Address(TypeTestABI::kSubtypeTestCacheReg,
                            target::kWordSize *
                                target::SubtypeTestCache::
                                    kInstanceDelayedFunctionTypeArguments));
@@ -2891,13 +2889,15 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     }
   }
   __ Bind(&next_iteration);
-  __ AddImmediate(kCacheReg, target::kWordSize *
-                                 target::SubtypeTestCache::kTestEntryLength);
+  __ AddImmediate(
+      TypeTestABI::kSubtypeTestCacheReg,
+      target::kWordSize * target::SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
 
   __ Bind(&found);
-  __ ldr(R1, Address(kCacheReg, target::kWordSize *
-                                    target::SubtypeTestCache::kTestResult));
+  __ ldr(R1,
+         Address(TypeTestABI::kSubtypeTestCacheReg,
+                 target::kWordSize * target::SubtypeTestCache::kTestResult));
   if (n >= 6) {
     __ PopList(1 << kInstanceParentFunctionTypeArgumentsReg |
                1 << kInstanceDelayedFunctionTypeArgumentsReg);
@@ -2982,28 +2982,22 @@ void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
 
 static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
                                             TypeCheckMode mode) {
-  const Register kInstanceReg = R0;
-  const Register kInstantiatorTypeArgumentsReg = R2;
-  const Register kFunctionTypeArgumentsReg = R1;
-  const Register kDstTypeReg = R8;
-  const Register kSubtypeTestCacheReg = R3;
-
   __ PushObject(NullObject());  // Make room for result.
-  __ Push(kInstanceReg);
-  __ Push(kDstTypeReg);
-  __ Push(kInstantiatorTypeArgumentsReg);
-  __ Push(kFunctionTypeArgumentsReg);
+  __ Push(TypeTestABI::kInstanceReg);
+  __ Push(TypeTestABI::kDstTypeReg);
+  __ Push(TypeTestABI::kInstantiatorTypeArgumentsReg);
+  __ Push(TypeTestABI::kFunctionTypeArgumentsReg);
   __ PushObject(NullObject());
-  __ Push(kSubtypeTestCacheReg);
+  __ Push(TypeTestABI::kSubtypeTestCacheReg);
   __ PushImmediate(target::ToRawSmi(mode));
   __ CallRuntime(kTypeCheckRuntimeEntry, 7);
   __ Drop(1);  // mode
-  __ Pop(kSubtypeTestCacheReg);
+  __ Pop(TypeTestABI::kSubtypeTestCacheReg);
   __ Drop(1);  // dst_name
-  __ Pop(kFunctionTypeArgumentsReg);
-  __ Pop(kInstantiatorTypeArgumentsReg);
-  __ Pop(kDstTypeReg);
-  __ Pop(kInstanceReg);
+  __ Pop(TypeTestABI::kFunctionTypeArgumentsReg);
+  __ Pop(TypeTestABI::kInstantiatorTypeArgumentsReg);
+  __ Pop(TypeTestABI::kDstTypeReg);
+  __ Pop(TypeTestABI::kInstanceReg);
   __ Drop(1);  // Discard return value.
 }
 
@@ -3040,7 +3034,6 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
   const Register kInstanceReg = R0;
-  const Register kFunctionTypeArgumentsReg = R1;
   const Register kDstTypeReg = R8;
   const Register kSubtypeTestCacheReg = R3;
 
@@ -3561,6 +3554,107 @@ void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
 
 void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ bkpt(0);
+}
+
+// Instantiate type arguments from instantiator and function type args.
+// R3 uninstantiated type arguments.
+// R2 instantiator type arguments.
+// R1: function type arguments.
+// Returns instantiated type arguments in R0.
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
+    Assembler* assembler) {
+  // Lookup cache before calling runtime.
+  __ ldr(R0, compiler::FieldAddress(
+                 kUninstantiatedTypeArgumentsReg,
+                 target::TypeArguments::instantiations_offset()));
+  __ AddImmediate(R0, compiler::target::Array::data_offset() - kHeapObjectTag);
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
+  compiler::Label loop, next, found;
+  __ Bind(&loop);
+  __ ldr(R4, compiler::Address(
+                 R0, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                         target::kWordSize));
+  __ cmp(R4, compiler::Operand(kInstantiatorTypeArgumentsReg));
+  __ b(&next, NE);
+  // Using IP as destination register and reading it immediately is safe.
+  __ ldr(IP, compiler::Address(
+                 R0, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
+                         target::kWordSize));
+  __ cmp(IP, compiler::Operand(kFunctionTypeArgumentsReg));
+  __ b(&found, EQ);
+  __ Bind(&next);
+  __ AddImmediate(
+      R0, TypeArguments::Instantiation::kSizeInWords * target::kWordSize);
+  __ CompareImmediate(R4, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ b(&loop, NE);
+
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object());  // Make room for the result.
+  static_assert(
+      (kUninstantiatedTypeArgumentsReg > kInstantiatorTypeArgumentsReg) &&
+          (kInstantiatorTypeArgumentsReg > kFunctionTypeArgumentsReg),
+      "Should be ordered to push arguments with one instruction");
+  __ PushList((1 << kUninstantiatedTypeArgumentsReg) |
+              (1 << kInstantiatorTypeArgumentsReg) |
+              (1 << kFunctionTypeArgumentsReg));
+  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
+  __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
+  __ Pop(kResultTypeArgumentsReg);  // Pop instantiated type arguments.
+  __ LeaveStubFrame();
+  __ Ret();
+
+  __ Bind(&found);
+  __ ldr(kResultTypeArgumentsReg,
+         compiler::Address(
+             R0, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
+                     target::kWordSize));
+  __ Ret();
+}
+
+void StubCodeCompiler::
+    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
+        Assembler* assembler) {
+  // Return the instantiator type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ ldr(R0,
+         compiler::FieldAddress(kUninstantiatedTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
+  __ ldr(R4,
+         compiler::FieldAddress(kInstantiatorTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
+  __ and_(R4, R4, Operand(R0));
+  __ cmp(R4, Operand(R0));
+  __ b(&cache_lookup, NE);
+  __ mov(kResultTypeArgumentsReg, Operand(kInstantiatorTypeArgumentsReg));
+  __ Ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
+    Assembler* assembler) {
+  // Return the function type arguments if its nullability is compatible for
+  // sharing, otherwise proceed to instantiation cache lookup.
+  compiler::Label cache_lookup;
+  __ ldr(R0,
+         compiler::FieldAddress(kUninstantiatedTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
+  __ ldr(R4,
+         compiler::FieldAddress(kFunctionTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
+  __ and_(R4, R4, Operand(R0));
+  __ cmp(R4, Operand(R0));
+  __ b(&cache_lookup, NE);
+  __ mov(kResultTypeArgumentsReg, Operand(kFunctionTypeArgumentsReg));
+  __ Ret();
+
+  __ Bind(&cache_lookup);
+  GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
 }  // namespace compiler

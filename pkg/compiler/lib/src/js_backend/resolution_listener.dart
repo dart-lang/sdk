@@ -270,7 +270,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
           ..addAll(functionType.optionalParameterTypes)
           ..addAll(functionType.namedParameterTypes);
         for (var type in allParameterTypes) {
-          if (type is FunctionType) {
+          if (type.withoutNullability is FunctionType) {
             var closureConverter = _commonElements.closureConverter;
             worldImpact.registerStaticUse(
                 new StaticUse.implicitInvoke(closureConverter));

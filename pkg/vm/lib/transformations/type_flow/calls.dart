@@ -179,15 +179,21 @@ class DynamicSelector extends Selector {
 class Args<T extends TypeExpr> {
   final List<T> values;
   final List<String> names;
+
+  // Whether it is not known which optional arguments are passed or not.
+  final bool unknownArity;
+
   int _hashCode;
 
-  Args(this.values, {this.names = const <String>[]}) {
+  Args(this.values,
+      {this.names = const <String>[], this.unknownArity = false}) {
     assertx(isSorted(names));
   }
 
   Args.withReceiver(Args<T> args, T receiver)
       : values = new List.from(args.values),
-        names = args.names {
+        names = args.names,
+        unknownArity = args.unknownArity {
     values[0] = receiver;
   }
 
@@ -207,6 +213,7 @@ class Args<T extends TypeExpr> {
     for (var n in names) {
       hash = (((hash * 31) & kHashMask) + n.hashCode) & kHashMask;
     }
+    if (unknownArity) hash ^= -1;
     return hash;
   }
 
@@ -226,7 +233,7 @@ class Args<T extends TypeExpr> {
           return false;
         }
       }
-      return true;
+      return unknownArity == other.unknownArity;
     }
     return false;
   }
@@ -249,7 +256,11 @@ class Args<T extends TypeExpr> {
       buf.write(': ');
       buf.write(values[positionalCount + i]);
     }
-    buf.write(")");
+    if (unknownArity) {
+      buf.write(", <unknown arity>)");
+    } else {
+      buf.write(")");
+    }
     return buf.toString();
   }
 }

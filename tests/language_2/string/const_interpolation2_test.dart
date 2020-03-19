@@ -88,7 +88,7 @@ main() {
   Expect.equals(b2.toString(), sb2);
   Expect.equals(b3.toString(), sb3);
   Expect.equals(b4.toString(), sb4);
-  var expect = "null null null null null null 42 3.1415 37 4.6692 2.71828 87 "
+  var expect = "null null null  0 null 42 3.1415 37 4.6692 2.71828 87 "
       "s1 s2 s1s2 s4 true false false true";
   Expect.equals(expect, interpolation1);
   Expect.equals(expect, interpolation2);

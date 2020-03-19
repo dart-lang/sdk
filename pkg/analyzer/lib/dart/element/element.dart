@@ -1048,7 +1048,7 @@ abstract class ExportElement implements Element, UriReferencedElement {
   List<NamespaceCombinator> get combinators;
 
   /// Return the library that is exported from this library by this export
-  /// directive.
+  /// directive, or `null` if the URI has invalid syntax or cannot be resolved.
   LibraryElement get exportedLibrary;
 }
 
@@ -1246,7 +1246,7 @@ abstract class ImportElement implements Element, UriReferencedElement {
   List<NamespaceCombinator> get combinators;
 
   /// Return the library that is imported into this library by this import
-  /// directive.
+  /// directive, or `null` if the URI has invalid syntax or cannot be resolved.
   LibraryElement get importedLibrary;
 
   /// Return `true` if this import is for a deferred library.

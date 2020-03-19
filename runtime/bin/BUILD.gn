@@ -895,7 +895,10 @@ prebuilt_dart_action("gen_kernel_bytecode_dill") {
 
   output = "$root_out_dir/gen_kernel_bytecode.dill"
   depfile = "$target_gen_dir/gen_kernel_bytecode.dill.d"
-  outputs = [ output ]
+  outputs = [
+    output,
+    depfile,
+  ]
 
   script = "../../pkg/vm/bin/gen_kernel.dart"
 

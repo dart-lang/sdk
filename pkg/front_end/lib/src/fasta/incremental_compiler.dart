@@ -414,9 +414,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     userCode.loader.buildersCreatedWithReferences.clear();
-    userCode.loader.builderHierarchy.nodes.clear();
-    userCode.loader.builderHierarchy.overrideChecks.clear();
-    userCode.loader.builderHierarchy.delayedSignatureComputations.clear();
+    userCode.loader.builderHierarchy.clear();
     userCode.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;

@@ -253,7 +253,7 @@ abstract class _BroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
-    error = _nonNullError(error);
+    ArgumentError.checkNotNull(error, "error");
     if (!_mayAddEvent) throw _addEventError();
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
@@ -480,6 +480,7 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    ArgumentError.checkNotNull(error, "error");
     if (!isClosed && _isFiring) {
       _addPendingEvent(new _DelayedError(error, stackTrace));
       return;

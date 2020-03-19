@@ -26,7 +26,6 @@ void main() {
   testParsePackages();
   testParseExperiments();
   testParseMultitest();
-  testParseMultiHtmltest();
   testParseErrorFlags();
   testParseErrorExpectations();
   testName();
@@ -244,31 +243,6 @@ void testParseMultitest() {
   main() {} /\/# 01: compile-time error
   """);
   Expect.isTrue(file.isMultitest);
-}
-
-void testParseMultiHtmltest() {
-  // Not present.
-  var file = parseTestFile("");
-  Expect.isFalse(file.isMultiHtmlTest);
-  Expect.listEquals(<String>[], file.subtestNames);
-
-  // Present.
-  // Note: the "${''}" is to prevent the test runner running *this* test file
-  // from parsing it as a multi-HTML test.
-  file = parseTestFile("""
-  main() {
-    useHtml\IndividualConfiguration();
-    group('pixel_manipulation', () {
-    });
-    group('arc', () {
-    });
-    group('drawImage_image_element', () {
-    });
-  }
-  """);
-  Expect.isTrue(file.isMultiHtmlTest);
-  Expect.listEquals(["pixel_manipulation", "arc", "drawImage_image_element"],
-      file.subtestNames);
 }
 
 void testParseErrorFlags() {

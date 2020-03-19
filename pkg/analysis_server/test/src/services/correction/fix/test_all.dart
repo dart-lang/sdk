@@ -93,6 +93,7 @@ import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
+import 'remove_const_test.dart' as remove_const;
 import 'remove_dead_code_test.dart' as remove_dead_code;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
@@ -137,6 +138,7 @@ import 'replace_with_conditional_assignment_test.dart'
 import 'replace_with_eight_digit_hex_test.dart' as replace_with_eight_digit_hex;
 import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
+import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
@@ -152,6 +154,7 @@ import 'use_is_not_empty_test.dart' as use_is_not_empty;
 import 'use_not_eq_null_test.dart' as use_not_eq_null;
 import 'use_rethrow_test.dart' as use_rethrow;
 import 'wrap_in_future_test.dart' as wrap_in_future;
+import 'wrap_in_text_test.dart' as wrap_in_text;
 
 void main() {
   defineReflectiveSuite(() {
@@ -233,6 +236,7 @@ void main() {
     remove_annotation.main();
     remove_argument.main();
     remove_await.main();
+    remove_const.main();
     remove_dead_code.main();
     remove_duplicate_case.main();
     remove_empty_catch.main();
@@ -273,6 +277,7 @@ void main() {
     replace_with_eight_digit_hex.main();
     replace_with_extension_name.main();
     replace_with_identifier.main();
+    replace_with_interpolation.main();
     replace_with_is_empty.main();
     replace_with_is_not_empty.main();
     replace_with_null_aware.main();
@@ -287,5 +292,6 @@ void main() {
     use_not_eq_null.main();
     use_rethrow.main();
     wrap_in_future.main();
+    wrap_in_text.main();
   }, name: 'fix');
 }

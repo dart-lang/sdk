@@ -130,7 +130,7 @@ abstract class DartType {
   @override
   String toString() => toStructuredText();
 
-  String toStructuredText({bool printLegacyStars = false}) =>
+  String toStructuredText({bool printLegacyStars = true}) =>
       _DartTypeToStringVisitor(printLegacyStars).run(this);
 }
 
@@ -1089,49 +1089,20 @@ abstract class DartTypeSubstitutionVisitor<A>
       return _mapped(type, type);
     }
 
-    List<FunctionTypeVariable> normalizableVariables = [];
-    for (int i = 0; i < newTypeVariables.length; i++) {
-      FunctionTypeVariable t = newTypeVariables[i];
-      if (identical(t, type.typeVariables[i])) continue;
-      DartType bound = t.bound;
-      if (bound is NeverType) {
-        normalizableVariables.add(t);
-      }
-    }
-
     return _mapped(
         type,
-        dartTypes.subst(
-            List<DartType>.filled(
-                normalizableVariables.length, dartTypes.neverType()),
-            normalizableVariables,
-            dartTypes.functionType(
-                newReturnType,
-                newParameterTypes,
-                newOptionalParameterTypes,
-                type.namedParameters,
-                newNamedParameterTypes,
-                newTypeVariables)));
+        dartTypes.functionType(
+            newReturnType,
+            newParameterTypes,
+            newOptionalParameterTypes,
+            type.namedParameters,
+            newNamedParameterTypes,
+            newTypeVariables));
   }
 
   List<FunctionTypeVariable> _handleFunctionTypeVariables(
       List<FunctionTypeVariable> variables, A argument) {
     if (variables.isEmpty) return variables;
-
-    // Are the function type variables being substituted (i.e. generic function
-    // type instantiation).
-    // TODO(sra): This should happen only from via
-    // [FunctionType.instantiate]. Perhaps it would be handled better there.
-    int count = 0;
-    for (int i = 0; i < variables.length; i++) {
-      FunctionTypeVariable variable = variables[i];
-      if (variable !=
-          substituteFunctionTypeVariable(variable, argument, false)) {
-        count++;
-      }
-    }
-    if (count == variables.length) return const <FunctionTypeVariable>[];
-    assert(count == 0, 'Generic function type instantiation is all-or-none');
 
     // Type variables may depend on each other. Consider:
     //
@@ -1707,13 +1678,11 @@ abstract class DartTypes {
   DartType interfaceType(ClassEntity element, List<DartType> typeArguments) =>
       InterfaceType._(element, typeArguments);
 
-  // Since all [TypeVariableType] bounds come from the CFE, we assume that no
-  // bound will ever be `Never` (or else the CFE would have already normalized
-  // the type variable to `Never`). Therefore, we can skip normalization.
+  // TODO(fishythefish): Normalize `T extends Never` to `Never`.
   TypeVariableType typeVariableType(TypeVariableEntity element) =>
       TypeVariableType._(element);
 
-  // We normalize when we substitute function types.
+  // See [functionType] for normalization.
   DartType functionTypeVariable(int index) => FunctionTypeVariable._(index);
 
   DartType neverType() => const NeverType._();
@@ -1727,14 +1696,29 @@ abstract class DartTypes {
   AnyType anyType() => const AnyType._();
 
   FunctionType functionType(
-          DartType returnType,
-          List<DartType> parameterTypes,
-          List<DartType> optionalParameterTypes,
-          List<String> namedParameters,
-          List<DartType> namedParameterTypes,
-          List<FunctionTypeVariable> typeVariables) =>
-      FunctionType._(returnType, parameterTypes, optionalParameterTypes,
-          namedParameters, namedParameterTypes, typeVariables);
+      DartType returnType,
+      List<DartType> parameterTypes,
+      List<DartType> optionalParameterTypes,
+      List<String> namedParameters,
+      List<DartType> namedParameterTypes,
+      List<FunctionTypeVariable> typeVariables) {
+    FunctionType type = FunctionType._(
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        namedParameters,
+        namedParameterTypes,
+        typeVariables);
+    List<FunctionTypeVariable> normalizableVariables = typeVariables
+        .where((FunctionTypeVariable t) => t.bound is NeverType)
+        .toList();
+    return normalizableVariables.isEmpty
+        ? type
+        : subst(
+            List<DartType>.filled(normalizableVariables.length, neverType()),
+            normalizableVariables,
+            type);
+  }
 
   DartType futureOrType(DartType typeArgument) {
     DartType result;
@@ -1770,7 +1754,17 @@ abstract class DartTypes {
   }
 
   DartType instantiate(FunctionType t, List<DartType> arguments) {
-    return subst(arguments, t.typeVariables, t);
+    assert(arguments.length == t.typeVariables.length,
+        'Generic function type instantiation is all-or-none');
+    DartType _subst(DartType type) => subst(arguments, t.typeVariables, type);
+    DartType returnType = _subst(t.returnType);
+    List<DartType> parameterTypes = t.parameterTypes.map(_subst).toList();
+    List<DartType> optionalParameterTypes =
+        t.optionalParameterTypes.map(_subst).toList();
+    List<DartType> namedParameterTypes =
+        t.namedParameterTypes.map(_subst).toList();
+    return functionType(returnType, parameterTypes, optionalParameterTypes,
+        t.namedParameters, namedParameterTypes, const []);
   }
 
   /// Returns `true` if every type argument of [t] is a top type.

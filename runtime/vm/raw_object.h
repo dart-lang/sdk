@@ -2220,6 +2220,7 @@ class RawTypeArguments : public RawInstance {
   RawArray* instantiations_;  // Of 3-tuple: 2 instantiators, result.
   RawSmi* length_;
   RawSmi* hash_;
+  RawSmi* nullability_;
 
   // Variable length data follows here.
   RawAbstractType* const* types() const {

@@ -150,11 +150,14 @@ abstract class Stream<T> {
    * stack trace as well.
    */
   @Since("2.5")
-  factory Stream.error(Object error, [StackTrace? stackTrace]) =>
-      (_AsyncStreamController<T>(null, null, null, null)
-            .._addError(error, stackTrace)
-            .._closeUnchecked())
-          .stream;
+  factory Stream.error(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
+    return (_AsyncStreamController<T>(null, null, null, null)
+          .._addError(error, stackTrace)
+          .._closeUnchecked())
+        .stream;
+  }
 
   /**
    * Creates a new single-subscription stream from the future.
@@ -1607,15 +1610,11 @@ abstract class StreamSubscription<T> {
    * Returns a future that is completed once the stream has finished
    * its cleanup.
    *
-   * For historical reasons, may also return `null` if no cleanup was necessary.
-   * Returning `null` is deprecated and should be avoided.
-   *
-   * Typically, futures are returned when the stream needs to release resources.
+   * Typically, cleanup happens when the stream needs to release resources.
    * For example, a stream might need to close an open file (as an asynchronous
    * operation). If the listener wants to delete the file after having
    * canceled the subscription, it must wait for the cleanup future to complete.
    *
-   * A returned future completes with a `null` value.
    * If the cleanup throws, which it really shouldn't, the returned future
    * completes with that error.
    */

@@ -28,20 +28,19 @@ class InlineTypedef extends CorrectionProducer {
     TypeAnnotation returnType;
     TypeParameterList typeParameters;
     List<FormalParameter> parameters;
-    if (node is FunctionTypeAlias) {
-      var typedef = node as FunctionTypeAlias;
-      returnType = typedef.returnType;
-      name = typedef.name.name;
-      typeParameters = typedef.typeParameters;
-      parameters = typedef.parameters.parameters;
-    } else if (node is GenericTypeAlias) {
-      var typedef = node as GenericTypeAlias;
-      if (typedef.typeParameters != null) {
+    var parent = node.parent;
+    if (parent is FunctionTypeAlias) {
+      returnType = parent.returnType;
+      name = parent.name.name;
+      typeParameters = parent.typeParameters;
+      parameters = parent.parameters.parameters;
+    } else if (parent is GenericTypeAlias) {
+      if (parent.typeParameters != null) {
         return;
       }
-      var functionType = typedef.functionType;
+      var functionType = parent.functionType;
       returnType = functionType.returnType;
-      name = typedef.name.name;
+      name = parent.name.name;
       typeParameters = functionType.typeParameters;
       parameters = functionType.parameters.parameters;
     } else {
@@ -57,7 +56,7 @@ class InlineTypedef extends CorrectionProducer {
     // Build the edit.
     //
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(utils.getLinesRange(range.node(node)));
+      builder.addDeletion(utils.getLinesRange(range.node(parent)));
       builder.addReplacement(range.node(finder.reference),
           (DartEditBuilder builder) {
         if (returnType != null) {

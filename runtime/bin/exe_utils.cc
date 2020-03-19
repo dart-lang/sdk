@@ -27,12 +27,20 @@ char* EXEUtils::GetDirectoryPrefixFromExeName() {
     target_size = strlen(name);
   }
   Namespace* namespc = Namespace::Create(Namespace::Default());
-  if (File::GetType(namespc, name, false) == File::kIsLink) {
+
+  // We might run into symlinks of symlinks, so make sure we follow the
+  // links all the way. See https://github.com/dart-lang/sdk/issues/41057 for
+  // an example where this happens with brew on MacOS.
+  bool followedSymlink = false;
+  while (File::GetType(namespc, name, false) == File::kIsLink) {
     // Resolve the link without creating Dart scope String.
     name = File::LinkTarget(namespc, name, target, kTargetSize);
     if (name == NULL) {
       return strdup("");
     }
+    followedSymlink = true;
+  }
+  if (followedSymlink) {
     target_size = strlen(name);
   }
   namespc->Release();

@@ -186,8 +186,13 @@ class TimelineTask {
   /// If [parent] is provided, the parent's task ID is provided as argument
   /// 'parentId' when [start] is called. In DevTools, this argument will result
   /// in this [TimelineTask] being linked to the [parent] [TimelineTask].
-  TimelineTask({TimelineTask? parent})
+  ///
+  /// If [filterKey] is provided, a property named `filterKey` will be inserted
+  /// into the arguments of each event associated with this task. The
+  /// `filterKey` will be set to the value of [filterKey].
+  TimelineTask({TimelineTask? parent, String? filterKey})
       : _parent = parent,
+        _filterKey = filterKey,
         _taskId = _getNextAsyncId() {}
 
   /// Create a task with an explicit [taskId]. This is useful if you are
@@ -196,8 +201,13 @@ class TimelineTask {
   /// Important note: only provide task IDs which have been obtained as a
   /// result of invoking [TimelineTask.pass]. Specifying a custom ID can lead
   /// to ID collisions, resulting in incorrect rendering of timeline events.
-  TimelineTask.withTaskId(int taskId)
+  ///
+  /// If [filterKey] is provided, a property named `filterKey` will be inserted
+  /// into the arguments of each event associated with this task. The
+  /// `filterKey` will be set to the value of [filterKey].
+  TimelineTask.withTaskId(int taskId, {String? filterKey})
       : _parent = null,
+        _filterKey = filterKey,
         _taskId = taskId {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(taskId, 'taskId');
@@ -222,6 +232,7 @@ class TimelineTask {
       }
     }
     if (_parent != null) map['parentId'] = _parent!._taskId.toRadixString(16);
+    if (_filterKey != null) map[_kFilterKey] = _filterKey;
     block._start(map);
   }
 
@@ -235,6 +246,10 @@ class TimelineTask {
     if (arguments != null) {
       instantArguments = new Map.from(arguments);
     }
+    if (_filterKey != null) {
+      instantArguments ??= {};
+      instantArguments[_kFilterKey] = _filterKey;
+    }
     _reportTaskEvent(
         _taskId, 'n', 'Dart', name, _argumentsAsJson(instantArguments));
   }
@@ -247,6 +262,10 @@ class TimelineTask {
     }
     if (_stack.length == 0) {
       throw new StateError('Uneven calls to start and finish');
+    }
+    if (_filterKey != null) {
+      arguments ??= {};
+      arguments[_kFilterKey] = _filterKey;
     }
     // Pop top item off of stack.
     var block = _stack.removeLast();
@@ -265,7 +284,9 @@ class TimelineTask {
     return r;
   }
 
+  static const String _kFilterKey = 'filterKey';
   final TimelineTask? _parent;
+  final String? _filterKey;
   final int _taskId;
   final List<_AsyncBlock> _stack = [];
 }

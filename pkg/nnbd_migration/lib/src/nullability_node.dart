@@ -766,8 +766,7 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   @override
   Iterable<EdgeInfo> get upstreamEdges => _upstreamEdges;
 
-  /// If this node has non-null intent, the propagation step that caused it to
-  /// have non-null intent, otherwise `null`.
+  @override
   UpstreamPropagationStep get whyNotNullable;
 
   String get _jsonKind;
@@ -1167,7 +1166,8 @@ class SimpleExactNullablePropagationStep extends ExactNullablePropagationStep {
 
 /// Propagation step where we mark a node as having non-null intent due to it
 /// being upstream from another node with non-null intent.
-class UpstreamPropagationStep extends PropagationStep {
+class UpstreamPropagationStep extends PropagationStep
+    implements UpstreamPropagationStepInfo {
   @override
   final UpstreamPropagationStep principalCause;
 
@@ -1177,15 +1177,23 @@ class UpstreamPropagationStep extends PropagationStep {
   /// The new state of the node's non-null intent.
   final NonNullIntent newNonNullIntent;
 
+  /// The nullability edge connecting [node] to the node it is upstream from, if
+  /// any.
+  final NullabilityEdge edge;
+
   UpstreamPropagationStep(
-      this.principalCause, this.node, this.newNonNullIntent);
+      this.principalCause, this.node, this.newNonNullIntent, this.edge);
 
   UpstreamPropagationStep.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
       : principalCause = deserializer.stepForId(json['cause'] as int)
             as UpstreamPropagationStep,
         node = deserializer.nodeForId(json['node'] as int),
-        newNonNullIntent = NonNullIntent.fromJson(json['newState']);
+        newNonNullIntent = NonNullIntent.fromJson(json['newState']),
+        edge = deserializer.edgeForId(json['edge'] as int);
+
+  @override
+  CodeReference get codeReference => edge?.codeReference;
 
   @override
   Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
@@ -1193,7 +1201,8 @@ class UpstreamPropagationStep extends PropagationStep {
       'kind': 'upstream',
       'cause': serializer.idForStep(principalCause),
       'node': serializer.idForNode(node),
-      'newState': newNonNullIntent.toJson()
+      'newState': newNonNullIntent.toJson(),
+      'edge': serializer.idForEdge(edge)
     };
   }
 
@@ -1388,7 +1397,7 @@ class _PropagationState {
   void _propagateUpstream() {
     Queue<UpstreamPropagationStep> pendingSteps = Queue();
     pendingSteps
-        .add(UpstreamPropagationStep(null, _never, NonNullIntent.direct));
+        .add(UpstreamPropagationStep(null, _never, NonNullIntent.direct, null));
     while (pendingSteps.isNotEmpty) {
       var cause = pendingSteps.removeFirst();
       var pendingNode = cause.node;
@@ -1408,7 +1417,8 @@ class _PropagationState {
           } else {
             newNonNullIntent = oldNonNullIntent.addIndirect();
           }
-          var step = UpstreamPropagationStep(cause, node, newNonNullIntent);
+          var step =
+              UpstreamPropagationStep(cause, node, newNonNullIntent, edge);
           _setNonNullIntent(step);
           if (!oldNonNullIntent.isPresent) {
             // We did not previously have non-null intent, so we need to
@@ -1426,7 +1436,7 @@ class _PropagationState {
         }
         var oldNonNullIntent = node._nonNullIntent;
         var newNonNullIntent = oldNonNullIntent.addIndirect();
-        var step = UpstreamPropagationStep(cause, node, newNonNullIntent);
+        var step = UpstreamPropagationStep(cause, node, newNonNullIntent, null);
         _setNonNullIntent(step);
         if (!oldNonNullIntent.isPresent) {
           // We did not previously have non-null intent, so we need to

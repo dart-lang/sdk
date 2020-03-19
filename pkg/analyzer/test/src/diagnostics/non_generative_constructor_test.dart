@@ -40,6 +40,18 @@ class B extends A {
 ''');
   }
 
+  test_generative_external() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named() {}
+  factory A() => throw 0;
+}
+class B extends A {
+  external B();
+}
+''');
+  }
+
   test_implicit() async {
     await assertErrorsInCode(r'''
 class A {

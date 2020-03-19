@@ -433,8 +433,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     compiler::Label* is_not_instance_lbl) {
   __ Comment("UninstantiatedTypeTest");
   const Register kInstanceReg = EAX;
-  const Register kInstantiatorTypeArgumentsReg = EDX;
-  const Register kFunctionTypeArgumentsReg = ECX;
   const Register kTempReg = EDI;
   ASSERT(!type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
@@ -450,8 +448,9 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
             compiler::Address(ESP, 0 * kWordSize));  // Get function type args.
     // EDX: instantiator type arguments.
     // ECX: function type arguments.
-    const Register kTypeArgumentsReg =
-        type_param.IsClassTypeParameter() ? EDX : ECX;
+    const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
+                                           ? kInstantiatorTypeArgumentsReg
+                                           : kFunctionTypeArgumentsReg;
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ cmpl(kTypeArgumentsReg, raw_null);
     __ j(EQUAL, is_instance_lbl);
@@ -515,8 +514,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateFunctionTypeTest(
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
   const Register kInstanceReg = EAX;
-  const Register kInstantiatorTypeArgumentsReg = EDX;
-  const Register kFunctionTypeArgumentsReg = ECX;
   __ Comment("FunctionTypeTest");
 
   __ testl(kInstanceReg, compiler::Immediate(kSmiTagMask));
@@ -633,8 +630,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     __ PushObject(Object::null_object());  // Make room for the result.
     __ pushl(EAX);                         // Push the instance.
     __ PushObject(type);                   // Push the type.
-    __ pushl(EDX);                         // Instantiator type arguments.
-    __ pushl(ECX);                         // Function type arguments.
+    __ pushl(kInstantiatorTypeArgumentsReg);
+    __ pushl(kFunctionTypeArgumentsReg);
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
     GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
@@ -678,8 +675,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(!dst_type.IsTopTypeForAssignability());
 
-  __ pushl(EDX);  // Store instantiator type arguments.
-  __ pushl(ECX);  // Store function type arguments.
+  __ pushl(kInstantiatorTypeArgumentsReg);
+  __ pushl(kFunctionTypeArgumentsReg);
 
   compiler::Label is_assignable, runtime_call;
   if (Instance::NullIsAssignableTo(dst_type)) {
@@ -695,15 +692,16 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                         &runtime_call);
 
   __ Bind(&runtime_call);
-  __ movl(EDX, compiler::Address(
-                   ESP, 1 * kWordSize));  // Get instantiator type args.
-  __ movl(ECX,
+  __ movl(
+      kInstantiatorTypeArgumentsReg,
+      compiler::Address(ESP, 1 * kWordSize));  // Get instantiator type args.
+  __ movl(kFunctionTypeArgumentsReg,
           compiler::Address(ESP, 0 * kWordSize));  // Get function type args.
   __ PushObject(Object::null_object());            // Make room for the result.
   __ pushl(EAX);                                   // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  __ pushl(EDX);            // Instantiator type arguments.
-  __ pushl(ECX);            // Function type arguments.
+  __ pushl(kInstantiatorTypeArgumentsReg);
+  __ pushl(kFunctionTypeArgumentsReg);
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
@@ -715,8 +713,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   __ popl(EAX);
 
   __ Bind(&is_assignable);
-  __ popl(ECX);  // Remove pushed function type arguments.
-  __ popl(EDX);  // Remove pushed instantiator type arguments.
+  __ popl(kFunctionTypeArgumentsReg);
+  __ popl(kInstantiatorTypeArgumentsReg);
 }
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {

@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  late covariant final [setter] field core::int x;
+  synthetic constructor •() → self::C
+    ;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    ;
+  set x(covariant core::num value) → void
+    ;
+}
+static method main() → dynamic
+  ;

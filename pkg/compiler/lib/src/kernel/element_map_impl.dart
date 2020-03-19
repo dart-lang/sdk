@@ -1233,14 +1233,17 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           isExternal: isExternal, isConst: node.isConst);
     } else if (node is ir.Procedure) {
       functionNode = node.function;
-      bool isFromEnvironment = isExternal &&
-          name.text == 'fromEnvironment' &&
-          const ['int', 'bool', 'String'].contains(enclosingClass.name);
+      // TODO(sigmund): Check more strictly than just the class name.
+      bool isEnvironmentConstructor = isExternal &&
+          (name.text == 'fromEnvironment' &&
+                  const ['int', 'bool', 'String']
+                      .contains(enclosingClass.name) ||
+              name.text == 'hasEnvironment' && enclosingClass.name == 'bool');
       constructor = createFactoryConstructor(enclosingClass, name,
           getParameterStructure(functionNode, includeTypeParameters: false),
           isExternal: isExternal,
           isConst: node.isConst,
-          isFromEnvironmentConstructor: isFromEnvironment);
+          isFromEnvironmentConstructor: isEnvironmentConstructor);
     } else {
       // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
       throw failedAt(
@@ -1566,6 +1569,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         isExternal: isExternal, isConst: isConst);
   }
 
+  // TODO(dart2js-team): Rename isFromEnvironmentConstructor to
+  // isEnvironmentConstructor: Here, and everywhere in the compiler.
   IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
       Name name, ParameterStructure parameterStructure,
       {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {

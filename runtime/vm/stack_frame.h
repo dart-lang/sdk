@@ -315,6 +315,7 @@ class StackFrameIterator : public ValueObject {
           is_interpreted_(false) {}
     bool is_interpreted() const { return is_interpreted_; }
     void CheckIfInterpreted(uword exit_marker);
+    void Unpoison();
 
     uword fp_;
     uword sp_;

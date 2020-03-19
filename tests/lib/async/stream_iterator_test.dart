@@ -51,7 +51,7 @@ main() {
     Stream stream = createStream();
     StreamIterator iterator = new StreamIterator(stream);
     var hasNext = iterator.moveNext();
-    expect(iterator.moveNext, throwsA(isStateError));
+    expect(iterator.moveNext, throwsStateError);
     expect(await hasNext, isTrue);
     expect(iterator.current, 42);
     iterator.cancel();

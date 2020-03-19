@@ -1107,9 +1107,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     void checkFunction(Entity function, FunctionType type) {
       for (FunctionTypeVariable typeVariable in type.typeVariables) {
         DartType bound = typeVariable.bound;
-        if (bound is! DynamicType &&
-            bound is! VoidType &&
-            bound != closedWorld.commonElements.objectType) {
+        if (!closedWorld.dartTypes.isTopType(bound)) {
           potentiallyNeedTypeArguments(function);
           break;
         }

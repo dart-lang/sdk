@@ -67,4 +67,31 @@ int Function() foo() {
     assertElement(identifier, findElement.getter('a'));
     assertType(identifier, 'A?');
   }
+
+  test_nullShorting_cascade() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+  int get bar => 0;
+}
+
+main(A? a) {
+  a?..foo..bar;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('..foo'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('..bar'),
+      element: findElement.getter('bar'),
+      type: 'int',
+    );
+
+    assertType(findNode.cascade('a?'), 'A?');
+  }
 }

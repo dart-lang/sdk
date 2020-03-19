@@ -296,15 +296,17 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
         exportScope.lookupLocalMember(name, setter: member.isSetter);
     if (existing == member) {
       return false;
-    } else if (existing != null) {
-      Builder result = computeAmbiguousDeclaration(
-          name, existing, member, charOffset,
-          isExport: true);
-      exportScope.addLocalMember(name, result, setter: member.isSetter);
-      return result != existing;
     } else {
-      exportScope.addLocalMember(name, member, setter: member.isSetter);
-      return true;
+      if (existing != null) {
+        Builder result = computeAmbiguousDeclaration(
+            name, existing, member, charOffset,
+            isExport: true);
+        exportScope.addLocalMember(name, result, setter: member.isSetter);
+        return result != existing;
+      } else {
+        exportScope.addLocalMember(name, member, setter: member.isSetter);
+        return true;
+      }
     }
   }
 

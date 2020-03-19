@@ -141,6 +141,9 @@ class RelevanceData {
   /// target type and the member type.
   Map<int, Map<int, int>> distanceByDepthMap = {};
 
+  /// A table mapping counter names to counts.
+  Map<String, int> simpleCounts = {};
+
   /// A table mapping distances from an identifier to the nearest previous token
   /// with the same lexeme to the number of times that distance was found.
   Map<int, int> tokenDistances = {};
@@ -161,6 +164,11 @@ class RelevanceData {
     _addToMap(byTokenType, data.byTokenType);
     _addToMap(byTypeMatch, data.byTypeMatch);
     _addToMap(distanceByDepthMap, distanceByDepthMap);
+  }
+
+  /// Increment the count associated with the given [name] by one.
+  void incrementCount(String name) {
+    simpleCounts[name] = (simpleCounts[name] ?? 0) + 1;
   }
 
   /// Record that a reference to an element was found and that the distance
@@ -1619,6 +1627,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     return -1;
   }
 
+  void _recordContextType(DartType type) {
+    if (type == null) {
+      data.incrementCount('has no context type');
+    } else {
+      data.incrementCount('has context type');
+    }
+  }
+
   /// Record information about the given [node] occurring in the given
   /// [context].
   void _recordDataForNode(String context, AstNode node,
@@ -1627,6 +1643,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     _recordReferenceDepth(node);
     _recordTokenDistance(node);
     _recordTokenType(context, node, allowedKeywords: allowedKeywords);
+    if (node != null) {
+      var contextType = featureComputer.computeContextType(node);
+      _recordContextType(contextType);
+      if (contextType != null) {
+        DartType elementType = _returnType(_leftMostElement(node));
+        if (elementType != null) {
+          _recordTypeRelationships(
+              'matches context type', contextType, elementType);
+        }
+      }
+    }
   }
 
   /// Record the [distance] from a reference to the declaration. The kind of
@@ -2036,6 +2063,8 @@ class RelevanceMetricsComputer {
     }
 
     sink.writeln('');
+    _writeCounts(sink, data.simpleCounts);
+    sink.writeln('');
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);
     sink.writeln('');
@@ -2183,6 +2212,14 @@ class RelevanceMetricsComputer {
       for (var line in lines) {
         sink.writeln('  $line');
       }
+    }
+  }
+
+  /// Write a [contextMap] containing one kind of metric data to the [sink].
+  void _writeCounts(StringSink sink, Map<String, int> countsMap) {
+    var names = countsMap.keys.toList()..sort();
+    for (var name in names) {
+      sink.writeln('$name = ${countsMap[name]}');
     }
   }
 

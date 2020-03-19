@@ -171,17 +171,8 @@ void test() {
 }
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expectEdits(result.edits, '''
-int f(int? i) => 0;
-int g(int? i) => f(i);
-void test() {
-  g(null);
-}
-''');
+    expectLater(() async => await performFix(includedFixes: ['non-nullable']),
+        throwsA(TypeMatcher<StateError>()));
   }
 
   Future<void> test_nonNullable_analysisOptions_created() async {

@@ -1199,6 +1199,7 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
 ///        '[ ' expression '] '
 ///      | identifier
 class CascadeExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
     implements CascadeExpression {
   /// The target of the cascade sections.
   ExpressionImpl _target;
@@ -1229,6 +1230,11 @@ class CascadeExpressionImpl extends ExpressionImpl
   Token get endToken => _cascadeSections.endToken;
 
   @override
+  bool get isNullAware {
+    return target.endToken.next.type == TokenType.QUESTION_PERIOD_PERIOD;
+  }
+
+  @override
   Precedence get precedence => Precedence.cascade;
 
   @override
@@ -1240,12 +1246,20 @@ class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @override
+  AstNode get _nullShortingExtensionCandidate => null;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
     _target?.accept(visitor);
     _cascadeSections.accept(visitor);
+  }
+
+  @override
+  bool _extendsNullShorting(Expression descendant) {
+    return _cascadeSections.contains(descendant);
   }
 }
 
@@ -5862,12 +5876,16 @@ class IndexExpressionImpl extends ExpressionImpl
   bool get isCascaded => period != null;
 
   @override
-  bool get isNullAware =>
-      question != null ||
-      leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
-      (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
-          period != null &&
-          period.type == TokenType.QUESTION_PERIOD_PERIOD);
+  bool get isNullAware {
+    if (isCascaded) {
+      return _ancestorCascade.isNullAware;
+    }
+    return question != null ||
+        leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
+        (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
+            period != null &&
+            period.type == TokenType.QUESTION_PERIOD_PERIOD);
+  }
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -5875,14 +5893,7 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   Expression get realTarget {
     if (isCascaded) {
-      AstNode ancestor = parent;
-      while (ancestor is! CascadeExpression) {
-        if (ancestor == null) {
-          return _target;
-        }
-        ancestor = ancestor.parent;
-      }
-      return (ancestor as CascadeExpression).target;
+      return _ancestorCascade.target;
     }
     return _target;
   }
@@ -5893,6 +5904,18 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   set target(Expression expression) {
     _target = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  /// Return the cascade that contains this [IndexExpression].
+  ///
+  /// We expect that [isCascaded] is `true`.
+  CascadeExpression get _ancestorCascade {
+    assert(isCascaded);
+    for (var ancestor = parent;; ancestor = ancestor.parent) {
+      if (ancestor is CascadeExpression) {
+        return ancestor;
+      }
+    }
   }
 
   @override
@@ -7037,10 +7060,14 @@ class MethodInvocationImpl extends InvocationExpressionImpl
           operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
-  bool get isNullAware =>
-      operator != null &&
-      (operator.type == TokenType.QUESTION_PERIOD ||
-          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
+  bool get isNullAware {
+    if (isCascaded) {
+      return _ancestorCascade.isNullAware;
+    }
+    return operator != null &&
+        (operator.type == TokenType.QUESTION_PERIOD ||
+            operator.type == TokenType.QUESTION_PERIOD_PERIOD);
+  }
 
   @override
   SimpleIdentifier get methodName => _methodName;
@@ -7072,14 +7099,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   Expression get realTarget {
     if (isCascaded) {
-      AstNode ancestor = parent;
-      while (ancestor is! CascadeExpression) {
-        if (ancestor == null) {
-          return _target;
-        }
-        ancestor = ancestor.parent;
-      }
-      return (ancestor as CascadeExpression).target;
+      return _ancestorCascade.target;
     }
     return _target;
   }
@@ -7090,6 +7110,18 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   set target(Expression expression) {
     _target = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  /// Return the cascade that contains this [IndexExpression].
+  ///
+  /// We expect that [isCascaded] is `true`.
+  CascadeExpression get _ancestorCascade {
+    assert(isCascaded);
+    for (var ancestor = parent;; ancestor = ancestor.parent) {
+      if (ancestor is CascadeExpression) {
+        return ancestor;
+      }
+    }
   }
 
   @override
@@ -8028,6 +8060,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 ///    postfixExpression ::=
 ///        [Expression] [Token]
 class PostfixExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
     implements PostfixExpression {
   /// The expression computing the operand for the operator.
   ExpressionImpl _operand;
@@ -8068,6 +8101,9 @@ class PostfixExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
+  @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
   /// representing the parameter to which the value of the operand will be
@@ -8090,6 +8126,9 @@ class PostfixExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     _operand?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, operand);
 }
 
 /// An identifier that is prefixed or an access to an object property where the
@@ -8189,7 +8228,9 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 ///
 ///    prefixExpression ::=
 ///        [Token] [Expression]
-class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
+class PrefixExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
+    implements PrefixExpression {
   /// The prefix operator being applied to the operand.
   @override
   Token operator;
@@ -8229,6 +8270,9 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   @override
   Precedence get precedence => Precedence.prefix;
 
+  @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
   /// representing the parameter to which the value of the operand will be
@@ -8251,6 +8295,9 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   void visitChildren(AstVisitor visitor) {
     _operand?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, operand);
 }
 
 /// The access of a property of an object.
@@ -8306,10 +8353,14 @@ class PropertyAccessImpl extends ExpressionImpl
           operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
-  bool get isNullAware =>
-      operator != null &&
-      (operator.type == TokenType.QUESTION_PERIOD ||
-          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
+  bool get isNullAware {
+    if (isCascaded) {
+      return _ancestorCascade.isNullAware;
+    }
+    return operator != null &&
+        (operator.type == TokenType.QUESTION_PERIOD ||
+            operator.type == TokenType.QUESTION_PERIOD_PERIOD);
+  }
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -8325,14 +8376,7 @@ class PropertyAccessImpl extends ExpressionImpl
   @override
   Expression get realTarget {
     if (isCascaded) {
-      AstNode ancestor = parent;
-      while (ancestor is! CascadeExpression) {
-        if (ancestor == null) {
-          return _target;
-        }
-        ancestor = ancestor.parent;
-      }
-      return (ancestor as CascadeExpression).target;
+      return _ancestorCascade.target;
     }
     return _target;
   }
@@ -8343,6 +8387,18 @@ class PropertyAccessImpl extends ExpressionImpl
   @override
   set target(Expression expression) {
     _target = _becomeParentOf(expression as ExpressionImpl);
+  }
+
+  /// Return the cascade that contains this [IndexExpression].
+  ///
+  /// We expect that [isCascaded] is `true`.
+  CascadeExpression get _ancestorCascade {
+    assert(isCascaded);
+    for (var ancestor = parent;; ancestor = ancestor.parent) {
+      if (ancestor is CascadeExpression) {
+        return ancestor;
+      }
+    }
   }
 
   @override

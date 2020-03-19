@@ -575,8 +575,7 @@ class OutlineBuilder extends StackListenerImpl {
     final int startCharOffset =
         metadata == null ? beginToken.charOffset : metadata.first.charOffset;
 
-    if (libraryBuilder.isNonNullableByDefault &&
-        libraryBuilder.loader.performNnbdChecks) {
+    if (libraryBuilder.isNonNullableByDefault) {
       String classNameForErrors = "${name}";
       TypeBuilder supertypeForErrors = supertype is MixinApplicationBuilder
           ? supertype.supertype
@@ -697,8 +696,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
 
-    if (libraryBuilder.isNonNullableByDefault &&
-        libraryBuilder.loader.performNnbdChecks) {
+    if (libraryBuilder.isNonNullableByDefault) {
       String classNameForErrors = "${name}";
       if (supertypeConstraints != null) {
         for (TypeBuilder supertype in supertypeConstraints) {
@@ -1235,8 +1233,7 @@ class OutlineBuilder extends StackListenerImpl {
       return;
     }
 
-    if (libraryBuilder.isNonNullableByDefault &&
-        libraryBuilder.loader.performNnbdChecks) {
+    if (libraryBuilder.isNonNullableByDefault) {
       String classNameForErrors = "${name}";
       MixinApplicationBuilder mixinApplicationBuilder = mixinApplication;
       TypeBuilder supertype = mixinApplicationBuilder.supertype;

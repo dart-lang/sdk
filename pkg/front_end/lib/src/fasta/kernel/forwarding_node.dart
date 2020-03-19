@@ -7,6 +7,7 @@ import "package:kernel/ast.dart"
         Arguments,
         Class,
         DartType,
+        DynamicType,
         Expression,
         Field,
         FunctionNode,
@@ -216,6 +217,15 @@ class ForwardingNode {
           interfacePositionalParameters[parameterIndex];
       DartType parameterType = substitution.substituteType(parameter.type);
       DartType type = initialType(_combinedMemberIndex, parameterType);
+      if (parameterIndex == 0 &&
+          hierarchy
+              .coreTypes.objectClass.enclosingLibrary.isNonNullableByDefault &&
+          !classBuilder.library.isNonNullableByDefault &&
+          interfaceMember == hierarchy.coreTypes.objectEquals) {
+        // In legacy code we special case `Object.==` to infer `dynamic`
+        // instead `Object!`.
+        type = const DynamicType();
+      }
       bool isGenericCovariantImpl =
           parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       bool isCovariant = parameter.isCovariant;
@@ -237,8 +247,19 @@ class ForwardingNode {
         if (otherParameter.isCovariant) {
           isCovariant = true;
         }
-        type = mergeTypes(candidateIndex, type,
-            substitutions[candidateIndex].substituteType(otherParameter.type));
+        DartType candidateType =
+            substitutions[candidateIndex].substituteType(otherParameter.type);
+        if (parameterIndex == 0 &&
+            hierarchy.coreTypes.objectClass.enclosingLibrary
+                .isNonNullableByDefault &&
+            !classBuilder.library.isNonNullableByDefault &&
+            otherMember == hierarchy.coreTypes.objectEquals) {
+          // In legacy code we special case `Object.==` to infer `dynamic`
+          // instead `Object!`.
+          candidateType = const DynamicType();
+        }
+
+        type = mergeTypes(candidateIndex, type, candidateType);
       }
       if (isGenericCovariantImpl) {
         if (!superParameter.isGenericCovariantImpl) {

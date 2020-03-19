@@ -7,7 +7,7 @@ library element_animate_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 main() {
   test('timing dict', () {

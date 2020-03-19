@@ -85,8 +85,10 @@ class SharedClassTable {
 
     // Ensure we never change size for a given cid from one non-zero size to
     // another non-zero size.
-    RELEASE_ASSERT(table_[index] == 0 || table_[index] == size);
-    table_[index] = size;
+    intptr_t old_size = 0;
+    if (!table_[index].compare_exchange_strong(old_size, size)) {
+      RELEASE_ASSERT(old_size == size);
+    }
   }
 
   bool IsValidIndex(intptr_t index) const { return index > 0 && index < top_; }
@@ -216,7 +218,8 @@ class SharedClassTable {
   intptr_t capacity_;
 
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
-  intptr_t* table_ = nullptr;  // Maps the cid to the instance size.
+  // Maps the cid to the instance size.
+  RelaxedAtomic<intptr_t>* table_ = nullptr;
   MallocGrowableArray<void*>* old_tables_;
 
   IsolateGroupReloadContext* reload_context_ = nullptr;

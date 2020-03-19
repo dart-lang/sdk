@@ -29,11 +29,13 @@ TransformationInfo transformComponent(
 
 void _treeshakeProtos(Target target, Component component, CoreTypes coreTypes,
     TransformationInfo info) {
-  globalTypeFlow.transformComponent(target, coreTypes, component);
+  globalTypeFlow.transformComponent(target, coreTypes, component,
+      treeShakeSignatures: false);
 
   final collector = removeUnusedProtoReferences(component, coreTypes, info);
   if (collector != null) {
-    globalTypeFlow.transformComponent(target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component,
+        treeShakeSignatures: false);
     if (info != null) {
       for (Class gmSubclass in collector.gmSubclasses) {
         if (!gmSubclass.enclosingLibrary.classes.contains(gmSubclass)) {

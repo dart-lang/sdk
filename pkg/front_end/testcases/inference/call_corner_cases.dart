@@ -26,8 +26,10 @@ test() {
       new D(). /*@target=D::fieldA*/ /*@target=A::call*/ fieldA();
   var /*@ type=int* */ callGetA =
       new D(). /*@target=D::getA*/ /*@target=A::call*/ getA();
-  var /*@ type=dynamic */ callFieldB = new D(). /*@target=D::fieldB*/ fieldB();
-  var /*@ type=dynamic */ callGetB = new D(). /*@target=D::getB*/ getB();
+  var /*@type=int**/ callFieldB = new D()
+      . /*@target=D::fieldB*/ /*@target=B::call*/ /*@target=A::call*/ fieldB();
+  var /*@type=int**/ callGetB = new D()
+      . /*@target=D::getB*/ /*@target=B::call*/ /*@target=A::call*/ getB();
 }
 
 main() {}

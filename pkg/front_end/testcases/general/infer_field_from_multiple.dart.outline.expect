@@ -2,10 +2,15 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:58:7: Error: Can't infer a type for 'field11' as some of the inherited members have different types.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:49:7: Error: Can't infer a type for 'field2' as some of the inherited members have different types.
 // Try adding an explicit type.
-//   var field11; // error
-//       ^^^^^^^
+//   var field2; // error
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:51:7: Error: Can't infer a type for 'field4' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var field4 = 0; // error
+//       ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:53:7: Error: Can't infer a type for 'field6' as some of the inherited members have different types.
 // Try adding an explicit type.
@@ -15,6 +20,31 @@ library;
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:55:7: Error: Can't infer a type for 'field8' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field8 = 0; // error
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:58:7: Error: Can't infer a type for 'field11' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var field11; // error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:64:7: Error: Can't infer a type for 'field17' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var field17; // error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:65:7: Error: Can't infer a type for 'field18' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var field18; // error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:90:7: Error: Can't infer a type for 'field2' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var field2; // error
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:92:7: Error: Can't infer a type for 'field4' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var field4 = 0; // error
 //       ^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:94:7: Error: Can't infer a type for 'field6' as some of the inherited members have different types.
@@ -27,34 +57,14 @@ library;
 //   var field8 = 0; // error
 //       ^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:49:7: Error: Can't infer a type for 'field2' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var field2; // error
-//       ^^^^^^
-//
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:51:7: Error: Can't infer a type for 'field4' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var field4 = 0; // error
-//       ^^^^^^
-//
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:90:7: Error: Can't infer a type for 'field2' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var field2; // error
-//       ^^^^^^
-//
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:92:7: Error: Can't infer a type for 'field4' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var field4 = 0; // error
-//       ^^^^^^
-//
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:65:7: Error: Can't infer a type for 'field18' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var field18; // error
-//       ^^^^^^^
-//
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:64:7: Error: Can't infer a type for 'field17' as some of the inherited members have different types.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:105:7: Error: Can't infer a type for 'field17' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   var field17; // error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:106:7: Error: Can't infer a type for 'field18' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var field18; // error
 //       ^^^^^^^
 //
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:61:7: Error: The return type of the method 'C.field14' is 'int', which does not match the return type, 'String', of the overridden method, 'B.field14'.
@@ -71,16 +81,6 @@ library;
 // pkg/front_end/testcases/general/infer_field_from_multiple.dart:40:5: Context: This is the overridden method ('field14').
 //   S field14;
 //     ^
-//
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:106:7: Error: Can't infer a type for 'field18' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var field18; // error
-//       ^^^^^^^
-//
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:105:7: Error: Can't infer a type for 'field17' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var field17; // error
-//       ^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

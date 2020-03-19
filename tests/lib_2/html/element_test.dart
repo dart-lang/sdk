@@ -4,16 +4,12 @@
 
 library ElementTest;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/src/expected_function.dart' show ExpectedFunction;
+import 'package:async_helper/async_minitest.dart';
+import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
 import 'utils.dart';
-
-T Function(A) expectAsync1<T, A>(T Function(A) callback,
-        {int count: 1, int max: 0}) =>
-    new ExpectedFunction<T>(callback, count, max).max1;
 
 expectLargeRect(Rectangle rect) {
   expect(rect.top, 0);
@@ -25,9 +21,7 @@ expectLargeRect(Rectangle rect) {
 }
 
 void testUnsupported(String name, void f()) {
-  test(name, () {
-    expect(f, throwsUnsupportedError);
-  });
+  test(name, () => Expect.throwsUnsupportedError(f));
 }
 
 main() {
@@ -87,7 +81,7 @@ main() {
 
   group('constructors', () {
     test('error', () {
-      expect(() => new Element.html('<br/><br/>'), throwsStateError);
+      Expect.throwsStateError(() => new Element.html('<br/><br/>'));
     });
 
     test('.html has no parent',
@@ -358,6 +352,7 @@ main() {
           treeSanitizer: new NullTreeSanitizer());
       final attributes = element.attributes;
       expect(attributes['class'], 'foo');
+      startsWith(match) => predicate((x) => x is String && x.startsWith(match));
       expect(attributes['style'], startsWith('overflow: hidden'));
       expect(attributes['data-foo'], 'bar');
       expect(attributes['data-foo2'], 'bar2');

@@ -171,7 +171,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         referencesFromIndexed = referencesFromIndexed,
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             onTypes, scope, constructors, parent, nameOffset) {
-    actualCls.hasConstConstructor = hasConstConstructor;
+    actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
   @override
@@ -339,6 +339,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     DillMemberBuilder memberBuilder = new DillMemberBuilder(constructor, this);
     memberBuilder.next = constructorScopeBuilder[name];
     constructorScopeBuilder.addMember(name, memberBuilder);
+    if (constructor.isConst) {
+      cls.hasConstConstructor = true;
+    }
   }
 
   @override

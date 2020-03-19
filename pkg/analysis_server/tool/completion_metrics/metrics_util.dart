@@ -5,6 +5,31 @@
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
+/// https://en.wikipedia.org/wiki/Average#Arithmetic_mean
+class ArithmeticMeanComputer {
+  final String name;
+  num sum = 0;
+  int count = 0;
+
+  ArithmeticMeanComputer(this.name);
+
+  num get mean => sum / count;
+
+  void addValue(num val) {
+    sum += val;
+    count++;
+  }
+
+  void clear() {
+    sum = 0;
+    count = 0;
+  }
+
+  void printMean() {
+    print('Mean \'$name\' ${mean.toStringAsFixed(6)} (total = $count)');
+  }
+}
+
 /// A simple counter class.  A [String] name is passed to name the counter. Each
 /// time something is counted, a non-null, non-empty [String] key is passed to
 /// [count] to increment the amount from zero. [printCounterValues] is provided
@@ -66,6 +91,14 @@ class MeanReciprocalRankComputer {
   final List<int> ranks = [];
   MeanReciprocalRankComputer(this.name);
 
+  int get rankCount => ranks.length;
+
+  void addRank(int rank) {
+    ranks.add(rank);
+  }
+
+  void clear() => ranks.clear();
+
   double getMRR([int maxRank = 0]) {
     if (ranks.isEmpty || maxRank < 0) {
       return 0;
@@ -84,14 +117,6 @@ class MeanReciprocalRankComputer {
     });
     return sum / rankCount;
   }
-
-  int get rankCount => ranks.length;
-
-  void addRank(int rank) {
-    ranks.add(rank);
-  }
-
-  void clear() => ranks.clear();
 
   void printMean() {
     var mrrVal = getMRR();

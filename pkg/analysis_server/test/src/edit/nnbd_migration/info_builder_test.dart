@@ -58,6 +58,34 @@ class C {
         equals("the default constructor of 'C'"));
   }
 
+  Future<void> test_classField() async {
+    addTestFile(r'''
+class C {
+  int i;
+}
+''');
+    var result = await resolveTestFile();
+    ClassDeclaration class_ = result.unit.declarations.single;
+    FieldDeclaration fieldDeclaration = class_.members.single;
+    var field = fieldDeclaration.fields.variables[0];
+    expect(InfoBuilder.buildEnclosingMemberDescription(field),
+        equals("the field 'C.i'"));
+  }
+
+  Future<void> test_classField_from_type() async {
+    addTestFile(r'''
+class C {
+  int i;
+}
+''');
+    var result = await resolveTestFile();
+    ClassDeclaration class_ = result.unit.declarations.single;
+    FieldDeclaration fieldDeclaration = class_.members.single;
+    var type = fieldDeclaration.fields.type;
+    expect(InfoBuilder.buildEnclosingMemberDescription(type),
+        equals("the field 'C.i'"));
+  }
+
   Future<void> test_classGetter() async {
     addTestFile(r'''
 class C {
@@ -177,6 +205,30 @@ void set aaa(value) {}
     var setter = result.unit.declarations.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(setter),
         equals("the setter 'aaa='"));
+  }
+
+  Future<void> test_topLevelVariable() async {
+    addTestFile(r'''
+int i;
+''');
+    var result = await resolveTestFile();
+    TopLevelVariableDeclaration topLevelVariableDeclaration =
+        result.unit.declarations.single;
+    var variable = topLevelVariableDeclaration.variables.variables[0];
+    expect(InfoBuilder.buildEnclosingMemberDescription(variable),
+        equals("the variable 'i'"));
+  }
+
+  Future<void> test_topLevelVariable_from_type() async {
+    addTestFile(r'''
+int i;
+''');
+    var result = await resolveTestFile();
+    TopLevelVariableDeclaration topLevelVariableDeclaration =
+        result.unit.declarations.single;
+    var type = topLevelVariableDeclaration.variables.type;
+    expect(InfoBuilder.buildEnclosingMemberDescription(type),
+        equals("the variable 'i'"));
   }
 }
 
@@ -1802,6 +1854,85 @@ void h() {
     // TODO(paulberry): this edge provides no additional useful information and
     // shouldn't be included in the trace.
     assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int?'));
+  }
+
+  Future<void> test_trace_nullCheck_notNullableReason() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(int i) { // f
+  assert(i != null);
+}
+void g(int i) { // g
+  f(i); // call f
+}
+void h(int/*?*/ i) {
+  g(i);
+}
+''', migratedContent: '''
+void f(int i) { // f
+  assert(i != null);
+}
+void g(int i) { // g
+  f(i); // call f
+}
+void h(int?/*?*/ i) {
+  g(i!);
+}
+''');
+    var region = unit.regions
+        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('!)'))
+        .single;
+    expect(region.traces, hasLength(2));
+    // Trace 0 is the nullability reason; we don't care about that right now.
+    // Trace 1 is the non-nullability reason.
+    var trace = region.traces[1];
+    expect(trace.description, 'Non-nullability reason');
+    var entries = trace.entries;
+    expect(entries, hasLength(5));
+    // Entry 0 is the nullability of g's argument
+    assertTraceEntry(
+        unit, entries[0], 'g', unit.content.indexOf('int i) { // g'));
+    // Entry 1 is the edge from g's argument to f's argument, due to g's call to
+    // f.
+    assertTraceEntry(
+        unit, entries[1], 'g', unit.content.indexOf('i); // call f'));
+    // Entry 2 is the nullability of f's argument
+    assertTraceEntry(
+        unit, entries[2], 'f', unit.content.indexOf('int i) { // f'));
+    // Entry 3 is the edge f's argument to never, due to the assert.
+    assertTraceEntry(unit, entries[3], 'f', unit.content.indexOf('assert'));
+    // Entry 4 is the "never" node.
+    // TODO(paulberry): this node provides no additional useful information and
+    // shouldn't be included in the trace.
+    expect(entries[4].description, 'never');
+    expect(entries[4].function, null);
+    expect(entries[4].target, null);
+  }
+
+  Future<void> test_trace_substitutionNode() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C<T extends Object/*!*/> {}
+
+C<int /*?*/ > c;
+
+Map<int, String> x = {};
+String/*!*/ y = x[0];
+''', migratedContent: '''
+class C<T extends Object/*!*/> {}
+
+C<int? /*?*/ >? c;
+
+Map<int, String> x = {};
+String/*!*/ y = x[0]!;
+''');
+    var region = unit.regions
+        .where((regionInfo) => regionInfo.offset == unit.content.indexOf('!;'))
+        .single;
+    // The "why nullable" node associated with adding the `!` is a substitution
+    // node, and we don't currently generate a trace for a substitution node.
+    // TODO(paulberry): fix this.
+    // We do, however, generate a trace for "why not nullable".
+    expect(region.traces, hasLength(1));
+    expect(region.traces[0].description, 'Non-nullability reason');
   }
 
   Future<void> test_uninitializedField() async {

@@ -119,6 +119,24 @@ f(Object x) {
     assertType(findNode.simple('x; // ref'), 'Object');
   }
 
+  test_inc_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo = 0;
+}
+
+f(A? a) {
+  a?.foo++;
+}
+''');
+
+    assertPostfixExpression(
+      findNode.postfix('foo++'),
+      element: numElement.getMethod('+'),
+      type: 'int?',
+    );
+  }
+
   test_nullCheck() async {
     await assertNoErrorsInCode(r'''
 f(int? x) {
@@ -139,6 +157,31 @@ main(Function f2) {
   f2(42)!;
 }
 ''');
+  }
+
+  test_nullCheck_indexExpression() async {
+    await assertNoErrorsInCode(r'''
+main(Map<String, int> a) {
+  int v = a['foo']!;
+  v;
+}
+''');
+
+    assertIndexExpression(
+      findNode.index('a['),
+      readElement: elementMatcher(
+        mapElement.getMethod('[]'),
+        substitution: {'K': 'String', 'V': 'int'},
+      ),
+      writeElement: null,
+      type: 'int?',
+    );
+
+    assertPostfixExpression(
+      findNode.postfix(']!'),
+      element: null,
+      type: 'int',
+    );
   }
 
   test_nullCheck_null() async {

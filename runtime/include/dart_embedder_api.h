@@ -12,9 +12,19 @@ namespace dart {
 namespace embedder {
 
 // Initialize all subsystems of the embedder.
+//
+// Must be called before the `Dart_Initialize()` call to initialize the
+// Dart VM.
+//
 // Returns true on success and false otherwise, in which case error would
 // contain error message.
 DART_WARN_UNUSED_RESULT bool InitOnce(char** error);
+
+// Cleans up all subsystems of the embedder.
+//
+// Must be called after the `Dart_Cleanup()` call to initialize the
+// Dart VM.
+void Cleanup();
 
 // Common arguments that are passed to isolate creation callback and to
 // API methods that create isolates.

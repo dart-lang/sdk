@@ -10,19 +10,12 @@ import '../fasta_codes.dart' show LocatedMessage;
 
 import '../loader.dart' show Loader;
 
-import '../source/source_loader.dart';
-
 import 'constant_evaluator.dart' show ErrorReporter;
 
 class KernelConstantErrorReporter extends ErrorReporter {
   final Loader loader;
 
   KernelConstantErrorReporter(this.loader);
-
-  bool get performNnbdChecks {
-    Loader loader = this.loader;
-    return loader is SourceLoader && loader.performNnbdChecks;
-  }
 
   @override
   void report(LocatedMessage message, List<LocatedMessage> context) {

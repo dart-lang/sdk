@@ -26,17 +26,17 @@ class HttpPreviewServer {
   /// The state of the migration being previewed.
   final MigrationState migrationState;
 
-  /// An object that can handle GET requests.
-  AbstractGetHandler getHandler;
-
-  /// An object that can handle POST requests.
-  AbstractPostHandler postHandler;
+  /// The [PreviewSite] that can handle GET and POST requests.
+  PreviewSite previewSite;
 
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer> _serverFuture;
 
+  // A function which allows the migration to be rerun, taking changed paths.
+  final Future<MigrationState> Function(List<String>) rerunFunction;
+
   /// Initialize a newly created HTTP server.
-  HttpPreviewServer(this.migrationState);
+  HttpPreviewServer(this.migrationState, this.rerunFunction);
 
   /// Return the port this server is bound to.
   Future<int> get boundPort async {
@@ -73,14 +73,14 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    getHandler ??= PreviewSite(migrationState);
-    await getHandler.handleGetRequest(request);
+    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    await previewSite.handleGetRequest(request);
   }
 
   /// Handle a POST request received by the HTTP server.
   Future<void> _handlePostRequest(HttpRequest request) async {
-    postHandler ??= PreviewSite(migrationState);
-    await postHandler.handlePostRequest(request);
+    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    await previewSite.handlePostRequest(request);
   }
 
   /// Attach a listener to a newly created HTTP server.

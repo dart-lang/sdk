@@ -574,38 +574,22 @@ class StandardTestSuite extends TestSuite {
       return;
     }
 
+    var expectationSet = expectations.expectations(testFile.name);
     if (configuration.compilerConfiguration.hasCompiler &&
         (testFile.hasCompileError || testFile.isStaticErrorTest)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
-      _enqueueStandardTest(testFile, expectations, onTest);
+      _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
-      var expectationsMap = <String, Set<Expectation>>{};
-
-      if (testFile.isMultiHtmlTest) {
-        // A browser multi-test has multiple expectations for one test file.
-        // Find all the different sub-test expectations for one entire test
-        // file.
-        var subtestNames = testFile.subtestNames;
-        expectationsMap = <String, Set<Expectation>>{};
-        for (var subtest in subtestNames) {
-          expectationsMap[subtest] =
-              expectations.expectations('${testFile.name}/$subtest');
-        }
-      } else {
-        expectationsMap[testFile.name] =
-            expectations.expectations(testFile.name);
-      }
-
-      _enqueueBrowserTest(testFile, expectationsMap, onTest);
+      _enqueueBrowserTest(testFile, expectationSet, onTest);
     } else {
-      _enqueueStandardTest(testFile, expectations, onTest);
+      _enqueueStandardTest(testFile, expectationSet, onTest);
     }
   }
 
   void _enqueueStandardTest(
-      TestFile testFile, ExpectationSet expectations, TestCaseEvent onTest) {
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
@@ -620,8 +604,7 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
-      var testExpectations = expectations.expectations(testFile.name);
-      var isCrashExpected = testExpectations.contains(Expectation.crash);
+      var isCrashExpected = expectations.contains(Expectation.crash);
       var commands = _makeCommands(testFile, vmOptionsVariant, allVmOptions,
           commonArguments, isCrashExpected);
       var variantTestName = testFile.name;
@@ -629,8 +612,7 @@ class StandardTestSuite extends TestSuite {
         variantTestName = "${testFile.name}/$vmOptionsVariant";
       }
 
-      _addTestCase(
-          testFile, variantTestName, commands, testExpectations, onTest);
+      _addTestCase(testFile, variantTestName, commands, expectations, onTest);
     }
   }
 
@@ -726,7 +708,7 @@ class StandardTestSuite extends TestSuite {
     return null;
   }
 
-  String _uriForBrowserTest(String pathComponent, [String subtestName]) {
+  String _uriForBrowserTest(String pathComponent) {
     // Note: If we run test.py with the "--list" option, no http servers
     // will be started. So we return a dummy url instead.
     if (configuration.listTests) {
@@ -736,9 +718,6 @@ class StandardTestSuite extends TestSuite {
     var serverPort = configuration.servers.port;
     var crossOriginPort = configuration.servers.crossOriginPort;
     var parameters = {'crossOriginPort': crossOriginPort.toString()};
-    if (subtestName != null) {
-      parameters['group'] = subtestName;
-    }
     return Uri(
             scheme: 'http',
             host: configuration.localIP,
@@ -754,12 +733,8 @@ class StandardTestSuite extends TestSuite {
   /// in a generated output directory. Any additional framework and HTML files
   /// are put there too. Then adds another [Command] the spawn the browser and
   /// run the test.
-  ///
-  /// In order to handle browser multitests, [expectations] is a map of subtest
-  /// names to expectation sets. If the test is not a multitest, the map has
-  /// a single key, `testFile.name`.
-  void _enqueueBrowserTest(TestFile testFile,
-      Map<String, Set<Expectation>> expectations, TestCaseEvent onTest) {
+  void _enqueueBrowserTest(
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var tempDir = createOutputDirectory(testFile.path);
     var compilationTempDir = createCompilationOutputDirectory(testFile.path);
     var nameNoExt = testFile.path.filenameWithoutExtension;
@@ -815,44 +790,27 @@ class StandardTestSuite extends TestSuite {
         .computeCompilationArtifact(outputDir, args, environmentOverrides);
     commands.addAll(compilation.commands);
 
-    if (testFile.isMultiHtmlTest) {
-      // Variables for browser multi-tests.
-      var subtestNames = testFile.subtestNames;
-      for (var subtestName in subtestNames) {
-        _enqueueSingleBrowserTest(
-            commands,
-            testFile,
-            '${testFile.name}/$subtestName',
-            subtestName,
-            expectations[subtestName],
-            htmlPath,
-            onTest);
-      }
-    } else {
-      _enqueueSingleBrowserTest(commands, testFile, testFile.name, null,
-          expectations[testFile.name], htmlPath, onTest);
-    }
+    _enqueueSingleBrowserTest(
+        commands, testFile, testFile.name, expectations, htmlPath, onTest);
   }
 
+  // TODO: Merge with above.
   /// Enqueues a single browser test, or a single subtest of an HTML multitest.
   void _enqueueSingleBrowserTest(
       List<Command> commands,
       TestFile testFile,
       String testName,
-      String subtestName,
       Set<Expectation> expectations,
       String htmlPath,
       TestCaseEvent onTest) {
     // Construct the command that executes the browser test.
     commands = commands.toList();
 
-    var htmlPathSubtest = _createUrlPathFromFile(Path(htmlPath));
-    var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
-
+    var fullHtmlPath =
+        _uriForBrowserTest(_createUrlPathFromFile(Path(htmlPath)));
     commands.add(BrowserTestCommand(fullHtmlPath, configuration));
 
     var fullName = testName;
-    if (subtestName != null) fullName += "/$subtestName";
     _addTestCase(testFile, fullName, commands, expectations, onTest);
   }
 
@@ -921,8 +879,8 @@ class PackageTestSuite extends StandardTestSuite {
             ["$directoryPath/.status"],
             recursive: true);
 
-  void _enqueueBrowserTest(TestFile testFile,
-      Map<String, Set<Expectation>> expectations, TestCaseEvent onTest) {
+  void _enqueueBrowserTest(
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
     var dir = testFile.path.directoryPath;
     var nameNoExt = testFile.path.filenameWithoutExtension;
     var customHtmlPath = dir.append('$nameNoExt.html');
@@ -932,8 +890,7 @@ class PackageTestSuite extends StandardTestSuite {
     } else {
       var fullPath = _createUrlPathFromFile(customHtmlPath);
       var command = BrowserTestCommand(fullPath, configuration);
-      _addTestCase(testFile, testFile.name, [command],
-          expectations[testFile.name], onTest);
+      _addTestCase(testFile, testFile.name, [command], expectations, onTest);
     }
   }
 }

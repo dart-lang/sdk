@@ -3,19 +3,39 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-bool isTypeMember(SimpleIdentifier node) {
-  if (node == null || node is! SimpleIdentifier || node.staticElement == null) {
-    return false;
+/// Return the element associated with the syntactic [entity], or `null` if
+/// there is no such element.
+Element getElement(SyntacticEntity entity) {
+  if (entity is SimpleIdentifier) {
+    return entity.staticElement;
   }
-  var element = node.staticElement;
-  if (_isStatic(element)) {
-    return false;
-  }
-  return element.enclosingElement is ClassElement;
+  return null;
 }
 
+/// Return `true` if the [element] is an instance member of a class or
+/// extension.
+bool isInstanceMember(Element element) {
+  if (element == null || _isStatic(element)) {
+    return false;
+  }
+  var parent = element.enclosingElement;
+  return parent is ClassElement || parent is ExtensionElement;
+}
+
+/// Return `true` if the [element] is an static member of a class or extension.
+bool isStaticMember(Element element) {
+  if (element == null || !_isStatic(element)) {
+    return false;
+  }
+  var parent = element.enclosingElement;
+  return parent is ClassElement || parent is ExtensionElement;
+}
+
+/// Return `true` if the [element] is static (either top-level or a static
+/// member of a class or extension).
 bool _isStatic(Element element) {
   if (element is ClassMemberElement) {
     return element.isStatic;

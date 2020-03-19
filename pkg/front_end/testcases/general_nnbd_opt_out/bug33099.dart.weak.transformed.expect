@@ -17,7 +17,7 @@ class MyTest extends core::Object {
   @#C1
   method foo() → void {}
 }
-abstract class _MyTest2&Object&MyTest extends core::Object implements self::MyTest /*isAnonymousMixin,isEliminatedMixin*/  {
+abstract class _MyTest2&Object&MyTest extends core::Object implements self::MyTest /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MyTest2&Object&MyTest*
     : super core::Object::•()
     ;

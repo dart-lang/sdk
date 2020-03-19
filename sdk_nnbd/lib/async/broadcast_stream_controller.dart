@@ -248,6 +248,8 @@ abstract class _BroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     if (!_mayAddEvent) throw _addEventError();
     AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
@@ -476,6 +478,8 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     if (!isClosed && _isFiring) {
       _addPendingEvent(new _DelayedError(error, stackTrace));
       return;

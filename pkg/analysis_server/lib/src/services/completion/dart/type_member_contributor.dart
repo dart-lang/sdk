@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -15,11 +17,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:meta/meta.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
-
-/// A contributor for calculating instance invocation / access suggestions
-/// `completion.getSuggestions` request results.
+/// A contributor that produces suggestions based on the instance members of a
+/// given type, whether declared by that type directly or inherited from a
+/// superinterface. More concretely, this class produces suggestions for
+/// expressions of the form `o.^`, where `o` is an expression denoting an
+/// instance of a type.
 class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -257,8 +259,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     if (superclassConstraints != null) {
       types.addAll(superclassConstraints);
     }
-    var featureComputer =
-        FeatureComputer(request.result.typeSystem, request.result.typeProvider);
+    var featureComputer = request.featureComputer;
     for (InterfaceType targetType in types) {
       var inheritanceDistance = featureComputer.inheritanceDistanceFeature(
           type.element, targetType.element);
@@ -270,7 +271,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
           int relevance;
           if (request.useNewRelevance) {
             var contextType = featureComputer.contextTypeFeature(
-                request.target.containingNode, method.returnType);
+                request.contextType, method.returnType);
             var startsWithDollar =
                 featureComputer.startsWithDollarFeature(method.name);
             var superMatches = featureComputer.superMatchesFeature(
@@ -297,7 +298,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
               int relevance;
               if (request.useNewRelevance) {
                 var contextType = featureComputer.contextTypeFeature(
-                    request.target.containingNode, variable.type);
+                    request.contextType, variable.type);
                 var startsWithDollar = featureComputer
                     .startsWithDollarFeature(propertyAccessor.name);
                 var superMatches = featureComputer.superMatchesFeature(
@@ -316,8 +317,8 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
                 : propertyAccessor.parameters[0].type;
             int relevance;
             if (request.useNewRelevance) {
-              var contextType = featureComputer.contextTypeFeature(
-                  request.target.containingNode, type);
+              var contextType =
+                  featureComputer.contextTypeFeature(request.contextType, type);
               var startsWithDollar = featureComputer
                   .startsWithDollarFeature(propertyAccessor.name);
               var superMatches = featureComputer.superMatchesFeature(
@@ -352,9 +353,10 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
       @required double inheritanceDistance,
       @required double startsWithDollar,
       @required double superMatches}) {
-    return toRelevance(weightedAverage(
+    var score = weightedAverage(
         [contextType, inheritanceDistance, startsWithDollar, superMatches],
-        [1.0, 1.0, 0.5, 1.0]));
+        [1.0, 1.0, 0.5, 1.0]);
+    return toRelevance(score, 500);
   }
 
   /// Get a list of [InterfaceType]s that should be searched to find the

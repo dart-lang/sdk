@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:analysis_server/src/edit/nnbd_migration/web/edit_details.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/file_details.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/web/navigation_tree.dart';
 import 'package:path/path.dart' as _p;
 
 import 'highlight_js.dart';
@@ -50,11 +52,7 @@ void main() {
       loadFile(path, offset, lineNumber);
     } else {
       // Blank out the page, for the index screen.
-      writeCodeAndRegions(path, {
-        'regions': '',
-        'navigationContent': '',
-        'edits': [],
-      });
+      writeCodeAndRegions(path, FileDetails.empty());
       updatePage('&nbsp;', null);
     }
   });
@@ -166,19 +164,26 @@ void handleNavLinkClick(
   event.preventDefault();
 }
 
-void handlePostLinkClick(MouseEvent event) {
+void handlePostLinkClick(MouseEvent event) async {
   String path = (event.currentTarget as Element).getAttribute('href');
-
-  // Directing the server to produce an edit; request it, then do work with the
-  // response.
-  doPost(path).catchError((e, st) {
-    logError('handlePostLinkClick: $e', st);
-
-    window.alert('Could not load $path ($e).');
-  });
 
   // Don't navigate on link click.
   event.preventDefault();
+
+  document.body.classes.add('rerunning');
+
+  try {
+    // Directing the server to produce an edit; request it, then do work with the
+    // response.
+    await doPost(path);
+    (document.window.location as Location).reload();
+  } catch (e, st) {
+    logError('handlePostLinkClick: $e', st);
+
+    window.alert('Could not load $path ($e).');
+  } finally {
+    document.body.classes.remove('rerunning');
+  }
 }
 
 void highlightAllCode() {
@@ -218,11 +223,7 @@ void loadFile(
 }) {
   // Handle the case where we're requesting a directory.
   if (!path.endsWith('.dart')) {
-    writeCodeAndRegions(path, {
-      'regions': '',
-      'navigationContent': '',
-      'edits': [],
-    });
+    writeCodeAndRegions(path, FileDetails.empty());
     updatePage(path);
     if (callback != null) {
       callback();
@@ -238,7 +239,7 @@ void loadFile(
   ).then((HttpRequest xhr) {
     if (xhr.status == 200) {
       Map<String, dynamic> response = jsonDecode(xhr.responseText);
-      writeCodeAndRegions(path, response);
+      writeCodeAndRegions(path, FileDetails.fromJson(response));
       maybeScrollToAndHighlight(offset, line);
       String filePathPart =
           path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
@@ -269,7 +270,8 @@ void loadNavigationTree() {
       dynamic response = jsonDecode(xhr.responseText);
       var navTree = document.querySelector('.nav-tree');
       navTree.innerHtml = '';
-      writeNavigationSubtree(navTree, response);
+      writeNavigationSubtree(
+          navTree, NavigationTreeNode.listFromJson(response));
     } else {
       window.alert('Request failed; status of ${xhr.status}');
     }
@@ -433,7 +435,7 @@ void populateEditDetails([EditDetails response]) {
 }
 
 /// Write the contents of the Edit List, from JSON data [editListData].
-void populateProposedEdits(String path, List<dynamic> edits) {
+void populateProposedEdits(String path, List<EditListItem> edits) {
   Element editListElement = document.querySelector('.edit-list .panel-content');
   editListElement.innerHtml = '';
 
@@ -446,14 +448,14 @@ void populateProposedEdits(String path, List<dynamic> edits) {
   }
 
   Element list = editListElement.append(document.createElement('ul'));
-  for (Map<String, dynamic> edit in edits) {
+  for (var edit in edits) {
     Element item = list.append(document.createElement('li'));
     item.classes.add('edit');
     AnchorElement anchor = item.append(document.createElement('a'));
     anchor.classes.add('edit-link');
-    int offset = edit['offset'];
+    int offset = edit.offset;
     anchor.dataset['offset'] = '$offset';
-    int line = edit['line'];
+    int line = edit.line;
     anchor.dataset['line'] = '$line';
     anchor.append(Text('line $line'));
     anchor.onClick.listen((MouseEvent event) {
@@ -462,7 +464,7 @@ void populateProposedEdits(String path, List<dynamic> edits) {
       });
       loadAndPopulateEditDetails(path, offset);
     });
-    item.append(Text(': ${edit['explanation']}'));
+    item.append(Text(': ${edit.explanation}'));
   }
 
   // Clear out any existing edit details.
@@ -527,42 +529,43 @@ void updatePage(String path, [int offset]) {
 }
 
 /// Load data from [data] into the .code and the .regions divs.
-void writeCodeAndRegions(String path, Map<String, dynamic> data) {
+void writeCodeAndRegions(String path, FileDetails data) {
   Element regionsElement = document.querySelector('.regions');
   Element codeElement = document.querySelector('.code');
 
-  _PermissiveNodeValidator.setInnerHtml(regionsElement, data['regions']);
-  _PermissiveNodeValidator.setInnerHtml(codeElement, data['navigationContent']);
-  populateProposedEdits(path, data['edits']);
+  _PermissiveNodeValidator.setInnerHtml(regionsElement, data.regions);
+  _PermissiveNodeValidator.setInnerHtml(codeElement, data.navigationContent);
+  populateProposedEdits(path, data.edits);
 
   highlightAllCode();
   addClickHandlers('.code');
   addClickHandlers('.regions');
 }
 
-void writeNavigationSubtree(Element parentElement, dynamic tree) {
+void writeNavigationSubtree(
+    Element parentElement, List<NavigationTreeNode> tree) {
   Element ul = parentElement.append(document.createElement('ul'));
   for (var entity in tree) {
     Element li = ul.append(document.createElement('li'));
-    if (entity['type'] == 'directory') {
+    if (entity.type == NavigationTreeNodeType.directory) {
       li.classes.add('dir');
       Element arrow = li.append(document.createElement('span'));
       arrow.classes.add('arrow');
       arrow.innerHtml = '&#x25BC;';
       Element icon = li.append(document.createElement('span'));
       icon.innerHtml = '&#x1F4C1;';
-      li.append(Text(entity['name']));
-      writeNavigationSubtree(li, entity['subtree']);
+      li.append(Text(entity.name));
+      writeNavigationSubtree(li, entity.subtree);
       addArrowClickHandler(arrow);
     } else {
       li.innerHtml = '&#x1F4C4;';
       Element a = li.append(document.createElement('a'));
       a.classes.add('nav-link');
-      a.dataset['name'] = entity['path'];
-      a.setAttribute('href', entity['href']);
-      a.append(Text(entity['name']));
+      a.dataset['name'] = entity.path;
+      a.setAttribute('href', entity.href);
+      a.append(Text(entity.name));
       a.onClick.listen(handleNavLinkClick);
-      int editCount = entity['editCount'];
+      int editCount = entity.editCount;
       if (editCount > 0) {
         Element editsBadge = li.append(document.createElement('span'));
         editsBadge.classes.add('edit-count');

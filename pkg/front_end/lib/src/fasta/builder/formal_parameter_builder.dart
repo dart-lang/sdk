@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/fasta/builder/procedure_builder.dart';
 
 import 'package:kernel/ast.dart'
     show DynamicType, Expression, VariableDeclaration;
@@ -111,10 +112,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   String get fullNameForErrors => name;
 
   VariableDeclaration build(
-      SourceLibraryBuilder library, int functionNestingLevel) {
+      SourceLibraryBuilder library, int functionNestingLevel,
+      [bool notInstanceContext]) {
     if (variable == null) {
       variable = new VariableDeclarationImpl(name, functionNestingLevel,
-          type: type?.build(library),
+          type: type?.build(library, null, notInstanceContext),
           isFinal: isFinal,
           isConst: isConst,
           isFieldFormal: isInitializingFormal,
@@ -170,8 +172,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     // needed to generated noSuchMethod forwarders.
     bool isConstConstructorParameter = false;
     if (parent is ConstructorBuilder) {
-      ConstructorBuilder constructorBuilder = parent;
-      isConstConstructorParameter = constructorBuilder.constructor.isConst;
+      isConstConstructorParameter = parent.isConst;
+    } else if (parent is ProcedureBuilder) {
+      isConstConstructorParameter = parent.isFactory && parent.isConst;
     }
     if ((isConstConstructorParameter || parent.isClassInstanceMember) &&
         initializerToken != null) {

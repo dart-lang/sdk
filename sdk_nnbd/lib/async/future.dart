@@ -257,6 +257,7 @@ abstract class Future<T> {
    *
    * Use [Completer] to create a future and complete it later.
    */
+  @pragma("vm:entry-point")
   factory Future.value([FutureOr<T>? value]) {
     return new _Future<T>.immediate(value as FutureOr<T>);
   }
@@ -269,11 +270,11 @@ abstract class Future<T> {
    * If an error handler isn't added before the future completes, the error
    * will be considered unhandled.
    *
-   * If [error] is `null`, it is replaced by a [NullThrownError].
-   *
    * Use [Completer] to create a future and complete it later.
    */
   factory Future.error(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(error, "error");
     if (!identical(Zone.current, _rootZone)) {
       AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {

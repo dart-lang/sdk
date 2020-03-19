@@ -340,6 +340,9 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   // so it should not be lifted earlier than that pass.
   INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
+  // Repeat branches optimization after DCE, as it could make more
+  // empty blocks.
+  INVOKE_PASS(OptimizeBranches);
   INVOKE_PASS(AllocationSinking_Sink);
   INVOKE_PASS(EliminateDeadPhis);
   INVOKE_PASS(DCE);

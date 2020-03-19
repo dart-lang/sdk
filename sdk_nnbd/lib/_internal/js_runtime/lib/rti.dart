@@ -445,7 +445,7 @@ Rti? instantiatedGenericFunctionType(
   String key = Rti._getCanonicalRecipe(instantiationRti);
   var probe = _Utils.mapGet(cache, key);
   if (probe != null) return _castToRti(probe);
-  Rti rti = _instantiate(_theUniverse(),
+  Rti rti = _substitute(_theUniverse(),
       Rti._getGenericFunctionBase(genericFunctionRti), typeArguments, 0);
   _Utils.mapSet(cache, key, rti);
   return rti;
@@ -459,7 +459,11 @@ Rti? instantiatedGenericFunctionType(
 /// [depth] is the number of subsequent generic function parameters that are in
 /// scope. This is subtracted off the de Bruijn index for the type parameter to
 /// arrive at an potential index into [typeArguments].
-Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
+///
+/// In order to do a partial substitution - that is, substituting only some
+/// type parameters rather than all of them - we encode the unsubstituted
+/// positions of the argument list as `undefined` or `null`.
+Rti _substitute(universe, Rti rti, Object typeArguments, int depth) {
   int kind = Rti._getKind(rti);
   switch (kind) {
     case Rti.kindErased:
@@ -470,95 +474,99 @@ Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
       return rti;
     case Rti.kindStar:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
-      Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth);
-      if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
-      return _Universe._lookupStarRti(universe, instantiatedBaseType, true);
+      Rti substitutedBaseType =
+          _substitute(universe, baseType, typeArguments, depth);
+      if (_Utils.isIdentical(substitutedBaseType, baseType)) return rti;
+      return _Universe._lookupStarRti(universe, substitutedBaseType, true);
     case Rti.kindQuestion:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
-      Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth);
-      if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
-      return _Universe._lookupQuestionRti(universe, instantiatedBaseType, true);
+      Rti substitutedBaseType =
+          _substitute(universe, baseType, typeArguments, depth);
+      if (_Utils.isIdentical(substitutedBaseType, baseType)) return rti;
+      return _Universe._lookupQuestionRti(universe, substitutedBaseType, true);
     case Rti.kindFutureOr:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
-      Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth);
-      if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
-      return _Universe._lookupFutureOrRti(universe, instantiatedBaseType, true);
+      Rti substitutedBaseType =
+          _substitute(universe, baseType, typeArguments, depth);
+      if (_Utils.isIdentical(substitutedBaseType, baseType)) return rti;
+      return _Universe._lookupFutureOrRti(universe, substitutedBaseType, true);
     case Rti.kindInterface:
       Object interfaceTypeArguments = Rti._getInterfaceTypeArguments(rti);
-      Object instantiatedInterfaceTypeArguments = _instantiateArray(
+      Object substitutedInterfaceTypeArguments = _substituteArray(
           universe, interfaceTypeArguments, typeArguments, depth);
       if (_Utils.isIdentical(
-          instantiatedInterfaceTypeArguments, interfaceTypeArguments))
+          substitutedInterfaceTypeArguments, interfaceTypeArguments))
         return rti;
       return _Universe._lookupInterfaceRti(universe, Rti._getInterfaceName(rti),
-          instantiatedInterfaceTypeArguments);
+          substitutedInterfaceTypeArguments);
     case Rti.kindBinding:
       Rti base = Rti._getBindingBase(rti);
-      Rti instantiatedBase = _instantiate(universe, base, typeArguments, depth);
+      Rti substitutedBase = _substitute(universe, base, typeArguments, depth);
       Object arguments = Rti._getBindingArguments(rti);
-      Object instantiatedArguments =
-          _instantiateArray(universe, arguments, typeArguments, depth);
-      if (_Utils.isIdentical(instantiatedBase, base) &&
-          _Utils.isIdentical(instantiatedArguments, arguments)) return rti;
+      Object substitutedArguments =
+          _substituteArray(universe, arguments, typeArguments, depth);
+      if (_Utils.isIdentical(substitutedBase, base) &&
+          _Utils.isIdentical(substitutedArguments, arguments)) return rti;
       return _Universe._lookupBindingRti(
-          universe, instantiatedBase, instantiatedArguments);
+          universe, substitutedBase, substitutedArguments);
     case Rti.kindFunction:
       Rti returnType = Rti._getReturnType(rti);
-      Rti instantiatedReturnType =
-          _instantiate(universe, returnType, typeArguments, depth);
+      Rti substitutedReturnType =
+          _substitute(universe, returnType, typeArguments, depth);
       _FunctionParameters functionParameters = Rti._getFunctionParameters(rti);
-      _FunctionParameters instantiatedFunctionParameters =
-          _instantiateFunctionParameters(
+      _FunctionParameters substitutedFunctionParameters =
+          _substituteFunctionParameters(
               universe, functionParameters, typeArguments, depth);
-      if (_Utils.isIdentical(instantiatedReturnType, returnType) &&
-          _Utils.isIdentical(
-              instantiatedFunctionParameters, functionParameters)) return rti;
+      if (_Utils.isIdentical(substitutedReturnType, returnType) &&
+          _Utils.isIdentical(substitutedFunctionParameters, functionParameters))
+        return rti;
       return _Universe._lookupFunctionRti(
-          universe, instantiatedReturnType, instantiatedFunctionParameters);
+          universe, substitutedReturnType, substitutedFunctionParameters);
     case Rti.kindGenericFunction:
       Object bounds = Rti._getGenericFunctionBounds(rti);
       depth += _Utils.arrayLength(bounds);
-      Object instantiatedBounds =
-          _instantiateArray(universe, bounds, typeArguments, depth);
+      Object substitutedBounds =
+          _substituteArray(universe, bounds, typeArguments, depth);
       Rti base = Rti._getGenericFunctionBase(rti);
-      Rti instantiatedBase = _instantiate(universe, base, typeArguments, depth);
-      if (_Utils.isIdentical(instantiatedBounds, bounds) &&
-          _Utils.isIdentical(instantiatedBase, base)) return rti;
+      Rti substitutedBase = _substitute(universe, base, typeArguments, depth);
+      if (_Utils.isIdentical(substitutedBounds, bounds) &&
+          _Utils.isIdentical(substitutedBase, base)) return rti;
       return _Universe._lookupGenericFunctionRti(
-          universe, instantiatedBase, instantiatedBounds);
+          universe, substitutedBase, substitutedBounds, true);
     case Rti.kindGenericFunctionParameter:
       int index = Rti._getGenericFunctionParameterIndex(rti);
-      if (index < depth) {
-        throw AssertionError(
-            'Unexpected index $index at instantiation depth $depth');
-      }
-      return _castToRti(_Utils.arrayAt(typeArguments, index - depth));
+      // Indices below the current depth are out of scope for substitution and
+      // can be returned unchanged.
+      if (index < depth) return rti;
+      var argument = _Utils.arrayAt(typeArguments, index - depth);
+      // In order to do a partial substitution - that is, substituting only some
+      // type parameters rather than all of them - we encode the unsubstituted
+      // positions of the argument list as `undefined` (which will compare equal
+      // to `null`).
+      if (argument == null) return rti;
+      return _castToRti(argument);
     default:
-      throw AssertionError(
-          'Attempted to instantiate unexpected RTI kind $kind');
+      throw AssertionError('Attempted to substitute unexpected RTI kind $kind');
   }
 }
 
-Object _instantiateArray(
+Object _substituteArray(
     universe, Object rtiArray, Object typeArguments, int depth) {
   bool changed = false;
   int length = _Utils.arrayLength(rtiArray);
   Object result = JS('', '[]');
   for (int i = 0; i < length; i++) {
     Rti rti = _castToRti(_Utils.arrayAt(rtiArray, i));
-    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
-    if (_Utils.isNotIdentical(instantiatedRti, rti)) {
+    Rti substitutedRti = _substitute(universe, rti, typeArguments, depth);
+    if (_Utils.isNotIdentical(substitutedRti, rti)) {
       changed = true;
     }
-    _Utils.arrayPush(result, instantiatedRti);
+    _Utils.arrayPush(result, substitutedRti);
   }
   return changed ? result : rtiArray;
 }
 
-Object _instantiateNamed(
+Object _substituteNamed(
     universe, Object namedArray, Object typeArguments, int depth) {
   bool changed = false;
   int length = _Utils.arrayLength(namedArray);
@@ -567,41 +575,41 @@ Object _instantiateNamed(
   for (int i = 0; i < length; i += 2) {
     String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
     Rti rti = _castToRti(_Utils.arrayAt(namedArray, i + 1));
-    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
-    if (_Utils.isNotIdentical(instantiatedRti, rti)) {
+    Rti substitutedRti = _substitute(universe, rti, typeArguments, depth);
+    if (_Utils.isNotIdentical(substitutedRti, rti)) {
       changed = true;
     }
     _Utils.arrayPush(result, name);
-    _Utils.arrayPush(result, instantiatedRti);
+    _Utils.arrayPush(result, substitutedRti);
   }
   return changed ? result : namedArray;
 }
 
 // TODO(fishythefish): Support required named parameters.
-_FunctionParameters _instantiateFunctionParameters(universe,
+_FunctionParameters _substituteFunctionParameters(universe,
     _FunctionParameters functionParameters, Object typeArguments, int depth) {
   Object requiredPositional =
       _FunctionParameters._getRequiredPositional(functionParameters);
-  Object instantiatedRequiredPositional =
-      _instantiateArray(universe, requiredPositional, typeArguments, depth);
+  Object substitutedRequiredPositional =
+      _substituteArray(universe, requiredPositional, typeArguments, depth);
   Object optionalPositional =
       _FunctionParameters._getOptionalPositional(functionParameters);
-  Object instantiatedOptionalPositional =
-      _instantiateArray(universe, optionalPositional, typeArguments, depth);
+  Object substitutedOptionalPositional =
+      _substituteArray(universe, optionalPositional, typeArguments, depth);
   Object optionalNamed =
       _FunctionParameters._getOptionalNamed(functionParameters);
-  Object instantiatedOptionalNamed =
-      _instantiateNamed(universe, optionalNamed, typeArguments, depth);
-  if (_Utils.isIdentical(instantiatedRequiredPositional, requiredPositional) &&
-      _Utils.isIdentical(instantiatedOptionalPositional, optionalPositional) &&
-      _Utils.isIdentical(instantiatedOptionalNamed, optionalNamed))
+  Object substitutedOptionalNamed =
+      _substituteNamed(universe, optionalNamed, typeArguments, depth);
+  if (_Utils.isIdentical(substitutedRequiredPositional, requiredPositional) &&
+      _Utils.isIdentical(substitutedOptionalPositional, optionalPositional) &&
+      _Utils.isIdentical(substitutedOptionalNamed, optionalNamed))
     return functionParameters;
   _FunctionParameters result = _FunctionParameters.allocate();
   _FunctionParameters._setRequiredPositional(
-      result, instantiatedRequiredPositional);
+      result, substitutedRequiredPositional);
   _FunctionParameters._setOptionalPositional(
-      result, instantiatedOptionalPositional);
-  _FunctionParameters._setOptionalNamed(result, instantiatedOptionalNamed);
+      result, substitutedOptionalPositional);
+  _FunctionParameters._setOptionalNamed(result, substitutedOptionalNamed);
   return result;
 }
 
@@ -1959,19 +1967,44 @@ class _Universe {
       _canonicalRecipeJoin(bounds) +
       Recipe.endTypeArgumentsString;
 
-  // TODO(fishythefish): Normalize `X extends Never` to `Never`.
   static Rti _lookupGenericFunctionRti(
-      Object universe, Rti baseFunctionType, Object bounds) {
+      Object universe, Rti baseFunctionType, Object bounds, bool normalize) {
     String key = _canonicalRecipeOfGenericFunction(baseFunctionType, bounds);
     var cache = evalCache(universe);
     var probe = _cacheGet(cache, key);
     if (probe != null) return _castToRti(probe);
-    return _installRti(universe, key,
-        _createGenericFunctionRti(universe, baseFunctionType, bounds, key));
+    return _installRti(
+        universe,
+        key,
+        _createGenericFunctionRti(
+            universe, baseFunctionType, bounds, key, normalize));
   }
 
-  static Rti _createGenericFunctionRti(
-      Object universe, Rti baseFunctionType, Object bounds, String key) {
+  static Rti _createGenericFunctionRti(Object universe, Rti baseFunctionType,
+      Object bounds, String key, bool normalize) {
+    if (normalize) {
+      int length = _Utils.arrayLength(bounds);
+      int count = 0;
+      Object typeArguments = JS('', 'new Array(#)', length);
+      for (int i = 0; i < length; i++) {
+        Rti bound = _castToRti(_Utils.arrayAt(bounds, i));
+        if (Rti._getKind(bound) == Rti.kindNever) {
+          _Utils.arraySetAt(typeArguments, i, bound);
+          count++;
+        }
+      }
+      if (count > 0) {
+        var substitutedBase =
+            _substitute(universe, baseFunctionType, typeArguments, 0);
+        var substitutedBounds =
+            _substituteArray(universe, bounds, typeArguments, 0);
+        return _lookupGenericFunctionRti(
+            universe,
+            substitutedBase,
+            substitutedBounds,
+            _Utils.isNotIdentical(bounds, substitutedBounds));
+      }
+    }
     Rti rti = Rti.allocate();
     Rti._setKind(rti, Rti.kindGenericFunction);
     Rti._setPrimary(rti, baseFunctionType);
@@ -2311,8 +2344,10 @@ class _Parser {
       Rti base = toType(universe, environment(parser), head);
       switch (Rti._getKind(base)) {
         case Rti.kindFunction:
-          push(stack,
-              _Universe._lookupGenericFunctionRti(universe, base, arguments));
+          push(
+              stack,
+              _Universe._lookupGenericFunctionRti(
+                  universe, base, arguments, normalize(parser)));
           break;
 
         default:
@@ -2827,6 +2862,10 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // interface, so rather than iterating over the Ci, we can instead look up
   // [t] in our ruleset.
   // TODO(fishythefish): Handle variance correctly.
+
+  // We don't list Object explicitly as a supertype of each interface, so check
+  // this trivial case first.
+  if (isObjectType(t)) return true;
   Object? rule = _Universe.findRule(universe, sName);
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);

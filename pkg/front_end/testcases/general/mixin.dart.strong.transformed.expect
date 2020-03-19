@@ -2,14 +2,14 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _B&Object&M1 extends core::Object implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
+abstract class _B&Object&M1 extends core::Object implements self::M1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_B&Object&M1*
     : super core::Object::•()
     ;
   method m() → dynamic
     return core::print("M1");
 }
-abstract class _B&Object&M1&M2 extends self::_B&Object&M1 implements self::M2 /*isAnonymousMixin,isEliminatedMixin*/  {
+abstract class _B&Object&M1&M2 extends self::_B&Object&M1 implements self::M2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_B&Object&M1&M2*
     : super self::_B&Object&M1::•()
     ;
@@ -35,14 +35,14 @@ abstract class M2 extends core::Object {
   method m() → dynamic
     return core::print("M2");
 }
-abstract class _C&Object&M1 extends core::Object implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
+abstract class _C&Object&M1 extends core::Object implements self::M1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&M1*
     : super core::Object::•()
     ;
   method m() → dynamic
     return core::print("M1");
 }
-abstract class _C&Object&M1&M2 extends self::_C&Object&M1 implements self::M2 /*isAnonymousMixin,isEliminatedMixin*/  {
+abstract class _C&Object&M1&M2 extends self::_C&Object&M1 implements self::M2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&M1&M2*
     : super self::_C&Object&M1::•()
     ;
@@ -61,7 +61,7 @@ abstract class G1<T extends core::Object* = dynamic> extends core::Object {
   method m() → dynamic
     return core::print(self::G1::T*);
 }
-abstract class _D&Object&G1<S extends core::Object* = dynamic> extends core::Object implements self::G1<self::_D&Object&G1::S*> /*isAnonymousMixin,isEliminatedMixin*/  {
+abstract class _D&Object&G1<S extends core::Object* = dynamic> extends core::Object implements self::G1<self::_D&Object&G1::S*> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_D&Object&G1<self::_D&Object&G1::S*>*
     : super core::Object::•()
     ;

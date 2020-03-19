@@ -207,4 +207,22 @@ f(Object x) {
 
     assertType(findNode.simple('x;'), 'A');
   }
+
+  test_plusPlus_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo = 0;
+}
+
+f(A? a) {
+  ++a?.foo;
+}
+''');
+
+    assertPrefixExpression(
+      findNode.prefix('++a'),
+      element: numElement.getMethod('+'),
+      type: 'int?',
+    );
+  }
 }

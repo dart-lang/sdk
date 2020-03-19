@@ -36,6 +36,5 @@ class LintCode extends ErrorCode {
   String get uniqueName => "LintCode.$name";
 
   @override
-  String get url =>
-      'https://dart-lang.github.io/linter/lints/${name.toLowerCase()}.html';
+  String get url => 'https://dart-lang.github.io/linter/lints/$name.html';
 }

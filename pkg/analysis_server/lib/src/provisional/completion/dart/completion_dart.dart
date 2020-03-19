@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -16,10 +17,8 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
-/// An object used to produce completions
-/// at a specific location within a Dart file.
-///
-/// Clients may implement this class when implementing plugins.
+/// An object that contributes results for the `completion.getSuggestions`
+/// request results.
 abstract class DartCompletionContributor {
   /// Return a [Future] that completes with a list of suggestions
   /// for the given completion [request].
@@ -31,9 +30,17 @@ abstract class DartCompletionContributor {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartCompletionRequest extends CompletionRequest {
+  /// Return the type imposed on the target's `containingNode` based on its
+  /// context, or `null` if the context does not impose any type.
+  DartType get contextType;
+
   /// Return the expression to the right of the "dot" or "dot dot",
   /// or `null` if this is not a "dot" completion (e.g. `foo.b`).
   Expression get dotTarget;
+
+  /// Return the object used to compute the values of the features used to
+  /// compute relevance scores for suggestions.
+  FeatureComputer get featureComputer;
 
   /// Return the feature set that was used to analyze the compilation unit in
   /// which suggestions are being made.

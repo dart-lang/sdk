@@ -44,7 +44,7 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           .having((c) => c.addRequiredKeyword, 'addRequiredKeyword', true);
 
   static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
-      .having((c) => c.makeNullable, 'makeNullable', isNotNull);
+      .having((c) => c.makeNullable, 'makeNullable', true);
 
   static final isNullCheck = TypeMatcher<NodeChangeForExpression>()
       .having((c) => c.addsNullCheck, 'addsNullCheck', true);

@@ -450,7 +450,7 @@ int Options::ParseArguments(int argc,
       i++;
     } else if (!DartDevUtils::TryResolveDartDevSnapshotPath(script_name)) {
       Syslog::PrintErr(
-          "Could not find DartDev snapshot and '%s' is not a valid script.",
+          "Could not find DartDev snapshot and '%s' is not a valid script.\n",
           argv[i]);
       Platform::Exit(kErrorExitCode);
     }

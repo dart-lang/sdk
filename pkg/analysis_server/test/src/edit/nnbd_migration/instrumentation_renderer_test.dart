@@ -30,6 +30,13 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
     return instrumentationRenderer.render();
   }
 
+  Future<void> test_appliedStyle() async {
+    var renderedView = await renderViewForTestFiles(
+        {convertPath('/project/lib/a.dart'): 'int a = null;'},
+        applied: true);
+    expect(renderedView, contains('<body class="applied">'));
+  }
+
   Future<void> test_navigation_containsRoot() async {
     var renderedView = await renderViewForTestFiles(
         {convertPath('/project/lib/a.dart'): 'int a = null;'});
@@ -42,12 +49,5 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
         {convertPath('/project/lib/a.dart'): 'int a = null;'},
         applied: false);
     expect(renderedView, contains('<body class="proposed">'));
-  }
-
-  Future<void> test_appliedStyle() async {
-    var renderedView = await renderViewForTestFiles(
-        {convertPath('/project/lib/a.dart'): 'int a = null;'},
-        applied: true);
-    expect(renderedView, contains('<body class="applied">'));
   }
 }

@@ -571,9 +571,12 @@ void StackFrameIterator::SetupLastExitFrameData() {
   ASSERT(thread_ != NULL);
   uword exit_marker = thread_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
+  frames_.sp_ = 0;
+  frames_.pc_ = 0;
   if (FLAG_enable_interpreter) {
     frames_.CheckIfInterpreted(exit_marker);
   }
+  frames_.Unpoison();
 }
 
 void StackFrameIterator::SetupNextExitFrameData() {
@@ -589,14 +592,7 @@ void StackFrameIterator::SetupNextExitFrameData() {
   if (FLAG_enable_interpreter) {
     frames_.CheckIfInterpreted(exit_marker);
   }
-}
-
-// Tell MemorySanitizer that generated code initializes part of the stack.
-// TODO(koda): Limit to frames that are actually written by generated code.
-static void UnpoisonStack(uword fp) {
-  ASSERT(fp != 0);
-  uword size = OSThread::GetSpecifiedStackSize();
-  MSAN_UNPOISON(reinterpret_cast<void*>(fp - size), 2 * size);
+  frames_.Unpoison();
 }
 
 StackFrameIterator::StackFrameIterator(ValidationPolicy validation_policy,
@@ -631,6 +627,7 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
   if (FLAG_enable_interpreter) {
     frames_.CheckIfInterpreted(last_fp);
   }
+  frames_.Unpoison();
 }
 
 StackFrameIterator::StackFrameIterator(uword fp,
@@ -653,6 +650,7 @@ StackFrameIterator::StackFrameIterator(uword fp,
   if (FLAG_enable_interpreter) {
     frames_.CheckIfInterpreted(fp);
   }
+  frames_.Unpoison();
 }
 
 StackFrame* StackFrameIterator::NextFrame() {
@@ -672,7 +670,6 @@ StackFrame* StackFrameIterator::NextFrame() {
     if (!HasNextFrame()) {
       return NULL;
     }
-    UnpoisonStack(frames_.fp_);
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();
@@ -721,6 +718,31 @@ void StackFrameIterator::FrameSetIterator::CheckIfInterpreted(
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+// Tell MemorySanitizer that generated code initializes part of the stack.
+void StackFrameIterator::FrameSetIterator::Unpoison() {
+  // When using a simulator, all writes to the stack happened from MSAN
+  // instrumented C++, so there is nothing to unpoison. Additionally,
+  // fp_ will be somewhere in the simulator's stack instead of the OSThread's
+  // stack.
+#if !defined(USING_SIMULATOR)
+  if (fp_ == 0) return;
+  // Note that Thread::os_thread_ is cleared when the thread is descheduled.
+  ASSERT(is_interpreted_ || (thread_->os_thread() == nullptr) ||
+         ((thread_->os_thread()->stack_limit() < fp_) &&
+          (thread_->os_thread()->stack_base() > fp_)));
+  uword lower;
+  if (sp_ == 0) {
+    // Exit frame: guess sp.
+    lower = fp_ - kDartFrameFixedSize * kWordSize;
+  } else {
+    lower = sp_;
+  }
+  uword upper = fp_ + kSavedCallerPcSlotFromFp * kWordSize;
+  // Both lower and upper are inclusive, so we add one word when computing size.
+  MSAN_UNPOISON(reinterpret_cast<void*>(lower), upper - lower + kWordSize);
+#endif  // !defined(USING_SIMULATOR)
+}
+
 StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   StackFrame* frame;
   ASSERT(HasNext());
@@ -732,6 +754,7 @@ StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   sp_ = frame->GetCallerSp();
   fp_ = frame->GetCallerFp();
   pc_ = frame->GetCallerPc();
+  Unpoison();
   ASSERT(is_interpreted_ == frame->is_interpreted_);
   ASSERT(!validate || frame->IsValid());
   return frame;
@@ -745,6 +768,7 @@ ExitFrame* StackFrameIterator::NextExitFrame() {
   frames_.sp_ = exit_.GetCallerSp();
   frames_.fp_ = exit_.GetCallerFp();
   frames_.pc_ = exit_.GetCallerPc();
+  frames_.Unpoison();
   ASSERT(frames_.is_interpreted_ == exit_.is_interpreted_);
   ASSERT(!validate_ || exit_.IsValid());
   return &exit_;

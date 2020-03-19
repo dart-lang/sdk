@@ -300,8 +300,6 @@ class MethodInvocationResolver {
     if (!inferred) {
       DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
         node.staticInvokeType,
-        isNullAware:
-            _migratableAstInfoProvider.isMethodInvocationNullAware(node),
       );
       _inferenceHelper.recordStaticType(node, staticStaticType);
     }

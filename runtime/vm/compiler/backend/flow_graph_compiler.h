@@ -568,11 +568,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateAssertAssignableViaTypeTestingStub(
       const AbstractType& dst_type,
       const String& dst_name,
-      const Register instance_reg,
-      const Register instantiator_type_args_reg,
-      const Register function_type_args_reg,
-      const Register subtype_cache_reg,
-      const Register dst_type_reg,
       const Register dst_type_reg_to_call,
       const Register scratch_reg,
       compiler::Label* done);

@@ -9,8 +9,8 @@ import 'dart:html' as html;
 import 'dart:js';
 import 'package:js/js.dart';
 
-import 'package:unittest/unittest.dart';
 import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
+import 'package:expect/minitest.dart';
 
 @JS()
 external makeDiv(String text);

@@ -7,7 +7,7 @@ library created_callback_test;
 import 'dart:html';
 import 'dart:js' as js;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'utils.dart';
 
@@ -56,21 +56,14 @@ class C extends HtmlElement {
   static var div;
 }
 
-main() {
+main() async {
   // Adapted from Blink's
   // fast/dom/custom/created-callback test.
 
-  var registered = false;
-  setUp(() {
-    return customElementsReady.then((_) {
-      if (!registered) {
-        registered = true;
-        document.registerElement2(B.tag, {'prototype': B});
-        document.registerElement2(C.tag, {'prototype': C});
-        ErrorConstructorElement.register();
-      }
-    });
-  });
+  await customElementsReady;
+  document.registerElement2(B.tag, {'prototype': B});
+  document.registerElement2(C.tag, {'prototype': C});
+  ErrorConstructorElement.register();
 
   test('transfer created callback', () {
     document.registerElement2(A.tag, {'prototype': A as dynamic});

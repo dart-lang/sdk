@@ -4,7 +4,7 @@
 
 library FormDataTest;
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:html';
 
 void main() {
@@ -68,7 +68,7 @@ void main() {
             '${window.location.protocol}//${window.location.host}/echo');
 
         xhr.onLoad.listen(expectAsync((e) {
-          expect(xhr.responseText, contains(blobString));
+          expect(xhr.responseText.contains(blobString), isTrue);
         }));
         xhr.onError.listen((e) {
           fail('$e');

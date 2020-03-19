@@ -106,7 +106,7 @@ import '../fasta_codes.dart'
         templateUntranslatableUri;
 
 import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, DelayedMember, DelayedOverrideCheck;
+    show ClassHierarchyBuilder, ClassMember, DelayedOverrideCheck;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -191,8 +191,6 @@ class SourceLoader extends Loader {
         super(target);
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
-
-  bool get performNnbdChecks => target.context.options.performNnbdChecks;
 
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
@@ -383,7 +381,7 @@ class SourceLoader extends Loader {
               "debugExpression in $enclosingClass");
       }
     }
-    ProcedureBuilder builder = new ProcedureBuilderImpl(
+    ProcedureBuilder builder = new SourceProcedureBuilder(
         null,
         0,
         null,
@@ -989,8 +987,7 @@ class SourceLoader extends Loader {
 
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
     List<DelayedOverrideCheck> overrideChecks =
-        builderHierarchy.overrideChecks.toList();
-    builderHierarchy.overrideChecks.clear();
+        builderHierarchy.takeDelayedOverrideChecks();
     for (int i = 0; i < overrideChecks.length; i++) {
       overrideChecks[i].check(builderHierarchy);
     }
@@ -1001,12 +998,11 @@ class SourceLoader extends Loader {
   }
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
-    List<DelayedMember> delayedMemberChecks =
-        builderHierarchy.delayedMemberChecks.toList();
-    builderHierarchy.delayedMemberChecks.clear();
+    List<ClassMember> delayedMemberChecks =
+        builderHierarchy.takeDelayedMemberChecks();
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
-      delayedMemberChecks[i].check(builderHierarchy);
+      delayedMemberChecks[i].getMember(builderHierarchy);
       changedClasses.add(delayedMemberChecks[i].classBuilder.cls);
     }
     ticker.logMs(
@@ -1094,6 +1090,8 @@ class SourceLoader extends Loader {
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
+    builderHierarchy.computeTypes();
+
     List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {

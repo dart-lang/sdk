@@ -95,12 +95,11 @@ class PostfixExpressionResolver {
       FunctionType propertyType = element.type;
       if (propertyType != null) {
         return _resolver.inferenceHelper.computeInvokeReturnType(
-            propertyType.returnType,
-            isNullAware: false);
+          propertyType.returnType,
+        );
       }
     } else if (element is ExecutableElement) {
-      return _resolver.inferenceHelper
-          .computeInvokeReturnType(element.type, isNullAware: false);
+      return _resolver.inferenceHelper.computeInvokeReturnType(element.type);
     }
     return DynamicTypeImpl.instance;
   }
@@ -188,6 +187,7 @@ class PostfixExpressionResolver {
     }
 
     _inferenceHelper.recordStaticType(node, receiverType);
+    _resolver.nullShortingTermination(node);
   }
 
   void _resolveNullCheck(PostfixExpressionImpl node) {
@@ -204,9 +204,7 @@ class PostfixExpressionResolver {
     operand.accept(_resolver);
     operand = node.operand;
 
-    var operandType = getReadType(
-      operand,
-    );
+    var operandType = getReadType(operand);
 
     var type = _typeSystem.promoteToNonNull(operandType);
     _inferenceHelper.recordStaticType(node, type);

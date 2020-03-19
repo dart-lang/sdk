@@ -78,7 +78,6 @@ class Configuration {
   CompilerOptions apply(CompilerOptions options) {
     if (nnbdMode != null) {
       options.experimentalFlags[ExperimentalFlag.nonNullable] = true;
-      options.performNnbdChecks = true;
       options.nnbdMode = nnbdMode;
     }
     return options;

@@ -17,9 +17,9 @@ main() {
   LibraryMirror dartcore = reflectClass(Object).owner as LibraryMirror;
 
   test('List_copyFromObjectArray', () {
-    var receiver = new List(3);
+    var receiver = new List<dynamic>.filled(3, null);
     var selector = MirrorSystem.getSymbol('_copyFromObjectArray', dartcore);
-    var src = new List(3);
+    var src = new List<dynamic>.filled(3, null);
     var srcStart = 10;
     var dstStart = 10;
     var count = 10;

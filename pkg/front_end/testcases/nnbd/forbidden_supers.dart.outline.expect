@@ -193,7 +193,7 @@ class Goo = self::Boo with self::Aoo {
     : super self::Boo::•()
     ;
 }
-abstract class _Hoo&Object&Aoo = core::Object with self::Aoo /*isAnonymousMixin*/  {
+abstract class _Hoo&Object&Aoo = core::Object with self::Aoo /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Hoo&Object&Aoo
     : super core::Object::•()
     ;
@@ -202,7 +202,7 @@ class Hoo extends self::_Hoo&Object&Aoo implements self::Boo {
   synthetic constructor •() → self::Hoo
     ;
 }
-class Ioo = core::Object with self::Aoo implements self::Boo {
+class Ioo = core::Object with self::Aoo implements self::Boo /*hasConstConstructor*/  {
   const synthetic constructor •() → self::Ioo
     : super core::Object::•()
     ;

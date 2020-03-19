@@ -253,7 +253,6 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--fatal": ",",
   "--fatal-skip": String,
   Flags.forceLateLowering: false,
-  Flags.forceNnbdChecks: false,
   Flags.forceNoExplicitGetterCalls: false,
   "--help": false,
   // TODO(johnniwinther): Remove legacy option flags. Legacy mode is no longer
@@ -374,8 +373,6 @@ ProcessedOptions analyzeCommandLine(
         "'${Flags.nnbdAgnosticMode}'.");
   }
 
-  final bool forceNnbdChecks = options[Flags.forceNnbdChecks];
-
   FileSystem fileSystem = StandardFileSystem.instance;
   if (singleRootScheme != null) {
     fileSystem = new SchemeBasedFileSystem({
@@ -422,8 +419,7 @@ ProcessedOptions analyzeCommandLine(
           ..bytecode = bytecode
           ..experimentalFlags = experimentalFlags
           ..environmentDefines = noDefines ? null : parsedArguments.defines
-          ..nnbdMode = nnbdMode
-          ..performNnbdChecks = forceNnbdChecks,
+          ..nnbdMode = nnbdMode,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {
@@ -480,8 +476,7 @@ ProcessedOptions analyzeCommandLine(
     ..verify = verify
     ..experimentalFlags = experimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
-    ..nnbdMode = nnbdMode
-    ..performNnbdChecks = forceNnbdChecks;
+    ..nnbdMode = nnbdMode;
 
   // TODO(ahe): What about chase dependencies?
 

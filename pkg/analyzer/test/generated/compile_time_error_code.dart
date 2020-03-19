@@ -1599,40 +1599,6 @@ main() {
     ]);
   }
 
-  test_noDefaultSuperConstructorExplicit() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(p);
-}
-class B extends A {
-  B() {}
-}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT, 42, 1),
-    ]);
-  }
-
-  test_noDefaultSuperConstructorImplicit_superHasParameters() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(p);
-}
-class B extends A {
-}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 26, 1),
-    ]);
-  }
-
-  test_noDefaultSuperConstructorImplicit_superOnlyNamed() async {
-    await assertErrorsInCode(r'''
-class A { A.named() {} }
-class B extends A {}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 31, 1),
-    ]);
-  }
-
   test_nonConstantAnnotationConstructor_named() async {
     await assertErrorsInCode(r'''
 class A {

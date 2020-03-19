@@ -10,12 +10,11 @@ class _GrowableList<T> extends ListBase<T> {
     if ((index < 0) || (index > length)) {
       throw new RangeError.range(index, 0, length);
     }
-    if (index == this.length) {
-      add(element);
+    int oldLength = this.length;
+    add(element);
+    if (index == oldLength) {
       return;
     }
-    int oldLength = this.length;
-    this.length++;
     Lists.copy(this, index, this, index + 1, oldLength - index);
     this[index] = element;
   }
@@ -52,7 +51,15 @@ class _GrowableList<T> extends ListBase<T> {
     // There might be errors after the length change, in which case the list
     // will end up being modified but the operation not complete. Unless we
     // always go through a "toList" we can't really avoid that.
-    this.length += insertionLength;
+    int capacity = _capacity;
+    int newLength = length + insertionLength;
+    if (newLength > capacity) {
+      do {
+        capacity = _nextCapacity(capacity);
+      } while (newLength > capacity);
+      _grow(capacity);
+    }
+    _setLength(newLength);
     setRange(index + insertionLength, this.length, this, index);
     setAll(index, iterable);
   }

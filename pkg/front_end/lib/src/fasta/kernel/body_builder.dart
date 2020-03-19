@@ -6,8 +6,6 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
-
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -641,8 +639,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           (expression is! ReadOnlyAccessGenerator ||
               expression is TypeUseGenerator ||
               expression is ParenthesizedExpressionGenerator)) {
-        push(wrapInProblem(
-            toValue(expression), fasta.messageExpressionNotMetadata, noLength));
+        Expression value = toValue(expression);
+        push(wrapInProblem(value, fasta.messageExpressionNotMetadata,
+            value.fileOffset, noLength));
       } else {
         push(toValue(expression));
       }
@@ -860,8 +859,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       Expression value = toValue(node);
       if (!forest.isThrow(node)) {
-        value =
-            wrapInProblem(value, fasta.messageExpectedAnInitializer, noLength);
+        value = wrapInProblem(value, fasta.messageExpectedAnInitializer,
+            value.fileOffset, noLength);
       }
       initializers = <Initializer>[
         buildInvalidInitializer(node, token.charOffset)
@@ -1877,7 +1876,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ? ConstantContext.inferred
             : !member.isStatic &&
                     classBuilder != null &&
-                    classBuilder.hasConstConstructor
+                    classBuilder.declaresConstConstructor
                 ? ConstantContext.required
                 : ConstantContext.none;
       }
@@ -3343,8 +3342,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           name?.name, libraryBuilder, offsetForToken(nameToken), uri)
         ..hasDeclaredInitializer = (initializerStart != null);
     }
-    VariableDeclaration variable =
-        parameter.build(libraryBuilder, functionNestingLevel);
+    VariableDeclaration variable = parameter.build(
+        libraryBuilder, functionNestingLevel, !isDeclarationInstanceContext);
     Expression initializer = name?.initializer;
     if (initializer != null) {
       if (member is RedirectingFactoryBuilder) {
@@ -3679,8 +3678,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(generator.buildPrefixIncrement(incrementOperator(token),
           offset: token.charOffset));
     } else {
+      Expression value = toValue(generator);
       push(wrapInProblem(
-          toValue(generator), fasta.messageNotAnLvalue, noLength));
+          value, fasta.messageNotAnLvalue, value.fileOffset, noLength));
     }
   }
 
@@ -3692,8 +3692,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(new DelayedPostfixIncrement(
           this, token, generator, incrementOperator(token)));
     } else {
+      Expression value = toValue(generator);
       push(wrapInProblem(
-          toValue(generator), fasta.messageNotAnLvalue, noLength));
+          value, fasta.messageNotAnLvalue, value.fileOffset, noLength));
     }
   }
 
@@ -3919,8 +3920,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      if (libraryBuilder.isNonNullableByDefault &&
-          libraryBuilder.loader.performNnbdChecks) {
+      if (libraryBuilder.isNonNullableByDefault) {
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (VariableDeclaration parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
@@ -3987,8 +3987,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (function.namedParameters.isNotEmpty) {
-      if (libraryBuilder.isNonNullableByDefault &&
-          libraryBuilder.loader.performNnbdChecks) {
+      if (libraryBuilder.isNonNullableByDefault) {
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (NamedType parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
@@ -4463,53 +4462,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     enterFunction();
   }
 
-  _checkTypeParameters(FunctionNode function) {
-    if (member == null) return;
-    if (!member.isStatic) return;
-    List<TypeParameter> typeParameters;
-    if (member.parent is ClassBuilder) {
-      ClassBuilder enclosingClassBuilder = member.parent;
-      typeParameters = enclosingClassBuilder.cls.typeParameters;
-    } else if (member.parent is ExtensionBuilder) {
-      ExtensionBuilder enclosingExtensionBuilder = member.parent;
-      typeParameters = enclosingExtensionBuilder.extension.typeParameters;
-    }
-    if (typeParameters != null && typeParameters.isNotEmpty) {
-      Map<TypeParameter, DartType> substitution;
-      DartType removeTypeVariables(DartType type, int offset) {
-        if (substitution == null) {
-          substitution = <TypeParameter, DartType>{};
-          for (TypeParameter parameter in typeParameters) {
-            substitution[parameter] = const DynamicType();
-          }
-        }
-        libraryBuilder.addProblem(fasta.messageNonInstanceTypeVariableUse,
-            offset, noLength, member.fileUri);
-        return substitute(type, substitution);
-      }
-
-      Set<TypeParameter> set = typeParameters.toSet();
-      for (VariableDeclaration parameter in function.positionalParameters) {
-        parameter.fileOffset;
-        if (containsTypeVariable(parameter.type, set)) {
-          parameter.type =
-              removeTypeVariables(parameter.type, parameter.fileOffset);
-        }
-      }
-      for (VariableDeclaration parameter in function.namedParameters) {
-        if (containsTypeVariable(parameter.type, set)) {
-          parameter.type =
-              removeTypeVariables(parameter.type, parameter.fileOffset);
-        }
-      }
-      if (containsTypeVariable(function.returnType, set)) {
-        // TODO(CFE Team): The offset here doesn't actually point to the type.
-        function.returnType =
-            removeTypeVariables(function.returnType, function.fileOffset);
-      }
-    }
-  }
-
   void pushNamedFunction(Token token, bool isFunctionExpression) {
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
@@ -4524,9 +4476,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!isFunctionExpression) {
       annotations = pop(); // Metadata.
     }
-    FunctionNode function = formals.buildFunctionNode(libraryBuilder,
-        returnType, typeParameters, asyncModifier, body, token.charOffset);
-    _checkTypeParameters(function);
+    FunctionNode function = formals.buildFunctionNode(
+        libraryBuilder,
+        returnType,
+        typeParameters,
+        asyncModifier,
+        body,
+        token.charOffset,
+        !isDeclarationInstanceContext);
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
@@ -4611,10 +4568,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     exitFunction();
     List<TypeVariableBuilder> typeParameters = pop();
-    FunctionNode function = formals.buildFunctionNode(libraryBuilder, null,
-        typeParameters, asyncModifier, body, token.charOffset)
+    FunctionNode function = formals.buildFunctionNode(
+        libraryBuilder,
+        null,
+        typeParameters,
+        asyncModifier,
+        body,
+        token.charOffset,
+        !isDeclarationInstanceContext)
       ..fileOffset = beginToken.charOffset;
-    _checkTypeParameters(function);
 
     Expression result;
     if (constantContext != ConstantContext.none) {
@@ -5465,16 +5427,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  Expression wrapInProblem(Expression expression, Message message, int length,
+  Expression wrapInProblem(
+      Expression expression, Message message, int fileOffset, int length,
       {List<LocatedMessage> context}) {
-    int charOffset = expression.fileOffset;
     Severity severity = message.code.severity;
     if (severity == Severity.error) {
       return wrapInLocatedProblem(
-          expression, message.withLocation(uri, charOffset, length),
+          expression, message.withLocation(uri, fileOffset, length),
           context: context);
     } else {
-      addProblem(message, charOffset, length, context: context);
+      addProblem(message, fileOffset, length, context: context);
       return expression;
     }
   }
@@ -5761,7 +5723,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       TypeVariableBuilder typeParameterBuilder = builder.declaration;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
       LocatedMessage message;
-      if (!isDeclarationInstanceContext &&
+      bool extensionField =
+          (member?.isExtensionMember ?? false) && member.isField;
+      if ((extensionField || !isDeclarationInstanceContext) &&
           (typeParameter.parent is Class ||
               typeParameter.parent is Extension)) {
         message = fasta.messageTypeVariableInStaticContext.withLocation(
@@ -6163,11 +6127,12 @@ class FormalParameters {
       List<TypeVariableBuilder> typeParameters,
       AsyncMarker asyncModifier,
       Statement body,
-      int fileEndOffset) {
+      int fileEndOffset,
+      bool notInstanceContext) {
     FunctionType type = toFunctionType(
             returnType, const NullabilityBuilder.omitted(), typeParameters)
         .builder
-        .build(library);
+        .build(library, null, notInstanceContext);
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     if (parameters != null) {

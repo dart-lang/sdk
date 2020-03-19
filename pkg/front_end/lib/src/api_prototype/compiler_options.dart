@@ -226,10 +226,6 @@ class CompilerOptions {
   /// 'non-nullable' is enabled.
   NnbdMode nnbdMode = NnbdMode.Weak;
 
-  /// Whether nnbd checks are performed when experiment 'non-nullable' is
-  /// enabled.
-  bool performNnbdChecks = false;
-
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
   /// For instance used for language versioning (specifying the maximum
   /// version).
@@ -290,7 +286,6 @@ class CompilerOptions {
     if (bytecode != other.bytecode) return false;
     if (writeFileOnCrashReport != other.writeFileOnCrashReport) return false;
     if (nnbdMode != other.nnbdMode) return false;
-    if (performNnbdChecks != other.performNnbdChecks) return false;
     if (currentSdkVersion != other.currentSdkVersion) return false;
 
     return true;

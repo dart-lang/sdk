@@ -305,6 +305,7 @@ abstract class RuntimeTypesSubstitutionsMixin
 
                 assert(substitution != null);
                 for (DartType argument in substitution.arguments) {
+                  argument = argument.withoutNullability;
                   if (argument is InterfaceType) {
                     computeChecks(argument.element);
                   }
@@ -328,6 +329,7 @@ abstract class RuntimeTypesSubstitutionsMixin
 
               assert(substitution != null);
               for (DartType argument in substitution.arguments) {
+                argument = argument.withoutNullability;
                 if (argument is InterfaceType) {
                   computeChecks(argument.element);
                 }
@@ -730,6 +732,7 @@ class RuntimeTypesImpl
     bool isFunctionChecked = false;
 
     void processCheckedType(DartType t) {
+      t = t.withoutNullability;
       if (t is FunctionType) {
         checkedFunctionTypes.add(t);
       } else if (t is InterfaceType) {

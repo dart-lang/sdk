@@ -2408,6 +2408,11 @@ class PhiInstr : public Definition {
   // A phi is redundant if all input operands are the same.
   bool IsRedundant() const;
 
+  // A phi is redundant if all input operands are redefinitions of the same
+  // value. Returns the replacement for this phi if it is redundant.
+  // The replacement is selected among values redefined by inputs.
+  Definition* GetReplacementForRedundantPhi() const;
+
   PRINT_TO_SUPPORT
 
   enum ReceiverType { kUnknownReceiver = -1, kNotReceiver = 0, kReceiver = 1 };
@@ -6175,6 +6180,20 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  const Code& GetStub() const {
+    bool with_runtime_check;
+    if (type_arguments().CanShareInstantiatorTypeArguments(
+            instantiator_class(), &with_runtime_check)) {
+      ASSERT(with_runtime_check);
+      return StubCode::InstantiateTypeArgumentsMayShareInstantiatorTA();
+    } else if (type_arguments().CanShareFunctionTypeArguments(
+                   function(), &with_runtime_check)) {
+      ASSERT(with_runtime_check);
+      return StubCode::InstantiateTypeArgumentsMayShareFunctionTA();
+    }
+    return StubCode::InstantiateTypeArguments();
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
 

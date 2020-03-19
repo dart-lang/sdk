@@ -110,16 +110,33 @@ Dwarf::Dwarf(Zone* zone, StreamingWriteStream* stream, Elf* elf)
   RELEASE_ASSERT(stream != nullptr || elf != nullptr);
 }
 
-intptr_t Dwarf::AddCode(const Code& code, intptr_t virtual_address) {
-  RELEASE_ASSERT(!code.IsNull());
-  RELEASE_ASSERT(code_to_address_.Lookup(&code) == nullptr);
-  const Code& zone_code = Code::ZoneHandle(zone_, code.raw());
-  if (elf_ != nullptr) {
-    RELEASE_ASSERT(virtual_address >= 0);
-    code_to_address_.Insert(CodeAddressPair(&zone_code, virtual_address));
-  }
+intptr_t Dwarf::AddCode(const Code& code) {
+  ASSERT(elf_ == nullptr);
+  ASSERT(!code.IsNull());
+  return AddCodeHelper(Code::ZoneHandle(zone_, code.raw()));
+}
+
+void Dwarf::AddCode(const Code& code,
+                    const char* name,
+                    intptr_t payload_start) {
+  ASSERT(elf_ != nullptr);
+
+  ASSERT(name != nullptr);
+  ASSERT(payload_start >= 0);
+  auto const virtual_address = elf_->NextMemoryOffset() + payload_start;
+  elf_->AddStaticSymbol(elf_->NextSectionIndex(), name, virtual_address);
+
+  ASSERT(!code.IsNull());
+  ASSERT(code_to_address_.Lookup(&code) == nullptr);
+  const auto& zone_code = Code::ZoneHandle(zone_, code.raw());
+  code_to_address_.Insert(CodeAddressPair(&zone_code, virtual_address));
+
+  AddCodeHelper(zone_code);
+}
+
+intptr_t Dwarf::AddCodeHelper(const Code& code) {
   const intptr_t index = codes_.length();
-  codes_.Add(&zone_code);
+  codes_.Add(&code);
   if (code.IsFunctionCode()) {
     const Function& function = Function::Handle(zone_, code.function());
     AddFunction(function);
@@ -292,7 +309,7 @@ void Dwarf::WriteCompilationUnit() {
   uint8_t* buffer = nullptr;
   WriteStream stream(&buffer, ZoneReallocate, 64 * KB);
 
-  AssemblyCodeNamer namer(zone_);
+  SnapshotTextObjectNamer namer(zone_);
 
   if (asm_stream_ != nullptr) {
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
@@ -358,7 +375,7 @@ void Dwarf::WriteCompilationUnit() {
     intptr_t last_code_index = codes_.length() - 1;
     const Code& last_code = *(codes_[last_code_index]);
     PrintNamedAddressWithOffset(
-        namer.AssemblyNameFor(last_code_index, last_code), last_code.Size());
+        namer.SnapshotNameFor(last_code_index, last_code), last_code.Size());
   }
   if (elf_ != nullptr) {
     addr(elf_->NextMemoryOffset());
@@ -421,7 +438,7 @@ void Dwarf::WriteAbstractFunctions() {
 void Dwarf::WriteConcreteFunctions() {
   Function& function = Function::Handle(zone_);
   Script& script = Script::Handle(zone_);
-  AssemblyCodeNamer namer(zone_);
+  SnapshotTextObjectNamer namer(zone_);
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
     RELEASE_ASSERT(!code.IsNull());
@@ -456,7 +473,7 @@ void Dwarf::WriteConcreteFunctions() {
 
     // DW_AT_low_pc
     if (asm_stream_ != nullptr) {
-      const char* asm_name = namer.AssemblyNameFor(i, code);
+      const char* asm_name = namer.SnapshotNameFor(i, code);
       // DW_AT_low_pc
       PrintNamedAddress(asm_name);
       // DW_AT_high_pc
@@ -564,7 +581,7 @@ void Dwarf::WriteInliningNode(InliningNode* node,
                               intptr_t root_code_index,
                               intptr_t root_code_address,
                               const Script& parent_script,
-                              AssemblyCodeNamer* namer) {
+                              SnapshotTextObjectNamer* namer) {
   RELEASE_ASSERT(elf_ == nullptr || root_code_address >= 0);
   intptr_t file = LookupScript(parent_script);
   intptr_t line = node->call_pos.value();
@@ -587,7 +604,7 @@ void Dwarf::WriteInliningNode(InliningNode* node,
 
   if (asm_stream_ != nullptr) {
     const char* asm_name =
-        namer->AssemblyNameFor(root_code_index, *codes_[root_code_index]);
+        namer->SnapshotNameFor(root_code_index, *codes_[root_code_index]);
     // DW_AT_low_pc
     PrintNamedAddressWithOffset(asm_name, node->start_pc_offset);
     // DW_AT_high_pc
@@ -722,14 +739,14 @@ void Dwarf::WriteLines() {
   Array& functions = Array::Handle(zone_);
   GrowableArray<const Function*> function_stack(zone_, 8);
   GrowableArray<TokenPosition> token_positions(zone_, 8);
-  AssemblyCodeNamer namer(zone_);
+  SnapshotTextObjectNamer namer(zone_);
 
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
 
     const char* asm_name = nullptr;
     if (asm_stream_ != nullptr) {
-      asm_name = namer.AssemblyNameFor(i, code);
+      asm_name = namer.SnapshotNameFor(i, code);
     }
 
     intptr_t current_code_address = -1;
@@ -808,7 +825,7 @@ void Dwarf::WriteLines() {
           } else {
             u1(DW_LNS_advance_pc);
             if (asm_stream_ != nullptr) {
-              const char* previous_asm_name = namer.AssemblyNameFor(
+              const char* previous_asm_name = namer.SnapshotNameFor(
                   previous_code_index, *codes_[previous_code_index]);
               Print(".uleb128 %s - %s + %" Pd "\n", asm_name, previous_asm_name,
                     current_pc_offset - previous_pc_offset);
@@ -859,9 +876,9 @@ void Dwarf::WriteLines() {
   u1(DW_LNS_advance_pc);
   if (asm_stream_ != nullptr) {
     const char* last_asm_name =
-        namer.AssemblyNameFor(last_code_index, last_code);
+        namer.SnapshotNameFor(last_code_index, last_code);
     ASSERT(previous_code_index >= 0);
-    const char* previous_asm_name = namer.AssemblyNameFor(
+    const char* previous_asm_name = namer.SnapshotNameFor(
         previous_code_index, *codes_[previous_code_index]);
     Print(".uleb128 %s - %s + %" Pd "\n", last_asm_name, previous_asm_name,
           last_code.Size() - previous_pc_offset);

@@ -6,26 +6,27 @@ library interactive_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 import 'utils.dart';
 
-main() {
-  test('getCurrentPosition', () {
-    return window.navigator.geolocation.getCurrentPosition().then((position) {
-      expect(position.coords.latitude, isNotNull);
-      expect(position.coords.longitude, isNotNull);
-      expect(position.coords.accuracy, isNotNull);
-    });
-  });
+Future testGetCurrentPosition() async {
+  var position = await window.navigator.geolocation.getCurrentPosition();
+  Expect.isNotNull(position.coords.latitude);
+  Expect.isNotNull(position.coords.longitude);
+  Expect.isNotNull(position.coords.accuracy);
+}
 
-  test('watchPosition', () {
-    return window.navigator.geolocation
-        .watchPosition()
-        .first
-        .then((position) {
-      expect(position.coords.latitude, isNotNull);
-      expect(position.coords.longitude, isNotNull);
-      expect(position.coords.accuracy, isNotNull);
-    });
+Future testWatchPosition() async {
+  var position = await window.navigator.geolocation.watchPosition().first;
+  Expect.isNotNull(position.coords.latitude);
+  Expect.isNotNull(position.coords.longitude);
+  Expect.isNotNull(position.coords.accuracy);
+}
+
+main() {
+  asyncTest(() async {
+    await testGetCurrentPosition();
+    await testWatchPosition();
   });
 }

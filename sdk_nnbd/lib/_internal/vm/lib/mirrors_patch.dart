@@ -50,7 +50,7 @@ ClassMirror reflectClass(Type key) {
 }
 
 @patch
-TypeMirror reflectType(Type key, [List<Type> typeArguments = const <Type>[]]) {
+TypeMirror reflectType(Type key, [List<Type>? typeArguments]) {
   return _Mirrors.reflectType(key, typeArguments);
 }
 

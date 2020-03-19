@@ -14,6 +14,9 @@ class bool {
       native "Bool_fromEnvironment";
 
   @patch
+  const factory bool.hasEnvironment(String name) native "Bool_hasEnvironment";
+
+  @patch
   int get hashCode => this ? 1231 : 1237;
 
   int get _identityHashCode => this ? 1231 : 1237;
