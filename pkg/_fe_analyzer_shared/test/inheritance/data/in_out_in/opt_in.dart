@@ -15,3 +15,19 @@ abstract class Interface {
   /*member: Interface.method:int? Function(int)*/
   int? method(int i) => i;
 }
+
+/*class: GenericInterface:GenericInterface<T>,Object*/
+abstract class GenericInterface<T> {
+  /*member: GenericInterface.method:T Function(T)*/
+  T method(T t);
+}
+
+/*class: GenericClass1:GenericClass1,GenericInterface<int>,Object*/
+abstract class GenericClass1 implements GenericInterface<int> {
+  /*member: GenericClass1.method:int Function(int)*/
+}
+
+/*class: GenericClass2:GenericClass2,GenericInterface<int?>,Object*/
+abstract class GenericClass2 implements GenericInterface<int?> {
+  /*member: GenericClass2.method:int? Function(int?)*/
+}

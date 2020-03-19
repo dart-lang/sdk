@@ -1364,10 +1364,8 @@ class ClassHierarchyNodeBuilder {
     if (classBuilder.isMixinApplication) {
       TypeDeclarationBuilder mixin = classBuilder.mixedInType.declaration;
       inferMixinApplication();
-      // recordSupertype(cls.mixedInType);
       while (mixin.isNamedMixinApplication) {
         ClassBuilder named = mixin;
-        // recordSupertype(named.mixedInType);
         mixin = named.mixedInType.declaration;
       }
       if (mixin is TypeAliasBuilder) {
@@ -1491,7 +1489,14 @@ class ClassHierarchyNodeBuilder {
       }
       superclasses.setRange(0, superclasses.length - 1,
           substSupertypes(supertype, supernode.superclasses));
-      superclasses[superclasses.length - 1] = recordSupertype(supertype);
+      superclasses[superclasses.length - 1] = supertype;
+      if (!classBuilder.library.isNonNullableByDefault &&
+          supernode.classBuilder.library.isNonNullableByDefault) {
+        for (int i = 0; i < superclasses.length; i++) {
+          superclasses[i] =
+              legacyErasureSupertype(hierarchy.coreTypes, superclasses[i]);
+        }
+      }
 
       List<TypeBuilder> directInterfaceBuilders =
           ignoreFunction(classBuilder.interfaces);
@@ -1503,15 +1508,7 @@ class ClassHierarchyNodeBuilder {
             ..addAll(directInterfaceBuilders);
         }
       }
-      if (directInterfaceBuilders != null) {
-        for (int i = 0; i < directInterfaceBuilders.length; i++) {
-          Supertype interface = directInterfaceBuilders[i].buildSupertype(
-              classBuilder.library,
-              classBuilder.charOffset,
-              classBuilder.fileUri);
-          if (interface != null) recordSupertype(interface);
-        }
-      }
+
       List<Supertype> superclassInterfaces = supernode.interfaces;
       if (superclassInterfaces != null) {
         superclassInterfaces = substSupertypes(supertype, superclassInterfaces);
@@ -1578,8 +1575,24 @@ class ClassHierarchyNodeBuilder {
             }
           }
         }
+      } else if (superclassInterfaces != null &&
+          !classBuilder.library.isNonNullableByDefault &&
+          supernode.classBuilder.library.isNonNullableByDefault) {
+        interfaces = <Supertype>[];
+        for (int i = 0; i < superclassInterfaces.length; i++) {
+          addInterface(interfaces, superclasses, superclassInterfaces[i]);
+        }
       } else {
         interfaces = superclassInterfaces;
+      }
+    }
+
+    for (Supertype superclass in superclasses) {
+      recordSupertype(superclass);
+    }
+    if (interfaces != null) {
+      for (Supertype superinterface in interfaces) {
+        recordSupertype(superinterface);
       }
     }
 
@@ -1967,20 +1980,16 @@ class ClassHierarchyNodeBuilder {
     debug?.log("In ${this.classBuilder.fullNameForErrors} "
         "recordSupertype(${supertype})");
     Class cls = supertype.classNode;
-    if (cls.isMixinApplication) {
-      recordSupertype(cls.mixedInType);
-    }
-    List<TypeParameter> typeVariableBuilders = cls.typeParameters;
-    if (typeVariableBuilders == null) {
+    List<TypeParameter> supertypeTypeParameters = cls.typeParameters;
+    if (supertypeTypeParameters.isEmpty) {
       substitutions[cls] = Substitution.empty;
-      assert(cls.typeParameters.isEmpty);
     } else {
       List<DartType> arguments = supertype.typeArguments;
       List<DartType> typeArguments = new List<DartType>(arguments.length);
       List<TypeParameter> typeParameters =
           new List<TypeParameter>(arguments.length);
       for (int i = 0; i < arguments.length; i++) {
-        typeParameters[i] = typeVariableBuilders[i];
+        typeParameters[i] = supertypeTypeParameters[i];
         typeArguments[i] = arguments[i];
       }
       substitutions[cls] =
@@ -1995,9 +2004,6 @@ class ClassHierarchyNodeBuilder {
     if (typeVariables.isEmpty) {
       debug?.log("In ${this.classBuilder.fullNameForErrors} "
           "$supertypes aren't substed");
-      for (int i = 0; i < supertypes.length; i++) {
-        recordSupertype(supertypes[i]);
-      }
       return supertypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
@@ -2009,8 +2015,7 @@ class ClassHierarchyNodeBuilder {
     List<Supertype> result;
     for (int i = 0; i < supertypes.length; i++) {
       Supertype supertype = supertypes[i];
-      Supertype substituted =
-          recordSupertype(substitution.substituteSupertype(supertype));
+      Supertype substituted = substitution.substituteSupertype(supertype);
       if (supertype != substituted) {
         debug?.log("In ${this.classBuilder.fullNameForErrors} $supertype"
             " -> $substituted");
@@ -2045,8 +2050,8 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  Supertype addInterface(List<Supertype> interfaces,
-      List<Supertype> superclasses, Supertype type) {
+  void addInterface(List<Supertype> interfaces, List<Supertype> superclasses,
+      Supertype type) {
     if (type == null) return null;
     if (!classBuilder.library.isNonNullableByDefault) {
       type = legacyErasureSupertype(hierarchy.coreTypes, type);
@@ -2072,7 +2077,7 @@ class ClassHierarchyNodeBuilder {
           superclasses[depth] = superclass;
         }
       }
-      return superclass;
+      return;
     } else {
       for (int i = 0; i < interfaces.length; i++) {
         // This is a quadratic algorithm, but normally, the number of
@@ -2094,12 +2099,11 @@ class ClassHierarchyNodeBuilder {
               interfaces[i] = interface;
             }
           }
-          return interface;
+          return;
         }
       }
     }
     interfaces.add(type);
-    return null;
   }
 
   void reportMissingMembers() {
