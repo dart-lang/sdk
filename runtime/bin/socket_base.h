@@ -167,7 +167,6 @@ class SocketBase : public AllStatic {
                            intptr_t num_bytes,
                            RawAddr* addr,
                            SocketOpKind sync);
-  static bool AvailableDatagram(intptr_t fd, void* buffer, intptr_t num_bytes);
   // Returns true if the given error-number is because the system was not able
   // to bind the socket to a specific IP.
   static bool IsBindError(intptr_t error_number);

@@ -364,18 +364,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Holds the address used to connect or bind the socket.
   late InternetAddress localAddress;
 
-  // The size of data that is ready to be read, for TCP sockets.
-  // This might be out-of-date when Read is called.
-  // The number of pending connections, for Listening sockets.
+  // The number of available bytes to read.
   int available = 0;
-
-  // Only used for UDP sockets.
-  bool _availableDatagram = false;
 
   // The number of incoming connnections for Listening socket.
   int connections = 0;
 
-  // The count of received event from eventhandler.
   int tokens = 0;
 
   bool sendReadEvents = false;
@@ -770,21 +764,32 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   Datagram? receive() {
-    if (isClosing || isClosed || !_availableDatagram) return null;
+    if (isClosing || isClosed) return null;
     try {
-      Datagram? result = nativeRecvFrom();
-      assert(result != null);
+      Datagram? datagram = nativeRecvFrom();
       final resourceInformation = resourceInfo;
+      assert(resourceInformation != null ||
+          isPipe ||
+          isInternal ||
+          isInternalSignal);
+      if (datagram != null) {
+        // Read the next available. Available is only for the next datagram, not
+        // the sum of all datagrams pending, so we need to call after each
+        // receive. If available becomes > 0, the _NativeSocket will continue to
+        // emit read events.
+        available = nativeAvailable();
+        if (resourceInformation != null) {
+          resourceInformation.totalRead += datagram.data.length;
+        }
+      }
       if (resourceInformation != null) {
-        resourceInformation.totalRead += result?.data?.length!;
         resourceInformation.didRead();
       }
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(nativeGetSocketId(),
-            _SocketProfileType.readBytes, result?.data.length);
+            _SocketProfileType.readBytes, datagram?.data.length);
       }
-      _availableDatagram = nativeAvailableDatagram();
-      return result;
+      return datagram;
     } catch (e) {
       reportError(e, StackTrace.current, "Receive failed");
       return null;
@@ -928,7 +933,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       readEventIssued = false;
       if (isClosing) return;
       if (!sendReadEvents) return;
-      if (stopRead()) {
+      if (available == 0) {
         if (isClosedRead && !closedReadEventSent) {
           if (isClosedWrite) close();
           var handler = eventHandlers[closedEvent];
@@ -946,14 +951,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
 
     scheduleMicrotask(issue);
-  }
-
-  bool stopRead() {
-    if (isUdp) {
-      return !_availableDatagram;
-    } else {
-      return available == 0;
-    }
   }
 
   void issueWriteEvent({bool delayed: true}) {
@@ -1003,11 +1000,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           if (isListening) {
             connections++;
           } else {
-            if (isUdp) {
-              _availableDatagram = nativeAvailableDatagram();
-            } else {
-              available = nativeAvailable();
-            }
+            available = nativeAvailable();
             issueReadEvent();
             continue;
           }
@@ -1273,7 +1266,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   void nativeSetSocketId(int id, int typeFlags) native "Socket_SetSocketId";
   int nativeAvailable() native "Socket_Available";
-  bool nativeAvailableDatagram() native "Socket_AvailableDatagram";
   Uint8List? nativeRead(int len) native "Socket_Read";
   Datagram? nativeRecvFrom() native "Socket_RecvFrom";
   int nativeWrite(List<int> buffer, int offset, int bytes)

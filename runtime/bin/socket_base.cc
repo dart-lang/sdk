@@ -102,7 +102,7 @@ void SocketAddress::SetAddrPort(RawAddr* addr, intptr_t port) {
 }
 
 intptr_t SocketAddress::GetAddrPort(const RawAddr& addr) {
-  if (addr.addr.sa_family == AF_INET) {
+  if (addr.ss.ss_family == AF_INET) {
     return ntohs(addr.in.sin_port);
   } else {
     return ntohs(addr.in6.sin6_port);
