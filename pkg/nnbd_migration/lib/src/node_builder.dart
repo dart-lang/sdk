@@ -274,6 +274,24 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitFormalParameterList(FormalParameterList node) {
+    int index = 0;
+    for (var parameter in node.parameters) {
+      var element = parameter.declaredElement;
+      NullabilityNodeTarget newTarget;
+      if (_target == null) {
+        newTarget = null;
+      } else if (element.isNamed) {
+        newTarget = _target.namedParameter(element.name);
+      } else {
+        newTarget = _target.positionalParameter(index++);
+      }
+      _pushNullabilityNodeTarget(newTarget, () => parameter.accept(this));
+    }
+    return null;
+  }
+
+  @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     _handleExecutableDeclaration(
         node,
@@ -607,7 +625,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType decoratedFunctionType;
     try {
       typeParameters?.accept(this);
-      parameters?.accept(this);
+      _pushNullabilityNodeTarget(target, () => parameters?.accept(this));
       redirectedConstructor?.accept(this);
       initializers?.accept(this);
       decoratedFunctionType = DecoratedType(functionType, _graph.never,

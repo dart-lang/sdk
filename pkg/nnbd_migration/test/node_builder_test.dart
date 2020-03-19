@@ -454,6 +454,24 @@ mixin D<V> on C<int, V> {}
         same(decoratedTypeAnnotation('V> {').node));
   }
 
+  Future<void> test_displayName_explicitParameterType_named() async {
+    await analyze('void f({int x, int y}) {}');
+    expect(decoratedTypeAnnotation('int x').node.displayName,
+        'parameter x of f (test.dart:1:9)');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'parameter y of f (test.dart:1:16)');
+  }
+
+  Future<void> test_displayName_explicitParameterType_positional() async {
+    await analyze('void f(int x, int y, [int z]) {}');
+    expect(decoratedTypeAnnotation('int x').node.displayName,
+        'parameter 0 of f (test.dart:1:8)');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'parameter 1 of f (test.dart:1:15)');
+    expect(decoratedTypeAnnotation('int z').node.displayName,
+        'parameter 2 of f (test.dart:1:23)');
+  }
+
   Future<void> test_dynamic_type() async {
     await analyze('''
 dynamic f() {}
@@ -904,7 +922,7 @@ void f(int Function() x) {}
     expect(decoratedIntType.node, isNotNull);
     expect(decoratedIntType.node, isNot(never));
     expect(decoratedType.returnType.node.displayName,
-        'return type of explicit type (test.dart:1:8)');
+        'parameter 0 of f (test.dart:1:8)');
   }
 
   Future<void> test_genericFunctionType_syntax_inferred_dynamic_return() async {
