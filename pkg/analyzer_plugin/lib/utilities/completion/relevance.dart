@@ -46,4 +46,7 @@ abstract class Relevance {
   /// The relevance used when suggesting a member of a class or extension and
   /// there are no features that can be used to provide a relevance score.
   static const int member = 500;
+
+  /// The relevance used when suggesting an override of an inherited member.
+  static const int override = 750;
 }
