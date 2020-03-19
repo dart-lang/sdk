@@ -21,19 +21,29 @@ class SubClass extends Class {
 }
 
 main() {
-  switch (null) {
+  // This test verifies that when overriding `==` it is a compile time error to
+  // use that class as a key in a switch, but only if the override provides a
+  // body. However, with NNBD, all of these switches became compile time errors
+  // so now we cast `null` as `dynamic` to get these first two switches past
+  // the compiler.
+  switch (null as dynamic) {
     case const SuperClass():
       break;
     default:
   }
-  switch (null) {
+  switch (null as dynamic) {
     case const Class():
       break;
     default:
   }
-  switch (null) {
+  switch (null as dynamic) {
     case const SubClass(): //# 01: compile-time error
       break; //# 01: continued
+    default:
+  }
+  switch (null) {
+    case null:
+      break;
     default:
   }
 }
