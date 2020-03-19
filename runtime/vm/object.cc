@@ -18062,10 +18062,8 @@ RawAbstractType* AbstractType::SetInstantiatedNullability(
       .SetInstantiatedNullability(type_param, space);
 }
 
-RawAbstractType* AbstractType::NormalizeInstantiatedType(
-    Heap::Space space) const {
+RawAbstractType* AbstractType::NormalizeFutureOrType(Heap::Space space) const {
   if (Dart::non_nullable_flag()) {
-    // Normalize FutureOr<T>.
     if (IsFutureOrType()) {
       const AbstractType& unwrapped_type =
           AbstractType::Handle(UnwrapFutureOr());
@@ -18990,7 +18988,7 @@ RawAbstractType* Type::InstantiateFrom(
     }
   }
   // Canonicalization is not part of instantiation.
-  return instantiated_type.NormalizeInstantiatedType(space);
+  return instantiated_type.NormalizeFutureOrType(space);
 }
 
 bool Type::IsEquivalent(const Instance& other,
@@ -19854,7 +19852,7 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     AbstractType& result =
         AbstractType::Handle(function_type_arguments.TypeAt(index()));
     result = result.SetInstantiatedNullability(*this, space);
-    return result.NormalizeInstantiatedType(space);
+    return result.NormalizeFutureOrType(space);
   }
   ASSERT(IsClassTypeParameter());
   if (instantiator_type_arguments.IsNull()) {
@@ -19872,7 +19870,7 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   AbstractType& result =
       AbstractType::Handle(instantiator_type_arguments.TypeAt(index()));
   result = result.SetInstantiatedNullability(*this, space);
-  return result.NormalizeInstantiatedType(space);
+  return result.NormalizeFutureOrType(space);
   // There is no need to canonicalize the instantiated type parameter, since all
   // type arguments are canonicalized at type finalization time. It would be too
   // early to canonicalize the returned type argument here, since instantiation

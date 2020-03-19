@@ -627,7 +627,7 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
         instantiator_type_arguments_.TypeAt(parameter.index()));
     result = result.SetInstantiatedNullability(TypeParameter::Cast(type),
                                                Heap::kOld);
-    return result.NormalizeInstantiatedType(Heap::kOld);
+    return result.NormalizeFutureOrType(Heap::kOld);
   } else if (type.IsFunctionType()) {
     // No support for function types yet.
     UNREACHABLE();

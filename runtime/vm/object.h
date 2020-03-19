@@ -7463,7 +7463,7 @@ class AbstractType : public Instance {
   virtual RawAbstractType* SetInstantiatedNullability(
       const TypeParameter& type_param,
       Heap::Space space) const;
-  virtual RawAbstractType* NormalizeInstantiatedType(Heap::Space space) const;
+  virtual RawAbstractType* NormalizeFutureOrType(Heap::Space space) const;
 
   virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
