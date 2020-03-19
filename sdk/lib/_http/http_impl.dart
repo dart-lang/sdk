@@ -2560,6 +2560,10 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
           outgoing,
           _httpServer.defaultResponseHeaders,
           _httpServer.serverHeader);
+      // Parser found badRequest and sent out Response.
+      if (incoming.statusCode == HttpStatus.badRequest) {
+        response.statusCode = HttpStatus.badRequest;
+      }
       var request = new _HttpRequest(response, incoming, _httpServer, this);
       _streamFuture = outgoing.done.then((_) {
         response.deadline = null;
