@@ -107,13 +107,16 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
       return;
     }
     var relevance = DART_RELEVANCE_DEFAULT;
-    if (request.useNewRelevance) {
+    var useNewRelevance = request.useNewRelevance;
+    if (useNewRelevance) {
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, elementType);
-      relevance = toRelevance(contextType, 500);
+      relevance = toRelevance(contextType, Relevance.member);
     }
-    CompletionSuggestion suggestion =
-        createSuggestion(element, completion: completion, relevance: relevance);
+    CompletionSuggestion suggestion = createSuggestion(element,
+        completion: completion,
+        relevance: relevance,
+        useNewRelevance: useNewRelevance);
     if (suggestion != null) {
       suggestions.add(suggestion);
     }

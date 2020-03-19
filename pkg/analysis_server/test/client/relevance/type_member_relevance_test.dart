@@ -65,6 +65,24 @@ void g(E e) {
     ]);
   }
 
+  Future<void> test_hasDeprecated() async {
+    await addTestFile('''
+class C {
+  void a() {}
+  @deprecated
+  void b() {}
+}
+
+void f(C c) {
+  c.^
+}
+''');
+    assertOrder([
+      suggestionWith(completion: 'a'),
+      suggestionWith(completion: 'b'),
+    ]);
+  }
+
   Future<void> test_inheritanceDepth() async {
     await addTestFile('''
 class A {

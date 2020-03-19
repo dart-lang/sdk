@@ -7,21 +7,24 @@ import 'dart:collection';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/util/comment.dart';
-
-import '../../../protocol_server.dart' show CompletionSuggestion;
+import 'package:meta/meta.dart';
 
 /// Return a suggestion based upon the given element or `null` if a suggestion
 /// is not appropriate for the given element.
 CompletionSuggestion createSuggestion(Element element,
     {String completion,
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-    int relevance = DART_RELEVANCE_DEFAULT}) {
+    int relevance = DART_RELEVANCE_DEFAULT,
+    bool useNewRelevance = false}) {
   if (element == null) {
     return null;
   }
@@ -31,14 +34,11 @@ CompletionSuggestion createSuggestion(Element element,
   }
   completion ??= element.displayName;
   bool isDeprecated = element.hasDeprecated;
+  if (!useNewRelevance && isDeprecated) {
+    relevance = DART_RELEVANCE_LOW;
+  }
   CompletionSuggestion suggestion = CompletionSuggestion(
-      kind,
-      isDeprecated ? DART_RELEVANCE_LOW : relevance,
-      completion,
-      completion.length,
-      0,
-      isDeprecated,
-      false);
+      kind, relevance, completion, completion.length, 0, isDeprecated, false);
 
   // Attach docs.
   String doc = getDartDocPlainText(element.documentationComment);
@@ -100,6 +100,7 @@ mixin ElementSuggestionBuilder {
   CompletionSuggestion addSuggestion(Element element,
       {String prefix,
       int relevance = DART_RELEVANCE_DEFAULT,
+      bool useNewRelevance = false,
       String elementCompletion}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
@@ -118,7 +119,10 @@ mixin ElementSuggestionBuilder {
       return null;
     }
     CompletionSuggestion suggestion = createSuggestion(element,
-        completion: completion, kind: kind, relevance: relevance);
+        completion: completion,
+        kind: kind,
+        relevance: relevance,
+        useNewRelevance: useNewRelevance);
     if (suggestion != null) {
       if (element.isSynthetic && element is PropertyAccessorElement) {
         String cacheKey;
@@ -253,8 +257,8 @@ class MemberSuggestionBuilder {
   /// field, a method, or a getter/setter pair.
   static const int _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET = 3;
 
-  /// The library containing the unit in which the completion is requested.
-  final LibraryElement containingLibrary;
+  /// The request for which suggestions are being built.
+  final DartCompletionRequest request;
 
   /// Map indicating, for each possible completion identifier, whether we have
   /// already generated completions for a getter, setter, or both.  The "both"
@@ -265,11 +269,11 @@ class MemberSuggestionBuilder {
   /// compared.
   final Map<String, int> _completionTypesGenerated = HashMap<String, int>();
 
-  /// Map from completion identifier to completion suggestion
+  /// A map from a completion identifier to a completion suggestion.
   final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
 
-  MemberSuggestionBuilder(this.containingLibrary);
+  MemberSuggestionBuilder(this.request);
 
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
@@ -278,30 +282,136 @@ class MemberSuggestionBuilder {
     _suggestionMap[suggestion.completion] = suggestion;
   }
 
-  /// Add a suggestion based upon the given element, provided that it is not
-  /// shadowed by a previously added suggestion.
-  void addSuggestion(Element element,
-      {int relevance, bool useNewRelevance = false}) {
-    if (element.isPrivate) {
-      if (element.library != containingLibrary) {
-        // Do not suggest private members for imported libraries
-        return;
+  /// Add a suggestion for the given [method].
+  void addSuggestionForAccessor(
+      {@required PropertyAccessorElement accessor,
+      String containingMethodName,
+      @required double inheritanceDistance}) {
+    int oldRelevance() {
+      if (accessor.hasDeprecated) {
+        return DART_RELEVANCE_LOW;
       }
-    }
-    String identifier = element.displayName;
-
-    if (useNewRelevance) {
-      assert(relevance != null);
-    } else {
-      relevance ??= DART_RELEVANCE_DEFAULT;
-      if (relevance == DART_RELEVANCE_DEFAULT && identifier != null) {
+      String identifier = accessor.displayName;
+      if (identifier != null && identifier.startsWith(r'$')) {
         // Decrease relevance of suggestions starting with $
         // https://github.com/dart-lang/sdk/issues/27303
-        if (identifier.startsWith(r'$')) {
-          relevance = DART_RELEVANCE_LOW;
-        }
+        return DART_RELEVANCE_LOW;
       }
+      return DART_RELEVANCE_DEFAULT;
     }
+
+    if (!accessor.isAccessibleIn(request.libraryElement)) {
+      // Don't suggest private members from imported libraries.
+      return;
+    }
+    if (accessor.isSynthetic) {
+      // Avoid visiting a field twice. All fields induce a getter, but only
+      // non-final fields induce a setter, so we don't add a suggestion for a
+      // synthetic setter.
+      if (accessor.isGetter) {
+        var variable = accessor.variable;
+        int relevance;
+        var useNewRelevance = request.useNewRelevance;
+        if (useNewRelevance) {
+          var featureComputer = request.featureComputer;
+          var contextType = featureComputer.contextTypeFeature(
+              request.contextType, variable.type);
+          var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+          var startsWithDollar =
+              featureComputer.startsWithDollarFeature(accessor.name);
+          var superMatches = featureComputer.superMatchesFeature(
+              containingMethodName, accessor.name);
+          relevance = _computeRelevance(
+              contextType: contextType,
+              hasDeprecated: hasDeprecated,
+              inheritanceDistance: inheritanceDistance,
+              startsWithDollar: startsWithDollar,
+              superMatches: superMatches);
+        } else {
+          relevance = oldRelevance();
+        }
+        _addSuggestion(variable, relevance, useNewRelevance);
+      }
+    } else {
+      var type =
+          accessor.isGetter ? accessor.returnType : accessor.parameters[0].type;
+      int relevance;
+      var useNewRelevance = request.useNewRelevance;
+      if (useNewRelevance) {
+        var featureComputer = request.featureComputer;
+        var contextType =
+            featureComputer.contextTypeFeature(request.contextType, type);
+        var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+        var startsWithDollar =
+            featureComputer.startsWithDollarFeature(accessor.name);
+        var superMatches = featureComputer.superMatchesFeature(
+            containingMethodName, accessor.name);
+        relevance = _computeRelevance(
+            contextType: contextType,
+            hasDeprecated: hasDeprecated,
+            inheritanceDistance: inheritanceDistance,
+            startsWithDollar: startsWithDollar,
+            superMatches: superMatches);
+      } else {
+        relevance = oldRelevance();
+      }
+      _addSuggestion(accessor, relevance, useNewRelevance);
+    }
+  }
+
+  /// Add a suggestion for the given [method].
+  void addSuggestionForMethod(
+      {@required MethodElement method,
+      String containingMethodName,
+      @required double inheritanceDistance}) {
+    int oldRelevance() {
+      if (method.hasDeprecated) {
+        return DART_RELEVANCE_LOW;
+      } else if (method.name == containingMethodName) {
+        // Boost the relevance of a super expression calling a method of the
+        // same name as the containing method.
+        return DART_RELEVANCE_HIGH;
+      }
+      String identifier = method.displayName;
+      if (identifier != null && identifier.startsWith(r'$')) {
+        // Decrease relevance of suggestions starting with $
+        // https://github.com/dart-lang/sdk/issues/27303
+        return DART_RELEVANCE_LOW;
+      }
+      return DART_RELEVANCE_DEFAULT;
+    }
+
+    if (!method.isAccessibleIn(request.libraryElement)) {
+      // Don't suggest private members from imported libraries.
+      return;
+    }
+    int relevance;
+    var useNewRelevance = request.useNewRelevance;
+    if (useNewRelevance) {
+      var featureComputer = request.featureComputer;
+      var contextType = featureComputer.contextTypeFeature(
+          request.contextType, method.returnType);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
+      var startsWithDollar =
+          featureComputer.startsWithDollarFeature(method.name);
+      var superMatches = featureComputer.superMatchesFeature(
+          containingMethodName, method.name);
+      relevance = _computeRelevance(
+          contextType: contextType,
+          hasDeprecated: hasDeprecated,
+          inheritanceDistance: inheritanceDistance,
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches);
+    } else {
+      relevance = oldRelevance();
+    }
+    _addSuggestion(method, relevance, useNewRelevance);
+  }
+
+  /// Add a suggestion for the given [element] with the given [relevance],
+  /// provided that it is not shadowed by a previously added suggestion.
+  void _addSuggestion(Element element, int relevance, bool useNewRelevance) {
+    String identifier = element.displayName;
 
     int alreadyGenerated = _completionTypesGenerated.putIfAbsent(
         identifier, () => _COMPLETION_TYPE_NONE);
@@ -339,10 +449,42 @@ class MemberSuggestionBuilder {
       assert(false);
       return;
     }
-    CompletionSuggestion suggestion =
-        createSuggestion(element, relevance: relevance);
+    CompletionSuggestion suggestion = createSuggestion(element,
+        relevance: relevance, useNewRelevance: useNewRelevance);
     if (suggestion != null) {
       addCompletionSuggestion(suggestion);
     }
+  }
+
+  /// Compute a relevance value from the given feature scores:
+  /// - [contextType] is higher if the type of the element matches the context
+  ///   type,
+  /// - [hasDeprecated] is higher if the element is not deprecated,
+  /// - [inheritanceDistance] is higher if the element is defined closer to the
+  ///   target type,
+  /// - [startsWithDollar] is higher if the element's name doe _not_ start with
+  ///   a dollar sign, and
+  /// - [superMatches] is higher if the element is being invoked through `super`
+  ///   and the element's name matches the name of the enclosing method.
+  int _computeRelevance(
+      {@required double contextType,
+      @required double hasDeprecated,
+      @required double inheritanceDistance,
+      @required double startsWithDollar,
+      @required double superMatches}) {
+    var score = weightedAverage([
+      contextType,
+      hasDeprecated,
+      inheritanceDistance,
+      startsWithDollar,
+      superMatches
+    ], [
+      1.0,
+      0.5,
+      1.0,
+      0.5,
+      1.0
+    ]);
+    return toRelevance(score, Relevance.member);
   }
 }
