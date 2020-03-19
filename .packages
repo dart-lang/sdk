@@ -36,6 +36,7 @@ dart_style:third_party/pkg_tested/dart_style/lib
 dartdev:pkg/dartdev/lib
 dartdoc:third_party/pkg/dartdoc/lib
 dartfix:pkg/dartfix/lib
+dds:pkg/dds/lib
 dev_compiler:pkg/dev_compiler/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
@@ -85,6 +86,7 @@ resource:third_party/pkg/resource/lib
 sdk_library_metadata:sdk/lib/_internal/sdk_library_metadata/lib
 shelf:third_party/pkg/shelf/lib
 shelf_packages_handler:third_party/pkg/shelf_packages_handler/lib
+shelf_proxy:third_party/pkg/shelf_proxy/lib
 shelf_static:third_party/pkg/shelf_static/lib
 shelf_web_socket:third_party/pkg/shelf_web_socket/lib
 smith:pkg/smith/lib

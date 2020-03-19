@@ -1,0 +1,6 @@
+include: package:pedantic/analysis_options.1.7.0.yaml
+
+linter:
+  rules:
+    - directives_ordering
+    - prefer_generic_function_type_aliases

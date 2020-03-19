@@ -127,6 +127,7 @@ vars = {
   "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "2.0.0",
+  "shelf_proxy_tag": "0.1.0+7",
   "shelf_tag": "0.7.3+3",
   "shelf_web_socket_tag": "0.2.2+3",
   "source_map_stack_trace_tag": "2.0.0",
@@ -148,7 +149,7 @@ vars = {
   "usage_tag": "3.4.0",
   "watcher_rev": "0.9.7+14",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_tag": "1.0.9",
+  "web_socket_channel_tag": "1.0.15",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "2.2.0",
   "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
@@ -365,6 +366,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
       Var("dart_git") + "shelf_packages_handler.git"
       + "@" + Var("shelf_packages_handler_tag"),
+  Var("dart_root") + "/third_party/pkg/shelf_proxy":
+      Var("dart_git") + "shelf_proxy.git" + "@" + Var("shelf_proxy_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
       Var("dart_git") + "shelf_static.git" + "@" + Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
