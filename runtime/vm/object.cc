@@ -7966,10 +7966,6 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
       return false;
     }
   }
-  // Check the names and types of optional named parameters.
-  if (other_num_opt_named_params == 0) {
-    return true;
-  }
   // Check that for each optional named parameter of type T of the other
   // function type, there exists an optional named parameter of this function
   // type with an identical name and with a type S that is a supertype of T.
@@ -7983,7 +7979,6 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     ASSERT(other_param_name.IsSymbol());
-    const bool other_is_required = other.IsRequiredAt(i);
     found_param_name = false;
     for (intptr_t j = num_fixed_params; j < num_params; j++) {
       ASSERT(String::Handle(zone, ParameterNameAt(j)).IsSymbol());
@@ -7992,14 +7987,35 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
         if (!IsContravariantParameter(j, other, i, space)) {
           return false;
         }
-        if (FLAG_null_safety && IsRequiredAt(j) && !other_is_required) {
-          return false;
-        }
         break;
       }
     }
     if (!found_param_name) {
       return false;
+    }
+  }
+  if (FLAG_null_safety) {
+    // Check that for each required named parameter in this function, there's a
+    // corresponding required named parameter in the other function.
+    String& param_name = other_param_name;
+    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+      if (IsRequiredAt(j)) {
+        param_name = ParameterNameAt(j);
+        ASSERT(param_name.IsSymbol());
+        bool found = false;
+        for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+          ASSERT(String::Handle(zone, other.ParameterNameAt(i)).IsSymbol());
+          if (other.ParameterNameAt(i) == param_name.raw()) {
+            found = true;
+            if (!other.IsRequiredAt(i)) {
+              return false;
+            }
+          }
+        }
+        if (!found) {
+          return false;
+        }
+      }
     }
   }
   return true;
