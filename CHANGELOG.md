@@ -6,7 +6,17 @@
 
 ### Core libraries
 
+#### `dart:async`
+
+* Make stack traces non-null. Where methods like `completer.completeError`
+  allows omitting a stack trace, the platform will now insert a default
+  stack trace rather than propagate a `null` value.
+  Error handling functions need no longer be prepared for `null` stack traces.
+
 #### `dart:core`
+
+* Adds `StackTrace.empty` constant which is the stack trace used as default
+  stack trace when no better alternative is available.
 
 * The class `TypeError` no longer extends `AssertionError`.
   This also means that it no longer inherits the spurious `message` getter

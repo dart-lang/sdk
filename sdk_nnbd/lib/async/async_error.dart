@@ -5,7 +5,7 @@
 part of dart.async;
 
 _invokeErrorHandler(
-    Function errorHandler, Object error, StackTrace? stackTrace) {
+    Function errorHandler, Object error, StackTrace stackTrace) {
   var handler = errorHandler; // Rename to avoid promotion.
   if (handler is ZoneBinaryCallback<dynamic, Never, Never>) {
     // Dynamic invocation because we don't know the actual type of the

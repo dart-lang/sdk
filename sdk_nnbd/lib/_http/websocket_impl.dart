@@ -901,7 +901,7 @@ class _WebSocketConsumer implements StreamConsumer {
     socket.addStream(stream).then((_) {
       _done();
       _closeCompleter.complete(webSocket);
-    }, onError: (Object error, StackTrace? stackTrace) {
+    }, onError: (Object error, StackTrace stackTrace) {
       _closed = true;
       _cancel();
       if (error is ArgumentError) {
@@ -1144,7 +1144,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       } else {
         _controller.add(data);
       }
-    }, onError: (Object error, StackTrace? stackTrace) {
+    }, onError: (Object error, StackTrace stackTrace) {
       _closeTimer?.cancel();
       if (error is FormatException) {
         _close(WebSocketStatus.invalidFramePayloadData);

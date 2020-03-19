@@ -607,7 +607,10 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     if (replacement != null) {
       error = replacement.error;
       stackTrace = replacement.stackTrace;
+    } else {
+      stackTrace ??= AsyncError.defaultStackTrace(error);
     }
+    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _addError(error, stackTrace);
   }
 
@@ -654,7 +657,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     }
   }
 
-  void _addError(Object error, StackTrace? stackTrace) {
+  void _addError(Object error, StackTrace stackTrace) {
     if (hasListener) {
       _sendError(error, stackTrace);
     } else if (_isInitialState) {
@@ -780,7 +783,7 @@ abstract class _SyncStreamControllerDispatch<T>
     _subscription._add(data);
   }
 
-  void _sendError(Object error, StackTrace? stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     _subscription._addError(error, stackTrace);
   }
 
@@ -795,7 +798,7 @@ abstract class _AsyncStreamControllerDispatch<T>
     _subscription._addPending(_DelayedData<T>(data));
   }
 
-  void _sendError(Object error, StackTrace? stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     _subscription._addPending(_DelayedError(error, stackTrace));
   }
 
@@ -903,7 +906,7 @@ class _AddStreamState<T> {
             onDone: controller._close,
             cancelOnError: cancelOnError);
 
-  static makeErrorHandler(_EventSink controller) => (Object e, StackTrace? s) {
+  static makeErrorHandler(_EventSink controller) => (Object e, StackTrace s) {
         controller._addError(e, s);
         controller._close();
       };

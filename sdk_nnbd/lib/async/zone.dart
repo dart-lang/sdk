@@ -9,7 +9,7 @@ typedef R ZoneUnaryCallback<R, T>(T arg);
 typedef R ZoneBinaryCallback<R, T1, T2>(T1 arg1, T2 arg2);
 
 typedef HandleUncaughtErrorHandler = void Function(Zone self,
-    ZoneDelegate parent, Zone zone, Object error, StackTrace? stackTrace);
+    ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace);
 typedef RunHandler = R Function<R>(
     Zone self, ZoneDelegate parent, Zone zone, R Function() f);
 typedef RunUnaryHandler = R Function<R, T>(
@@ -39,11 +39,25 @@ typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
 /** Pair of error and stack trace. Returned by [Zone.errorCallback]. */
 class AsyncError implements Error {
   final Object error;
-  final StackTrace? stackTrace;
+  final StackTrace stackTrace;
 
-  AsyncError(this.error, this.stackTrace) {
+  AsyncError(this.error, StackTrace? stackTrace)
+      : stackTrace = stackTrace ?? defaultStackTrace(error) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(error, "error");
+  }
+
+  /// A default stack trace for an error.
+  ///
+  /// If [error] is an [Error] and it has an [Error.stackTrace],
+  /// that stack trace is returned.
+  /// If not, the [StackTrace.empty] default stack trace is returned.
+  static StackTrace defaultStackTrace(Object error) {
+    if (error is Error) {
+      var stackTrace = error.stackTrace;
+      if (stackTrace != null) return stackTrace;
+    }
+    return StackTrace.empty;
   }
 
   String toString() => '$error';
@@ -205,7 +219,7 @@ class _ZoneSpecification implements ZoneSpecification {
  *   to skip zones that would just delegate to their parents.
  */
 abstract class ZoneDelegate {
-  void handleUncaughtError(Zone zone, Object error, StackTrace? stackTrace);
+  void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace);
   R run<R>(Zone zone, R f());
   R runUnary<R, T>(Zone zone, R f(T arg), T arg);
   R runBinary<R, T1, T2>(Zone zone, R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2);
@@ -312,7 +326,7 @@ abstract class Zone {
    * By default, when handled by the root zone, uncaught asynchronous errors are
    * treated like uncaught synchronous exceptions.
    */
-  void handleUncaughtError(Object error, StackTrace? stackTrace);
+  void handleUncaughtError(Object error, StackTrace stackTrace);
 
   /**
    * The parent zone of the this zone.
@@ -694,7 +708,7 @@ class _ZoneDelegate implements ZoneDelegate {
 
   _ZoneDelegate(this._delegationTarget);
 
-  void handleUncaughtError(Zone zone, Object error, StackTrace? stackTrace) {
+  void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace) {
     var implementation = _delegationTarget._handleUncaughtError;
     _Zone implZone = implementation.zone;
     HandleUncaughtErrorHandler handler = implementation.function;
@@ -1019,7 +1033,7 @@ class _CustomZone extends _Zone {
 
   // Methods that can be customized by the zone specification.
 
-  void handleUncaughtError(Object error, StackTrace? stackTrace) {
+  void handleUncaughtError(Object error, StackTrace stackTrace) {
     var implementation = this._handleUncaughtError;
     ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
     HandleUncaughtErrorHandler handler = implementation.function;
@@ -1120,14 +1134,13 @@ class _CustomZone extends _Zone {
 }
 
 void _rootHandleUncaughtError(Zone? self, ZoneDelegate? parent, Zone zone,
-    Object error, StackTrace? stackTrace) {
+    Object error, StackTrace stackTrace) {
   _schedulePriorityAsyncCallback(() {
-    if (stackTrace == null) throw error;
     _rethrow(error, stackTrace);
   });
 }
 
-external void _rethrow(Object error, StackTrace? stackTrace);
+external void _rethrow(Object error, StackTrace stackTrace);
 
 R _rootRun<R>(Zone? self, ZoneDelegate? parent, Zone zone, R f()) {
   if (identical(Zone._current, zone)) return f();
@@ -1383,7 +1396,7 @@ class _RootZone extends _Zone {
 
   // Methods that can be customized by the zone specification.
 
-  void handleUncaughtError(Object error, StackTrace? stackTrace) {
+  void handleUncaughtError(Object error, StackTrace stackTrace) {
     _rootHandleUncaughtError(null, null, this, error, stackTrace);
   }
 
@@ -1487,8 +1500,8 @@ R runZoned<R>(R body(),
     return _runZoned<R>(body, zoneValues, zoneSpecification);
   }
   void Function(Object)? unaryOnError;
-  void Function(Object, StackTrace?)? binaryOnError;
-  if (onError is void Function(Object, StackTrace?)) {
+  void Function(Object, StackTrace)? binaryOnError;
+  if (onError is void Function(Object, StackTrace)) {
     binaryOnError = onError;
   } else if (onError is void Function(Object)) {
     unaryOnError = onError;
@@ -1498,7 +1511,7 @@ R runZoned<R>(R body(),
   }
   _Zone parentZone = Zone._current;
   HandleUncaughtErrorHandler errorHandler = (Zone self, ZoneDelegate parent,
-      Zone zone, Object error, StackTrace? stackTrace) {
+      Zone zone, Object error, StackTrace stackTrace) {
     try {
       if (binaryOnError != null) {
         parentZone.runBinary(binaryOnError, error, stackTrace);

@@ -203,7 +203,8 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     }
   }
 
-  void completeError(e, [st]) {
+  void completeError(Object e, [StackTrace? st]) {
+    st ??= AsyncError.defaultStackTrace(e);
     if (isSync) {
       _future._completeError(e, st);
     } else {

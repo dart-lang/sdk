@@ -282,6 +282,7 @@ abstract class Future<T> {
         stackTrace = replacement.stackTrace;
       }
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     return new _Future<T>.immediateError(error, stackTrace);
   }
 
@@ -364,13 +365,13 @@ abstract class Future<T> {
     final _Future<List<T>> result = new _Future<List<T>>();
     List<T?>? values; // Collects the values. Set to null on error.
     int remaining = 0; // How many futures are we waiting for.
-    Object? error; // The first error from a future.
-    StackTrace? stackTrace; // The stackTrace that came with the error.
+    late Object error; // The first error from a future.
+    late StackTrace stackTrace; // The stackTrace that came with the error.
 
     // Handle an error from any of the futures.
     // TODO(jmesserly): use `void` return type once it can be inferred for the
     // `then` call below.
-    handleError(theError, StackTrace? theStackTrace) {
+    handleError(Object theError, StackTrace theStackTrace) {
       remaining--;
       List<T?>? valueList = values;
       if (valueList != null) {
@@ -393,7 +394,7 @@ abstract class Future<T> {
           stackTrace = theStackTrace;
         }
       } else if (remaining == 0 && !eagerError) {
-        result._completeError(error!, stackTrace);
+        result._completeError(error, stackTrace);
       }
     }
 
@@ -411,7 +412,7 @@ abstract class Future<T> {
               result._completeWithValue(List<T>.from(valueList));
             }
           } else {
-            // An error has occurred earlier.
+            // Forced read of error to assert that it has occurred earlier.
             assert(error != null);
             if (cleanUp != null && value != null) {
               // Ensure errors from cleanUp are uncaught.
@@ -420,7 +421,7 @@ abstract class Future<T> {
               });
             }
             if (remaining == 0 && !eagerError) {
-              result._completeError(error!, stackTrace);
+              result._completeError(error, stackTrace);
             }
           }
         }, onError: handleError);
@@ -470,12 +471,14 @@ abstract class Future<T> {
    */
   static Future<T> any<T>(Iterable<Future<T>> futures) {
     var completer = new Completer<T>.sync();
-    var onValue = (T value) {
+    void onValue(T value) {
       if (!completer.isCompleted) completer.complete(value);
-    };
-    var onError = (Object error, StackTrace? stack) {
+    }
+
+    void onError(Object error, StackTrace stack) {
       if (!completer.isCompleted) completer.completeError(error, stack);
-    };
+    }
+
     for (var future in futures) {
       future.then(onValue, onError: onError);
     }
@@ -649,7 +652,7 @@ abstract class Future<T> {
    */
   // The `Function` below stands for one of two types:
   // - (dynamic) -> FutureOr<T>
-  // - (dynamic, StackTrace?) -> FutureOr<T>
+  // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
   Future<T> catchError(Function onError, {bool test(Object error)?});
@@ -919,14 +922,17 @@ abstract class Completer<T> {
 }
 
 // Helper function completing a _Future with error, but checking the zone
-// for error replacement first.
+// for error replacement and missing stack trace first.
 void _completeWithErrorCallback(
     _Future result, Object error, StackTrace? stackTrace) {
   AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
     stackTrace = replacement.stackTrace;
+  } else {
+    stackTrace ??= AsyncError.defaultStackTrace(error);
   }
+  if (stackTrace == null) throw "unreachable"; // TODO(40088).
   result._completeError(error, stackTrace);
 }
 
@@ -937,6 +943,11 @@ void _asyncCompleteWithErrorCallback(
   if (replacement != null) {
     error = replacement.error;
     stackTrace = replacement.stackTrace;
+  } else {
+    stackTrace ??= AsyncError.defaultStackTrace(error);
+  }
+  if (stackTrace == null) {
+    throw "unreachable"; // TODO(lrn): Remove when type promotion works.
   }
   result._asyncCompleteError(error, stackTrace);
 }

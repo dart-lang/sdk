@@ -666,7 +666,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     }
   }
 
-  void _completeDoneError(Object error, StackTrace? stackTrace) {
+  void _completeDoneError(Object error, StackTrace stackTrace) {
     if (!_doneCompleter.isCompleted) {
       _hasError = true;
       _doneCompleter.completeError(error, stackTrace);
@@ -693,7 +693,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
           // No new stream, .close was called. Close _target.
           _closeTarget();
         }
-      }, onError: (Object error, StackTrace? stackTrace) {
+      }, onError: (Object error, StackTrace stackTrace) {
         if (_isBound) {
           // A new stream takes over - forward errors to that stream.
           _controllerCompleter!.completeError(error, stackTrace);
@@ -1715,7 +1715,7 @@ class _HttpClientConnection {
       if (incoming.statusCode == 100) {
         incoming.drain().then((_) {
           _subscription!.resume();
-        }).catchError((error, [StackTrace? stackTrace]) {
+        }).catchError((dynamic error, StackTrace stackTrace) {
           _nextResponseCompleter!.completeError(
               new HttpException(error.message, uri: _currentUri), stackTrace);
           _nextResponseCompleter = null;
@@ -1724,7 +1724,7 @@ class _HttpClientConnection {
         _nextResponseCompleter!.complete(incoming);
         _nextResponseCompleter = null;
       }
-    }, onError: (error, [StackTrace? stackTrace]) {
+    }, onError: (dynamic error, StackTrace stackTrace) {
       _nextResponseCompleter?.completeError(
           new HttpException(error.message, uri: _currentUri), stackTrace);
       _nextResponseCompleter = null;

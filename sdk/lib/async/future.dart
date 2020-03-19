@@ -280,6 +280,7 @@ abstract class Future<T> {
         stackTrace = replacement.stackTrace;
       }
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     return new _Future<T>.immediateError(error, stackTrace);
   }
 
@@ -363,7 +364,7 @@ abstract class Future<T> {
     // Handle an error from any of the futures.
     // TODO(jmesserly): use `void` return type once it can be inferred for the
     // `then` call below.
-    handleError(theError, StackTrace theStackTrace) {
+    handleError(Object theError, StackTrace theStackTrace) {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {
@@ -905,13 +906,14 @@ abstract class Completer<T> {
 }
 
 // Helper function completing a _Future with error, but checking the zone
-// for error replacement first.
+// for error replacement first and missing stack trace.
 void _completeWithErrorCallback(_Future result, error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = _nonNullError(replacement.error);
     stackTrace = replacement.stackTrace;
   }
+  stackTrace ??= AsyncError.defaultStackTrace(error);
   result._completeError(error, stackTrace);
 }
 
@@ -923,6 +925,7 @@ void _asyncCompleteWithErrorCallback(
     error = _nonNullError(replacement.error);
     stackTrace = replacement.stackTrace;
   }
+  stackTrace ??= AsyncError.defaultStackTrace(error);
   result._asyncCompleteError(error, stackTrace);
 }
 

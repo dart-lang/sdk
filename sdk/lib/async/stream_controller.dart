@@ -611,6 +611,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
       error = _nonNullError(replacement.error);
       stackTrace = replacement.stackTrace;
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     _addError(error, stackTrace);
   }
 
