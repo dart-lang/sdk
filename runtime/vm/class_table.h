@@ -71,13 +71,13 @@ class SharedClassTable {
   // Thread-safe.
   intptr_t SizeAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    return table_[index];
+    return table_.load()[index];
   }
 
   bool HasValidClassAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    ASSERT(table_[index] >= 0);
-    return table_[index] != 0;
+    ASSERT(table_.load()[index] >= 0);
+    return table_.load()[index] != 0;
   }
 
   void SetSizeAt(intptr_t index, intptr_t size) {
@@ -86,7 +86,7 @@ class SharedClassTable {
     // Ensure we never change size for a given cid from one non-zero size to
     // another non-zero size.
     intptr_t old_size = 0;
-    if (!table_[index].compare_exchange_strong(old_size, size)) {
+    if (!table_.load()[index].compare_exchange_strong(old_size, size)) {
       RELEASE_ASSERT(old_size == size);
     }
   }
@@ -119,12 +119,12 @@ class SharedClassTable {
   void SetTraceAllocationFor(intptr_t cid, bool trace) {
     ASSERT(cid > 0);
     ASSERT(cid < top_);
-    trace_allocation_table_[cid] = trace ? 1 : 0;
+    trace_allocation_table_.load()[cid] = trace ? 1 : 0;
   }
   bool TraceAllocationFor(intptr_t cid) {
     ASSERT(cid > 0);
     ASSERT(cid < top_);
-    return trace_allocation_table_[cid] != 0;
+    return trace_allocation_table_.load()[cid] != 0;
   }
 #endif  // !defined(PRODUCT)
 
@@ -134,14 +134,14 @@ class SharedClassTable {
     const intptr_t num_cids = NumCids();
     const intptr_t bytes = sizeof(intptr_t) * num_cids;
     auto size_table = static_cast<intptr_t*>(malloc(bytes));
-    memmove(size_table, table_, sizeof(intptr_t) * num_cids);
+    memmove(size_table, table_.load(), sizeof(intptr_t) * num_cids);
     *copy_num_cids = num_cids;
     *copy = size_table;
   }
 
   void ResetBeforeHotReload() {
     // The [IsolateReloadContext] is now source-of-truth for GC.
-    memset(table_, 0, sizeof(intptr_t) * top_);
+    memset(table_.load(), 0, sizeof(intptr_t) * top_);
   }
 
   void ResetAfterHotReload(intptr_t* old_table,
@@ -151,7 +151,7 @@ class SharedClassTable {
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
-      memmove(table_, old_table, sizeof(intptr_t) * num_old_cids);
+      memmove(table_.load(), old_table, sizeof(intptr_t) * num_old_cids);
     }
 
     // Can't free this table immediately as another thread (e.g., concurrent
@@ -207,7 +207,7 @@ class SharedClassTable {
 #ifndef PRODUCT
   // Copy-on-write is used for trace_allocation_table_, with old copies stored
   // in old_tables_.
-  AcqRelAtomic<uint8_t*> trace_allocation_table_ = nullptr;
+  AcqRelAtomic<uint8_t*> trace_allocation_table_ = {nullptr};
 #endif  // !PRODUCT
 
   void AddOldTable(intptr_t* old_table);
@@ -219,7 +219,7 @@ class SharedClassTable {
 
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
   // Maps the cid to the instance size.
-  AcqRelAtomic<RelaxedAtomic<intptr_t>*> table_ = nullptr;
+  AcqRelAtomic<RelaxedAtomic<intptr_t>*> table_ = {nullptr};
   MallocGrowableArray<void*>* old_tables_;
 
   IsolateGroupReloadContext* reload_context_ = nullptr;
@@ -247,7 +247,7 @@ class ClassTable {
     const intptr_t num_cids = NumCids();
     const intptr_t bytes = sizeof(RawClass*) * num_cids;
     auto class_table = static_cast<RawClass**>(malloc(bytes));
-    memmove(class_table, table_, sizeof(RawClass*) * num_cids);
+    memmove(class_table, table_.load(), sizeof(RawClass*) * num_cids);
     *copy_num_cids = num_cids;
     *copy = class_table;
   }
@@ -267,7 +267,7 @@ class ClassTable {
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
-      memmove(table_, old_table, sizeof(RawClass*) * num_old_cids);
+      memmove(table_.load(), old_table, sizeof(RawClass*) * num_old_cids);
     } else {
       CopySizesFromClassObjects();
     }
@@ -282,7 +282,7 @@ class ClassTable {
   // Thread-safe.
   RawClass* At(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    return table_[index];
+    return table_.load()[index];
   }
 
   intptr_t SizeAt(intptr_t index) const {
@@ -297,7 +297,7 @@ class ClassTable {
 
   bool HasValidClassAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    return table_[index] != nullptr;
+    return table_.load()[index] != nullptr;
   }
 
   intptr_t NumCids() const { return shared_class_table_->NumCids(); }

@@ -74,8 +74,8 @@ template <typename T>
 class AcqRelAtomic {
  public:
   constexpr AcqRelAtomic() : value_() {}
-  constexpr AcqRelAtomic(T arg) : value_(arg) {}          // NOLINT
-  AcqRelAtomic(const AcqRelAtomic& arg) : value_(arg) {}  // NOLINT
+  constexpr AcqRelAtomic(T arg) : value_(arg) {}  // NOLINT
+  AcqRelAtomic(const AcqRelAtomic& arg) = delete;
 
   T load(std::memory_order order = std::memory_order_acquire) const {
     return value_.load(order);
@@ -110,18 +110,12 @@ class AcqRelAtomic {
     return value_.compare_exchange_strong(expected, desired, order, order);
   }
 
-  operator T() const { return load(); }
-  T operator=(T arg) {
-    store(arg);
-    return arg;
-  }
-  T operator=(const AcqRelAtomic& arg) {
-    T loaded_once = arg;
-    store(loaded_once);
-    return loaded_once;
-  }
-  T operator+=(T arg) { return fetch_add(arg) + arg; }
-  T operator-=(T arg) { return fetch_sub(arg) - arg; }
+  // Require explicit loads and stores.
+  operator T() const = delete;
+  T operator=(T arg) = delete;
+  T operator=(const AcqRelAtomic& arg) = delete;
+  T operator+=(T arg) = delete;
+  T operator-=(T arg) = delete;
 
  private:
   std::atomic<T> value_;
