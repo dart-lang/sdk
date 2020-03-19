@@ -742,7 +742,7 @@ class _SnapshotGraph implements SnapshotGraph {
     _totalExternalSize = stream.readUnsigned();
 
     var K = stream.readUnsigned();
-    var classes = new List<_SnapshotClass>(K + 1);
+    var classes = new List<_SnapshotClass>.filled(K + 1, null);
     classes[0] = _SnapshotClass._new(this, 0, "Root", "", "");
 
     for (var cid = 1; cid <= K; cid++) {

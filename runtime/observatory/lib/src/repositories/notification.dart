@@ -10,7 +10,7 @@ class NotificationChangeEvent implements M.NotificationChangeEvent {
 }
 
 class NotificationRepository implements M.NotificationRepository {
-  final List<M.Notification> _list = new List<M.Notification>();
+  final List<M.Notification> _list = <M.Notification>[];
 
   final StreamController<M.NotificationChangeEvent> _onChange =
       new StreamController<M.NotificationChangeEvent>.broadcast();

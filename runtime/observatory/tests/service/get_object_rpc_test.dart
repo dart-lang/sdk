@@ -13,7 +13,7 @@ import 'test_helper.dart';
 
 class _DummyClass {
   static var dummyVar = 11;
-  final List<String> dummyList = new List<String>(20);
+  final List<String> dummyList = new List<String>.filled(20, null);
   void dummyFunction() {}
 }
 
