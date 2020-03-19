@@ -22,7 +22,7 @@ import 'package:meta/meta.dart';
 /// is not appropriate for the given element.
 CompletionSuggestion createSuggestion(Element element,
     {String completion,
-    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    CompletionSuggestionKind kind,
     int relevance = DART_RELEVANCE_DEFAULT,
     bool useNewRelevance = false}) {
   if (element == null) {
@@ -33,6 +33,7 @@ CompletionSuggestion createSuggestion(Element element,
     return null;
   }
   completion ??= element.displayName;
+  kind ??= CompletionSuggestionKind.INVOCATION;
   bool isDeprecated = element.hasDeprecated;
   if (!useNewRelevance && isDeprecated) {
     relevance = DART_RELEVANCE_LOW;
@@ -283,7 +284,7 @@ class MemberSuggestionBuilder {
   }
 
   /// Add a suggestion for the given [method].
-  void addSuggestionForAccessor(
+  CompletionSuggestion addSuggestionForAccessor(
       {@required PropertyAccessorElement accessor,
       String containingMethodName,
       @required double inheritanceDistance}) {
@@ -302,7 +303,7 @@ class MemberSuggestionBuilder {
 
     if (!accessor.isAccessibleIn(request.libraryElement)) {
       // Don't suggest private members from imported libraries.
-      return;
+      return null;
     }
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
@@ -330,7 +331,7 @@ class MemberSuggestionBuilder {
         } else {
           relevance = oldRelevance();
         }
-        _addSuggestion(variable, relevance, useNewRelevance);
+        return _addSuggestion(variable, relevance, useNewRelevance);
       }
     } else {
       var type =
@@ -355,14 +356,16 @@ class MemberSuggestionBuilder {
       } else {
         relevance = oldRelevance();
       }
-      _addSuggestion(accessor, relevance, useNewRelevance);
+      return _addSuggestion(accessor, relevance, useNewRelevance);
     }
+    return null;
   }
 
   /// Add a suggestion for the given [method].
-  void addSuggestionForMethod(
+  CompletionSuggestion addSuggestionForMethod(
       {@required MethodElement method,
       String containingMethodName,
+      CompletionSuggestionKind kind,
       @required double inheritanceDistance}) {
     int oldRelevance() {
       if (method.hasDeprecated) {
@@ -383,7 +386,7 @@ class MemberSuggestionBuilder {
 
     if (!method.isAccessibleIn(request.libraryElement)) {
       // Don't suggest private members from imported libraries.
-      return;
+      return null;
     }
     int relevance;
     var useNewRelevance = request.useNewRelevance;
@@ -405,12 +408,14 @@ class MemberSuggestionBuilder {
     } else {
       relevance = oldRelevance();
     }
-    _addSuggestion(method, relevance, useNewRelevance);
+    return _addSuggestion(method, relevance, useNewRelevance, kind: kind);
   }
 
   /// Add a suggestion for the given [element] with the given [relevance],
   /// provided that it is not shadowed by a previously added suggestion.
-  void _addSuggestion(Element element, int relevance, bool useNewRelevance) {
+  CompletionSuggestion _addSuggestion(
+      Element element, int relevance, bool useNewRelevance,
+      {CompletionSuggestionKind kind}) {
     String identifier = element.displayName;
 
     int alreadyGenerated = _completionTypesGenerated.putIfAbsent(
@@ -418,7 +423,7 @@ class MemberSuggestionBuilder {
     if (element is MethodElement) {
       // Anything shadows a method.
       if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
-        return;
+        return null;
       }
       _completionTypesGenerated[identifier] =
           _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
@@ -426,13 +431,13 @@ class MemberSuggestionBuilder {
       if (element.isGetter) {
         // Getters, fields, and methods shadow a getter.
         if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
-          return;
+          return null;
         }
         _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_GETTER;
       } else {
         // Setters, fields, and methods shadow a setter.
         if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
-          return;
+          return null;
         }
         _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_SETTER;
       }
@@ -440,20 +445,21 @@ class MemberSuggestionBuilder {
       // Fields and methods shadow a field.  A getter/setter pair shadows a
       // field, but a getter or setter by itself doesn't.
       if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
-        return;
+        return null;
       }
       _completionTypesGenerated[identifier] =
           _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
     } else {
       // Unexpected element type; skip it.
       assert(false);
-      return;
+      return null;
     }
     CompletionSuggestion suggestion = createSuggestion(element,
-        relevance: relevance, useNewRelevance: useNewRelevance);
+        kind: kind, relevance: relevance, useNewRelevance: useNewRelevance);
     if (suggestion != null) {
       addCompletionSuggestion(suggestion);
     }
+    return suggestion;
   }
 
   /// Compute a relevance value from the given feature scores:
