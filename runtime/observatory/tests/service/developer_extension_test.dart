@@ -5,9 +5,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
 import 'package:observatory/sample_profile.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -60,7 +61,8 @@ void test() {
   } catch (e) {
     exceptionThrown = true;
   }
-  expect(exceptionThrown, isTrue);
+  // This check is running in the target process so we can't used package:test.
+  Expect.isTrue(exceptionThrown);
 }
 
 var tests = <IsolateTest>[

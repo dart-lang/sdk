@@ -9,7 +9,7 @@ import 'dart:io' as io;
 
 import 'package:observatory/service_io.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 

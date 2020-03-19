@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 
 const String clientName = 'TestClient';
