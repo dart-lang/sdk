@@ -680,7 +680,7 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is determined by the `??` operator.
   factory NullabilityNode.forIfNotNull(AstNode node) => _NullabilityNodeSimple(
-      NullabilityNodeTarget.codeRef('?? operator', node));
+      NullabilityNodeTarget.text('?? operator').withCodeRef(node));
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is determined by type inference.

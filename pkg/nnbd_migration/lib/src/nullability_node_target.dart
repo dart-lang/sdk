@@ -27,11 +27,6 @@ String _computeElementName(Element element) {
 /// Data structure tracking information about which type in the user's source
 /// code is referenced by a given nullability node.
 abstract class NullabilityNodeTarget {
-  /// Creates a [NullabilityNodeTarget] referring to a particular point in the
-  /// source code.
-  factory NullabilityNodeTarget.codeRef(String description, AstNode astNode) =
-      _NullabilityNodeTarget_CodeRef;
-
   /// Creates a [NullabilityNodeTarget] referring to a particular element.
   factory NullabilityNodeTarget.element(Element element) =
       _NullabilityNodeTarget_Element;
@@ -51,8 +46,15 @@ abstract class NullabilityNodeTarget {
   CodeReference get codeReference => null;
 
   /// Gets a short description of this nullability node target suitable for
-  /// displaying to the user.
-  String get displayName;
+  /// displaying to the user, not including a code reference.
+  String get description;
+
+  /// Same as [description], but if there is a [codeReference], it is included
+  /// after the description in parentheses.
+  String get displayName {
+    if (codeReference == null) return description;
+    return '$description (${codeReference.shortName})';
+  }
 
   /// Creates a new [NullabilityNodeTarget] representing a named function
   /// parameter of this target.
@@ -77,21 +79,26 @@ abstract class NullabilityNodeTarget {
   /// function type parameter of this target.
   NullabilityNodeTarget typeFormalBound(String typeFormalName) =>
       _NullabilityNodeTarget_TypeFormalBound(this, typeFormalName);
+
+  /// Creates a [NullabilityNodeTarget] referring to a particular point in the
+  /// source code.
+  NullabilityNodeTarget withCodeRef(AstNode astNode) =>
+      _NullabilityNodeTarget_CodeRef(this, astNode);
 }
 
 /// Nullability node target representing a reference to a specific location in
 /// source code.
 class _NullabilityNodeTarget_CodeRef extends NullabilityNodeTarget {
-  final String description;
+  final NullabilityNodeTarget inner;
 
   final CodeReference codeReference;
 
-  _NullabilityNodeTarget_CodeRef(this.description, AstNode astNode)
+  _NullabilityNodeTarget_CodeRef(this.inner, AstNode astNode)
       : codeReference = CodeReference.fromAstNode(astNode),
         super._();
 
   @override
-  String get displayName => '$description (${codeReference.shortName})';
+  String get description => inner.description;
 }
 
 /// Nullability node target representing the type of an element.
@@ -103,7 +110,7 @@ class _NullabilityNodeTarget_Element extends NullabilityNodeTarget {
         super._();
 
   @override
-  String get displayName => name;
+  String get description => name;
 }
 
 /// Nullability node target representing the type of a named function parameter.
@@ -115,7 +122,7 @@ class _NullabilityNodeTarget_NamedParameter
       : super(inner);
 
   @override
-  String get displayName => 'parameter $name of ${inner.displayName}';
+  String get description => 'parameter $name of ${inner.description}';
 }
 
 /// Nullability node target representing a type that forms part of a larger type
@@ -140,7 +147,7 @@ class _NullabilityNodeTarget_PositionalParameter
       : super(inner);
 
   @override
-  String get displayName => 'parameter $index of ${inner.displayName}';
+  String get description => 'parameter $index of ${inner.description}';
 }
 
 /// Nullability node target representing a function's return type.
@@ -148,7 +155,7 @@ class _NullabilityNodeTarget_ReturnType extends _NullabilityNodeTarget_Part {
   _NullabilityNodeTarget_ReturnType(NullabilityNodeTarget inner) : super(inner);
 
   @override
-  String get displayName => 'return type of ${inner.displayName}';
+  String get description => 'return type of ${inner.description}';
 }
 
 /// Nullability node target for which we only know a string description.
@@ -158,7 +165,7 @@ class _NullabilityNodeTarget_Text extends NullabilityNodeTarget {
   _NullabilityNodeTarget_Text(this.name) : super._();
 
   @override
-  String get displayName => name;
+  String get description => name;
 }
 
 /// Nullability node target representing a type argument of an interface type or
@@ -170,7 +177,7 @@ class _NullabilityNodeTarget_TypeArgument extends _NullabilityNodeTarget_Part {
       : super(inner);
 
   @override
-  String get displayName => 'type argument $index of ${inner.displayName}';
+  String get description => 'type argument $index of ${inner.description}';
 }
 
 /// Nullability node target representing a bound of a function type's formal
@@ -184,8 +191,8 @@ class _NullabilityNodeTarget_TypeFormalBound
       : super(inner);
 
   @override
-  String get displayName =>
-      'bound of type formal $typeFormalName of ${inner.displayName}';
+  String get description =>
+      'bound of type formal $typeFormalName of ${inner.description}';
 }
 
 /// Nullability node target representing a type parameter bound.
@@ -197,5 +204,5 @@ class _NullabilityNodeTarget_TypeParameterBound extends NullabilityNodeTarget {
         super._();
 
   @override
-  String get displayName => 'bound of $name';
+  String get description => 'bound of $name';
 }

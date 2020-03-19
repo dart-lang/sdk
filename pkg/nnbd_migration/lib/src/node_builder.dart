@@ -75,7 +75,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.exceptionParameter != null) {
       // If there is no `on Type` part of the catch clause, the type is dynamic.
       if (exceptionType == null) {
-        var target = NullabilityNodeTarget.codeRef('exception', node);
+        var target = NullabilityNodeTarget.text('exception').withCodeRef(node);
         exceptionType = DecoratedType.forImplicitType(
             _typeProvider, _typeProvider.dynamicType, _graph, target);
         instrumentation?.implicitType(
@@ -86,7 +86,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     if (node.stackTraceParameter != null) {
       // The type of stack traces is always StackTrace (non-nullable).
-      var target = NullabilityNodeTarget.codeRef('stack trace', node);
+      var target = NullabilityNodeTarget.text('stack trace').withCodeRef(node);
       var nullabilityNode = NullabilityNode.forInferredType(target);
       _graph.makeNonNullableUnion(nullabilityNode,
           StackTraceTypeOrigin(source, node.stackTraceParameter));
@@ -399,8 +399,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTypeAnnotation(TypeAnnotation node) {
     assert(node != null); // TODO(paulberry)
     var type = node.type;
-    var target =
-        _target ?? NullabilityNodeTarget.codeRef('explicit type', node);
+    var target = (_target ?? NullabilityNodeTarget.text('explicit type'))
+        .withCodeRef(node);
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(target);
       var decoratedType = DecoratedType(type, nullabilityNode);
@@ -703,8 +703,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var supertype in supertypes) {
       DecoratedType decoratedSupertype;
       if (supertype == null) {
-        var target =
-            NullabilityNodeTarget.codeRef('implicit object supertype', astNode);
+        var target = NullabilityNodeTarget.text('implicit object supertype')
+            .withCodeRef(astNode);
         var nullabilityNode = NullabilityNode.forInferredType(target);
         _graph.makeNonNullableUnion(
             nullabilityNode, NonNullableObjectSuperclass(source, astNode));

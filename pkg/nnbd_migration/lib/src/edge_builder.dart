@@ -893,7 +893,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     List<DecoratedType> decoratedTypeArguments;
     var typeArguments = node.constructorName.type.typeArguments;
     List<EdgeOrigin> parameterEdgeOrigins;
-    var target = NullabilityNodeTarget.codeRef('constructed type', node);
+    var target =
+        NullabilityNodeTarget.text('constructed type').withCodeRef(node);
     if (typeArguments != null) {
       typeArguments.accept(this);
       typeArgumentTypes = typeArguments.arguments.map((t) => t.type);
@@ -999,7 +1000,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     try {
       var listType = node.staticType as InterfaceType;
       if (node.typeArguments == null) {
-        var target = NullabilityNodeTarget.codeRef('list element type', node);
+        var target =
+            NullabilityNodeTarget.text('list element type').withCodeRef(node);
         var elementType = DecoratedType.forImplicitType(
             typeProvider, listType.typeArguments[0], _graph, target);
         instrumentation?.implicitTypeArguments(source, node, [elementType]);
@@ -1104,7 +1106,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitNullLiteral(NullLiteral node) {
     _flowAnalysis.nullLiteral(node);
-    var target = NullabilityNodeTarget.codeRef('null literal', node);
+    var target = NullabilityNodeTarget.text('null literal').withCodeRef(node);
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, node.staticType, _graph, target);
     _graph.makeNullable(decoratedType.node, LiteralOrigin(source, node));
@@ -1223,7 +1225,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitRethrowExpression(RethrowExpression node) {
     _flowAnalysis.handleExit();
-    var target = NullabilityNodeTarget.codeRef('rethrow expression', node);
+    var target =
+        NullabilityNodeTarget.text('rethrow expression').withCodeRef(node);
     var nullabilityNode = NullabilityNode.forInferredType(target);
     _graph.makeNonNullable(nullabilityNode, ThrowOrigin(source, node));
     return DecoratedType(node.staticType, nullabilityNode);
@@ -1235,7 +1238,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Expression returnValue = node.expression;
     final isAsync = node.thisOrAncestorOfType<FunctionBody>().isAsynchronous;
     if (returnValue == null) {
-      var target = NullabilityNodeTarget.codeRef('implicit null return', node);
+      var target =
+          NullabilityNodeTarget.text('implicit null return').withCodeRef(node);
       var implicitNullType = DecoratedType.forImplicitType(
           typeProvider, typeProvider.nullType, _graph, target);
       _graph.makeNullable(
@@ -1269,7 +1273,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       try {
         if (typeArguments == null) {
           assert(setOrMapType.typeArguments.length == 1);
-          var target = NullabilityNodeTarget.codeRef('set element type', node);
+          var target =
+              NullabilityNodeTarget.text('set element type').withCodeRef(node);
           var elementType = DecoratedType.forImplicitType(
               typeProvider, setOrMapType.typeArguments[0], _graph, target);
           instrumentation?.implicitTypeArguments(source, node, [elementType]);
@@ -1294,12 +1299,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       try {
         if (typeArguments == null) {
           assert(setOrMapType.typeArguments.length == 2);
-          var targetKey = NullabilityNodeTarget.codeRef('map key type', node);
+          var targetKey =
+              NullabilityNodeTarget.text('map key type').withCodeRef(node);
           var keyType = DecoratedType.forImplicitType(
               typeProvider, setOrMapType.typeArguments[0], _graph, targetKey);
           _currentMapKeyType = keyType;
           var targetValue =
-              NullabilityNodeTarget.codeRef('map value type', node);
+              NullabilityNodeTarget.text('map value type').withCodeRef(node);
           var valueType = DecoratedType.forImplicitType(
               typeProvider, setOrMapType.typeArguments[1], _graph, targetValue);
           _currentMapValueType = valueType;
@@ -1375,7 +1381,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitSpreadElement(SpreadElement node) {
     final spreadType = node.expression.staticType;
     DecoratedType spreadTypeDecorated;
-    var target = NullabilityNodeTarget.codeRef('spread element type', node);
+    var target =
+        NullabilityNodeTarget.text('spread element type').withCodeRef(node);
     if (_typeSystem.isSubtypeOf(spreadType, typeProvider.mapObjectObjectType)) {
       assert(_currentMapKeyType != null && _currentMapValueType != null);
       final expectedType = typeProvider.mapType2(
@@ -1418,8 +1425,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitSuperConstructorInvocation(
       SuperConstructorInvocation node) {
     var callee = node.staticElement;
-    var target =
-        NullabilityNodeTarget.codeRef('super constructor invocation', node);
+    var target = NullabilityNodeTarget.text('super constructor invocation')
+        .withCodeRef(node);
     var nullabilityNode = NullabilityNode.forInferredType(target);
     var class_ = node.thisOrAncestorOfType<ClassDeclaration>();
     var decoratedSupertype = _decoratedClassHierarchy.getDecoratedSupertype(
@@ -1485,7 +1492,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
     _flowAnalysis.handleExit();
-    var target = NullabilityNodeTarget.codeRef('throw expression', node);
+    var target =
+        NullabilityNodeTarget.text('throw expression').withCodeRef(node);
     var nullabilityNode = NullabilityNode.forInferredType(target);
     _graph.makeNonNullable(nullabilityNode, ThrowOrigin(source, node));
     return DecoratedType(node.staticType, nullabilityNode);
@@ -1720,7 +1728,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// Creates a type that can be used to check that an expression's value is
   /// non-nullable.
   DecoratedType _createNonNullableType(Expression expression) {
-    var target = NullabilityNodeTarget.codeRef('expression type', expression);
+    var target =
+        NullabilityNodeTarget.text('expression type').withCodeRef(expression);
     // Note: it's not necessary for the type to precisely match the type of the
     // expression, since all we are going to do is cause a single graph edge to
     // be built; it is sufficient to pass in any decorated type whose node is
@@ -1903,7 +1912,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           typeProvider,
           typeProvider.futureType2(type.type),
           _graph,
-          NullabilityNodeTarget.codeRef('implicit future', node),
+          NullabilityNodeTarget.text('implicit future').withCodeRef(node),
           typeArguments: [type]);
 
   @override
@@ -2294,7 +2303,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       List<TypeParameterElement> constructorTypeParameters,
       {DartType invokeType}) {
     var typeFormals = constructorTypeParameters ?? calleeType.typeFormals;
-    var target = NullabilityNodeTarget.codeRef('invocation', node);
+    var target = NullabilityNodeTarget.text('invocation').withCodeRef(node);
     if (typeFormals.isNotEmpty) {
       if (typeArguments != null) {
         var argumentTypes = typeArguments.arguments
@@ -2505,7 +2514,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType _makeNonNullableBoolType(Expression expression) {
     assert(expression.staticType.isDartCoreBool);
-    var target = NullabilityNodeTarget.codeRef('expression', expression);
+    var target =
+        NullabilityNodeTarget.text('expression').withCodeRef(expression);
     var nullabilityNode = NullabilityNode.forInferredType(target);
     _graph.makeNonNullableUnion(
         nullabilityNode, NonNullableBoolTypeOrigin(source, expression));
@@ -2514,7 +2524,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType _makeNonNullLiteralType(Expression expression,
       {List<DecoratedType> typeArguments = const []}) {
-    var target = NullabilityNodeTarget.codeRef('expression', expression);
+    var target =
+        NullabilityNodeTarget.text('expression').withCodeRef(expression);
     var nullabilityNode = NullabilityNode.forInferredType(target);
     _graph.makeNonNullableUnion(
         nullabilityNode, LiteralOrigin(source, expression));
@@ -2523,7 +2534,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _makeNullableDynamicType(AstNode astNode) {
-    var target = NullabilityNodeTarget.codeRef('dynamic type', astNode);
+    var target =
+        NullabilityNodeTarget.text('dynamic type').withCodeRef(astNode);
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.dynamicType, _graph, target);
     _graph.makeNullable(
@@ -2532,7 +2544,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _makeNullableVoidType(SimpleIdentifier astNode) {
-    var target = NullabilityNodeTarget.codeRef('void type', astNode);
+    var target = NullabilityNodeTarget.text('void type').withCodeRef(astNode);
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.voidType, _graph, target);
     _graph.makeNullable(
@@ -2563,7 +2575,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     var token = node.beginToken.lexeme;
-    var target = NullabilityNodeTarget.codeRef('$token expression', node);
+    var target =
+        NullabilityNodeTarget.text('$token expression').withCodeRef(node);
     if (_currentClassOrExtension is ClassElement) {
       final type = (_currentClassOrExtension as ClassElement).thisType;
 
