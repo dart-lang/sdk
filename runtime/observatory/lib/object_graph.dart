@@ -260,7 +260,7 @@ class _SnapshotObject implements SnapshotObject {
 
   _SnapshotObject._new(this._id, this._graph, this.label);
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is _SnapshotObject) {
       return _id == other._id && _graph == other._graph;
     }
@@ -378,7 +378,13 @@ class _SnapshotMergedDominator implements SnapshotMergedDominator {
 
   _SnapshotMergedDominator._new(this._id, this._graph, this._parent);
 
-  bool operator ==(other) => _id == other._id && _graph == other._graph;
+  bool operator ==(Object other) {
+    if (other is _SnapshotMergedDominator) {
+      return _id == other._id && _graph == other._graph;
+    }
+    return false;
+  }
+
   int get hashCode => _id ^ _graph.hashCode;
 
   String get description => "$instanceCount instances of ${klass.name}";

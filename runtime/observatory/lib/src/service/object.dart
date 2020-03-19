@@ -3472,8 +3472,11 @@ class CallSite {
     return new CallSite(name, script, tokenPos, entries);
   }
 
-  operator ==(other) {
-    return (script == other.script) && (tokenPos == other.tokenPos);
+  bool operator ==(Object other) {
+    if (other is CallSite) {
+      return (script == other.script) && (tokenPos == other.tokenPos);
+    }
+    return false;
   }
 
   int get hashCode => (script.hashCode << 8) | tokenPos;
