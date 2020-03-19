@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'arglist_parameter_relevance_test.dart' as arglist_parameters;
 import 'bool_assignment_relevance_test.dart' as bool_assignments;
 import 'deprecated_member_relevance_test.dart' as deprecated_members;
+import 'instance_member_relevance_test.dart' as instance_member_relevance;
 import 'static_member_relevance_test.dart' as static_member_relevance;
 
 void main() {
@@ -14,6 +15,7 @@ void main() {
     arglist_parameters.main();
     bool_assignments.main();
     deprecated_members.main();
+    instance_member_relevance.main();
     static_member_relevance.main();
   });
 }

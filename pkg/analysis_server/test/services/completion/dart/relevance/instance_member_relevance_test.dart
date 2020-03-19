@@ -7,16 +7,16 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../completion_driver_test.dart';
+import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TypeMemberRelevanceTest);
+    defineReflectiveTests(InstanceMemberRelevanceTest);
   });
 }
 
 @reflectiveTest
-class TypeMemberRelevanceTest extends AbstractCompletionDriverTest {
+class InstanceMemberRelevanceTest extends AbstractCompletionDriverTest {
   @override
   AnalysisServerOptions get serverOptions =>
       AnalysisServerOptions()..useNewRelevance = true;
