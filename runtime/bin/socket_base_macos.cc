@@ -81,12 +81,16 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   socklen_t addr_len = sizeof(addr->ss);
   ssize_t read_bytes = TEMP_FAILURE_RETRY(
       recvfrom(fd, buffer, num_bytes, 0, &addr->addr, &addr_len));
-  if ((sync == kAsync) && (read_bytes == -1) && (errno == EWOULDBLOCK)) {
-    // If the read would block we need to retry and therefore return 0
-    // as the number of bytes written.
-    read_bytes = 0;
-  }
   return read_bytes;
+}
+
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  ASSERT(fd >= 0);
+  ssize_t read_bytes =
+      TEMP_FAILURE_RETRY(recvfrom(fd, buffer, num_bytes, MSG_PEEK, NULL, NULL));
+  return read_bytes >= 0;
 }
 
 intptr_t SocketBase::Write(intptr_t fd,
