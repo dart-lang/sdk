@@ -92,15 +92,12 @@ import '../messages.dart'
         FormattedMessage,
         messageConstConstructorLateFinalFieldCause,
         messageConstConstructorLateFinalFieldError,
-        messageConstConstructorLateFinalFieldWarning,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
-        templateFieldNonNullableNotInitializedByConstructorWarning,
         templateFieldNonNullableWithoutInitializerError,
-        templateFieldNonNullableWithoutInitializerWarning,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
         templateInferredPackageUri,
@@ -864,23 +861,13 @@ class KernelTarget extends TargetImplementation {
         SourceLibraryBuilder library = builder.library;
         if (library.isNonNullableByDefault) {
           if (constructor.isConst && lateFinalFields.isNotEmpty) {
-            if (library.loader.nnbdMode == NnbdMode.Weak) {
-              builder.addProblem(messageConstConstructorLateFinalFieldWarning,
-                  constructor.fileOffset, noLength,
-                  context: lateFinalFields
-                      .map((field) => messageConstConstructorLateFinalFieldCause
-                          .withLocation(
-                              field.fileUri, field.charOffset, noLength))
-                      .toList());
-            } else {
-              builder.addProblem(messageConstConstructorLateFinalFieldError,
-                  constructor.fileOffset, noLength,
-                  context: lateFinalFields
-                      .map((field) => messageConstConstructorLateFinalFieldCause
-                          .withLocation(
-                              field.fileUri, field.charOffset, noLength))
-                      .toList());
-            }
+            builder.addProblem(messageConstConstructorLateFinalFieldError,
+                constructor.fileOffset, noLength,
+                context: lateFinalFields
+                    .map((field) =>
+                        messageConstConstructorLateFinalFieldCause.withLocation(
+                            field.fileUri, field.charOffset, noLength))
+                    .toList());
             lateFinalFields.clear();
           }
         }
@@ -950,27 +937,14 @@ class KernelTarget extends TargetImplementation {
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
-              if (library.loader.nnbdMode == NnbdMode.Weak) {
-                library.addProblem(
-                    templateFieldNonNullableWithoutInitializerWarning
-                        .withArguments(
-                            fieldBuilder.name,
-                            fieldBuilder.field.type,
-                            library.isNonNullableByDefault),
-                    fieldBuilder.charOffset,
-                    fieldBuilder.name.length,
-                    fieldBuilder.fileUri);
-              } else {
-                library.addProblem(
-                    templateFieldNonNullableWithoutInitializerError
-                        .withArguments(
-                            fieldBuilder.name,
-                            fieldBuilder.field.type,
-                            library.isNonNullableByDefault),
-                    fieldBuilder.charOffset,
-                    fieldBuilder.name.length,
-                    fieldBuilder.fileUri);
-              }
+              library.addProblem(
+                  templateFieldNonNullableWithoutInitializerError.withArguments(
+                      fieldBuilder.name,
+                      fieldBuilder.field.type,
+                      library.isNonNullableByDefault),
+                  fieldBuilder.charOffset,
+                  fieldBuilder.name.length,
+                  fieldBuilder.fileUri);
             }
           }
         }
@@ -1008,27 +982,13 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.field.type, loader.coreTypes.futureOrClass)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
-              if (library.loader.nnbdMode == NnbdMode.Weak) {
-                library.addProblem(
-                    templateFieldNonNullableNotInitializedByConstructorWarning
-                        .withArguments(
-                            fieldBuilder.name,
-                            fieldBuilder.field.type,
-                            library.isNonNullableByDefault),
-                    fieldBuilder.charOffset,
-                    fieldBuilder.name.length,
-                    fieldBuilder.fileUri);
-              } else {
-                library.addProblem(
-                    templateFieldNonNullableNotInitializedByConstructorError
-                        .withArguments(
-                            fieldBuilder.name,
-                            fieldBuilder.field.type,
-                            library.isNonNullableByDefault),
-                    fieldBuilder.charOffset,
-                    fieldBuilder.name.length,
-                    fieldBuilder.fileUri);
-              }
+              library.addProblem(
+                  templateFieldNonNullableNotInitializedByConstructorError
+                      .withArguments(fieldBuilder.name, fieldBuilder.field.type,
+                          library.isNonNullableByDefault),
+                  fieldBuilder.charOffset,
+                  fieldBuilder.name.length,
+                  fieldBuilder.fileUri);
             }
           }
         }

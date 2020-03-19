@@ -2,15 +2,15 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/required_named_parameter.dart:6:19: Warning: Named parameter 'parameter' is required and has a default value.
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:6:19: Error: Named parameter 'parameter' is required and can't have a default value.
 // foo({required int parameter = 42}) {}
 //                   ^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/required_named_parameter.dart:7:11: Warning: Optional parameter 'parameter' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:7:11: Error: Optional parameter 'parameter' should have a default value because its type 'int' doesn't allow null.
 // foo2({int parameter}) {}
 //           ^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/required_named_parameter.dart:8:11: Warning: Optional parameter 'parameter' doesn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:8:11: Error: Optional parameter 'parameter' should have a default value because its type 'int' doesn't allow null.
 // foo3([int parameter]) {}
 //           ^^^^^^^^^
 //

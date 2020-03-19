@@ -102,7 +102,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/never_opt_out_lib.dart:19:28: Warning: Assigning value of type 'Type' to a variable of type 'Null?'.
+// pkg/front_end/testcases/nnbd/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be assigned to a variable of type 'Null?'.
 //  - 'Type' is from 'dart:core'.
 //   Null get nullProperty => Null;
 //                            ^
@@ -127,7 +127,10 @@ class A extends core::Object {
   method nullMethod(core::Null? value) → core::Null?
     return value;
   get nullProperty() → core::Null?
-    return core::Null? as{TypeError,ForNonNullableByDefault} core::Null?;
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be assigned to a variable of type 'Null?'.
+ - 'Type' is from 'dart:core'.
+  Null get nullProperty => Null;
+                           ^" in core::Null? as{TypeError,ForNonNullableByDefault} core::Null?;
   set nullProperty(core::Null? value) → void {}
 }
 static field Never optInNever = self::optOutNever;

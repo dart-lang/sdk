@@ -20,8 +20,6 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 
-import '../../base/nnbd_mode.dart';
-
 import '../fasta_codes.dart';
 
 import '../names.dart';
@@ -737,13 +735,8 @@ class InferenceVisitor
     }
     if (inferrer.isNonNullableByDefault) {
       if (node.target == inferrer.coreTypes.listDefaultConstructor) {
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.library.addProblem(messageDefaultListConstructorWarning,
-              node.fileOffset, noLength, inferrer.helper.uri);
-        } else {
-          resultNode = inferrer.helper.wrapInProblem(node,
-              messageDefaultListConstructorError, node.fileOffset, noLength);
-        }
+        resultNode = inferrer.helper.wrapInProblem(node,
+            messageDefaultListConstructorError, node.fileOffset, noLength);
       }
     }
     return new ExpressionInferenceResult(
@@ -2349,22 +2342,14 @@ class InferenceVisitor
           receiverType is! InvalidType &&
           isPotentiallyNullable(
               receiverType, inferrer.coreTypes.futureOrClass)) {
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.helper.addProblem(
-              templateNullableExpressionCallWarning.withArguments(
-                  receiverType, inferrer.isNonNullableByDefault),
-              node.fileOffset,
-              noLength);
-        } else {
-          return new ExpressionInferenceResult(
-              invocationResult.inferredType,
-              inferrer.helper.wrapInProblem(
-                  invocationResult.expression..fileOffset = node.fileOffset,
-                  templateNullableExpressionCallError.withArguments(
-                      receiverType, inferrer.isNonNullableByDefault),
-                  node.fileOffset,
-                  noLength));
-        }
+        return new ExpressionInferenceResult(
+            invocationResult.inferredType,
+            inferrer.helper.wrapInProblem(
+                invocationResult.expression..fileOffset = node.fileOffset,
+                templateNullableExpressionCallError.withArguments(
+                    receiverType, inferrer.isNonNullableByDefault),
+                node.fileOffset,
+                noLength));
       }
     }
     return invocationResult;
@@ -3591,24 +3576,14 @@ class InferenceVisitor
     if (inferrer.isNonNullableByDefault) {
       if (leftType is! DynamicType &&
           isPotentiallyNullable(leftType, inferrer.coreTypes.futureOrClass)) {
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.helper.addProblem(
-              templateNullableOperatorCallWarning.withArguments(
-                  binaryName.name, leftType, inferrer.isNonNullableByDefault),
-              binary.fileOffset,
-              binaryName.name.length);
-        } else {
-          return new ExpressionInferenceResult(
-              binaryType,
-              inferrer.helper.wrapInProblem(
-                  binary,
-                  templateNullableOperatorCallError.withArguments(
-                      binaryName.name,
-                      leftType,
-                      inferrer.isNonNullableByDefault),
-                  binary.fileOffset,
-                  binaryName.name.length));
-        }
+        return new ExpressionInferenceResult(
+            binaryType,
+            inferrer.helper.wrapInProblem(
+                binary,
+                templateNullableOperatorCallError.withArguments(
+                    binaryName.name, leftType, inferrer.isNonNullableByDefault),
+                binary.fileOffset,
+                binaryName.name.length));
       }
     }
     return new ExpressionInferenceResult(binaryType, binary);
@@ -3683,24 +3658,14 @@ class InferenceVisitor
               expressionType, inferrer.coreTypes.futureOrClass)) {
         // TODO(johnniwinther): Special case 'unary-' in messages. It should
         // probably be referred to as "Unary operator '-' ...".
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.helper.addProblem(
-              templateNullableOperatorCallWarning.withArguments(unaryName.name,
-                  expressionType, inferrer.isNonNullableByDefault),
-              unary.fileOffset,
-              unaryName == unaryMinusName ? 1 : unaryName.name.length);
-        } else {
-          return new ExpressionInferenceResult(
-              unaryType,
-              inferrer.helper.wrapInProblem(
-                  unary,
-                  templateNullableOperatorCallError.withArguments(
-                      unaryName.name,
-                      expressionType,
-                      inferrer.isNonNullableByDefault),
-                  unary.fileOffset,
-                  unaryName == unaryMinusName ? 1 : unaryName.name.length));
-        }
+        return new ExpressionInferenceResult(
+            unaryType,
+            inferrer.helper.wrapInProblem(
+                unary,
+                templateNullableOperatorCallError.withArguments(unaryName.name,
+                    expressionType, inferrer.isNonNullableByDefault),
+                unary.fileOffset,
+                unaryName == unaryMinusName ? 1 : unaryName.name.length));
       }
     }
     return new ExpressionInferenceResult(unaryType, unary);
@@ -3763,26 +3728,16 @@ class InferenceVisitor
           receiverType is! InvalidType &&
           isPotentiallyNullable(
               receiverType, inferrer.coreTypes.futureOrClass)) {
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.helper.addProblem(
-              templateNullableOperatorCallWarning.withArguments(
-                  indexGetName.name,
-                  receiverType,
-                  inferrer.isNonNullableByDefault),
-              read.fileOffset,
-              noLength);
-        } else {
-          return new ExpressionInferenceResult(
-              readType,
-              inferrer.helper.wrapInProblem(
-                  read,
-                  templateNullableOperatorCallError.withArguments(
-                      indexGetName.name,
-                      receiverType,
-                      inferrer.isNonNullableByDefault),
-                  read.fileOffset,
-                  noLength));
-        }
+        return new ExpressionInferenceResult(
+            readType,
+            inferrer.helper.wrapInProblem(
+                read,
+                templateNullableOperatorCallError.withArguments(
+                    indexGetName.name,
+                    receiverType,
+                    inferrer.isNonNullableByDefault),
+                read.fileOffset,
+                noLength));
       }
     }
     return new ExpressionInferenceResult(readType, read);
@@ -3826,22 +3781,12 @@ class InferenceVisitor
       if (receiverType is! DynamicType &&
           isPotentiallyNullable(
               receiverType, inferrer.coreTypes.futureOrClass)) {
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.helper.addProblem(
-              templateNullableOperatorCallWarning.withArguments(
-                  indexSetName.name,
-                  receiverType,
-                  inferrer.isNonNullableByDefault),
-              write.fileOffset,
-              noLength);
-        } else {
-          return inferrer.helper.wrapInProblem(
-              write,
-              templateNullableOperatorCallError.withArguments(indexSetName.name,
-                  receiverType, inferrer.isNonNullableByDefault),
-              write.fileOffset,
-              noLength);
-        }
+        return inferrer.helper.wrapInProblem(
+            write,
+            templateNullableOperatorCallError.withArguments(indexSetName.name,
+                receiverType, inferrer.isNonNullableByDefault),
+            write.fileOffset,
+            noLength);
       }
     }
     return write;
@@ -3952,26 +3897,16 @@ class InferenceVisitor
               receiverType, inferrer.coreTypes.futureOrClass) &&
           !inferrer.matchesObjectMemberCall(
               propertyName, const [], const [], const [])) {
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.helper.addProblem(
-              templateNullablePropertyAccessWarning.withArguments(
-                  propertyName.name,
-                  receiverType,
-                  inferrer.isNonNullableByDefault),
-              read.fileOffset,
-              propertyName.name.length);
-        } else {
-          return new ExpressionInferenceResult(
-              readType,
-              inferrer.helper.wrapInProblem(
-                  read,
-                  templateNullablePropertyAccessError.withArguments(
-                      propertyName.name,
-                      receiverType,
-                      inferrer.isNonNullableByDefault),
-                  read.fileOffset,
-                  propertyName.name.length));
-        }
+        return new ExpressionInferenceResult(
+            readType,
+            inferrer.helper.wrapInProblem(
+                read,
+                templateNullablePropertyAccessError.withArguments(
+                    propertyName.name,
+                    receiverType,
+                    inferrer.isNonNullableByDefault),
+                read.fileOffset,
+                propertyName.name.length));
       }
     }
     return new ExpressionInferenceResult(readType, read);
@@ -4036,24 +3971,12 @@ class InferenceVisitor
       if (receiverType is! DynamicType &&
           isPotentiallyNullable(
               receiverType, inferrer.coreTypes.futureOrClass)) {
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.helper.addProblem(
-              templateNullablePropertyAccessWarning.withArguments(
-                  propertyName.name,
-                  receiverType,
-                  inferrer.isNonNullableByDefault),
-              write.fileOffset,
-              propertyName.name.length);
-        } else {
-          return inferrer.helper.wrapInProblem(
-              write,
-              templateNullablePropertyAccessError.withArguments(
-                  propertyName.name,
-                  receiverType,
-                  inferrer.isNonNullableByDefault),
-              write.fileOffset,
-              propertyName.name.length);
-        }
+        return inferrer.helper.wrapInProblem(
+            write,
+            templateNullablePropertyAccessError.withArguments(propertyName.name,
+                receiverType, inferrer.isNonNullableByDefault),
+            write.fileOffset,
+            propertyName.name.length);
       }
     }
 
@@ -5257,21 +5180,13 @@ class InferenceVisitor
           inferrer.typeSchemaEnvironment.objectNonNullableRawType,
           expressionResult.inferredType,
           isStrongNullabilityMode: true)) {
-        if (inferrer.nnbdMode == NnbdMode.Weak) {
-          inferrer.helper.addProblem(
-              templateThrowingNotAssignableToObjectWarning.withArguments(
-                  expressionResult.inferredType, true),
-              node.expression.fileOffset,
-              noLength);
-        } else {
-          return new ExpressionInferenceResult(
-              const DynamicType(),
-              inferrer.helper.buildProblem(
-                  templateThrowingNotAssignableToObjectError.withArguments(
-                      expressionResult.inferredType, true),
-                  node.expression.fileOffset,
-                  noLength));
-        }
+        return new ExpressionInferenceResult(
+            const DynamicType(),
+            inferrer.helper.buildProblem(
+                templateThrowingNotAssignableToObjectError.withArguments(
+                    expressionResult.inferredType, true),
+                node.expression.fileOffset,
+                noLength));
       }
     }
     // Return BottomType in legacy mode for compatibility.
@@ -5544,23 +5459,14 @@ class InferenceVisitor
             isPotentiallyNonNullable(
                 variable.type, inferrer.coreTypes.futureOrClass) &&
             !variable.isLate) {
-          if (inferrer.nnbdMode == NnbdMode.Weak) {
-            inferrer.library.addProblem(
-                templateNonNullableNotAssignedWarning
-                    .withArguments(node.variable.name),
-                node.fileOffset,
-                node.variable.name.length,
-                inferrer.helper.uri);
-          } else {
-            return new ExpressionInferenceResult(
-                new InvalidType(),
-                inferrer.helper.wrapInProblem(
-                    node,
-                    templateNonNullableNotAssignedError
-                        .withArguments(node.variable.name),
-                    node.fileOffset,
-                    node.variable.name.length));
-          }
+          return new ExpressionInferenceResult(
+              new InvalidType(),
+              inferrer.helper.wrapInProblem(
+                  node,
+                  templateNonNullableNotAssignedError
+                      .withArguments(node.variable.name),
+                  node.fileOffset,
+                  node.variable.name.length));
         }
       }
     }

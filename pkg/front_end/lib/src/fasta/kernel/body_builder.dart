@@ -43,8 +43,6 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/nnbd_mode.dart';
-
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -3924,17 +3922,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (VariableDeclaration parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
-              addProblem(
-                  fasta.templateValueForRequiredParameterNotProvidedWarning
-                      .withArguments(parameter.name),
-                  arguments.fileOffset,
-                  fasta.noLength);
-            } else {
-              return fasta.templateValueForRequiredParameterNotProvidedError
-                  .withArguments(parameter.name)
-                  .withLocation(uri, arguments.fileOffset, fasta.noLength);
-            }
+            return fasta.templateValueForRequiredParameterNotProvidedError
+                .withArguments(parameter.name)
+                .withLocation(uri, arguments.fileOffset, fasta.noLength);
           }
         }
       }
@@ -3991,17 +3981,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (NamedType parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
-              addProblem(
-                  fasta.templateValueForRequiredParameterNotProvidedWarning
-                      .withArguments(parameter.name),
-                  arguments.fileOffset,
-                  fasta.noLength);
-            } else {
-              return fasta.templateValueForRequiredParameterNotProvidedError
-                  .withArguments(parameter.name)
-                  .withLocation(uri, arguments.fileOffset, fasta.noLength);
-            }
+            return fasta.templateValueForRequiredParameterNotProvidedError
+                .withArguments(parameter.name)
+                .withLocation(uri, arguments.fileOffset, fasta.noLength);
           }
         }
       }

@@ -7,17 +7,12 @@ library /*isNonNullableByDefault*/;
 //   y.foo(); // Error.
 //     ^^^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:24:5: Warning: Method 'foo' is called on 'Never' which is potentially null.
-// Try calling using ?. instead.
-//   y.foo(); // Error.
-//     ^^^
-//
 // pkg/front_end/testcases/nnbd/never_receiver.dart:25:5: Error: The getter 'bar' isn't defined for the class 'Never'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
 //   y.bar; // Error.
 //     ^^^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:25:5: Warning: Property 'bar' is accessed on 'Never' which is potentially null.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:25:5: Error: Property 'bar' cannot be accessed on 'Never' because it is potentially null.
 // Try accessing using ?. instead.
 //   y.bar; // Error.
 //     ^^^
@@ -27,7 +22,7 @@ library /*isNonNullableByDefault*/;
 //   y.baz = 42; // Error.
 //     ^^^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:26:5: Warning: Property 'baz' is accessed on 'Never' which is potentially null.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:26:5: Error: Property 'baz' cannot be accessed on 'Never' because it is potentially null.
 // Try accessing using ?. instead.
 //   y.baz = 42; // Error.
 //     ^^^
@@ -37,12 +32,7 @@ library /*isNonNullableByDefault*/;
 //   y(); // Error.
 //    ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:27:4: Warning: Method 'call' is called on 'Never' which is potentially null.
-// Try calling using ?. instead.
-//   y(); // Error.
-//    ^
-//
-// pkg/front_end/testcases/nnbd/never_receiver.dart:27:4: Warning: Expression of type 'Never' is used as a function, but it's potentially null.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:27:4: Error: Can't use an expression of type 'Never' as a function because it's potentially null.
 // Try calling using ?.call instead.
 //   y(); // Error.
 //    ^
@@ -52,7 +42,7 @@ library /*isNonNullableByDefault*/;
 //   y++; // Error.
 //    ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Warning: Operator '+' is called on 'Never' which is potentially null.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: Operator '+' cannot be called on 'Never' because it is potentially null.
 //   y++; // Error.
 //    ^
 //
@@ -61,7 +51,7 @@ library /*isNonNullableByDefault*/;
 //   y += 1; // Error.
 //     ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Warning: Operator '+' is called on 'Never' which is potentially null.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: Operator '+' cannot be called on 'Never' because it is potentially null.
 //   y += 1; // Error.
 //     ^
 //
@@ -70,7 +60,7 @@ library /*isNonNullableByDefault*/;
 //   y[42]; // Error.
 //    ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Warning: Operator '[]' is called on 'Never' which is potentially null.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: Operator '[]' cannot be called on 'Never' because it is potentially null.
 //   y[42]; // Error.
 //    ^
 //
@@ -79,7 +69,7 @@ library /*isNonNullableByDefault*/;
 //   y[42] = 42; // Error.
 //    ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Warning: Operator '[]=' is called on 'Never' which is potentially null.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: Operator '[]=' cannot be called on 'Never' because it is potentially null.
 //   y[42] = 42; // Error.
 //    ^
 //
@@ -107,31 +97,48 @@ static method foo(Never x, Never? y) → dynamic {
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.
   y.foo(); // Error.
     ^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:25:5: Error: The getter 'bar' isn't defined for the class 'Never'.
+  let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:25:5: Error: Property 'bar' cannot be accessed on 'Never' because it is potentially null.
+Try accessing using ?. instead.
+  y.bar; // Error.
+    ^^^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:25:5: Error: The getter 'bar' isn't defined for the class 'Never'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
   y.bar; // Error.
     ^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:26:5: Error: The setter 'baz' isn't defined for the class 'Never'.
+  let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:26:5: Error: Property 'baz' cannot be accessed on 'Never' because it is potentially null.
+Try accessing using ?. instead.
+  y.baz = 42; // Error.
+    ^^^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:26:5: Error: The setter 'baz' isn't defined for the class 'Never'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
   y.baz = 42; // Error.
     ^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:27:4: Error: The method 'call' isn't defined for the class 'Never'.
+  let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:27:4: Error: Can't use an expression of type 'Never' as a function because it's potentially null.
+Try calling using ?.call instead.
+  y(); // Error.
+   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:27:4: Error: The method 'call' isn't defined for the class 'Never'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   y(); // Error.
    ^";
-  y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: The method '+' isn't defined for the class 'Never'.
+  y = (let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: Operator '+' cannot be called on 'Never' because it is potentially null.
+  y++; // Error.
+   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: The method '+' isn't defined for the class 'Never'.
 Try correcting the name to the name of an existing method, or defining a method named '+'.
   y++; // Error.
-   ^" as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
-  y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: The method '+' isn't defined for the class 'Never'.
+   ^") as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
+  y = (let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: Operator '+' cannot be called on 'Never' because it is potentially null.
+  y += 1; // Error.
+    ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: The method '+' isn't defined for the class 'Never'.
 Try correcting the name to the name of an existing method, or defining a method named '+'.
   y += 1; // Error.
-    ^" as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
-  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: The method '[]' isn't defined for the class 'Never'.
+    ^") as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
+  let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: Operator '[]' cannot be called on 'Never' because it is potentially null.
+  y[42]; // Error.
+   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: The method '[]' isn't defined for the class 'Never'.
 Try correcting the name to the name of an existing method, or defining a method named '[]'.
   y[42]; // Error.
    ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: The method '[]=' isn't defined for the class 'Never'.
+  let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: Operator '[]=' cannot be called on 'Never' because it is potentially null.
+  y[42] = 42; // Error.
+   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: The method '[]=' isn't defined for the class 'Never'.
 Try correcting the name to the name of an existing method, or defining a method named '[]='.
   y[42] = 42; // Error.
    ^";

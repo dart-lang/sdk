@@ -663,8 +663,7 @@ class TypeInferrerImpl implements TypeInferrer {
       {int fileOffset,
       bool isReturnFromAsync: false,
       bool isVoidAllowed: false,
-      Template<Message Function(DartType, DartType, bool)> errorTemplate,
-      Template<Message Function(DartType, DartType, bool)> warningTemplate}) {
+      Template<Message Function(DartType, DartType, bool)> errorTemplate}) {
     assert(contextType != null);
 
     // We don't need to insert assignability checks when doing top level type
@@ -696,8 +695,7 @@ class TypeInferrerImpl implements TypeInferrer {
         preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(expression);
     AssignabilityKind kind = _computeAssignabilityKind(
         contextType, expressionType,
-        isStrongNullabilityMode:
-            isNonNullableByDefault && nnbdMode != NnbdMode.Weak,
+        isNonNullableByDefault: isNonNullableByDefault,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null);
 
@@ -752,95 +750,11 @@ class TypeInferrerImpl implements TypeInferrer {
             typedTearoff.tearoffType, contextType, errorTemplate);
         break;
       case AssignabilityKind.unassignableCantTearoff:
-        // The first call to _computeAssignabilityKind is done for the purpose
-        // of code generation, and the inability to tear off from a
-        // potentially nullable receiver shouldn't arise as an issue in any
-        // mode other than the strong mode.
-        assert(isNonNullableByDefault && nnbdMode != NnbdMode.Weak);
-
         result = _wrapTearoffErrorExpression(
             expression, contextType, templateNullableTearoffError);
         break;
       default:
         return unhandled("${kind}", "ensureAssignable", fileOffset, helper.uri);
-    }
-
-    // Report warnings in weak mode.
-    if (isNonNullableByDefault && nnbdMode == NnbdMode.Weak) {
-      AssignabilityKind weakKind = _computeAssignabilityKind(
-          contextType, expressionType,
-          isStrongNullabilityMode: true,
-          isVoidAllowed: isVoidAllowed,
-          isExpressionTypePrecise: preciseTypeErrorTemplate != null);
-      switch (weakKind) {
-        case AssignabilityKind.assignable:
-          // Do nothing if an error wouldn't be reported in the strong mode.
-          break;
-        case AssignabilityKind.assignableCast:
-          // Do nothing if an error wouldn't be reported in the strong mode.
-          break;
-        case AssignabilityKind.assignableTearoff:
-          // Do nothing if an error wouldn't be reported in the strong mode.
-          break;
-        case AssignabilityKind.assignableTearoffCast:
-          // Do nothing if an error wouldn't be reported in the strong mode.
-          break;
-        case AssignabilityKind.unassignable:
-          // Don't report the same problem twice.
-          if (kind == AssignabilityKind.unassignable) break;
-          if (contextType is! InvalidType && expressionType is! InvalidType) {
-            helper.addProblem(
-                (warningTemplate ?? templateInvalidAssignmentWarning)
-                    .withArguments(
-                        expressionType, contextType, isNonNullableByDefault),
-                fileOffset,
-                noLength);
-          }
-          break;
-        case AssignabilityKind.unassignableVoid:
-          // The NNBD feature can't cause this case..
-          return unhandled(
-              "${kind}", "ensureAssignable:weak", fileOffset, helper.uri);
-        case AssignabilityKind.unassignablePrecise:
-          // The NNBD feature can't cause this case..
-          return unhandled(
-              "${kind}", "ensureAssignable:weak", fileOffset, helper.uri);
-        case AssignabilityKind.unassignableTearoff:
-          // Don't report the same problem twice.
-          if (kind == AssignabilityKind.unassignableTearoff) break;
-
-          // The first handling of the error should have happened in the strong
-          // mode.
-          assert(nnbdMode == NnbdMode.Weak);
-
-          if (contextType is! InvalidType && expressionType is! InvalidType) {
-            TypedTearoff typedTearoff =
-                _tearOffCall(expression, expressionType, fileOffset);
-            helper.addProblem(
-                (warningTemplate ?? templateInvalidAssignmentWarning)
-                    .withArguments(typedTearoff.tearoffType, contextType,
-                        isNonNullableByDefault),
-                fileOffset,
-                noLength);
-          }
-          break;
-        case AssignabilityKind.unassignableCantTearoff:
-          // Don't report the same problem twice.
-          if (kind == AssignabilityKind.unassignableCantTearoff) break;
-
-          // The first handling of the error should have happened in the strong
-          // mode.
-          assert(nnbdMode == NnbdMode.Weak);
-
-          if (isNonNullableByDefault) {
-            result = _wrapTearoffErrorExpression(
-                expression, contextType, templateNullableTearoffWarning);
-          }
-          break;
-        default:
-          return unhandled(
-              "${kind}", "ensureAssignable:weak", fileOffset, helper.uri);
-      }
     }
 
     return result;
@@ -925,10 +839,10 @@ class TypeInferrerImpl implements TypeInferrer {
   /// The computation is side-effect free.
   AssignabilityKind _computeAssignabilityKind(
       DartType contextType, DartType expressionType,
-      {bool isStrongNullabilityMode,
+      {bool isNonNullableByDefault,
       bool isVoidAllowed,
       bool isExpressionTypePrecise}) {
-    assert(isStrongNullabilityMode != null);
+    assert(isNonNullableByDefault != null);
     assert(isVoidAllowed != null);
     assert(isExpressionTypePrecise != null);
 
@@ -943,7 +857,7 @@ class TypeInferrerImpl implements TypeInferrer {
       if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
         if (_shouldTearOffCall(contextType, expressionType)) {
           needsTearoff = true;
-          if (isStrongNullabilityMode &&
+          if (isNonNullableByDefault &&
               isPotentiallyNullable(expressionType, coreTypes.futureOrClass)) {
             return AssignabilityKind.unassignableCantTearoff;
           }
@@ -961,7 +875,7 @@ class TypeInferrerImpl implements TypeInferrer {
     {
       IsSubtypeOf result = typeSchemaEnvironment
           .performNullabilityAwareSubtypeCheck(expressionType, contextType);
-      bool isDirectlyAssignable = isStrongNullabilityMode
+      bool isDirectlyAssignable = isNonNullableByDefault
           ? result.isSubtypeWhenUsingNullabilities()
           : result.isSubtypeWhenIgnoringNullabilities();
       if (isDirectlyAssignable) {
@@ -971,7 +885,7 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
 
-    bool isIndirectlyAssignable = isStrongNullabilityMode
+    bool isIndirectlyAssignable = isNonNullableByDefault
         ? expressionType is DynamicType
         : typeSchemaEnvironment
             .performNullabilityAwareSubtypeCheck(contextType, expressionType)
@@ -2433,21 +2347,13 @@ class TypeInferrerImpl implements TypeInferrer {
         // Use length 1 for .call -- in most cases its name is skipped.
         int errorSpanLength =
             targetName == callName ? noLength : targetName.name.length;
-        if (nnbdMode == NnbdMode.Weak) {
-          helper.addProblem(
-              templateNullableMethodCallWarning.withArguments(
-                  targetName.name, receiverType, isNonNullableByDefault),
-              offset,
-              errorSpanLength);
-        } else {
-          return new WrapInProblemInferenceResult(
-              inferredType,
-              templateNullableMethodCallError.withArguments(
-                  targetName.name, receiverType, isNonNullableByDefault),
-              offset,
-              errorSpanLength,
-              helper);
-        }
+        return new WrapInProblemInferenceResult(
+            inferredType,
+            templateNullableMethodCallError.withArguments(
+                targetName.name, receiverType, isNonNullableByDefault),
+            offset,
+            errorSpanLength,
+            helper);
       }
     }
 
@@ -2571,23 +2477,12 @@ class TypeInferrerImpl implements TypeInferrer {
         if ((isOptionalPositional || isOptionalNamed) &&
             isPotentiallyNonNullable(formal.type, coreTypes.futureOrClass) &&
             !formal.hasDeclaredInitializer) {
-          if (nnbdMode == NnbdMode.Weak) {
-            library.addProblem(
-                templateOptionalNonNullableWithoutInitializerWarning
-                    .withArguments(
-                        formal.name, formal.type, isNonNullableByDefault),
-                formal.fileOffset,
-                formal.name.length,
-                library.importUri);
-          } else {
-            library.addProblem(
-                templateOptionalNonNullableWithoutInitializerError
-                    .withArguments(
-                        formal.name, formal.type, isNonNullableByDefault),
-                formal.fileOffset,
-                formal.name.length,
-                library.importUri);
-          }
+          library.addProblem(
+              templateOptionalNonNullableWithoutInitializerError.withArguments(
+                  formal.name, formal.type, isNonNullableByDefault),
+              formal.fileOffset,
+              formal.name.length,
+              library.importUri);
         }
       }
     }
@@ -2596,21 +2491,12 @@ class TypeInferrerImpl implements TypeInferrer {
       for (VariableDeclarationImpl formal in function.namedParameters) {
         // Required named parameters shouldn't have initializers.
         if (formal.isRequired && formal.hasDeclaredInitializer) {
-          if (nnbdMode == NnbdMode.Weak) {
-            library.addProblem(
-                templateRequiredNamedParameterHasDefaultValueWarning
-                    .withArguments(formal.name),
-                formal.fileOffset,
-                formal.name.length,
-                library.importUri);
-          } else {
-            library.addProblem(
-                templateRequiredNamedParameterHasDefaultValueError
-                    .withArguments(formal.name),
-                formal.fileOffset,
-                formal.name.length,
-                library.importUri);
-          }
+          library.addProblem(
+              templateRequiredNamedParameterHasDefaultValueError
+                  .withArguments(formal.name),
+              formal.fileOffset,
+              formal.name.length,
+              library.importUri);
         }
       }
     }

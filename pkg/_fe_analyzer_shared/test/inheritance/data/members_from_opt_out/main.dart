@@ -41,10 +41,11 @@ abstract class Interface {
 
   /*member: Interface.method5c:int Function({required int a, required int b})*/
   int method5c(
-      {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ a:
-          0,
-      required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ b:
-          0});
+      {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/
+          /*cfe|cfe:builder.error: RequiredNamedParameterHasDefaultValueError*/
+          a: 0,
+      required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/
+          /*cfe|cfe:builder.error: RequiredNamedParameterHasDefaultValueError*/ b: 0});
 
   /*member: Interface.method6a:int? Function(int?, {int? b})*/
   int? method6a(int? a, {int? b});
@@ -302,10 +303,10 @@ class Class2b extends LegacyClass implements Interface {
   /*member: Class2b.method5c:int Function({required int a, required int b})*/
   int /*analyzer.error: CompileTimeErrorCode.INVALID_OVERRIDE*/
       method5c(
-              {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ a:
-                  0,
-              required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ b:
-                  0}) =>
+              {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/
+                  /*cfe|cfe:builder.error: RequiredNamedParameterHasDefaultValueError*/ a: 0,
+              required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/
+                  /*cfe|cfe:builder.error: RequiredNamedParameterHasDefaultValueError*/ b: 0}) =>
           0;
 
   /*member: Class2b.method6a:int? Function(int?, {int? b})*/

@@ -2,23 +2,29 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:15:6: Warning: Missing required named parameter 's'.
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:15:6: Error: Required named parameter 's' must be provided.
 //   foo();
 //      ^
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:5:6: Context: Found this candidate, but the arguments don't match.
+// void foo({required String s}) {}
+//      ^^^
 //
-// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:16:8: Warning: Missing required named parameter 'x'.
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:16:8: Error: Required named parameter 'x' must be provided.
 //   new A();
 //        ^
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:9:3: Context: Found this candidate, but the arguments don't match.
+//   A({required int x});
+//   ^
 //
-// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:18:8: Warning: Missing required named parameter 'y'.
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:18:8: Error: Required named parameter 'y' must be provided.
 //   a.foo();
 //        ^
 //
-// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:19:6: Warning: Missing required named parameter 's'.
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:19:6: Error: Required named parameter 's' must be provided.
 //   a.f();
 //      ^
 //
-// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:20:4: Warning: Missing required named parameter 's'.
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:20:4: Error: Required named parameter 's' must be provided.
 //   g();
 //    ^
 //
@@ -35,12 +41,22 @@ class A extends core::Object {
 static field ({required s: core::String}) → void g = ({required core::String s = #C1}) → core::Null? {};
 static method foo({required core::String s = #C1}) → void {}
 static method bar() → dynamic {
-  self::foo();
-  new self::A::•();
+  invalid-expression "pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:15:6: Error: Required named parameter 's' must be provided.
+  foo();
+     ^";
+  invalid-expression "pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:16:8: Error: Required named parameter 'x' must be provided.
+  new A();
+       ^";
   self::A a = new self::A::•(x: 42);
-  a.{self::A::foo}();
-  a.{self::A::f}.call();
-  self::g.call();
+  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:18:8: Error: Required named parameter 'y' must be provided.
+  a.foo();
+       ^" in a.{self::A::foo}();
+  let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:19:6: Error: Required named parameter 's' must be provided.
+  a.f();
+     ^" in a.{self::A::f}.call();
+  let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:20:4: Error: Required named parameter 's' must be provided.
+  g();
+   ^" in self::g.call();
 }
 static method main() → dynamic {}
 

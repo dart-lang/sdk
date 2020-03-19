@@ -2,47 +2,47 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/forin.dart:9:17: Warning: Assigning value of type 'Iterable<int>?' to a variable of type 'Iterable<dynamic>'.
+// pkg/front_end/testcases/nnbd/forin.dart:9:17: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Iterable' is from 'dart:core'.
 //   for (int x in i2) x;
 //                 ^
 //
-// pkg/front_end/testcases/nnbd/forin.dart:10:18: Warning: Assigning value of type 'Iterable<int>?' to a variable of type 'Iterable<dynamic>'.
+// pkg/front_end/testcases/nnbd/forin.dart:10:18: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Iterable' is from 'dart:core'.
 //   [for (int x in i2) x];
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/forin.dart:12:17: Warning: Assigning value of type 'List<int>?' to a variable of type 'Iterable<dynamic>'.
+// pkg/front_end/testcases/nnbd/forin.dart:12:17: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'List' is from 'dart:core'.
 //  - 'Iterable' is from 'dart:core'.
 //   for (int x in l2) x;
 //                 ^
 //
-// pkg/front_end/testcases/nnbd/forin.dart:13:18: Warning: Assigning value of type 'List<int>?' to a variable of type 'Iterable<dynamic>'.
+// pkg/front_end/testcases/nnbd/forin.dart:13:18: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'List' is from 'dart:core'.
 //  - 'Iterable' is from 'dart:core'.
 //   [for (int x in l2) x];
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/forin.dart:15:17: Warning: Assigning value of type 'Object' to a variable of type 'Iterable<dynamic>'.
+// pkg/front_end/testcases/nnbd/forin.dart:15:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Iterable' is from 'dart:core'.
 //   for (int x in o1) x;
 //                 ^
 //
-// pkg/front_end/testcases/nnbd/forin.dart:16:18: Warning: Assigning value of type 'Object' to a variable of type 'Iterable<dynamic>'.
+// pkg/front_end/testcases/nnbd/forin.dart:16:18: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Iterable' is from 'dart:core'.
 //   [for (int x in o1) x];
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/forin.dart:18:17: Warning: Assigning value of type 'Object?' to a variable of type 'Iterable<dynamic>'.
+// pkg/front_end/testcases/nnbd/forin.dart:18:17: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Iterable' is from 'dart:core'.
 //   for (int x in o2) x;
 //                 ^
 //
-// pkg/front_end/testcases/nnbd/forin.dart:19:18: Warning: Assigning value of type 'Object?' to a variable of type 'Iterable<dynamic>'.
+// pkg/front_end/testcases/nnbd/forin.dart:19:18: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Iterable' is from 'dart:core'.
 //   [for (int x in o2) x];
@@ -54,24 +54,10 @@ import "dart:_internal" as _in;
 
 static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, core::Object o1, core::Object? o2) → dynamic {
   {
-    core::Iterator<core::int>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int>*>(i2).{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      core::int x = :sync-for-iterator.{core::Iterator::current};
-      x;
-    }
-  }
-  block {
-    final core::List<core::int> #t1 = <core::int>[];
-    {
-      core::Iterator<core::int>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int>*>(i2).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        core::int x = :sync-for-iterator.{core::Iterator::current};
-        #t1.{core::List::add}(x);
-      }
-    }
-  } =>#t1;
-  {
-    core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(l2).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:9:17: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
+  for (int x in i2) x;
+                ^" in i2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::int x = :sync-for-iterator.{core::Iterator::current};
       x;
@@ -80,7 +66,10 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
   block {
     final core::List<core::int> #t2 = <core::int>[];
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(l2).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:10:18: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
+  [for (int x in i2) x];
+                 ^" in i2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int x = :sync-for-iterator.{core::Iterator::current};
         #t2.{core::List::add}(x);
@@ -88,51 +77,92 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
     }
   } =>#t2;
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:12:17: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'List' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  for (int x in l2) x;
+                ^" in l2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      final dynamic #t3 = :sync-for-iterator.{core::Iterator::current};
-      {
-        core::int x = #t3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-        x;
-      }
+      core::int x = :sync-for-iterator.{core::Iterator::current};
+      x;
     }
   }
   block {
-    final core::List<core::int> #t4 = <core::int>[];
+    final core::List<core::int> #t5 = <core::int>[];
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:13:18: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'List' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  [for (int x in l2) x];
+                 ^" in l2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t5 = :sync-for-iterator.{core::Iterator::current};
-        {
-          core::int x = #t5 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t4.{core::List::add}(x);
-        }
+        core::int x = :sync-for-iterator.{core::Iterator::current};
+        #t5.{core::List::add}(x);
       }
     }
-  } =>#t4;
+  } =>#t5;
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:15:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Object' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  for (int x in o1) x;
+                ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
+      final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
       {
-        core::int x = #t6 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        core::int x = #t8 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
         x;
       }
     }
   }
   block {
-    final core::List<core::int> #t7 = <core::int>[];
+    final core::List<core::int> #t9 = <core::int>[];
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:16:18: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Object' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  [for (int x in o1) x];
+                 ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
+        final dynamic #t11 = :sync-for-iterator.{core::Iterator::current};
         {
-          core::int x = #t8 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t7.{core::List::add}(x);
+          core::int x = #t11 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          #t9.{core::List::add}(x);
         }
       }
     }
-  } =>#t7;
+  } =>#t9;
+  {
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:18:17: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Object' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  for (int x in o2) x;
+                ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      final dynamic #t13 = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::int x = #t13 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        x;
+      }
+    }
+  }
+  block {
+    final core::List<core::int> #t14 = <core::int>[];
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:19:18: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Object' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  [for (int x in o2) x];
+                 ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t16 = :sync-for-iterator.{core::Iterator::current};
+        {
+          core::int x = #t16 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          #t14.{core::List::add}(x);
+        }
+      }
+    }
+  } =>#t14;
 }
 static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic d) → dynamic {
   {
@@ -143,15 +173,15 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
     }
   }
   block {
-    final core::List<core::int> #t9 = <core::int>[];
+    final core::List<core::int> #t17 = <core::int>[];
     {
       core::Iterator<core::int>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int>*>(i1).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int x = :sync-for-iterator.{core::Iterator::current};
-        #t9.{core::List::add}(x);
+        #t17.{core::List::add}(x);
       }
     }
-  } =>#t9;
+  } =>#t17;
   {
     core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(l1).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -160,37 +190,37 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
     }
   }
   block {
-    final core::List<core::int> #t10 = <core::int>[];
+    final core::List<core::int> #t18 = <core::int>[];
     {
       core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(l1).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int x = :sync-for-iterator.{core::Iterator::current};
-        #t10.{core::List::add}(x);
+        #t18.{core::List::add}(x);
       }
     }
-  } =>#t10;
+  } =>#t18;
   {
     core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(d as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      final dynamic #t11 = :sync-for-iterator.{core::Iterator::current};
+      final dynamic #t19 = :sync-for-iterator.{core::Iterator::current};
       {
-        core::int x = #t11 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        core::int x = #t19 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
         x;
       }
     }
   }
   block {
-    final core::List<core::int> #t12 = <core::int>[];
+    final core::List<core::int> #t20 = <core::int>[];
     {
       core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(d as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current};
+        final dynamic #t21 = :sync-for-iterator.{core::Iterator::current};
         {
-          core::int x = #t13 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t12.{core::List::add}(x);
+          core::int x = #t21 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          #t20.{core::List::add}(x);
         }
       }
     }
-  } =>#t12;
+  } =>#t20;
 }
 static method main() → dynamic {}

@@ -41,17 +41,8 @@ const mapConcatenationIdentical =
 final bool inStrongMode = _inStrongMode();
 
 bool _inStrongMode() {
-  var f = (String? s) {
-    s.length; // This will be an invalid expression in strong mode.
-  };
-  try {
-    f("foo");
-  } catch (e) {
-    print('Running in strong mode.');
-    return true;
-  }
-  print('Running in weak mode.');
-  return false;
+  const List<int?> list = const <int?>[];
+  return list is! List<int>;
 }
 
 main() {

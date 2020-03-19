@@ -13,35 +13,35 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:15:5: Warning: Non-nullable variable 'k' is used before it's assigned.
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:15:5: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //     k;
 //     ^
 //
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:22:12: Warning: Non-nullable variable 'k' is used before it's assigned.
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:22:12: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //     return k;
 //            ^
 //
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:28:12: Warning: Non-nullable variable 'k' is used before it's assigned.
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:28:12: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //     return k;
 //            ^
 //
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:36:10: Warning: Non-nullable variable 'k' is used before it's assigned.
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:36:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //   return k;
 //          ^
 //
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:42:10: Warning: Non-nullable variable 'k' is used before it's assigned.
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:42:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //   return k;
 //          ^
 //
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:17:5: Warning: Non-nullable variable 'k' is used before it's assigned.
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:17:5: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //     k;
 //     ^
 //
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:25:12: Warning: Non-nullable variable 'k' is used before it's assigned.
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:25:12: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //     return k;
 //            ^
 //
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:34:10: Warning: Non-nullable variable 'k' is used before it's assigned.
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:34:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //   return k;
 //          ^
 //
@@ -61,46 +61,62 @@ class Class<T extends core::num = core::num> extends core::Object /*hasConstCons
   constructor constructor(core::int a, test::Class::T b) → test::Class<test::Class::T>
     : test::Class::a = a, test::Class::b = b, super core::Object::•() {
     core::int k;
+    let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:17:5: Error: Non-nullable variable 'k' must be assigned before it can be used.
     k;
+    ^" in k;
   }
   @#C1
   constructor patchedConstructor(core::int i, test::Class::T j) → test::Class<test::Class::T>
     : test::Class::a = i, test::Class::b = j, super core::Object::•() {
     core::int k;
+    let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:15:5: Error: Non-nullable variable 'k' must be assigned before it can be used.
     k;
+    ^" in k;
   }
   method method(core::int a) → core::int {
     core::int k;
     core::int j = a;
+    return (let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:25:12: Error: Non-nullable variable 'k' must be assigned before it can be used.
     return k;
+           ^" in k) as{TypeError,ForNonNullableByDefault} core::int;
   }
   @#C1
   method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod(core::int i) → core::int {
     core::int k;
     core::int j = i;
+    return (let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:22:12: Error: Non-nullable variable 'k' must be assigned before it can be used.
     return k;
+           ^" in k) as{TypeError,ForNonNullableByDefault} core::int;
   }
   method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod(core::int i) → core::int {
     core::int k;
     core::int j = i;
+    return (let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:28:12: Error: Non-nullable variable 'k' must be assigned before it can be used.
     return k;
+           ^" in k) as{TypeError,ForNonNullableByDefault} core::int;
   }
 }
 static method method(core::int a) → core::int {
   core::int k;
   core::int j = a;
+  return (let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:34:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
   return k;
+         ^" in k) as{TypeError,ForNonNullableByDefault} core::int;
 }
 @#C1
 static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod(core::int i) → core::int {
   core::int k;
   core::int j = i;
+  return (let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:36:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
   return k;
+         ^" in k) as{TypeError,ForNonNullableByDefault} core::int;
 }
 static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod(core::int i) → core::int {
   core::int k;
   core::int j = i;
+  return (let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:42:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
   return k;
+         ^" in k) as{TypeError,ForNonNullableByDefault} core::int;
 }
 
 constants  {
