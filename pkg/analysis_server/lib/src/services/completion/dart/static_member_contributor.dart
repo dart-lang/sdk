@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:meta/meta.dart';
 
 /// A contributor that produces suggestions based on the static members of a
 /// given class, enum, or extension. More concretely, this class produces
@@ -111,7 +112,9 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
     if (useNewRelevance) {
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, elementType);
-      relevance = toRelevance(contextType, Relevance.member);
+      var hasDeprecated = request.featureComputer.hasDeprecatedFeature(element);
+      relevance = _computeRelevance(
+          contextType: contextType, hasDeprecated: hasDeprecated);
     }
     CompletionSuggestion suggestion = createSuggestion(element,
         completion: completion,
@@ -120,6 +123,22 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
     if (suggestion != null) {
       suggestions.add(suggestion);
     }
+  }
+
+  /// Compute a relevance value from the given feature scores:
+  /// - [contextType] is higher if the type of the element matches the context
+  ///   type,
+  /// - [hasDeprecated] is higher if the element is not deprecated,
+  /// - [inheritanceDistance] is higher if the element is defined closer to the
+  ///   target type,
+  /// - [startsWithDollar] is higher if the element's name doe _not_ start with
+  ///   a dollar sign, and
+  /// - [superMatches] is higher if the element is being invoked through `super`
+  ///   and the element's name matches the name of the enclosing method.
+  int _computeRelevance(
+      {@required double contextType, @required double hasDeprecated}) {
+    var score = weightedAverage([contextType, hasDeprecated], [1.0, 0.5]);
+    return toRelevance(score, Relevance.member);
   }
 
   /// Determine whether the [element] is one of the synthetic enum accessors
