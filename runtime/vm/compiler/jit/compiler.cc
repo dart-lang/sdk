@@ -1203,9 +1203,11 @@ void BackgroundCompiler::Run() {
       Function& function = Function::Handle(zone);
       {
         MonitorLocker ml(&queue_monitor_);
-        function = function_queue()->PeekFunction();
+        if (running_) {
+          function = function_queue()->PeekFunction();
+        }
       }
-      while (running_ && !function.IsNull()) {
+      while (!function.IsNull()) {
         if (is_optimizing()) {
           Compiler::CompileOptimizedFunction(thread, function,
                                              Compiler::kNoOSRDeoptId);
@@ -1217,7 +1219,7 @@ void BackgroundCompiler::Run() {
         QueueElement* qelem = NULL;
         {
           MonitorLocker ml(&queue_monitor_);
-          if (function_queue()->IsEmpty()) {
+          if (!running_ || function_queue()->IsEmpty()) {
             // We are shutting down, queue was cleared.
             function = Function::null();
           } else {
