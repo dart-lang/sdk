@@ -12,7 +12,7 @@ class T {
 
 class U {
   @T(#x)
-  int field;
+  int? field;
 }
 
 main() {
