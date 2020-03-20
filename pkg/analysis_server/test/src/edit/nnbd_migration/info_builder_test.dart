@@ -1364,8 +1364,7 @@ void f(A  a) {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39378')
-  Future<void> test_parameter_fromOverridden_implicit() async {
+  Future<void> test_parameter_fromOverridden_implicitDynamic() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(p) {}
@@ -1378,17 +1377,12 @@ class A {
   void m(p) {}
 }
 class B extends A {
-  void m(Object? p) {}
+  void m(Object  p) {}
 }
 ''');
-    List<RegionInfo> regions = unit.fixRegions;
+    List<RegionInfo> regions = unit.informativeRegions;
     expect(regions, hasLength(1));
-    // TODO(brianwilkerson) The detail should read something like
-    //  "The overridden method accepts a nullable type"
-    assertRegion(
-        region: regions[0],
-        offset: 62,
-        details: ['A nullable value is assigned']);
+    assertRegion(region: regions[0], offset: 62, details: []);
   }
 
   Future<void> test_parameter_fromOverriddenField_explicit() async {
