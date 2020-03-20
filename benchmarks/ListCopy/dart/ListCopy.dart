@@ -56,7 +56,8 @@ class Benchmark extends BenchmarkBase {
     while (totalLength < elements) {
       var variants = makeVariants();
       inputs.addAll(variants);
-      totalLength += variants.fold(0, (sum, iterable) => sum + iterable.length);
+      totalLength +=
+          variants.fold(0, (sum, iterable) => sum + iterable.length) as int;
     }
 
     // Sanity checks.
@@ -90,7 +91,7 @@ class Benchmark extends BenchmarkBase {
 
 // All the 'copy' methods use [input] and [output] rather than a parameter and
 // return value to avoid any possibility of type check in the call sequence.
-Iterable<num> input;
+Iterable<num> input = const [];
 var output;
 
 List<Benchmark> makeBenchmarks(int length) => [
