@@ -273,6 +273,13 @@ class CommonMasks implements AbstractValueDomain {
           nullable ? value : value.nonNullable(), isPrecise);
     }
 
+    if (type is NullableType) {
+      return createFromStaticType(type.baseType,
+          classRelation: classRelation, nullable: true);
+    }
+
+    // TODO(sra): Handle LegacyType more precisely.
+
     bool isPrecise = true;
     while (type is TypeVariableType) {
       TypeVariableType typeVariable = type;
