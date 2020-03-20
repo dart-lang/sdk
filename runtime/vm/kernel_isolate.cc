@@ -93,6 +93,7 @@ class RunKernelTask : public ThreadPool::Task {
 #if !defined(DART_PRECOMPILER)
     api_flags.use_osr = true;
 #endif
+    api_flags.null_safety = false;
 
     isolate = reinterpret_cast<Isolate*>(
         create_group_callback(KernelIsolate::kName, KernelIsolate::kName, NULL,
