@@ -12,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddConstTest);
+    defineReflectiveTests(AddConstToImmutableConstructorTest);
   });
 }
 
@@ -54,6 +55,57 @@ class C {
 main() {
   var c = const C();
   print(c);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddConstToImmutableConstructorTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_CONST;
+
+  @override
+  String get lintCode => LintNames.prefer_const_constructors_in_immutables;
+
+  Future<void> test_constConstructor() async {
+    addMetaPackage();
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  A();
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  const A();
+}
+''');
+  }
+
+  Future<void> test_constConstructorWithComment() async {
+    addMetaPackage();
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  /// Comment.
+  A();
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  /// Comment.
+  const A();
 }
 ''');
   }

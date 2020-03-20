@@ -706,6 +706,9 @@ class FixProcessor extends BaseProcessor {
         await _addFix_addConst();
         await _addFix_replaceNewWithConst();
       }
+      if (errorCode.name == LintNames.prefer_const_constructors_in_immutables) {
+        await _addFix_addConstToConstructor();
+      }
       if (errorCode.name == LintNames.prefer_if_null_operators) {
         await _addFix_convertToIfNullOperator();
       }
@@ -801,6 +804,23 @@ class FixProcessor extends BaseProcessor {
         });
         _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CONST);
       }
+    }
+  }
+
+  Future<void> _addFix_addConstToConstructor() async {
+    var node = coveredNode;
+    if (node is SimpleIdentifier) {
+      node = node.parent;
+    }
+    if (node is ConstructorDeclaration) {
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        final offset = (node as ConstructorDeclaration)
+            .firstTokenAfterCommentAndMetadata
+            .offset;
+        builder.addSimpleInsertion(offset, 'const ');
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CONST);
     }
   }
 
