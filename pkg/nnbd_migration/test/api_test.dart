@@ -2187,6 +2187,28 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_for_each_variable_initialized() async {
+    var content = '''
+int sum(List<int> list) {
+  int total = 0;
+  for (var i in list) {
+    total = total + i;
+  }
+  return total;
+}
+''';
+    var expected = '''
+int sum(List<int> list) {
+  int total = 0;
+  for (var i in list) {
+    total = total + i;
+  }
+  return total;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_function_expression() async {
     var content = '''
 int f(int i) {

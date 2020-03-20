@@ -2287,6 +2287,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       Element lhsElement;
       if (parts is ForEachPartsWithDeclaration) {
         var variableElement = parts.loopVariable.declaredElement;
+        _flowAnalysis.declare(variableElement, true);
         lhsElement = variableElement;
         parts.loopVariable?.type?.accept(this);
       } else if (parts is ForEachPartsWithIdentifier) {
