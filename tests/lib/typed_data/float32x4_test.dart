@@ -397,19 +397,22 @@ void testConstructor() {
   Expect.equals(4.0, f.w);
 }
 
+// TODO(eernst): Come pure null-safety, this can only be `TypeError`.
+bool isTypeError(e) => e is TypeError || e is ArgumentError;
+
 void testBadArguments() {
   dynamic dynamicNull = null;
-  Expect.throwsTypeError(() => new Float32x4(dynamicNull, 2.0, 3.0, 4.0));
-  Expect.throwsTypeError(() => new Float32x4(1.0, dynamicNull, 3.0, 4.0));
-  Expect.throwsTypeError(() => new Float32x4(1.0, 2.0, dynamicNull, 4.0));
-  Expect.throwsTypeError(() => new Float32x4(1.0, 2.0, 3.0, dynamicNull));
+  Expect.throws(() => new Float32x4(dynamicNull, 2.0, 3.0, 4.0), isTypeError);
+  Expect.throws(() => new Float32x4(1.0, dynamicNull, 3.0, 4.0), isTypeError);
+  Expect.throws(() => new Float32x4(1.0, 2.0, dynamicNull, 4.0), isTypeError);
+  Expect.throws(() => new Float32x4(1.0, 2.0, 3.0, dynamicNull), isTypeError);
 
   // Use local variable typed as "dynamic" to avoid static warnings.
   dynamic str = "foo";
-  Expect.throwsTypeError(() => new Float32x4(str, 2.0, 3.0, 4.0));
-  Expect.throwsTypeError(() => new Float32x4(1.0, str, 3.0, 4.0));
-  Expect.throwsTypeError(() => new Float32x4(1.0, 2.0, str, 4.0));
-  Expect.throwsTypeError(() => new Float32x4(1.0, 2.0, 3.0, str));
+  Expect.throws(() => new Float32x4(str, 2.0, 3.0, 4.0), isTypeError);
+  Expect.throws(() => new Float32x4(1.0, str, 3.0, 4.0), isTypeError);
+  Expect.throws(() => new Float32x4(1.0, 2.0, str, 4.0), isTypeError);
+  Expect.throws(() => new Float32x4(1.0, 2.0, 3.0, str), isTypeError);
 }
 
 void testSpecialValues() {

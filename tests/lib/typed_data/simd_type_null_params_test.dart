@@ -11,7 +11,8 @@ bool throwsTypeError(void Function() f) {
   try {
     f();
   } catch (e) {
-    return e is TypeError;
+    // TODO(eernst): Come pure null-safety, this can only be `TypeError`.
+    return e is TypeError || e is ArgumentError;
   }
   return false;
 }
