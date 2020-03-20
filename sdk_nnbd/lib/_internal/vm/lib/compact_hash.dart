@@ -471,6 +471,7 @@ class _CompactIterator<E> implements Iterator<E> {
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
+@pragma('vm:entry-point')
 class _CompactLinkedHashSet<E> extends _HashFieldBase
     with _HashBase, _OperatorEqualsAndHashCode, SetMixin<E>
     implements LinkedHashSet<E> {
