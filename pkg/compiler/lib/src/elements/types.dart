@@ -1665,7 +1665,7 @@ abstract class DartTypes {
         result = commonElements.nullType;
       } else if (legacyBaseType is FutureOrType &&
           _isNullable(legacyBaseType.typeArgument)) {
-        result = legacyBaseType.typeArgument;
+        result = legacyBaseType;
       } else {
         result = nullableType(legacyBaseType);
       }
