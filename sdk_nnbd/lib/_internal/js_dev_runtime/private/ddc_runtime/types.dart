@@ -112,10 +112,10 @@ bool isDartFunction(obj) =>
 Expando<Function> _assertInteropExpando = Expando<Function>();
 
 @NoReifyGeneric()
-F tearoffInterop<F extends Function>(F f) {
+F tearoffInterop<F extends Function?>(F f) {
   // Wrap a JS function with a closure that ensures all function arguments are
   // native JS functions.
-  if (!_isJsObject(f)) return f;
+  if (!_isJsObject(f) || f == null) return f;
   var ret = _assertInteropExpando[f];
   if (ret == null) {
     ret = JS(
