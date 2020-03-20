@@ -143,12 +143,12 @@ final expectedCallsInfo = <List<CallInfo>>[
   // The first frame should correspond to the throw in bar, which was inlined
   // into foo (so we'll get information for two calls for that PC address).
   [
-    CallInfo(
+    DartCallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_test.dart",
         line: 17,
         inlined: true),
-    CallInfo(
+    DartCallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
         line: 23,
@@ -156,7 +156,7 @@ final expectedCallsInfo = <List<CallInfo>>[
   ],
   // The second frame corresponds to call to foo in main.
   [
-    CallInfo(
+    DartCallInfo(
         function: "main",
         filename: "dwarf_stack_trace_test.dart",
         line: 29,
@@ -168,14 +168,14 @@ final expectedCallsInfo = <List<CallInfo>>[
 
 List<List<CallInfo>> removeInternalCalls(List<List<CallInfo>> original) =>
     original
-        .map((frame) => frame.where((call) => call.line > 0).toList())
+        .map((frame) => frame.where((call) => !call.isInternal).toList())
         .toList();
 
 void checkConsistency(
     List<List<CallInfo>> externalFrames, List<List<CallInfo>> allFrames) {
   // We should have the same number of frames for both external-only
   // and combined call information.
-  Expect.equals(externalFrames.length, allFrames.length);
+  Expect.equals(allFrames.length, externalFrames.length);
 
   for (var frame in externalFrames) {
     // There should be no frames in either version where we failed to look up
@@ -185,7 +185,7 @@ void checkConsistency(
     // External-only call information should only include call information with
     // positive line numbers.
     for (var call in frame) {
-      Expect.isTrue(call.line > 0);
+      Expect.isTrue(!call.isInternal);
     }
   }
 
@@ -200,11 +200,10 @@ void checkConsistency(
   }
 
   // The information in the external-only and combined call information should
-  // be consistent for external frames.
-  for (var i = 0; i < allFrames.length; i++) {
-    if (externalFrames[i].isNotEmpty) {
-      Expect.listEquals(externalFrames[i], allFrames[i]);
-    }
+  // be consistent for externally visible calls.
+  final allFramesStripped = removeInternalCalls(allFrames);
+  for (var i = 0; i < allFramesStripped.length; i++) {
+    Expect.listEquals(allFramesStripped[i], externalFrames[i]);
   }
 }
 
@@ -218,15 +217,15 @@ void checkFrames(
   // non-positive line numbers match, as long as they're both non-positive.
   for (var i = 0; i < expectedInfo.length; i++) {
     for (var j = 0; j < expectedInfo[i].length; j++) {
-      final got = framesInfo[i][j];
-      final expected = expectedInfo[i][j];
-      Expect.equals(got.function, expected.function);
-      Expect.equals(got.inlined, expected.inlined);
-      Expect.equals(path.basename(got.filename), expected.filename);
-      if (expected.line > 0) {
-        Expect.equals(got.line, expected.line);
+      final DartCallInfo got = framesInfo[i][j];
+      final DartCallInfo expected = expectedInfo[i][j];
+      Expect.equals(expected.function, got.function);
+      Expect.equals(expected.inlined, got.inlined);
+      Expect.equals(expected.filename, path.basename(got.filename));
+      if (expected.isInternal) {
+        Expect.isTrue(got.isInternal);
       } else {
-        Expect.isTrue(got.line <= 0);
+        Expect.equals(expected.line, got.line);
       }
     }
   }
@@ -236,11 +235,13 @@ List<String> extractCallStrings(List<List<CallInfo>> expectedCalls) {
   var ret = <String>[];
   for (final frame in expectedCalls) {
     for (final call in frame) {
-      ret.add(call.function);
-      if (call.line > 0) {
-        ret.add("${call.filename}:${call.line}");
-      } else {
-        ret.add("${call.filename}:??");
+      if (call is DartCallInfo) {
+        ret.add(call.function);
+        if (call.isInternal) {
+          ret.add("${call.filename}:??");
+        } else {
+          ret.add("${call.filename}:${call.line}");
+        }
       }
     }
   }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- Adds handling of virtual addresses within stub code payloads.
+
 ## 0.2.2
 
 - Finds instruction sections by the dynamic symbols the Dart VM creates instead

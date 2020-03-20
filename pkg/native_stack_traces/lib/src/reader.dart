@@ -123,9 +123,10 @@ class Reader {
     return ret;
   }
 
-  Iterable<S> readRepeated<S>(S Function(Reader) callback) sync* {
+  Iterable<MapEntry<int, S>> readRepeated<S>(
+      S Function(Reader) callback) sync* {
     while (!done) {
-      yield callback(this);
+      yield MapEntry<int, S>(offset, callback(this));
     }
   }
 
@@ -156,7 +157,7 @@ class Reader {
   }
 
   String toString() {
-    final buffer = new StringBuffer();
+    final buffer = StringBuffer();
     buffer
       ..write("Start:  0x")
       ..write(paddedHex(start, wordSize))

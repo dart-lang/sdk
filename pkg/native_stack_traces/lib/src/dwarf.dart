@@ -174,16 +174,27 @@ class _Abbreviation {
     }
   }
 
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('    Tag: ')
+      ..writeln(_tagStrings[tag])
+      ..write('    Children: ')
+      ..writeln(children ? 'DW_CHILDREN_yes' : 'DW_CHILDREN_no')
+      ..writeln('    Attributes:');
+    for (final attribute in attributes) {
+      buffer
+        ..write('      ')
+        ..write(_attributeNameStrings[attribute.name])
+        ..write(': ')
+        ..writeln(_attributeFormStrings[attribute.form]);
+    }
+  }
+
   @override
   String toString() {
-    var ret = "    Tag: ${_tagStrings[tag]}\n"
-        "    Children: ${children ? "DW_CHILDREN_yes" : "DW_CHILDREN_no"}\n"
-        "    Attributes:\n";
-    for (final attribute in attributes) {
-      ret += "      ${_attributeNameStrings[attribute.name]}: "
-          "${_attributeFormStrings[attribute.form]}\n";
-    }
-    return ret;
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
   }
 }
 
@@ -214,12 +225,24 @@ class _AbbreviationsTable {
     }
   }
 
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer..writeln('Abbreviations table:')..writeln();
+    for (final key in _abbreviations.keys) {
+      buffer
+        ..write('  ')
+        ..write(key)
+        ..writeln(':');
+      _abbreviations[key].writeToStringBuffer(buffer);
+      buffer..writeln();
+    }
+  }
+
   @override
-  String toString() =>
-      "Abbreviations table:\n\n" +
-      _abbreviations.keys
-          .map((k) => "  Abbreviation $k:\n" + _abbreviations[k].toString())
-          .join("\n");
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }
 
 /// A DWARF Debug Information Entry (DIE).
@@ -356,7 +379,7 @@ class DebugInformationEntry {
         continue;
       }
       if (tag != _Tag.compileUnit) {
-        callInfo.add(CallInfo(
+        callInfo.add(DartCallInfo(
             function: abstractOrigin.name,
             inlined: inlined,
             filename: callFilename(unit.callFileIndex),
@@ -370,7 +393,7 @@ class DebugInformationEntry {
     final filename = lineNumberProgram.filename(address);
     final line = lineNumberProgram.lineNumber(address);
     return [
-      CallInfo(
+      DartCallInfo(
           function: abstractOrigin.name,
           inlined: inlined,
           filename: filename,
@@ -378,26 +401,51 @@ class DebugInformationEntry {
     ];
   }
 
-  @override
-  String toString() {
-    var ret =
-        "Abbreviated unit (code $code, offset ${paddedHex(_unitOffset)}):\n";
+  void writeToStringBuffer(StringBuffer buffer, {String indent = ''}) {
+    buffer
+      ..write(indent)
+      ..write('Abbreviated unit (code ')
+      ..write(code)
+      ..write(', offset ')
+      ..write(paddedHex(_unitOffset))
+      ..writeln('):');
     for (final attribute in attributes.keys) {
-      ret += "  ${_attributeNameStrings[attribute.name]} => "
-          "${_attributeValueToString(attribute, attributes[attribute])}\n";
+      buffer
+        ..write(indent)
+        ..write('  ')
+        ..write(_attributeNameStrings[attribute.name])
+        ..write(' => ')
+        ..writeln(_attributeValueToString(attribute, attributes[attribute]));
     }
     if (children == null || children.isEmpty) {
-      ret += "Has no children.\n\n";
-      return ret;
+      buffer
+        ..write(indent)
+        ..writeln('Has no children.');
+      return;
     }
-    ret += "Has ${children.length} " +
-        (children.length == 1 ? "child" : "children") +
-        "\n\n";
+    buffer
+      ..write(indent)
+      ..write('Has ')
+      ..write(children.length)
+      ..write(' ')
+      ..write(children.length == 1 ? "child" : "children")
+      ..writeln(':');
     for (int i = 0; i < children.length; i++) {
-      ret += "Child ${i} of unit at offset ${paddedHex(_unitOffset)}:\n";
-      ret += children[i].toString();
+      buffer
+        ..write(indent)
+        ..write('Child ')
+        ..write(i)
+        ..write(' of unit at offset ')
+        ..write(paddedHex(_unitOffset))
+        ..writeln(':');
+      children[i].writeToStringBuffer(buffer, indent: indent + '  ');
     }
-    return ret;
+  }
+
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
   }
 }
 
@@ -465,13 +513,28 @@ class CompilationUnit {
   _AbbreviationsTable get abbreviations =>
       _abbreviationsTables[abbreviationOffset];
 
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..writeln('Compilation unit:')
+      ..write('  Version: ')
+      ..writeln(version)
+      ..write('  Abbreviation offset: ')
+      ..writeln(paddedHex(abbreviationOffset, 4))
+      ..write('  Address size: ')
+      ..writeln(addressSize)
+      ..writeln();
+    for (final die in contents) {
+      die.writeToStringBuffer(buffer);
+      buffer.writeln();
+    }
+  }
+
   @override
-  String toString() =>
-      "Compilation unit:\n"
-          "  Version: $version\n"
-          "  Abbreviation offset: ${paddedHex(abbreviationOffset, 4)}\n"
-          "  Address size: $addressSize\n\n" +
-      contents.map((DebugInformationEntry u) => u.toString()).join();
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }
 
 /// A class representing a DWARF `.debug_info` section.
@@ -511,9 +574,18 @@ class DebugInfo {
     return null;
   }
 
-  String toString() =>
-      "Debug information:\n\n" +
-      units.map((CompilationUnit u) => u.toString()).join();
+  void writeToStringBuffer(StringBuffer buffer) {
+    for (final unit in units) {
+      unit.writeToStringBuffer(buffer);
+      buffer.writeln();
+    }
+  }
+
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }
 
 class FileEntry {
@@ -681,7 +753,7 @@ class LineNumberState {
       "  Column number: $column\n"
       "  Is ${isStatement ? "" : "not "}a statement.\n"
       "  Is ${basicBlock ? "" : "not "}at the beginning of a basic block.\n"
-      "  Is ${endSequence ? "" : "not "}just after the end of a sequence.\n";
+      "  Is ${endSequence ? "" : "not "}just after the end of a sequence.";
 }
 
 /// A class representing a DWARF line number program.
@@ -887,32 +959,40 @@ class LineNumberProgram {
     return state.line;
   }
 
-  @override
-  String toString() {
-    var buffer = StringBuffer("  Size: $size\n"
-        "  Version: $version\n"
-        "  Header length: $headerLength\n"
-        "  Min instruction length: $minimumInstructionLength\n"
-        "  Default value of is_stmt: $defaultIsStatement\n"
-        "  Line base: $lineBase\n"
-        "  Line range: $lineRange\n"
-        "  Opcode base: $opcodeBase\n"
-        "  Standard opcode lengths:\n");
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('  Size: ')
+      ..writeln(size)
+      ..write('  Version: ')
+      ..writeln(version)
+      ..write('  Header length: ')
+      ..writeln(headerLength)
+      ..write('  Min instruction length: ')
+      ..writeln(minimumInstructionLength)
+      ..write('  Default value of is_stmt: ')
+      ..writeln(defaultIsStatement)
+      ..write('  Line base: ')
+      ..writeln(lineBase)
+      ..write('  Line range: ')
+      ..writeln(lineRange)
+      ..write('  Opcode base: ')
+      ..writeln(opcodeBase)
+      ..writeln('Standard opcode lengths:');
     for (int i = 1; i < opcodeBase; i++) {
       buffer
-        ..write("    Opcode ")
+        ..write('    Opcode ')
         ..write(i)
-        ..write(": ")
+        ..write(': ')
         ..writeln(standardOpcodeLengths[i]);
     }
 
     if (includeDirectories.isEmpty) {
-      buffer.writeln("No include directories.");
+      buffer.writeln('No include directories.');
     } else {
-      buffer.writeln("Include directories:");
+      buffer.writeln('Include directories:');
       for (final dir in includeDirectories) {
         buffer
-          ..write("    ")
+          ..write('    ')
           ..writeln(dir);
       }
     }
@@ -921,9 +1001,13 @@ class LineNumberProgram {
 
     buffer.writeln("Results of line number program:");
     for (final state in calculatedMatrix) {
-      buffer..write(state);
+      buffer..writeln(state);
     }
+  }
 
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
     return buffer.toString();
   }
 }
@@ -955,13 +1039,20 @@ class LineNumberInfo {
   bool containsKey(int address) => programs.containsKey(address);
   LineNumberProgram operator [](int address) => programs[address];
 
-  String toString() =>
-      "Line number information:\n\n" +
-      programs
-          .map((int i, LineNumberProgram p) =>
-              MapEntry(i, "Line number program @ 0x${paddedHex(i)}:\n$p\n"))
-          .values
-          .join();
+  void writeToStringBuffer(StringBuffer buffer) {
+    for (final offset in programs.keys) {
+      buffer
+        ..write('Line number program @ 0x')
+        ..writeln(paddedHex(offset));
+      programs[offset].writeToStringBuffer(buffer);
+    }
+  }
+
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }
 
 // TODO(11617): Replace calls to these functions with a general hashing solution
@@ -978,22 +1069,35 @@ int _hashFinish(int hash) {
   return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
 }
 
-class CallInfo {
+/// Represents the information for a call site.
+abstract class CallInfo {
+  /// Whether this call site is considered internal (i.e. not located in either
+  /// user or library Dart source code).
+  bool get isInternal => true;
+}
+
+/// Represents the information for a call site located in Dart source code.
+class DartCallInfo extends CallInfo {
   final bool inlined;
   final String function;
   final String filename;
   final int line;
 
-  CallInfo({this.inlined = false, this.function, this.filename, this.line});
+  DartCallInfo({this.inlined = false, this.function, this.filename, this.line});
 
+  @override
+  bool get isInternal => line <= 0;
+
+  @override
   int get hashCode => _hashFinish(_hashCombine(
       _hashCombine(
           _hashCombine(_hashCombine(0, inlined.hashCode), function.hashCode),
           filename.hashCode),
       line.hashCode));
 
+  @override
   bool operator ==(Object other) {
-    if (other is CallInfo) {
+    if (other is DartCallInfo) {
       return inlined == other.inlined &&
           function == other.function &&
           filename == other.filename &&
@@ -1002,8 +1106,32 @@ class CallInfo {
     return false;
   }
 
+  @override
   String toString() =>
-      "${function} (${filename}:${line <= 0 ? "??" : line.toString()})";
+      "${function} (${filename}:${isInternal ? "??" : line.toString()})";
+}
+
+/// Represents the information for a call site located in a Dart stub.
+class StubCallInfo extends CallInfo {
+  final String name;
+  final int offset;
+
+  StubCallInfo({this.name, this.offset});
+
+  @override
+  int get hashCode => _hashFinish(
+      _hashCombine(_hashCombine(0, name.hashCode), offset.hashCode));
+
+  @override
+  bool operator ==(Object other) {
+    if (other is StubCallInfo) {
+      return name == other.name && offset == other.offset;
+    }
+    return false;
+  }
+
+  @override
+  String toString() => "${name} + ${offset}";
 }
 
 /// The instructions section in which a program counter address is located.
@@ -1042,14 +1170,15 @@ class PCOffset {
 
 /// The DWARF debugging information for a Dart snapshot.
 class Dwarf {
+  final Elf _elf;
   final Map<int, _AbbreviationsTable> _abbreviationTables;
   final DebugInfo _debugInfo;
   final LineNumberInfo _lineNumberInfo;
   final int _vmStartAddress;
   final int _isolateStartAddress;
 
-  Dwarf._(this._abbreviationTables, this._debugInfo, this._lineNumberInfo,
-      this._vmStartAddress, this._isolateStartAddress);
+  Dwarf._(this._elf, this._abbreviationTables, this._debugInfo,
+      this._lineNumberInfo, this._vmStartAddress, this._isolateStartAddress);
 
   /// Attempts to load the DWARF debugging information from the reader.
   ///
@@ -1072,8 +1201,8 @@ class Dwarf {
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
   static Dwarf fromFile(String path) => Dwarf.fromReader(Reader.fromFile(path));
 
-  static const String _vmSymbol = "_kDartVmSnapshotInstructions";
-  static const String _isolateSymbol = "_kDartIsolateSnapshotInstructions";
+  static const String _vmSymbolName = "_kDartVmSnapshotInstructions";
+  static const String _isolateSymbolName = "_kDartIsolateSnapshotInstructions";
 
   static Dwarf _loadSectionsFromElf(Elf elf) {
     final abbrevSection = elf.namedSections(".debug_abbrev").single;
@@ -1094,17 +1223,21 @@ class Dwarf {
     final debugInfo = DebugInfo.fromReader(
         infoSection.reader, abbreviationTables, lineNumberInfo);
 
-    final vmStartAddress = elf.namedAddress(_vmSymbol);
-    if (vmStartAddress == -1) {
-      throw FormatException("Expected a dynamic symbol with name ${_vmSymbol}");
-    }
-    final isolateStartAddress = elf.namedAddress(_isolateSymbol);
-    if (isolateStartAddress == -1) {
+    final vmStartSymbol = elf.dynamicSymbolFor(_vmSymbolName);
+    if (vmStartSymbol == null) {
       throw FormatException(
-          "Expected a dynamic symbol with name ${_isolateSymbol}");
+          "Expected a dynamic symbol with name ${_vmSymbolName}");
     }
+    final vmStartAddress = vmStartSymbol.value;
 
-    return Dwarf._(abbreviationTables, debugInfo, lineNumberInfo,
+    final isolateStartSymbol = elf.dynamicSymbolFor(_isolateSymbolName);
+    if (isolateStartSymbol == null) {
+      throw FormatException(
+          "Expected a dynamic symbol with name ${_isolateSymbolName}");
+    }
+    final isolateStartAddress = isolateStartSymbol.value;
+
+    return Dwarf._(elf, abbreviationTables, debugInfo, lineNumberInfo,
         vmStartAddress, isolateStartAddress);
   }
 
@@ -1116,9 +1249,19 @@ class Dwarf {
   /// to user or library code is returned.
   Iterable<CallInfo> callInfoFor(int address,
       {bool includeInternalFrames = false}) {
-    final calls = _debugInfo.callInfo(address);
+    var calls = _debugInfo.callInfo(address);
+    if (calls == null) {
+      // Since we're dealing with return addresses in stack frames, subtract
+      // one in case the return address is just off the end of the stub (since
+      // the calling instruction is before the return address).
+      final symbol = _elf.staticSymbolAt(address - 1);
+      if (symbol != null) {
+        final offset = address - symbol.value;
+        calls = <CallInfo>[StubCallInfo(name: symbol.name, offset: offset)];
+      }
+    }
     if (calls != null && !includeInternalFrames) {
-      return calls.where((CallInfo c) => c.line > 0);
+      return calls.where((CallInfo c) => !c.isInternal);
     }
     return calls;
   }
@@ -1135,13 +1278,42 @@ class Dwarf {
     }
   }
 
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..writeln('----------------------------------------')
+      ..writeln('         Abbreviation tables')
+      ..writeln('----------------------------------------')
+      ..writeln();
+    for (final offset in _abbreviationTables.keys) {
+      buffer..write('(Offset ')..write(paddedHex(offset, 4))..write(') ');
+      _abbreviationTables[offset].writeToStringBuffer(buffer);
+    }
+    buffer
+      ..writeln('----------------------------------------')
+      ..writeln('          Debug information')
+      ..writeln('----------------------------------------')
+      ..writeln();
+    _debugInfo.writeToStringBuffer(buffer);
+    buffer
+      ..writeln('----------------------------------------')
+      ..writeln('        Line number information')
+      ..writeln('----------------------------------------')
+      ..writeln();
+    _lineNumberInfo.writeToStringBuffer(buffer);
+  }
+
+  String dumpFileInfo() {
+    final buffer = StringBuffer();
+    _elf.writeToStringBuffer(buffer);
+    buffer.writeln();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
+
   @override
-  String toString() =>
-      "DWARF debugging information:\n\n" +
-      _abbreviationTables
-          .map((int i, _AbbreviationsTable t) =>
-              MapEntry(i, "(Offset ${paddedHex(i)}) $t"))
-          .values
-          .join() +
-      "\n$_debugInfo\n$_lineNumberInfo";
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }

@@ -10,36 +10,36 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as path;
 import 'package:native_stack_traces/native_stack_traces.dart';
 
-final ArgParser _translateParser = ArgParser(allowTrailingOptions: true)
+ArgParser _createBaseDebugParser(ArgParser parser) => parser
   ..addOption('debug',
       abbr: 'd',
       help: 'Filename containing debugging information (REQUIRED)',
       valueHelp: 'FILE')
-  ..addOption('input',
-      abbr: 'i', help: 'Filename for processed input', valueHelp: 'FILE')
-  ..addOption('output',
-      abbr: 'o', help: 'Filename for generated output', valueHelp: 'FILE')
-  ..addFlag('verbose',
-      abbr: 'v',
-      negatable: false,
-      help: 'Translate all frames, not just user or library code frames');
-
-final ArgParser _findParser = ArgParser(allowTrailingOptions: true)
-  ..addOption('debug',
-      abbr: 'd',
-      help: 'Filename containing debugging information (REQUIRED)',
-      valueHelp: 'FILE')
-  ..addMultiOption('location',
-      abbr: 'l', help: 'PC address to find', valueHelp: 'PC')
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
       help: 'Translate all frames, not just user or library code frames')
-  ..addOption('vm_start',
-      help: 'Absolute address for start of VM instructions', valueHelp: 'PC')
-  ..addOption('isolate_start',
-      help: 'Absolute address for start of isolate instructions',
-      valueHelp: 'PC');
+  ..addFlag('dump_debug_file_contents',
+      negatable: false,
+      help: 'Dump all the parsed information from the debugging file');
+
+final ArgParser _translateParser =
+    _createBaseDebugParser(ArgParser(allowTrailingOptions: true))
+      ..addOption('input',
+          abbr: 'i', help: 'Filename for processed input', valueHelp: 'FILE')
+      ..addOption('output',
+          abbr: 'o', help: 'Filename for generated output', valueHelp: 'FILE');
+
+final ArgParser _findParser =
+    _createBaseDebugParser(ArgParser(allowTrailingOptions: true))
+      ..addMultiOption('location',
+          abbr: 'l', help: 'PC address to find', valueHelp: 'PC')
+      ..addOption('vm_start',
+          help: 'Absolute address for start of VM instructions',
+          valueHelp: 'PC')
+      ..addOption('isolate_start',
+          help: 'Absolute address for start of isolate instructions',
+          valueHelp: 'PC');
 
 final ArgParser _helpParser = ArgParser(allowTrailingOptions: true);
 
@@ -141,14 +141,34 @@ void help(ArgResults options) {
   }
 }
 
+Dwarf _loadFromFile(String original, Function(String) usageError) {
+  if (original == null) {
+    usageError('must provide -d/--debug');
+    return null;
+  }
+  final filename = path.canonicalize(path.normalize(original));
+  if (!io.File(filename).existsSync()) {
+    usageError('debug file "$original" does not exist');
+    return null;
+  }
+  final dwarf = Dwarf.fromFile(filename);
+  if (dwarf == null) {
+    usageError('file "$original" does not contain debugging information');
+  }
+  return dwarf;
+}
+
 void find(ArgResults options) {
   void usageError(String message) => errorWithUsage(message, command: 'find');
   int convertAddress(String s) => int.tryParse(s, radix: 16);
 
-  if (options['debug'] == null) {
-    return usageError('must provide -d/--debug');
+  final dwarf = _loadFromFile(options['debug'], usageError);
+  if (dwarf == null) {
+    return;
   }
-  final dwarf = Dwarf.fromFile(options['debug']);
+  if (options['dump_debug_file_contents']) {
+    print(dwarf.dumpFileInfo());
+  }
   final verbose = options['verbose'];
 
   int vm_start;
@@ -215,11 +235,13 @@ Future<void> translate(ArgResults options) async {
   void usageError(String message) =>
       errorWithUsage(message, command: 'translate');
 
-  if (options['debug'] == null) {
-    return usageError('must provide -d/--debug');
+  final dwarf = _loadFromFile(options['debug'], usageError);
+  if (dwarf == null) {
+    return;
   }
-  final dwarf =
-      Dwarf.fromFile(path.canonicalize(path.normalize(options['debug'])));
+  if (options['dump_debug_file_contents']) {
+    print(dwarf.dumpFileInfo());
+  }
 
   final verbose = options['verbose'];
   final output = options['output'] != null

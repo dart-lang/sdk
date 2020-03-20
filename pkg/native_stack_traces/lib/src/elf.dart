@@ -189,29 +189,42 @@ class ElfHeader {
     }
   }
 
-  String toString() {
-    var ret = "Format is ${wordSize * 8} bits\n";
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer..write('Format is ')..write(wordSize * 8)..write(' bits');
     switch (endian) {
       case Endian.little:
-        ret += "Little-endian format\n";
+        buffer..writeln(' and little-endian');
         break;
       case Endian.big:
-        ret += "Big-endian format\n";
+        buffer..writeln(' and big-endian');
         break;
     }
-    ret += "Entry point: 0x${paddedHex(entry, wordSize)}\n"
-        "Flags: 0x${paddedHex(flags, 4)}\n"
-        "Header size: ${headerSize}\n"
-        "Program header offset: "
-        "0x${paddedHex(programHeaderOffset, wordSize)}\n"
-        "Program header entry size: ${programHeaderEntrySize}\n"
-        "Program header entry count: ${programHeaderCount}\n"
-        "Section header offset: "
-        "0x${paddedHex(sectionHeaderOffset, wordSize)}\n"
-        "Section header entry size: ${sectionHeaderEntrySize}\n"
-        "Section header entry count: ${sectionHeaderCount}\n"
-        "Section header strings index: ${sectionHeaderStringsIndex}\n";
-    return ret;
+    buffer
+      ..write('Entry point: 0x')
+      ..writeln(paddedHex(entry, wordSize))
+      ..write('Flags: 0x')
+      ..writeln(paddedHex(flags, 4))
+      ..write('Program header offset: 0x')
+      ..writeln(paddedHex(programHeaderOffset, wordSize))
+      ..write('Program header entry size: ')
+      ..writeln(programHeaderEntrySize)
+      ..write('Program header entry count: ')
+      ..writeln(programHeaderCount)
+      ..write('Section header offset: 0x')
+      ..writeln(paddedHex(sectionHeaderOffset, wordSize))
+      ..write('Section header entry size: ')
+      ..writeln(sectionHeaderEntrySize)
+      ..write('Section header entry count: ')
+      ..writeln(sectionHeaderCount)
+      ..write('Section header strings index: ')
+      ..write(sectionHeaderStringsIndex);
+  }
+
+  @override
+  String toString() {
+    var buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
   }
 }
 
@@ -269,14 +282,31 @@ class ProgramHeaderEntry {
     return "unknown (${paddedHex(type, 4)})";
   }
 
-  String toString() => "Type: ${_typeToString(type)}\n"
-      "Flags: 0x${paddedHex(flags, 4)}\n"
-      "Offset: $offset (0x${paddedHex(offset, reader.wordSize)})\n"
-      "Virtual address: 0x${paddedHex(vaddr, reader.wordSize)}\n"
-      "Physical address: 0x${paddedHex(paddr, reader.wordSize)}\n"
-      "Size in file: $filesz\n"
-      "Size in memory: $memsz\n"
-      "Alignment: 0x${paddedHex(align, reader.wordSize)}\n";
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('Type: ')
+      ..writeln(_typeToString(type))
+      ..write('Flags: 0x')
+      ..writeln(paddedHex(flags, 4))
+      ..write('Offset: 0x')
+      ..writeln(paddedHex(offset, reader.wordSize))
+      ..write('Virtual address: 0x')
+      ..writeln(paddedHex(vaddr, reader.wordSize))
+      ..write('Physical address: 0x')
+      ..writeln(paddedHex(paddr, reader.wordSize))
+      ..write('Size in file: ')
+      ..writeln(filesz)
+      ..write('Size in memory')
+      ..writeln(memsz)
+      ..write('Alignment: 0x')
+      ..write(paddedHex(align, reader.wordSize));
+  }
+
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }
 
 class ProgramHeader {
@@ -303,12 +333,21 @@ class ProgramHeader {
     }
   }
 
-  String toString() {
-    var ret = "";
+  void writeToStringBuffer(StringBuffer buffer) {
     for (var i = 0; i < length; i++) {
-      ret += "Entry $i:\n${this[i]}\n";
+      if (i != 0) buffer..writeln()..writeln();
+      buffer
+        ..write('Entry ')
+        ..write(i)
+        ..writeln(':');
+      _entries[i].writeToStringBuffer(buffer);
     }
-    return ret;
+  }
+
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
   }
 }
 
@@ -316,7 +355,7 @@ class SectionHeaderEntry {
   final Reader reader;
 
   int nameIndex;
-  String name;
+  String _cachedName;
   int type;
   int flags;
   int addr;
@@ -356,8 +395,10 @@ class SectionHeaderEntry {
   }
 
   void setName(StringTable nameTable) {
-    name = nameTable[nameIndex];
+    _cachedName = nameTable[nameIndex];
   }
+
+  String get name => _cachedName != null ? _cachedName : '<${nameIndex}>';
 
   static const _typeStrings = <int, String>{
     _SHT_NULL: "SHT_NULL",
@@ -377,16 +418,44 @@ class SectionHeaderEntry {
     return "unknown (${paddedHex(type, 4)})";
   }
 
-  String toString() => "Name: ${name} (@ ${nameIndex})\n"
-      "Type: ${_typeToString(type)}\n"
-      "Flags: 0x${paddedHex(flags, reader.wordSize)}\n"
-      "Address: 0x${paddedHex(addr, reader.wordSize)}\n"
-      "Offset: $offset (0x${paddedHex(offset, reader.wordSize)})\n"
-      "Size: $size\n"
-      "Link: $link\n"
-      "Info: 0x${paddedHex(info, 4)}\n"
-      "Address alignment: 0x${paddedHex(addrAlign, reader.wordSize)}\n"
-      "Entry size: ${entrySize}\n";
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer.write('Name: ');
+    if (_cachedName != null) {
+      buffer
+        ..write('"')
+        ..write(name)
+        ..write('" (@ ')
+        ..write(nameIndex)
+        ..writeln(')');
+    } else {
+      buffer.writeln(name);
+    }
+    buffer
+      ..write('Type: ')
+      ..writeln(_typeToString(type))
+      ..write('Flags: 0x')
+      ..writeln(paddedHex(flags, reader.wordSize))
+      ..write('Address: 0x')
+      ..writeln(paddedHex(addr, reader.wordSize))
+      ..write('Offset: 0x')
+      ..writeln(paddedHex(offset, reader.wordSize))
+      ..write('Size: ')
+      ..writeln(size)
+      ..write('Link: ')
+      ..writeln(link)
+      ..write('Info: 0x')
+      ..writeln(paddedHex(info, 4))
+      ..write('Address alignment: 0x')
+      ..writeln(paddedHex(addrAlign, reader.wordSize))
+      ..write('Entry size: ')
+      ..write(entrySize);
+  }
+
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }
 
 class SectionHeader {
@@ -436,13 +505,22 @@ class SectionHeader {
   int get length => _entries.length;
   SectionHeaderEntry operator [](int index) => _entries[index];
 
+  void writeToStringBuffer(StringBuffer buffer) {
+    for (var i = 0; i < length; i++) {
+      if (i != 0) buffer..writeln()..writeln();
+      buffer
+        ..write('Entry ')
+        ..write(i)
+        ..writeln(':');
+      _entries[i].writeToStringBuffer(buffer);
+    }
+  }
+
   @override
   String toString() {
-    var ret = "";
-    for (var i = 0; i < length; i++) {
-      ret += "Entry $i:\n${this[i]}\n";
-    }
-    return ret;
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
   }
 }
 
@@ -467,33 +545,48 @@ class Section {
 
   int get virtualAddress => headerEntry.addr;
   int get length => reader.bdata.lengthInBytes;
+
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('Section "')
+      ..write(headerEntry.name)
+      ..write('" is unparsed and ')
+      ..write(length)
+      ..writeln(' bytes long.');
+  }
+
   @override
-  String toString() => "an unparsed section of ${length} bytes\n";
+  String toString() {
+    StringBuffer buffer;
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }
 
 class StringTable extends Section {
-  final _entries = Map<int, String>();
+  final _entries;
 
-  StringTable(SectionHeaderEntry entry, Reader reader) : super(entry, reader) {
-    while (!reader.done) {
-      _entries[reader.offset] = reader.readNullTerminatedString();
-    }
-  }
+  StringTable(SectionHeaderEntry entry, Reader reader)
+      : _entries = Map<int, String>.fromEntries(
+            reader.readRepeated((r) => r.readNullTerminatedString())),
+        super(entry, reader);
 
   String operator [](int index) => _entries[index];
   bool containsKey(int index) => _entries.containsKey(index);
 
   @override
-  String toString() {
-    var buffer = StringBuffer("a string table:\n");
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('Section "')
+      ..write(headerEntry.name)
+      ..writeln('" is a string table:');
     for (var key in _entries.keys) {
       buffer
-        ..write(" ")
+        ..write("  ")
         ..write(key)
         ..write(" => ")
         ..writeln(_entries[key]);
     }
-    return buffer.toString();
   }
 }
 
@@ -562,37 +655,59 @@ class Symbol {
   SymbolType get type => SymbolType.values[info & 0x0f];
   SymbolVisibility get visibility => SymbolVisibility.values[other & 0x03];
 
-  @override
-  String toString() {
-    final buffer = StringBuffer("symbol ");
+  void writeToStringBuffer(StringBuffer buffer) {
     if (name != null) {
-      buffer..write('"')..write(name)..write('" ');
+      buffer..write('"')..write(name)..write('" =>');
+    } else {
+      buffer..write('<')..write(nameIndex)..write('> =>');
+    }
+    switch (bind) {
+      case SymbolBinding.STB_GLOBAL:
+        buffer..write(' a global');
+        break;
+      case SymbolBinding.STB_LOCAL:
+        buffer..write(' a local');
+        break;
+    }
+    switch (visibility) {
+      case SymbolVisibility.STV_DEFAULT:
+        break;
+      case SymbolVisibility.STV_HIDDEN:
+        buffer..write(' hidden');
+        break;
+      case SymbolVisibility.STV_INTERNAL:
+        buffer..write(' internal');
+        break;
+      case SymbolVisibility.STV_PROTECTED:
+        buffer..write(' protected');
+        break;
     }
     buffer
-      ..write("(")
-      ..write(nameIndex)
-      ..write("): ")
-      ..write(paddedHex(value, _wordSize))
-      ..write(" ")
+      ..write(" symbol that points to ")
       ..write(size)
-      ..write(" sec ")
-      ..write(sectionIndex)
-      ..write(" ")
-      ..write(bind)
-      ..write(" ")
-      ..write(type)
-      ..write(" ")
-      ..write(visibility);
+      ..write(" bytes at location 0x")
+      ..write(paddedHex(value, _wordSize))
+      ..write(" in section ")
+      ..write(sectionIndex);
+  }
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
     return buffer.toString();
   }
 }
 
 class SymbolTable extends Section {
-  final Iterable<Symbol> _entries;
+  final List<Symbol> _entries;
   final _nameCache = Map<String, Symbol>();
 
   SymbolTable(SectionHeaderEntry entry, Reader reader)
-      : _entries = reader.readRepeated(Symbol.fromReader),
+      : _entries = reader
+            .readRepeated(Symbol.fromReader)
+            .map((kv) => kv.value)
+            .toList(),
         super(entry, reader);
 
   void _cacheNames(StringTable stringTable) {
@@ -603,18 +718,21 @@ class SymbolTable extends Section {
     }
   }
 
+  Iterable<String> get keys => _nameCache.keys;
   Symbol operator [](String name) => _nameCache[name];
   bool containsKey(String name) => _nameCache.containsKey(name);
 
   @override
-  String toString() {
-    var buffer = StringBuffer("a symbol table:\n");
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('Section "')
+      ..write(headerEntry.name)
+      ..writeln('" is a symbol table:');
     for (var symbol in _entries) {
-      buffer
-        ..write(" ")
-        ..writeln(symbol);
+      buffer.write(" ");
+      symbol.writeToStringBuffer(buffer);
+      buffer.writeln();
     }
-    return buffer.toString();
   }
 }
 
@@ -647,16 +765,16 @@ class Elf {
   /// Returns null if the file does not start with the ELF magic number.
   static Elf fromFile(String path) => Elf.fromReader(Reader.fromFile(path));
 
-  /// The virtual address value of the dynamic symbol named [name].
+  /// Lookup of a dynamic symbol by name.
   ///
-  /// Returns -1 if there is no dynamic symbol with that name.
-  int namedAddress(String name) {
+  /// Returns -1 if there is no dynamic symbol that matches [name].
+  Symbol dynamicSymbolFor(String name) {
     for (final SymbolTable dynsym in namedSections(".dynsym")) {
       if (dynsym.containsKey(name)) {
-        return dynsym[name].value;
+        return dynsym[name];
       }
     }
-    return -1;
+    return null;
   }
 
   /// The [Section]s whose names match [name].
@@ -664,6 +782,20 @@ class Elf {
     return _sections.keys
         .where((entry) => entry.name == name)
         .map((entry) => _sections[entry]);
+  }
+
+  /// Reverse lookup of the static symbol that contains the given virtual
+  /// address. Returns null if no static symbol matching the address is found.
+  Symbol staticSymbolAt(int address) {
+    for (final SymbolTable table in namedSections('.symtab')) {
+      for (final name in table.keys) {
+        final symbol = table[name];
+        if (symbol.value <= address && address < (symbol.value + symbol.size)) {
+          return symbol;
+        }
+      }
+    }
+    return null;
   }
 
   static Elf _read(Reader startingReader) {
@@ -681,48 +813,81 @@ class Elf {
         entryCount: header.sectionHeaderCount,
         stringsIndex: header.sectionHeaderStringsIndex);
     final sections = <SectionHeaderEntry, Section>{};
-    final dynsyms = Map<SectionHeaderEntry, SymbolTable>();
-    final dynstrs = Map<SectionHeaderEntry, StringTable>();
     for (var i = 0; i < sectionHeader.length; i++) {
       final entry = sectionHeader[i];
       if (i == header.sectionHeaderStringsIndex) {
         sections[entry] = sectionHeader.nameTable;
         continue;
       }
-      final section = Section.fromEntryAndReader(
+      sections[entry] = Section.fromEntryAndReader(
           entry, reader.refocus(entry.offset, entry.size));
-      // Store the dynamic symbol tables and dynamic string tables so we can
-      // cache the symbol names afterwards.
-      switch (entry.name) {
-        case ".dynsym":
-          dynsyms[entry] = section;
-          break;
-        case ".dynstr":
-          dynstrs[entry] = section;
-          break;
-        default:
-          break;
-      }
-      sections[entry] = section;
     }
-    dynsyms.forEach((entry, dynsym) {
-      final linkEntry = sectionHeader[entry.link];
-      if (!dynstrs.containsKey(linkEntry)) {
-        throw FormatException(
-            "String table not found at section header entry ${entry.link}");
+    void _cacheSymbolNames(String stringTableTag, String symbolTableTag) {
+      final stringTables = <SectionHeaderEntry, StringTable>{};
+      final symbolTables = <SymbolTable>[];
+      for (final entry in sections.keys) {
+        if (entry.name == stringTableTag) {
+          stringTables[entry] = sections[entry];
+        } else if (entry.name == symbolTableTag) {
+          symbolTables.add(sections[entry]);
+        }
       }
-      dynsym._cacheNames(dynstrs[linkEntry]);
-    });
+      for (final symbolTable in symbolTables) {
+        final link = symbolTable.headerEntry.link;
+        final entry = sectionHeader[link];
+        if (!stringTables.containsKey(entry)) {
+          throw FormatException(
+              "String table not found at section header entry ${link}");
+        }
+        symbolTable._cacheNames(stringTables[entry]);
+      }
+    }
+
+    _cacheSymbolNames('.strtab', '.symtab');
+    _cacheSymbolNames('.dynstr', '.dynsym');
     return Elf._(header, programHeader, sectionHeader, sections);
+  }
+
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..writeln('-----------------------------------------------------')
+      ..writeln('             ELF header information')
+      ..writeln('-----------------------------------------------------')
+      ..writeln();
+    _header.writeToStringBuffer(buffer);
+    buffer
+      ..writeln()
+      ..writeln()
+      ..writeln('-----------------------------------------------------')
+      ..writeln('            Program header information')
+      ..writeln('-----------------------------------------------------')
+      ..writeln();
+    _programHeader.writeToStringBuffer(buffer);
+    buffer
+      ..writeln()
+      ..writeln()
+      ..writeln('-----------------------------------------------------')
+      ..writeln('            Section header information')
+      ..writeln('-----------------------------------------------------')
+      ..writeln();
+    _sectionHeader.writeToStringBuffer(buffer);
+    buffer
+      ..writeln()
+      ..writeln()
+      ..writeln('-----------------------------------------------------')
+      ..writeln('                 Section information')
+      ..writeln('-----------------------------------------------------')
+      ..writeln();
+    for (final entry in _sections.keys) {
+      _sections[entry].writeToStringBuffer(buffer);
+      buffer.writeln();
+    }
   }
 
   @override
   String toString() {
-    String accumulateSection(String acc, SectionHeaderEntry entry) =>
-        acc + "\nSection ${entry.name} is ${_sections[entry]}";
-    return "Header information:\n\n${_header}"
-        "\nProgram header information:\n\n${_programHeader}"
-        "\nSection header information:\n\n${_sectionHeader}"
-        "${_sections.keys.fold("", accumulateSection)}";
+    StringBuffer buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
   }
 }
