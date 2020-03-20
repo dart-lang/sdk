@@ -47,25 +47,37 @@ preview of the proposed null safety changes.
 
 ## Using the tool
 
-1. run the tool (see above)
-2. once analysis completes, open the indicated url in a browser
-3. browse around the migration preview page, verifying changes and following links to
-   see why some changes were made
-4. if you disagree with some changes (too many items made nullable?), locate the source
-  reason why the change(s) were made, and either:
-  1. edit the source file in your IDE, adding a hint to the migration tool about how
-     to migrate that type and its uses (`String foo` ==> `String/*!*/ foo`)
-  2. or, have the migration tool perform this itself; from the 'Edit Details' area in
-     the bottom right, select the `Force type to be non-nullable` or `Force type to be
-     nullable` links. These will perform the indicated changes on disk and re-run
-     analysis.
-5. if you use step 4.2 above, the migration tool will automatically re-perform the 
-   migration analysis. If you make manual changes to the files in an IDE, you'll need
-   to close the migration tool, and re-perform analysis yourself (loop back to step 1)
-6. Once you're happy with the migration results you can apply the proposed changes to
-   disk. You can do this directly from the tool (the 'Apply Migration' button in the
-   upper right), or, close the tool and re-run from the command line with the
-   `--apply-changes` command line argument.
+1. Run the tool (see above).
+2. Once analysis and migration suggestions are complete, open the indicated url
+in a browser.
+3. Start with an important or interesting file in your package on the left
+side by clicking on it.
+4. Look at the proposed edits in the upper right, and click on them in turn.
+5. If you see an edit that looks wrong:
+    1. Use the "trace view" in the bottom right to find the root cause
+    2. Go to your editor and make a change to the original file by adding a hint
+    (`String foo` ==> `String/*!*/ foo`) or making other changes as needed.
+    3. You can have the migration tool perform this itself, although right now
+       for large packages this takes a prohibitively long time.
+       1. ***Warning: DO NOT mix edits in your editor and edits applied by the
+       migration tool. We have not yet written the necessary logic to
+       prevent the migration tool from clobbering files edited while the
+       preview tool is running.*** 
+       2. To try this, from the 'Edit Details' area in the bottom right select
+       the `Force type to be non-nullable` or `Force type to be nullable`
+       links. These will add the indicated hints on disk and recompute the
+       migration suggestions. 
+6. After some edits are complete, control-C the migration and rerun it.  If
+some things are still wrong, return to step 5.
+7. Once all edits are complete and you've rerun migration and are satisfied with
+the output:
+    1. Save your work using git or other means. Applying the migration will
+    overwrite the existing files on disk.
+    2. Rerun the migration with `--apply-changes`, or click the
+    `Apply Migration` button in the interface.
+8. Remove any SDK constraint in your pubspec.yaml.
+9. Remove any opt-out comments in your library files (e.g.:  `// @dart = 2.6`).
+10. Rerun `pub get` and test your package.
 
 ## Providing feedback
 
