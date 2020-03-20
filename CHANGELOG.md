@@ -207,6 +207,9 @@ The Linter was updated to `0.1.113`, which includes:
 
 #### Pub
 
+* Added `pub outdated` command which lists outdated package dependencies, and
+  gives advice on how to upgrade.
+
 * `pub get` and `pub upgrade` now fetches version information about hosted
   dependencies in parallel, improving the time package resolution performance.
 
@@ -219,13 +222,19 @@ The Linter was updated to `0.1.113`, which includes:
 * Importing packages not in `pubspec.yaml` now causes `pub publish` to reject
   the package.
 
+* `pub publish` no longer requires the presence of a `homepage` field, if the
+  `repository` field is provided.
+
+* `pub publish` will now warn if non-pre-release packages depends on pre-release
+  packages or pre-release Dart SDKs.
+
 * Relative paths in `pubspec.lock` are now using `/` also on Windows to make
   the file sharable between machines.
 
 * Fixed language version in [`.dart_tool/package_config.json`](https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/package-config-file-v2.md)
   for packages without an explicit sdk constraint.
 
-  Now writes an empty language-version while efore the language version of the
+  Now writes an empty language-version while before the language version of the
   current sdk would be used.
 
 * `%LOCALAPPDATA%` is now preferred over `%APPDATA%` when creating a pub cache
