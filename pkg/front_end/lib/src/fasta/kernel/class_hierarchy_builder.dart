@@ -1353,7 +1353,8 @@ class ClassHierarchyNodeBuilder {
     assert(!classBuilder.isPatch);
     ClassHierarchyNode supernode;
     if (objectClass != classBuilder.origin) {
-      supernode = hierarchy.getNodeFromTypeBuilder(classBuilder.supertype);
+      supernode =
+          hierarchy.getNodeFromTypeBuilder(classBuilder.supertypeBuilder);
       if (supernode == null) {
         supernode = hierarchy.getNodeFromClassBuilder(objectClass);
       }
@@ -1362,11 +1363,12 @@ class ClassHierarchyNodeBuilder {
 
     Scope scope = classBuilder.scope;
     if (classBuilder.isMixinApplication) {
-      TypeDeclarationBuilder mixin = classBuilder.mixedInType.declaration;
+      TypeDeclarationBuilder mixin =
+          classBuilder.mixedInTypeBuilder.declaration;
       inferMixinApplication();
       while (mixin.isNamedMixinApplication) {
         ClassBuilder named = mixin;
-        mixin = named.mixedInType.declaration;
+        mixin = named.mixedInTypeBuilder.declaration;
       }
       if (mixin is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = mixin;
@@ -1479,7 +1481,7 @@ class ClassHierarchyNodeBuilder {
       maxInheritancePath = supernode.maxInheritancePath + 1;
 
       superclasses = new List<Supertype>(supernode.superclasses.length + 1);
-      Supertype supertype = classBuilder.supertype.buildSupertype(
+      Supertype supertype = classBuilder.supertypeBuilder.buildSupertype(
           classBuilder.library, classBuilder.charOffset, classBuilder.fileUri);
       if (supertype == null) {
         // If the superclass is not an interface type we use Object instead.
@@ -1499,13 +1501,16 @@ class ClassHierarchyNodeBuilder {
       }
 
       List<TypeBuilder> directInterfaceBuilders =
-          ignoreFunction(classBuilder.interfaces);
+          ignoreFunction(classBuilder.interfaceBuilders);
       if (classBuilder.isMixinApplication) {
         if (directInterfaceBuilders == null) {
-          directInterfaceBuilders = <TypeBuilder>[classBuilder.mixedInType];
+          directInterfaceBuilders = <TypeBuilder>[
+            classBuilder.mixedInTypeBuilder
+          ];
         } else {
-          directInterfaceBuilders = <TypeBuilder>[classBuilder.mixedInType]
-            ..addAll(directInterfaceBuilders);
+          directInterfaceBuilders = <TypeBuilder>[
+            classBuilder.mixedInTypeBuilder
+          ]..addAll(directInterfaceBuilders);
         }
       }
 
@@ -2157,7 +2162,7 @@ class ClassHierarchyNodeBuilder {
       inferredArguments[i] =
           hierarchy.loader.computeTypeBuilder(typeArguments[i]);
     }
-    NamedTypeBuilder mixedInTypeBuilder = classBuilder.mixedInType;
+    NamedTypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
     mixedInTypeBuilder.arguments = inferredArguments;
   }
 

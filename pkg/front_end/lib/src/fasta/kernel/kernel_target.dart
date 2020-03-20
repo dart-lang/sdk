@@ -278,11 +278,11 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype =
+    builder.supertypeBuilder =
         new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null)
           ..bind(objectClassBuilder);
-    builder.interfaces = null;
-    builder.mixedInType = null;
+    builder.interfaceBuilders = null;
+    builder.mixedInTypeBuilder = null;
   }
 
   @override
@@ -423,12 +423,12 @@ class KernelTarget extends TargetImplementation {
             Class cls = declaration.cls;
             if (cls != objectClass) {
               cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertype ??= new NamedTypeBuilder(
+              declaration.supertypeBuilder ??= new NamedTypeBuilder(
                   "Object", const NullabilityBuilder.omitted(), null)
                 ..bind(objectClassBuilder);
             }
             if (declaration.isMixinApplication) {
-              cls.mixedInType = declaration.mixedInType.buildMixedInType(
+              cls.mixedInType = declaration.mixedInTypeBuilder.buildMixedInType(
                   library, declaration.charOffset, declaration.fileUri);
             }
           }
@@ -517,7 +517,7 @@ class KernelTarget extends TargetImplementation {
     /// >that is accessible to LM , C has an implicitly declared constructor
     /// >named q'i = [C/S]qi of the form q'i(ai1,...,aiki) :
     /// >super(ai1,...,aiki);.
-    TypeBuilder type = builder.supertype;
+    TypeBuilder type = builder.supertypeBuilder;
     TypeDeclarationBuilder supertype;
     if (type is NamedTypeBuilder) {
       supertype = type.declaration;

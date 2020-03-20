@@ -2937,6 +2937,15 @@ const MessageCode messageExpressionNotMetadata = const MessageCode(
         r"""This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtendFunction = messageExtendFunction;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtendFunction = const MessageCode("ExtendFunction",
+    severity: Severity.warning,
+    message: r"""Extending 'Function' is deprecated.""",
+    tip: r"""Try removing 'Function' from the 'extends' clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateExtendingEnum =
     const Template<Message Function(String name)>(
         messageTemplate:
@@ -3948,6 +3957,16 @@ const Code<Null> codeIllegalSyncGeneratorVoidReturnType =
 const MessageCode messageIllegalSyncGeneratorVoidReturnType = const MessageCode(
     "IllegalSyncGeneratorVoidReturnType",
     message: r"""Functions marked 'sync*' can't have return type 'void'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImplementFunction = messageImplementFunction;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImplementFunction = const MessageCode(
+    "ImplementFunction",
+    severity: Severity.warning,
+    message: r"""Implementing 'Function' is deprecated.""",
+    tip: r"""Try removing 'Function' from the 'implements' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImplementsBeforeExtends = messageImplementsBeforeExtends;
@@ -5833,6 +5852,15 @@ const MessageCode messageMixinDeclaresConstructor = const MessageCode(
     "MixinDeclaresConstructor",
     index: 95,
     message: r"""Mixins can't declare constructors.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinFunction = messageMixinFunction;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
+    severity: Severity.warning,
+    message: r"""Mixing in 'Function' is deprecated.""",
+    tip: r"""Try removing 'Function' from the 'with' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

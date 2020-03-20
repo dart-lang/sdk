@@ -75,6 +75,8 @@ import '../fasta_codes.dart'
     show
         Message,
         noLength,
+        messageExtendFunction,
+        messageImplementFunction,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
@@ -138,7 +140,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
-  TypeBuilder mixedInType;
+  TypeBuilder mixedInTypeBuilder;
 
   bool isMixinDeclaration;
 
@@ -163,7 +165,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Class referencesFrom,
     IndexedClass referencesFromIndexed, {
     Class cls,
-    this.mixedInType,
+    this.mixedInTypeBuilder,
     this.isMixinDeclaration = false,
   })  : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFrom),
@@ -210,9 +212,19 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     scope.forEach(buildBuilders);
     constructors.forEach(buildBuilders);
-    supertype = checkSupertype(supertype);
-    actualCls.supertype =
-        supertype?.buildSupertype(library, charOffset, fileUri);
+    supertypeBuilder = checkSupertype(supertypeBuilder);
+    Supertype supertype =
+        supertypeBuilder?.buildSupertype(library, charOffset, fileUri);
+    if (supertype != null) {
+      Class superclass = supertype.classNode;
+      if (superclass.name == 'Function' &&
+          superclass.enclosingLibrary == coreLibrary.library) {
+        library.addProblem(
+            messageExtendFunction, charOffset, noLength, fileUri);
+        supertype = null;
+        supertypeBuilder = null;
+      }
+    }
     if (!isMixinDeclaration &&
         actualCls.supertype != null &&
         actualCls.superclass.isMixinDeclaration) {
@@ -225,27 +237,38 @@ class SourceClassBuilder extends ClassBuilderImpl
           charOffset,
           noLength,
           fileUri);
-      actualCls.supertype = null;
-    }
-    if (actualCls.supertype == null && supertype is! NamedTypeBuilder) {
       supertype = null;
     }
-    mixedInType = checkSupertype(mixedInType);
+    if (supertype == null && supertypeBuilder is! NamedTypeBuilder) {
+      supertypeBuilder = null;
+    }
+    actualCls.supertype = supertype;
+
+    mixedInTypeBuilder = checkSupertype(mixedInTypeBuilder);
     actualCls.mixedInType =
-        mixedInType?.buildMixedInType(library, charOffset, fileUri);
-    if (actualCls.mixedInType == null && mixedInType is! NamedTypeBuilder) {
-      mixedInType = null;
+        mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
+    if (actualCls.mixedInType == null &&
+        mixedInTypeBuilder is! NamedTypeBuilder) {
+      mixedInTypeBuilder = null;
     }
     actualCls.isMixinDeclaration = isMixinDeclaration;
+
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
-    if (interfaces != null) {
-      for (int i = 0; i < interfaces.length; ++i) {
-        interfaces[i] = checkSupertype(interfaces[i]);
+    if (interfaceBuilders != null) {
+      for (int i = 0; i < interfaceBuilders.length; ++i) {
+        interfaceBuilders[i] = checkSupertype(interfaceBuilders[i]);
         Supertype supertype =
-            interfaces[i].buildSupertype(library, charOffset, fileUri);
+            interfaceBuilders[i].buildSupertype(library, charOffset, fileUri);
         if (supertype != null) {
+          Class superclass = supertype.classNode;
+          if (superclass.name == 'Function' &&
+              superclass.enclosingLibrary == coreLibrary.library) {
+            library.addProblem(
+                messageImplementFunction, charOffset, noLength, fileUri);
+            continue;
+          }
           // TODO(ahe): Report an error if supertype is null.
           actualCls.implementedTypes.add(supertype);
         }
@@ -364,7 +387,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   List<Builder> computeDirectSupertypes(ClassBuilder objectClass) {
     final List<Builder> result = <Builder>[];
-    final TypeBuilder supertype = this.supertype;
+    final TypeBuilder supertype = this.supertypeBuilder;
     if (supertype != null) {
       TypeDeclarationBuilder declarationBuilder = supertype.declaration;
       if (declarationBuilder is TypeAliasBuilder) {
@@ -375,7 +398,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     } else if (objectClass != this) {
       result.add(objectClass);
     }
-    final List<TypeBuilder> interfaces = this.interfaces;
+    final List<TypeBuilder> interfaces = this.interfaceBuilders;
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
         TypeBuilder interface = interfaces[i];
@@ -387,7 +410,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         result.add(declarationBuilder);
       }
     }
-    final TypeBuilder mixedInType = this.mixedInType;
+    final TypeBuilder mixedInType = this.mixedInTypeBuilder;
     if (mixedInType != null) {
       TypeDeclarationBuilder declarationBuilder = mixedInType.declaration;
       if (declarationBuilder is TypeAliasBuilder) {

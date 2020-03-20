@@ -109,10 +109,10 @@ abstract class ClassBuilder implements DeclarationBuilder {
   ///
   /// Currently this also holds the synthesized super class for a mixin
   /// declaration.
-  TypeBuilder supertype;
+  TypeBuilder supertypeBuilder;
 
   /// The type in the `implements` clause of a class or mixin declaration.
-  List<TypeBuilder> interfaces;
+  List<TypeBuilder> interfaceBuilders;
 
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder> onTypes;
@@ -137,9 +137,9 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get isAnonymousMixinApplication;
 
-  TypeBuilder get mixedInType;
+  TypeBuilder get mixedInTypeBuilder;
 
-  void set mixedInType(TypeBuilder mixin);
+  void set mixedInTypeBuilder(TypeBuilder mixin);
 
   List<ConstructorReferenceBuilder> get constructorReferences;
 
@@ -306,10 +306,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   List<TypeVariableBuilder> typeVariables;
 
   @override
-  TypeBuilder supertype;
+  TypeBuilder supertypeBuilder;
 
   @override
-  List<TypeBuilder> interfaces;
+  List<TypeBuilder> interfaceBuilders;
 
   @override
   List<TypeBuilder> onTypes;
@@ -343,8 +343,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       int modifiers,
       String name,
       this.typeVariables,
-      this.supertype,
-      this.interfaces,
+      this.supertypeBuilder,
+      this.interfaceBuilders,
       this.onTypes,
       Scope scope,
       this.constructors,
@@ -362,7 +362,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
 
   @override
-  bool get isMixinApplication => mixedInType != null;
+  bool get isMixinApplication => mixedInTypeBuilder != null;
 
   @override
   bool get isNamedMixinApplication {
@@ -674,7 +674,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     // Extract and check superclass (if it exists).
     ClassBuilder superClass;
-    TypeBuilder superClassType = supertype;
+    TypeBuilder superClassType = supertypeBuilder;
     if (superClassType is NamedTypeBuilder) {
       TypeDeclarationBuilder decl = superClassType.declaration;
       if (decl is TypeAliasBuilder) {
@@ -694,13 +694,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         superClass = decl;
       }
     }
-    if (interfaces == null) return;
+    if (interfaceBuilders == null) return;
 
     // Validate interfaces.
     Map<ClassBuilder, int> problems;
     Map<ClassBuilder, int> problemsOffsets;
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
-    for (TypeBuilder type in interfaces) {
+    for (TypeBuilder type in interfaceBuilders) {
       if (type is NamedTypeBuilder) {
         int charOffset = -1; // TODO(ahe): Get offset from type.
         TypeDeclarationBuilder typeDeclaration = type.declaration;
@@ -1617,7 +1617,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   String get fullNameForErrors {
     return isMixinApplication && !isNamedMixinApplication
-        ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
+        ? "${supertypeBuilder.fullNameForErrors} with "
+            "${mixedInTypeBuilder.fullNameForErrors}"
         : name;
   }
 
@@ -1962,7 +1963,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       ClassBuilder getSuperclass(ClassBuilder builder) {
         // This way of computing the superclass is slower than using the kernel
         // objects directly.
-        Object supertype = builder.supertype;
+        Object supertype = builder.supertypeBuilder;
         if (supertype is NamedTypeBuilder) {
           Object builder = supertype.declaration;
           if (builder is ClassBuilder) return builder;

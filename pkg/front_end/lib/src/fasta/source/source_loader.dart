@@ -622,20 +622,20 @@ class SourceLoader extends Loader {
   void checkObjectClassHierarchy(ClassBuilder objectClass) {
     if (objectClass is SourceClassBuilder &&
         objectClass.library.loader == this) {
-      if (objectClass.supertype != null) {
-        objectClass.supertype = null;
+      if (objectClass.supertypeBuilder != null) {
+        objectClass.supertypeBuilder = null;
         objectClass.addProblem(
             messageObjectExtends, objectClass.charOffset, noLength);
       }
-      if (objectClass.interfaces != null) {
+      if (objectClass.interfaceBuilders != null) {
         objectClass.addProblem(
             messageObjectImplements, objectClass.charOffset, noLength);
-        objectClass.interfaces = null;
+        objectClass.interfaceBuilders = null;
       }
-      if (objectClass.mixedInType != null) {
+      if (objectClass.mixedInTypeBuilder != null) {
         objectClass.addProblem(
             messageObjectMixesIn, objectClass.charOffset, noLength);
-        objectClass.mixedInType = null;
+        objectClass.mixedInTypeBuilder = null;
       }
     }
   }
@@ -763,7 +763,7 @@ class SourceLoader extends Loader {
     }
 
     // Check that the mixed-in type can be used as a mixin.
-    final TypeBuilder mixedInType = cls.mixedInType;
+    final TypeBuilder mixedInType = cls.mixedInTypeBuilder;
     if (mixedInType != null) {
       bool isClassBuilder = false;
       if (mixedInType is NamedTypeBuilder) {

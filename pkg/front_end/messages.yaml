@@ -3906,3 +3906,25 @@ ExportOptOutFromOptIn:
     lib.dart: |
       // @dart=2.5
       class A {}
+
+ExtendFunction:
+  template: "Extending 'Function' is deprecated."
+  tip: "Try removing 'Function' from the 'extends' clause."
+  severity: WARNING
+  script: |
+    class A extends Function {}
+
+ImplementFunction:
+  template: "Implementing 'Function' is deprecated."
+  tip: "Try removing 'Function' from the 'implements' clause."
+  severity: WARNING
+  script: |
+    class A implements Function {}
+
+MixinFunction:
+  template: "Mixing in 'Function' is deprecated."
+  tip: "Try removing 'Function' from the 'with' clause."
+  severity: WARNING
+  script: |
+    class A extends Object with Function {}
+

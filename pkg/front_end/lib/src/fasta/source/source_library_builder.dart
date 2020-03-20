@@ -1824,7 +1824,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charEndOffset,
           referencesFromClass,
           referencesFromIndexedClass,
-          mixedInType: isMixinDeclaration ? null : mixin,
+          mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
         );
         if (isNamedMixinApplication) {
           loader.target.metadataCollector

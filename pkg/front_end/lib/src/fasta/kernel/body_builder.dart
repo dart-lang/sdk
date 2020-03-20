@@ -1400,7 +1400,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
               null) {
-        String superclass = classBuilder.supertype.fullNameForErrors;
+        String superclass = classBuilder.supertypeBuilder.fullNameForErrors;
         int length = constructor.name.name.length;
         if (length == 0) {
           length = (constructor.parent as Class).name.length;

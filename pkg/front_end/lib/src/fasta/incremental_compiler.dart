@@ -640,10 +640,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           while (iterator.moveNext()) {
             Builder childBuilder = iterator.current;
             if (childBuilder is SourceClassBuilder) {
-              TypeBuilder typeBuilder = childBuilder.supertype;
+              TypeBuilder typeBuilder = childBuilder.supertypeBuilder;
               replaceTypeBuilder(
                   replacementMap, replacementSettersMap, typeBuilder);
-              typeBuilder = childBuilder.mixedInType;
+              typeBuilder = childBuilder.mixedInTypeBuilder;
               replaceTypeBuilder(
                   replacementMap, replacementSettersMap, typeBuilder);
               if (childBuilder.onTypes != null) {
@@ -652,8 +652,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                       replacementMap, replacementSettersMap, typeBuilder);
                 }
               }
-              if (childBuilder.interfaces != null) {
-                for (typeBuilder in childBuilder.interfaces) {
+              if (childBuilder.interfaceBuilders != null) {
+                for (typeBuilder in childBuilder.interfaceBuilders) {
                   replaceTypeBuilder(
                       replacementMap, replacementSettersMap, typeBuilder);
                 }
