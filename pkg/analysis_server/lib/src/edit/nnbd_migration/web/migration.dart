@@ -290,11 +290,22 @@ void logError(e, st) {
   window.console.error('$st');
 }
 
+final Element headerPanel = document.querySelector('header');
+final Element footerPanel = document.querySelector('footer');
+
+/// Scroll an element into view if it is not visible.
 void maybeScrollIntoView(Element element) {
   Rectangle rect = element.getBoundingClientRect();
-  if (rect.bottom > window.innerHeight) {
+  // A line of text in the code view is 14px high. Including it here means we
+  // only choose to _not_ scroll a line of code into view if the entire line is
+  // visible.
+  var lineHeight = 14;
+  var visibleCeiling = headerPanel.offsetHeight + lineHeight;
+  var visibleFloor =
+      window.innerHeight - (footerPanel.offsetHeight + lineHeight);
+  if (rect.bottom > visibleFloor) {
     element.scrollIntoView();
-  } else if (rect.top < 0) {
+  } else if (rect.top < visibleCeiling) {
     element.scrollIntoView();
   }
 }
@@ -327,8 +338,7 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
   } else {
     // If no offset is given, this is likely a navigation link, and we need to
     // scroll back to the top of the page.
-    target = document.getElementById('unit-name');
-    maybeScrollIntoView(target);
+    maybeScrollIntoView(unitName);
   }
 }
 
@@ -361,8 +371,9 @@ String pluralize(int count, String single, {String multiple}) {
   return count == 1 ? single : (multiple ?? '${single}s');
 }
 
+final Element editPanel = document.querySelector('.edit-panel .panel-content');
+
 void populateEditDetails([EditDetails response]) {
-  var editPanel = document.querySelector('.edit-panel .panel-content');
   editPanel.innerHtml = '';
 
   if (response == null) {
@@ -387,10 +398,12 @@ void populateEditDetails([EditDetails response]) {
   _populateEditRationale(response, editPanel, parentDirectory);
 }
 
+final Element editListElement =
+    document.querySelector('.edit-list .panel-content');
+
 /// Write the contents of the Edit List, from JSON data [editListData].
 void populateProposedEdits(
     String path, List<EditListItem> edits, bool clearEditDetails) {
-  Element editListElement = document.querySelector('.edit-list .panel-content');
   editListElement.innerHtml = '';
 
   Element p = editListElement.append(document.createElement('p'));
@@ -464,13 +477,14 @@ void removeHighlight(int offset, int lineNumber) {
   }
 }
 
+final Element unitName = document.querySelector('#unit-name');
+
 /// Update the heading and navigation links.
 ///
 /// Call this after updating page content on a navigation.
 void updatePage(String path, [int offset]) {
   path = relativePath(path);
   // Update page heading.
-  Element unitName = document.querySelector('#unit-name');
   unitName.text = path;
   // Update navigation styles.
   document.querySelectorAll('.nav-panel .nav-link').forEach((Element link) {
