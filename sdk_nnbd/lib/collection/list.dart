@@ -358,12 +358,7 @@ abstract class ListMixin<E> implements List<E> {
     return ListMapView<E>(this);
   }
 
-  List<E> operator +(List<E> other) {
-    var result = <E>[]..length = (this.length + other.length);
-    result.setRange(0, this.length, this);
-    result.setRange(this.length, result.length, other);
-    return result;
-  }
+  List<E> operator +(List<E> other) => [...this, ...other];
 
   List<E> sublist(int start, [int? end]) {
     int listLength = this.length;
