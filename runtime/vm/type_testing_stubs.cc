@@ -92,8 +92,9 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
   if (type.IsTypeRef()) {
-    return FLAG_null_safety ? StubCode::DefaultTypeTest().raw()
-                            : StubCode::DefaultNullableTypeTest().raw();
+    return Isolate::Current()->null_safety()
+               ? StubCode::DefaultTypeTest().raw()
+               : StubCode::DefaultNullableTypeTest().raw();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -459,7 +460,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
     // We don't need to check nullability of LHS for nullable and legacy RHS
     // ("Right Legacy", "Right Nullable" rules).
-    if (FLAG_null_safety && !type_arg.IsNullable() && !type_arg.IsLegacy()) {
+    if (Isolate::Current()->null_safety() && !type_arg.IsNullable() &&
+        !type_arg.IsLegacy()) {
       compiler::Label skip_nullable_check;
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument

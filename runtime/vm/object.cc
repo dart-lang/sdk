@@ -7499,7 +7499,9 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
     return false;
   }
   // Verify that all argument names are valid parameter names.
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   String& argument_name = String::Handle(zone);
   String& parameter_name = String::Handle(zone);
   const intptr_t num_positional_args = num_arguments - num_named_arguments;
@@ -7528,7 +7530,7 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
       return false;
     }
   }
-  if (FLAG_null_safety) {
+  if (isolate->null_safety()) {
     // Verify that all required named parameters are filled.
     for (intptr_t j = num_positional_args; j < num_parameters; j++) {
       if (IsRequiredAt(j)) {
@@ -17645,7 +17647,7 @@ bool Instance::IsAssignableTo(
   // In weak mode type casts, whether in legacy or opted-in libraries, the null
   // instance is detected and handled in inlined code and therefore cannot be
   // encountered here as a Dart null receiver.
-  ASSERT(FLAG_null_safety || !IsNull());
+  ASSERT(Isolate::Current()->null_safety() || !IsNull());
   // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
   // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
   return RuntimeTypeIsSubtypeOf(other, other_instantiator_type_arguments,
@@ -17687,8 +17689,12 @@ bool Instance::NullIsInstanceOf(
 }
 
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+
   // In weak mode, Null is a bottom type (according to LEGACY_SUBTYPE).
-  if (!FLAG_null_safety) {
+  if (!isolate->null_safety()) {
     return true;
   }
   // "Left Null" rule: null is assignable when destination type is either
@@ -17698,7 +17704,8 @@ bool Instance::NullIsAssignableTo(const AbstractType& other) {
     return true;
   }
   if (other.IsFutureOrType()) {
-    return NullIsAssignableTo(AbstractType::Handle(other.UnwrapFutureOr()));
+    return NullIsAssignableTo(
+        AbstractType::Handle(zone, other.UnwrapFutureOr()));
   }
   return false;
 }
@@ -17715,12 +17722,13 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   if (other.IsTopType()) {
     return true;
   }
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   // In weak testing mode, Null type is a subtype of any type.
-  if (IsNull() && !FLAG_null_safety) {
+  if (IsNull() && !isolate->null_safety()) {
     return true;
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
     if (other.IsDartFunctionType() || other.IsDartClosureType()) {
@@ -17782,7 +17790,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return false;
   }
   if (IsNull()) {
-    ASSERT(FLAG_null_safety);
+    ASSERT(isolate->null_safety());
     if (instantiated_other.IsNullType()) {
       return true;
     }
@@ -18481,7 +18489,7 @@ bool AbstractType::IsTopTypeForAssignability() const {
   if (cid == kInstanceCid) {  // Object type.
     // NNBD weak mode uses LEGACY_SUBTYPE for assignability / 'as' tests,
     // and non-nullable Object is a top type according to LEGACY_SUBTYPE.
-    return !FLAG_null_safety || !IsNonNullable();
+    return !Isolate::Current()->null_safety() || !IsNonNullable();
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
@@ -18592,6 +18600,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return Instance::NullIsAssignableTo(other);
   }
   Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   // Type parameters cannot be handled by Class::IsSubtypeOf().
   // When comparing two uninstantiated function types, one returning type
@@ -18628,7 +18637,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   if (other.IsTypeParameter()) {
     return false;
   }
-  if (FLAG_null_safety && IsNullable() && other.IsNonNullable()) {
+  if (isolate->null_safety() && IsNullable() && other.IsNonNullable()) {
     return false;
   }
   const Class& type_cls = Class::Handle(zone, type_class());
@@ -19033,8 +19042,12 @@ bool Type::IsEquivalent(const Instance& other,
   }
   Nullability this_type_nullability = nullability();
   Nullability other_type_nullability = other_type.nullability();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (FLAG_null_safety && this_type_nullability == Nullability::kNullable &&
+    if (isolate->null_safety() &&
+        this_type_nullability == Nullability::kNullable &&
         other_type_nullability == Nullability::kNonNullable) {
       return false;
     }
@@ -19060,8 +19073,6 @@ bool Type::IsEquivalent(const Instance& other,
       (signature() == other_type.signature())) {
     return true;
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
   if (arguments() != other_type.arguments()) {
     const Class& cls = Class::Handle(zone, type_class());
     const intptr_t num_type_params = cls.NumTypeParameters(thread);
@@ -19754,7 +19765,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
   Nullability this_type_param_nullability = nullability();
   Nullability other_type_param_nullability = other_type_param.nullability();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (FLAG_null_safety &&
+    if (Isolate::Current()->null_safety() &&
         (this_type_param_nullability == Nullability::kNullable) &&
         (other_type_param_nullability == Nullability::kNonNullable)) {
       return false;

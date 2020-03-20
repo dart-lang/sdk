@@ -1294,8 +1294,8 @@ class ActiveClass {
     return member->IsFactory();
   }
 
-  bool RequireLegacyErasure() const {
-    return klass != nullptr && !FLAG_null_safety &&
+  bool RequireLegacyErasure(bool null_safety) const {
+    return klass != nullptr && !null_safety &&
            Library::Handle(klass->library()).nnbd_compiled_mode() ==
                NNBDCompiledMode::kAgnostic;
   }

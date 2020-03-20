@@ -160,6 +160,7 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
+  V(PRODUCT, null_safety, NullSafety, null_safety, FLAG_null_safety)           \
   V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)            \
   V(PRODUCT, unsafe_trust_strong_mode_types, UnsafeTrustStrongModeTypes,       \
     unsafe_trust_strong_mode_types,                                            \
@@ -1258,6 +1259,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \
   V(ShouldLoadVmService)                                                       \
+  V(NullSafety)                                                                \
   V(UnsafeTrustStrongModeTypes)
 
   // Isolate specific flags.
