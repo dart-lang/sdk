@@ -7,7 +7,6 @@
 #include "vm/compiler/assembler/assembler.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -863,10 +862,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-  if (FLAG_precompiled_mode) {
-    return Precompiler::CompileFunction(
-        /* precompiler = */ NULL, thread, thread->zone(), function);
-  }
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
