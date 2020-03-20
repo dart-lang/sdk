@@ -2730,6 +2730,18 @@ int? g(C c) => c.f();
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_insert_as_prefixed_type() async {
+    var content = '''
+import 'dart:async' as a;
+Future<int> f(Object o) => o;
+''';
+    var expected = '''
+import 'dart:async' as a;
+Future<int> f(Object o) => o as a.Future<int>;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40871')
   Future<void> test_insert_type_with_prefix() async {
     var content = '''

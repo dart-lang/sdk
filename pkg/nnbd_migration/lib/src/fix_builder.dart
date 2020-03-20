@@ -433,7 +433,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .introduceAs(contextType.getDisplayString(withNullability: true), info);
+        .introduceAs(contextType, info);
     _flowAnalysis.asExpression_end(node, contextType);
     return contextType;
   }
