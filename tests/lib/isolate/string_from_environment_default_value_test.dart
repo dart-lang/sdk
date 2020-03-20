@@ -10,7 +10,7 @@ import "dart:isolate";
 import "package:expect/expect.dart";
 
 void test(port) {
-  Expect.isNull(const String.fromEnvironment('NOT_FOUND'));
+  Expect.identical(const String.fromEnvironment('NOT_FOUND'), "");
   Expect.equals(
       'x', const String.fromEnvironment('NOT_FOUND', defaultValue: 'x'));
   if (port != null) port.send(null);
