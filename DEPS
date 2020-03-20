@@ -112,7 +112,7 @@ vars = {
   "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
-  "package_config_tag": "87a8b5184020ebcc13b34ee95dde58f851b68ca3", # should be 1.9.0
+  "package_config_tag": "1.9.2",
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
   "pedantic_tag": "v1.8.0",
