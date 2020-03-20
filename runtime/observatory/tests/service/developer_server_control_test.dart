@@ -4,8 +4,8 @@
 
 import 'dart:async';
 import 'dart:developer';
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart' as S;
-import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 int majorVersion;
@@ -21,39 +21,39 @@ Future<Null> testeeBefore() async {
   majorVersion = info.majorVersion;
   minorVersion = info.minorVersion;
   serverUri = info.serverUri;
-  expect(info.serverUri, isNull);
+  Expect.isNull(info.serverUri);
   {
     // Now, start the web server and store the URI which is expected to be
     // non NULL in the top level variable.
     ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
-    expect(info.majorVersion, equals(majorVersion));
-    expect(info.minorVersion, equals(minorVersion));
-    expect(info.serverUri, isNotNull);
+    Expect.equals(info.majorVersion, majorVersion);
+    Expect.equals(info.minorVersion, minorVersion);
+    Expect.isNotNull(info.serverUri);
     serverUri = info.serverUri;
   }
   {
     // Now try starting the web server again, this should just return the
     // existing state without any change (port number does not change).
     ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
-    expect(info.majorVersion, equals(majorVersion));
-    expect(info.minorVersion, equals(minorVersion));
-    expect(info.serverUri, equals(serverUri));
+    Expect.equals(info.majorVersion, majorVersion);
+    Expect.equals(info.minorVersion, minorVersion);
+    Expect.equals(info.serverUri, serverUri);
   }
   {
     // Try turning off the web server, this should turn off the server and
     // the Uri returned should be null.
     ServiceProtocolInfo info = await Service.controlWebServer(enable: false);
-    expect(info.majorVersion, equals(majorVersion));
-    expect(info.minorVersion, equals(minorVersion));
-    expect(info.serverUri, isNull);
+    Expect.equals(info.majorVersion, majorVersion);
+    Expect.equals(info.minorVersion, minorVersion);
+    Expect.isNull(info.serverUri);
   }
   {
     // Try turning off the web server again, this should be a nop
     // and the Uri returned should be null.
     ServiceProtocolInfo info = await Service.controlWebServer(enable: false);
-    expect(info.majorVersion, equals(majorVersion));
-    expect(info.minorVersion, equals(minorVersion));
-    expect(info.serverUri, isNull);
+    Expect.equals(info.majorVersion, majorVersion);
+    Expect.equals(info.minorVersion, minorVersion);
+    Expect.isNull(info.serverUri);
   }
   {
     // Start the web server again for the test below.
@@ -61,9 +61,9 @@ Future<Null> testeeBefore() async {
     majorVersion = info.majorVersion;
     minorVersion = info.minorVersion;
     serverUri = info.serverUri;
-    expect(info.majorVersion, equals(majorVersion));
-    expect(info.minorVersion, equals(minorVersion));
-    expect(info.serverUri, equals(serverUri));
+    Expect.equals(info.majorVersion, majorVersion);
+    Expect.equals(info.minorVersion, minorVersion);
+    Expect.equals(info.serverUri, serverUri);
   }
 }
 
@@ -72,7 +72,7 @@ var tests = <IsolateTest>[
     await isolate.reload();
     // Just getting here means that the testee enabled the service protocol
     // web server.
-    expect(true, true);
+    Expect.equals(true, true);
   }
 ];
 

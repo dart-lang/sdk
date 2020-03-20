@@ -4,7 +4,7 @@
 
 import 'package:observatory/service_io.dart';
 import 'package:observatory/debugger.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:async';
@@ -82,17 +82,19 @@ var tests = <IsolateTest>[
 // Parse script + line
   (Isolate isolate) async {
     var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'unittest.dart:15');
+    var loc = await DebuggerLocation.parse(
+        debugger, 'debugger_location_test.dart:16');
     expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('unittest.dart:15'));
+    expect(loc.toString(), equals('debugger_location_test.dart:16'));
   },
 
 // Parse script + line + col
   (Isolate isolate) async {
     var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'unittest.dart:15:10');
+    var loc = await DebuggerLocation.parse(
+        debugger, 'debugger_location_test.dart:16:11');
     expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('unittest.dart:15:10'));
+    expect(loc.toString(), equals('debugger_location_test.dart:16:11'));
   },
 
 // Parse bad script

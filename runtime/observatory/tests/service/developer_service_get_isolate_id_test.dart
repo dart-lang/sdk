@@ -7,7 +7,7 @@ import 'dart:developer' as dev;
 import 'dart:isolate' as Core;
 
 import 'package:observatory/service_io.dart' as Service;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 

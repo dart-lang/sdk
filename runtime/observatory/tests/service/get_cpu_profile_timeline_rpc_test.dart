@@ -4,7 +4,7 @@
 
 import 'package:observatory/src/repositories/timeline_base.dart';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'test_helper.dart';
 
