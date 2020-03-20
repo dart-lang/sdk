@@ -21,6 +21,7 @@ import 'package:kernel/ast.dart'
         Member,
         MethodInvocation,
         Name,
+        NeverType,
         Nullability,
         Procedure,
         ProcedureKind,
@@ -751,6 +752,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   void checkBoundsInSupertype(
       Supertype supertype, TypeEnvironment typeEnvironment) {
     SourceLibraryBuilder library = this.library;
+    final DartType bottomType = library.isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
 
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssues(
@@ -758,6 +762,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                 supertype.typeArguments),
             typeEnvironment,
             SubtypeCheckMode.ignoringNullabilities,
+            bottomType,
             allowSuperBounded: false) ??
         const []);
     if (library.isNonNullableByDefault) {
@@ -766,6 +771,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                   supertype.typeArguments),
               typeEnvironment,
               SubtypeCheckMode.withNullabilities,
+              bottomType,
               allowSuperBounded: false) ??
           const []);
     }
@@ -820,17 +826,20 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     SourceLibraryBuilder library = this.library;
+    final DartType bottomType = library.isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
 
     // Check in bounds of own type variables.
     for (TypeParameter parameter in cls.typeParameters) {
       Set<TypeArgumentIssue> issues = {};
       issues.addAll(findTypeArgumentIssues(parameter.bound, typeEnvironment,
-              SubtypeCheckMode.ignoringNullabilities,
+              SubtypeCheckMode.ignoringNullabilities, bottomType,
               allowSuperBounded: true) ??
           const []);
       if (library.isNonNullableByDefault) {
         issues.addAll(findTypeArgumentIssues(parameter.bound, typeEnvironment,
-                SubtypeCheckMode.withNullabilities,
+                SubtypeCheckMode.withNullabilities, bottomType,
                 allowSuperBounded: true) ??
             const []);
       }

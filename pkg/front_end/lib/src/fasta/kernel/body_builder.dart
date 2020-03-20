@@ -2818,7 +2818,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeArgument = const InvalidType();
       } else {
         typeArgument = buildDartType(typeArguments.single);
-        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
+        typeArgument = instantiateToBounds(
+            typeArgument, coreTypes.objectClass, libraryBuilder.library);
       }
     } else {
       typeArgument = implicitTypeArgument;
@@ -2841,7 +2842,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     DartType typeArgument;
     if (typeArguments != null) {
       typeArgument = buildDartType(typeArguments.single);
-      typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
+      typeArgument = instantiateToBounds(
+          typeArgument, coreTypes.objectClass, libraryBuilder.library);
     } else {
       typeArgument = implicitTypeArgument;
     }
@@ -2976,8 +2978,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         keyType = buildDartType(typeArguments[0]);
         valueType = buildDartType(typeArguments[1]);
-        keyType = instantiateToBounds(keyType, coreTypes.objectClass);
-        valueType = instantiateToBounds(valueType, coreTypes.objectClass);
+        keyType = instantiateToBounds(
+            keyType, coreTypes.objectClass, libraryBuilder.library);
+        valueType = instantiateToBounds(
+            valueType, coreTypes.objectClass, libraryBuilder.library);
       }
     } else {
       DartType implicitTypeArgument = this.implicitTypeArgument;
@@ -5351,7 +5355,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
-        libraryBuilder.loader.target.bottomType,
+        libraryBuilder.loader.target.nullType,
         libraryBuilder.loader.target.objectClassBuilder);
     for (int i = 0; i < typeVariables.length; ++i) {
       typeVariables[i].defaultType = calculatedBounds[i];

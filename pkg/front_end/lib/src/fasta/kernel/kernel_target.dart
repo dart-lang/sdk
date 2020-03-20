@@ -151,8 +151,11 @@ class KernelTarget extends TargetImplementation {
       new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null);
 
   // Null is always nullable.
-  final TypeBuilder bottomType =
+  final TypeBuilder nullType =
       new NamedTypeBuilder("Null", const NullabilityBuilder.nullable(), null);
+
+  final TypeBuilder bottomType =
+      new NamedTypeBuilder("Never", const NullabilityBuilder.omitted(), null);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
@@ -291,12 +294,15 @@ class KernelTarget extends TargetImplementation {
       loader.coreLibrary.becomeCoreLibrary();
       dynamicType.bind(
           loader.coreLibrary.lookupLocalMember("dynamic", required: true));
+      bottomType
+          .bind(loader.coreLibrary.lookupLocalMember("Never", required: true));
       loader.resolveParts();
       loader.computeLibraryScopes();
       setupTopAndBottomTypes();
       loader.resolveTypes();
       loader.computeVariances();
-      loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
+      loader.computeDefaultTypes(
+          dynamicType, nullType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses =
           loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
@@ -668,7 +674,7 @@ class KernelTarget extends TargetImplementation {
     ClassBuilder nullClassBuilder =
         loader.coreLibrary.lookupLocalMember("Null", required: true);
     nullClassBuilder.isNullClass = true;
-    bottomType.bind(nullClassBuilder);
+    nullType.bind(nullClassBuilder);
   }
 
   void computeCoreTypes() {

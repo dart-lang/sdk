@@ -1070,8 +1070,8 @@ class TypeInferrerImpl implements TypeInferrer {
             }
             onType = inferredSubstitution
                 .substituteType(extensionBuilder.extension.onType);
-            List<DartType> instantiateToBoundTypeArguments =
-                calculateBounds(typeParameters, coreTypes.objectClass);
+            List<DartType> instantiateToBoundTypeArguments = calculateBounds(
+                typeParameters, coreTypes.objectClass, library.library);
             Substitution instantiateToBoundsSubstitution =
                 Substitution.fromPairs(
                     typeParameters, instantiateToBoundTypeArguments);
@@ -3749,7 +3749,8 @@ abstract class MixinInferrer {
       p.bound = substitution.substituteType(p.bound);
     }
     // Use instantiate to bounds.
-    List<DartType> bounds = calculateBounds(parameters, coreTypes.objectClass);
+    List<DartType> bounds = calculateBounds(
+        parameters, coreTypes.objectClass, classNode.enclosingLibrary);
     for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
       mixedInType.typeArguments[i] = bounds[i];
     }

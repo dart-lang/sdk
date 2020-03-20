@@ -585,13 +585,13 @@ class SourceLoader extends Loader {
     ticker.logMs("Computed variances of $count type variables");
   }
 
-  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass) {
+  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count +=
-            library.computeDefaultTypes(dynamicType, bottomType, objectClass);
+        count += library.computeDefaultTypes(
+            dynamicType, nullType, bottomType, objectClass);
       }
     });
     ticker.logMs("Computed default types for $count type variables");
