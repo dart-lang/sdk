@@ -1285,7 +1285,19 @@ abstract class TypeSystem implements public.TypeSystem {
   TypeProvider get typeProvider;
 
   @override
-  DartType flatten(DartType type) {
+  TypeImpl flatten(DartType type) {
+    if (identical(type, UnknownInferredType.instance)) {
+      return type;
+    }
+
+    // if T is S? then flatten(T) = flatten(S)?
+    // if T is S* then flatten(T) = flatten(S)*
+    NullabilitySuffix nullabilitySuffix = type.nullabilitySuffix;
+    if (nullabilitySuffix != NullabilitySuffix.none) {
+      var S = (type as TypeImpl).withNullability(NullabilitySuffix.none);
+      return flatten(S).withNullability(nullabilitySuffix);
+    }
+
     if (type is InterfaceType) {
       // Implement the cases:
       //  - "If T = FutureOr<S> then flatten(T) = S."

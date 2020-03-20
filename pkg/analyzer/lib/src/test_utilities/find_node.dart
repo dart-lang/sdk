@@ -31,6 +31,10 @@ class FindNode {
     return _node(search, (n) => n is AssignmentExpression);
   }
 
+  AwaitExpression awaitExpression(String search) {
+    return _node(search, (n) => n is AwaitExpression);
+  }
+
   BinaryExpression binary(String search) {
     return _node(search, (n) => n is BinaryExpression);
   }

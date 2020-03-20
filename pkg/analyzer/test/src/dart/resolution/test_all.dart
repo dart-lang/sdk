@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
+import 'await_expression_test.dart' as await_expression;
 import 'binary_expression_test.dart' as binary_expression;
 import 'class_alias_test.dart' as class_alias;
 import 'class_test.dart' as class_resolution;
@@ -56,6 +57,7 @@ main() {
   defineReflectiveSuite(() {
     assignment.main();
     ast_rewrite.main();
+    await_expression.main();
     binary_expression.main();
     class_alias.main();
     class_resolution.main();
