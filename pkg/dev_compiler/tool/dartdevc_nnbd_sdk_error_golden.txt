@@ -15,11 +15,3 @@ ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_dev_runti
 ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_dev_runtime/private/foreign_helper.dart|221|8|37|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
 ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_dev_runtime/private/foreign_helper.dart|224|8|11|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
 ERROR|COMPILE_TIME_ERROR|BODY_MIGHT_COMPLETE_NORMALLY|lib/_internal/js_dev_runtime/private/foreign_helper.dart|228|6|11|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1010|10|5|Non-nullable instance field 'value' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1036|8|6|Non-nullable instance field 'secure' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1042|8|8|Non-nullable instance field 'httpOnly' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1499|12|11|Non-nullable instance field 'idleTimeout' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|1549|8|14|Non-nullable instance field 'autoUncompress' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|172|8|12|Non-nullable instance field 'autoCompress' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/_http/http.dart|997|10|4|Non-nullable instance field 'name' must be initialized.
-ERROR|COMPILE_TIME_ERROR|NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD|lib/io/io.dart|5589|12|8|Non-nullable instance field 'encoding' must be initialized.
