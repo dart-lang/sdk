@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests runtime subtyping with explicit variance modifiers.
+// @dart = 2.6
 
 // SharedOptions=--enable-experiment=variance
+
+// Tests runtime subtyping with explicit variance modifiers.
 
 import 'dart:async';
 

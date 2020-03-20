@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Requirements=nnbd
+
 @JS()
 library js_interop_test;
 
@@ -11,8 +13,6 @@ import 'dart:js' show context;
 
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
-
-// Requirements=nnbd
 
 @JS()
 class Console {

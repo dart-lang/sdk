@@ -5,7 +5,7 @@
 import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 
-import 'dart:async';
+import 'dart:async' show FutureOr;
 import 'package:expect/expect.dart';
 
 // Function type used to extract the FutureOr now that a raw FutureOr gets

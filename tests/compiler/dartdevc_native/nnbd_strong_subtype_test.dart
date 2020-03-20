@@ -4,7 +4,7 @@
 
 // Requirements=nnbd-strong
 
-import 'dart:async';
+import 'dart:async' show Future;
 
 import 'runtime_utils.dart' show futureOrOf, voidType;
 import 'runtime_utils_nnbd.dart';
