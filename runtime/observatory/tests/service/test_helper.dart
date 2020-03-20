@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 import 'service_test_common.dart';
 export 'service_test_common.dart' show IsolateTest, VMTest;
 
@@ -54,7 +53,7 @@ class _ServiceTesteeRunner {
       bool pause_on_exit: false}) async {
     if (!pause_on_start) {
       if (testeeBefore != null) {
-        final result = testeeBefore();
+        var result = testeeBefore();
         if (result is Future) {
           await result;
         }
@@ -62,7 +61,7 @@ class _ServiceTesteeRunner {
       print(''); // Print blank line to signal that testeeBefore has run.
     }
     if (testeeConcurrent != null) {
-      final result = testeeConcurrent();
+      var result = testeeConcurrent();
       if (result is Future) {
         await result;
       }
@@ -151,9 +150,9 @@ class _ServiceTesteeLauncher {
       List<String> executableArgs) {
     assert(!_shouldLaunchSkyShell());
 
-    final String dartExecutable = Platform.executable;
+    String dartExecutable = Platform.executable;
 
-    final fullArgs = <String>[];
+    var fullArgs = <String>[];
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }
@@ -190,10 +189,10 @@ class _ServiceTesteeLauncher {
       List<String> executableArgs) {
     assert(_shouldLaunchSkyShell());
 
-    final String dartExecutable = _skyShellPath();
+    String dartExecutable = _skyShellPath();
 
-    final dartFlags = <String>[];
-    final fullArgs = <String>[];
+    var dartFlags = <String>[];
+    var fullArgs = <String>[];
     if (pause_on_start) {
       dartFlags.add('--pause_isolates_on_start');
       fullArgs.add('--start-paused');
@@ -222,8 +221,8 @@ class _ServiceTesteeLauncher {
 
   Future<Process> _spawnCommon(String executable, List<String> arguments,
       Map<String, String> dartEnvironment) {
-    final environment = _TESTEE_SPAWN_ENV;
-    final bashEnvironment = new StringBuffer();
+    var environment = _TESTEE_SPAWN_ENV;
+    var bashEnvironment = new StringBuffer();
     environment.forEach((k, v) => bashEnvironment.write("$k=$v "));
     if (dartEnvironment != null) {
       dartEnvironment.forEach((k, v) {
@@ -337,11 +336,10 @@ class _ServiceTesterRunner {
       executableArgs = Platform.executableArguments;
     }
 
-    final process = new _ServiceTesteeLauncher();
-    final name = Platform.script.pathSegments.last;
-    WebSocketVM vm;
-    setUp(() async {
-      await process
+    var process = new _ServiceTesteeLauncher();
+    bool testsDone = false;
+    runZoned(() {
+      process
           .launch(
               pause_on_start,
               pause_on_exit,
@@ -353,26 +351,23 @@ class _ServiceTesterRunner {
               executableArgs)
           .then((Uri serverAddress) async {
         if (mainArgs.contains("--gdb")) {
-          final pid = process.process.pid;
-          final wait = new Duration(seconds: 10);
+          var pid = process.process.pid;
+          var wait = new Duration(seconds: 10);
           print("Testee has pid $pid, waiting $wait before continuing");
           sleep(wait);
         }
         setupAddresses(serverAddress);
-        vm = new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
+        var name = Platform.script.pathSegments.last;
+        var vm =
+            new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
         print('Loading VM...');
         await vm.load();
         print('Done loading VM');
-      });
-    });
 
-    test(
-      name,
-      () async {
         // Run vm tests.
         if (vmTests != null) {
-          int testIndex = 1;
-          final totalTests = vmTests.length;
+          var testIndex = 1;
+          var totalTests = vmTests.length;
           for (var test in vmTests) {
             vm.verbose = verbose_vm;
             print('Running $name [$testIndex/$totalTests]');
@@ -383,9 +378,9 @@ class _ServiceTesterRunner {
 
         // Run isolate tests.
         if (isolateTests != null) {
-          final isolate = await getFirstIsolate(vm);
-          int testIndex = 1;
-          final totalTests = isolateTests.length;
+          var isolate = await getFirstIsolate(vm);
+          var testIndex = 1;
+          var totalTests = isolateTests.length;
           for (var test in isolateTests) {
             vm.verbose = verbose_vm;
             print('Running $name [$testIndex/$totalTests]');
@@ -393,21 +388,26 @@ class _ServiceTesterRunner {
             await test(isolate);
           }
         }
-      },
-      retry: 0,
-      // Some service tests run fairly long (e.g., valid_source_locations_test)
-      timeout: Timeout(const Duration(minutes: 2)),
-    );
 
-    tearDown(() {
-      print('All service tests completed successfully.');
-      process.requestExit();
+        print('All service tests completed successfully.');
+        testsDone = true;
+        process.requestExit();
+      });
+    }, onError: (error, stackTrace) {
+      if (testsDone) {
+        print('Ignoring late exception during process exit:\n'
+            '$error\n#stackTrace');
+      } else {
+        process.requestExit();
+        print('Unexpected exception in service tests: $error\n$stackTrace');
+        throw error;
+      }
     });
   }
 
   Future<Isolate> getFirstIsolate(WebSocketVM vm) async {
     if (vm.isolates.isNotEmpty) {
-      final isolate = await vm.isolates.first.load();
+      var isolate = await vm.isolates.first.load();
       if (isolate is Isolate) {
         return isolate;
       }

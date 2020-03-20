@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 import 'client_resume_approvals_common.dart';
 import 'service_test_common.dart';
@@ -36,7 +36,7 @@ final multipleClientNamesTest = <IsolateTest>[
     );
     client3 = await createClient(isolate.owner, clientName: 'DummyClient');
 
-    final resumeFuture = waitForResume(isolate);
+    Future resumeFuture = waitForResume(isolate);
     expect(await isPausedAtStart(isolate), true);
     await resume(client2, isolate);
     expect(await isPausedAtStart(isolate), true);
@@ -51,10 +51,13 @@ final multipleClientNamesTest = <IsolateTest>[
       isolate,
       pauseOnExit: true,
     );
+    final resumeFuture = waitForResume(isolate);
     await resume(client1, isolate);
     expect(await isPausedAtExit(isolate), true);
     await resume(client2, isolate);
-    await waitForTargetVMExit(isolate.vm);
+    await resumeFuture;
+    await isolate.reload();
+    expect(await isPausedAtExit(isolate), false);
   },
 ];
 

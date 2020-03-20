@@ -11,7 +11,7 @@ import 'service_test_common.dart';
 
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 const int LINE_A = 22;
 const int LINE_B = 24;

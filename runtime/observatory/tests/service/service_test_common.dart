@@ -8,8 +8,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_common.dart';
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
@@ -580,5 +579,3 @@ List<String> removeAdjacentDuplicates(List<String> fromList) {
   }
   return result;
 }
-
-Future<void> waitForTargetVMExit(VM vm) async => await vm.onDisconnect;

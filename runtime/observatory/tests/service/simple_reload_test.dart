@@ -12,7 +12,7 @@ import 'dart:io';
 import 'service_test_common.dart';
 import 'package:observatory/service.dart';
 import 'package:path/path.dart' as path;
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 // Chop off the file name.
 String baseDirectory = path.dirname(Platform.script.path) + '/';

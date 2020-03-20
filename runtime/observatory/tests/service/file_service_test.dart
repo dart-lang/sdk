@@ -6,9 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
-import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 Future setupFiles() async {
@@ -56,7 +55,7 @@ Future setupFiles() async {
       await utilFile.writeAsString('foobar');
       var readTemp = new io.File(writeTemp);
       var result = await readTemp.readAsString();
-      Expect.equals(result, 'foobar');
+      expect(result, equals('foobar'));
     } catch (e) {
       closeDown();
       throw e;

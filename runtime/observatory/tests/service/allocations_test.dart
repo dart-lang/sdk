@@ -5,7 +5,7 @@
 library allocations_test;
 
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 class Foo {}
