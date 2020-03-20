@@ -2053,6 +2053,32 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_field_overrides_getter() async {
+    var content = '''
+abstract class C {
+  int get i;
+}
+class D implements C {
+  @override
+  final int i;
+  D._() : i = computeI();
+}
+int computeI() => null;
+''';
+    var expected = '''
+abstract class C {
+  int? get i;
+}
+class D implements C {
+  @override
+  final int? i;
+  D._() : i = computeI();
+}
+int? computeI() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_field_type_inferred() async {
     var content = '''
 int f() => null;

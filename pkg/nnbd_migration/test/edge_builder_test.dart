@@ -2705,6 +2705,22 @@ extension E on String {}
     // metadata was visited.
   }
 
+  Future<void> test_field_final_does_not_override_setter() async {
+    await analyze('''
+abstract class A {
+  void set i(int value);
+}
+abstract class C implements A {
+  final int i;
+  C(this.i);
+}
+''');
+    var baseNode = decoratedTypeAnnotation('int value').node;
+    var derivedNode = decoratedTypeAnnotation('int i').node;
+    assertNoEdge(derivedNode, baseNode);
+    assertNoEdge(baseNode, derivedNode);
+  }
+
   Future<void> test_field_initialized_in_constructor() async {
     await analyze('''
 class C {
@@ -2729,6 +2745,67 @@ class C {
 ''');
     // No assertions needed; the AnnotationTracker mixin verifies that the
     // metadata was visited.
+  }
+
+  Future<void> test_field_overrides_field() async {
+    await analyze('''
+abstract class A {
+  int i; // A
+}
+class C implements A {
+  int i; // C
+}
+''');
+    var baseNode = decoratedTypeAnnotation('int i; // A').node;
+    var derivedNode = decoratedTypeAnnotation('int i; // C').node;
+    assertEdge(baseNode, derivedNode, hard: true);
+    assertEdge(derivedNode, baseNode, hard: true);
+  }
+
+  Future<void> test_field_overrides_field_final() async {
+    await analyze('''
+abstract class A {
+  final int i; // A
+  A(this.i);
+}
+class C implements A {
+  int i; // C
+}
+''');
+    var baseNode = decoratedTypeAnnotation('int i; // A').node;
+    var derivedNode = decoratedTypeAnnotation('int i; // C').node;
+    assertEdge(derivedNode, baseNode, hard: true);
+    assertNoEdge(baseNode, derivedNode);
+  }
+
+  Future<void> test_field_overrides_getter() async {
+    await analyze('''
+abstract class A {
+  int get i;
+}
+class C implements A {
+  int i;
+}
+''');
+    var baseNode = decoratedTypeAnnotation('int get i').node;
+    var derivedNode = decoratedTypeAnnotation('int i').node;
+    assertEdge(derivedNode, baseNode, hard: true);
+    assertNoEdge(baseNode, derivedNode);
+  }
+
+  Future<void> test_field_overrides_setter() async {
+    await analyze('''
+abstract class A {
+  void set i(int value);
+}
+class C implements A {
+  int i;
+}
+''');
+    var baseNode = decoratedTypeAnnotation('int value').node;
+    var derivedNode = decoratedTypeAnnotation('int i').node;
+    assertEdge(baseNode, derivedNode, hard: true);
+    assertNoEdge(derivedNode, baseNode);
   }
 
   Future<void> test_field_static_implicitInitializer() async {

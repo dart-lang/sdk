@@ -1609,6 +1609,29 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         assert(_flowAnalysis != null);
       }
+      var type = _variables.decoratedElementType(declaredElement);
+      var enclosingElement = declaredElement.enclosingElement;
+      if (!declaredElement.isStatic && enclosingElement is ClassElement) {
+        var overriddenElements = _inheritanceManager.getOverridden(
+            enclosingElement.thisType,
+            Name(enclosingElement.library.source.uri, declaredElement.name));
+        for (var overriddenElement
+            in overriddenElements ?? <ExecutableElement>[]) {
+          _handleFieldOverriddenDeclaration(
+              variable, type, enclosingElement, overriddenElement);
+        }
+        if (!declaredElement.isFinal) {
+          var overriddenElements = _inheritanceManager.getOverridden(
+              enclosingElement.thisType,
+              Name(enclosingElement.library.source.uri,
+                  declaredElement.name + '='));
+          for (var overriddenElement
+              in overriddenElements ?? <ExecutableElement>[]) {
+            _handleFieldOverriddenDeclaration(
+                variable, type, enclosingElement, overriddenElement);
+          }
+        }
+      }
       try {
         if (declaredElement is PromotableElement) {
           _flowAnalysis.declare(declaredElement, initializer != null);
@@ -1621,13 +1644,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           // the variable isn't definitely assigned).
           if (isTopLevel &&
               !(declaredElement is FieldElement && !declaredElement.isStatic)) {
-            var type = _variables.decoratedElementType(declaredElement);
             _graph.makeNullable(
                 type.node, ImplicitNullInitializerOrigin(source, node));
           }
         } else {
-          var destinationType = getOrComputeElementType(declaredElement);
-          _handleAssignment(initializer, destinationType: destinationType);
+          _handleAssignment(initializer, destinationType: type);
         }
         if (isTopLevel) {
           _flowAnalysis.finish();
@@ -2206,6 +2227,45 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           }
         }
       }
+    }
+  }
+
+  void _handleFieldOverriddenDeclaration(
+      VariableDeclaration node,
+      DecoratedType type,
+      ClassElement classElement,
+      Element overriddenElement) {
+    overriddenElement = overriddenElement.declaration;
+    var overriddenClass = overriddenElement.enclosingElement as ClassElement;
+    var decoratedSupertype = _decoratedClassHierarchy.getDecoratedSupertype(
+        classElement, overriddenClass);
+    var substitution = decoratedSupertype.asSubstitution;
+    if (overriddenElement is PropertyAccessorElement) {
+      DecoratedType unsubstitutedOverriddenType;
+      if (overriddenElement.isSynthetic) {
+        unsubstitutedOverriddenType =
+            _variables.decoratedElementType(overriddenElement.variable);
+      } else {
+        if (overriddenElement.isGetter) {
+          unsubstitutedOverriddenType =
+              _variables.decoratedElementType(overriddenElement).returnType;
+        } else {
+          unsubstitutedOverriddenType = _variables
+              .decoratedElementType(overriddenElement)
+              .positionalParameters[0];
+        }
+      }
+      var overriddenType = unsubstitutedOverriddenType.substitute(substitution);
+      if (overriddenElement.isGetter) {
+        _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
+            source: type, destination: overriddenType, hard: true);
+      } else {
+        assert(overriddenElement.isSetter);
+        _checkAssignment(ParameterInheritanceOrigin(source, node),
+            source: overriddenType, destination: type, hard: true);
+      }
+    } else {
+      assert(false, 'Field overrides non-property-accessor');
     }
   }
 
