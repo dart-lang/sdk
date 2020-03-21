@@ -24,10 +24,9 @@ class DefaultListConstructorMismatch extends DriverResolutionTest {
 
   test_inferredType() async {
     await assertErrorsInCode('''
-class C {}
-List<C> v = List(5);
+List<int> v = List(5);
 ''', [
-      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH, 23, 4),
+      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR, 14, 4),
     ]);
   }
 
@@ -35,7 +34,7 @@ List<C> v = List(5);
     await assertErrorsInCode('''
 var l = new List<int>(3);
 ''', [
-      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH, 12, 9),
+      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR, 12, 9),
     ]);
   }
 
@@ -46,9 +45,11 @@ var x = List<int>.unmodifiable([]);
   }
 
   test_nullableType() async {
-    await assertNoErrorsInCode('''
-var l = new List<String?>(3);
-''');
+    await assertErrorsInCode('''
+var l = new List<int?>(3);
+''', [
+      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR, 12, 10),
+    ]);
   }
 
   test_optOut() async {
@@ -64,7 +65,7 @@ class C<T> {
   var l = new List<T>(3);
 }
 ''', [
-      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH, 27, 7),
+      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR, 27, 7),
     ]);
   }
 }

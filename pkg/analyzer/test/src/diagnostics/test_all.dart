@@ -58,8 +58,7 @@ import 'const_spread_expected_list_or_set_test.dart'
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
-import 'default_list_constructor_mismatch_test.dart'
-    as default_list_constructor_mismatch;
+import 'default_list_constructor_test.dart' as default_list_constructor;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_function_typed_parameter_test.dart'
@@ -543,7 +542,7 @@ main() {
     const_spread_expected_map.main();
     dead_code.main();
     dead_null_aware_expression.main();
-    default_list_constructor_mismatch.main();
+    default_list_constructor.main();
     default_value_in_function_type.main();
     default_value_in_function_typed_parameter.main();
     default_value_in_redirecting_factory_constructor.main();
