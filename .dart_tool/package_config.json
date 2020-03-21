@@ -736,6 +736,18 @@
       "languageVersion": "2.0"
     },
     {
+      "name": "unittest",
+      "rootUri": "../third_party/pkg/unittest",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
+      "name": "unittest-orig",
+      "rootUri": "../third_party/pkg/unittest-orig",
+      "packageUri": "lib/",
+      "languageVersion": "1.0"
+    },
+    {
       "name": "usage",
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",

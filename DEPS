@@ -145,6 +145,7 @@ vars = {
   "test_tag": "test_core-v0.3.2",
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "1.1.6",
+  "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
   "watcher_rev": "0.9.7+14",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
@@ -404,6 +405,12 @@ deps = {
       "@" + Var("test_reflective_loader_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
+  # Unittest is an early version, 0.11.x, of the package "test"
+  # Do not use it in any new tests. Fetched from chromium_git to avoid
+  # race condition in cache with pkg/test.
+  Var("dart_root") + "/third_party/pkg/unittest":
+      Var("chromium_git") + "/external/github.com/dart-lang/test.git" +
+      "@" + Var("unittest_rev"),
   Var("dart_root") + "/third_party/pkg/usage":
       Var("dart_git") + "usage.git" + "@" + Var("usage_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":
