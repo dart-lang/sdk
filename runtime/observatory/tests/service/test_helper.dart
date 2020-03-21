@@ -396,7 +396,7 @@ class _ServiceTesterRunner {
       },
       retry: 0,
       // Some service tests run fairly long (e.g., valid_source_locations_test).
-      timeout: Timeout(const Duration(minutes: 10)),
+      timeout: Timeout(const Duration(minutes: 5)),
     );
 
     tearDown(() {
