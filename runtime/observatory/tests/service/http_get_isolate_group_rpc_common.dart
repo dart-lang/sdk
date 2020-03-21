@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
-import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart' as S;
+import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 Future<String> getIsolateGroupId(
@@ -36,7 +36,7 @@ Future<Null> testeeBefore() async {
   print(await Service.getInfo());
   // Start the web server.
   final ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
-  Expect.isNotNull(info.serverUri);
+  expect(info.serverUri, isNotNull);
   final httpClient = new io.HttpClient();
 
   // Build the request.
@@ -63,13 +63,13 @@ Future<Null> testeeBefore() async {
         .transform(json.decoder)
         .first;
     final result = jsonResponse['result'];
-    Expect.equals(result['type'], 'IsolateGroup');
-    Expect.isTrue(result['id'].startsWith('isolateGroups/'));
-    Expect.type<String>(result['number']);
-    Expect.isTrue(result['isolates'].length > 0);
-    Expect.equals(result['isolates'][0]['type'], '@Isolate');
+    expect(result['type'], equals('IsolateGroup'));
+    expect(result['id'], startsWith('isolateGroups/'));
+    expect(result['number'], new isInstanceOf<String>());
+    expect(result['isolates'].length, isPositive);
+    expect(result['isolates'][0]['type'], equals('@Isolate'));
   } catch (e) {
-    Expect.fail('invalid request: $e');
+    fail('invalid request: $e');
   }
 }
 
@@ -78,5 +78,6 @@ var tests = <IsolateTest>[
     await isolate.reload();
     // Just getting here means that the testee enabled the service protocol
     // web server.
+    expect(true, true);
   }
 ];

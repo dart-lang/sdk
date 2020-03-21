@@ -4,11 +4,11 @@
 // VMOptions=--timeline_streams=Dart
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:math';
-import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
@@ -80,8 +80,8 @@ Future<HttpServer> startServer() async {
 
 Future<void> testMain() async {
   // Ensure there's a chance some requests will be interrupted.
-  Expect.isTrue(maxRequestDelayMs > serverShutdownDelayMs);
-  Expect.isTrue(maxResponseDelayMs < serverShutdownDelayMs);
+  expect(maxRequestDelayMs > serverShutdownDelayMs, isTrue);
+  expect(maxResponseDelayMs < serverShutdownDelayMs, isTrue);
 
   final server = await startServer();
   HttpClient.enableTimelineLogging = true;

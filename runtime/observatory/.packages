@@ -8,6 +8,7 @@ observable:../../third_party/observatory_pub_packages/packages/observable/lib
 path:../../third_party/observatory_pub_packages/packages/path/lib
 quiver:../../third_party/observatory_pub_packages/packages/quiver/lib
 stack_trace:../../third_party/observatory_pub_packages/packages/stack_trace/lib
+unittest:../../third_party/observatory_pub_packages/packages/unittest/lib
 usage:../../third_party/observatory_pub_packages/packages/usage/lib
 observatory:lib
 
@@ -16,7 +17,6 @@ async:../../third_party/pkg/async/lib
 boolean_selector:../../third_party/pkg/boolean_selector/lib
 charcode:../../third_party/pkg/charcode/lib
 dart_internal:../../pkg/dart_internal/lib
-expect:../../pkg/expect/lib
 http:../../third_party/pkg/http/lib
 http_parser:../../third_party/pkg/http_parser/lib
 matcher:../../third_party/pkg/matcher/lib

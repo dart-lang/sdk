@@ -4,7 +4,7 @@
 // VMOptions=--steal-breakpoints
 
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 

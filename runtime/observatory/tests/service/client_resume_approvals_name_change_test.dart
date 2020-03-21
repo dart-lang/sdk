@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 import 'client_resume_approvals_common.dart';
 import 'service_test_common.dart';
