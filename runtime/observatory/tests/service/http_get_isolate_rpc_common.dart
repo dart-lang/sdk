@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart' as S;
-import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 Future<String> getIsolateId(io.HttpClient httpClient, Uri serverUri) async {
@@ -35,7 +35,7 @@ Future<Null> testeeBefore() async {
   print(await Service.getInfo());
   // Start the web server.
   ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
-  expect(info.serverUri, isNotNull);
+  Expect.isNotNull(info.serverUri);
   var httpClient = new io.HttpClient();
 
   // Build the request.
@@ -61,26 +61,26 @@ Future<Null> testeeBefore() async {
         .transform(json.decoder)
         .first;
     Map result = response['result'];
-    expect(result['type'], equals('Isolate'));
-    expect(result['id'], startsWith('isolates/'));
-    expect(result['number'], new isInstanceOf<String>());
-    expect(result['_originNumber'], equals(result['number']));
-    expect(result['startTime'], isPositive);
-    expect(result['livePorts'], isPositive);
-    expect(result['pauseOnExit'], isFalse);
-    expect(result['pauseEvent']['type'], equals('Event'));
-    expect(result['error'], isNull);
-    expect(result['_numZoneHandles'], isPositive);
-    expect(result['_numScopedHandles'], isPositive);
-    expect(result['rootLib']['type'], equals('@Library'));
-    expect(result['libraries'].length, isPositive);
-    expect(result['libraries'][0]['type'], equals('@Library'));
-    expect(result['breakpoints'].length, isZero);
-    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
-    expect(result['isolate_group']['type'], equals('@IsolateGroup'));
+    Expect.equals(result['type'], 'Isolate');
+    Expect.isTrue(result['id'].startsWith('isolates/'));
+    Expect.type<String>(result['number']);
+    Expect.equals(result['_originNumber'], result['number']);
+    Expect.isTrue(result['startTime'] > 0);
+    Expect.isTrue(result['livePorts'] > 0);
+    Expect.isFalse(result['pauseOnExit']);
+    Expect.equals(result['pauseEvent']['type'], 'Event');
+    Expect.isNull(result['error']);
+    Expect.isTrue(result['_numZoneHandles'] > 0);
+    Expect.isTrue(result['_numScopedHandles'] > 0);
+    Expect.equals(result['rootLib']['type'], '@Library');
+    Expect.isTrue(result['libraries'].length > 0);
+    Expect.equals(result['libraries'][0]['type'], '@Library');
+    Expect.equals(result['breakpoints'].length, 0);
+    Expect.equals(result['_heaps']['new']['type'], 'HeapSpace');
+    Expect.equals(result['_heaps']['old']['type'], 'HeapSpace');
+    Expect.equals(result['isolate_group']['type'], '@IsolateGroup');
   } catch (e) {
-    fail('invalid request: $e');
+    Expect.fail('invalid request: $e');
   }
 }
 
@@ -89,6 +89,5 @@ var tests = <IsolateTest>[
     await isolate.reload();
     // Just getting here means that the testee enabled the service protocol
     // web server.
-    expect(true, true);
   }
 ];

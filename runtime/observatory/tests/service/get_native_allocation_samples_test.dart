@@ -7,7 +7,7 @@
 import 'package:observatory/sample_profile.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 void verifyHelper(var root, bool exclusive) {
