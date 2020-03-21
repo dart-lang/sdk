@@ -165,12 +165,6 @@ class DillClassMember extends BuilderClassMember {
   bool get isFunction => !isProperty;
 
   @override
-  bool get hasExplicitReturnType => true;
-
-  @override
-  bool hasExplicitlyTypedFormalParameter(int index) => true;
-
-  @override
   void inferType(ClassHierarchyBuilder hierarchy) {
     // Do nothing; this is only for source members.
   }
