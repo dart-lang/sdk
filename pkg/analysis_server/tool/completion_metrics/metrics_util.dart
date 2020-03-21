@@ -84,49 +84,59 @@ class Counter {
   }
 }
 
-/// A computer for the mean reciprocal rank,
+/// A computer for the mean reciprocal rank. The MRR as well as the MRR only
+/// if the item was in the top 5 in the list see [MAX_RANK], is computed.
 /// https://en.wikipedia.org/wiki/Mean_reciprocal_rank.
 class MeanReciprocalRankComputer {
+  static final int MAX_RANK = 5;
   final String name;
-  final List<int> ranks = [];
-  MeanReciprocalRankComputer(this.name);
+  double _sum = 0;
+  double _sum_5 = 0;
+  int _count = 0;
 
-  int get rankCount => ranks.length;
+  MeanReciprocalRankComputer(
+    this.name,
+  );
+
+  int get count => _count;
 
   void addRank(int rank) {
-    ranks.add(rank);
+    if (rank != 0) {
+      _sum += 1 / rank;
+      if (rank <= MAX_RANK) {
+        _sum_5 += 1 / rank;
+      }
+    }
+    _count++;
   }
 
-  void clear() => ranks.clear();
+  void clear() {
+    _sum = 0;
+    _sum_5 = 0;
+    _count = 0;
+  }
 
-  double getMRR([int maxRank = 0]) {
-    if (ranks.isEmpty || maxRank < 0) {
+  double get mrr {
+    if (count == 0) {
       return 0;
     }
-    double sum = 0;
-    ranks.forEach((rank) {
-      if (maxRank == 0) {
-        if (rank != 0) {
-          sum += 1 / rank;
-        }
-      } else {
-        if (rank != 0 && rank <= maxRank) {
-          sum += 1 / rank;
-        }
-      }
-    });
-    return sum / rankCount;
+    return _sum / count;
+  }
+
+  double get mrr_5 {
+    if (count == 0) {
+      return 0;
+    }
+    return _sum_5 / count;
   }
 
   void printMean() {
-    var mrrVal = getMRR();
-    print('Mean Reciprocal Rank \'$name\' (total = $rankCount)');
-    print('mmr   = ${mrrVal.toStringAsFixed(6)} '
-        '(inverse = ${(1 / mrrVal).toStringAsFixed(3)})');
+    print('Mean Reciprocal Rank \'$name\' (total = $count)');
+    print('mmr   = ${mrr.toStringAsFixed(6)} '
+        '(inverse = ${(1 / mrr).toStringAsFixed(3)})');
 
-    var mrrVal5 = getMRR(5);
-    print('mmr_5 = ${mrrVal5.toStringAsFixed(6)} '
-        '(inverse = ${(1 / mrrVal5).toStringAsFixed(3)})');
+    print('mmr_5 = ${mrr_5.toStringAsFixed(6)} '
+        '(inverse = ${(1 / mrr_5).toStringAsFixed(3)})');
   }
 }
 

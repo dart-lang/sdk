@@ -79,20 +79,21 @@ void main() {
   group('MeanReciprocalRankComputer', () {
     test('empty', () {
       var mrrc = MeanReciprocalRankComputer('');
-      expect(mrrc.rankCount, equals(0));
-      expect(mrrc.ranks, isEmpty);
-      expect(mrrc.getMRR(), equals(0));
+      expect(mrrc.count, equals(0));
+      expect(mrrc.mrr, equals(0));
     });
 
     test('clear', () {
       var mrrc = MeanReciprocalRankComputer('');
       mrrc.addRank(2);
-      expect(mrrc.rankCount, equals(1));
-      expect(mrrc.ranks, isNotEmpty);
+      expect(mrrc.count, equals(1));
+      expect(mrrc.mrr, equals(1 / 2));
+      expect(mrrc.mrr_5, equals(1 / 2));
 
       mrrc.clear();
-      expect(mrrc.rankCount, equals(0));
-      expect(mrrc.ranks, isEmpty);
+      expect(mrrc.count, equals(0));
+      expect(mrrc.mrr, equals(0));
+      expect(mrrc.mrr_5, equals(0));
     });
 
     test('mmr- single value', () {
@@ -102,9 +103,9 @@ void main() {
       mrrc.addRank(3);
       mrrc.addRank(3);
       mrrc.addRank(3);
-      expect(mrrc.rankCount, equals(5));
-      expect(mrrc.ranks, equals([3, 3, 3, 3, 3]));
-      expect(mrrc.getMRR(), doubleEquals(1 / 3));
+      expect(mrrc.count, equals(5));
+      expect(mrrc.mrr, doubleEquals(1 / 3));
+      expect(mrrc.mrr_5, doubleEquals(1 / 3));
     });
 
     test('mmr- example', () {
@@ -112,19 +113,21 @@ void main() {
       mrrc.addRank(3);
       mrrc.addRank(2);
       mrrc.addRank(1);
-      expect(mrrc.rankCount, equals(3));
-      expect(mrrc.ranks, equals([3, 2, 1]));
-      expect(mrrc.getMRR(), doubleEquals(11 / 18));
+      expect(mrrc.count, equals(3));
+      expect(mrrc.mrr, doubleEquals(11 / 18));
+      expect(mrrc.mrr_5, doubleEquals(11 / 18));
     });
 
     test('mmr- max rank', () {
       var mrrc = MeanReciprocalRankComputer('');
+      mrrc.addRank(6);
+      mrrc.addRank(5);
+      mrrc.addRank(4);
       mrrc.addRank(3);
       mrrc.addRank(2);
       mrrc.addRank(1);
-      expect(mrrc.rankCount, equals(3));
-      expect(mrrc.ranks, equals([3, 2, 1]));
-      expect(mrrc.getMRR(2), doubleEquals(1 / 2));
+      expect(mrrc.count, equals(6));
+      expect(mrrc.mrr, greaterThan(mrrc.mrr_5));
     });
   });
 
