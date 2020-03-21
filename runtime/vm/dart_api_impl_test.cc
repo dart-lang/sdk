@@ -2283,6 +2283,9 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
 
     const intptr_t kBufferSize = 100;
     void* buffer = malloc(kBufferSize);
+    // The buffer becomes readable by Dart, so ensure it is initialized to
+    // satisfy our eager MSAN check.
+    memset(buffer, 0, kBufferSize);
     Dart_Handle byte_data = Dart_NewExternalTypedDataWithFinalizer(
         Dart_TypedData_kByteData, buffer, kBufferSize, buffer, kBufferSize,
         ByteDataFinalizer);

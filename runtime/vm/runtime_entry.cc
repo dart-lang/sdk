@@ -2845,6 +2845,14 @@ static const intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
 static void CopySavedRegisters(uword saved_registers_address,
                                fpu_register_t** fpu_registers,
                                intptr_t** cpu_registers) {
+  // Tell MemorySanitizer this region is initialized by generated code. This
+  // region isn't already (fully) unpoisoned by FrameSetIterator::Unpoison
+  // because it is in an exit frame and stack frame iteration doesn't have
+  // access to true SP for exit frames.
+  MSAN_UNPOISON(reinterpret_cast<void*>(saved_registers_address),
+                kNumberOfSavedFpuRegisters * kFpuRegisterSize +
+                    kNumberOfSavedCpuRegisters * kWordSize);
+
   ASSERT(sizeof(fpu_register_t) == kFpuRegisterSize);
   fpu_register_t* fpu_registers_copy =
       new fpu_register_t[kNumberOfSavedFpuRegisters];
