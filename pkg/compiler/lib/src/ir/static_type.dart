@@ -184,8 +184,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   /// If this is not the case the raw type of [superclass] is returned.
   ///
   /// This method is derived from `ir.Expression.getStaticTypeAsInstanceOf`.
-  ir.InterfaceType getTypeAsInstanceOf(
-      ir.DartType type, ir.Class superclass, ir.Library clientLibrary) {
+  ir.InterfaceType getTypeAsInstanceOf(ir.DartType type, ir.Class superclass) {
     // This method assumes the program is correctly typed, so if the superclass
     // is not generic, we can just return its raw type without computing the
     // type of this expression.  It also ensures that all types are considered
@@ -193,25 +192,26 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // considered subtypes of Function.
     if (superclass.typeParameters.isEmpty) {
       return typeEnvironment.coreTypes
-          .rawType(superclass, ir.Nullability.legacy);
+          .rawType(superclass, currentLibrary.nonNullable);
     }
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
     if (type == typeEnvironment.nullType) {
       return typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, clientLibrary.nullable);
+          .bottomInterfaceType(superclass, currentLibrary.nullable);
     }
     if (type is ir.InterfaceType) {
       ir.InterfaceType upcastType = typeEnvironment.getTypeAsInstanceOf(
-          type, superclass, clientLibrary, typeEnvironment.coreTypes);
+          type, superclass, currentLibrary, typeEnvironment.coreTypes);
       if (upcastType != null) return upcastType;
     } else if (type is ir.BottomType) {
       return typeEnvironment.coreTypes
-          .bottomInterfaceType(superclass, clientLibrary.nonNullable);
+          .bottomInterfaceType(superclass, currentLibrary.nonNullable);
     }
     // TODO(johnniwinther): Should we assert that this doesn't happen?
-    return typeEnvironment.coreTypes.rawType(superclass, type.nullability);
+    return typeEnvironment.coreTypes
+        .rawType(superclass, currentLibrary.nonNullable);
   }
 
   /// Computes the result type of the property access [node] on a receiver of
@@ -228,8 +228,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     }
     if (interfaceTarget != null) {
       ir.Class superclass = interfaceTarget.enclosingClass;
-      receiverType =
-          getTypeAsInstanceOf(receiverType, superclass, currentLibrary);
+      receiverType = getTypeAsInstanceOf(receiverType, superclass);
       return ir.Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
     }
@@ -299,7 +298,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         ir.Class superclass = interfaceTarget.enclosingClass;
         ir.Substitution receiverSubstitution =
             ir.Substitution.fromInterfaceType(
-                getTypeAsInstanceOf(receiverType, superclass, currentLibrary));
+                getTypeAsInstanceOf(receiverType, superclass));
         ir.DartType setterType =
             receiverSubstitution.substituteType(interfaceTarget.setterType);
         if (!typeEnvironment.isSubtypeOf(
@@ -332,8 +331,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitDirectPropertyGet(ir.DirectPropertyGet node) {
     ir.DartType receiverType = visitNode(node.receiver);
     ir.Class superclass = node.target.enclosingClass;
-    receiverType =
-        getTypeAsInstanceOf(receiverType, superclass, currentLibrary);
+    receiverType = getTypeAsInstanceOf(receiverType, superclass);
     ir.DartType resultType = ir.Substitution.fromInterfaceType(receiverType)
         .substituteType(node.target.getterType);
     _expressionTypeCache[node] = resultType;
@@ -358,8 +356,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           receiverType, argumentType);
     } else {
       ir.Class superclass = node.target.enclosingClass;
-      receiverType =
-          getTypeAsInstanceOf(receiverType, superclass, currentLibrary);
+      receiverType = getTypeAsInstanceOf(receiverType, superclass);
       ir.DartType returnType = ir.Substitution.fromInterfaceType(receiverType)
           .substituteType(node.target.function.returnType);
       returnType = ir.Substitution.fromPairs(
@@ -618,7 +615,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (interfaceTarget != null) {
       ir.Class superclass = interfaceTarget.enclosingClass;
       ir.Substitution receiverSubstitution = ir.Substitution.fromInterfaceType(
-          getTypeAsInstanceOf(receiverType, superclass, currentLibrary));
+          getTypeAsInstanceOf(receiverType, superclass));
       ir.DartType getterType =
           receiverSubstitution.substituteType(interfaceTarget.getterType);
       if (getterType is ir.FunctionType) {
