@@ -301,13 +301,12 @@ class Class2b extends LegacyClass implements Interface {
   int method5b({int a: 0, int b: 0}) => 0;
 
   /*member: Class2b.method5c:int Function({required int a, required int b})*/
-  int /*analyzer.error: CompileTimeErrorCode.INVALID_OVERRIDE*/
-      method5c(
-              {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/
-                  /*cfe|cfe:builder.error: RequiredNamedParameterHasDefaultValueError*/ a: 0,
-              required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/
-                  /*cfe|cfe:builder.error: RequiredNamedParameterHasDefaultValueError*/ b: 0}) =>
-          0;
+  int method5c(
+          {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/
+              /*cfe|cfe:builder.error: RequiredNamedParameterHasDefaultValueError*/ a: 0,
+          required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/
+              /*cfe|cfe:builder.error: RequiredNamedParameterHasDefaultValueError*/ b: 0}) =>
+      0;
 
   /*member: Class2b.method6a:int? Function(int?, {int? b})*/
   int? method6a(int? a, {int? b}) => 0;
@@ -316,9 +315,7 @@ class Class2b extends LegacyClass implements Interface {
   int? method6b({int? a, int? b}) => 0;
 
   /*member: Class2b.method6c:int? Function({required int? a, required int? b})*/
-  int? /*analyzer.error: CompileTimeErrorCode.INVALID_OVERRIDE*/ method6c(
-          {required int? a, required int? b}) =>
-      0;
+  int? method6c({required int? a, required int? b}) => 0;
 
   /*member: Class2b.getter1:int*/
   int get getter1 => 0;

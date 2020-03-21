@@ -2982,12 +2982,14 @@ class TypeSystemImpl extends TypeSystem {
     var T0 = _T0 as TypeImpl;
     var T1 = _T1 as TypeImpl;
 
+    var T1_nullability = T1.nullabilitySuffix;
+    var T0_nullability = T0.nullabilitySuffix;
+
     // Right Top: if `T1` is a top type (i.e. `dynamic`, or `void`, or
     // `Object?`) then `T0 <: T1`.
     if (identical(T1, DynamicTypeImpl.instance) ||
         identical(T1, VoidTypeImpl.instance) ||
-        T1.nullabilitySuffix == NullabilitySuffix.question &&
-            T1.isDartCoreObject) {
+        T1_nullability == NullabilitySuffix.question && T1.isDartCoreObject) {
       return true;
     }
 
@@ -3006,9 +3008,7 @@ class TypeSystemImpl extends TypeSystem {
     }
 
     // Right Object: if `T1` is `Object` then:
-    var T1_nullability = T1.nullabilitySuffix;
     if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreObject) {
-      var T0_nullability = T0.nullabilitySuffix;
       // * if `T0` is an unpromoted type variable with bound `B`,
       //   then `T0 <: T1` iff `B <: Object`.
       // * if `T0` is a promoted type variable `X & S`,
@@ -3051,7 +3051,6 @@ class TypeSystemImpl extends TypeSystem {
     }
 
     // Left Null: if `T0` is `Null` then:
-    var T0_nullability = T0.nullabilitySuffix;
     if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull) {
       // * If `T1` is `FutureOr<S>` for some `S`, then the query is true iff
       // `Null <: S`.
@@ -3085,6 +3084,9 @@ class TypeSystemImpl extends TypeSystem {
     // Right Legacy `T1` is `S1*` then:
     //   * `T0 <: T1` iff `T0 <: S1?`.
     if (T1_nullability == NullabilitySuffix.star) {
+      if (T1 is FunctionType && _isFunctionTypeWithNamedRequired(T0)) {
+        T1 = _functionTypeWithNamedRequired(T1 as FunctionType);
+      }
       var S1 = T1.withNullability(NullabilitySuffix.question);
       return isSubtypeOf2(T0, S1);
     }
@@ -3749,7 +3751,9 @@ class TypeSystemImpl extends TypeSystem {
         if (gParameter.isNamed) {
           var compareNames = fParameter.name.compareTo(gParameter.name);
           if (compareNames == 0) {
-            if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
+            var gIsRequiredOrLegacy = gParameter.isRequiredNamed ||
+                g.nullabilitySuffix == NullabilitySuffix.star;
+            if (fParameter.isRequiredNamed && !gIsRequiredOrLegacy) {
               return false;
             } else if (isSubtypeOf2(gParameter.type, fParameter.type)) {
               fIndex++;
@@ -3887,6 +3891,32 @@ class TypeSystemImpl extends TypeSystem {
     type = type.resolveToBound(typeProvider.objectType);
     return Substitution.fromMap({element: typeProvider.objectType})
         .substituteType(type);
+  }
+
+  static FunctionTypeImpl _functionTypeWithNamedRequired(FunctionType type) {
+    return FunctionTypeImpl(
+      typeFormals: type.typeFormals,
+      parameters: type.parameters.map((e) {
+        if (e.isNamed) {
+          return ParameterElementImpl.synthetic(
+            e.name,
+            e.type,
+            ParameterKind.NAMED_REQUIRED,
+          );
+        } else {
+          return e;
+        }
+      }).toList(growable: false),
+      returnType: type.returnType,
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
+  }
+
+  static bool _isFunctionTypeWithNamedRequired(DartType type) {
+    if (type is FunctionType) {
+      return type.parameters.any((e) => e.isRequiredNamed);
+    }
+    return false;
   }
 }
 
