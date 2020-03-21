@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// This test is indirectly testing invariants of the generated code of dart2js.
 /// It ensures that indices to metadata information from **multiple** deferred
 /// fragments is kept separate, but that when they are loaded (and the metadata

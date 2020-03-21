@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 nestedForLoopWithBreakAndContinue(count) {
   /*0@continue*/ for (int i = 0; i < count; i = i + 1) {
     /*1@break*/ for (int j = 0; j < count; j = j + 1) {

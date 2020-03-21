@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// This is a regression test from issue #29310. The global type-inferrer does
 /// tracing of closures including allocated classes that implement a `call`
 /// method. We incorrectly considered also classes with invoked factory

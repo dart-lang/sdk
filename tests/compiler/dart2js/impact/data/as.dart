@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: main:static=[explicitAs(1),implicitAs(1),promoted(1)],type=[inst:JSNull]*/
 main() {
   explicitAs(null);

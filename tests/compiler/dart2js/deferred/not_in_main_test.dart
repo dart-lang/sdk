@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test of the graph segmentation algorithm used by deferred loading
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).

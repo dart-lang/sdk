@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Similar to native_exception_test.dart but also defines a native
 // class.  This exercises a different code path in emitter.dart.
 

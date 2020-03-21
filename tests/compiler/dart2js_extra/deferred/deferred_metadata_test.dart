@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Regression tests to ensure that member metadata is not considered by the
 /// deferred loading algorithm, unless mirrors are available.
 ///

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test derived from language_2/generic_methods_dynamic_test/05
 
 /*omit.class: global#JSArray:deps=[List],explicit=[JSArray],needsArgs*/

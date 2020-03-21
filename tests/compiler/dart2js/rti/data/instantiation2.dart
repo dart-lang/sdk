@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*strong.member: f:deps=[B],direct,explicit=[f.T],needsArgs,needsInst=[<B.S>]*/
 /*omit.member: f:deps=[B],direct,explicit=[f.T],needsArgs,needsInst=[<B.S>]*/
 bool f<T>(T a) => a is T;

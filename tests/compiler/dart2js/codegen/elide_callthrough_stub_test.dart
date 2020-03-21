@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Check that calls through fields elide the call-through stub.  This
 // optimization is done by the simplifier, so inlining does not need to be
 // enabled.

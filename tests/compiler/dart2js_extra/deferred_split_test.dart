@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Regression for issue 23853: we used to incorrectly split and put a type in a
 /// deferred hunk if the type was used explicitly in the deferred library and
 /// was used only in a generic type in the main library.

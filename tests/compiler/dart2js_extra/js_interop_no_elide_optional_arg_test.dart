@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// Test that optional arguments of js-interop factory constructors are not
 /// elided.
 /// This is a regression test for issue 35916

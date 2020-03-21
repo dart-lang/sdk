@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test that we don't crash on computing js-interop classes when metadata
 // constants contain implicit casts.
 //

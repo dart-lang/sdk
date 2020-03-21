@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Test the all variants of field/property access/update are emitted.
 //
 // This is needed because getter/setters are now registered as read from and
