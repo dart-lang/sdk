@@ -406,6 +406,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'compiler/dart2js_extra/',
     'compiler/dart2js_native/',
     'corelib_2/',
+    'ffi_2',
     'language_2/',
     'lib_2/',
     'standalone_2/',
