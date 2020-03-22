@@ -85,13 +85,6 @@ class MethodInvocationResolver {
     String name = nameNode.name;
     _currentName = Name(_definingLibraryUri, name);
 
-    //
-    // Synthetic identifiers have been already reported during parsing.
-    //
-    if (nameNode.isSynthetic) {
-      return;
-    }
-
     Expression receiver = node.realTarget;
 
     if (receiver == null) {
@@ -670,11 +663,14 @@ class MethodInvocationResolver {
     } else if (receiverType is FunctionType) {
       receiverClassName = 'Function';
     }
-    _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.UNDEFINED_METHOD,
-      nameNode,
-      [name, receiverClassName],
-    );
+
+    if (!nameNode.isSynthetic) {
+      _resolver.errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.UNDEFINED_METHOD,
+        nameNode,
+        [name, receiverClassName],
+      );
+    }
   }
 
   void _resolveReceiverTypeLiteral(MethodInvocation node, ClassElement receiver,
