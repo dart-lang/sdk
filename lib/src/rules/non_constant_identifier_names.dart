@@ -71,7 +71,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    checkIdentifier(node.name);
+    // For rationale on accepting underscores, see:
+    // https://github.com/dart-lang/linter/issues/1854
+    checkIdentifier(node.name, underscoresOk: true);
   }
 
   @override
