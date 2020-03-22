@@ -39,8 +39,7 @@ void main() {
     });
 
     test('error', () {
-      ErrorsResultImpl error =
-          mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
+      var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
       reporter.formatErrors([error]);
       reporter.flush();
 
@@ -49,7 +48,7 @@ void main() {
     });
 
     test('hint', () {
-      ErrorsResultImpl error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
+      var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
       reporter.formatErrors([error]);
       reporter.flush();
 
@@ -58,7 +57,7 @@ void main() {
     });
 
     test('stats', () {
-      ErrorsResultImpl error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
+      var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
       reporter.formatErrors([error]);
       reporter.flush();
       stats.print(out);

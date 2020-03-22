@@ -38,15 +38,15 @@ void main(List<String> args) async {
   await setup(args[1]);
 
   if (bench == 'scan') {
-    Set<Source> files = scanReachableFiles(entryUri);
+    var files = scanReachableFiles(entryUri);
     // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       scanFiles(files);
     }
   } else if (bench == 'parse') {
-    Set<Source> files = scanReachableFiles(entryUri);
+    var files = scanReachableFiles(entryUri);
     // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       parseFiles(files);
     }
   } else {
