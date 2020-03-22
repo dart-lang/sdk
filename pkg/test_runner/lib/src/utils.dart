@@ -27,8 +27,7 @@ const testPackages = [
   "matcher",
   "meta",
   "path",
-  "stack_trace",
-  "unittest"
+  "stack_trace"
 ];
 
 // TODO(nshahan): Grow this list until it matches the list above. We are
