@@ -13,6 +13,27 @@ import 'package:path/path.dart' as pathos;
 final String testDirectory = pathos.dirname(
     pathos.fromUri((reflectClass(_TestUtils).owner as LibraryMirror).uri));
 
+/// Returns a path to the directory containing source code for packages such as
+/// kernel, front_end, and analyzer.
+String get packageRoot {
+  // If the package root directory is specified on the command line using
+  // -DpkgRoot=..., use it.
+  var pkgRootVar = const String.fromEnvironment('pkgRoot');
+  if (pkgRootVar != null) {
+    var path = pathos.join(Directory.current.path, pkgRootVar);
+    if (!path.endsWith(pathos.separator)) path += pathos.separator;
+    return path;
+  }
+  // Otherwise try to guess based on the script path.
+  var scriptPath = pathos.fromUri(Platform.script);
+  var parts = pathos.split(scriptPath);
+  var pkgIndex = parts.indexOf('pkg');
+  if (pkgIndex != -1) {
+    return pathos.joinAll(parts.sublist(0, pkgIndex + 1)) + pathos.separator;
+  }
+  throw StateError('Unable to find sdk/pkg/ in $scriptPath');
+}
+
 /// Recursively copy the specified [src] directory (or file)
 /// to the specified destination path.
 Future<void> recursiveCopy(FileSystemEntity src, String dstPath) async {
