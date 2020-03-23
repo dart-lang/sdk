@@ -13203,6 +13203,14 @@ class Element extends Node
          if (!(element.attributes instanceof NamedNodeMap)) {
 	   return true;
 	 }
+         // If something has corrupted the traversal we want to detect
+         // these on not only the children (tested below) but on the node itself
+         // in case it was bypassed.
+         if (element["id"] == 'lastChild' || element["name"] == 'lastChild' ||
+             element["id"] == 'previousSibling' || element["name"] == 'previousSibling' ||
+             element["id"] == 'children' || element["name"] == 'children') {
+           return true;
+         }
 	 var childNodes = element.childNodes;
 	 if (element.lastChild &&
 	     element.lastChild !== childNodes[childNodes.length -1]) {
@@ -13228,6 +13236,7 @@ class Element extends Node
            // allowing us to check for clobbering that may show up in other accesses.
            if (child["id"] == 'attributes' || child["name"] == 'attributes' ||
                child["id"] == 'lastChild'  || child["name"] == 'lastChild' ||
+               child["id"] == 'previousSibling'  || child["name"] == 'previousSibling' ||
                child["id"] == 'children' || child["name"] == 'children') {
              return true;
            }
@@ -39335,6 +39344,9 @@ class _ThrowsNodeValidator implements NodeValidator {
  */
 class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   NodeValidator validator;
+
+  /// Did we modify the tree by removing anything.
+  bool modifiedTree = false;
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
@@ -39345,9 +39357,13 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       while (null != child) {
         var nextChild;
         try {
-          // Child may be removed during the walk, and we may not
-          // even be able to get its previousNode.
+          // Child may be removed during the walk, and we may not even be able
+          // to get its previousNode. But it's also possible that previousNode
+          // (i.e. previousSibling) is being spoofed, so double-check it.
           nextChild = child.previousNode;
+          if (nextChild != null && nextChild.nextNode != child) {
+            throw StateError("Corrupt HTML");
+          }
         } catch (e) {
           // Child appears bad, remove it. We want to check the rest of the
           // children of node and, but we have no way of getting to the next
@@ -39361,7 +39377,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       }
     }
 
+    modifiedTree = false;
     walk(node, null);
+    while (modifiedTree) {
+      modifiedTree = false;
+      walk(node, null);
+    }
   }
 
   /// Aggressively try to remove node.
@@ -39369,7 +39390,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // If we have the parent, it's presumably already passed more sanitization
     // or is the fragment, so ask it to remove the child. And if that fails
     // try to set the outer html.
-    if (parent == null) {
+    modifiedTree = true;
+    if (parent == null || parent != node.parentNode) {
       node.remove();
     } else {
       parent._removeChild(node);
