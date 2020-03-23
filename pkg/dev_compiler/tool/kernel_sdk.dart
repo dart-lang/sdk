@@ -116,8 +116,7 @@ Future main(List<String> args) async {
         jsUrl: jsPath,
         mapUrl: mapPath,
         buildSourceMap: true,
-        customScheme: customScheme,
-        component: component);
+        customScheme: customScheme);
     await File(jsPath).writeAsString(jsCode.code);
     await File(mapPath).writeAsString(json.encode(jsCode.sourceMap));
   }

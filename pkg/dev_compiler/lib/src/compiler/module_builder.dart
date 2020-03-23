@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:dev_compiler/src/compiler/shared_compiler.dart';
 import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
@@ -72,7 +71,6 @@ void addModuleFormatOptions(ArgParser argParser, {bool hide = true}) {
 Program transformModuleFormat(ModuleFormat format, Program module) {
   switch (format) {
     case ModuleFormat.ddc:
-      // Legacy format always generates output compatible with single file mode.
       return DdcModuleBuilder().build(module);
     case ModuleFormat.common:
       return CommonJSModuleBuilder().build(module);
@@ -187,13 +185,12 @@ class DdcModuleBuilder extends _ModuleBuilder {
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
-    var moduleDef = js.statement('dart_library.library(#, #, #, #, #)', [
+    var moduleDef = js.statement('dart_library.library(#, #, #, #)', [
       js.string(module.name, "'"),
       LiteralNull(),
       js.commentExpression(
           'Imports', ArrayInitializer(importNames, multiline: true)),
-      resultModule,
-      SharedCompiler.metricsLocationID
+      resultModule
     ]);
     return Program(<ModuleItem>[moduleDef]);
   }

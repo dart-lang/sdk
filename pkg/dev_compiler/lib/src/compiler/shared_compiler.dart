@@ -594,17 +594,13 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   js_ast.LiteralString propertyName(String name) => js.string(name, "'");
 
-  /// Unique identifiers indicating the locations to inline the corresponding
-  /// information.
+  /// Unique identifier indicating the location to inline the source map.
   ///
   /// We cannot generate the source map before the script it is for is
   /// generated so we have generate the script including this identifier in the
-  /// JS AST, and then replace it once the source map is generated.  Similarly,
-  /// metrics include the size of the source map.
+  /// JS AST, and then replace it once the source map is generated.
   static const String sourceMapLocationID =
       'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
-  static const String metricsLocationID =
-      'MetricsJ7xFWBfSv6ZjrW9yLb21GNzisZr3anSf5h';
 }
 
 /// Whether a variable with [name] is referenced in the [node].

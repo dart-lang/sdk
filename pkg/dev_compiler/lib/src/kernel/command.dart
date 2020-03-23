@@ -415,8 +415,7 @@ Future<CompilerResult> _compile(List<String> args,
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
         customScheme: multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath,
-        component: compiledLibraries);
+        multiRootOutputPath: multiRootOutputPath);
 
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
@@ -515,8 +514,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
         customScheme: multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath,
-        component: component);
+        multiRootOutputPath: multiRootOutputPath);
 
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
@@ -525,33 +523,6 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     }
   }
   return CompilerResult(0);
-}
-
-// Compute code size to embed in the generated JavaScript
-// for this module.  Return `null` to indicate when size could not be properly
-// computed for this module.
-int _computeDartSize(Component component) {
-  var dartSize = 0;
-  var uriToSource = component.uriToSource;
-  for (var lib in component.libraries) {
-    var libUri = lib.fileUri;
-    var importUri = lib.importUri;
-    var source = uriToSource[libUri];
-    if (source == null) return null;
-    dartSize += source.source.length;
-    for (var part in lib.parts) {
-      var partUri = part.partUri;
-      if (partUri.startsWith(importUri.scheme)) {
-        // Convert to a relative-to-library uri in order to compute a file uri.
-        partUri = p.relative(partUri, from: p.dirname('${lib.importUri}'));
-      }
-      var fileUri = libUri.resolve(partUri);
-      var partSource = uriToSource[fileUri];
-      if (partSource == null) return null;
-      dartSize += partSource.source.length;
-    }
-  }
-  return dartSize;
 }
 
 /// The output of compiling a JavaScript module in a particular format.
@@ -583,8 +554,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     String mapUrl,
     String sourceMapBase,
     String customScheme,
-    String multiRootOutputPath,
-    Component component}) {
+    String multiRootOutputPath}) {
   var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   js_ast.SimpleJavaScriptPrintingContext printer;
@@ -615,28 +585,11 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   }
 
   var text = printer.getText();
-  var encodedMap = json.encode(builtMap);
-  var rawSourceMap =
-      inlineSourceMap ? js.escapedString(encodedMap, "'").value : 'null';
+  var rawSourceMap = inlineSourceMap
+      ? js.escapedString(json.encode(builtMap), "'").value
+      : 'null';
   text = text.replaceFirst(SharedCompiler.sourceMapLocationID, rawSourceMap);
 
-  // This is intended to be used by our build/debug tools to gather metrics.
-  // See pkg/dev_compiler/lib/js/legacy/dart_library.js for runtime code that
-  // reads this.
-  //
-  // These keys (see corresponding logic in dart_library.js) include:
-  // - dartSize: <size of Dart input code in bytes>
-  // - sourceMapSize: <size of JS source map in bytes>
-  //
-  // TODO(vsm): Ideally, this information is never sent to the browser.  I.e.,
-  // our runtime metrics gathering would obtain this information from the
-  // compilation server, not the browser.  We don't yet have the infra for that.
-  var compileTimeStatistics = {
-    'dartSize': component != null ? _computeDartSize(component) : null,
-    'sourceMapSize': encodedMap.length
-  };
-  text = text.replaceFirst(
-      SharedCompiler.metricsLocationID, '$compileTimeStatistics');
   return JSCode(text, builtMap);
 }
 
