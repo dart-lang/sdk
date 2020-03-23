@@ -195,7 +195,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   }
 
   int readIntoSync(List<int> buffer, int start, int? end) {
-    // TODO: Remove once non-nullability is sound.
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(buffer, "buffer");
     ArgumentError.checkNotNull(start, "start");
     _checkAvailable();
@@ -285,7 +285,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   }
 
   void writeFromSync(List<int> buffer, int start, int? end) {
-    // TODO: Remove once non-nullability is sound.
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(buffer, "buffer");
     ArgumentError.checkNotNull(start, "start");
     _checkAvailable();
