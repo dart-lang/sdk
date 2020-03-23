@@ -40,6 +40,8 @@ test(
       if (stripFlag) '--strip',
       useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
       "--write-v8-snapshot-profile-to=$profilePath",
+      // Regression test for dartbug.com/41149.
+      '--disassemble',
       dillPath,
     ];
 
