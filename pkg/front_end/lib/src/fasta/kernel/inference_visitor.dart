@@ -5684,7 +5684,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitLoadLibrary(
       covariant LoadLibraryImpl node, DartType typeContext) {
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .futureType(const DynamicType(), inferrer.library.nullable);
+        .futureType(const DynamicType(), inferrer.library.nonNullable);
     if (node.arguments != null) {
       FunctionType calleeType =
           new FunctionType([], inferredType, inferrer.library.nonNullable);
@@ -5699,7 +5699,7 @@ class InferenceVisitor
     DartType inferredType = new FunctionType(
         [],
         inferrer.typeSchemaEnvironment
-            .futureType(const DynamicType(), inferrer.library.nullable),
+            .futureType(const DynamicType(), inferrer.library.nonNullable),
         inferrer.library.nonNullable);
     Expression replacement = new StaticGet(node.target)
       ..fileOffset = node.fileOffset;

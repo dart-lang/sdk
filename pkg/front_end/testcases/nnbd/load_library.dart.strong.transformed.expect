@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:math" deferred as math;
+
+static method main() → dynamic {
+  asy::Future<dynamic> v1 = LoadLibrary(math);
+  v1.{asy::Future::then}<core::Null?>((dynamic _) → core::Null? {});
+  () → asy::Future<dynamic> v2 = #C1;
+  v2.call().{asy::Future::then}<core::Null?>((dynamic _) → core::Null? {});
+}
+static method _#loadLibrary_math() → asy::Future<dynamic>
+  return LoadLibrary(math);
+
+constants  {
+  #C1 = tearoff self::_#loadLibrary_math
+}
