@@ -18,6 +18,18 @@ class A<T> {
   static void fn1<T>() {} // OK
 }
 
+extension Ext<T> on A<T> {
+  void fn2<T>() {} // LINT
+  void fn3<U>() {} // OK
+  void fn4<V>() {} // OK
+}
+
+mixin M<T> {
+  void fn1<T>() {} // LINT
+  void fn2<U>() {} // OK
+  void fn3<V>() {} // OK
+}
+
 class B<T> {
   void fn1<T>() {} // LINT
   void fn2<U>() {} // OK

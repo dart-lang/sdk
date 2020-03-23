@@ -87,7 +87,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parent = node.parent;
 
     while (parent != null) {
-      if (parent is ClassDeclaration) {
+      if (parent is ClassOrMixinDeclaration) {
+        _checkForShadowing(typeParameters, parent.typeParameters);
+      } else if (parent is ExtensionDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters);
       } else if (parent is MethodDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters);
