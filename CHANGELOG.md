@@ -115,6 +115,23 @@ used (see Issue [39627][]).
 
   now gives `v;a=A;b="(B)";c="";d="ø";e="\\\""`.
 
+* [Unix domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket) are
+  now supported on Linux, Android and MacOS, which can be used by passing a
+  `InternetAddress` of `InternetAddressType.Unix` into `connect`, `startConnect`
+  and `bind` methods. `port` argument in those methods will be ignored. Getter
+  of `port` will always return 0 for Unix domain sockets.
+
+* Class `InternetAddressType` gains one more option `Unix`, which represents a
+  Unix domain address.
+
+* Class `InternetAddress`:
+  * `InternetAddress` constructor gains an optional `type` parameter. To create
+    a Unix domain address, `type` is set to `InternetAddressType.Unix` and
+    `address` is a file path.
+  * `InternetAddress` gains a new constructor `fromRawAddress` that takes an
+    address in byte format for Internet addresses or raw file path for Unix
+    domain addresses.
+
 #### `dart:mirrors`
 
 * Added `MirrorSystem.neverType`.

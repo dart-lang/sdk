@@ -26,11 +26,19 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sa) {
-  ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  if (!SocketBase::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa),
-                                        as_string_, INET6_ADDRSTRLEN)) {
+SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
+  if (unnamed_unix_socket) {
+    // This is an unnamed unix domain socket.
     as_string_[0] = 0;
+  } else if (sa->sa_family == AF_UNIX) {
+    struct sockaddr_un* un = ((struct sockaddr_un*)sa);
+    memmove(as_string_, un->sun_path, sizeof(un->sun_path));
+  } else {
+    ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
+    if (!SocketBase::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa),
+                                          as_string_, INET6_ADDRSTRLEN)) {
+      as_string_[0] = 0;
+    }
   }
   socklen_t salen = GetAddrLength(*reinterpret_cast<RawAddr*>(sa));
   memmove(reinterpret_cast<void*>(&addr_), sa, salen);
@@ -140,6 +148,13 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
     return NULL;
   }
+  // sockaddr_un contains sa_family_t sun_familty and char[] sun_path.
+  // If size is the size of sa_familty_t, this is an unnamed socket and
+  // sun_path contains garbage.
+  if (size == sizeof(sa_family_t)) {
+    *port = 0;
+    return new SocketAddress(&raw.addr, true);
+  }
   *port = SocketAddress::GetAddrPort(raw);
   return new SocketAddress(&raw.addr);
 }
@@ -242,6 +257,16 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
     result = inet_pton(AF_INET6, address, &addr->in6.sin6_addr);
   }
   return (result == 1);
+}
+
+bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
+  if (addr->addr.sa_family == AF_INET) {
+    return inet_ntop(AF_INET, &addr->in.sin_addr, str, INET_ADDRSTRLEN) != NULL;
+  } else {
+    ASSERT(addr->addr.sa_family == AF_INET6);
+    return inet_ntop(AF_INET6, &addr->in6.sin6_addr, str, INET6_ADDRSTRLEN) !=
+           NULL;
+  }
 }
 
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {

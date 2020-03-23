@@ -109,8 +109,21 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr);
 }
 
+intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
+  // Fuchsia does not support unix domain socket
+  errno = ENOSYS;
+  return -1;
+}
+
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
+  errno = ENOSYS;
+  return -1;
+}
+
+intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
+                                             const RawAddr& source_addr) {
+  // Fuchsia does not support unix domain socket
   errno = ENOSYS;
   return -1;
 }
@@ -190,6 +203,13 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     return -1;
   }
   return reinterpret_cast<intptr_t>(io_handle);
+}
+
+intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
+                                                  intptr_t backlog) {
+  // Fuchsia does not support unix domain socket.
+  errno = ENOSYS;
+  return -1;
 }
 
 bool ServerSocket::StartAccept(intptr_t fd) {

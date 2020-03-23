@@ -37,7 +37,7 @@ static intptr_t Create(const RawAddr& addr) {
   if (fd < 0) {
     return -1;
   }
-  if (!FDUtils::SetCloseOnExec(fd)) {
+  if (!FDUtils::SetCloseOnExec(fd) || !FDUtils::SetNonBlocking(fd)) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
@@ -60,11 +60,21 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
     return fd;
   }
 
-  if (!FDUtils::SetNonBlocking(fd)) {
-    FDUtils::SaveErrorAndClose(fd);
-    return -1;
-  }
   return Connect(fd, addr);
+}
+
+intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
+  intptr_t fd = Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+  intptr_t result = TEMP_FAILURE_RETRY(connect(
+      fd, (struct sockaddr*)&addr.un, SocketAddress::GetAddrLength(addr)));
+  if (result == 0 || errno == EAGAIN) {
+    return fd;
+  }
+  FDUtils::SaveErrorAndClose(fd);
+  return -1;
 }
 
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
@@ -76,12 +86,35 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 
   intptr_t result = TEMP_FAILURE_RETRY(
       bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
-  if ((result != 0) && (errno != EINPROGRESS)) {
+  if (result != 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
   return Connect(fd, addr);
+}
+
+intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
+                                             const RawAddr& source_addr) {
+  intptr_t fd = Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+
+  intptr_t result = TEMP_FAILURE_RETRY(
+      bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
+  if (result != 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+
+  result = TEMP_FAILURE_RETRY(connect(fd, (struct sockaddr*)&addr.un,
+                                      SocketAddress::GetAddrLength(addr)));
+  if (result == 0 || errno == EAGAIN) {
+    return fd;
+  }
+  FDUtils::SaveErrorAndClose(fd);
+  return -1;
 }
 
 intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
@@ -183,6 +216,21 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   }
 
   if (!FDUtils::SetNonBlocking(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+  return fd;
+}
+
+intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
+                                                  intptr_t backlog) {
+  intptr_t fd = Create(addr);
+  if (NO_RETRY_EXPECTED(bind(fd, (struct sockaddr*)&addr.un,
+                             SocketAddress::GetAddrLength(addr))) < 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+  if (NO_RETRY_EXPECTED(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }

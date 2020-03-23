@@ -142,7 +142,12 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
       throw result;
     }
     var addr = result[0];
-    return new _InternetAddress(addr[1], null, addr[2]);
+    var type = InternetAddressType._from(addr[0]);
+    if (type == InternetAddressType.unix) {
+      return _InternetAddress.fromString(addr[1],
+          type: InternetAddressType.unix);
+    }
+    return _InternetAddress(type, addr[1], null, addr[2]);
   }
 
   int get remotePort {
@@ -184,7 +189,8 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     }
     return <_InternetAddress>[
       for (int i = 0; i < response.length; ++i)
-        new _InternetAddress(response[i][1], host, response[i][2]),
+        new _InternetAddress(InternetAddressType._from(response[i][0]),
+            response[i][1], host, response[i][2]),
     ];
   }
 

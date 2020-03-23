@@ -41,7 +41,7 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
     return fd;
   }
   ASSERT(errno != EINPROGRESS);
-  FDUtils::FDUtils::SaveErrorAndClose(fd);
+  FDUtils::SaveErrorAndClose(fd);
   return -1;
 }
 

@@ -71,8 +71,14 @@ class InternetAddress {
   }
 
   @patch
-  factory InternetAddress(String address) {
-    return new _InternetAddress.parse(address);
+  factory InternetAddress(String address, {InternetAddressType type}) {
+    return _InternetAddress.fromString(address, type: type);
+  }
+
+  @patch
+  factory InternetAddress.fromRawAddress(Uint8List rawAddress,
+      {InternetAddressType type}) {
+    return _InternetAddress.fromRawAddress(rawAddress, type: type);
   }
 
   @patch
@@ -140,10 +146,7 @@ class _InternetAddress implements InternetAddress {
   final String _host;
   final Uint8List _in_addr;
   final int _scope_id;
-
-  InternetAddressType get type => _in_addr.length == _IPv4AddrLength
-      ? InternetAddressType.IPv4
-      : InternetAddressType.IPv6;
+  final InternetAddressType type;
 
   String get host => _host != null ? _host : address;
 
@@ -159,6 +162,9 @@ class _InternetAddress implements InternetAddress {
           if (_in_addr[i] != 0) return false;
         }
         return _in_addr[_IPv6AddrLength - 1] == 1;
+
+      case InternetAddressType.unix:
+        return false;
     }
   }
 
@@ -171,6 +177,9 @@ class _InternetAddress implements InternetAddress {
       case InternetAddressType.IPv6:
         // Checking for fe80::/10.
         return _in_addr[0] == 0xFE && (_in_addr[1] & 0xB0) == 0x80;
+
+      case InternetAddressType.unix:
+        return false;
     }
   }
 
@@ -183,57 +192,103 @@ class _InternetAddress implements InternetAddress {
       case InternetAddressType.IPv6:
         // Checking for ff00::/8.
         return _in_addr[0] == 0xFF;
+
+      case InternetAddressType.unix:
+        return false;
     }
   }
 
-  Future<InternetAddress> reverse() => _NativeSocket.reverseLookup(this);
+  Future<InternetAddress> reverse() {
+    if (type == InternetAddressType.unix) {
+      return Future.value(this);
+    }
+    return _NativeSocket.reverseLookup(this);
+  }
 
-  _InternetAddress(this.address, this._host, this._in_addr,
+  _InternetAddress(this.type, this.address, this._host, this._in_addr,
       [this._scope_id = 0]);
 
-  factory _InternetAddress.parse(String address) {
-    if (address is! String) {
-      throw new ArgumentError("Invalid internet address $address");
+  factory _InternetAddress.fromString(String address,
+      {InternetAddressType type}) {
+    if (type == InternetAddressType.unix) {
+      ArgumentError.checkNotNull(address, 'address');
+      var rawAddress = FileSystemEntity._toUtf8Array(address);
+      return _InternetAddress(
+          InternetAddressType.unix, address, null, rawAddress);
+    } else {
+      if (address is! String) {
+        throw ArgumentError("Invalid internet address $address");
+      }
+      var in_addr = _parse(address);
+      if (in_addr == null) {
+        throw ArgumentError("Invalid internet address $address");
+      }
+      InternetAddressType type = in_addr.length == _IPv4AddrLength
+          ? InternetAddressType.IPv4
+          : InternetAddressType.IPv6;
+      return _InternetAddress(type, address, null, in_addr);
     }
-    var in_addr = _parse(address);
-    if (in_addr == null) {
-      throw new ArgumentError("Invalid internet address $address");
+  }
+
+  factory _InternetAddress.fromRawAddress(Uint8List rawAddress,
+      {InternetAddressType type}) {
+    if (type == InternetAddressType.unix) {
+      ArgumentError.checkNotNull(rawAddress, 'rawAddress');
+      var rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawAddress);
+      var address = FileSystemEntity._toStringFromUtf8Array(rawAddress);
+      return _InternetAddress(InternetAddressType.unix, address, null, rawPath);
+    } else {
+      int type = -1;
+      if (rawAddress.length == _IPv4AddrLength) {
+        type = 0;
+      } else {
+        if (rawAddress.length != _IPv6AddrLength) {
+          throw ArgumentError("Invalid internet address ${rawAddress}");
+        }
+        type = 1;
+      }
+      var address = _rawAddrToString(rawAddress);
+      return _InternetAddress(
+          InternetAddressType._from(type), address, null, rawAddress);
     }
-    return new _InternetAddress(address, null, in_addr);
   }
 
   factory _InternetAddress.fixed(int id) {
     switch (id) {
       case _addressLoopbackIPv4:
-        var in_addr = new Uint8List(_IPv4AddrLength);
+        var in_addr = Uint8List(_IPv4AddrLength);
         in_addr[0] = 127;
         in_addr[_IPv4AddrLength - 1] = 1;
-        return new _InternetAddress("127.0.0.1", null, in_addr);
+        return _InternetAddress(
+            InternetAddressType.IPv4, "127.0.0.1", null, in_addr);
       case _addressLoopbackIPv6:
-        var in_addr = new Uint8List(_IPv6AddrLength);
+        var in_addr = Uint8List(_IPv6AddrLength);
         in_addr[_IPv6AddrLength - 1] = 1;
-        return new _InternetAddress("::1", null, in_addr);
+        return _InternetAddress(InternetAddressType.IPv6, "::1", null, in_addr);
       case _addressAnyIPv4:
-        var in_addr = new Uint8List(_IPv4AddrLength);
-        return new _InternetAddress("0.0.0.0", "0.0.0.0", in_addr);
+        var in_addr = Uint8List(_IPv4AddrLength);
+        return _InternetAddress(
+            InternetAddressType.IPv4, "0.0.0.0", "0.0.0.0", in_addr);
       case _addressAnyIPv6:
-        var in_addr = new Uint8List(_IPv6AddrLength);
-        return new _InternetAddress("::", "::", in_addr);
+        var in_addr = Uint8List(_IPv6AddrLength);
+        return _InternetAddress(InternetAddressType.IPv6, "::", "::", in_addr);
       default:
         assert(false);
-        throw new ArgumentError();
+        throw ArgumentError();
     }
   }
 
   // Create a clone of this _InternetAddress replacing the host.
   _InternetAddress _cloneWithNewHost(String host) {
-    return new _InternetAddress(
-        address, host, new Uint8List.fromList(_in_addr));
+    return _InternetAddress(type, address, host, Uint8List.fromList(_in_addr));
   }
 
   bool operator ==(other) {
     if (!(other is _InternetAddress)) return false;
     if (other.type != type) return false;
+    if (type == InternetAddressType.unix) {
+      return address == other.address;
+    }
     bool equals = true;
     for (int i = 0; i < _in_addr.length && equals; i++) {
       equals = other._in_addr[i] == _in_addr[i];
@@ -242,6 +297,9 @@ class _InternetAddress implements InternetAddress {
   }
 
   int get hashCode {
+    if (type == InternetAddressType.unix) {
+      return address.hashCode;
+    }
     int result = 1;
     for (int i = 0; i < _in_addr.length; i++) {
       result = (result * 31 + _in_addr[i]) & 0x3FFFFFFF;
@@ -252,6 +310,9 @@ class _InternetAddress implements InternetAddress {
   String toString() {
     return "InternetAddress('$address', ${type.name})";
   }
+
+  static String _rawAddrToString(Uint8List address)
+      native "InternetAddress_RawAddrToString";
 
   static Uint8List _parse(String address) native "InternetAddress_Parse";
 }
@@ -394,8 +455,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         throw createError(response, "Failed host lookup: '$host'");
       } else {
         return response.skip(1).map<InternetAddress>((result) {
-          var type = new InternetAddressType._from(result[0]);
-          return new _InternetAddress(result[1], host, result[2], result[3]);
+          var type = InternetAddressType._from(result[0]);
+          return _InternetAddress(type, result[1], host, result[2], result[3]);
         }).toList();
       }
     });
@@ -423,10 +484,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       } else {
         var map = response.skip(1).fold(new Map<String, NetworkInterface>(),
             (map, result) {
-          var type = new InternetAddressType._from(result[0]);
+          var type = InternetAddressType._from(result[0]);
           var name = result[3];
           var index = result[4];
-          var address = new _InternetAddress(result[1], "", result[2]);
+          var address = _InternetAddress(type, result[1], "", result[2]);
           if (!includeLinkLocal && address.isLinkLocal) return map;
           if (!includeLoopback && address.isLoopback) return map;
           map.putIfAbsent(name, () => new _NetworkInterface(name, index));
@@ -505,12 +566,23 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         socket.localAddress = address;
         var result;
         if (sourceAddress == null) {
-          result = socket.nativeCreateConnect(
-              address._in_addr, port, address._scope_id);
+          if (address.type == InternetAddressType.unix) {
+            result = socket.nativeCreateUnixDomainConnect(
+                address.address, _Namespace._namespace);
+          } else {
+            result = socket.nativeCreateConnect(
+                address._in_addr, port, address._scope_id);
+          }
         } else {
           assert(sourceAddress is _InternetAddress);
-          result = socket.nativeCreateBindConnect(address._in_addr, port,
-              sourceAddress._in_addr, address._scope_id);
+          if (address.type == InternetAddressType.unix) {
+            assert(sourceAddress.type == InternetAddressType.unix);
+            result = socket.nativeCreateUnixDomainBindConnect(
+                address.address, sourceAddress.address, _Namespace._namespace);
+          } else {
+            result = socket.nativeCreateBindConnect(address._in_addr, port,
+                sourceAddress._in_addr, address._scope_id);
+          }
         }
         if (result is OSError) {
           // Keep first error, if present.
@@ -642,8 +714,18 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
     var socket = new _NativeSocket.listen();
     socket.localAddress = address;
-    var result = socket.nativeCreateBindListen(
-        address._in_addr, port, backlog, v6Only, shared, address._scope_id);
+    var result;
+    if (address.type == InternetAddressType.unix) {
+      var path = address.address;
+      if (FileSystemEntity.isLinkSync(path)) {
+        path = Link(path).targetSync();
+      }
+      result = socket.nativeCreateUnixDomainBindListen(
+          path, backlog, shared, _Namespace._namespace);
+    } else {
+      result = socket.nativeCreateBindListen(
+          address._in_addr, port, backlog, v6Only, shared, address._scope_id);
+    }
     if (result is OSError) {
       throw new SocketException("Failed to create server socket",
           osError: result, address: address, port: port);
@@ -885,12 +967,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   int get port {
+    if (localAddress.type == InternetAddressType.unix) return 0;
     if (localPort != 0) return localPort;
     if (isClosing || isClosed) throw const SocketException.closed();
     return localPort = nativeGetPort();
   }
 
   int get remotePort {
+    if (localAddress.type == InternetAddressType.unix) return 0;
     if (isClosing || isClosed) throw const SocketException.closed();
     return nativeGetRemotePeer()[1];
   }
@@ -902,7 +986,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     var result = nativeGetRemotePeer();
     var addr = result[0];
     var type = new InternetAddressType._from(addr[0]);
-    return new _InternetAddress(addr[1], null, addr[2]);
+    if (type == InternetAddressType.unix) {
+      return _InternetAddress.fromString(addr[1],
+          type: InternetAddressType.unix);
+    }
+    return _InternetAddress(type, addr[1], null, addr[2]);
   }
 
   void issueReadEvent() {
@@ -1247,11 +1335,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       int port) native "Socket_SendTo";
   nativeCreateConnect(Uint8List addr, int port, int scope_id)
       native "Socket_CreateConnect";
+  nativeCreateUnixDomainConnect(String addr, _Namespace namespace)
+      native "Socket_CreateUnixDomainConnect";
   nativeCreateBindConnect(Uint8List addr, int port, Uint8List sourceAddr,
       int scope_id) native "Socket_CreateBindConnect";
+  nativeCreateUnixDomainBindConnect(String addr, String sourceAddr,
+      _Namespace namespace) native "Socket_CreateUnixDomainBindConnect";
   bool isBindError(int errorNumber) native "SocketBase_IsBindError";
   nativeCreateBindListen(Uint8List addr, int port, int backlog, bool v6Only,
       bool shared, int scope_id) native "ServerSocket_CreateBindListen";
+  nativeCreateUnixDomainBindListen(String addr, int backlog, bool shared,
+      _Namespace namespace) native "ServerSocket_CreateUnixDomainBindListen";
   nativeCreateBindDatagram(Uint8List addr, int port, bool reuseAddress,
       bool reusePort, int ttl) native "Socket_CreateBindDatagram";
   bool nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
@@ -2090,6 +2184,9 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
 
 @pragma("vm:entry-point", "call")
 Datagram _makeDatagram(
-    Uint8List data, String address, Uint8List in_addr, int port) {
-  return new Datagram(data, new _InternetAddress(address, null, in_addr), port);
+    Uint8List data, String address, Uint8List in_addr, int port, int type) {
+  return new Datagram(
+      data,
+      _InternetAddress(InternetAddressType._from(type), address, null, in_addr),
+      port);
 }

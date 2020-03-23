@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
@@ -131,10 +133,40 @@ void testReverseLookup() {
   });
 }
 
+void testRawAddress() {
+  Uint8List addr = Uint8List.fromList([127, 0, 0, 1]);
+  var address = InternetAddress.fromRawAddress(addr);
+  Expect.equals('127.0.0.1', address.address);
+  Expect.equals(address.address, address.host);
+  Expect.equals(InternetAddressType.IPv4, address.type);
+}
+
+void testRawAddressIPv6() {
+  Uint8List addr =
+      Uint8List.fromList([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+  var address = InternetAddress.fromRawAddress(addr);
+  Expect.equals('::1', address.address);
+  Expect.equals(address.address, address.host);
+  Expect.equals(InternetAddressType.IPv6, address.type);
+}
+
+void testRawPath() {
+  var name = 'test_raw_path';
+  Uint8List path = Uint8List.fromList(utf8.encode(name));
+  var address =
+      InternetAddress.fromRawAddress(path, type: InternetAddressType.unix);
+  Expect.equals(name, address.address);
+  Expect.equals(address.address, address.host);
+  Expect.equals(InternetAddressType.unix, address.type);
+}
+
 void main() {
   testDefaultAddresses();
   testConstructor();
   testEquality();
   testLookup();
   testReverseLookup();
+  testRawAddress();
+  testRawAddressIPv6();
+  testRawPath();
 }
