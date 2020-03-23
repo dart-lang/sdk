@@ -1164,7 +1164,13 @@ class ClassElementImpl extends AbstractClassElementImpl
   bool _isInterfaceTypeClass(DartType type) {
     if (type is InterfaceType) {
       var element = type.element;
-      return !element.isEnum && !element.isMixin;
+      if (element.isEnum || element.isMixin) {
+        return false;
+      }
+      if (type.isDartCoreFunction) {
+        return false;
+      }
+      return true;
     }
     return false;
   }
@@ -1172,7 +1178,9 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Return `true` if the given [type] is an [InterfaceType] that can be used
   /// as an interface or a mixin.
   bool _isInterfaceTypeInterface(DartType type) {
-    return type is InterfaceType && !type.element.isEnum;
+    return type is InterfaceType &&
+        !type.element.isEnum &&
+        !type.isDartCoreFunction;
   }
 
   bool _safeIsOrInheritsProxy(

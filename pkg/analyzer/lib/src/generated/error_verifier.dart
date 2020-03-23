@@ -1789,9 +1789,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (extendsClause != null) {
-      InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement = superclassType?.element;
-      if (superclassElement != null && superclassElement.name == "Function") {
+      Element superElement = extendsClause.superclass.name.staticElement;
+      if (superElement != null && superElement.name == "Function") {
         _errorReporter.reportErrorForNode(
             HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
       }
