@@ -3539,7 +3539,10 @@ class FixProcessor extends BaseProcessor {
         if (combinators.length == 1) {
           Token previousToken =
               combinator.parent.findPrevious(combinator.beginToken);
-          return range.endEnd(previousToken, combinator);
+          if (previousToken != null) {
+            return range.endEnd(previousToken, combinator);
+          }
+          return null;
         }
         int index = combinators.indexOf(combinator);
         if (index < 0) {
