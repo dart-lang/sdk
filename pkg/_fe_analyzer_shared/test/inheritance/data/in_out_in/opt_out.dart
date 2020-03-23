@@ -18,8 +18,7 @@ abstract class LegacyClass2 extends Class {
   /*member: LegacyClass2.method:int* Function(int*)**/
 }
 
-/*cfe|cfe:builder.class: GenericLegacyClass1a:GenericClass1,GenericInterface<int*>,GenericLegacyClass1a,Object*/
-/*analyzer.class: GenericLegacyClass1a:GenericClass1,GenericInterface<int>,GenericLegacyClass1a,Object*/
+/*class: GenericLegacyClass1a:GenericClass1,GenericInterface<int*>,GenericLegacyClass1a,Object*/
 abstract class GenericLegacyClass1a extends GenericClass1 {
   /*cfe|cfe:builder.member: GenericLegacyClass1a.method:int* Function(int*)*/
   /*analyzer.member: GenericLegacyClass1a.method:int* Function(int*)**/
@@ -32,8 +31,7 @@ abstract class GenericLegacyClass1b extends GenericClass1
   /*analyzer.member: GenericLegacyClass1b.method:int* Function(int*)**/
 }
 
-/*cfe|cfe:builder.class: GenericLegacyClass2a:GenericClass2,GenericInterface<int*>,GenericLegacyClass2a,Object*/
-/*analyzer.class: GenericLegacyClass2a:GenericClass2,GenericInterface<int?>,GenericLegacyClass2a,Object*/
+/*class: GenericLegacyClass2a:GenericClass2,GenericInterface<int*>,GenericLegacyClass2a,Object*/
 abstract class GenericLegacyClass2a extends GenericClass2 {
   /*cfe|cfe:builder.member: GenericLegacyClass2a.method:int* Function(int*)*/
   /*analyzer.member: GenericLegacyClass2a.method:int* Function(int*)**/

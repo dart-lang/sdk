@@ -52,53 +52,6 @@ class AbstractTypeTest with ElementsTypesMixin {
 
 @reflectiveTest
 class ClassElementImplTest extends AbstractTypeTest {
-  void test_getAllSupertypes_interface() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
-    ClassElementImpl elementC = ElementFactory.classElement2("C");
-    InterfaceType typeObject = classA.supertype;
-    InterfaceType typeA = interfaceTypeStar(classA);
-    InterfaceType typeB = interfaceTypeStar(classB);
-    InterfaceType typeC = interfaceTypeStar(elementC);
-    elementC.interfaces = <InterfaceType>[typeB];
-    List<InterfaceType> supers = elementC.allSupertypes;
-    List<InterfaceType> types = <InterfaceType>[];
-    types.addAll(supers);
-    expect(types.contains(typeA), isTrue);
-    expect(types.contains(typeB), isTrue);
-    expect(types.contains(typeObject), isTrue);
-    expect(types.contains(typeC), isFalse);
-  }
-
-  void test_getAllSupertypes_mixins() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
-    var classC = ElementFactory.classElement2("C");
-    InterfaceType typeObject = classA.supertype;
-    InterfaceType typeA = interfaceTypeStar(classA);
-    InterfaceType typeB = interfaceTypeStar(classB);
-    InterfaceType typeC = interfaceTypeStar(classC);
-    classC.mixins = <InterfaceType>[typeB];
-    List<InterfaceType> supers = classC.allSupertypes;
-    List<InterfaceType> types = <InterfaceType>[];
-    types.addAll(supers);
-    expect(types.contains(typeA), isTrue);
-    expect(types.contains(typeB), isTrue);
-    expect(types.contains(typeObject), isTrue);
-    expect(types.contains(typeC), isFalse);
-  }
-
-  void test_getAllSupertypes_recursive() {
-    var classA = class_(name: 'A');
-    ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
-    classA.supertype = interfaceTypeStar(classB);
-    List<InterfaceType> supers = classB.allSupertypes;
-    expect(supers, hasLength(1));
-  }
-
   void test_getField() {
     var classA = class_(name: 'A');
     String fieldName = "f";

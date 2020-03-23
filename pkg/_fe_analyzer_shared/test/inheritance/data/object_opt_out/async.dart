@@ -6,10 +6,8 @@
 
 /*library: nnbd=false*/
 
-/*cfe|cfe:builder.class: Future:Future<T*>,Object*/
-/*analyzer.class: Future:Future<T>,Object*/
+/*class: Future:Future<T*>,Object*/
 class Future<T> {}
 
-/*cfe|cfe:builder.class: FutureOr:FutureOr<T*>,Object*/
-/*analyzer.class: FutureOr:FutureOr<T>,Object*/
+/*class: FutureOr:FutureOr<T*>,Object*/
 class FutureOr<T> {}

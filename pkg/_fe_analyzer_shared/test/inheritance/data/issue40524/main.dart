@@ -11,8 +11,7 @@ class B extends A<int?> {
   /*member: B.getType:Type* Function()**/
 }
 
-/*cfe|cfe:builder.class: C:A<int?>,B,C,Object,out_int*/
-/*analyzer.class: C:A<int*>,B,C,Object,out_int*/
+/*class: C:A<int?>,B,C,Object,out_int*/
 class C extends out_int implements B {
   /*member: C.getType:Type* Function()**/
 }
