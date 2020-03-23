@@ -172,7 +172,8 @@ void HostCPUFeatures::Init() {
     // Raspberry Pi, etc.
     arm_version_ = ARMv6;
   } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") ||
-             CpuInfo::FieldContains(kCpuInfoModel, "ARMv7")) {
+             CpuInfo::FieldContains(kCpuInfoModel, "ARMv7") ||
+             CpuInfo::FieldContains(kCpuInfoArchitecture, "7")) {
     arm_version_ = ARMv7;
   } else {
 #if defined(DART_RUN_IN_QEMU_ARMv7)

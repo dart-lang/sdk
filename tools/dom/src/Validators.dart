@@ -156,6 +156,9 @@ class _ThrowsNodeValidator implements NodeValidator {
  */
 class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   NodeValidator validator;
+
+  /// Did we modify the tree by removing anything.
+  bool modifiedTree = false;
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
@@ -166,9 +169,13 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       while (null != child) {
         var nextChild;
         try {
-          // Child may be removed during the walk, and we may not
-          // even be able to get its previousNode.
+          // Child may be removed during the walk, and we may not even be able
+          // to get its previousNode. But it's also possible that previousNode
+          // (i.e. previousSibling) is being spoofed, so double-check it.
           nextChild = child.previousNode;
+          if (nextChild != null && nextChild.nextNode != child) {
+            throw StateError("Corrupt HTML");
+          }
         } catch (e) {
           // Child appears bad, remove it. We want to check the rest of the
           // children of node and, but we have no way of getting to the next
@@ -182,7 +189,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       }
     }
 
+    modifiedTree = false;
     walk(node, null);
+    while (modifiedTree) {
+      modifiedTree = false;
+      walk(node, null);
+    }
   }
 
   /// Aggressively try to remove node.
@@ -190,7 +202,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // If we have the parent, it's presumably already passed more sanitization
     // or is the fragment, so ask it to remove the child. And if that fails
     // try to set the outer html.
-    if (parent == null) {
+    modifiedTree = true;
+    if (parent == null || parent != node.parentNode) {
       node.remove();
     } else {
       parent._removeChild(node);
