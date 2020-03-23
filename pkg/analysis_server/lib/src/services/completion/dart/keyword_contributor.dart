@@ -512,6 +512,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         }
       }
     }
+    if (entity == node.returnType || entity == node.name) {
+      // If the cursor is at the beginning of the declaration, include the class
+      // body keywords.  See dartbug.com/41039.
+      _addClassBodyKeywords();
+    }
   }
 
   @override
