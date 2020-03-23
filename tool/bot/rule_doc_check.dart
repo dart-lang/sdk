@@ -3,16 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/rules.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../crawl.dart';
-import '../since.dart';
 
 void main() async {
   print('Getting latest linter package info from pub...');
