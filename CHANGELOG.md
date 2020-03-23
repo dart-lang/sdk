@@ -23,6 +23,11 @@
   which was added to `AssertionError` when the second operand to `assert`
   was allowed. The value of that getter on a `TypeError` was the same
   string as returned by `toString`, so it is still available.
+* `ArgumentError.checkNotNull` and the `RangeError` static methods
+  `checkValueInInterval`, `checkValidIndex` and `checkNotNegative`
+  all return their first argument on success.
+  This makes these functions more convenient to use in-line in,
+  for example, `=>` function bodies or constructor initialization lists.
 
 #### `dart:developer`
 

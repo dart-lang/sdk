@@ -182,10 +182,16 @@ class ArgumentError extends Error {
 
   /**
    * Throws if [argument] is `null`.
+   *
+   * If [name] is supplied, it is used as the parameter name
+   * in the error message.
+   *
+   * Returns the [argument] if it is not null.
    */
   @Since("2.1")
-  static void checkNotNull(Object? argument, [String? name]) {
+  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) {
     if (argument == null) throw ArgumentError.notNull(name);
+    return argument;
   }
 
   // Helper functions for toString overridden in subclasses.
@@ -274,30 +280,42 @@ class RangeError extends ArgumentError {
       [String? name, String? message, int? length]) = IndexError;
 
   /**
-   * Check that a [value] lies in a specific interval.
+   * Check that an integer [value] lies in a specific interval.
    *
    * Throws if [value] is not in the interval.
    * The interval is from [minValue] to [maxValue], both inclusive.
+   *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error.
+   *
+   * Returns [value] if it is in the interval.
    */
-  static void checkValueInInterval(int value, int minValue, int maxValue,
+  static int checkValueInInterval(int value, int minValue, int maxValue,
       [String? name, String? message]) {
     if (value < minValue || value > maxValue) {
       throw RangeError.range(value, minValue, maxValue, name, message);
     }
+    return value;
   }
 
   /**
-   * Check that a value is a valid index into an indexable object.
+   * Check that [index] is a valid index into an indexable object.
    *
    * Throws if [index] is not a valid index into [indexable].
    *
    * An indexable object is one that has a `length` and a and index-operator
    * `[]` that accepts an index if `0 <= index < length`.
    *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error. If [name] is omitted, it
+   * defaults to `"index"`.
+   *
    * If [length] is provided, it is used as the length of the indexable object,
    * otherwise the length is found as `indexable.length`.
+   *
+   * Returns [index] if it is a valid index.
    */
-  static void checkValidIndex(int index, dynamic indexable,
+  static int checkValidIndex(int index, dynamic indexable,
       [String? name, int? length, String? message]) {
     length ??= (indexable.length as int);
     // Comparing with `0` as receiver produces better dart2js type inference.
@@ -305,6 +323,7 @@ class RangeError extends ArgumentError {
       name ??= "index";
       throw RangeError.index(index, indexable, name, message, length);
     }
+    return index;
   }
 
   /**
@@ -342,12 +361,19 @@ class RangeError extends ArgumentError {
   }
 
   /**
-   * Check that an integer value isn't negative.
+   * Check that an integer value is non-negative.
    *
    * Throws if the value is negative.
+   *
+   * If [name] or [message] are provided, they are used as the parameter
+   * name and message text of the thrown error. If [name] is omitted, it
+   * defaults to `index`.
+   *
+   * Returns [value] if it is not negative.
    */
-  static void checkNotNegative(int value, [String? name, String? message]) {
+  static int checkNotNegative(int value, [String? name, String? message]) {
     if (value < 0) throw RangeError.range(value, 0, null, name, message);
+    return value;
   }
 
   String get _errorName => "RangeError";
