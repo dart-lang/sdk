@@ -811,6 +811,7 @@ dart_ci_builder(
 # infra
 dart_ci_builder(
     "base",
+    execution_timeout=time.duration(15 * 60 * 1000),
     recipe="forward_branch",
     schedule="with 10m interval",
     notifies="infra")
