@@ -2941,7 +2941,7 @@ const Code<Null> codeExtendFunction = messageExtendFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtendFunction = const MessageCode("ExtendFunction",
-    severity: Severity.warning,
+    severity: Severity.ignored,
     message: r"""Extending 'Function' is deprecated.""",
     tip: r"""Try removing 'Function' from the 'extends' clause.""");
 
@@ -3964,7 +3964,7 @@ const Code<Null> codeImplementFunction = messageImplementFunction;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementFunction = const MessageCode(
     "ImplementFunction",
-    severity: Severity.warning,
+    severity: Severity.ignored,
     message: r"""Implementing 'Function' is deprecated.""",
     tip: r"""Try removing 'Function' from the 'implements' clause.""");
 
@@ -5858,7 +5858,7 @@ const Code<Null> codeMixinFunction = messageMixinFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
-    severity: Severity.warning,
+    severity: Severity.ignored,
     message: r"""Mixing in 'Function' is deprecated.""",
     tip: r"""Try removing 'Function' from the 'with' clause.""");
 

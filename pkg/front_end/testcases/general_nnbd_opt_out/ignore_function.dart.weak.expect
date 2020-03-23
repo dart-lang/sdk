@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general_nnbd_opt_out/ignore_function.dart:9:7: Warning: Implementing 'Function' is deprecated.
-// Try removing 'Function' from the 'implements' clause.
-// class A implements core.Function {
-//       ^
-//
 import self as self;
 import "dart:core" as core;
 
