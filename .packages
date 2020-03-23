@@ -111,7 +111,6 @@ test_runner:pkg/test_runner/lib
 testing:pkg/testing/lib
 tflite_native:third_party/pkg/tflite_native/lib
 typed_data:third_party/pkg/typed_data/lib
-unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 vm:pkg/vm/lib
 vm_service:pkg/vm_service/lib
