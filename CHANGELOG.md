@@ -1,6 +1,11 @@
-## 2.7.2 - 2020-03-16
+## 2.7.2 - 2020-03-23
 
-This is a patch release that improves compatibility with ARMv8 processors
+This is a patch release that addresses a vulnerability dart:html
+[NodeValidator](https://api.dart.dev/stable/dart-html/NodeValidator-class.html)
+related to DOM clobbering of `previousSibling`. Thanks to **Vincenzo di Cicco**
+for finding and reporting this issue.
+
+This release also improves compatibility with ARMv8 processors
 (issue [40001][]) and dart:io stability (issue [40589][]).
 
 [40001]: https://github.com/dart-lang/sdk/issues/40001
