@@ -751,6 +751,11 @@ class Thread : public ThreadState {
   ExecutionState execution_state() const {
     return static_cast<ExecutionState>(execution_state_);
   }
+  // Normally execution state is only accessed for the current thread.
+  NO_SANITIZE_THREAD
+  ExecutionState execution_state_cross_thread_for_testing() const {
+    return static_cast<ExecutionState>(execution_state_);
+  }
   void set_execution_state(ExecutionState state) {
     execution_state_ = static_cast<uword>(state);
   }
