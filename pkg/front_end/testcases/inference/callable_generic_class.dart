@@ -17,7 +17,7 @@ class FooActions {
 
 void main() {
   new FooActions()
-      . /*@target=FooActions::foo*/ /*@target=ActionDispatcher::call*/ foo(
+      . /*@target=FooActions::foo*/ foo /*@target=ActionDispatcher::call*/ (
           new Bar());
   new FooActions()
       . /*@target=FooActions::foo*/ foo

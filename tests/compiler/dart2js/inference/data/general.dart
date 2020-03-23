@@ -656,7 +656,7 @@ testReturnNotEquals() {
 }
 
 /*member: testReturnInvokeDynamicGetter:[null|subclass=Object]*/
-testReturnInvokeDynamicGetter() => new A(). /*invoke: [exact=A]*/ myFactory();
+testReturnInvokeDynamicGetter() => new A().myFactory /*invoke: [exact=A]*/ ();
 
 /*member: topLevelConstList:Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/
 var topLevelConstList = const [42];

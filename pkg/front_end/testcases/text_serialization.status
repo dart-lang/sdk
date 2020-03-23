@@ -1292,6 +1292,7 @@ nnbd/issue40512/issue40512: TextSerializationFailure
 nnbd/issue40600: TextSerializationFailure
 nnbd/issue40601: TextSerializationFailure
 nnbd/issue40805: TextSerializationFailure
+nnbd/issue41102: TextSerializationFailure
 nnbd/issue41103: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure

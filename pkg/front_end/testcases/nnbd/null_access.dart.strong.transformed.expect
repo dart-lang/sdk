@@ -70,12 +70,6 @@ library /*isNonNullableByDefault*/;
 //   nullableClass?.nonNullableClass.nonNullableField ??= 0; // ok
 //                                   ^
 //
-// pkg/front_end/testcases/nnbd/null_access.dart:57:16: Error: Method 'call' cannot be called on 'Class?' because it is potentially null.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
-// Try calling using ?. instead.
-//   nullableClass(); // error
-//                ^
-//
 // pkg/front_end/testcases/nnbd/null_access.dart:57:16: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
 // Try calling using ?.call instead.
@@ -191,12 +185,8 @@ Try accessing using ?. instead.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
 Try calling using ?.call instead.
   nullableClass(); // error
-               ^" in let final<BottomType> #t42 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:57:16: Error: Method 'call' cannot be called on 'Class?' because it is potentially null.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
-Try calling using ?. instead.
-  nullableClass(); // error
                ^" in nullableClass.{self::Class::call}();
   nonNullableClass.{self::Class::call}();
-  let final self::Class #t43 = nonNullableClass in #t43.{core::Object::==}(null) ?{self::Class?} null : #t43.{self::Class::nonNullableClass}.{self::Class::call}();
-  let final self::Class #t44 = nonNullableClass in #t44.{core::Object::==}(null) ?{self::Class?} null : #t44.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}.{self::Class::call}();
+  let final self::Class #t42 = nonNullableClass in #t42.{core::Object::==}(null) ?{self::Class?} null : #t42.{self::Class::nonNullableClass}.{self::Class::call}();
+  let final self::Class #t43 = nonNullableClass in #t43.{core::Object::==}(null) ?{self::Class?} null : #t43.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}.{self::Class::call}();
 }

@@ -245,7 +245,7 @@ class Class7 {
 
   /*member: Class7.:[exact=Class7]*/
   Class7() : field7a = 42 {
-    /*invoke: [subclass=Class7]*/ field7b(/*[subclass=Class7]*/ field7a);
+    field7b /*invoke: [subclass=Class7]*/ (/*[subclass=Class7]*/ field7a);
   }
 }
 

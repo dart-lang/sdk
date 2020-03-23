@@ -226,29 +226,29 @@ invokeFunctionTypedInstanceMethod3(
 /*member: invokeFunctionTypedInstanceGetter1:[null|subclass=A]*/
 invokeFunctionTypedInstanceGetter1(
         GenericClass<A> /*[exact=GenericClass]*/ c) =>
-    c. /*invoke: [exact=GenericClass]*/ functionTypedGetter();
+    c.functionTypedGetter /*invoke: [exact=GenericClass]*/ ();
 
 /*member: invokeFunctionTypedInstanceGetter2:[null|exact=B]*/
 invokeFunctionTypedInstanceGetter2(
         GenericClass<B> /*[exact=GenericClass]*/ c) =>
-    c. /*invoke: [exact=GenericClass]*/ functionTypedGetter();
+    c.functionTypedGetter /*invoke: [exact=GenericClass]*/ ();
 
 /*member: invokeFunctionTypedInstanceGetter3:[null|exact=C]*/
 invokeFunctionTypedInstanceGetter3(
         GenericClass<C> /*[exact=GenericClass]*/ c) =>
-    c. /*invoke: [exact=GenericClass]*/ functionTypedGetter();
+    c.functionTypedGetter /*invoke: [exact=GenericClass]*/ ();
 
 /*member: invokeFunctionTypedInstanceField1:[null|subclass=A]*/
 invokeFunctionTypedInstanceField1(GenericClass<A> /*[exact=GenericClass]*/ c) =>
-    c. /*invoke: [exact=GenericClass]*/ functionTypedField();
+    c.functionTypedField /*invoke: [exact=GenericClass]*/ ();
 
 /*member: invokeFunctionTypedInstanceField2:[null|exact=B]*/
 invokeFunctionTypedInstanceField2(GenericClass<B> /*[exact=GenericClass]*/ c) =>
-    c. /*invoke: [exact=GenericClass]*/ functionTypedField();
+    c.functionTypedField /*invoke: [exact=GenericClass]*/ ();
 
 /*member: invokeFunctionTypedInstanceField3:[null|exact=C]*/
 invokeFunctionTypedInstanceField3(GenericClass<C> /*[exact=GenericClass]*/ c) =>
-    c. /*invoke: [exact=GenericClass]*/ functionTypedField();
+    c.functionTypedField /*invoke: [exact=GenericClass]*/ ();
 
 /*member: invokeFunctionTypedSuperMethod1:[null|subclass=Object]*/
 invokeFunctionTypedSuperMethod1(

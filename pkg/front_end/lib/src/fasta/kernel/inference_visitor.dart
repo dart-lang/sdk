@@ -732,11 +732,11 @@ class InferenceVisitor
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
-    }
-    if (inferrer.isNonNullableByDefault) {
-      if (node.target == inferrer.coreTypes.listDefaultConstructor) {
-        resultNode = inferrer.helper.wrapInProblem(node,
-            messageDefaultListConstructorError, node.fileOffset, noLength);
+      if (inferrer.isNonNullableByDefault) {
+        if (node.target == inferrer.coreTypes.listDefaultConstructor) {
+          resultNode = inferrer.helper.wrapInProblem(node,
+              messageDefaultListConstructorError, node.fileOffset, noLength);
+        }
       }
     }
     return new ExpressionInferenceResult(
@@ -2310,7 +2310,7 @@ class InferenceVisitor
     }
     return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
         receiver, receiverType, node.name, node.arguments, typeContext,
-        isExpressionInvocation: false);
+        isExpressionInvocation: false, isImplicitCall: false);
   }
 
   ExpressionInferenceResult visitExpressionInvocation(
@@ -2328,31 +2328,9 @@ class InferenceVisitor
       receiver = result.expression;
       receiverType = result.inferredType;
     }
-    ExpressionInferenceResult invocationResult = inferrer.inferMethodInvocation(
-        node.fileOffset,
-        nullAwareGuards,
-        receiver,
-        receiverType,
-        callName,
-        node.arguments,
-        typeContext,
-        isExpressionInvocation: true);
-    if (inferrer.isNonNullableByDefault) {
-      if (receiverType is! DynamicType &&
-          receiverType is! InvalidType &&
-          isPotentiallyNullable(
-              receiverType, inferrer.coreTypes.futureOrClass)) {
-        return new ExpressionInferenceResult(
-            invocationResult.inferredType,
-            inferrer.helper.wrapInProblem(
-                invocationResult.expression..fileOffset = node.fileOffset,
-                templateNullableExpressionCallError.withArguments(
-                    receiverType, inferrer.isNonNullableByDefault),
-                node.fileOffset,
-                noLength));
-      }
-    }
-    return invocationResult;
+    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
+        receiver, receiverType, callName, node.arguments, typeContext,
+        isExpressionInvocation: true, isImplicitCall: true);
   }
 
   ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
@@ -3588,7 +3566,7 @@ class InferenceVisitor
         }
         break;
     }
-    if (inferrer.isNonNullableByDefault) {
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (leftType is! InvalidType &&
           leftType is! DynamicType &&
           isPotentiallyNullable(leftType, inferrer.coreTypes.futureOrClass)) {
@@ -3682,7 +3660,7 @@ class InferenceVisitor
         }
         break;
     }
-    if (inferrer.isNonNullableByDefault) {
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (expressionType is! InvalidType &&
           expressionType is! DynamicType &&
           isPotentiallyNullable(
@@ -3768,7 +3746,7 @@ class InferenceVisitor
         }
         break;
     }
-    if (inferrer.isNonNullableByDefault) {
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (receiverType is! DynamicType &&
           receiverType is! InvalidType &&
           isPotentiallyNullable(
@@ -3838,7 +3816,7 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
     }
-    if (inferrer.isNonNullableByDefault) {
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (receiverType is! InvalidType &&
           receiverType is! DynamicType &&
           isPotentiallyNullable(
@@ -3966,7 +3944,7 @@ class InferenceVisitor
         }
         break;
     }
-    if (inferrer.isNonNullableByDefault) {
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (receiverType is! DynamicType &&
           receiverType is! InvalidType &&
           isPotentiallyNullable(
@@ -4059,7 +4037,7 @@ class InferenceVisitor
               ..fileOffset = fileOffset;
         break;
     }
-    if (inferrer.isNonNullableByDefault) {
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (receiverType is! DynamicType &&
           isPotentiallyNullable(
               receiverType, inferrer.coreTypes.futureOrClass)) {
@@ -5190,40 +5168,42 @@ class InferenceVisitor
         switchCase.expressions[index] = caseExpression..parent = switchCase;
         DartType caseExpressionType = caseExpressionResult.inferredType;
 
-        if (inferrer.library.isNonNullableByDefault) {
-          if (!inferrer.typeSchemaEnvironment.isSubtypeOf(caseExpressionType,
-              expressionType, SubtypeCheckMode.withNullabilities)) {
-            inferrer.helper.addProblem(
-                templateSwitchExpressionNotSubtype.withArguments(
-                    caseExpressionType,
-                    expressionType,
-                    inferrer.isNonNullableByDefault),
-                caseExpression.fileOffset,
-                noLength,
-                context: [
-                  messageSwitchExpressionNotAssignableCause.withLocation(
-                      inferrer.uriForInstrumentation,
-                      node.expression.fileOffset,
-                      noLength)
-                ]);
-          }
-        } else {
-          // Check whether the expression type is assignable to the case
-          // expression type.
-          if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
-            inferrer.helper.addProblem(
-                templateSwitchExpressionNotAssignable.withArguments(
-                    expressionType,
-                    caseExpressionType,
-                    inferrer.isNonNullableByDefault),
-                caseExpression.fileOffset,
-                noLength,
-                context: [
-                  messageSwitchExpressionNotAssignableCause.withLocation(
-                      inferrer.uriForInstrumentation,
-                      node.expression.fileOffset,
-                      noLength)
-                ]);
+        if (!inferrer.isTopLevel) {
+          if (inferrer.library.isNonNullableByDefault) {
+            if (!inferrer.typeSchemaEnvironment.isSubtypeOf(caseExpressionType,
+                expressionType, SubtypeCheckMode.withNullabilities)) {
+              inferrer.helper.addProblem(
+                  templateSwitchExpressionNotSubtype.withArguments(
+                      caseExpressionType,
+                      expressionType,
+                      inferrer.isNonNullableByDefault),
+                  caseExpression.fileOffset,
+                  noLength,
+                  context: [
+                    messageSwitchExpressionNotAssignableCause.withLocation(
+                        inferrer.uriForInstrumentation,
+                        node.expression.fileOffset,
+                        noLength)
+                  ]);
+            }
+          } else {
+            // Check whether the expression type is assignable to the case
+            // expression type.
+            if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
+              inferrer.helper.addProblem(
+                  templateSwitchExpressionNotAssignable.withArguments(
+                      expressionType,
+                      caseExpressionType,
+                      inferrer.isNonNullableByDefault),
+                  caseExpression.fileOffset,
+                  noLength,
+                  context: [
+                    messageSwitchExpressionNotAssignableCause.withLocation(
+                        inferrer.uriForInstrumentation,
+                        node.expression.fileOffset,
+                        noLength)
+                  ]);
+            }
           }
         }
       }
@@ -5233,7 +5213,7 @@ class InferenceVisitor
         switchCase.body = bodyResult.statement..parent = switchCase;
       }
 
-      if (inferrer.isNonNullableByDefault) {
+      if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
         // The last case block is allowed to complete normally.
         if (caseIndex < node.cases.length - 1 &&
             inferrer.flowAnalysis.isReachable) {
@@ -5266,7 +5246,7 @@ class InferenceVisitor
         isVoidAllowed: false);
     node.expression = expressionResult.expression..parent = node;
     inferrer.flowAnalysis.handleExit();
-    if (inferrer.isNonNullableByDefault) {
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (!inferrer.isAssignable(
           inferrer.typeSchemaEnvironment.objectNonNullableRawType,
           expressionResult.inferredType,
@@ -5836,7 +5816,7 @@ class InferenceVisitor
 
   void reportNonNullableInNullAwareWarningIfNeeded(
       DartType operandType, String operationName, int offset) {
-    if (inferrer.isNonNullableByDefault) {
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
       if (operandType is! InvalidType &&
           !isPotentiallyNullable(
               operandType, inferrer.coreTypes.futureOrClass)) {
