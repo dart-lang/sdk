@@ -43,4 +43,9 @@ class ImplicitTypeArgument extends DartType {
 
   @override
   bool equals(Object other, Assumptions assumptions) => this == other;
+
+  @override
+  String toString() {
+    return "ImplicitTypeArgument()";
+  }
 }

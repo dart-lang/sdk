@@ -507,7 +507,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
           }
           return c.toString();
         }
-        return e.toString();
+        return e.leakingDebugToString();
       })
       // Filter out our own NotNull annotations.  The library prefix changes
       // per test, so just filter on the suffix.

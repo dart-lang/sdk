@@ -86,6 +86,11 @@ class UnknownType extends DartType {
 
   @override
   UnknownType withNullability(Nullability nullability) => this;
+
+  @override
+  String toString() {
+    return "UnknownType()";
+  }
 }
 
 /// Visitor that computes [isKnown].

@@ -64,7 +64,7 @@ class DeepCaller2 extends core::Object {
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
 static field core::Object* field1 = [@vm.inferred-type.metadata=!] self::getValue();
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
+  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::Function*)] self::unknown.call();
 static method getValue() → core::Object* {
   self::A* aa = self::getDynamic() as{TypeError,ForDynamic} self::A*;
   return [@vm.inferred-type.metadata=!] aa.{self::A::foo}();

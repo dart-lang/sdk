@@ -99,6 +99,11 @@ class SpreadElement extends Expression with ControlFlowElement {
       void onConvertForElement(TreeNode from, TreeNode to)) {
     return new SpreadMapEntry(expression, isNullAware)..fileOffset = fileOffset;
   }
+
+  @override
+  String toString() {
+    return "SpreadElement()";
+  }
 }
 
 /// An 'if' element in a list or set literal.
@@ -155,6 +160,11 @@ class IfElement extends Expression with ControlFlowElement {
     return new IfMapEntry(condition, thenEntry, otherwiseEntry)
       ..fileOffset = fileOffset;
   }
+
+  @override
+  String toString() {
+    return "IfElement()";
+  }
 }
 
 /// A 'for' element in a list or set literal.
@@ -206,6 +216,11 @@ class ForElement extends Expression with ControlFlowElement {
           ..fileOffset = fileOffset;
     onConvertForElement(this, result);
     return result;
+  }
+
+  @override
+  String toString() {
+    return "ForElement()";
   }
 }
 
@@ -286,6 +301,11 @@ class ForInElement extends Expression with ControlFlowElement {
     onConvertForElement(this, result);
     return result;
   }
+
+  @override
+  String toString() {
+    return "ForInElement()";
+  }
 }
 
 mixin ControlFlowMapEntry implements MapEntry {
@@ -340,6 +360,11 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
       expression?.parent = this;
     }
   }
+
+  @override
+  String toString() {
+    return "SpreadMapEntry()";
+  }
 }
 
 /// An 'if' element in a map literal.
@@ -375,6 +400,11 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
       otherwise = otherwise.accept<TreeNode>(v);
       otherwise?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "IfMapEntry()";
   }
 }
 
@@ -412,6 +442,11 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
       body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "ForMapEntry()";
   }
 }
 
@@ -476,6 +511,11 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
       problem = problem.accept<TreeNode>(v);
       problem?.parent = this;
     }
+  }
+
+  @override
+  String toString() {
+    return "ForInMapEntry()";
   }
 }
 

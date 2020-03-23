@@ -25,5 +25,5 @@ static method knownResult() → dynamic
   return new self::B::•();
 static method main(core::List<core::String*>* args) → dynamic {
   core::Function* closure = () → self::B* => new self::B::•();
-  new self::TearOffDynamicMethod::•([@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] closure.call());
+  new self::TearOffDynamicMethod::•([@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::Function*)] closure.call());
 }

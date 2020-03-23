@@ -14,18 +14,18 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method _foo([@vm.inferred-type.metadata=dart._internal::ListIterator<dart.core::int*>] core::Iterator<core::int*>* iter) → core::List<dynamic>* {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method _foo([@vm.inferred-type.metadata=dart._internal::ListIterator<InterfaceType(Reference to root::dart:core::int*)>] core::Iterator<core::int*>* iter) → core::List<dynamic>* {
     core::List<dynamic>* result = <dynamic>[];
     while ([@vm.direct-call.metadata=dart._internal::ListIterator::moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] iter.{core::Iterator::moveNext}()) {
       if([@vm.direct-call.metadata=dart.core::_IntegerImplementation::<??] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart._internal::ListIterator::current] [@vm.inferred-type.metadata=int?] iter.{core::Iterator::current}.{core::num::<}(0)) {
         return result;
       }
-      [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dynamic>*] [@vm.direct-call.metadata=dart.core::_GrowableList::add] [@vm.inferred-type.metadata=!? (skip check)] result.{core::List::add}(new self::A::•([@vm.direct-call.metadata=#lib::B::_foo] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (skip check)] this.{self::B::_foo}(iter)));
+      [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::List*)] [@vm.direct-call.metadata=dart.core::_GrowableList::add] [@vm.inferred-type.metadata=!? (skip check)] result.{core::List::add}(new self::A::•([@vm.direct-call.metadata=#lib::B::_foo] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (skip check)] this.{self::B::_foo}(iter)));
     }
     return result;
   }
 }
 static method main() → void {
-  core::List<dynamic>* list = [@vm.direct-call.metadata=#lib::B::_foo] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (skip check)] new self::B::•().{self::B::_foo}([@vm.direct-call.metadata=dart.core::_GrowableList::iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<dart.core::int*>]<core::int*>[1, 2, 3].{core::Iterable::iterator});
+  core::List<dynamic>* list = [@vm.direct-call.metadata=#lib::B::_foo] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (skip check)] new self::B::•().{self::B::_foo}([@vm.direct-call.metadata=dart.core::_GrowableList::iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<InterfaceType(Reference to root::dart:core::int*)>]<core::int*>[1, 2, 3].{core::Iterable::iterator});
   core::print(list);
 }

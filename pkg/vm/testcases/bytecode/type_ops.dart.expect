@@ -706,7 +706,7 @@ ConstantPool {
       if(y is #lib::C<dynamic, #lib::D::Q*, dart.core::List<#lib::D::P*>*>*) {
         dart.core::print("22");
       }
-      [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P*, #lib::D::Q*>*] this.{#lib::D::foo} = y as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
+      [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to #lib::D*)] this.{#lib::D::foo} = y as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
     }
     method foo3<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic>(dynamic z) → dynamic {
       if(z is #lib::A<#lib::D::foo3::T1*>*) {

@@ -59,6 +59,6 @@ static method main() → dynamic {
 
 constants  {
   #C1 = 0
-  #C2 = TypeLiteralConstant(dart.core::String*)
-  #C3 = TypeLiteralConstant(dart.core::int*)
+  #C2 = TypeLiteralConstant(core::String*)
+  #C3 = TypeLiteralConstant(core::int*)
 }

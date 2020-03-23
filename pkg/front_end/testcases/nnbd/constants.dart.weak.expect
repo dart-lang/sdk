@@ -99,13 +99,13 @@ static method id<T extends core::Object* = dynamic>(con::id::T* t) → con::id::
   return t;
 
 constants  {
-  #C1 = TypeLiteralConstant(dart.core::Object*)
+  #C1 = TypeLiteralConstant(core::Object*)
   #C2 = tearoff con::id
   #C3 = partial-instantiation con::id <core::int*>
   #C4 = 0
   #C5 = con::Class<core::int*> {field:#C4}
   #C6 = TypeLiteralConstant((dynamic) →* dynamic)
-  #C7 = TypeLiteralConstant(<T extends dart.core::Object* = dynamic>(T*) →* T*)
+  #C7 = TypeLiteralConstant(<T extends core::Object* = dynamic>(T*) →* T*)
   #C8 = <core::int*>[#C4]
   #C9 = null
   #C10 = <dynamic>[#C4, #C9]

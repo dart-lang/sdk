@@ -28,7 +28,7 @@ t1* = _Call direct get [#lib::TestEnum::_name] (%this)
 RESULT: t1
 ------------ #lib::TestEnum::values ------------
 
-RESULT: _T (dart.core::_ImmutableList, ListConstant<#lib::TestEnum*>([#lib::TestEnum {index: 0, #lib::_name: TestEnum.v1, }, #lib::TestEnum {index: 1, #lib::_name: TestEnum.v2, }]))
+RESULT: _T (dart.core::_ImmutableList, ListConstant<InterfaceType(Reference to #lib::TestEnum*)>([#lib::TestEnum {index: 0, #lib::_name: TestEnum.v1, }, #lib::TestEnum {index: 1, #lib::_name: TestEnum.v2, }]))
 ------------ #lib::TestEnum::v1 ------------
 
 RESULT: _T (#lib::TestEnum, #lib::TestEnum {index: 0, #lib::_name: TestEnum.v1, })
@@ -71,10 +71,10 @@ RESULT: x_0
 t2 = _Call direct [#lib::C1::] (_T (#lib::C1))
 t3 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t4* = _Call direct [#lib::foo] (_T (#lib::C2))
-t5 = _TypeCheck (t4 against dart.core::bool) (for #lib::foo(x = new #lib::C2::•()) as{TypeError,ForDynamic} dart.core::bool*)
+t5 = _TypeCheck (t4 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t6 = _Call direct [#lib::C3::] (_T (#lib::C3))
 t7* = _Call direct [#lib::foo] (_T (#lib::C3))
-t8 = _TypeCheck (t7 against dart.core::bool) (for #lib::foo(x = new #lib::C3::•()) as{TypeError,ForDynamic} dart.core::bool*)
+t8 = _TypeCheck (t7 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 x_0 = _Join [dynamic] (_T (#lib::C2), _T (#lib::C3))
 t10 = _Call direct [#lib::bar] (x_0)
 RESULT: x_0
@@ -82,10 +82,10 @@ RESULT: x_0
 t0 = _Call direct [#lib::C1::] (_T (#lib::C1))
 t1 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t2* = _Call direct [#lib::foo] (_T (#lib::C2))
-t3 = _TypeCheck (t2 against dart.core::bool) (for #lib::foo(x = new #lib::C2::•()) as{TypeError,ForDynamic} dart.core::bool*)
+t3 = _TypeCheck (t2 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t4 = _Call direct [#lib::C3::] (_T (#lib::C3))
 t5* = _Call direct [#lib::foo] (_T (#lib::C3))
-t6 = _TypeCheck (t5 against dart.core::bool) (for #lib::foo(x = new #lib::C3::•()) as{TypeError,ForDynamic} dart.core::bool*)
+t6 = _TypeCheck (t5 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t7 = _Call direct [#lib::bar] (_T (#lib::C3))
 x_0 = _Join [dynamic] (_T (#lib::C2), _T (#lib::C3))
 RESULT: x_0
@@ -99,12 +99,12 @@ RESULT: _T {}?
 %x = _Parameter #0 [_T (dart.core::bool)+?]
 t1 = _Call direct [#lib::foo] (_T (dart.core::bool, true))
 t2 = _Call direct [#lib::bar] (_T (dart.core::bool, false))
-x_0 = _Join [dart.core::bool*] (_T (dart.core::bool, true), _T (dart.core::bool, false))
+x_0 = _Join [InterfaceType(Reference to root::dart:core::bool*)] (_T (dart.core::bool, true), _T (dart.core::bool, false))
 t4 = _Call direct [#lib::baz] (x_0)
 RESULT: _T {}?
 ------------ #lib::if6b ------------
 %x = _Parameter #0 [_T ANY?]
-t1 = _TypeCheck (%x against dart.core::bool) (for x as{TypeError,ForDynamic} dart.core::bool*)
+t1 = _TypeCheck (%x against dart.core::bool) (for AsExpression(VariableGetImpl() as InterfaceType(Reference to root::dart:core::bool*)))
 t2 = _Call direct [#lib::foo] (_T (dart.core::bool, true))
 t3 = _Call direct [#lib::bar] (_T (dart.core::bool, false))
 x_0 = _Join [dynamic] (_T (dart.core::bool, true), _T (dart.core::bool, false))
@@ -138,12 +138,12 @@ RESULT: _T {}?
 t2 = _Call direct [#lib::C1::] (_T (#lib::C1))
 t3 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t4* = _Call direct [#lib::foo] (_T (#lib::C2))
-t5 = _TypeCheck (t4 against dart.core::bool) (for #lib::foo(x = new #lib::C2::•()) as{TypeError,ForDynamic} dart.core::bool*)
+t5 = _TypeCheck (t4 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t6 = _Call direct [#lib::C3::] (_T (#lib::C3))
 t7 = _Call direct [#lib::C4::] (_T (#lib::C4))
 x_0 = _Join [dynamic] (_T (#lib::C3), _T (#lib::C4))
 t9 = _Call direct [#lib::foo] (x_0)
-t10 = _Join [dart.core::Object*] (_T (#lib::C3), _T (#lib::C4))
+t10 = _Join [InterfaceType(Reference to root::dart:core::Object*)] (_T (#lib::C3), _T (#lib::C4))
 t11 = _Narrow (t10 to _T (dart.core::Object)+?)
 t12 = _Call direct [#lib::bar] (t11)
 RESULT: _T {}?
@@ -153,7 +153,7 @@ RESULT: _T {}?
 t2 = _Call direct [#lib::C1::] (_T (#lib::C1))
 t3 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t4* = _Call direct [#lib::foo] (_T (#lib::C2))
-t5 = _TypeCheck (t4 against dart.core::bool) (for #lib::foo(x = new #lib::C2::•()) as{TypeError,ForDynamic} dart.core::bool*)
+t5 = _TypeCheck (t4 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t6 = _Call direct [#lib::C3::] (_T (#lib::C3))
 t7 = _Call direct [#lib::C4::] (_T (#lib::C4))
 t8* = _Call direct [#lib::foo] (_T (dart.core::_GrowableList<#lib::C4>))
@@ -165,7 +165,7 @@ RESULT: _T {}?
 t0 = _Call direct [#lib::C1::] (_T (#lib::C1))
 x_0 = _Join [dynamic] (_T (#lib::C1), _T (#lib::C2))
 t2* = _Call direct [#lib::foo] (x_0)
-t3 = _TypeCheck (t2 against dart.core::bool) (for #lib::foo(x) as{TypeError,ForDynamic} dart.core::bool*)
+t3 = _TypeCheck (t2 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t4 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t5 = _Call direct [#lib::bar] (x_0)
 RESULT: x_0
@@ -177,13 +177,13 @@ t3 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t4 = _Call direct [#lib::bar] (_T (#lib::C2))
 t5 = _Call direct [#lib::C3::] (_T (#lib::C3))
 t6* = _Call direct [#lib::bar] (_T (#lib::C3))
-t7 = _TypeCheck (t6 against dart.core::bool) (for #lib::bar(x = new #lib::C3::•()) as{TypeError,ForDynamic} dart.core::bool*)
+t7 = _TypeCheck (t6 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::bar, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 RESULT: _T (#lib::C3)
 ------------ #lib::loop3 ------------
 t0 = _Call direct [#lib::C1::] (_T (#lib::C1))
 t1 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t2* = _Call direct [#lib::foo] (_T (#lib::C2))
-t3 = _TypeCheck (t2 against dart.core::bool) (for #lib::foo(x = new #lib::C2::•()) as{TypeError,ForDynamic} dart.core::bool*)
+t3 = _TypeCheck (t2 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t4 = _Call direct [#lib::C3::] (_T (#lib::C3))
 t5 = _Call direct [#lib::bar] (_T (#lib::C2))
 RESULT: _T (#lib::C2)
@@ -204,10 +204,10 @@ RESULT: x_0
 t0 = _Call direct [#lib::C1::] (_T (#lib::C1))
 x_0 = _Join [dynamic] (_T (#lib::C1), _T (#lib::C3))
 t2* = _Call direct [#lib::foo] (x_0)
-t3 = _TypeCheck (t2 against dart.core::bool) (for #lib::foo(x) as{TypeError,ForDynamic} dart.core::bool*)
+t3 = _TypeCheck (t2 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t4 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t5* = _Call direct [#lib::bar] (_T (#lib::C2))
-t6 = _TypeCheck (t5 against dart.core::bool) (for #lib::bar(x) as{TypeError,ForDynamic} dart.core::bool*)
+t6 = _TypeCheck (t5 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::bar, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t7 = _Call direct [#lib::C3::] (_T (#lib::C3))
 x_1 = _Join [dynamic] (x_0, _T (#lib::C2))
 RESULT: x_1
@@ -216,10 +216,10 @@ t0 = _Call direct [#lib::C1::] (_T (#lib::C1))
 x_1 = _Join [dynamic] (_T (#lib::C3), _T (#lib::C2))
 x_0 = _Join [dynamic] (_T (#lib::C1), x_1)
 t3* = _Call direct [#lib::foo] (x_0)
-t4 = _TypeCheck (t3 against dart.core::bool) (for #lib::foo(x) as{TypeError,ForDynamic} dart.core::bool*)
+t4 = _TypeCheck (t3 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::foo, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t5 = _Call direct [#lib::C2::] (_T (#lib::C2))
 t6* = _Call direct [#lib::bar] (_T (#lib::C2))
-t7 = _TypeCheck (t6 against dart.core::bool) (for #lib::bar(x) as{TypeError,ForDynamic} dart.core::bool*)
+t7 = _TypeCheck (t6 against dart.core::bool) (for AsExpression(StaticInvocation(Reference to #lib::bar, ArgumentsImpl()) as InterfaceType(Reference to root::dart:core::bool*)))
 t8 = _Call direct [#lib::C3::] (_T (#lib::C3))
 RESULT: x_0
 ------------ #lib::try1 ------------
@@ -272,7 +272,7 @@ x_2 = _Join [dynamic] (_T (#lib::C1), _T (#lib::C3))
 RESULT: x_2
 ------------ #lib::cast1 ------------
 %x = _Parameter #0 [_T ANY?]
-t1 = _TypeCheck (%x against #lib::C1) (for x as #lib::C1*)
+t1 = _TypeCheck (%x against #lib::C1) (for AsExpression(VariableGetImpl() as InterfaceType(Reference to #lib::C1*)))
 t2 = _Call direct [#lib::foo] (t1)
 t3 = _Call direct [#lib::bar] (t1)
 RESULT: _T {}?

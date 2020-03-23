@@ -754,4 +754,9 @@ class _VariablesDeclaration extends Statement {
   transformChildren(v) {
     throw unsupported("transformChildren", fileOffset, uri);
   }
+
+  @override
+  String toString() {
+    return "_VariablesDeclaration()";
+  }
 }
