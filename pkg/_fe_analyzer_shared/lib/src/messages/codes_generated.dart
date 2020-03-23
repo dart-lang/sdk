@@ -8340,6 +8340,14 @@ const MessageCode messageTypedefNotType = const MessageCode("TypedefNotType",
     message: r"""Can't create typedef from non-type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefNullableType = messageTypedefNullableType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefNullableType = const MessageCode(
+    "TypedefNullableType",
+    message: r"""Can't create typedef from nullable type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

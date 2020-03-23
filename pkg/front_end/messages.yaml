@@ -2181,6 +2181,11 @@ TypedefNotType:
   template: "Can't create typedef from non-type."
   analyzerCode: INVALID_TYPE_IN_TYPEDEF
 
+TypedefNullableType:
+  template: "Can't create typedef from nullable type."
+  configuration: nnbd-strong
+  script: typedef F = void Function()?;
+
 LibraryDirectiveNotFirst:
   index: 37
   template: "The library directive must appear before all other directives."

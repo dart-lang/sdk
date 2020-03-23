@@ -1600,13 +1600,24 @@ class OutlineBuilder extends StackListenerImpl {
             TypeParameterScopeKind.functionType, "<syntax-error>");
         return;
       }
-      if (type is FunctionTypeBuilder) {
-        // TODO(ahe): We need to start a nested declaration when parsing the
-        // formals and return type so we can correctly bind
-        // `type.typeVariables`. A typedef can have type variables, and a new
-        // function type can also have type variables (representing the type of
-        // a generic function).
-        aliasedType = type;
+      if (type is FunctionTypeBuilder &&
+          !libraryBuilder.loader.target.enableNonfunctionTypeAliases) {
+        if (type.nullabilityBuilder.build(libraryBuilder) ==
+                Nullability.nullable &&
+            libraryBuilder.loader.target.enableNonNullable) {
+          // The error is reported when the non-nullable experiment is enabled.
+          // Otherwise, the attempt to use a nullable type will be reported
+          // elsewhere.
+          addProblem(
+              messageTypedefNullableType, equals.charOffset, equals.length);
+        } else {
+          // TODO(ahe): We need to start a nested declaration when parsing the
+          // formals and return type so we can correctly bind
+          // `type.typeVariables`. A typedef can have type variables, and a new
+          // function type can also have type variables (representing the type
+          // of a generic function).
+          aliasedType = type;
+        }
       } else if (libraryBuilder.loader.target.enableNonfunctionTypeAliases) {
         if (type is TypeBuilder) {
           aliasedType = type;
