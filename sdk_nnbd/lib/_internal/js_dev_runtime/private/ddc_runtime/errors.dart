@@ -65,20 +65,21 @@ castError(obj, expectedType) {
 String _castErrorMessage(from, to) {
   // If both types are generic classes, see if we can infer generic type
   // arguments for `from` that would allow the subtype relation to work.
-  var fromClass = getGenericClass(from);
-  if (fromClass != null) {
-    var fromTypeFormals = getGenericTypeFormals(fromClass);
-    var fromType = instantiateClass(fromClass, fromTypeFormals);
-    var inferrer = _TypeInferrer(fromTypeFormals);
-    if (inferrer.trySubtypeMatch(fromType, to)) {
-      var inferredTypes = inferrer.getInferredTypes();
-      if (inferredTypes != null) {
-        var inferred = instantiateClass(fromClass, inferredTypes);
-        return "Type '${typeName(from)}' should be '${typeName(inferred)}' "
-            "to implement expected type '${typeName(to)}'.";
-      }
-    }
-  }
+  // TODO(#40326) Fix suggested type or remove this code if no longer needed.
+  // var fromClass = getGenericClass(from);
+  // if (fromClass != null) {
+  //   var fromTypeFormals = getGenericTypeFormals(fromClass);
+  //   var fromType = instantiateClass(fromClass, fromTypeFormals);
+  //   var inferrer = _TypeInferrer(fromTypeFormals);
+  //   if (inferrer.trySubtypeMatch(fromType, to)) {
+  //     var inferredTypes = inferrer.getInferredTypes();
+  //     if (inferredTypes != null) {
+  //       var inferred = instantiateClass(fromClass, inferredTypes);
+  //       return "Type '${typeName(from)}' should be '${typeName(inferred)}' "
+  //           "to implement expected type '${typeName(to)}'.";
+  //     }
+  //   }
+  // }
   return "Expected a value of type '${typeName(to)}', "
       "but got one of type '${typeName(from)}'";
 }
