@@ -77,6 +77,7 @@ import '../fasta_codes.dart'
         noLength,
         messageExtendFunction,
         messageImplementFunction,
+        messageMixinFunction,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
@@ -245,13 +246,24 @@ class SourceClassBuilder extends ClassBuilderImpl
     actualCls.supertype = supertype;
 
     mixedInTypeBuilder = checkSupertype(mixedInTypeBuilder);
-    actualCls.mixedInType =
+    Supertype mixedInType =
         mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
-    if (actualCls.mixedInType == null &&
-        mixedInTypeBuilder is! NamedTypeBuilder) {
+    if (mixedInType != null) {
+      Class superclass = mixedInType.classNode;
+      if (superclass.name == 'Function' &&
+          superclass.enclosingLibrary == coreLibrary.library) {
+        library.addProblem(messageMixinFunction, charOffset, noLength, fileUri);
+        mixedInType = null;
+        mixedInTypeBuilder = null;
+        actualCls.isAnonymousMixin = false;
+        isMixinDeclaration = false;
+      }
+    }
+    if (mixedInType == null && mixedInTypeBuilder is! NamedTypeBuilder) {
       mixedInTypeBuilder = null;
     }
     actualCls.isMixinDeclaration = isMixinDeclaration;
+    actualCls.mixedInType = mixedInType;
 
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.

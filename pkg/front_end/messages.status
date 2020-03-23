@@ -459,7 +459,7 @@ MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
 MixinDeclaresConstructor/example: Fail
 MixinFunction/part_wrapped_script: Fail
-MixinFunction/script: Fail # TODO(johnniwinther): Handle mixing in Function
+MixinFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail

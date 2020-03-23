@@ -218,6 +218,7 @@ general/infer_field_from_multiple: TypeCheckError
 general/infer_field_type: TextSerializationFailure
 general/infer_fixed_generic_return_type: TextSerializationFailure
 general/infer_map_literal_with_closure: TextSerializationFailure
+general/inherit_function: TextSerializationFailure
 general/interface_conflict: TextSerializationFailure
 general/interface_contravariant_from_class: TextSerializationFailure
 general/interface_covariantImpl_from_class: TextSerializationFailure
