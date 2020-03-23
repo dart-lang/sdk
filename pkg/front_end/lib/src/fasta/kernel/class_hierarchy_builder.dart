@@ -41,6 +41,7 @@ import '../messages.dart'
         Message,
         messageDeclaredMemberConflictsWithInheritedMember,
         messageDeclaredMemberConflictsWithInheritedMemberCause,
+        messageDeclaredMemberConflictsWithInheritedMembersCause,
         messageInheritedMembersConflict,
         messageInheritedMembersConflictCause1,
         messageInheritedMembersConflictCause2,
@@ -754,7 +755,8 @@ class ClassHierarchyNodeBuilder {
           if (inferredReturnType == null) {
             // A different type has already been inferred.
             inferredReturnType = const InvalidType();
-            reportCantInferReturnType(classBuilder, declaredMember, hierarchy);
+            reportCantInferReturnType(
+                classBuilder, declaredMember, hierarchy, overriddenMembers);
           }
         }
         if (declaredFunction.requiredParameterCount >
@@ -799,7 +801,7 @@ class ClassHierarchyNodeBuilder {
             // A different type has already been inferred.
             inferredParameterType = const InvalidType();
             reportCantInferParameterType(
-                classBuilder, declaredParameter, hierarchy);
+                classBuilder, declaredParameter, hierarchy, overriddenMembers);
           }
           inferredParameterTypes[declaredParameter] = inferredParameterType;
         }
@@ -861,8 +863,8 @@ class ClassHierarchyNodeBuilder {
             if (inferredParameterType == null) {
               // A different type has already been inferred.
               inferredParameterType = const InvalidType();
-              reportCantInferParameterType(
-                  classBuilder, declaredParameter, hierarchy);
+              reportCantInferParameterType(classBuilder, declaredParameter,
+                  hierarchy, overriddenMembers);
             }
             inferredParameterTypes[declaredParameter] = inferredParameterType;
           }
@@ -1066,7 +1068,8 @@ class ClassHierarchyNodeBuilder {
         if (inferredType == null) {
           // A different type has already been inferred.
           inferredType = const InvalidType();
-          reportCantInferReturnType(classBuilder, declaredMember, hierarchy);
+          reportCantInferReturnType(
+              classBuilder, declaredMember, hierarchy, overriddenMembers);
         }
       }
 
@@ -1144,7 +1147,8 @@ class ClassHierarchyNodeBuilder {
         if (inferredType == null) {
           // A different type has already been inferred.
           inferredType = const InvalidType();
-          reportCantInferParameterType(classBuilder, parameter, hierarchy);
+          reportCantInferParameterType(
+              classBuilder, parameter, hierarchy, overriddenMembers);
         }
       }
 
@@ -1260,7 +1264,8 @@ class ClassHierarchyNodeBuilder {
         if (inferredType == null) {
           // A different type has already been inferred.
           inferredType = const InvalidType();
-          reportCantInferFieldType(classBuilder, fieldBuilder);
+          reportCantInferFieldType(
+              classBuilder, fieldBuilder, overriddenMembers);
         }
       }
 
@@ -3029,7 +3034,7 @@ class InterfaceConflict extends DelayedMember {
       String name = classBuilder.fullNameForErrors;
       int length = classBuilder.isAnonymousMixinApplication ? 1 : name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
-        return messageDeclaredMemberConflictsWithInheritedMemberCause
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
             .withLocation(d.fileUri, d.charOffset, d.fullNameForErrors.length);
       }).toList();
 
@@ -3238,20 +3243,43 @@ int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
   return a.name.compareTo(b.name);
 }
 
-void reportCantInferParameterType(ClassBuilder cls,
-    FormalParameterBuilder parameter, ClassHierarchyBuilder hierarchy) {
+void reportCantInferParameterType(
+    ClassBuilder cls,
+    FormalParameterBuilder parameter,
+    ClassHierarchyBuilder hierarchy,
+    Iterable<ClassMember> overriddenMembers) {
   String name = parameter.name;
+  List<LocatedMessage> context = overriddenMembers
+      .map((ClassMember overriddenMember) {
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
+            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
+                overriddenMember.fullNameForErrors.length);
+      })
+      // Call toSet to avoid duplicate context for instance of fields that are
+      // overridden both as getters and setters.
+      .toSet()
+      .toList();
   cls.addProblem(
       templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
       parameter.charOffset,
       name.length,
-      wasHandled: true);
+      wasHandled: true,
+      context: context);
 }
 
 void reportCantInferReturnType(ClassBuilder cls, SourceProcedureBuilder member,
-    ClassHierarchyBuilder hierarchy) {
+    ClassHierarchyBuilder hierarchy, Iterable<ClassMember> overriddenMembers) {
   String name = member.fullNameForErrors;
-  List<LocatedMessage> context;
+  List<LocatedMessage> context = overriddenMembers
+      .map((ClassMember overriddenMember) {
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
+            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
+                overriddenMember.fullNameForErrors.length);
+      })
+      // Call toSet to avoid duplicate context for instance of fields that are
+      // overridden both as getters and setters.
+      .toSet()
+      .toList();
   // // TODO(ahe): The following is for debugging, but could be cleaned up and
   // // used to improve this error message in general.
   //
@@ -3307,13 +3335,25 @@ void reportCantInferReturnType(ClassBuilder cls, SourceProcedureBuilder member,
       context: context);
 }
 
-void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member) {
+void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member,
+    Iterable<ClassMember> overriddenMembers) {
+  List<LocatedMessage> context = overriddenMembers
+      .map((ClassMember overriddenMember) {
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
+            .withLocation(overriddenMember.fileUri, overriddenMember.charOffset,
+                overriddenMember.fullNameForErrors.length);
+      })
+      // Call toSet to avoid duplicate context for instance of fields that are
+      // overridden both as getters and setters.
+      .toSet()
+      .toList();
   String name = member.fullNameForErrors;
   cls.addProblem(
       templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
       member.charOffset,
       name.length,
-      wasHandled: true);
+      wasHandled: true,
+      context: context);
 }
 
 ClassBuilder getClass(TypeBuilder type) {

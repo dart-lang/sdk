@@ -1683,6 +1683,16 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
         message: r"""This is the inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDeclaredMemberConflictsWithInheritedMembersCause =
+    messageDeclaredMemberConflictsWithInheritedMembersCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
+    const MessageCode("DeclaredMemberConflictsWithInheritedMembersCause",
+        severity: Severity.context,
+        message: r"""This is one of the inherited members.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDefaultListConstructorError =
     messageDefaultListConstructorError;
 

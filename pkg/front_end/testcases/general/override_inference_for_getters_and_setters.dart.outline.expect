@@ -6,21 +6,45 @@ library;
 // Try adding an explicit type.
 //   get getterFromGetter;
 //       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:6:11: Context: This is one of the inherited members.
+//   num get getterFromGetter;
+//           ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:22:11: Context: This is one of the inherited members.
+//   int get getterFromGetter;
+//           ^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:52:24: Error: Can't infer a type for 'value' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   set setterFromSetter(value);
 //                        ^^^^^
+// pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:8:7: Context: This is one of the inherited members.
+//   set setterFromSetter(num value);
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:24:7: Context: This is one of the inherited members.
+//   set setterFromSetter(int value);
+//       ^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:80:7: Error: Can't infer a return type for 'getterFromGetter' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   get getterFromGetter;
 //       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:6:11: Context: This is one of the inherited members.
+//   num get getterFromGetter;
+//           ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:22:11: Context: This is one of the inherited members.
+//   int get getterFromGetter;
+//           ^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:82:24: Error: Can't infer a type for 'value' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   set setterFromSetter(value);
 //                        ^^^^^
+// pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:8:7: Context: This is one of the inherited members.
+//   set setterFromSetter(num value);
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/override_inference_for_getters_and_setters.dart:24:7: Context: This is one of the inherited members.
+//   set setterFromSetter(int value);
+//       ^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

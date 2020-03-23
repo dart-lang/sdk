@@ -123,6 +123,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
 
   Map<String, dynamic> get arguments => messageObject.arguments;
 
+  @override
   int compareTo(LocatedMessage other) {
     int result = "${uri}".compareTo("${other.uri}");
     if (result != 0) return result;
@@ -136,6 +137,28 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     return new FormattedMessage(
         this, formatted, line, column, severity, relatedInformation);
   }
+
+  @override
+  int get hashCode =>
+      13 * uri.hashCode +
+      17 * charOffset.hashCode +
+      19 * length.hashCode +
+      23 * messageObject.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is LocatedMessage &&
+        uri == other.uri &&
+        charOffset == other.charOffset &&
+        length == other.length &&
+        messageObject == other.messageObject;
+  }
+
+  @override
+  String toString() =>
+      'LocatedMessage(uri=$uri,charOffset=$charOffset,length=$length,'
+      'messageObject=$messageObject)';
 }
 
 class FormattedMessage implements DiagnosticMessage {

@@ -2007,6 +2007,10 @@ DeclaredMemberConflictsWithInheritedMemberCause:
   template: "This is the inherited member."
   severity: CONTEXT
 
+DeclaredMemberConflictsWithInheritedMembersCause:
+  template: "This is one of the inherited members."
+  severity: CONTEXT
+
 InheritedMembersConflict:
   template: "Can't inherit members that conflict with each other."
   analyzerCode: CONFLICTS_WITH_INHERITED_MEMBER
