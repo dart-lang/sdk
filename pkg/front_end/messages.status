@@ -491,8 +491,9 @@ NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonNullableInNullAware/analyzerCode: Fail
 NonNullableInNullAware/example: Fail
+NonNullableLateDefinitelyAssignedError/analyzerCode: Fail
+NonNullableLateDefinitelyUnassignedError/analyzerCode: Fail
 NonNullableNotAssignedError/analyzerCode: Fail
-NonNullableNotAssignedError/example: Fail
 NonNullableNotAssignedWarning/analyzerCode: Fail
 NonNullableNotAssignedWarning/example: Fail
 NonNullableOptOut/analyzerCode: Fail

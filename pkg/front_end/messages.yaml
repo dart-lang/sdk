@@ -3944,6 +3944,29 @@ NonNullableInNullAware:
 
 NonNullableNotAssignedError:
   template: "Non-nullable variable '#name' must be assigned before it can be used."
+  configuration: nnbd-strong
+  script: |
+    method<T>() {
+      T t; t;
+    }
+
+NonNullableLateDefinitelyUnassignedError:
+  template: "Non-nullable late variable '#name' without initializer is definitely unassigned."
+  configuration: nnbd-strong
+  script: |
+    method<T>() {
+      late T t; t;
+    }
+
+NonNullableLateDefinitelyAssignedError:
+  template: "Non-nullable late final variable '#name' definitely assigned."
+  configuration: nnbd-strong
+  script: |
+    method() {
+      late final int t;
+      t = 0;
+      t = 0;
+    }
 
 NonAgnosticConstant:
   template: "Constant value is not strong/weak mode agnostic."

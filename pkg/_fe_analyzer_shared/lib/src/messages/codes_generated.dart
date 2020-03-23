@@ -6185,6 +6185,58 @@ const MessageCode messageNonNullAwareSpreadIsNull = const MessageCode(
     message: r"""Can't spread a value with static type Null.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateNonNullableLateDefinitelyAssignedError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Non-nullable late final variable '#name' definitely assigned.""",
+        withArguments: _withArgumentsNonNullableLateDefinitelyAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeNonNullableLateDefinitelyAssignedError =
+    const Code<Message Function(String name)>(
+  "NonNullableLateDefinitelyAssignedError",
+  templateNonNullableLateDefinitelyAssignedError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonNullableLateDefinitelyAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonNullableLateDefinitelyAssignedError,
+      message:
+          """Non-nullable late final variable '${name}' definitely assigned.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateNonNullableLateDefinitelyUnassignedError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Non-nullable late variable '#name' without initializer is definitely unassigned.""",
+        withArguments: _withArgumentsNonNullableLateDefinitelyUnassignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeNonNullableLateDefinitelyUnassignedError =
+    const Code<Message Function(String name)>(
+  "NonNullableLateDefinitelyUnassignedError",
+  templateNonNullableLateDefinitelyUnassignedError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonNullableLateDefinitelyUnassignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonNullableLateDefinitelyUnassignedError,
+      message:
+          """Non-nullable late variable '${name}' without initializer is definitely unassigned.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String

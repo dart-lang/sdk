@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static final field asy::StreamTransformer<dynamic, dynamic> t;
+static method main() → void
+  ;

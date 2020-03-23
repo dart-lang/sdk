@@ -1234,6 +1234,12 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // lowering is enabled.
   VariableDeclaration lateSetter;
 
+  // Is `true` if this a lowered late final variable without an initializer.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
+  bool isLateFinalWithoutInitializer = false;
+
   // The original type (declared or inferred) of a lowered late variable.
   //
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late

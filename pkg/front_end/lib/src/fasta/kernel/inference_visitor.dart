@@ -3589,7 +3589,8 @@ class InferenceVisitor
         break;
     }
     if (inferrer.isNonNullableByDefault) {
-      if (leftType is! DynamicType &&
+      if (leftType is! InvalidType &&
+          leftType is! DynamicType &&
           isPotentiallyNullable(leftType, inferrer.coreTypes.futureOrClass)) {
         return new ExpressionInferenceResult(
             binaryType,
@@ -3682,7 +3683,8 @@ class InferenceVisitor
         break;
     }
     if (inferrer.isNonNullableByDefault) {
-      if (expressionType is! DynamicType &&
+      if (expressionType is! InvalidType &&
+          expressionType is! DynamicType &&
           isPotentiallyNullable(
               expressionType, inferrer.coreTypes.futureOrClass)) {
         // TODO(johnniwinther): Special case 'unary-' in messages. It should
@@ -3837,7 +3839,8 @@ class InferenceVisitor
         break;
     }
     if (inferrer.isNonNullableByDefault) {
-      if (receiverType is! DynamicType &&
+      if (receiverType is! InvalidType &&
+          receiverType is! DynamicType &&
           isPotentiallyNullable(
               receiverType, inferrer.coreTypes.futureOrClass)) {
         return inferrer.helper.wrapInProblem(
@@ -5355,26 +5358,54 @@ class InferenceVisitor
   ExpressionInferenceResult visitVariableSet(
       VariableSet node, DartType typeContext) {
     VariableDeclarationImpl variable = node.variable;
-    DartType writeContext = variable.type;
+    bool isDefinitelyAssigned = false;
+    if (inferrer.isNonNullableByDefault) {
+      isDefinitelyAssigned = inferrer.flowAnalysis.isAssigned(variable);
+    }
+    DartType declaredOrInferredType = variable.lateType ?? variable.type;
+    DartType writeContext = declaredOrInferredType;
     ExpressionInferenceResult rhsResult = inferrer.inferExpression(
         node.value, writeContext ?? const UnknownType(), true,
         isVoidAllowed: true);
     Expression rhs = inferrer.ensureAssignableResult(writeContext, rhsResult,
         fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
     inferrer.flowAnalysis.write(variable, rhsResult.inferredType);
+    DartType resultType = rhsResult.inferredType;
+    Expression resultExpression;
     if (variable.lateSetter != null) {
-      return new ExpressionInferenceResult(
-          rhsResult.inferredType,
-          new MethodInvocation(
-              new VariableGet(variable.lateSetter)
-                ..fileOffset = node.fileOffset,
-              callName,
-              new Arguments(<Expression>[rhs])..fileOffset = node.fileOffset)
-            ..fileOffset = node.fileOffset);
+      resultExpression = new MethodInvocation(
+          new VariableGet(variable.lateSetter)..fileOffset = node.fileOffset,
+          callName,
+          new Arguments(<Expression>[rhs])..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset;
     } else {
       node.value = rhs..parent = node;
-      return new ExpressionInferenceResult(rhsResult.inferredType, node);
+      resultExpression = node;
     }
+    if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
+      // Synthetic variables, local functions, and variables with
+      // invalid types aren't checked.
+      if (variable.name != null &&
+          !variable.isLocalFunction &&
+          declaredOrInferredType is! InvalidType) {
+        if ((variable.isLate && variable.isFinal) ||
+            variable.isLateFinalWithoutInitializer) {
+          if (isDefinitelyAssigned &&
+              isPotentiallyNonNullable(
+                  declaredOrInferredType, inferrer.coreTypes.futureOrClass)) {
+            return new ExpressionInferenceResult(
+                resultType,
+                inferrer.helper.wrapInProblem(
+                    resultExpression,
+                    templateNonNullableLateDefinitelyAssignedError
+                        .withArguments(node.variable.name),
+                    node.fileOffset,
+                    node.variable.name.length));
+          }
+        }
+      }
+    }
+    return new ExpressionInferenceResult(resultType, resultExpression);
   }
 
   @override
@@ -5480,6 +5511,8 @@ class InferenceVisitor
       result.add(getter);
 
       if (!node.isFinal || node.initializer == null) {
+        node.isLateFinalWithoutInitializer =
+            node.isFinal && node.initializer == null;
         VariableDeclaration setVariable =
             new VariableDeclaration('#${node.name}#set')
               ..fileOffset = fileOffset;
@@ -5533,37 +5566,6 @@ class InferenceVisitor
   ExpressionInferenceResult visitVariableGet(
       covariant VariableGetImpl node, DartType typeContext) {
     VariableDeclarationImpl variable = node.variable;
-    bool isUnassigned = !inferrer.flowAnalysis.isAssigned(variable);
-    if (isUnassigned) {
-      inferrer.dataForTesting?.flowAnalysisResult?.unassignedNodes?.add(node);
-      if (inferrer.isNonNullableByDefault) {
-        // Synthetic variables, local functions, and variables with
-        // invalid types aren't checked.
-        // TODO(dmitryas): Report errors on definitely unassigned late
-        // local variables with potentially non-nullable types.
-        if (variable.name != null &&
-            !variable.isLocalFunction &&
-            variable.type is! InvalidType &&
-            isPotentiallyNonNullable(
-                variable.type, inferrer.coreTypes.futureOrClass) &&
-            !variable.isLate) {
-          return new ExpressionInferenceResult(
-              new InvalidType(),
-              inferrer.helper.wrapInProblem(
-                  node,
-                  templateNonNullableNotAssignedError
-                      .withArguments(node.variable.name),
-                  node.fileOffset,
-                  node.variable.name.length));
-        }
-      }
-    }
-
-    if (inferrer.flowAnalysis.isUnassigned(variable)) {
-      inferrer.dataForTesting?.flowAnalysisResult?.definitelyUnassignedNodes
-          ?.add(node);
-    }
-
     DartType promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (inferrer.isNonNullableByDefault) {
@@ -5589,21 +5591,67 @@ class InferenceVisitor
           new InstrumentationValueForType(promotedType));
     }
     node.promotedType = promotedType;
-    DartType type = promotedType ?? declaredOrInferredType;
+    DartType resultType = promotedType ?? declaredOrInferredType;
+    Expression resultExpression;
     if (variable.isLocalFunction) {
-      return inferrer.instantiateTearOff(type, typeContext, node);
+      return inferrer.instantiateTearOff(resultType, typeContext, node);
     } else if (variable.lateGetter != null) {
-      return new ExpressionInferenceResult(
-          type,
-          new MethodInvocation(
-              new VariableGet(variable.lateGetter)
-                ..fileOffset = node.fileOffset,
-              callName,
-              new Arguments(<Expression>[])..fileOffset = node.fileOffset)
-            ..fileOffset = node.fileOffset);
+      resultExpression = new MethodInvocation(
+          new VariableGet(variable.lateGetter)..fileOffset = node.fileOffset,
+          callName,
+          new Arguments(<Expression>[])..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset;
     } else {
-      return new ExpressionInferenceResult(type, node);
+      resultExpression = node;
     }
+    if (!inferrer.isTopLevel) {
+      bool isUnassigned = !inferrer.flowAnalysis.isAssigned(variable);
+      if (isUnassigned) {
+        inferrer.dataForTesting?.flowAnalysisResult?.unassignedNodes?.add(node);
+      }
+      bool isDefinitelyUnassigned =
+          inferrer.flowAnalysis.isUnassigned(variable);
+      if (isDefinitelyUnassigned) {
+        inferrer.dataForTesting?.flowAnalysisResult?.definitelyUnassignedNodes
+            ?.add(node);
+      }
+      if (inferrer.isNonNullableByDefault) {
+        // Synthetic variables, local functions, and variables with
+        // invalid types aren't checked.
+        if (variable.name != null &&
+            !variable.isLocalFunction &&
+            declaredOrInferredType is! InvalidType) {
+          if (variable.isLate || variable.lateGetter != null) {
+            if (isDefinitelyUnassigned &&
+                isPotentiallyNonNullable(
+                    declaredOrInferredType, inferrer.coreTypes.futureOrClass)) {
+              return new ExpressionInferenceResult(
+                  resultType,
+                  inferrer.helper.wrapInProblem(
+                      resultExpression,
+                      templateNonNullableLateDefinitelyUnassignedError
+                          .withArguments(node.variable.name),
+                      node.fileOffset,
+                      node.variable.name.length));
+            }
+          } else {
+            if (isUnassigned &&
+                isPotentiallyNonNullable(
+                    declaredOrInferredType, inferrer.coreTypes.futureOrClass)) {
+              return new ExpressionInferenceResult(
+                  resultType,
+                  inferrer.helper.wrapInProblem(
+                      resultExpression,
+                      templateNonNullableNotAssignedError
+                          .withArguments(node.variable.name),
+                      node.fileOffset,
+                      node.variable.name.length));
+            }
+          }
+        }
+      }
+    }
+    return new ExpressionInferenceResult(resultType, resultExpression);
   }
 
   @override
