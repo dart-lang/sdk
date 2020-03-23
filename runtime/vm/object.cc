@@ -23475,18 +23475,27 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
                                         : Code::Cast(code).PayloadStart();
         uword return_addr = start + pc_offset;
         uword call_addr = return_addr - 1;
+        buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
         uword dso_base;
         char* dso_name;
         if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
                                                      &dso_name)) {
           uword dso_offset = call_addr - dso_base;
-          buffer.Printf("    #%02" Pd " abs %" Pp " virt %" Pp " %s\n",
-                        frame_index, call_addr, dso_offset, dso_name);
+          buffer.Printf(" virt %" Pp "", dso_offset);
+          uword symbol_start;
+          if (auto const symbol_name = NativeSymbolResolver::LookupSymbolName(
+                  call_addr, &symbol_start)) {
+            uword symbol_offset = call_addr - symbol_start;
+            buffer.Printf(" %s+0x%" Px "", symbol_name, symbol_offset);
+            NativeSymbolResolver::FreeSymbolName(symbol_name);
+          } else {
+            buffer.Printf(" %s", dso_name);
+          }
           NativeSymbolResolver::FreeSymbolName(dso_name);
         } else {
-          buffer.Printf("    #%02" Pd " abs %" Pp " <unknown>\n", frame_index,
-                        call_addr);
+          buffer.Printf(" <unknown>");
         }
+        buffer.Printf("\n");
         frame_index++;
       }
     }

@@ -100,16 +100,16 @@ void NativeSymbolResolver::Cleanup() {
   }
 }
 
-char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
+char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   Dl_info info;
   int r = dladdr(reinterpret_cast<void*>(pc), &info);
   if (r == 0) {
     return NULL;
   }
 
-  const char* dso_name = info.dli_fname;
-  uword dso_base = reinterpret_cast<uword>(info.dli_fbase);
-  uword dso_offset = pc - dso_base;
+  auto const dso_name = info.dli_fname;
+  const auto dso_base = reinterpret_cast<uword>(info.dli_fbase);
+  const auto dso_offset = pc - dso_base;
 
   for (NativeSymbols* symbols = symbols_; symbols != NULL;
        symbols = symbols->next()) {

@@ -457,12 +457,12 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 }
 
 static void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
-  uintptr_t start = 0;
-  char* native_symbol_name = NativeSymbolResolver::LookupSymbolName(pc, &start);
-  if (native_symbol_name != NULL) {
-    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s\n", pc, fp,
-                 native_symbol_name);
-    NativeSymbolResolver::FreeSymbolName(native_symbol_name);
+  uword start = 0;
+  if (auto const name = NativeSymbolResolver::LookupSymbolName(pc, &start)) {
+    uword offset = pc - start;
+    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s+0x%" Px "\n", pc, fp, name,
+                 offset);
+    NativeSymbolResolver::FreeSymbolName(name);
     return;
   }
 
