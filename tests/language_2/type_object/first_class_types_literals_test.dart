@@ -64,15 +64,15 @@ main() {
   Expect.throwsNoSuchMethodError(() => C + 1);
   //                                     ^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '+' isn't defined for the class 'Type'.
+  // [cfe] The operator '+' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => C[2]);
   //                                    ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => C[2] = 'hest');
   //                                    ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]=' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]=' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic = 1);
   //                                   ^
   // [cfe] Setter not found: 'dynamic'.
@@ -86,15 +86,15 @@ main() {
   Expect.throwsNoSuchMethodError(() => dynamic + 1);
   //                                           ^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '+' isn't defined for the class 'Type'.
+  // [cfe] The operator '+' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic[2]);
   //                                          ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic[2] = 'hest');
   //                                          ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]=' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]=' isn't defined for the class 'Type'.
 
   Expect.equals((dynamic).toString(), 'dynamic');
 }

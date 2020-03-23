@@ -58,7 +58,7 @@ class C<T> {
   grault() => T[0];
   //           ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]' isn't defined for the class 'Type'.
 
   // Runtime type T not accessible from static context. Compile-time error.
   static garply() => T[0];
@@ -67,7 +67,7 @@ class C<T> {
   // [cfe] Type variables can't be used in static members.
   //                  ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '[]' isn't defined for the class 'Type'.
+  // [cfe] The operator '[]' isn't defined for the class 'Type'.
 
   // Class '_Type' has no member m: NoSuchMethodError.
   waldo() => T.m;

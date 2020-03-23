@@ -103,6 +103,15 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAmbiguousExtensionCause = const MessageCode(
+    "AmbiguousExtensionCause",
+    severity: Severity.context,
+    message: r"""This is one of the extension members.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAnnotationOnFunctionTypeTypeVariable =
     messageAnnotationOnFunctionTypeTypeVariable;
 

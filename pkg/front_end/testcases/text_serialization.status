@@ -11,6 +11,7 @@ agnostic/map: TextSerializationFailure
 agnostic/set: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
+extensions/ambiguous: TextSerializationFailure
 extensions/annotations: TextSerializationFailure
 extensions/builtin_identifiers: TextSerializationFailure
 extensions/call_methods: TypeCheckError

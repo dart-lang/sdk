@@ -96,21 +96,21 @@ extension MyExt on A {
       bool t0 = this.fieldInGlobalScope;
       //             ^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [cfe] The getter 'fieldInGlobalScope' isn't defined for the class 'A'.
+      // [cfe] The property 'fieldInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t0);
       bool t1 = this.getterInGlobalScope;
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [cfe] The getter 'getterInGlobalScope' isn't defined for the class 'A'.
+      // [cfe] The property 'getterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t1);
       this.setterInGlobalScope = extensionValue;
       //   ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [cfe] The setter 'setterInGlobalScope' isn't defined for the class 'A'.
+      // [cfe] The property 'setterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       bool t2 = this.methodInGlobalScope();
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [cfe] The method 'methodInGlobalScope' isn't defined for the class 'A'.
+      // [cfe] The method 'methodInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t2);
     }
 
@@ -140,21 +140,21 @@ extension MyExt on A {
       bool t0 = self.fieldInGlobalScope;
       //             ^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [cfe] The getter 'fieldInGlobalScope' isn't defined for the class 'A'.
+      // [cfe] The property 'fieldInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t0);
       bool t1 = self.getterInGlobalScope;
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [cfe] The getter 'getterInGlobalScope' isn't defined for the class 'A'.
+      // [cfe] The property 'getterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t1);
       self.setterInGlobalScope = extensionValue;
       //   ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [cfe] The setter 'setterInGlobalScope' isn't defined for the class 'A'.
+      // [cfe] The property 'setterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       bool t2 = self.methodInGlobalScope();
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [cfe] The method 'methodInGlobalScope' isn't defined for the class 'A'.
+      // [cfe] The method 'methodInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
       checkExtensionValue(t2);
     }
 
@@ -224,21 +224,21 @@ void main() {
     bool t0 = a.fieldInGlobalScope;
     //          ^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-    // [cfe] The getter 'fieldInGlobalScope' isn't defined for the class 'A'.
+    // [cfe] The property 'fieldInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t0);
     bool t1 = a.getterInGlobalScope;
     //          ^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-    // [cfe] The getter 'getterInGlobalScope' isn't defined for the class 'A'.
+    // [cfe] The property 'getterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t1);
     a.setterInGlobalScope = extensionValue;
     //^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-    // [cfe] The setter 'setterInGlobalScope' isn't defined for the class 'A'.
+    // [cfe] The property 'setterInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
     bool t2 = a.methodInGlobalScope();
     //          ^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-    // [cfe] The method 'methodInGlobalScope' isn't defined for the class 'A'.
+    // [cfe] The method 'methodInGlobalScope' is defined in multiple extensions for 'A' and neither is more specific.
     checkExtensionValue(t2);
   }
 

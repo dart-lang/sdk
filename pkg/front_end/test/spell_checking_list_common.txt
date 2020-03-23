@@ -1327,6 +1327,7 @@ hexadecimal
 hidden
 hide
 hides
+hiding
 hierarchies
 hierarchy
 high
@@ -3095,6 +3096,7 @@ until
 untranslatable
 untyped
 unused
+unwanted
 unwrap
 unwrapped
 up
@@ -3175,6 +3177,7 @@ wait
 walk
 walked
 want
+wanted
 warn
 warning
 warnings

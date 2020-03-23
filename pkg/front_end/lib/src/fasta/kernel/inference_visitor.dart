@@ -3524,54 +3524,69 @@ class InferenceVisitor
     }
 
     Expression binary;
-    if (binaryTarget.isMissing) {
-      binary = inferrer.createMissingBinary(
-          fileOffset, left, leftType, binaryName, right);
-    } else if (binaryTarget.isExtensionMember) {
-      assert(binaryTarget.extensionMethodKind != ProcedureKind.Setter);
-      binary = new StaticInvocation(
-          binaryTarget.member,
-          new Arguments(<Expression>[
-            left,
-            right,
-          ], types: binaryTarget.inferredExtensionTypeArguments)
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    } else {
-      if (binaryTarget.isInstanceMember &&
-          inferrer.instrumentation != null &&
-          leftType == const DynamicType()) {
-        inferrer.instrumentation.record(
-            inferrer.uriForInstrumentation,
-            fileOffset,
-            'target',
-            new InstrumentationValueForMember(binaryTarget.member));
-      }
-
-      binary = new MethodInvocation(
-          left,
-          binaryName,
-          new Arguments(<Expression>[
-            right,
-          ])
-            ..fileOffset = fileOffset,
-          binaryTarget.member)
-        ..fileOffset = fileOffset;
-
-      if (binaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
-        if (inferrer.instrumentation != null) {
+    switch (binaryTarget.kind) {
+      case ObjectAccessTargetKind.missing:
+        binary = inferrer.createMissingBinary(
+            fileOffset, left, leftType, binaryName, right);
+        break;
+      case ObjectAccessTargetKind.ambiguous:
+        binary = inferrer.createMissingBinary(
+            fileOffset, left, leftType, binaryName, right,
+            extensionAccessCandidates: binaryTarget.candidates);
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        assert(binaryTarget.extensionMethodKind != ProcedureKind.Setter);
+        binary = new StaticInvocation(
+            binaryTarget.member,
+            new Arguments(<Expression>[
+              left,
+              right,
+            ], types: binaryTarget.inferredExtensionTypeArguments)
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+        if (binaryTarget.isInstanceMember &&
+            inferrer.instrumentation != null &&
+            leftType == const DynamicType()) {
           inferrer.instrumentation.record(
               inferrer.uriForInstrumentation,
               fileOffset,
-              'checkReturn',
-              new InstrumentationValueForType(binaryType));
+              'target',
+              new InstrumentationValueForMember(binaryTarget.member));
         }
-        binary = new AsExpression(binary, binaryType)
-          ..isTypeError = true
-          ..isCovarianceCheck = true
-          ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
+
+        binary = new MethodInvocation(
+            left,
+            binaryName,
+            new Arguments(<Expression>[
+              right,
+            ])
+              ..fileOffset = fileOffset,
+            binaryTarget.member)
           ..fileOffset = fileOffset;
-      }
+
+        if (binaryCheckKind ==
+            MethodContravarianceCheckKind.checkMethodReturn) {
+          if (inferrer.instrumentation != null) {
+            inferrer.instrumentation.record(
+                inferrer.uriForInstrumentation,
+                fileOffset,
+                'checkReturn',
+                new InstrumentationValueForType(binaryType));
+          }
+          binary = new AsExpression(binary, binaryType)
+            ..isTypeError = true
+            ..isCovarianceCheck = true
+            ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
+            ..fileOffset = fileOffset;
+        }
+        break;
     }
     if (inferrer.isNonNullableByDefault) {
       if (leftType is! DynamicType &&
@@ -3607,50 +3622,64 @@ class InferenceVisitor
     DartType unaryType = inferrer.getReturnType(unaryTarget, expressionType);
 
     Expression unary;
-    if (unaryTarget.isMissing) {
-      unary = inferrer.createMissingUnary(
-          fileOffset, expression, expressionType, unaryName);
-    } else if (unaryTarget.isExtensionMember) {
-      assert(unaryTarget.extensionMethodKind != ProcedureKind.Setter);
-      unary = new StaticInvocation(
-          unaryTarget.member,
-          new Arguments(<Expression>[
-            expression,
-          ], types: unaryTarget.inferredExtensionTypeArguments)
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    } else {
-      if (unaryTarget.isInstanceMember &&
-          inferrer.instrumentation != null &&
-          expressionType == const DynamicType()) {
-        inferrer.instrumentation.record(
-            inferrer.uriForInstrumentation,
-            fileOffset,
-            'target',
-            new InstrumentationValueForMember(unaryTarget.member));
-      }
-
-      unary = new MethodInvocation(
-          expression,
-          unaryName,
-          new Arguments(<Expression>[])..fileOffset = fileOffset,
-          unaryTarget.member)
-        ..fileOffset = fileOffset;
-
-      if (unaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
-        if (inferrer.instrumentation != null) {
+    switch (unaryTarget.kind) {
+      case ObjectAccessTargetKind.missing:
+        unary = inferrer.createMissingUnary(
+            fileOffset, expression, expressionType, unaryName);
+        break;
+      case ObjectAccessTargetKind.ambiguous:
+        unary = inferrer.createMissingUnary(
+            fileOffset, expression, expressionType, unaryName,
+            extensionAccessCandidates: unaryTarget.candidates);
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        assert(unaryTarget.extensionMethodKind != ProcedureKind.Setter);
+        unary = new StaticInvocation(
+            unaryTarget.member,
+            new Arguments(<Expression>[
+              expression,
+            ], types: unaryTarget.inferredExtensionTypeArguments)
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+        if (unaryTarget.isInstanceMember &&
+            inferrer.instrumentation != null &&
+            expressionType == const DynamicType()) {
           inferrer.instrumentation.record(
               inferrer.uriForInstrumentation,
               fileOffset,
-              'checkReturn',
-              new InstrumentationValueForType(expressionType));
+              'target',
+              new InstrumentationValueForMember(unaryTarget.member));
         }
-        unary = new AsExpression(unary, unaryType)
-          ..isTypeError = true
-          ..isCovarianceCheck = true
-          ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
+
+        unary = new MethodInvocation(
+            expression,
+            unaryName,
+            new Arguments(<Expression>[])..fileOffset = fileOffset,
+            unaryTarget.member)
           ..fileOffset = fileOffset;
-      }
+
+        if (unaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
+          if (inferrer.instrumentation != null) {
+            inferrer.instrumentation.record(
+                inferrer.uriForInstrumentation,
+                fileOffset,
+                'checkReturn',
+                new InstrumentationValueForType(expressionType));
+          }
+          unary = new AsExpression(unary, unaryType)
+            ..isTypeError = true
+            ..isCovarianceCheck = true
+            ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
+            ..fileOffset = fileOffset;
+        }
+        break;
     }
     if (inferrer.isNonNullableByDefault) {
       if (expressionType is! DynamicType &&
@@ -3686,42 +3715,56 @@ class InferenceVisitor
       MethodContravarianceCheckKind readCheckKind) {
     Expression read;
     DartType readType = inferrer.getReturnType(readTarget, receiverType);
-    if (readTarget.isMissing) {
-      read = inferrer.createMissingIndexGet(
-          fileOffset, readReceiver, receiverType, readIndex);
-    } else if (readTarget.isExtensionMember) {
-      read = new StaticInvocation(
-          readTarget.member,
-          new Arguments(<Expression>[
-            readReceiver,
-            readIndex,
-          ], types: readTarget.inferredExtensionTypeArguments)
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    } else {
-      read = new MethodInvocation(
-          readReceiver,
-          indexGetName,
-          new Arguments(<Expression>[
-            readIndex,
-          ])
-            ..fileOffset = fileOffset,
-          readTarget.member)
-        ..fileOffset = fileOffset;
-      if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
-        if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(
-              inferrer.uriForInstrumentation,
-              fileOffset,
-              'checkReturn',
-              new InstrumentationValueForType(readType));
-        }
-        read = new AsExpression(read, readType)
-          ..isTypeError = true
-          ..isCovarianceCheck = true
-          ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
+    switch (readTarget.kind) {
+      case ObjectAccessTargetKind.missing:
+        read = inferrer.createMissingIndexGet(
+            fileOffset, readReceiver, receiverType, readIndex);
+        break;
+      case ObjectAccessTargetKind.ambiguous:
+        read = inferrer.createMissingIndexGet(
+            fileOffset, readReceiver, receiverType, readIndex,
+            extensionAccessCandidates: readTarget.candidates);
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        read = new StaticInvocation(
+            readTarget.member,
+            new Arguments(<Expression>[
+              readReceiver,
+              readIndex,
+            ], types: readTarget.inferredExtensionTypeArguments)
+              ..fileOffset = fileOffset)
           ..fileOffset = fileOffset;
-      }
+        break;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+        read = new MethodInvocation(
+            readReceiver,
+            indexGetName,
+            new Arguments(<Expression>[
+              readIndex,
+            ])
+              ..fileOffset = fileOffset,
+            readTarget.member)
+          ..fileOffset = fileOffset;
+        if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
+          if (inferrer.instrumentation != null) {
+            inferrer.instrumentation.record(
+                inferrer.uriForInstrumentation,
+                fileOffset,
+                'checkReturn',
+                new InstrumentationValueForType(readType));
+          }
+          read = new AsExpression(read, readType)
+            ..isTypeError = true
+            ..isCovarianceCheck = true
+            ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
+            ..fileOffset = fileOffset;
+        }
+        break;
     }
     if (inferrer.isNonNullableByDefault) {
       if (receiverType is! DynamicType &&
@@ -3757,25 +3800,41 @@ class InferenceVisitor
       Expression index,
       Expression value) {
     Expression write;
-    if (writeTarget.isMissing) {
-      write = inferrer.createMissingIndexSet(
-          fileOffset, receiver, receiverType, index, value,
-          forEffect: true, readOnlyReceiver: true);
-    } else if (writeTarget.isExtensionMember) {
-      assert(writeTarget.extensionMethodKind != ProcedureKind.Setter);
-      write = new StaticInvocation(
-          writeTarget.member,
-          new Arguments(<Expression>[receiver, index, value],
-              types: writeTarget.inferredExtensionTypeArguments)
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    } else {
-      write = new MethodInvocation(
-          receiver,
-          indexSetName,
-          new Arguments(<Expression>[index, value])..fileOffset = fileOffset,
-          writeTarget.member)
-        ..fileOffset = fileOffset;
+    switch (writeTarget.kind) {
+      case ObjectAccessTargetKind.missing:
+        write = inferrer.createMissingIndexSet(
+            fileOffset, receiver, receiverType, index, value,
+            forEffect: true, readOnlyReceiver: true);
+        break;
+      case ObjectAccessTargetKind.ambiguous:
+        write = inferrer.createMissingIndexSet(
+            fileOffset, receiver, receiverType, index, value,
+            forEffect: true,
+            readOnlyReceiver: true,
+            extensionAccessCandidates: writeTarget.candidates);
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        assert(writeTarget.extensionMethodKind != ProcedureKind.Setter);
+        write = new StaticInvocation(
+            writeTarget.member,
+            new Arguments(<Expression>[receiver, index, value],
+                types: writeTarget.inferredExtensionTypeArguments)
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+        write = new MethodInvocation(
+            receiver,
+            indexSetName,
+            new Arguments(<Expression>[index, value])..fileOffset = fileOffset,
+            writeTarget.member)
+          ..fileOffset = fileOffset;
+        break;
     }
     if (inferrer.isNonNullableByDefault) {
       if (receiverType is! DynamicType &&
@@ -3816,79 +3875,93 @@ class InferenceVisitor
     DartType readType = inferrer.getGetterType(readTarget, receiverType);
 
     Expression read;
-    if (readTarget.isMissing) {
-      read = inferrer.createMissingPropertyGet(
-          fileOffset, receiver, receiverType, propertyName);
-    } else if (readTarget.isExtensionMember) {
-      switch (readTarget.extensionMethodKind) {
-        case ProcedureKind.Getter:
-          read = new StaticInvocation(
-              readTarget.member,
-              new Arguments(<Expression>[
-                receiver,
-              ], types: readTarget.inferredExtensionTypeArguments)
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-          break;
-        case ProcedureKind.Method:
-          read = new StaticInvocation(
-              readTarget.tearoffTarget,
-              new Arguments(<Expression>[
-                receiver,
-              ], types: readTarget.inferredExtensionTypeArguments)
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-          return inferrer.instantiateTearOff(readType, typeContext, read);
-        case ProcedureKind.Setter:
-        case ProcedureKind.Factory:
-        case ProcedureKind.Operator:
-          unhandled('$readTarget', "inferPropertyGet", null, null);
-          break;
-      }
-    } else {
-      if (readTarget.isInstanceMember &&
-          inferrer.instrumentation != null &&
-          receiverType == const DynamicType()) {
-        inferrer.instrumentation.record(
-            inferrer.uriForInstrumentation,
-            fileOffset,
-            'target',
-            new InstrumentationValueForMember(readTarget.member));
-      }
-      read = new PropertyGet(receiver, propertyName, readTarget.member)
-        ..fileOffset = fileOffset;
-      bool checkReturn = false;
-      if (readTarget.isInstanceMember && !isThisReceiver) {
-        Member interfaceMember = readTarget.member;
-        if (interfaceMember is Procedure) {
-          checkReturn =
-              TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
-                  interfaceMember.enclosingClass,
-                  interfaceMember.function.returnType);
-        } else if (interfaceMember is Field) {
-          checkReturn =
-              TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
-                  interfaceMember.enclosingClass, interfaceMember.type);
+    switch (readTarget.kind) {
+      case ObjectAccessTargetKind.missing:
+        read = inferrer.createMissingPropertyGet(
+            fileOffset, receiver, receiverType, propertyName);
+        break;
+      case ObjectAccessTargetKind.ambiguous:
+        read = inferrer.createMissingPropertyGet(
+            fileOffset, receiver, receiverType, propertyName,
+            extensionAccessCandidates: readTarget.candidates);
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        switch (readTarget.extensionMethodKind) {
+          case ProcedureKind.Getter:
+            read = new StaticInvocation(
+                readTarget.member,
+                new Arguments(<Expression>[
+                  receiver,
+                ], types: readTarget.inferredExtensionTypeArguments)
+                  ..fileOffset = fileOffset)
+              ..fileOffset = fileOffset;
+            break;
+          case ProcedureKind.Method:
+            read = new StaticInvocation(
+                readTarget.tearoffTarget,
+                new Arguments(<Expression>[
+                  receiver,
+                ], types: readTarget.inferredExtensionTypeArguments)
+                  ..fileOffset = fileOffset)
+              ..fileOffset = fileOffset;
+            return inferrer.instantiateTearOff(readType, typeContext, read);
+          case ProcedureKind.Setter:
+          case ProcedureKind.Factory:
+          case ProcedureKind.Operator:
+            unhandled('$readTarget', "inferPropertyGet", null, null);
+            break;
         }
-      }
-      if (checkReturn) {
-        if (inferrer.instrumentation != null) {
+        break;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+        if (readTarget.isInstanceMember &&
+            inferrer.instrumentation != null &&
+            receiverType == const DynamicType()) {
           inferrer.instrumentation.record(
               inferrer.uriForInstrumentation,
               fileOffset,
-              'checkReturn',
-              new InstrumentationValueForType(readType));
+              'target',
+              new InstrumentationValueForMember(readTarget.member));
         }
-        read = new AsExpression(read, readType)
-          ..isTypeError = true
-          ..isCovarianceCheck = true
-          ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
+        read = new PropertyGet(receiver, propertyName, readTarget.member)
           ..fileOffset = fileOffset;
-      }
-      Member member = readTarget.member;
-      if (member is Procedure && member.kind == ProcedureKind.Method) {
-        return inferrer.instantiateTearOff(readType, typeContext, read);
-      }
+        bool checkReturn = false;
+        if (readTarget.isInstanceMember && !isThisReceiver) {
+          Member interfaceMember = readTarget.member;
+          if (interfaceMember is Procedure) {
+            checkReturn =
+                TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
+                    interfaceMember.enclosingClass,
+                    interfaceMember.function.returnType);
+          } else if (interfaceMember is Field) {
+            checkReturn =
+                TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
+                    interfaceMember.enclosingClass, interfaceMember.type);
+          }
+        }
+        if (checkReturn) {
+          if (inferrer.instrumentation != null) {
+            inferrer.instrumentation.record(
+                inferrer.uriForInstrumentation,
+                fileOffset,
+                'checkReturn',
+                new InstrumentationValueForType(readType));
+          }
+          read = new AsExpression(read, readType)
+            ..isTypeError = true
+            ..isCovarianceCheck = true
+            ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
+            ..fileOffset = fileOffset;
+        }
+        Member member = readTarget.member;
+        if (member is Procedure && member.kind == ProcedureKind.Method) {
+          return inferrer.instantiateTearOff(readType, typeContext, read);
+        }
+        break;
     }
     if (inferrer.isNonNullableByDefault) {
       if (receiverType is! DynamicType &&
@@ -3936,36 +4009,52 @@ class InferenceVisitor
     assert(forEffect || valueType != null,
         "No value type provided for property set needed for value.");
     Expression write;
-    if (writeTarget.isMissing) {
-      write = inferrer.createMissingPropertySet(
-          fileOffset, receiver, receiverType, propertyName, value,
-          forEffect: forEffect);
-    } else if (writeTarget.isExtensionMember) {
-      if (forEffect) {
-        write = new StaticInvocation(
-            writeTarget.member,
-            new Arguments(<Expression>[receiver, value],
-                types: writeTarget.inferredExtensionTypeArguments)
-              ..fileOffset = fileOffset)
-          ..fileOffset = fileOffset;
-      } else {
-        VariableDeclaration valueVariable = createVariable(value, valueType);
-        VariableDeclaration assignmentVariable = createVariable(
-            new StaticInvocation(
-                writeTarget.member,
-                new Arguments(
-                    <Expression>[receiver, createVariableGet(valueVariable)],
-                    types: writeTarget.inferredExtensionTypeArguments)
-                  ..fileOffset = fileOffset)
-              ..fileOffset = fileOffset,
-            const VoidType());
-        write = createLet(valueVariable,
-            createLet(assignmentVariable, createVariableGet(valueVariable)))
-          ..fileOffset = fileOffset;
-      }
-    } else {
-      write = new PropertySet(receiver, propertyName, value, writeTarget.member)
-        ..fileOffset = fileOffset;
+    switch (writeTarget.kind) {
+      case ObjectAccessTargetKind.missing:
+        write = inferrer.createMissingPropertySet(
+            fileOffset, receiver, receiverType, propertyName, value,
+            forEffect: forEffect);
+        break;
+      case ObjectAccessTargetKind.ambiguous:
+        write = inferrer.createMissingPropertySet(
+            fileOffset, receiver, receiverType, propertyName, value,
+            forEffect: forEffect,
+            extensionAccessCandidates: writeTarget.candidates);
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        if (forEffect) {
+          write = new StaticInvocation(
+              writeTarget.member,
+              new Arguments(<Expression>[receiver, value],
+                  types: writeTarget.inferredExtensionTypeArguments)
+                ..fileOffset = fileOffset)
+            ..fileOffset = fileOffset;
+        } else {
+          VariableDeclaration valueVariable = createVariable(value, valueType);
+          VariableDeclaration assignmentVariable = createVariable(
+              new StaticInvocation(
+                  writeTarget.member,
+                  new Arguments(
+                      <Expression>[receiver, createVariableGet(valueVariable)],
+                      types: writeTarget.inferredExtensionTypeArguments)
+                    ..fileOffset = fileOffset)
+                ..fileOffset = fileOffset,
+              const VoidType());
+          write = createLet(valueVariable,
+              createLet(assignmentVariable, createVariableGet(valueVariable)))
+            ..fileOffset = fileOffset;
+        }
+        break;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+        write =
+            new PropertySet(receiver, propertyName, value, writeTarget.member)
+              ..fileOffset = fileOffset;
+        break;
     }
     if (inferrer.isNonNullableByDefault) {
       if (receiverType is! DynamicType &&
@@ -4353,7 +4442,6 @@ class InferenceVisitor
     }
 
     Expression write;
-
     if (writeTarget.isMissing) {
       write = inferrer.createMissingSuperIndexSet(
           node.writeOffset, writeIndex, valueExpression);

@@ -18,7 +18,7 @@ void A(out int foo) {
   List<out String> bar;
   //  ^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '<' isn't defined for the class 'Type'.
+  // [cfe] The operator '<' isn't defined for the class 'Type'.
   //   ^^^
   // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
   // [cfe] Expected ';' after this.
@@ -27,7 +27,7 @@ void A(out int foo) {
   // [cfe] Getter not found: 'out'.
   //             ^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
-  // [cfe] The method '>' isn't defined for the class 'Type'.
+  // [cfe] The operator '>' isn't defined for the class 'Type'.
   //               ^^^
   // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
   // [cfe] Getter not found: 'bar'.

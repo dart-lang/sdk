@@ -14,6 +14,9 @@ AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
+AmbiguousExtensionMethod/analyzerCode: Fail
+AmbiguousExtensionOperator/analyzerCode: Fail
+AmbiguousExtensionProperty/analyzerCode: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
 AnnotationOnFunctionTypeTypeVariable/analyzerCode: Fail

@@ -13,6 +13,126 @@ part of fasta.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(
+        String name,
+        DartType _type,
+        bool
+            isNonNullableByDefault)> templateAmbiguousExtensionMethod = const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+    messageTemplate:
+        r"""The method '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
+    tipTemplate:
+        r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+    withArguments: _withArgumentsAmbiguousExtensionMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(String name, DartType _type,
+        bool isNonNullableByDefault)> codeAmbiguousExtensionMethod = const Code<
+    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
+  "AmbiguousExtensionMethod",
+  templateAmbiguousExtensionMethod,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAmbiguousExtensionMethod(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeAmbiguousExtensionMethod,
+      message:
+          """The method '${name}' is defined in multiple extensions for '${type}' and neither is more specific.""" +
+              labeler.originMessages,
+      tip: """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateAmbiguousExtensionOperator = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The operator '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
+        tipTemplate:
+            r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+        withArguments: _withArgumentsAmbiguousExtensionOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeAmbiguousExtensionOperator = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "AmbiguousExtensionOperator",
+  templateAmbiguousExtensionOperator,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAmbiguousExtensionOperator(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeAmbiguousExtensionOperator,
+      message:
+          """The operator '${name}' is defined in multiple extensions for '${type}' and neither is more specific.""" +
+              labeler.originMessages,
+      tip: """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateAmbiguousExtensionProperty = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The property '#name' is defined in multiple extensions for '#type' and neither is more specific.""",
+        tipTemplate:
+            r"""Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+        withArguments: _withArgumentsAmbiguousExtensionProperty);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeAmbiguousExtensionProperty = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "AmbiguousExtensionProperty",
+  templateAmbiguousExtensionProperty,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAmbiguousExtensionProperty(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeAmbiguousExtensionProperty,
+      message:
+          """The property '${name}' is defined in multiple extensions for '${type}' and neither is more specific.""" +
+              labeler.originMessages,
+      tip: """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(String name, DartType _type, DartType _type2,
             bool isNonNullableByDefault)> templateAmbiguousSupertypes =
     const Template<
@@ -2783,6 +2903,48 @@ Message _withArgumentsUndefinedMethod(
               labeler.originMessages,
       tip:
           """Try correcting the name to the name of an existing method, or defining a method named '${name}'.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType _type,
+        bool
+            isNonNullableByDefault)> templateUndefinedOperator = const Template<
+        Message Function(String name, DartType _type,
+            bool isNonNullableByDefault)>(
+    messageTemplate:
+        r"""The operator '#name' isn't defined for the class '#type'.""",
+    tipTemplate:
+        r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
+    withArguments: _withArgumentsUndefinedOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeUndefinedOperator = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "UndefinedOperator", templateUndefinedOperator,
+        analyzerCodes: <String>["UNDEFINED_METHOD"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedOperator(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedOperator,
+      message:
+          """The operator '${name}' isn't defined for the class '${type}'.""" +
+              labeler.originMessages,
+      tip:
+          """Try correcting the operator to an existing operator, or defining a '${name}' operator.""",
       arguments: {'name': name, 'type': _type});
 }
 

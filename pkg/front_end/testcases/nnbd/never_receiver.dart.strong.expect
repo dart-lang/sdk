@@ -37,8 +37,8 @@ library /*isNonNullableByDefault*/;
 //   y(); // Error.
 //    ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: The method '+' isn't defined for the class 'Never'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: The operator '+' isn't defined for the class 'Never'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //   y++; // Error.
 //    ^
 //
@@ -46,8 +46,8 @@ library /*isNonNullableByDefault*/;
 //   y++; // Error.
 //    ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: The method '+' isn't defined for the class 'Never'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: The operator '+' isn't defined for the class 'Never'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //   y += 1; // Error.
 //     ^
 //
@@ -55,8 +55,8 @@ library /*isNonNullableByDefault*/;
 //   y += 1; // Error.
 //     ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: The method '[]' isn't defined for the class 'Never'.
-// Try correcting the name to the name of an existing method, or defining a method named '[]'.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: The operator '[]' isn't defined for the class 'Never'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
 //   y[42]; // Error.
 //    ^
 //
@@ -64,8 +64,8 @@ library /*isNonNullableByDefault*/;
 //   y[42]; // Error.
 //    ^
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: The method '[]=' isn't defined for the class 'Never'.
-// Try correcting the name to the name of an existing method, or defining a method named '[]='.
+// pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: The operator '[]=' isn't defined for the class 'Never'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
 //   y[42] = 42; // Error.
 //    ^
 //
@@ -120,26 +120,26 @@ Try correcting the name to the name of an existing method, or defining a method 
    ^";
   y = (let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: Operator '+' cannot be called on 'Never' because it is potentially null.
   y++; // Error.
-   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: The method '+' isn't defined for the class 'Never'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:28:4: Error: The operator '+' isn't defined for the class 'Never'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
   y++; // Error.
    ^") as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
   y = (let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: Operator '+' cannot be called on 'Never' because it is potentially null.
   y += 1; // Error.
-    ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: The method '+' isn't defined for the class 'Never'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:29:5: Error: The operator '+' isn't defined for the class 'Never'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
   y += 1; // Error.
     ^") as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
   let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: Operator '[]' cannot be called on 'Never' because it is potentially null.
   y[42]; // Error.
-   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: The method '[]' isn't defined for the class 'Never'.
-Try correcting the name to the name of an existing method, or defining a method named '[]'.
+   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:4: Error: The operator '[]' isn't defined for the class 'Never'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
   y[42]; // Error.
    ^";
   let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: Operator '[]=' cannot be called on 'Never' because it is potentially null.
   y[42] = 42; // Error.
-   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: The method '[]=' isn't defined for the class 'Never'.
-Try correcting the name to the name of an existing method, or defining a method named '[]='.
+   ^" in invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:4: Error: The operator '[]=' isn't defined for the class 'Never'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
   y[42] = 42; // Error.
    ^";
 }

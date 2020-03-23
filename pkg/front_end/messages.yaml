@@ -3006,6 +3006,57 @@ UndefinedMethod:
       c.foo();
     }
 
+UndefinedOperator:
+  template: "The operator '#name' isn't defined for the class '#type'."
+  tip: "Try correcting the operator to an existing operator, or defining a '#name' operator."
+  analyzerCode: UNDEFINED_METHOD
+  script: >
+    class C {}
+    main() {
+      C c;
+      c + 0;
+    }
+
+AmbiguousExtensionMethod:
+  template: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
+  tip: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
+  script: |
+    class C {}
+    extension A on C { method() {} }
+    extension B on C { method() {} }
+    main() {
+      C c = new C();
+      c.method();
+    }
+
+AmbiguousExtensionProperty:
+  template: "The property '#name' is defined in multiple extensions for '#type' and neither is more specific."
+  tip: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
+  script: |
+    class C {}
+    extension A on C { get property => null; }
+    extension B on C { set property(_) {} }
+    main() {
+      C c = new C();
+      c.property;
+    }
+
+AmbiguousExtensionOperator:
+  template: "The operator '#name' is defined in multiple extensions for '#type' and neither is more specific."
+  tip: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
+  script: |
+    class C {}
+    extension A on C { operator +(int i) {} }
+    extension B on C { operator +(int i) {}  }
+    main() {
+      C c = new C();
+      c + 0;
+    }
+
+AmbiguousExtensionCause:
+  template: "This is one of the extension members."
+  severity: CONTEXT
+
 SourceOutlineSummary:
   template: |
     Built outlines for #count compilation units (#count2 bytes) in #num1%.3ms, that is,

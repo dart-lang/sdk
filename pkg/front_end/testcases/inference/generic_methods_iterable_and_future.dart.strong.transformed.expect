@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:123: Error: The method '+' isn't defined for the class 'FutureOr<String>'.
+// pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:123: Error: The operator '+' isn't defined for the class 'FutureOr<String>'.
 //  - 'FutureOr' is from 'dart:async'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //                           /*@ type=int* */ y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/ x /*error:UNDEFINED_OPERATOR*/ +
 //                                                                                                                           ^
 //
@@ -24,9 +24,9 @@ static method make(core::int* x) → asy::Future<core::int*>*
 static method test() → dynamic {
   core::Iterable<asy::Future<core::int*>*>* list = <core::int*>[1, 2, 3].{core::Iterable::map}<asy::Future<core::int*>*>(#C1);
   asy::Future<core::List<core::int*>*>* results = asy::Future::wait<core::int*>(list);
-  asy::Future<core::String*>* results2 = results.{asy::Future::then}<core::String*>((core::List<core::int*>* list) → asy::FutureOr<core::String*>* => list.{core::Iterable::fold}<asy::FutureOr<core::String*>*>("", (asy::FutureOr<core::String*>* x, core::int* y) → asy::FutureOr<core::String*>* => invalid-expression "pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:123: Error: The method '+' isn't defined for the class 'FutureOr<String>'.
+  asy::Future<core::String*>* results2 = results.{asy::Future::then}<core::String*>((core::List<core::int*>* list) → asy::FutureOr<core::String*>* => list.{core::Iterable::fold}<asy::FutureOr<core::String*>*>("", (asy::FutureOr<core::String*>* x, core::int* y) → asy::FutureOr<core::String*>* => invalid-expression "pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:123: Error: The operator '+' isn't defined for the class 'FutureOr<String>'.
  - 'FutureOr' is from 'dart:async'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
                           /*@ type=int* */ y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/ x /*error:UNDEFINED_OPERATOR*/ +
                                                                                                                           ^" as{TypeError,ForDynamic} asy::FutureOr<core::String*>*));
   asy::Future<core::String*>* results3 = results.{asy::Future::then}<core::String*>((core::List<core::int*>* list) → asy::FutureOr<core::String*>* => list.{core::Iterable::fold}<asy::FutureOr<core::String*>*>("", let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:31:111: Error: The argument type 'String Function(String, int)' can't be assigned to the parameter type 'FutureOr<String> Function(FutureOr<String>, int)'.

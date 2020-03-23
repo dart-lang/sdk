@@ -1082,6 +1082,7 @@ class TypeInferrerImpl implements TypeInferrer {
           if (typeSchemaEnvironment.isSubtypeOf(
               receiverType, onType, SubtypeCheckMode.ignoringNullabilities)) {
             ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
+                thisBuilder ?? otherBuilder,
                 onType,
                 onTypeInstantiateToBounds,
                 thisBuilder != null &&
@@ -1132,8 +1133,9 @@ class TypeInferrerImpl implements TypeInferrer {
       if (bestSoFar != null) {
         target = bestSoFar.target;
       } else {
-        // TODO(johnniwinther): Report a better error message when more than
-        // one potential targets were found.
+        if (noneMoreSpecific.isNotEmpty) {
+          target = new AmbiguousExtensionAccessTarget(noneMoreSpecific);
+        }
       }
     }
     return target;
@@ -1292,10 +1294,12 @@ class TypeInferrerImpl implements TypeInferrer {
     switch (target.kind) {
       case ObjectAccessTargetKind.callFunction:
         return receiverType;
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
         return const DynamicType();
       case ObjectAccessTargetKind.never:
         return const NeverType(Nullability.nonNullable);
@@ -1402,6 +1406,7 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
         return unknownFunction;
       case ObjectAccessTargetKind.instanceMember:
         return _getFunctionType(
@@ -1465,11 +1470,13 @@ class TypeInferrerImpl implements TypeInferrer {
         break;
       case ObjectAccessTargetKind.never:
         return const NeverType(Nullability.nonNullable);
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
         break;
     }
     return const DynamicType();
@@ -1499,12 +1506,14 @@ class TypeInferrerImpl implements TypeInferrer {
           return keyType;
         }
         break;
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
         break;
     }
     return const DynamicType();
@@ -1558,12 +1567,14 @@ class TypeInferrerImpl implements TypeInferrer {
             throw unhandled('$target', 'getFunctionType', null, null);
         }
         break;
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
         break;
     }
     return const DynamicType();
@@ -1614,12 +1625,14 @@ class TypeInferrerImpl implements TypeInferrer {
             throw unhandled('$target', 'getFunctionType', null, null);
         }
         break;
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
         break;
     }
     return const DynamicType();
@@ -1673,9 +1686,11 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
         return const DynamicType();
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
       case ObjectAccessTargetKind.instanceMember:
         Member interfaceMember = target.member;
         Class memberClass = interfaceMember.enclosingClass;
@@ -2635,11 +2650,14 @@ class TypeInferrerImpl implements TypeInferrer {
       List<VariableDeclaration> hoistedExpressions,
       {bool isExpressionInvocation,
       Name implicitInvocationPropertyName}) {
+    assert(target.isMissing || target.isAmbiguous);
     assert(isExpressionInvocation != null);
     Expression error = createMissingMethodInvocation(
         fileOffset, receiver, receiverType, name, arguments,
         isExpressionInvocation: isExpressionInvocation,
-        implicitInvocationPropertyName: implicitInvocationPropertyName);
+        implicitInvocationPropertyName: implicitInvocationPropertyName,
+        extensionAccessCandidates:
+            target.isAmbiguous ? target.candidates : null);
     inferInvocation(typeContext, fileOffset, unknownFunction, arguments, name,
         hoistedExpressions: hoistedExpressions, receiverType: receiverType);
     assert(name != equalsName);
@@ -3079,6 +3097,7 @@ class TypeInferrerImpl implements TypeInferrer {
             arguments,
             typeContext,
             hoistedExpressions);
+      case ObjectAccessTargetKind.ambiguous:
       case ObjectAccessTargetKind.missing:
         return _inferMissingInvocation(
             fileOffset,
@@ -3490,115 +3509,175 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
+  Expression _reportMissingOrAmbiguousMember(
+      int fileOffset,
+      int length,
+      DartType receiverType,
+      Name name,
+      List<ExtensionAccessCandidate> extensionAccessCandidates,
+      Template<Message Function(String, DartType, bool)> missingTemplate,
+      Template<Message Function(String, DartType, bool)> ambiguousTemplate) {
+    List<LocatedMessage> context;
+    Template<Message Function(String, DartType, bool)> template =
+        missingTemplate;
+    if (extensionAccessCandidates != null) {
+      context = extensionAccessCandidates
+          .map((ExtensionAccessCandidate c) =>
+              messageAmbiguousExtensionCause.withLocation(
+                  c.memberBuilder.fileUri,
+                  c.memberBuilder.charOffset,
+                  name == unaryMinusName ? 1 : c.memberBuilder.name.length))
+          .toList();
+      template = ambiguousTemplate;
+    }
+    return helper.buildProblem(
+        template.withArguments(name.name, resolveTypeParameter(receiverType),
+            isNonNullableByDefault),
+        fileOffset,
+        length,
+        context: context);
+  }
+
   Expression createMissingMethodInvocation(int fileOffset, Expression receiver,
       DartType receiverType, Name name, Arguments arguments,
-      {bool isExpressionInvocation, Name implicitInvocationPropertyName}) {
+      {bool isExpressionInvocation,
+      Name implicitInvocationPropertyName,
+      List<ExtensionAccessCandidate> extensionAccessCandidates}) {
     assert(isExpressionInvocation != null);
     if (isTopLevel) {
       return engine.forest
           .createMethodInvocation(fileOffset, receiver, name, arguments);
     } else if (implicitInvocationPropertyName != null) {
+      assert(extensionAccessCandidates == null);
       return helper.buildProblem(
           templateInvokeNonFunction
               .withArguments(implicitInvocationPropertyName.name),
           fileOffset,
           implicitInvocationPropertyName.name.length);
     } else {
-      return helper.buildProblem(
-          templateUndefinedMethod.withArguments(name.name,
-              resolveTypeParameter(receiverType), isNonNullableByDefault),
+      return _reportMissingOrAmbiguousMember(
           fileOffset,
-          isExpressionInvocation ? noLength : name.name.length);
+          isExpressionInvocation ? noLength : name.name.length,
+          receiverType,
+          name,
+          extensionAccessCandidates,
+          templateUndefinedMethod,
+          templateAmbiguousExtensionMethod);
     }
   }
 
   Expression createMissingPropertyGet(int fileOffset, Expression receiver,
-      DartType receiverType, Name propertyName) {
+      DartType receiverType, Name propertyName,
+      {List<ExtensionAccessCandidate> extensionAccessCandidates}) {
     if (isTopLevel) {
       return engine.forest
           .createPropertyGet(fileOffset, receiver, propertyName);
     } else {
-      return helper.buildProblem(
-          templateUndefinedGetter.withArguments(propertyName.name,
-              resolveTypeParameter(receiverType), isNonNullableByDefault),
+      return _reportMissingOrAmbiguousMember(
           fileOffset,
-          propertyName.name.length);
+          propertyName.name.length,
+          receiverType,
+          propertyName,
+          extensionAccessCandidates,
+          templateUndefinedGetter,
+          templateAmbiguousExtensionProperty);
     }
   }
 
   Expression createMissingPropertySet(int fileOffset, Expression receiver,
       DartType receiverType, Name propertyName, Expression value,
-      {bool forEffect}) {
+      {bool forEffect,
+      List<ExtensionAccessCandidate> extensionAccessCandidates}) {
     assert(forEffect != null);
     if (isTopLevel) {
       return engine.forest.createPropertySet(
           fileOffset, receiver, propertyName, value,
           forEffect: forEffect);
     } else {
-      return helper.buildProblem(
-          templateUndefinedSetter.withArguments(propertyName.name,
-              resolveTypeParameter(receiverType), isNonNullableByDefault),
+      return _reportMissingOrAmbiguousMember(
           fileOffset,
-          propertyName.name.length);
+          propertyName.name.length,
+          receiverType,
+          propertyName,
+          extensionAccessCandidates,
+          templateUndefinedSetter,
+          templateAmbiguousExtensionProperty);
     }
   }
 
   Expression createMissingIndexGet(int fileOffset, Expression receiver,
-      DartType receiverType, Expression index) {
+      DartType receiverType, Expression index,
+      {List<ExtensionAccessCandidate> extensionAccessCandidates}) {
     if (isTopLevel) {
       return engine.forest.createIndexGet(fileOffset, receiver, index);
     } else {
-      return helper.buildProblem(
-          templateUndefinedMethod.withArguments(indexGetName.name,
-              resolveTypeParameter(receiverType), isNonNullableByDefault),
+      return _reportMissingOrAmbiguousMember(
           fileOffset,
-          noLength);
+          noLength,
+          receiverType,
+          indexGetName,
+          extensionAccessCandidates,
+          templateUndefinedOperator,
+          templateAmbiguousExtensionOperator);
     }
   }
 
   Expression createMissingIndexSet(int fileOffset, Expression receiver,
       DartType receiverType, Expression index, Expression value,
-      {bool forEffect, bool readOnlyReceiver}) {
+      {bool forEffect,
+      bool readOnlyReceiver,
+      List<ExtensionAccessCandidate> extensionAccessCandidates}) {
     assert(forEffect != null);
     assert(readOnlyReceiver != null);
     if (isTopLevel) {
       return engine.forest.createIndexSet(fileOffset, receiver, index, value,
           forEffect: forEffect, readOnlyReceiver: readOnlyReceiver);
     } else {
-      return helper.buildProblem(
-          templateUndefinedMethod.withArguments(indexSetName.name,
-              resolveTypeParameter(receiverType), isNonNullableByDefault),
+      return _reportMissingOrAmbiguousMember(
           fileOffset,
-          noLength);
+          noLength,
+          receiverType,
+          indexSetName,
+          extensionAccessCandidates,
+          templateUndefinedOperator,
+          templateAmbiguousExtensionOperator);
     }
   }
 
   Expression createMissingBinary(int fileOffset, Expression left,
-      DartType leftType, Name binaryName, Expression right) {
+      DartType leftType, Name binaryName, Expression right,
+      {List<ExtensionAccessCandidate> extensionAccessCandidates}) {
     assert(binaryName != equalsName);
     if (isTopLevel) {
       return engine.forest.createMethodInvocation(fileOffset, left, binaryName,
           engine.forest.createArguments(fileOffset, <Expression>[right]));
     } else {
-      return helper.buildProblem(
-          templateUndefinedMethod.withArguments(binaryName.name,
-              resolveTypeParameter(leftType), isNonNullableByDefault),
+      return _reportMissingOrAmbiguousMember(
           fileOffset,
-          binaryName.name.length);
+          binaryName.name.length,
+          leftType,
+          binaryName,
+          extensionAccessCandidates,
+          templateUndefinedOperator,
+          templateAmbiguousExtensionOperator);
     }
   }
 
   Expression createMissingUnary(int fileOffset, Expression expression,
-      DartType expressionType, Name unaryName) {
+      DartType expressionType, Name unaryName,
+      {List<ExtensionAccessCandidate> extensionAccessCandidates}) {
     if (isTopLevel) {
       return new UnaryExpression(unaryName, expression)
         ..fileOffset = fileOffset;
     } else {
-      return helper.buildProblem(
-          templateUndefinedMethod.withArguments(unaryName.name,
-              resolveTypeParameter(expressionType), isNonNullableByDefault),
+      return _reportMissingOrAmbiguousMember(
           fileOffset,
-          unaryName == unaryMinusName ? 1 : unaryName.name.length);
+          unaryName == unaryMinusName ? 1 : unaryName.name.length,
+          expressionType,
+          unaryName,
+          extensionAccessCandidates,
+          templateUndefinedOperator,
+          templateAmbiguousExtensionOperator);
     }
   }
 }
@@ -3988,6 +4067,7 @@ enum ObjectAccessTargetKind {
   never,
   invalid,
   missing,
+  ambiguous,
   // TODO(johnniwinther): Remove this.
   unresolved,
 }
@@ -4068,6 +4148,14 @@ class ObjectAccessTarget {
   /// Returns `true` if this is an access with no target.
   bool get isMissing => kind == ObjectAccessTargetKind.missing;
 
+  /// Returns `true` if this is an access with no unambiguous target. This
+  /// occurs when an implicit extension access is ambiguous.
+  bool get isAmbiguous => kind == ObjectAccessTargetKind.ambiguous;
+
+  /// Returns the candidates for an ambiguous extension access.
+  List<ExtensionAccessCandidate> get candidates =>
+      throw new UnsupportedError('ObjectAccessTarget.candidates');
+
   /// Returns the original procedure kind, if this is an extension method
   /// target.
   ///
@@ -4110,14 +4198,26 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
       '$inferredExtensionTypeArguments)';
 }
 
+class AmbiguousExtensionAccessTarget extends ObjectAccessTarget {
+  @override
+  final List<ExtensionAccessCandidate> candidates;
+
+  AmbiguousExtensionAccessTarget(this.candidates)
+      : super.internal(ObjectAccessTargetKind.ambiguous, null);
+
+  @override
+  String toString() => 'AmbiguousExtensionAccessTarget($kind,$candidates)';
+}
+
 class ExtensionAccessCandidate {
+  final MemberBuilder memberBuilder;
   final bool isPlatform;
   final DartType onType;
   final DartType onTypeInstantiateToBounds;
   final ObjectAccessTarget target;
 
-  ExtensionAccessCandidate(
-      this.onType, this.onTypeInstantiateToBounds, this.target,
+  ExtensionAccessCandidate(this.memberBuilder, this.onType,
+      this.onTypeInstantiateToBounds, this.target,
       {this.isPlatform})
       : assert(isPlatform != null);
 
