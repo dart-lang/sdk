@@ -582,13 +582,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
-  List<E> operator +(List<E> other) {
-    int totalLength = this.length + other.length;
-    return <E>[]
-      ..length = totalLength
-      ..setRange(0, this.length, this)
-      ..setRange(this.length, totalLength, other);
-  }
+  List<E> operator +(List<E> other) => [...this, ...other];
 
   int indexWhere(bool Function(E) test, [int start = 0]) {
     if (start >= this.length) return -1;
