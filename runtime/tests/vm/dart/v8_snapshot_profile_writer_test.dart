@@ -40,8 +40,11 @@ test(
       if (stripFlag) '--strip',
       useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
       "--write-v8-snapshot-profile-to=$profilePath",
-      // Regression test for dartbug.com/41149.
-      '--disassemble',
+      // Regression test for dartbug.com/41149. We don't assume forced
+      // disassembler support in Product mode.
+      if (!const bool.fromEnvironment('dart.vm.product'))
+        '--disassemble',
+      '--ignore-unrecognized-flags',
       dillPath,
     ];
 
