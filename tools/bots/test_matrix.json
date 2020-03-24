@@ -526,6 +526,36 @@
         "timeout": 240
       }
     },
+    "dartkp-asan-(linux|mac)-(debug|product|release)-x64": {
+      "options": {
+        "builder-tag": "asan",
+        "timeout": 240
+      }
+    },
+    "dartkp-lsan-(linux|mac)-(debug|product|release)-x64": {
+      "options": {
+        "builder-tag": "lsan",
+        "timeout": 240
+      }
+    },
+    "dartkp-msan-linux-(debug|product|release)-x64": {
+      "options": {
+        "builder-tag": "msan",
+        "timeout": 240
+      }
+    },
+    "dartkp-tsan-(linux|mac)-(debug|product|release)-x64": {
+      "options": {
+        "builder-tag": "tsan",
+        "timeout": 240
+      }
+    },
+    "dartkp-ubsan-(linux|mac)-(debug|product|release)-x64": {
+      "options": {
+        "builder-tag": "ubsan",
+        "timeout": 240
+      }
+    },
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
         "use-sdk": true
@@ -3638,6 +3668,7 @@
   ],
   "sanitizer_options": {
     "ASAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
+    "LSAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
     "MSAN_OPTIONS": "check_initialization_order=true:handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
     "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
     "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"

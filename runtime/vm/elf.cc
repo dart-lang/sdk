@@ -5,10 +5,10 @@
 #include "vm/elf.h"
 
 #include "platform/elf.h"
-#include "platform/text_buffer.h"
 #include "vm/cpu.h"
 #include "vm/hash_map.h"
 #include "vm/thread.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -347,7 +347,7 @@ class StringTable : public Section {
                 /*executable=*/false,
                 /*writable=*/false),
         dynamic_(allocate),
-        text_(128),
+        text_(Thread::Current()->zone(), 128),
         text_indices_() {
     text_.AddChar('\0');
     text_indices_.Insert({"", 1});
@@ -357,7 +357,7 @@ class StringTable : public Section {
   intptr_t MemorySize() { return dynamic_ ? FileSize() : 0; }
 
   void Write(Elf* stream) {
-    stream->WriteBytes(reinterpret_cast<const uint8_t*>(text_.buf()),
+    stream->WriteBytes(reinterpret_cast<const uint8_t*>(text_.buffer()),
                        text_.length());
   }
 
@@ -371,7 +371,7 @@ class StringTable : public Section {
   }
 
   const bool dynamic_;
-  TextBuffer text_;
+  ZoneTextBuffer text_;
   // To avoid kNoValue for intptr_t (0), we store an index n as n + 1.
   CStringMap<intptr_t> text_indices_;
 };
@@ -561,7 +561,7 @@ class DynamicTable : public Section {
     }
   }
 
-  class Entry {
+  class Entry : public ZoneAllocated {
    public:
     intptr_t tag;
     intptr_t value;
