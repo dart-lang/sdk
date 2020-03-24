@@ -322,14 +322,16 @@ representation soon.
 
 ## 2.7.2 - 2020-03-23
 
-This is a patch release that addresses a vulnerability dart:html
+This is a patch release that addresses a vulnerability in `dart:html`
 [NodeValidator](https://api.dart.dev/stable/dart-html/NodeValidator-class.html)
-related to DOM clobbering of `previousSibling`. Thanks to **Vincenzo di Cicco**
-for finding and reporting this issue.
+related to DOM clobbering of `previousSibling`. See the 
+[vulnerability advisory][CVE-2020-8923] for more details. Thanks to
+**Vincenzo di Cicco** for finding and reporting this issue.
 
 This release also improves compatibility with ARMv8 processors
 (issue [40001][]) and dart:io stability (issue [40589][]).
 
+[CVE-2020-8923]: https://github.com/dart-lang/sdk/security/advisories/GHSA-hfq3-v9pv-p627
 [40001]: https://github.com/dart-lang/sdk/issues/40001
 [40589]: https://github.com/dart-lang/sdk/issues/40589
 
