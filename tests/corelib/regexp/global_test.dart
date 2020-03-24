@@ -121,9 +121,9 @@ void main() {
   re_string = re_string + "1";
   // re_string = "(((...((a))...)))1"
 
-  var regexps = new List();
-  var last_match_expectations = new List();
-  var first_capture_expectations = new List();
+  var regexps = [];
+  var last_match_expectations = [];
+  var first_capture_expectations = [];
 
   // Atomic regexp.
   regexps.add(new RegExp(r"a1"));

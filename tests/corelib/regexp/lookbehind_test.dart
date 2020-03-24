@@ -41,7 +41,7 @@ void main() {
     }
   }
 
-  void execRE(RegExp re, String input, List<String> expectedResult) {
+  void execRE(RegExp re, String input, List<String?> expectedResult) {
     assertTrue(re.hasMatch(input));
     shouldBe(re.firstMatch(input), expectedResult);
   }
