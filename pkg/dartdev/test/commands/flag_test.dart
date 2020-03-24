@@ -9,7 +9,30 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
+  group('command', command);
   group('flag', help);
+}
+
+void command() {
+  // For each command description, assert that the values are not empty, don't
+  // have trailing white space and end with a period.
+  test('description formatting', () {
+    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
+      expect(commandKey, isNotEmpty);
+      expect(command.description, isNotEmpty);
+      expect(command.description, endsWith('.'));
+      expect(command.description.trim(), equals(command.description));
+    });
+  });
+
+  // Assert that all found usageLineLengths are the same and null
+  test('argParser usageLineLength isNull', () {
+    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
+      if (command.argParser != null) {
+        expect(command.argParser.usageLineLength, isNull);
+      }
+    });
+  });
 }
 
 void help() {
@@ -47,16 +70,5 @@ void help() {
 
     expect(result.exitCode, 0);
     expect(result.stdout, contains('migrate '));
-  });
-
-  // For each command description, assert that the values are not empty, don't
-  // have trailing white space and end with a period.
-  test('description formatting', () {
-    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
-      expect(commandKey, isNotEmpty);
-      expect(command.description, isNotEmpty);
-      expect(command.description, endsWith('.'));
-      expect(command.description.trim(), equals(command.description));
-    });
   });
 }
