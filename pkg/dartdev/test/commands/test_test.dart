@@ -43,12 +43,6 @@ void defineTest() {
         'In order to run tests, you need to add a dependency on package:test',
       ),
     );
-    expect(
-      result.stdout,
-      contains(
-        'dev_dependencies:\n  test: any',
-      ),
-    );
   }, skip: 'https://github.com/dart-lang/sdk/issues/40854');
 
   test('has dependency', () {
