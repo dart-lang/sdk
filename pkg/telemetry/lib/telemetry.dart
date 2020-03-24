@@ -56,7 +56,8 @@ String createAnalyticsStatusMessage(
 Analytics createAnalyticsInstance(
   String trackingId,
   String applicationName, {
-  bool disableForSession: false,
+  bool disableForSession = false,
+  bool forceEnabled = false,
 }) {
   Directory dir = getDartStorageDirectory();
   if (dir == null) {
@@ -75,9 +76,15 @@ Analytics createAnalyticsInstance(
     }
   }
 
-  File file = new File(path.join(dir.path, _settingsFileName));
+  File settingsFile = new File(path.join(dir.path, _settingsFileName));
   return new _TelemetryAnalytics(
-      trackingId, applicationName, getDartVersion(), file, disableForSession);
+    trackingId,
+    applicationName,
+    getDartVersion(),
+    settingsFile,
+    disableForSession: disableForSession,
+    forceEnabled: forceEnabled,
+  );
 }
 
 /// The directory used to store the analytics settings file.
@@ -100,16 +107,18 @@ String getDartVersion() => usage_io.getDartVersion();
 
 class _TelemetryAnalytics extends AnalyticsImpl {
   final bool disableForSession;
+  final bool forceEnabled;
 
   _TelemetryAnalytics(
     String trackingId,
     String applicationName,
     String applicationVersion,
-    File file,
-    this.disableForSession,
-  ) : super(
+    File settingsFile, {
+    @required this.disableForSession,
+    @required this.forceEnabled,
+  }) : super(
           trackingId,
-          new IOPersistentProperties.fromFile(file),
+          new IOPersistentProperties.fromFile(settingsFile),
           new IOPostHandler(),
           applicationName: applicationName,
           applicationVersion: applicationVersion,
@@ -124,6 +133,11 @@ class _TelemetryAnalytics extends AnalyticsImpl {
   bool get enabled {
     if (disableForSession || isRunningOnBot()) {
       return false;
+    }
+
+    // This is only used in special cases.
+    if (forceEnabled) {
+      return true;
     }
 
     // If there's no explicit setting (enabled or disabled) then we don't send.

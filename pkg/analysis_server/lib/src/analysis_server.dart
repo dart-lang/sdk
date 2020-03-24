@@ -44,6 +44,7 @@ import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
+import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -722,6 +723,12 @@ class AnalysisServerOptions {
   /// The crash report sender instance; note, this object can be `null`, and
   /// should be accessed via a null-aware operator.
   CrashReportSender crashReportSender;
+
+  /// An optional set of configuration overrides specified by the SDK.
+  ///
+  /// These overrides can provide new values for configuration settings, and are
+  /// generally used in specific SDKs (like the internal google3 one).
+  SdkConfiguration configurationOverrides;
 
   /// The list of the names of the experiments that should be enabled by
   /// default, unless the analysis options file of a context overrides it.

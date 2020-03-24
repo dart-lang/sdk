@@ -20,6 +20,7 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
+import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
@@ -326,6 +327,11 @@ class Driver implements ServerStarter {
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
     analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
+    // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
+    SdkConfiguration sdkConfig = SdkConfiguration.readFromSdk();
+    analysisServerOptions.configurationOverrides = sdkConfig;
+
+    // ML model configuration.
     final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
     analysisServerOptions.completionModelFolder =
         results[COMPLETION_MODEL_FOLDER];
@@ -334,6 +340,7 @@ class Driver implements ServerStarter {
       // code completion.
       analysisServerOptions.completionModelFolder = null;
     }
+    // TODO(devoncarew): Simplify this logic and use the value from sdkConfig.
     if (enableCompletionModel &&
         analysisServerOptions.completionModelFolder == null) {
       // The user has enabled ML code completion without explicitly setting a
@@ -348,14 +355,21 @@ class Driver implements ServerStarter {
       );
     }
 
+    // Analytics
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
     if (results.wasParsed(TRAIN_USING)) {
       disableAnalyticsForSession = true;
     }
 
-    telemetry.Analytics analytics = telemetry.createAnalyticsInstance(
-        'UA-26406144-29', 'analysis-server',
-        disableForSession: disableAnalyticsForSession);
+    // Use sdkConfig to optionally override analytics settings.
+    final analyticsId = sdkConfig.analyticsId ?? 'UA-26406144-29';
+    final forceAnalyticsEnabled = sdkConfig.analyticsForceEnabled == true;
+    var analytics = telemetry.createAnalyticsInstance(
+      analyticsId,
+      'analysis-server',
+      disableForSession: disableAnalyticsForSession,
+      forceEnabled: forceAnalyticsEnabled,
+    );
     analysisServerOptions.analytics = analytics;
 
     if (analysisServerOptions.clientId != null) {
@@ -366,13 +380,22 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
-    final shouldSendCallback = () {
+    final EnablementCallback shouldSendCallback = () {
+      // Check sdkConfig to optionally force reporting on.
+      if (sdkConfig.crashReportingForceEnabled == true) {
+        return true;
+      }
+
       // TODO(devoncarew): Replace with a real enablement check.
       return false;
     };
 
+    // Crash reporting
+
+    // Use sdkConfig to optionally override analytics settings.
+    final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
     final crashReportSender =
-        CrashReportSender('Dart_analysis_server', shouldSendCallback);
+        CrashReportSender(crashProductId, shouldSendCallback);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
