@@ -1221,7 +1221,9 @@ void KernelLoader::FinishTopLevelClassLoading(
     // Only instance fields could be covariant.
     ASSERT(!field_helper.IsCovariant() &&
            !field_helper.IsGenericCovariantImpl());
-    const bool is_late = field_helper.IsLate();
+    // In NNBD libraries, static fields act like late fields
+    // regardless of whether they're marked late.
+    const bool is_late = field_helper.IsLate() || library.is_nnbd();
     const bool is_extension_member = field_helper.IsExtensionMember();
     const Field& field = Field::Handle(
         Z, Field::NewTopLevel(name, is_final, field_helper.IsConst(), is_late,
@@ -1577,7 +1579,10 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       // In the VM all const fields are implicitly final whereas in Kernel they
       // are not final because they are not explicitly declared that way.
       const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
-      const bool is_late = field_helper.IsLate();
+      // In NNBD libraries, static fields act like late fields
+      // regardless of whether they're marked late.
+      const bool is_late = field_helper.IsLate() ||
+                           (field_helper.IsStatic() && library.is_nnbd());
       const bool is_extension_member = field_helper.IsExtensionMember();
       Field& field = Field::Handle(
           Z, Field::New(name, field_helper.IsStatic(), is_final,
