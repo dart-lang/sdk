@@ -61,7 +61,7 @@ void testInts(Set create()) {
   Expect.isTrue(set.containsAll(set));
 
   // Test Set.map.
-  bool testMap(dynamic val) {
+  int testMap(dynamic val) {
     return (val as int) * val;
   }
 

@@ -31,16 +31,16 @@ void main() {
   testNum(m2.cast<int, int>(), "Map<num>.unmod.cast<int>");
 
   Map<Symbol, dynamic> nsm = new NsmMap().foo(a: 0);
-  test(nsm, #a, 0, "nsm", noSuchMethodMap: true);
-  test(nsm.cast<Object, int>(), #a, 0, "nsm.cast", noSuchMethodMap: true);
+  test<Symbol, dynamic>(nsm, #a, 0, "nsm", noSuchMethodMap: true);
+  test<Object, int>(nsm.cast<Object, int>(), #a, 0, "nsm.cast",
+      noSuchMethodMap: true);
 }
 
 void testNum(Map<Object, Object> map, String name) {
-  test(map, 1, 37, name);
+  test<int, int>(map, 1, 37, name);
 }
 
-void test(
-    Map<Object?, Object?> map, Object firstKey, Object firstValue, String name,
+void test<K, V>(map, firstKey, firstValue, String name,
     {bool noSuchMethodMap: false}) {
   if (!noSuchMethodMap) {
     Expect.isTrue(map.containsKey(firstKey), "$name.containsKey");
@@ -54,10 +54,10 @@ void test(
     map.remove(firstKey);
   }, "$name.remove");
   Expect.throwsUnsupportedError(() {
-    map[null] = null;
+    map[firstKey] = firstValue;
   }, "$name[]=");
   Expect.throwsUnsupportedError(() {
-    map.addAll(<Null, Null>{null: null});
+    map.addAll(<K, V>{firstKey: firstValue});
   }, "$name.addAll");
 }
 

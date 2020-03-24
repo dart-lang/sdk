@@ -42,7 +42,7 @@ testEncodeDecodeComponent(String orig, String encoded) {
 }
 
 testEncodeDecodeQueryComponent(String orig, String encodedUTF8,
-    String encodedLatin1, String encodedAscii) {
+    String encodedLatin1, String? encodedAscii) {
   var e, d;
   e = Uri.encodeQueryComponent(orig);
   Expect.stringEquals(encodedUTF8, e);
