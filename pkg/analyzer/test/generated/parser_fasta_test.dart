@@ -2936,6 +2936,12 @@ main() { a?.[7]; }''',
     expect(expression.operator.lexeme, '?.');
   }
 
+  void test_indexExpression_nullable_disabled() {
+    parseCompilationUnit('main(a) { a?[0]; }',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 1)],
+        featureSet: preNonNullable);
+  }
+
   void test_is_nullable() {
     CompilationUnit unit =
         parseCompilationUnit('main() { x is String? ? (x + y) : z; }');

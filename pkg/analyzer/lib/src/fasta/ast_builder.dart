@@ -2733,6 +2733,10 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("IndexedExpression");
 
+    if (!enableNonNullable) {
+      reportErrorIfNullableType(question);
+    }
+
     Expression index = pop();
     Expression target = pop();
     if (target == null) {
