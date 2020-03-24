@@ -52,7 +52,7 @@ abstract class IOException implements Exception {
   * operating system.
   */
 @pragma("vm:entry-point")
-class OSError {
+class OSError implements Exception {
   /** Constant used to indicate that no OS error code is available. */
   static const int noErrorCode = -1;
 
