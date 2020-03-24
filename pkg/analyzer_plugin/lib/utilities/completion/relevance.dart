@@ -43,10 +43,22 @@ abstract class Relevance {
   /// type but isn't explicitly implemented in the type hierarchy.
   static const int callFunction = 200;
 
+  /// The relevance used when suggesting a closure corresponding to a
+  /// function-typed parameter in an argument list.
+  static const int closure = 900;
+
   /// The relevance used when suggesting a member of a class or extension and
   /// there are no features that can be used to provide a relevance score.
   static const int member = 500;
 
+  /// The relevance used when suggesting a named argument corresponding to a
+  /// named parameter that is not required.
+  static const int namedArgument = 900;
+
   /// The relevance used when suggesting an override of an inherited member.
   static const int override = 750;
+
+  /// The relevance used when suggesting a named argument corresponding to a
+  /// named parameter that is required.
+  static const int requiredNamedArgument = 950;
 }

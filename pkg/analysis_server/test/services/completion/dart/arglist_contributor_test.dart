@@ -338,6 +338,23 @@ ${' ' * 4}},''',
     );
   }
 
+  Future<void> test_ArgumentList_closureParam() async {
+    addTestSource(r'''
+void f({void Function(int a, {int b, int c}) closure}) {}
+
+void main() {
+  f(closure: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, {b, c}) => ,',
+      relevance: DART_RELEVANCE_HIGH,
+      selectionOffset: 15,
+    );
+  }
+
   Future<void> test_ArgumentList_closureParameterOptionalNamed() async {
     addTestSource(r'''
 void f({void Function(int a, {int b, int c}) closure}) {}

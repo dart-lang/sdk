@@ -5,15 +5,16 @@
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 
-@reflectiveTest
 class CompletionRelevanceTest extends AbstractCompletionDriverTest {
+  List<String> get enabledExperiments => [];
+
   @override
-  AnalysisServerOptions get serverOptions =>
-      AnalysisServerOptions()..useNewRelevance = true;
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
+    ..enabledExperiments = enabledExperiments
+    ..useNewRelevance = true;
 
   @override
   bool get supportsAvailableSuggestions => true;
