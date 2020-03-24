@@ -360,8 +360,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   const Class& type_class = Class::Handle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() == 0);
 
-  const Register kInstanceReg = RAX;
-  __ testq(kInstanceReg, compiler::Immediate(kSmiTagMask));
+  __ testq(TypeTestABI::kInstanceReg, compiler::Immediate(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
   if (Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type,
@@ -372,7 +371,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ j(ZERO, is_not_instance_lbl);
   }
   const Register kClassIdReg = R10;
-  __ LoadClassId(kClassIdReg, kInstanceReg);
+  __ LoadClassId(kClassIdReg, TypeTestABI::kInstanceReg);
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolType()) {
     __ cmpl(kClassIdReg, compiler::Immediate(kBoolCid));

@@ -143,10 +143,13 @@ const Register kWriteBarrierSlotReg = R25;
 const Register kAllocationStubTypeArgumentsReg = R1;
 
 // ABI for instantiation stubs.
-const Register kUninstantiatedTypeArgumentsReg = R3;
-const Register kInstantiatorTypeArgumentsReg = R2;
-const Register kFunctionTypeArgumentsReg = R1;
-const Register kResultTypeArgumentsReg = R0;
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = R3;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kResultTypeArgumentsReg = R0;
+  static const Register kResultTypeReg = R0;
+};
 
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
 struct TypeTestABI {

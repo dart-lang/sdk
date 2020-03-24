@@ -2385,14 +2385,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   static intptr_t kInstanceOffsetInBytes = 3 * target::kWordSize;
   static intptr_t kCacheOffsetInBytes = 4 * target::kWordSize;
 
-  const Register kInstanceReg = EAX;
-
   const Register kInstanceCidOrFunction = ECX;
   const Register kInstanceInstantiatorTypeArgumentsReg = EBX;
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
 
-  __ movl(kInstanceReg, Address(ESP, kInstanceOffsetInBytes));
+  __ movl(TypeTestABI::kInstanceReg, Address(ESP, kInstanceOffsetInBytes));
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other)
@@ -2402,9 +2400,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 4) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, kInstanceReg);
+    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   }
   __ cmpl(kInstanceCidOrFunction, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
@@ -2412,17 +2410,20 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Closure handling.
   {
     __ movl(kInstanceCidOrFunction,
-            FieldAddress(kInstanceReg, target::Closure::function_offset()));
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::function_offset()));
     if (n >= 2) {
       __ movl(
           kInstanceInstantiatorTypeArgumentsReg,
-          FieldAddress(kInstanceReg,
+          FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
       if (n >= 6) {
-        __ pushl(FieldAddress(
-            kInstanceReg, target::Closure::delayed_type_arguments_offset()));
-        __ pushl(FieldAddress(
-            kInstanceReg, target::Closure::function_type_arguments_offset()));
+        __ pushl(
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::delayed_type_arguments_offset()));
+        __ pushl(
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::function_type_arguments_offset()));
       }
     }
     __ jmp(&loop, Assembler::kNearJump);
@@ -2442,7 +2443,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ cmpl(EDI, Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
       __ movl(kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(kInstanceReg, EDI, TIMES_4, 0));
+              FieldAddress(TypeTestABI::kInstanceReg, EDI, TIMES_4, 0));
       __ Bind(&has_no_type_arguments);
 
       if (n >= 6) {
@@ -2915,9 +2916,9 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
     Assembler* assembler) {
   // Lookup cache before calling runtime.
-  __ pushl(kUninstantiatedTypeArgumentsReg);  // Preserve reg.
+  __ pushl(InstantiationABI::kUninstantiatedTypeArgumentsReg);  // Preserve reg.
   __ movl(EAX, compiler::FieldAddress(
-                   kUninstantiatedTypeArgumentsReg,
+                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
                    target::TypeArguments::instantiations_offset()));
   __ leal(EAX, compiler::FieldAddress(EAX, Array::data_offset()));
   // The instantiations cache is initialized with Object::zero_array() and is
@@ -2928,12 +2929,12 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
           compiler::Address(
               EAX, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
                        target::kWordSize));
-  __ cmpl(EDI, kInstantiatorTypeArgumentsReg);
+  __ cmpl(EDI, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ j(NOT_EQUAL, &next, compiler::Assembler::kNearJump);
   __ movl(EBX, compiler::Address(
                    EAX, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
                             target::kWordSize));
-  __ cmpl(EBX, kFunctionTypeArgumentsReg);
+  __ cmpl(EBX, InstantiationABI::kFunctionTypeArgumentsReg);
   __ j(EQUAL, &found, compiler::Assembler::kNearJump);
   __ Bind(&next);
   __ addl(EAX, compiler::Immediate(TypeArguments::Instantiation::kSizeInWords *
@@ -2944,21 +2945,21 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
 
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
-  __ popl(kUninstantiatedTypeArgumentsReg);  // Restore reg.
+  __ popl(InstantiationABI::kUninstantiatedTypeArgumentsReg);  // Restore reg.
   __ EnterStubFrame();
   __ PushObject(Object::null_object());  // Make room for the result.
-  __ pushl(kUninstantiatedTypeArgumentsReg);
-  __ pushl(kInstantiatorTypeArgumentsReg);  // Push instantiator type arguments.
-  __ pushl(kFunctionTypeArgumentsReg);      // Push function type arguments.
+  __ pushl(InstantiationABI::kUninstantiatedTypeArgumentsReg);
+  __ pushl(InstantiationABI::kInstantiatorTypeArgumentsReg);
+  __ pushl(InstantiationABI::kFunctionTypeArgumentsReg);
   __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
   __ Drop(3);  // Drop 2 type vectors, and uninstantiated args.
-  __ popl(kResultTypeArgumentsReg);  // Pop instantiated type arguments.
+  __ popl(InstantiationABI::kResultTypeArgumentsReg);
   __ LeaveFrame();
   __ ret();
 
   __ Bind(&found);
-  __ popl(kUninstantiatedTypeArgumentsReg);  // Drop reg.
-  __ movl(kResultTypeArgumentsReg,
+  __ popl(InstantiationABI::kUninstantiatedTypeArgumentsReg);  // Drop reg.
+  __ movl(InstantiationABI::kResultTypeArgumentsReg,
           compiler::Address(
               EAX, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
                        target::kWordSize));
@@ -2971,16 +2972,17 @@ void StubCodeCompiler::
   // Return the instantiator type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ movl(EAX,
-          compiler::FieldAddress(kUninstantiatedTypeArgumentsReg,
-                                 target::TypeArguments::nullability_offset()));
-  __ movl(EDI,
-          compiler::FieldAddress(kInstantiatorTypeArgumentsReg,
-                                 target::TypeArguments::nullability_offset()));
+  __ movl(EAX, compiler::FieldAddress(
+                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                   target::TypeArguments::nullability_offset()));
+  __ movl(EDI, compiler::FieldAddress(
+                   InstantiationABI::kInstantiatorTypeArgumentsReg,
+                   target::TypeArguments::nullability_offset()));
   __ andl(EDI, EAX);
   __ cmpl(EDI, EAX);
   __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
-  __ movl(kResultTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
+  __ movl(InstantiationABI::kResultTypeArgumentsReg,
+          InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ ret();
 
   __ Bind(&cache_lookup);
@@ -2992,16 +2994,17 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
   // Return the function type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ movl(EAX,
-          compiler::FieldAddress(kUninstantiatedTypeArgumentsReg,
-                                 target::TypeArguments::nullability_offset()));
+  __ movl(EAX, compiler::FieldAddress(
+                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                   target::TypeArguments::nullability_offset()));
   __ movl(EDI,
-          compiler::FieldAddress(kFunctionTypeArgumentsReg,
+          compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
                                  target::TypeArguments::nullability_offset()));
   __ andl(EDI, EAX);
   __ cmpl(EDI, EAX);
   __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
-  __ movl(kResultTypeArgumentsReg, kFunctionTypeArgumentsReg);
+  __ movl(InstantiationABI::kResultTypeArgumentsReg,
+          InstantiationABI::kFunctionTypeArgumentsReg);
   __ ret();
 
   __ Bind(&cache_lookup);

@@ -359,8 +359,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   const Class& type_class = Class::Handle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() == 0);
 
-  const Register kInstanceReg = R0;
-  __ tst(kInstanceReg, compiler::Operand(kSmiTagMask));
+  __ tst(TypeTestABI::kInstanceReg, compiler::Operand(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
   if (Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type,
@@ -371,7 +370,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ b(is_not_instance_lbl, EQ);
   }
   const Register kClassIdReg = R2;
-  __ LoadClassId(kClassIdReg, kInstanceReg);
+  __ LoadClassId(kClassIdReg, TypeTestABI::kInstanceReg);
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolType()) {
     __ CompareImmediate(kClassIdReg, kBoolCid);
@@ -460,7 +459,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+    static_assert(TypeTestABI::kFunctionTypeArgumentsReg <
+                      TypeTestABI::kInstantiatorTypeArgumentsReg,
                   "Should be ordered to load arguments with one instruction");
     __ ldm(IA, SP,
            (1 << TypeTestABI::kFunctionTypeArgumentsReg) |

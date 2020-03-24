@@ -346,18 +346,17 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   const Class& type_class = Class::Handle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() == 0);
 
-  const Register kInstanceReg = R0;
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
   if (Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type,
                          Heap::kOld)) {
     // Fast case for type = int/num/top-type.
-    __ BranchIfSmi(kInstanceReg, is_instance_lbl);
+    __ BranchIfSmi(TypeTestABI::kInstanceReg, is_instance_lbl);
   } else {
-    __ BranchIfSmi(kInstanceReg, is_not_instance_lbl);
+    __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
   }
   const Register kClassIdReg = R2;
-  __ LoadClassId(kClassIdReg, kInstanceReg);
+  __ LoadClassId(kClassIdReg, TypeTestABI::kInstanceReg);
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolType()) {
     __ CompareImmediate(kClassIdReg, kBoolCid);

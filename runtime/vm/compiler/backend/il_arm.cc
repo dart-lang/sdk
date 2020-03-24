@@ -736,8 +736,8 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
-  summary->set_in(1, Location::RegisterLocation(kFunctionTypeArgumentsReg));
+  summary->set_in(0, Location::RegisterLocation(R2));  // Instant. type args.
+  summary->set_in(1, Location::RegisterLocation(R1));  // Function type args.
   return summary;
 }
 
@@ -3318,9 +3318,12 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
-  locs->set_in(1, Location::RegisterLocation(kFunctionTypeArgumentsReg));
-  locs->set_out(0, Location::RegisterLocation(R0));
+  locs->set_in(0, Location::RegisterLocation(
+                      InstantiationABI::kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(
+                      InstantiationABI::kFunctionTypeArgumentsReg));
+  locs->set_out(0,
+                Location::RegisterLocation(InstantiationABI::kResultTypeReg));
   return locs;
 }
 
@@ -3334,7 +3337,8 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // A runtime call to instantiate the type is required.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ PushObject(type());
-  static_assert(kFunctionTypeArgumentsReg < kInstantiatorTypeArgumentsReg,
+  static_assert(InstantiationABI::kFunctionTypeArgumentsReg <
+                    InstantiationABI::kInstantiatorTypeArgumentsReg,
                 "Should be ordered to push arguments with one instruction");
   __ PushList((1 << instantiator_type_args_reg) |
               (1 << function_type_args_reg));
@@ -3351,9 +3355,12 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(kInstantiatorTypeArgumentsReg));
-  locs->set_in(1, Location::RegisterLocation(kFunctionTypeArgumentsReg));
-  locs->set_out(0, Location::RegisterLocation(kResultTypeArgumentsReg));
+  locs->set_in(0, Location::RegisterLocation(
+                      InstantiationABI::kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(
+                      InstantiationABI::kFunctionTypeArgumentsReg));
+  locs->set_out(
+      0, Location::RegisterLocation(InstantiationABI::kResultTypeArgumentsReg));
   return locs;
 }
 
@@ -3380,7 +3387,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ b(&type_arguments_instantiated, EQ);
   }
   // Lookup cache in stub before calling runtime.
-  __ LoadObject(kUninstantiatedTypeArgumentsReg, type_arguments());
+  __ LoadObject(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                type_arguments());
   compiler->GenerateCall(token_pos(), GetStub(), RawPcDescriptors::kOther,
                          locs());
   __ Bind(&type_arguments_instantiated);
