@@ -16,8 +16,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:meta/meta.dart';
 
-/// A contributor for calculating `completion.getSuggestions` request results
-/// when the cursor position is inside the arguments to a method call.
+/// A contributor that produces suggestions for named expression labels that
+/// correspond to named parameters when completing in argument lists.
 class ArgListContributor extends DartCompletionContributor {
   /// The request that is currently being handled.
   DartCompletionRequest request;
