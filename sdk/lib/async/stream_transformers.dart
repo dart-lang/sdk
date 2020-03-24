@@ -18,7 +18,7 @@ class _EventSinkWrapper<T> implements EventSink<T> {
   }
 
   void addError(error, [StackTrace stackTrace]) {
-    _sink._addError(error, stackTrace);
+    _sink._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error));
   }
 
   void close() {
@@ -239,6 +239,7 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
       throw StateError("Sink is closed");
     }
     if (_handleError != null) {
+      stackTrace ??= AsyncError.defaultStackTrace(error);
       _handleError(error, stackTrace, _sink);
     } else {
       _sink.addError(error, stackTrace);

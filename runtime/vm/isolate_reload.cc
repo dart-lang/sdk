@@ -2062,7 +2062,10 @@ class FieldInvalidator {
         delayed_function_type_arguments_(TypeArguments::Handle(zone)) {}
 
   void CheckStatics(const GrowableArray<const Field*>& fields) {
-    HANDLESCOPE(Thread::Current());
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    bool null_safety = isolate->null_safety();
+    HANDLESCOPE(thread);
     instantiator_type_arguments_ = TypeArguments::null();
     for (intptr_t i = 0; i < fields.length(); i++) {
       const Field& field = *fields[i];
@@ -2074,24 +2077,27 @@ class FieldInvalidator {
       }
       value_ = field.StaticValue();
       if (value_.raw() != Object::sentinel().raw()) {
-        CheckValueType(value_, field);
+        CheckValueType(null_safety, value_, field);
       }
     }
   }
 
   void CheckInstances(const GrowableArray<const Instance*>& instances) {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    bool null_safety = isolate->null_safety();
     for (intptr_t i = 0; i < instances.length(); i++) {
       // This handle scope does run very frequently, but is a net-win by
       // preventing us from spending too much time in malloc for new handle
       // blocks.
-      HANDLESCOPE(Thread::Current());
-      CheckInstance(*instances[i]);
+      HANDLESCOPE(thread);
+      CheckInstance(null_safety, *instances[i]);
     }
   }
 
  private:
   DART_FORCE_INLINE
-  void CheckInstance(const Instance& instance) {
+  void CheckInstance(bool null_safety, const Instance& instance) {
     cls_ = instance.clazz();
     if (cls_.NumTypeArguments() > 0) {
       instantiator_type_arguments_ = instance.GetTypeArguments();
@@ -2105,12 +2111,14 @@ class FieldInvalidator {
         continue;
       }
       const Field& field = Field::Cast(entry_);
-      CheckInstanceField(instance, field);
+      CheckInstanceField(null_safety, instance, field);
     }
   }
 
   DART_FORCE_INLINE
-  void CheckInstanceField(const Instance& instance, const Field& field) {
+  void CheckInstanceField(bool null_safety,
+                          const Instance& instance,
+                          const Field& field) {
     if (field.needs_load_guard()) {
       return;  // Already guarding.
     }
@@ -2121,12 +2129,14 @@ class FieldInvalidator {
       field.set_needs_load_guard(true);
       return;
     }
-    CheckValueType(value_, field);
+    CheckValueType(null_safety, value_, field);
   }
 
   DART_FORCE_INLINE
-  void CheckValueType(const Instance& value, const Field& field) {
-    if (!FLAG_null_safety && value.IsNull()) {
+  void CheckValueType(bool null_safety,
+                      const Instance& value,
+                      const Field& field) {
+    if (!null_safety && value.IsNull()) {
       return;
     }
     type_ = field.type();

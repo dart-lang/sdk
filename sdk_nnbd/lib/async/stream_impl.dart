@@ -7,7 +7,7 @@ part of dart.async;
 /** Abstract and private interface for a place to put events. */
 abstract class _EventSink<T> {
   void _add(T data);
-  void _addError(Object error, StackTrace? stackTrace);
+  void _addError(Object error, StackTrace stackTrace);
   void _close();
 }
 
@@ -20,7 +20,7 @@ abstract class _EventSink<T> {
  */
 abstract class _EventDispatch<T> {
   void _sendData(T data);
-  void _sendError(Object error, StackTrace? stackTrace);
+  void _sendError(Object error, StackTrace stackTrace);
   void _sendDone();
 }
 
@@ -153,9 +153,9 @@ class _BufferingStreamSubscription<T>
   static Function _registerErrorHandler(Zone zone, Function? handleError) {
     // TODO(lrn): Consider whether we need to register the null handler.
     handleError ??= _nullErrorHandler;
-    if (handleError is void Function(Object, StackTrace?)) {
+    if (handleError is void Function(Object, StackTrace)) {
       return zone
-          .registerBinaryCallback<dynamic, Object, StackTrace?>(handleError);
+          .registerBinaryCallback<dynamic, Object, StackTrace>(handleError);
     }
     if (handleError is void Function(Object)) {
       return zone.registerUnaryCallback<dynamic, Object>(handleError);
@@ -220,7 +220,7 @@ class _BufferingStreamSubscription<T>
       _onDone = () {
         result._complete(resultValue);
       };
-      _onError = (Object error, StackTrace? stackTrace) {
+      _onError = (Object error, StackTrace stackTrace) {
         Future cancelFuture = cancel();
         if (!identical(cancelFuture, Future._nullFuture)) {
           cancelFuture.whenComplete(() {
@@ -283,7 +283,7 @@ class _BufferingStreamSubscription<T>
     }
   }
 
-  void _addError(Object error, StackTrace? stackTrace) {
+  void _addError(Object error, StackTrace stackTrace) {
     if (_isCanceled) return;
     if (_canFire) {
       _sendError(error, stackTrace); // Reports cancel after sending.
@@ -352,7 +352,7 @@ class _BufferingStreamSubscription<T>
     _checkState(wasInputPaused);
   }
 
-  void _sendError(Object error, StackTrace? stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     assert(!_isCanceled);
     assert(!_isPaused);
     assert(!_inCallback);
@@ -365,8 +365,8 @@ class _BufferingStreamSubscription<T>
       _state |= _STATE_IN_CALLBACK;
       // TODO(floitsch): this dynamic should be 'void'.
       var onError = _onError;
-      if (onError is void Function(Object, StackTrace?)) {
-        _zone.runBinaryGuarded<Object, StackTrace?>(onError, error, stackTrace);
+      if (onError is void Function(Object, StackTrace)) {
+        _zone.runBinaryGuarded<Object, StackTrace>(onError, error, stackTrace);
       } else {
         _zone.runUnaryGuarded<Object>(_onError as void Function(Object), error);
       }
@@ -581,7 +581,7 @@ typedef void _DoneHandler();
 void _nullDataHandler(dynamic value) {}
 
 /** Default error handler, reports the error to the current zone's handler. */
-void _nullErrorHandler(Object error, [StackTrace? stackTrace]) {
+void _nullErrorHandler(Object error, StackTrace stackTrace) {
   Zone.current.handleUncaughtError(error, stackTrace);
 }
 
@@ -608,7 +608,7 @@ class _DelayedData<T> extends _DelayedEvent<T> {
 /** A delayed error event. */
 class _DelayedError extends _DelayedEvent {
   final Object error;
-  final StackTrace? stackTrace;
+  final StackTrace stackTrace;
 
   _DelayedError(this.error, this.stackTrace);
   void perform(_EventDispatch dispatch) {
@@ -990,8 +990,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
   /// completed.
   bool _isPaused = false;
 
-  _StreamIterator(final Stream<T> stream)
-      : _stateData = stream {
+  _StreamIterator(final Stream<T> stream) : _stateData = stream {
     ArgumentError.checkNotNull(stream, "stream");
   }
 
@@ -1060,7 +1059,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
     if (_isPaused) _subscription?.pause();
   }
 
-  void _onError(Object error, [StackTrace? stackTrace]) {
+  void _onError(Object error, StackTrace stackTrace) {
     assert(_subscription != null && !_isPaused);
     var moveNextFuture = _stateData as _Future<bool>;
     _subscription = null;

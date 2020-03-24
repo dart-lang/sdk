@@ -391,6 +391,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return options.useNullSafety;
       case 'LEGACY':
         return options.useLegacySubtyping;
+      case 'LEGACY_JAVASCRIPT':
+        return options.legacyJavaScript;
       case 'PRINT_LEGACY_STARS':
         return options.printLegacyStars;
       default:
@@ -3104,14 +3106,14 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   /// Set the runtime type information if necessary.
   HInstruction _setListRuntimeTypeInfoIfNeeded(HInstruction object,
       InterfaceType type, SourceInformation sourceInformation) {
+    // [type] could be `List<T>`, so ensure it is `JSArray<T>`.
+    InterfaceType arrayType = dartTypes.interfaceType(
+        _commonElements.jsArrayClass, type.typeArguments);
     if (!_rtiNeed.classNeedsTypeArguments(type.element) ||
-        dartTypes.treatAsRawType(type)) {
+        _equivalentToMissingRti(arrayType)) {
       return object;
     }
     if (options.useNewRti) {
-      // [type] could be `List<T>`, so ensure it is `JSArray<T>`.
-      InterfaceType arrayType = dartTypes.interfaceType(
-          _commonElements.jsArrayClass, type.typeArguments);
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(arrayType, sourceElement);
 
@@ -4727,6 +4729,15 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         HLoadType.type(interopType, _abstractValueDomain.dynamicType)
           ..sourceInformation = sourceInformation;
     push(rti);
+  }
+
+  bool _equivalentToMissingRti(InterfaceType type) {
+    assert(type.element == _commonElements.jsArrayClass);
+    if (dartTypes.useNullSafety) {
+      return dartTypes.isStrongTopType(type.typeArguments.single);
+    } else {
+      return dartTypes.treatAsRawType(type);
+    }
   }
 
   void _handleForeignJs(ir.StaticInvocation invocation) {

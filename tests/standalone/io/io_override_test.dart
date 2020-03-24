@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 class DirectoryMock extends FileSystemEntity implements Directory {
@@ -127,9 +128,12 @@ class FileSystemEntityMock {
   }
 }
 
+final _mockFileSystemEvent = new Stream<FileSystemEvent>.empty();
+
 class FileSystemWatcherMock {
   static Stream<FileSystemEvent> watch(
-      String path, int events, bool recursive) async* {}
+          String path, int events, bool recursive) =>
+      _mockFileSystemEvent;
 
   static bool watchSupported() => false;
 }
@@ -187,11 +191,12 @@ Future<Null> ioOverridesRunTest() async {
       Expect.equals(
           FileSystemEntity.typeSync("file"), FileSystemEntityType.file);
       Expect.isFalse(FileSystemEntity.isWatchSupported);
-      Expect.isNull(new Directory("directory").watch());
+      Expect.identical(
+          _mockFileSystemEvent, new Directory("directory").watch());
       Expect.isTrue(new Link("link") is LinkMock);
-      Expect.isNull(Socket.connect(null, 0));
-      Expect.isNull(Socket.startConnect(null, 0));
-      Expect.isNull(ServerSocket.bind(null, 0));
+      asyncExpectThrows(() async => await Socket.connect(null, 0));
+      asyncExpectThrows(() async => await Socket.startConnect(null, 0));
+      asyncExpectThrows(() async => await ServerSocket.bind(null, 0));
     },
     createDirectory: DirectoryMock.createDirectory,
     getCurrentDirectory: DirectoryMock.getCurrent,

@@ -382,7 +382,7 @@ void testMapLiteral() {
   Map m = {"a": 1, "b": 2, "c": 3};
   Expect.equals(3, m.length);
   int sum = 0;
-  m.forEach((a, int b) {
+  m.forEach((a, b) {
     sum += b;
   });
   Expect.equals(6, sum);

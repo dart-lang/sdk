@@ -2220,6 +2220,36 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
+  test_functionType_requiredNamedParameter_03() {
+    var F0 = functionTypeStar(
+      returnType: voidNone,
+      parameters: [
+        namedParameter(name: 'a', type: intStar),
+      ],
+    );
+
+    var F1 = functionTypeNone(
+      returnType: voidNone,
+      parameters: [
+        namedRequiredParameter(name: 'a', type: intNone),
+      ],
+    );
+
+    isSubtype(
+      F0,
+      F1,
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({required int a})',
+    );
+
+    isSubtype(
+      F1,
+      F0,
+      strT0: 'void Function({required int a})',
+      strT1: 'void Function({int* a})*',
+    );
+  }
+
   test_futureOr_01() {
     isSubtype(
       intStar,

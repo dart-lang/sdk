@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/context_cache.dart';
@@ -18,8 +17,7 @@ abstract class HasContextMixin {
   AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
       CommandLineOptions options, String source) {
     if (options.analysisOptionsFile != null) {
-      file_system.File file =
-          resourceProvider.getFile(options.analysisOptionsFile);
+      var file = resourceProvider.getFile(options.analysisOptionsFile);
       if (!file.exists) {
         printAndFail('Options file not found: ${options.analysisOptionsFile}',
             exitCode: ErrorSeverity.ERROR.ordinal);

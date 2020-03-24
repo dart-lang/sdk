@@ -1284,11 +1284,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       // Copy over the super type entries.
       subInfo.genericSuperType ??= <Class, Supertype>{};
       subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
-      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
-        for (Supertype type in types) {
-          subInfo.recordGenericSuperType(
-              coreTypes, key, type, _onAmbiguousSupertypes);
-        }
+      superInfo.genericSuperType?.forEach((Class key, Supertype type) {
+        subInfo.recordGenericSuperType(
+            coreTypes, key, type, _onAmbiguousSupertypes);
       });
     } else {
       // Copy over all transitive generic super types, and substitute the
@@ -1298,11 +1296,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           superclass.typeParameters, supertype.typeArguments);
       subInfo.genericSuperType ??= <Class, Supertype>{};
       subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
-      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
-        for (Supertype type in types) {
-          subInfo.recordGenericSuperType(coreTypes, key,
-              substitution.substituteSupertype(type), _onAmbiguousSupertypes);
-        }
+      superInfo.genericSuperType?.forEach((Class key, Supertype type) {
+        subInfo.recordGenericSuperType(coreTypes, key,
+            substitution.substituteSupertype(type), _onAmbiguousSupertypes);
       });
 
       subInfo.recordGenericSuperType(

@@ -378,7 +378,7 @@ def GetSemanticSDKVersion(no_git_hash=False, version_file=None):
 
     if version.channel == 'be':
         postfix = '-edge' if no_git_hash else '-edge.%s' % GetGitRevision()
-    elif version.channel == 'dev':
+    elif version.channel in ('beta', 'dev'):
         postfix = '-dev.%s.%s' % (version.prerelease, version.prerelease_patch)
     else:
         assert version.channel == 'stable'

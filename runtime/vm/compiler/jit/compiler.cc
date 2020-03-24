@@ -7,7 +7,6 @@
 #include "vm/compiler/assembler/assembler.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -863,10 +862,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-  if (FLAG_precompiled_mode) {
-    return Precompiler::CompileFunction(
-        /* precompiler = */ NULL, thread, thread->zone(), function);
-  }
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1203,9 +1199,11 @@ void BackgroundCompiler::Run() {
       Function& function = Function::Handle(zone);
       {
         MonitorLocker ml(&queue_monitor_);
-        function = function_queue()->PeekFunction();
+        if (running_) {
+          function = function_queue()->PeekFunction();
+        }
       }
-      while (running_ && !function.IsNull()) {
+      while (!function.IsNull()) {
         if (is_optimizing()) {
           Compiler::CompileOptimizedFunction(thread, function,
                                              Compiler::kNoOSRDeoptId);
@@ -1217,7 +1215,7 @@ void BackgroundCompiler::Run() {
         QueueElement* qelem = NULL;
         {
           MonitorLocker ml(&queue_monitor_);
-          if (function_queue()->IsEmpty()) {
+          if (!running_ || function_queue()->IsEmpty()) {
             // We are shutting down, queue was cleared.
             function = Function::null();
           } else {

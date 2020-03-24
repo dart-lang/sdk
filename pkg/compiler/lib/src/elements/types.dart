@@ -5,7 +5,7 @@
 import '../common/names.dart';
 import '../common_elements.dart';
 import '../serialization/serialization.dart';
-import '../util/util.dart' show equalElements;
+import '../util/util.dart' show equalElements, identicalElements;
 import 'entities.dart';
 
 /// Hierarchy to describe types in Dart.
@@ -987,6 +987,115 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
       visitType(type, argument);
 }
 
+class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
+  final DartTypes _dartTypes;
+
+  _LegacyErasureVisitor(this._dartTypes);
+
+  DartType erase(DartType type) => visit(type, null);
+
+  List<DartType> eraseList(List<DartType> types) {
+    List<DartType> erasedTypes = types.map(erase).toList();
+    return identicalElements(erasedTypes, types) ? types : erasedTypes;
+  }
+
+  @override
+  DartType visit(DartType type, Null _) => type.accept(this, _);
+
+  @override
+  DartType visitLegacyType(LegacyType type, Null _) => erase(type.baseType);
+
+  @override
+  DartType visitNullableType(NullableType type, Null _) {
+    var baseType = erase(type.baseType);
+    if (identical(baseType, type.baseType)) return type;
+    return _dartTypes.nullableType(baseType);
+  }
+
+  @override
+  NeverType visitNeverType(NeverType type, Null _) => type;
+
+  @override
+  VoidType visitVoidType(VoidType type, Null _) => type;
+
+  @override
+  TypeVariableType visitTypeVariableType(TypeVariableType type, Null _) => type;
+
+  @override
+  FunctionTypeVariable visitFunctionTypeVariable(
+          FunctionTypeVariable type, Null _) =>
+      type;
+
+  @override
+  FunctionType visitFunctionType(FunctionType type, Null _) {
+    var returnType = erase(type.returnType);
+    var parameterTypes = eraseList(type.parameterTypes);
+    var optionalParameterTypes = eraseList(type.optionalParameterTypes);
+    var namedParameterTypes = eraseList(type.namedParameterTypes);
+
+    var oldTypeVariables = type.typeVariables;
+    var length = oldTypeVariables.length;
+
+    List<FunctionTypeVariable> typeVariables =
+        List<FunctionTypeVariable>(length);
+    List<FunctionTypeVariable> erasableTypeVariables = [];
+    List<FunctionTypeVariable> erasedTypeVariables = [];
+    for (int i = 0; i < length; i++) {
+      var oldTypeVariable = oldTypeVariables[i];
+      var oldBound = oldTypeVariable.bound;
+      var bound = erase(oldBound);
+      if (identical(bound, oldBound)) {
+        typeVariables[i] = oldTypeVariable;
+      } else {
+        var typeVariable = _dartTypes.functionTypeVariable(i)..bound = bound;
+        typeVariables[i] = typeVariable;
+        erasableTypeVariables.add(oldTypeVariable);
+        erasedTypeVariables.add(typeVariable);
+      }
+    }
+
+    if (identical(returnType, type.returnType) &&
+        identical(parameterTypes, type.parameterTypes) &&
+        identical(optionalParameterTypes, type.optionalParameterTypes) &&
+        identical(namedParameterTypes, type.namedParameterTypes) &&
+        erasableTypeVariables.isEmpty) return type;
+
+    return _dartTypes.subst(
+        erasedTypeVariables,
+        erasableTypeVariables,
+        _dartTypes.functionType(
+            returnType,
+            parameterTypes,
+            optionalParameterTypes,
+            type.namedParameters,
+            namedParameterTypes,
+            typeVariables));
+  }
+
+  @override
+  InterfaceType visitInterfaceType(InterfaceType type, Null _) {
+    var typeArguments = eraseList(type.typeArguments);
+    if (identical(typeArguments, type.typeArguments)) return type;
+    return _dartTypes.interfaceType(type.element, typeArguments);
+  }
+
+  @override
+  DynamicType visitDynamicType(DynamicType type, Null _) => type;
+
+  @override
+  ErasedType visitErasedType(ErasedType type, Null _) => type;
+
+  @override
+  AnyType visitAnyType(AnyType type, Null _) => type;
+
+  @override
+  DartType visitFutureOrType(FutureOrType type, Null _) {
+    var typeArgument = erase(type.typeArgument);
+    if (identical(typeArgument, type.typeArgument)) return type;
+    return _dartTypes.futureOrType(typeArgument);
+  }
+}
+
 abstract class DartTypeSubstitutionVisitor<A>
     extends DartTypeVisitor<DartType, A> {
   DartTypes get dartTypes;
@@ -1649,10 +1758,10 @@ abstract class DartTypes {
         t is NullableType ||
         t is LegacyType && _isNullable(t.baseType) ||
         t is FutureOrType && _isNullable(t.typeArgument) ||
-        _isStrongTopType(t);
+        isStrongTopType(t);
 
     DartType result;
-    if (_isStrongTopType(baseType) ||
+    if (isStrongTopType(baseType) ||
         baseType.isNull ||
         baseType is NullableType ||
         baseType is FutureOrType && _isNullable(baseType.typeArgument)) {
@@ -1665,7 +1774,7 @@ abstract class DartTypes {
         result = commonElements.nullType;
       } else if (legacyBaseType is FutureOrType &&
           _isNullable(legacyBaseType.typeArgument)) {
-        result = legacyBaseType.typeArgument;
+        result = legacyBaseType;
       } else {
         result = nullableType(legacyBaseType);
       }
@@ -1675,7 +1784,8 @@ abstract class DartTypes {
     return result;
   }
 
-  DartType interfaceType(ClassEntity element, List<DartType> typeArguments) =>
+  InterfaceType interfaceType(
+          ClassEntity element, List<DartType> typeArguments) =>
       InterfaceType._(element, typeArguments);
 
   // TODO(fishythefish): Normalize `T extends Never` to `Never`.
@@ -1683,9 +1793,10 @@ abstract class DartTypes {
       TypeVariableType._(element);
 
   // See [functionType] for normalization.
-  DartType functionTypeVariable(int index) => FunctionTypeVariable._(index);
+  FunctionTypeVariable functionTypeVariable(int index) =>
+      FunctionTypeVariable._(index);
 
-  DartType neverType() => const NeverType._();
+  NeverType neverType() => const NeverType._();
 
   VoidType voidType() => const VoidType._();
 
@@ -1736,6 +1847,9 @@ abstract class DartTypes {
     return result;
   }
 
+  DartType eraseLegacy(DartType type) =>
+      _LegacyErasureVisitor(this).erase(type);
+
   /// Performs the substitution `[arguments[i]/parameters[i]]t`.
   ///
   /// The notation is known from this lambda calculus rule:
@@ -1775,7 +1889,7 @@ abstract class DartTypes {
   /// Returns `true` if [t] is a top type, that is, a supertype of every type.
   bool isTopType(DartType t) => t._isTop(useNullSafety);
 
-  bool _isStrongTopType(DartType t) => t._isStrongTop(useNullSafety);
+  bool isStrongTopType(DartType t) => t._isStrongTop(useNullSafety);
 
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtype(DartType s, DartType t) => _subtypeHelper(s, t);
@@ -1818,7 +1932,7 @@ abstract class DartTypes {
       if (isTopType(t)) return true;
 
       // Left Top:
-      if (_isStrongTopType(s)) return false;
+      if (isStrongTopType(s)) return false;
 
       // Left Bottom:
       if (useLegacySubtyping) {

@@ -753,6 +753,11 @@ abstract class HttpHeaders {
  * [HeaderValue] can be used to conveniently build and parse header
  * values on this form.
  *
+ * Parameter values can be omitted, in which case the value is parsed as `null`.
+ * Values can be doubled quoted to allow characters outside of the RFC 7230
+ * token characters and backslash sequences can be used to represent the double
+ * quote and backslash characters themselves.
+ *
  * To build an [:accepts:] header with the value
  *
  *     text/plain; q=0.3, text/html
@@ -779,7 +784,8 @@ abstract class HeaderValue {
   /**
    * Creates a new header value object setting the value and parameters.
    */
-  factory HeaderValue([String value = "", Map<String, String> parameters]) {
+  factory HeaderValue(
+      [String value = "", Map<String, String> parameters = const {}]) {
     return new _HeaderValue(value, parameters);
   }
 
@@ -892,7 +898,7 @@ abstract class ContentType implements HeaderValue {
    * or in `parameters`, will have its value converted to lower-case.
    */
   factory ContentType(String primaryType, String subType,
-      {String charset, Map<String, String> parameters}) {
+      {String charset, Map<String, String> parameters = const {}}) {
     return new _ContentType(primaryType, subType, charset, parameters);
   }
 

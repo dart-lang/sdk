@@ -92,8 +92,9 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
   if (type.IsTypeRef()) {
-    return FLAG_null_safety ? StubCode::DefaultTypeTest().raw()
-                            : StubCode::DefaultNullableTypeTest().raw();
+    return Isolate::Current()->null_safety()
+               ? StubCode::DefaultTypeTest().raw()
+               : StubCode::DefaultNullableTypeTest().raw();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -459,7 +460,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
     // We don't need to check nullability of LHS for nullable and legacy RHS
     // ("Right Legacy", "Right Nullable" rules).
-    if (FLAG_null_safety && !type_arg.IsNullable() && !type_arg.IsLegacy()) {
+    if (Isolate::Current()->null_safety() && !type_arg.IsNullable() &&
+        !type_arg.IsLegacy()) {
       compiler::Label skip_nullable_check;
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument
@@ -623,7 +625,11 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
     if (instantiator_type_arguments_.IsNull()) {
       return Type::DynamicType();
     }
-    return instantiator_type_arguments_.TypeAt(parameter.index());
+    AbstractType& result = AbstractType::Handle(
+        instantiator_type_arguments_.TypeAt(parameter.index()));
+    result = result.SetInstantiatedNullability(TypeParameter::Cast(type),
+                                               Heap::kOld);
+    return result.NormalizeFutureOrType(Heap::kOld);
   } else if (type.IsFunctionType()) {
     // No support for function types yet.
     UNREACHABLE();
@@ -847,7 +853,7 @@ void TypeUsageInfo::UpdateAssertAssignableTypes(
   // eagerly and avoid doing it down inside the loop.
   type = Type::DynamicType();
   UseTypeInAssertAssignable(type);
-  type = Type::ObjectType();
+  type = Type::ObjectType();  // TODO(regis): Add nullable Object?
   UseTypeInAssertAssignable(type);
 
   for (intptr_t cid = 0; cid < cid_count; ++cid) {

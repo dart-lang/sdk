@@ -36,20 +36,22 @@ void testPing(int totalConnections) {
       response.headers.add("Sec-WebSocket-Accept", accept);
       response.headers.contentLength = 0;
       response.detachSocket().then((socket) {
-        socket.drain().then((_) {
-          socket.close();
-          closed++;
-          if (closed == totalConnections) {
-            server.close();
-          }
-        });
+        socket.destroy();
       });
     });
 
+    int closeCount = 0;
     for (int i = 0; i < totalConnections; i++) {
       WebSocket.connect('ws://localhost:${server.port}').then((webSocket) {
         webSocket.pingInterval = const Duration(milliseconds: 100);
-        webSocket.drain();
+        webSocket.listen((message) {
+          Expect.fail("unexpected message");
+        }, onDone: () {
+          closeCount++;
+          if (closeCount == totalConnections) {
+            server.close();
+          }
+        });
       });
     }
   });

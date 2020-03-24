@@ -85,24 +85,21 @@ class SpecializedChecks {
   }
 
   static MemberEntity findAsCheck(
-      DartType dartType, bool isTypeError, JCommonElements commonElements) {
+      DartType dartType, JCommonElements commonElements) {
     if (dartType is InterfaceType) {
       if (dartType.typeArguments.isNotEmpty) return null;
-      return _findAsCheck(dartType.element, commonElements,
-          isTypeError: isTypeError, isNullable: true);
+      return _findAsCheck(dartType.element, commonElements, isNullable: true);
     }
     return null;
   }
 
   static MemberEntity _findAsCheck(
       ClassEntity element, JCommonElements commonElements,
-      {bool isTypeError, bool isNullable}) {
+      {bool isNullable}) {
     if (element == commonElements.jsStringClass ||
         element == commonElements.stringClass) {
       if (isNullable) {
-        return isTypeError
-            ? commonElements.specializedCheckStringNullable
-            : commonElements.specializedAsStringNullable;
+        return commonElements.specializedAsStringNullable;
       }
       return null;
     }
@@ -110,9 +107,7 @@ class SpecializedChecks {
     if (element == commonElements.jsBoolClass ||
         element == commonElements.boolClass) {
       if (isNullable) {
-        return isTypeError
-            ? commonElements.specializedCheckBoolNullable
-            : commonElements.specializedAsBoolNullable;
+        return commonElements.specializedAsBoolNullable;
       }
       return null;
     }
@@ -120,9 +115,7 @@ class SpecializedChecks {
     if (element == commonElements.jsDoubleClass ||
         element == commonElements.doubleClass) {
       if (isNullable) {
-        return isTypeError
-            ? commonElements.specializedCheckDoubleNullable
-            : commonElements.specializedAsDoubleNullable;
+        return commonElements.specializedAsDoubleNullable;
       }
       return null;
     }
@@ -130,9 +123,7 @@ class SpecializedChecks {
     if (element == commonElements.jsNumberClass ||
         element == commonElements.numClass) {
       if (isNullable) {
-        return isTypeError
-            ? commonElements.specializedCheckNumNullable
-            : commonElements.specializedAsNumNullable;
+        return commonElements.specializedAsNumNullable;
       }
       return null;
     }
@@ -143,9 +134,7 @@ class SpecializedChecks {
         element == commonElements.jsUInt31Class ||
         element == commonElements.jsPositiveIntClass) {
       if (isNullable) {
-        return isTypeError
-            ? commonElements.specializedCheckIntNullable
-            : commonElements.specializedAsIntNullable;
+        return commonElements.specializedAsIntNullable;
       }
       return null;
     }

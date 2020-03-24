@@ -111,7 +111,7 @@ normalizeWhitespace(line) {
 multilineNormalize(lines) {
   var afterBlankLines = false; // Does [line] succeed >0 empty lines?
   var afterCommentLines = false; // Does [line] succeed >0 commentOnly lines?
-  var newLines = new List();
+  var newLines = [];
   for (var line in lines) {
     if (afterBlankLines && afterCommentLines) {
       // Previous line was both blank and a comment: not possible.
@@ -193,7 +193,7 @@ sispIsDartEnd(line) => line.contains(dartCodeEndRE);
 /// and "interesting" lines may be characterized by [analysisFunc] via
 /// the returned event object.
 findEvents(lines, analyzer) {
-  var events = new List();
+  var events = [];
   for (var line in lines) {
     var event = analyzer.analyze(line);
     if (event != null) events.add(event);
@@ -543,7 +543,7 @@ main([args]) {
 
   // Perform single-line normalization.
   var inDartCode = false;
-  var normalizedLines = new List();
+  var normalizedLines = [];
 
   for (var line in lines) {
     if (sispIsDartBegin(line)) {

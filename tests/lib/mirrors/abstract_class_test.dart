@@ -53,11 +53,11 @@ testFakeFunction() {
 }
 
 abstract class GenericFoo<T> {
-  T genericFoo();
+  T genericFoo(T t);
 }
 
 class GenericBar<T> extends GenericFoo<T> {
-  T genericFoo() {}
+  T genericFoo(T t) => t;
 }
 
 testGeneric() {

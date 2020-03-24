@@ -46,8 +46,8 @@ test() {
   // Move directory to be sure script is correct.
   var oldDir = Directory.current;
   Directory.current = Directory.current.parent;
-  Expect.isTrue(Platform.script.path
-      .endsWith('tests/standalone_2/io/platform_test.dart'));
+  Expect.isTrue(
+      Platform.script.path.endsWith('tests/standalone/io/platform_test.dart'));
   Expect.isTrue(Platform.script.toFilePath().startsWith(oldDir.path));
   // Restore dir.
   Directory.current = oldDir;
@@ -87,8 +87,7 @@ testIsolate() {
     // SpawnFunction retains the script url of the parent which in this
     // case was a relative path.
     Expect.equals("file", uri.scheme);
-    Expect.isTrue(
-        uri.path.endsWith('tests/standalone_2/io/platform_test.dart'));
+    Expect.isTrue(uri.path.endsWith('tests/standalone/io/platform_test.dart'));
     Expect.equals(Platform.packageRoot, results["Platform.packageRoot"]);
     Expect.listEquals(
         Platform.executableArguments, results["Platform.executableArguments"]);
@@ -99,7 +98,10 @@ testIsolate() {
 testVersion() {
   checkValidVersion(String version) {
     RegExp re = new RegExp(r'(\d+)\.(\d+)\.(\d+)(-dev\.([^\.]*)\.([^\.]*))?');
-    var match = re.firstMatch(version)!;
+    var match = re.firstMatch(version);
+    if (match == null) {
+      throw new FormatException();
+    }
     var major = int.parse(match.group(1)!);
     // Major version.
     Expect.isTrue(major == 1 || major == 2);

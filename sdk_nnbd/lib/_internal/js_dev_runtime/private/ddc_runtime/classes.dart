@@ -551,16 +551,7 @@ addTypeTests(ctor, isClass) {
       '',
       '''#.as = function as_C(obj) {
     if (obj != null && obj[#]) return obj;
-    return #(obj, this, false);
-  }''',
-      ctor,
-      isClass,
-      cast);
-  JS(
-      '',
-      '''#._check = function check_C(obj) {
-    if (obj != null && obj[#]) return obj;
-    return #(obj, this, true);
+    return #(obj, this);
   }''',
       ctor,
       isClass,

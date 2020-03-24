@@ -7499,7 +7499,9 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
     return false;
   }
   // Verify that all argument names are valid parameter names.
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   String& argument_name = String::Handle(zone);
   String& parameter_name = String::Handle(zone);
   const intptr_t num_positional_args = num_arguments - num_named_arguments;
@@ -7528,7 +7530,7 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
       return false;
     }
   }
-  if (FLAG_null_safety) {
+  if (isolate->null_safety()) {
     // Verify that all required named parameters are filled.
     for (intptr_t j = num_positional_args; j < num_parameters; j++) {
       if (IsRequiredAt(j)) {
@@ -7966,10 +7968,6 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
       return false;
     }
   }
-  // Check the names and types of optional named parameters.
-  if (other_num_opt_named_params == 0) {
-    return true;
-  }
   // Check that for each optional named parameter of type T of the other
   // function type, there exists an optional named parameter of this function
   // type with an identical name and with a type S that is a supertype of T.
@@ -7983,7 +7981,6 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     ASSERT(other_param_name.IsSymbol());
-    const bool other_is_required = other.IsRequiredAt(i);
     found_param_name = false;
     for (intptr_t j = num_fixed_params; j < num_params; j++) {
       ASSERT(String::Handle(zone, ParameterNameAt(j)).IsSymbol());
@@ -7992,14 +7989,35 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
         if (!IsContravariantParameter(j, other, i, space)) {
           return false;
         }
-        if (FLAG_null_safety && IsRequiredAt(j) && !other_is_required) {
-          return false;
-        }
         break;
       }
     }
     if (!found_param_name) {
       return false;
+    }
+  }
+  if (FLAG_null_safety) {
+    // Check that for each required named parameter in this function, there's a
+    // corresponding required named parameter in the other function.
+    String& param_name = other_param_name;
+    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+      if (IsRequiredAt(j)) {
+        param_name = ParameterNameAt(j);
+        ASSERT(param_name.IsSymbol());
+        bool found = false;
+        for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+          ASSERT(String::Handle(zone, other.ParameterNameAt(i)).IsSymbol());
+          if (other.ParameterNameAt(i) == param_name.raw()) {
+            found = true;
+            if (!other.IsRequiredAt(i)) {
+              return false;
+            }
+          }
+        }
+        if (!found) {
+          return false;
+        }
+      }
     }
   }
   return true;
@@ -17629,7 +17647,7 @@ bool Instance::IsAssignableTo(
   // In weak mode type casts, whether in legacy or opted-in libraries, the null
   // instance is detected and handled in inlined code and therefore cannot be
   // encountered here as a Dart null receiver.
-  ASSERT(FLAG_null_safety || !IsNull());
+  ASSERT(Isolate::Current()->null_safety() || !IsNull());
   // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
   // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
   return RuntimeTypeIsSubtypeOf(other, other_instantiator_type_arguments,
@@ -17671,8 +17689,12 @@ bool Instance::NullIsInstanceOf(
 }
 
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+
   // In weak mode, Null is a bottom type (according to LEGACY_SUBTYPE).
-  if (!FLAG_null_safety) {
+  if (!isolate->null_safety()) {
     return true;
   }
   // "Left Null" rule: null is assignable when destination type is either
@@ -17682,7 +17704,8 @@ bool Instance::NullIsAssignableTo(const AbstractType& other) {
     return true;
   }
   if (other.IsFutureOrType()) {
-    return NullIsAssignableTo(AbstractType::Handle(other.UnwrapFutureOr()));
+    return NullIsAssignableTo(
+        AbstractType::Handle(zone, other.UnwrapFutureOr()));
   }
   return false;
 }
@@ -17699,12 +17722,13 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   if (other.IsTopType()) {
     return true;
   }
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   // In weak testing mode, Null type is a subtype of any type.
-  if (IsNull() && !FLAG_null_safety) {
+  if (IsNull() && !isolate->null_safety()) {
     return true;
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
     if (other.IsDartFunctionType() || other.IsDartClosureType()) {
@@ -17766,7 +17790,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return false;
   }
   if (IsNull()) {
-    ASSERT(FLAG_null_safety);
+    ASSERT(isolate->null_safety());
     if (instantiated_other.IsNullType()) {
       return true;
     }
@@ -18062,17 +18086,27 @@ RawAbstractType* AbstractType::SetInstantiatedNullability(
       .SetInstantiatedNullability(type_param, space);
 }
 
-RawAbstractType* AbstractType::NormalizeInstantiatedType() const {
+RawAbstractType* AbstractType::NormalizeFutureOrType(Heap::Space space) const {
   if (Dart::non_nullable_flag()) {
-    // Normalize FutureOr<T>.
     if (IsFutureOrType()) {
       const AbstractType& unwrapped_type =
           AbstractType::Handle(UnwrapFutureOr());
       const classid_t cid = unwrapped_type.type_class_id();
-      if (cid == kDynamicCid || cid == kVoidCid || cid == kInstanceCid) {
+      if (cid == kDynamicCid || cid == kVoidCid) {
         return unwrapped_type.raw();
       }
-      if (cid == kNeverCid && IsNonNullable()) {
+      if (cid == kInstanceCid) {
+        if (IsNonNullable()) {
+          return unwrapped_type.raw();
+        }
+        if (IsNullable() || unwrapped_type.IsNullable()) {
+          return Type::Cast(unwrapped_type)
+              .ToNullability(Nullability::kNullable, space);
+        }
+        return Type::Cast(unwrapped_type)
+            .ToNullability(Nullability::kLegacy, space);
+      }
+      if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
         ObjectStore* object_store = Isolate::Current()->object_store();
         if (object_store->non_nullable_future_never_type() == Type::null()) {
           const Class& cls = Class::Handle(object_store->future_class());
@@ -18087,7 +18121,9 @@ RawAbstractType* AbstractType::NormalizeInstantiatedType() const {
           type ^= type.Canonicalize();
           object_store->set_non_nullable_future_never_type(type);
         }
-        return object_store->non_nullable_future_never_type();
+        const Type& future_never_type =
+            Type::Handle(object_store->non_nullable_future_never_type());
+        return future_never_type.ToNullability(nullability(), space);
       }
       if (cid == kNullCid) {
         ObjectStore* object_store = Isolate::Current()->object_store();
@@ -18105,6 +18141,10 @@ RawAbstractType* AbstractType::NormalizeInstantiatedType() const {
           object_store->set_nullable_future_null_type(type);
         }
         return object_store->nullable_future_null_type();
+      }
+      if (IsNullable() && unwrapped_type.IsNullable()) {
+        return Type::Cast(*this).ToNullability(Nullability::kNonNullable,
+                                               space);
       }
     }
   }
@@ -18449,7 +18489,7 @@ bool AbstractType::IsTopTypeForAssignability() const {
   if (cid == kInstanceCid) {  // Object type.
     // NNBD weak mode uses LEGACY_SUBTYPE for assignability / 'as' tests,
     // and non-nullable Object is a top type according to LEGACY_SUBTYPE.
-    return !FLAG_null_safety || !IsNonNullable();
+    return !Isolate::Current()->null_safety() || !IsNonNullable();
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
@@ -18560,6 +18600,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return Instance::NullIsAssignableTo(other);
   }
   Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   // Type parameters cannot be handled by Class::IsSubtypeOf().
   // When comparing two uninstantiated function types, one returning type
@@ -18596,7 +18637,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   if (other.IsTypeParameter()) {
     return false;
   }
-  if (FLAG_null_safety && IsNullable() && other.IsNonNullable()) {
+  if (isolate->null_safety() && IsNullable() && other.IsNonNullable()) {
     return false;
   }
   const Class& type_cls = Class::Handle(zone, type_class());
@@ -18972,7 +19013,7 @@ RawAbstractType* Type::InstantiateFrom(
     }
   }
   // Canonicalization is not part of instantiation.
-  return instantiated_type.NormalizeInstantiatedType();
+  return instantiated_type.NormalizeFutureOrType(space);
 }
 
 bool Type::IsEquivalent(const Instance& other,
@@ -19001,8 +19042,12 @@ bool Type::IsEquivalent(const Instance& other,
   }
   Nullability this_type_nullability = nullability();
   Nullability other_type_nullability = other_type.nullability();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (FLAG_null_safety && this_type_nullability == Nullability::kNullable &&
+    if (isolate->null_safety() &&
+        this_type_nullability == Nullability::kNullable &&
         other_type_nullability == Nullability::kNonNullable) {
       return false;
     }
@@ -19028,8 +19073,6 @@ bool Type::IsEquivalent(const Instance& other,
       (signature() == other_type.signature())) {
     return true;
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
   if (arguments() != other_type.arguments()) {
     const Class& cls = Class::Handle(zone, type_class());
     const intptr_t num_type_params = cls.NumTypeParameters(thread);
@@ -19722,7 +19765,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
   Nullability this_type_param_nullability = nullability();
   Nullability other_type_param_nullability = other_type_param.nullability();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (FLAG_null_safety &&
+    if (Isolate::Current()->null_safety() &&
         (this_type_param_nullability == Nullability::kNullable) &&
         (other_type_param_nullability == Nullability::kNonNullable)) {
       return false;
@@ -19836,7 +19879,7 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     AbstractType& result =
         AbstractType::Handle(function_type_arguments.TypeAt(index()));
     result = result.SetInstantiatedNullability(*this, space);
-    return result.NormalizeInstantiatedType();
+    return result.NormalizeFutureOrType(space);
   }
   ASSERT(IsClassTypeParameter());
   if (instantiator_type_arguments.IsNull()) {
@@ -19854,7 +19897,7 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   AbstractType& result =
       AbstractType::Handle(instantiator_type_arguments.TypeAt(index()));
   result = result.SetInstantiatedNullability(*this, space);
-  return result.NormalizeInstantiatedType();
+  return result.NormalizeFutureOrType(space);
   // There is no need to canonicalize the instantiated type parameter, since all
   // type arguments are canonicalized at type finalization time. It would be too
   // early to canonicalize the returned type argument here, since instantiation
@@ -23432,18 +23475,27 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
                                         : Code::Cast(code).PayloadStart();
         uword return_addr = start + pc_offset;
         uword call_addr = return_addr - 1;
+        buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
         uword dso_base;
         char* dso_name;
         if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
                                                      &dso_name)) {
           uword dso_offset = call_addr - dso_base;
-          buffer.Printf("    #%02" Pd " abs %" Pp " virt %" Pp " %s\n",
-                        frame_index, call_addr, dso_offset, dso_name);
+          buffer.Printf(" virt %" Pp "", dso_offset);
+          uword symbol_start;
+          if (auto const symbol_name = NativeSymbolResolver::LookupSymbolName(
+                  call_addr, &symbol_start)) {
+            uword symbol_offset = call_addr - symbol_start;
+            buffer.Printf(" %s+0x%" Px "", symbol_name, symbol_offset);
+            NativeSymbolResolver::FreeSymbolName(symbol_name);
+          } else {
+            buffer.Printf(" %s", dso_name);
+          }
           NativeSymbolResolver::FreeSymbolName(dso_name);
         } else {
-          buffer.Printf("    #%02" Pd " abs %" Pp " <unknown>\n", frame_index,
-                        call_addr);
+          buffer.Printf(" <unknown>");
         }
+        buffer.Printf("\n");
         frame_index++;
       }
     }

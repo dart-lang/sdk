@@ -19,4 +19,8 @@ declare_args() {
     # Absolute directory containing the Goma source code.
     goma_dir = getenv("HOME") + "/goma"
   }
+
+  # Sets relative symlink path to Xcode SDK path.
+  # Based on http://crrev.com/c/1946174.
+  mac_use_goma_rbe = false
 }

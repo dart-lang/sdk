@@ -66,6 +66,14 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr);
 }
 
+intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
+  intptr_t fd = Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+  return Connect(fd, addr);
+}
+
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
   intptr_t fd = Create(addr);
@@ -75,7 +83,24 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 
   intptr_t result = TEMP_FAILURE_RETRY(
       bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
-  if ((result != 0) && (errno != EINPROGRESS)) {
+  if (result != 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+
+  return Connect(fd, addr);
+}
+
+intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
+                                             const RawAddr& source_addr) {
+  intptr_t fd = Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+
+  intptr_t result = TEMP_FAILURE_RETRY(
+      bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
+  if (result != 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
@@ -185,6 +210,37 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     intptr_t new_fd = CreateBindListen(addr, backlog, v6_only);
     FDUtils::SaveErrorAndClose(fd);
     return new_fd;
+  }
+
+  if (NO_RETRY_EXPECTED(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+
+  if (!FDUtils::SetNonBlocking(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+  return fd;
+}
+
+intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
+                                                  intptr_t backlog) {
+  intptr_t fd;
+  fd = NO_RETRY_EXPECTED(socket(addr.ss.ss_family, SOCK_STREAM, 0));
+  if (fd < 0) {
+    return -1;
+  }
+
+  if (!FDUtils::SetCloseOnExec(fd)) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
+  }
+
+  if (NO_RETRY_EXPECTED(
+          bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
+    FDUtils::SaveErrorAndClose(fd);
+    return -1;
   }
 
   if (NO_RETRY_EXPECTED(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {

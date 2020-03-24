@@ -59,7 +59,7 @@ static method use2([@vm.inferred-type.metadata=#lib::Intermediate] self::Interme
 static method use3([@vm.inferred-type.metadata=#lib::Intermediate] self::Intermediate* i, self::A* aa) → dynamic
   return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=! (skip check)] i.{self::Intermediate::bar}(aa);
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
+  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::Function*)] self::unknown.call();
 static method allocateB() → dynamic {
   new self::B::•();
 }

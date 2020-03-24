@@ -25,7 +25,7 @@ void main() {
     loadNavigationTree();
     if (path != '/' && path != rootPath) {
       // TODO(srawlins): replaceState?
-      loadFile(path, offset, lineNumber, callback: () {
+      loadFile(path, offset, lineNumber, true, callback: () {
         pushState(path, offset, lineNumber);
       });
     }
@@ -49,10 +49,10 @@ void main() {
     int offset = getOffset(window.location.href);
     int lineNumber = getLine(window.location.href);
     if (path.length > 1) {
-      loadFile(path, offset, lineNumber);
+      loadFile(path, offset, lineNumber, false);
     } else {
       // Blank out the page, for the index screen.
-      writeCodeAndRegions(path, FileDetails.empty());
+      writeCodeAndRegions(path, FileDetails.empty(), true);
       updatePage('&nbsp;', null);
     }
   });
@@ -79,7 +79,7 @@ void addArrowClickHandler(Element arrow) {
   });
 }
 
-void addClickHandlers(String selector) {
+void addClickHandlers(String selector, bool clearEditDetails) {
   Element parentElement = document.querySelector(selector);
 
   // Add navigation handlers for navigation links in the source code.
@@ -88,7 +88,7 @@ void addClickHandlers(String selector) {
     link.onClick.listen((event) {
       Element tableElement = document.querySelector('table[data-path]');
       String parentPath = tableElement.dataset['path'];
-      handleNavLinkClick(event, relativeTo: parentPath);
+      handleNavLinkClick(event, clearEditDetails, relativeTo: parentPath);
     });
   });
 
@@ -134,7 +134,8 @@ int getOffset(String location) {
 }
 
 void handleNavLinkClick(
-  MouseEvent event, {
+  MouseEvent event,
+  bool clearEditDetails, {
   String relativeTo,
 }) {
   Element target = event.currentTarget;
@@ -153,11 +154,11 @@ void handleNavLinkClick(
   int lineNumber = getLine(location);
 
   if (offset != null) {
-    navigate(path, offset, lineNumber, callback: () {
+    navigate(path, offset, lineNumber, clearEditDetails, callback: () {
       pushState(path, offset, lineNumber);
     });
   } else {
-    navigate(path, null, null, callback: () {
+    navigate(path, null, null, clearEditDetails, callback: () {
       pushState(path, null, null);
     });
   }
@@ -202,7 +203,7 @@ void loadAndPopulateEditDetails(String path, int offset) {
     if (xhr.status == 200) {
       var response = EditDetails.fromJson(jsonDecode(xhr.responseText));
       populateEditDetails(response);
-      addClickHandlers('.edit-panel .panel-content');
+      addClickHandlers('.edit-panel .panel-content', false);
     } else {
       window.alert('Request failed; status of ${xhr.status}');
     }
@@ -218,12 +219,13 @@ void loadAndPopulateEditDetails(String path, int offset) {
 void loadFile(
   String path,
   int offset,
-  int line, {
+  int line,
+  bool clearEditDetails, {
   VoidCallback callback,
 }) {
   // Handle the case where we're requesting a directory.
   if (!path.endsWith('.dart')) {
-    writeCodeAndRegions(path, FileDetails.empty());
+    writeCodeAndRegions(path, FileDetails.empty(), clearEditDetails);
     updatePage(path);
     if (callback != null) {
       callback();
@@ -239,7 +241,8 @@ void loadFile(
   ).then((HttpRequest xhr) {
     if (xhr.status == 200) {
       Map<String, dynamic> response = jsonDecode(xhr.responseText);
-      writeCodeAndRegions(path, FileDetails.fromJson(response));
+      writeCodeAndRegions(
+          path, FileDetails.fromJson(response), clearEditDetails);
       maybeScrollToAndHighlight(offset, line);
       String filePathPart =
           path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
@@ -287,11 +290,22 @@ void logError(e, st) {
   window.console.error('$st');
 }
 
+final Element headerPanel = document.querySelector('header');
+final Element footerPanel = document.querySelector('footer');
+
+/// Scroll an element into view if it is not visible.
 void maybeScrollIntoView(Element element) {
   Rectangle rect = element.getBoundingClientRect();
-  if (rect.bottom > window.innerHeight) {
+  // A line of text in the code view is 14px high. Including it here means we
+  // only choose to _not_ scroll a line of code into view if the entire line is
+  // visible.
+  var lineHeight = 14;
+  var visibleCeiling = headerPanel.offsetHeight + lineHeight;
+  var visibleFloor =
+      window.innerHeight - (footerPanel.offsetHeight + lineHeight);
+  if (rect.bottom > visibleFloor) {
     element.scrollIntoView();
-  } else if (rect.top < 0) {
+  } else if (rect.top < visibleCeiling) {
     element.scrollIntoView();
   }
 }
@@ -324,8 +338,7 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
   } else {
     // If no offset is given, this is likely a navigation link, and we need to
     // scroll back to the top of the page.
-    target = document.getElementById('unit-name');
-    maybeScrollIntoView(target);
+    maybeScrollIntoView(unitName);
   }
 }
 
@@ -336,7 +349,8 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
 void navigate(
   String path,
   int offset,
-  int lineNumber, {
+  int lineNumber,
+  bool clearEditDetails, {
   VoidCallback callback,
 }) {
   int currentOffset = getOffset(window.location.href);
@@ -349,7 +363,7 @@ void navigate(
       callback();
     }
   } else {
-    loadFile(path, offset, lineNumber, callback: callback);
+    loadFile(path, offset, lineNumber, clearEditDetails, callback: callback);
   }
 }
 
@@ -357,8 +371,9 @@ String pluralize(int count, String single, {String multiple}) {
   return count == 1 ? single : (multiple ?? '${single}s');
 }
 
+final Element editPanel = document.querySelector('.edit-panel .panel-content');
+
 void populateEditDetails([EditDetails response]) {
-  var editPanel = document.querySelector('.edit-panel .panel-content');
   editPanel.innerHtml = '';
 
   if (response == null) {
@@ -378,65 +393,17 @@ void populateEditDetails([EditDetails response]) {
   int line = response.line;
   Element explanation = editPanel.append(document.createElement('p'));
   explanation.append(Text('$explanationMessage at $relPath:$line.'));
-  int detailCount = response.details.length;
-  if (detailCount == 0) {
-    // Having 0 details is not necessarily an expected possibility, but handling
-    // the possibility prevents awkward text, "for 0 reasons:".
-  } else {
-    editPanel.append(ParagraphElement()..text = 'Edit rationale:');
-
-    Element detailList = editPanel.append(document.createElement('ul'));
-    for (var detail in response.details) {
-      var detailItem = detailList.append(document.createElement('li'));
-      detailItem.append(Text(detail.description));
-      var link = detail.link;
-      if (link != null) {
-        detailItem.append(Text(' ('));
-        detailItem.append(_aElementForLink(link, parentDirectory));
-        detailItem.append(Text(')'));
-      }
-    }
-  }
-
-  if (response.edits != null) {
-    for (var edit in response.edits) {
-      Element editParagraph = editPanel.append(document.createElement('p'));
-      Element a = editParagraph.append(document.createElement('a'));
-      a.append(Text(edit.description));
-      a.setAttribute('href', edit.href);
-      a.classes = ['post-link', 'before-apply'];
-    }
-  }
-
-  for (var trace in response.traces) {
-    var traceParagraph =
-        editPanel.append(document.createElement('p')..classes = ['trace']);
-    traceParagraph.append(Text('Nullability trace for: '));
-    traceParagraph.append(document.createElement('span')
-      ..classes = ['type-description']
-      ..append(Text(trace.description)));
-    var ul = traceParagraph
-        .append(document.createElement('ul')..classes = ['trace']);
-    for (var entry in trace.entries) {
-      var li = ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
-      li.append(document.createElement('span')
-        ..classes = ['function']
-        ..append(Text(entry.function ?? 'unknown')));
-      var link = entry.link;
-      if (link != null) {
-        li.append(Text(' ('));
-        li.append(_aElementForLink(link, parentDirectory));
-        li.append(Text(')'));
-      }
-      li.append(Text(': '));
-      li.append(Text(entry.description));
-    }
-  }
+  _populateEditTraces(response, editPanel, parentDirectory);
+  _populateEditLinks(response, editPanel);
+  _populateEditRationale(response, editPanel, parentDirectory);
 }
 
+final Element editListElement =
+    document.querySelector('.edit-list .panel-content');
+
 /// Write the contents of the Edit List, from JSON data [editListData].
-void populateProposedEdits(String path, List<EditListItem> edits) {
-  Element editListElement = document.querySelector('.edit-list .panel-content');
+void populateProposedEdits(
+    String path, List<EditListItem> edits, bool clearEditDetails) {
   editListElement.innerHtml = '';
 
   Element p = editListElement.append(document.createElement('p'));
@@ -459,7 +426,7 @@ void populateProposedEdits(String path, List<EditListItem> edits) {
     anchor.dataset['line'] = '$line';
     anchor.append(Text('line $line'));
     anchor.onClick.listen((MouseEvent event) {
-      navigate(window.location.pathname, offset, line, callback: () {
+      navigate(window.location.pathname, offset, line, true, callback: () {
         pushState(window.location.pathname, offset, line);
       });
       loadAndPopulateEditDetails(path, offset);
@@ -467,8 +434,9 @@ void populateProposedEdits(String path, List<EditListItem> edits) {
     item.append(Text(': ${edit.explanation}'));
   }
 
-  // Clear out any existing edit details.
-  populateEditDetails();
+  if (clearEditDetails) {
+    populateEditDetails();
+  }
 }
 
 void pushState(String path, int offset, int line) {
@@ -509,13 +477,14 @@ void removeHighlight(int offset, int lineNumber) {
   }
 }
 
+final Element unitName = document.querySelector('#unit-name');
+
 /// Update the heading and navigation links.
 ///
 /// Call this after updating page content on a navigation.
 void updatePage(String path, [int offset]) {
   path = relativePath(path);
   // Update page heading.
-  Element unitName = document.querySelector('#unit-name');
   unitName.text = path;
   // Update navigation styles.
   document.querySelectorAll('.nav-panel .nav-link').forEach((Element link) {
@@ -529,17 +498,17 @@ void updatePage(String path, [int offset]) {
 }
 
 /// Load data from [data] into the .code and the .regions divs.
-void writeCodeAndRegions(String path, FileDetails data) {
+void writeCodeAndRegions(String path, FileDetails data, bool clearEditDetails) {
   Element regionsElement = document.querySelector('.regions');
   Element codeElement = document.querySelector('.code');
 
   _PermissiveNodeValidator.setInnerHtml(regionsElement, data.regions);
   _PermissiveNodeValidator.setInnerHtml(codeElement, data.navigationContent);
-  populateProposedEdits(path, data.edits);
+  populateProposedEdits(path, data.edits, clearEditDetails);
 
   highlightAllCode();
-  addClickHandlers('.code');
-  addClickHandlers('.regions');
+  addClickHandlers('.code', true);
+  addClickHandlers('.regions', true);
 }
 
 void writeNavigationSubtree(
@@ -564,7 +533,7 @@ void writeNavigationSubtree(
       a.dataset['name'] = entity.path;
       a.setAttribute('href', entity.href);
       a.append(Text(entity.name));
-      a.onClick.listen(handleNavLinkClick);
+      a.onClick.listen((MouseEvent event) => handleNavLinkClick(event, true));
       int editCount = entity.editCount;
       if (editCount > 0) {
         Element editsBadge = li.append(document.createElement('span'));
@@ -588,6 +557,70 @@ AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
   a.setAttribute('href', fullPath);
   a.classes.add('nav-link');
   return a;
+}
+
+void _populateEditLinks(EditDetails response, Element editPanel) {
+  if (response.edits != null) {
+    for (var edit in response.edits) {
+      Element editParagraph = editPanel.append(document.createElement('p'));
+      Element a = editParagraph.append(document.createElement('a'));
+      a.append(Text(edit.description));
+      a.setAttribute('href', edit.href);
+      a.classes = ['post-link', 'before-apply'];
+    }
+  }
+}
+
+void _populateEditRationale(
+    EditDetails response, Element editPanel, String parentDirectory) {
+  int detailCount = response.details.length;
+  if (detailCount == 0) {
+    // Having 0 details is not necessarily an expected possibility, but handling
+    // the possibility prevents awkward text, "for 0 reasons:".
+  } else {
+    editPanel
+        .append(ParagraphElement()..text = 'Edit rationale (experimental):');
+
+    Element detailList = editPanel.append(document.createElement('ul'));
+    for (var detail in response.details) {
+      var detailItem = detailList.append(document.createElement('li'));
+      detailItem.append(Text(detail.description));
+      var link = detail.link;
+      if (link != null) {
+        detailItem.append(Text(' ('));
+        detailItem.append(_aElementForLink(link, parentDirectory));
+        detailItem.append(Text(')'));
+      }
+    }
+  }
+}
+
+void _populateEditTraces(
+    EditDetails response, Element editPanel, String parentDirectory) {
+  for (var trace in response.traces) {
+    var traceParagraph =
+        editPanel.append(document.createElement('p')..classes = ['trace']);
+    traceParagraph.append(document.createElement('span')
+      ..classes = ['type-description']
+      ..append(Text(trace.description)));
+    traceParagraph.append(Text(':'));
+    var ul = traceParagraph
+        .append(document.createElement('ul')..classes = ['trace']);
+    for (var entry in trace.entries) {
+      var li = ul.append(document.createElement('li')..innerHtml = '&#x274F; ');
+      li.append(document.createElement('span')
+        ..classes = ['function']
+        ..append(Text(entry.function ?? 'unknown')));
+      var link = entry.link;
+      if (link != null) {
+        li.append(Text(' ('));
+        li.append(_aElementForLink(link, parentDirectory));
+        li.append(Text(')'));
+      }
+      li.append(Text(': '));
+      li.append(Text(entry.description));
+    }
+  }
 }
 
 class _PermissiveNodeValidator implements NodeValidator {

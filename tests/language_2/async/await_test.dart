@@ -2247,7 +2247,8 @@ class FakeValueFuture implements Future {
   Future timeout(Duration duration, {onTimeout()}) => this;
 }
 
-typedef BinaryFunction(a, b);
+typedef OnErrorCallback2 = dynamic Function(Object, StackTrace);
+typedef OnErrorCallback1 = dynamic Function(Object);
 
 /**
  * A non-standard implementation of Future with an error.
@@ -2257,10 +2258,17 @@ class FakeErrorFuture implements Future {
   FakeErrorFuture(this._error);
   Future<S> then<S>(callback(value), {Function onError}) {
     if (onError != null) {
-      if (onError is BinaryFunction) {
+      if (onError is OnErrorCallback2) {
         return new Future<S>.microtask(() => onError(_error, null));
+      } else if (onError is OnErrorCallback1) {
+        return new Future<S>.microtask(() => onError(_error));
+      } else {
+        throw new ArgumentError.value(
+          onError,
+          "onError",
+          "Error handler must accept one Object or one Object and a StackTrace"
+          " as arguments, and return a valid result");
       }
-      return new Future<S>.microtask(() => onError(_error));
     }
     return new Future<S>.error(_error);
   }
@@ -2274,10 +2282,17 @@ class FakeErrorFuture implements Future {
   Future catchError(Function onError, {bool test(error)}) {
     return new Future.microtask(() {
       if (test != null && !test(_error)) return this;
-      if (onError is BinaryFunction) {
+      if (onError is OnErrorCallback2) {
         return onError(_error, null);
+      } else if (onError is OnErrorCallback1) {
+        return onError(_error);
+      } else {
+        throw new ArgumentError.value(
+          onError,
+          "onError",
+          "Error handler must accept one Object or one Object and a StackTrace"
+          " as arguments, and return a valid result");
       }
-      return onError(_error);
     });
   }
 

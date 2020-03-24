@@ -21,6 +21,7 @@ class ZoneTextBuffer : ValueObject {
   ~ZoneTextBuffer() {}
 
   intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  void AddChar(char ch);
   void AddString(const char* s);
   void AddString(const String& s);
 

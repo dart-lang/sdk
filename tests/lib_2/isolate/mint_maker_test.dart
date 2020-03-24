@@ -9,8 +9,8 @@ library MintMakerTest;
 
 import 'dart:async';
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 class Mint {
   Map<SendPort, Purse> _registry;
@@ -141,8 +141,7 @@ class MintMakerWrapper {
 
   static Future<MintMakerWrapper> create() {
     ReceivePort reply = new ReceivePort();
-    return Isolate
-        .spawn(mintMakerWrapper, reply.sendPort)
+    return Isolate.spawn(mintMakerWrapper, reply.sendPort)
         .then((_) => reply.first.then((port) => new MintMakerWrapper._(port)));
   }
 
@@ -158,32 +157,31 @@ class MintMakerWrapper {
 }
 
 _checkBalance(PurseWrapper wrapper, expected) {
-  wrapper.queryBalance(expectAsync1((balance) {
-    expect(balance, equals(expected));
-  }));
+  wrapper.queryBalance((balance) {
+    Expect.equals(balance, expected);
+  });
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
-  test("creating purse, deposit, and query balance", () {
-    MintMakerWrapper.create().then(expectAsync1((mintMaker) {
-      mintMaker.makeMint(expectAsync1((mint) {
-        mint.createPurse(100, expectAsync1((purse) {
+  asyncStart();
+  MintMakerWrapper.create().then((mintMaker) {
+    mintMaker.makeMint((mint) {
+      mint.createPurse(100, (purse) {
+        _checkBalance(purse, 100);
+        purse.sproutPurse((sprouted) {
+          _checkBalance(sprouted, 0);
           _checkBalance(purse, 100);
-          purse.sproutPurse(expectAsync1((sprouted) {
-            _checkBalance(sprouted, 0);
-            _checkBalance(purse, 100);
 
-            sprouted.deposit(purse, 5);
-            _checkBalance(sprouted, 0 + 5);
-            _checkBalance(purse, 100 - 5);
+          sprouted.deposit(purse, 5);
+          _checkBalance(sprouted, 0 + 5);
+          _checkBalance(purse, 100 - 5);
 
-            sprouted.deposit(purse, 42);
-            _checkBalance(sprouted, 0 + 5 + 42);
-            _checkBalance(purse, 100 - 5 - 42);
-          }));
-        }));
-      }));
-    }));
+          sprouted.deposit(purse, 42);
+          _checkBalance(sprouted, 0 + 5 + 42);
+          _checkBalance(purse, 100 - 5 - 42);
+          asyncEnd();
+        });
+      });
+    });
   });
 }

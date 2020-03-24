@@ -196,7 +196,7 @@ class Timer {
 }
 
 @patch
-void _rethrow(Object error, StackTrace? stackTrace) {
+void _rethrow(Object error, StackTrace stackTrace) {
   JS('', 'throw #', dart.createErrorWithStack(error, stackTrace));
 }
 

@@ -2271,12 +2271,7 @@ void f() {
 ''');
 
     await computeSuggestions();
-    assertSuggest(
-      'call()',
-      selectionOffset: 6,
-      elemKind: ElementKind.METHOD,
-      isSynthetic: true,
-    );
+    assertNotSuggested('call');
   }
 
   Future<void> test_InterfaceType_Function_implemented_call() async {
@@ -2289,12 +2284,7 @@ void f() {
 ''');
 
     await computeSuggestions();
-    assertSuggest(
-      'call()',
-      selectionOffset: 6,
-      elemKind: ElementKind.METHOD,
-      isSynthetic: true,
-    );
+    assertNotSuggested('call');
   }
 
   Future<void> test_InterpolationExpression() async {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // The class lib1.C is referenced via lib1
 // The static function lib1.C.foo is referenced via lib2
 // Dart2js will put them in separate hunks.

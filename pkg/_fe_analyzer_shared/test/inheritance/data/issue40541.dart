@@ -26,8 +26,7 @@ class D1 extends B implements C {
   /*member: D1.test:void Function()*/
 }
 
-/*cfe|cfe:builder.class: D2:A<Object?>,B,C,D2,Object*/
-/*analyzer.class: D2:A<dynamic>,B,C,D2,Object*/
+/*class: D2:A<Object?>,B,C,D2,Object*/
 class D2 extends C implements B {
   /*member: D2.test:void Function()*/
 }

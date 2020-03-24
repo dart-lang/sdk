@@ -86,6 +86,14 @@ class NullabilityFixDescription {
         kind: NullabilityFixKind.makeTypeNullable,
       );
 
+  /// An explicit type mentioned in the source program does not need to be made
+  /// nullable.
+  factory NullabilityFixDescription.typeNotMadeNullable(String type) =>
+      NullabilityFixDescription._(
+        appliedMessage: "Type '$type' was not made nullable",
+        kind: NullabilityFixKind.typeNotMadeNullable,
+      );
+
   const NullabilityFixDescription._(
       {@required this.appliedMessage, @required this.kind});
 
@@ -117,9 +125,9 @@ enum NullabilityFixKind {
   discardIf,
   discardThen,
   makeTypeNullable,
-  noModification,
   removeAs,
   removeNullAwareness,
+  typeNotMadeNullable,
 }
 
 /// Provisional API for DartFix to perform nullability migration.

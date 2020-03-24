@@ -32,6 +32,7 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
+import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 /// Problem reported by [FixBuilder] when encountering a compound assignment
@@ -432,7 +433,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .introduceAs(contextType.getDisplayString(withNullability: true), info);
+        .introduceAs(contextType, info);
     _flowAnalysis.asExpression_end(node, contextType);
     return contextType;
   }
@@ -659,10 +660,10 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   void visitGenericFunctionType(GenericFunctionType node) {
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
-    if (decoratedType.node.isNullable) {
+    if (!typeIsNonNullableByContext(node)) {
       (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
-        ..makeNullable = true
-        ..makeNullableType = decoratedType;
+        ..makeNullable = decoratedType.node.isNullable
+        ..decoratedType = decoratedType;
     }
     (node as GenericFunctionTypeImpl).type =
         _fixBuilder._variables.toFinalType(decoratedType);
@@ -673,11 +674,13 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   void visitTypeName(TypeName node) {
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
-    var type = decoratedType.type;
-    if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
-      (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
-        ..makeNullable = true
-        ..makeNullableType = decoratedType;
+    if (!typeIsNonNullableByContext(node)) {
+      var type = decoratedType.type;
+      if (!type.isDynamic && !type.isVoid) {
+        (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
+          ..makeNullable = decoratedType.node.isNullable
+          ..decoratedType = decoratedType;
+      }
     }
     node.type = _fixBuilder._variables.toFinalType(decoratedType);
     super.visitTypeName(node);

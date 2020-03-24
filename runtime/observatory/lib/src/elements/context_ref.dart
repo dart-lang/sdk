@@ -101,7 +101,7 @@ class ContextRefElement extends CustomElement implements Renderable {
     if (_loadedContext == null) {
       return [new SpanElement()..text = 'Loading...'];
     }
-    var members = new List<Element>();
+    var members = <Element>[];
     if (_loadedContext.parentContext != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']

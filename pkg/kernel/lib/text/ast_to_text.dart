@@ -2294,6 +2294,16 @@ class Printer extends Visitor<Null> {
     endLine(')');
   }
 
+  visitTypeLiteralConstant(TypeLiteralConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('${node.runtimeType}');
+    writeSymbol('(');
+    writeNode(node.type);
+    endLine(')');
+  }
+
   visitInstanceConstant(InstanceConstant node) {
     writeIndentation();
     writeConstantReference(node);

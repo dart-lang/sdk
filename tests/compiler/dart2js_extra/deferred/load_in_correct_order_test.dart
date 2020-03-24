@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// This test creates a scenario to simulate what happens if hunks are loaded
 /// out of order. The compiler should initialize hunks in order regardless, but
 /// may do so in parallel while some hunks are not loaded yet.

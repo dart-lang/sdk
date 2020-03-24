@@ -26,8 +26,6 @@ class OverrideContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     SimpleIdentifier targetId = _getTargetId(request.target);
     if (targetId == null) {
       return const <CompletionSuggestion>[];
@@ -109,7 +107,7 @@ class OverrideContributor implements DartCompletionContributor {
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     CompletionSuggestion suggestion = CompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
-        DART_RELEVANCE_HIGH,
+        request.useNewRelevance ? Relevance.override : DART_RELEVANCE_HIGH,
         completion,
         selectionRange.offset - offsetDelta,
         selectionRange.length,

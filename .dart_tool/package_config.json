@@ -201,6 +201,12 @@
       "languageVersion": "2.3"
     },
     {
+      "name": "dds",
+      "rootUri": "../pkg/dds",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    },
+    {
       "name": "dev_compiler",
       "rootUri": "../pkg/dev_compiler",
       "packageUri": "lib/",
@@ -568,6 +574,12 @@
       "languageVersion": "1.22"
     },
     {
+      "name": "shelf_proxy",
+      "rootUri": "../third_party/pkg/shelf_proxy",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    },
+    {
       "name": "shelf_static",
       "rootUri": "../third_party/pkg/shelf_static",
       "packageUri": "lib/",
@@ -607,7 +619,7 @@
       "name": "source_span",
       "rootUri": "../third_party/pkg/source_span",
       "packageUri": "lib/",
-      "languageVersion": "1.8"
+      "languageVersion": "2.6"
     },
     {
       "name": "sourcemap_testing",
@@ -722,18 +734,6 @@
       "rootUri": "../third_party/pkg/typed_data",
       "packageUri": "lib/",
       "languageVersion": "2.0"
-    },
-    {
-      "name": "unittest",
-      "rootUri": "../third_party/pkg/unittest",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
-    },
-    {
-      "name": "unittest-orig",
-      "rootUri": "../third_party/pkg/unittest-orig",
-      "packageUri": "lib/",
-      "languageVersion": "1.0"
     },
     {
       "name": "usage",

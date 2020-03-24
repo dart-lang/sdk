@@ -156,7 +156,7 @@ abstract class Stream<T> {
   factory Stream.error(Object error, [StackTrace stackTrace]) {
     ArgumentError.checkNotNull(error, "error");
     return (_AsyncStreamController<T>(null, null, null, null)
-          .._addError(error, stackTrace)
+          .._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error))
           .._closeUnchecked())
         .stream;
   }

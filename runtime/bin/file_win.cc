@@ -760,9 +760,12 @@ File::Type File::GetType(Namespace* namespc,
   return result;
 }
 
-File::Identical File::AreIdentical(Namespace* namespc,
+File::Identical File::AreIdentical(Namespace* namespc_1,
                                    const char* file_1,
+                                   Namespace* namespc_2,
                                    const char* file_2) {
+  USE(namespc_1);
+  USE(namespc_2);
   BY_HANDLE_FILE_INFORMATION file_info[2];
   const char* file_names[2] = {file_1, file_2};
   for (int i = 0; i < 2; ++i) {

@@ -2373,7 +2373,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     // instantiated with a non-nullable type which rejects null.
     // In NNBD weak mode or if type parameter is non-nullable or has
     // undetermined nullability null instance is correctly handled by TTS.
-    if (FLAG_null_safety && (dst_type.IsNullable() || dst_type.IsLegacy())) {
+    if (isolate()->null_safety() &&
+        (dst_type.IsNullable() || dst_type.IsLegacy())) {
       __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
       __ BranchIf(EQUAL, done);
     }

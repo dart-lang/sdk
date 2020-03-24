@@ -47,12 +47,12 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/infer_constraints_from_opt_in_lib.dart:11:9: Warning: Field 'field5' isn't initialized and its type 'C<int?>' doesn't allow null.
+// pkg/front_end/testcases/nnbd/infer_constraints_from_opt_in_lib.dart:11:9: Error: Field 'field5' should be initialized because its type 'C<int?>' doesn't allow null.
 //  - 'C' is from 'pkg/front_end/testcases/nnbd/infer_constraints_from_opt_in_lib.dart'.
 // C<int?> field5;
 //         ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/infer_constraints_from_opt_in_lib.dart:13:5: Warning: Field 'field7' isn't initialized and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/infer_constraints_from_opt_in_lib.dart:13:5: Error: Field 'field7' should be initialized because its type 'int' doesn't allow null.
 // int field7;
 //     ^^^^^^
 //

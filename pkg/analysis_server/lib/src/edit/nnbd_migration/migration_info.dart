@@ -181,9 +181,9 @@ enum RegionType {
   /// This is a region of code that was removed in migration.
   remove,
 
-  /// This is a region of code that was unchanged in migration; likely a type
-  /// that was declared non-nullable in migration.
-  unchanged,
+  /// This is a region of code that wasn't changed by migration, but is being
+  /// shown to give the user more information about the migration.
+  informative,
 }
 
 /// Information about a single entry in a nullability trace.
@@ -240,13 +240,14 @@ class UnitInfo {
   UnitInfo(this.path);
 
   /// Returns the [regions] that represent a fixed (changed) region of code.
-  List<RegionInfo> get fixRegions => List.of(
-      regions.where((region) => region.regionType != RegionType.unchanged));
+  List<RegionInfo> get fixRegions => regions
+      .where((region) => region.regionType != RegionType.informative)
+      .toList();
 
-  /// Returns the [regions] that represent an unchanged type which was
-  /// determined to be non-null.
-  List<RegionInfo> get nonNullableTypeRegions => List.of(
-      regions.where((region) => region.regionType == RegionType.unchanged));
+  /// Returns the [regions] that are informative.
+  List<RegionInfo> get informativeRegions => regions
+      .where((region) => region.regionType == RegionType.informative)
+      .toList();
 
   /// Returns the [RegionInfo] at offset [offset].
   // TODO(srawlins): This is O(n), used each time the user clicks on a region.

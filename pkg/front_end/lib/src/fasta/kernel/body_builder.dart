@@ -43,8 +43,6 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/nnbd_mode.dart';
-
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -955,8 +953,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     if (body != null) {
-      body = typeInferrer?.inferFunctionBody(
-          this, _computeReturnTypeContext(member), asyncModifier, body);
+      body = typeInferrer?.inferFunctionBody(this, member.charOffset,
+          _computeReturnTypeContext(member), asyncModifier, body);
       libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
           transformCollections, libraryBuilder.library);
     }
@@ -1290,6 +1288,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
+    int fileOffset = offsetForToken(token);
     List<TypeVariableBuilder> typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <TypeVariableBuilder>[];
@@ -1311,7 +1310,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     enterLocalScope(
         null,
-        new FormalParameters(formals, offsetForToken(token), noLength, uri)
+        new FormalParameters(formals, fileOffset, noLength, uri)
             .computeFormalParameterScope(scope, member, this));
 
     token = parser.parseExpression(parser.syntheticPreviousToken(token));
@@ -1329,7 +1328,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
     typeInferrer?.inferFunctionBody(
-        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+        this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
   }
@@ -1402,7 +1401,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
               null) {
-        String superclass = classBuilder.supertype.fullNameForErrors;
+        String superclass = classBuilder.supertypeBuilder.fullNameForErrors;
         int length = constructor.name.name.length;
         if (length == 0) {
           length = (constructor.parent as Class).name.length;
@@ -2820,7 +2819,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeArgument = const InvalidType();
       } else {
         typeArgument = buildDartType(typeArguments.single);
-        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
+        typeArgument = instantiateToBounds(
+            typeArgument, coreTypes.objectClass, libraryBuilder.library);
       }
     } else {
       typeArgument = implicitTypeArgument;
@@ -2843,7 +2843,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     DartType typeArgument;
     if (typeArguments != null) {
       typeArgument = buildDartType(typeArguments.single);
-      typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
+      typeArgument = instantiateToBounds(
+          typeArgument, coreTypes.objectClass, libraryBuilder.library);
     } else {
       typeArgument = implicitTypeArgument;
     }
@@ -2978,8 +2979,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         keyType = buildDartType(typeArguments[0]);
         valueType = buildDartType(typeArguments[1]);
-        keyType = instantiateToBounds(keyType, coreTypes.objectClass);
-        valueType = instantiateToBounds(valueType, coreTypes.objectClass);
+        keyType = instantiateToBounds(
+            keyType, coreTypes.objectClass, libraryBuilder.library);
+        valueType = instantiateToBounds(
+            valueType, coreTypes.objectClass, libraryBuilder.library);
       }
     } else {
       DartType implicitTypeArgument = this.implicitTypeArgument;
@@ -3924,17 +3927,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (VariableDeclaration parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
-              addProblem(
-                  fasta.templateValueForRequiredParameterNotProvidedWarning
-                      .withArguments(parameter.name),
-                  arguments.fileOffset,
-                  fasta.noLength);
-            } else {
-              return fasta.templateValueForRequiredParameterNotProvidedError
-                  .withArguments(parameter.name)
-                  .withLocation(uri, arguments.fileOffset, fasta.noLength);
-            }
+            return fasta.templateValueForRequiredParameterNotProvidedError
+                .withArguments(parameter.name)
+                .withLocation(uri, arguments.fileOffset, fasta.noLength);
           }
         }
       }
@@ -3991,17 +3986,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         Set<String> argumentNames = new Set.from(named.map((a) => a.name));
         for (NamedType parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-            if (libraryBuilder.loader.nnbdMode == NnbdMode.Weak) {
-              addProblem(
-                  fasta.templateValueForRequiredParameterNotProvidedWarning
-                      .withArguments(parameter.name),
-                  arguments.fileOffset,
-                  fasta.noLength);
-            } else {
-              return fasta.templateValueForRequiredParameterNotProvidedError
-                  .withArguments(parameter.name)
-                  .withLocation(uri, arguments.fileOffset, fasta.noLength);
-            }
+            return fasta.templateValueForRequiredParameterNotProvidedError
+                .withArguments(parameter.name)
+                .withLocation(uri, arguments.fileOffset, fasta.noLength);
           }
         }
       }
@@ -5369,7 +5356,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
-        libraryBuilder.loader.target.bottomType,
+        libraryBuilder.loader.target.nullType,
         libraryBuilder.loader.target.objectClassBuilder);
     for (int i = 0; i < typeVariables.length; ++i) {
       typeVariables[i].defaultType = calculatedBounds[i];

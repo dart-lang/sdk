@@ -6,10 +6,10 @@ library;
 // Try adding a declaration of 'n' to 'C'.
 // abstract class C implements A, B {}
 //                ^
-// pkg/front_end/testcases/general/interface_conflict.dart:6:11: Context: This is the inherited member.
+// pkg/front_end/testcases/general/interface_conflict.dart:6:11: Context: This is one of the inherited members.
 //   int get n => 1;
 //           ^
-// pkg/front_end/testcases/general/interface_conflict.dart:10:14: Context: This is the inherited member.
+// pkg/front_end/testcases/general/interface_conflict.dart:10:14: Context: This is one of the inherited members.
 //   double get n => 2.0;
 //              ^
 //

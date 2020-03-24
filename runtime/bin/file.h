@@ -250,8 +250,9 @@ class File : public ReferenceCounted<File> {
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
   static Type GetType(Namespace* namespc, const char* path, bool follow_links);
-  static Identical AreIdentical(Namespace* namespc,
+  static Identical AreIdentical(Namespace* namespc_1,
                                 const char* file_1,
+                                Namespace* namespc_2,
                                 const char* file_2);
   static StdioHandleType GetStdioHandleType(int fd);
 

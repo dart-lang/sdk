@@ -1030,13 +1030,13 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
   const NNBDCompiledMode mode =
       library_helper.GetNonNullableByDefaultCompiledMode();
-  if (!FLAG_null_safety && mode == NNBDCompiledMode::kStrong) {
+  if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
     H.ReportError(
         "Library '%s' was compiled with null safety (in strong mode) and it "
         "requires --null-safety option at runtime",
         String::Handle(library.url()).ToCString());
   }
-  if (FLAG_null_safety && (mode == NNBDCompiledMode::kWeak ||
+  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak ||
                            mode == NNBDCompiledMode::kDisabled)) {
     H.ReportError(
         "Library '%s' was compiled without null safety (in weak mode) and it "
@@ -1956,6 +1956,9 @@ void KernelLoader::LoadProcedure(const Library& library,
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.raw() == Library::InternalLibrary()))) {
+    function.set_is_reflectable(false);
+  }
+  if (procedure_helper.IsMemberSignature()) {
     function.set_is_reflectable(false);
   }
 

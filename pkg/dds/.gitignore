@@ -1,0 +1,5 @@
+# See https://dart.dev/guides/libraries/private-files
+.dart_tool/
+.packages
+build/
+pubspec.lock

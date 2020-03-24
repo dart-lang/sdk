@@ -530,6 +530,7 @@ typedef struct {
   bool load_vmservice_library;
   bool unsafe_trust_strong_mode_types;
   bool copy_parent_code;
+  bool null_safety;
 } Dart_IsolateFlags;
 
 /**

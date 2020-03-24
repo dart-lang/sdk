@@ -222,6 +222,8 @@ import 'dart:async';
 
 abstract class Converter<S, T> implements StreamTransformer {}
 
+abstract class Encoding {}
+
 class JsonDecoder extends Converter<String, Object> {}
 ''',
     )
@@ -840,6 +842,8 @@ final MockSdkLibrary _LIB_IO = MockSdkLibrary(
       '''
 library dart.io;
 
+import 'dart:convert';
+
 abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;
@@ -882,10 +886,67 @@ abstract class FileSystemEntity {
   static FileSystemEntityType typeSync(
     String path, {bool followLinks: true}) => throw 0;
 }
+
+enum ProcessStartMode {
+  normal,
+}
+
+abstract class Process {
+  external static Future<Process> start(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment: true,
+    bool runInShell: false,
+    ProcessStartMode mode: ProcessStartMode.normal,
+  });
+
+  external static Future<ProcessResult> run(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment: true,
+    bool runInShell: false,
+    Encoding? stdoutEncoding,
+    Encoding? stderrEncoding,
+  });
+}
 ''',
     )
   ],
 );
+
+final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary([
+  MockSdkLibraryUnit(
+    'dart:isolate',
+    '$sdkRoot/lib/isolate/isolate.dart',
+    '''
+library dart.isolate;
+
+abstract class SendPort {}
+
+class Isolate {
+  external static Future<Isolate> spawnUri(
+    Uri uri,
+    List<String> args,
+    var message, {
+    bool paused = false,
+    SendPort? onExit,
+    SendPort? onError,
+    bool errorsAreFatal = true,
+    bool? checked,
+    Map<String, String>? environment,
+    @deprecated Uri? packageRoot,
+    Uri? packageConfig,
+    bool automaticPackageResolution = false,
+    String? debugName,
+  });
+}
+''',
+  )
+]);
 
 final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
   [
@@ -927,6 +988,7 @@ final List<SdkLibrary> _LIBRARIES = [
   _LIB_CONVERT,
   _LIB_FFI,
   _LIB_IO,
+  _LIB_ISOLATE,
   _LIB_MATH,
   _LIB_HTML_DART2JS,
   _LIB_INTERCEPTORS,
@@ -941,6 +1003,7 @@ final Map<String, String> _librariesDartEntries = {
   'ffi': 'const LibraryInfo("ffi/ffi.dart")',
   'html': 'const LibraryInfo("html/dart2js/html_dart2js.dart")',
   'io': 'const LibraryInfo("io/io.dart")',
+  'isolate': 'const LibraryInfo("io/isolate.dart")',
   'math': 'const LibraryInfo("math/math.dart")',
 };
 

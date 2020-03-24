@@ -71,10 +71,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
       Token previous = node.findPrevious(entity as Token);
-      if (previous.isSynthetic) {
+      if (previous != null && previous.isSynthetic) {
         previous = node.findPrevious(previous);
       }
-      if (previous.lexeme == ')') {
+      if (previous != null && previous.lexeme == ')') {
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
@@ -128,14 +128,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       if (expression is SimpleIdentifier) {
         Token token = expression.token;
         Token previous = node.findPrevious(token);
-        if (previous.isSynthetic) {
+        if (previous != null && previous.isSynthetic) {
           previous = node.findPrevious(previous);
         }
         Token next = token.next;
         if (next.isSynthetic) {
           next = next.next;
         }
-        if (previous.type == TokenType.CLOSE_PAREN &&
+        if (previous != null &&
+            previous.type == TokenType.CLOSE_PAREN &&
             next.type == TokenType.OPEN_CURLY_BRACKET) {
           _addSuggestion(Keyword.ASYNC);
           _addSuggestion2(ASYNC_STAR);
@@ -510,6 +511,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
           _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
         }
       }
+    }
+    if (entity == node.returnType || entity == node.name) {
+      // If the cursor is at the beginning of the declaration, include the class
+      // body keywords.  See dartbug.com/41039.
+      _addClassBodyKeywords();
     }
   }
 
@@ -938,7 +944,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity is AstNode) {
       Token token = entity.beginToken;
       Token previousToken = entity.findPrevious(token);
-      return previousToken.isSynthetic && previousToken.type == type;
+      return previousToken != null &&
+          previousToken.isSynthetic &&
+          previousToken.type == type;
     }
     return false;
   }

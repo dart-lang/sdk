@@ -9,8 +9,8 @@
 library spawn_tests;
 
 import 'dart:isolate';
-import 'package:unittest/unittest.dart';
-import "remote_unittest_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 isolateEntryPoint(args) {
   var msg = args[0];
@@ -18,29 +18,24 @@ isolateEntryPoint(args) {
   sendPort.send('re: $msg');
 }
 
-void main([args, port]) {
-  if (testRemote(main, port)) {
-    return;
-  }
+Future<void> main([args, port]) async {
+  // message - reply chain
+  const String debugName = 'spawnedIsolate';
 
-  test('message - reply chain', () async {
-    const String debugName = 'spawnedIsolate';
-
-    ReceivePort port = new ReceivePort();
-    port.listen(expectAsync((msg) {
-      port.close();
-      expect(msg, equals('re: hi'));
-    }));
-
-    // Start new isolate; paused so it's alive till we read the debugName.
-    // If the isolate runs to completion, the isolate might get cleaned up
-    // and debugName might be null.
-    final isolate = await Isolate.spawn(
-        isolateEntryPoint, ['hi', port.sendPort],
-        paused: true, debugName: debugName);
-
-    expect(isolate.debugName, debugName);
-
-    isolate.resume(isolate.pauseCapability);
+  ReceivePort port = new ReceivePort();
+  asyncStart();
+  port.listen((msg) {
+    port.close();
+    Expect.equals(msg, 're: hi');
+    asyncEnd();
   });
+
+  // Start new isolate; paused so it's alive till we read the debugName.
+  // If the isolate runs to completion, the isolate might get cleaned up
+  // and debugName might be null.
+  final isolate = await Isolate.spawn(isolateEntryPoint, ['hi', port.sendPort],
+      paused: true, debugName: debugName);
+
+  Expect.equals(isolate.debugName, debugName);
+  isolate.resume(isolate.pauseCapability);
 }

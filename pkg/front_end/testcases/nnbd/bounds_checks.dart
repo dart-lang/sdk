@@ -4,15 +4,15 @@
 
 class A<X extends num> {}
 
-foo(A<num?> a) {} // Error in strong mode and Warning in weak mode.
+foo(A<num?> a) {} // Error
 
-A<num?> bar() {} // Error in strong mode and Warning in weak mode.
+A<num?>? bar() {} // Error
 
-baz<T extends A<num?>>() {} // Error in strong mode and Warning in weak mode.
+baz<T extends A<num?>>() {} // Error
 
-class B extends A<num?> {} // Error in strong mode and Warning in weak mode.
+class B extends A<num?> {} // Error
 
-class C<T extends A<num?>> {} // Error in strong mode and Warning in weak mode.
+class C<T extends A<num?>> {} // Error
 
 void hest<T extends num>() {}
 

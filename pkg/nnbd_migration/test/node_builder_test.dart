@@ -454,6 +454,24 @@ mixin D<V> on C<int, V> {}
         same(decoratedTypeAnnotation('V> {').node));
   }
 
+  Future<void> test_displayName_explicitParameterType_named() async {
+    await analyze('void f({int x, int y}) {}');
+    expect(decoratedTypeAnnotation('int x').node.displayName,
+        'parameter x of f (test.dart:1:9)');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'parameter y of f (test.dart:1:16)');
+  }
+
+  Future<void> test_displayName_explicitParameterType_positional() async {
+    await analyze('void f(int x, int y, [int z]) {}');
+    expect(decoratedTypeAnnotation('int x').node.displayName,
+        'parameter 0 of f (test.dart:1:8)');
+    expect(decoratedTypeAnnotation('int y').node.displayName,
+        'parameter 1 of f (test.dart:1:15)');
+    expect(decoratedTypeAnnotation('int z').node.displayName,
+        'parameter 2 of f (test.dart:1:23)');
+  }
+
   Future<void> test_dynamic_type() async {
     await analyze('''
 dynamic f() {}
@@ -656,7 +674,8 @@ class C {
 }
 ''');
     var decoratedType = decoratedTypeAnnotation('int');
-    expect(decoratedType.node.displayName, 'return type of C.f');
+    expect(
+        decoratedType.node.displayName, 'return type of C.f (test.dart:2:3)');
   }
 
   Future<void> test_function_generic_bounded() async {
@@ -903,7 +922,7 @@ void f(int Function() x) {}
     expect(decoratedIntType.node, isNotNull);
     expect(decoratedIntType.node, isNot(never));
     expect(decoratedType.returnType.node.displayName,
-        'return type of explicit type (test.dart:1:8)');
+        'parameter 0 of f (test.dart:1:8)');
   }
 
   Future<void> test_genericFunctionType_syntax_inferred_dynamic_return() async {
@@ -1010,7 +1029,8 @@ typedef F = int Function(String s);
     expect(decoratedType.typeFormals, isEmpty);
     expect(decoratedType.positionalParameters[0],
         same(decoratedTypeAnnotation('String')));
-    expect(decoratedType.returnType.node.displayName, 'return type of F');
+    expect(decoratedType.returnType.node.displayName,
+        'return type of F (test.dart:1:13)');
   }
 
   Future<void> test_interfaceType_generic_instantiate_to_dynamic() async {
@@ -1642,8 +1662,8 @@ F f;
         decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.returnType.node,
         isNot(same(typedefDecoratedType.returnType.node)));
-    expect(
-        typedefDecoratedType.returnType.node.displayName, 'return type of F');
+    expect(typedefDecoratedType.returnType.node.displayName,
+        'return type of F (test.dart:1:9)');
     expect(decoratedType.returnType.node.displayName,
         'return type of explicit type (test.dart:2:1)');
     _assertType(decoratedType.positionalParameters[0].type, 'String');

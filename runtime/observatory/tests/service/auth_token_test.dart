@@ -5,8 +5,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
+import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart' as S;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'test_helper.dart';
 
 Future<Null> testeeBefore() async {
@@ -14,11 +15,11 @@ Future<Null> testeeBefore() async {
   print(await Service.getInfo());
   // Start the web server.
   ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
-  expect(info.serverUri, isNotNull);
+  Expect.isNotNull(info.serverUri);
   // Ensure that we have the auth token in the path segments.
-  expect(info.serverUri.pathSegments.length, greaterThan(1));
+  Expect.isTrue(info.serverUri.pathSegments.length > 1);
   // Sanity check the length of the auth token.
-  expect(info.serverUri.pathSegments[0].length, greaterThan(8));
+  Expect.isTrue(info.serverUri.pathSegments[0].length > 8);
 
   // Try connecting to the server without the auth token, it should throw
   // an exception.
@@ -27,17 +28,16 @@ Future<Null> testeeBefore() async {
   var httpClient = new io.HttpClient();
   try {
     var request = await httpClient.getUrl(url);
-    expect(true, false);
+    fail('expected exception');
   } catch (e) {
-    expect(true, true);
+    // Expected
   }
 
   // Try connecting to the server with the auth token, it should succeed.
   try {
     var request = await httpClient.getUrl(info.serverUri);
-    expect(true, true);
   } catch (e) {
-    expect(true, false);
+    fail('could not connect');
   }
 }
 
@@ -46,7 +46,6 @@ var tests = <IsolateTest>[
     await isolate.reload();
     // Just getting here means that the testee enabled the service protocol
     // web server.
-    expect(true, true);
   }
 ];
 

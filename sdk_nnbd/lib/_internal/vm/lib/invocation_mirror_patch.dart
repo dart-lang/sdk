@@ -60,7 +60,7 @@ class _InvocationMirror implements Invocation {
     _namedArguments ??= const {};
   }
 
-  Symbol _setMemberNameAndType() {
+  void _setMemberNameAndType() {
     final funcName = _functionName!;
     if (_type == _UNINITIALIZED) {
       _type = 0;

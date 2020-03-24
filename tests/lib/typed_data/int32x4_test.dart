@@ -11,6 +11,9 @@ library int32x4_test;
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
+// TODO(eernst): Come pure null-safety, it can only be `TypeError`.
+bool isTypeError(e) => e is TypeError || e is ArgumentError;
+
 void testBadArguments() {
   // Check that the actual argument type error is detected and a dynamic
   // error is raised. This is not trivially covered by similar dynamic type
@@ -18,12 +21,10 @@ void testBadArguments() {
   // is a built-in type.
 
   dynamic dynamicNull = null;
-  Expect.throwsTypeError(() => new Int32x4(dynamicNull, 2, 3, 4));
-  Expect.throwsTypeError(() => new Int32x4(1, dynamicNull, 3, 4));
-  Expect.throwsTypeError(() => new Int32x4(1, 2, dynamicNull, 4));
-  Expect.throwsTypeError(() => new Int32x4(1, 2, 3, dynamicNull));
-
-  bool isTypeError(e) => e is TypeError;
+  Expect.throws(() => new Int32x4(dynamicNull, 2, 3, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, dynamicNull, 3, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, 2, dynamicNull, 4), isTypeError);
+  Expect.throws(() => new Int32x4(1, 2, 3, dynamicNull), isTypeError);
 
   // Use a local variable typed as dynamic to avoid static warnings.
   dynamic str = "foo";

@@ -859,6 +859,27 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     assertSuggestKeywords(classBodyKeywords);
   }
 
+  Future<void> test_class_body_return_no_whitespace() async {
+    addTestSource('class A { ^foo() {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(classBodyKeywords);
+  }
+
+  Future<void> test_class_body_return_prefix() async {
+    addTestSource('class A { d^ foo() {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(classBodyKeywords);
+  }
+
+  Future<void> test_class_body_return_whitespace() async {
+    addTestSource('class A { ^ foo() {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(classBodyKeywords);
+  }
+
   Future<void> test_class_extends() async {
     addTestSource('class A extends foo ^');
     await computeSuggestions();
@@ -1891,6 +1912,20 @@ f() => <int>{1, ^, 2};
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
+  Future<void> test_method_body_return_with_header() async {
+    addTestSource('class A { @override ^ foo() {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(classBodyKeywords);
+  }
+
+  Future<void> test_method_body_return_with_header_prefix() async {
+    addTestSource('class A { @override d^ foo() {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(classBodyKeywords);
+  }
+
   Future<void> test_method_invocation() async {
     addTestSource('class A { foo() {bar.^}}');
     await computeSuggestions();
@@ -1939,7 +1974,7 @@ f() => <int>{1, ^, 2};
   }
 
   Future<void> test_method_param_prefix() async {
-    addTestSource('class A { foo(t^) {});}');
+    addTestSource('class A { foo(t^) {}}');
     await computeSuggestions();
     expect(suggestions, isNotEmpty);
     assertSuggestKeywords(methodParameter);

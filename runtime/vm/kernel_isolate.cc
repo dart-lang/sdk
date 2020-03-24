@@ -93,6 +93,7 @@ class RunKernelTask : public ThreadPool::Task {
 #if !defined(DART_PRECOMPILER)
     api_flags.use_osr = true;
 #endif
+    api_flags.null_safety = false;
 
     isolate = reinterpret_cast<Isolate*>(
         create_group_callback(KernelIsolate::kName, KernelIsolate::kName, NULL,
@@ -759,7 +760,8 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject null_safety;
     null_safety.type = Dart_CObject_kBool;
-    null_safety.value.as_bool = FLAG_null_safety;
+    null_safety.value.as_bool =
+        isolate != NULL ? isolate->null_safety() : FLAG_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =

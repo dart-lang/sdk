@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*strong.member: f1:deps=[method],direct,explicit=[f1.T],needsArgs,needsInst=[<method.X>]*/
 /*omit.member: f1:deps=[method]*/
 int f1<T>(T a, T b, T c) => null;

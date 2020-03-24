@@ -243,17 +243,6 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isAbstract => memberBuilder.member.isAbstract;
 
   @override
-  bool get hasExplicitReturnType {
-    throw new UnsupportedError("${runtimeType}.hasExplicitReturnType");
-  }
-
-  @override
-  bool hasExplicitlyTypedFormalParameter(int index) {
-    throw new UnsupportedError(
-        "${runtimeType}.hasExplicitlyTypedFormalParameter");
-  }
-
-  @override
   bool get needsComputation => false;
 
   @override

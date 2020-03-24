@@ -2053,6 +2053,32 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_field_overrides_getter() async {
+    var content = '''
+abstract class C {
+  int get i;
+}
+class D implements C {
+  @override
+  final int i;
+  D._() : i = computeI();
+}
+int computeI() => null;
+''';
+    var expected = '''
+abstract class C {
+  int? get i;
+}
+class D implements C {
+  @override
+  final int? i;
+  D._() : i = computeI();
+}
+int? computeI() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_field_type_inferred() async {
     var content = '''
 int f() => null;
@@ -2156,6 +2182,28 @@ void f(List<int?> l) {
 void g(int? x) {}
 main() {
   f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_for_each_variable_initialized() async {
+    var content = '''
+int sum(List<int> list) {
+  int total = 0;
+  for (var i in list) {
+    total = total + i;
+  }
+  return total;
+}
+''';
+    var expected = '''
+int sum(List<int> list) {
+  int total = 0;
+  for (var i in list) {
+    total = total + i;
+  }
+  return total;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2700,6 +2748,18 @@ class C extends B {
   f() => 1;
 }
 int? g(C c) => c.f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_insert_as_prefixed_type() async {
+    var content = '''
+import 'dart:async' as a;
+Future<int> f(Object o) => o;
+''';
+    var expected = '''
+import 'dart:async' as a;
+Future<int> f(Object o) => o as a.Future<int>;
 ''';
     await _checkSingleFileChanges(content, expected);
   }

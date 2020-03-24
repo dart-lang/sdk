@@ -744,7 +744,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     if (arguments.isEmpty) return;
     if (arguments.length == 1) {
       // e.g. "List_of_int_Function"
-      if (arguments.first is FunctionType) {
+      if (arguments.first.withoutNullability is FunctionType) {
         _add('of');
       }
       // e.g. "List_int"

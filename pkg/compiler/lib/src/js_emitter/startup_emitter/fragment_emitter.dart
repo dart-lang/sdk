@@ -1944,9 +1944,12 @@ class FragmentEmitter {
 
     globals.add(js.Property(
         js.string(ARRAY_RTI_PROPERTY),
-        js.js(r'typeof Symbol == "function" && typeof Symbol() == "symbol"'
-            r'    ? Symbol("$ti")'
-            r'    : "$ti"')));
+        _options.legacyJavaScript
+            ? js.js(
+                r'typeof Symbol == "function" && typeof Symbol() == "symbol"'
+                r'    ? Symbol("$ti")'
+                r'    : "$ti"')
+            : js.js(r'Symbol("$ti")')));
 
     js.ObjectInitializer globalsObject = js.ObjectInitializer(globals);
 

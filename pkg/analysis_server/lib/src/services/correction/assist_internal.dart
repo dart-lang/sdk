@@ -1985,7 +1985,10 @@ class AssistProcessor extends BaseProcessor {
     _SimpleIdentifierRecursiveAstVisitor visitor =
         _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
       Element element = node.staticElement;
-      if (element != null && namespace[node.name] == element) {
+      if (element != null &&
+          (namespace[node.name] == element ||
+              (node.name != element.name &&
+                  namespace[element.name] == element))) {
         referencedNames.add(element.displayName);
       }
     });

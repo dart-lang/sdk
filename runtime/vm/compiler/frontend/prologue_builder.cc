@@ -291,6 +291,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   } else {
     ASSERT(num_opt_named_params > 0);
 
+    bool null_safety = Isolate::Current()->null_safety();
     const intptr_t first_name_offset =
         compiler::target::ArgumentsDescriptor::first_named_entry_offset() -
         compiler::target::Array::data_offset();
@@ -384,7 +385,7 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
       // We had no match. If the param is required, throw a NoSuchMethod error.
       // Otherwise just load the default constant.
       Fragment not_good(missing);
-      if (FLAG_null_safety && function_.IsRequiredAt(opt_param_position[i])) {
+      if (null_safety && function_.IsRequiredAt(opt_param_position[i])) {
         not_good += Goto(nsm);
       } else {
         not_good += Constant(

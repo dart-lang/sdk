@@ -20,11 +20,12 @@ class Class extends core::Object /*hasConstConstructor*/  {
     ;
   method foo() → core::int {
     core::int x;
-    return (let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:28:12: Error: Non-nullable variable 'x' must be assigned before it can be used.
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:28:12: Error: Non-nullable variable 'x' must be assigned before it can be used.
     return x;
-           ^" in x) as{TypeError,ForNonNullableByDefault} core::int;
+           ^" in x;
   }
-  method bar() → core::int {}
+  method bar() → core::int
+    return 0;
   method baz(core::int x) → core::int {
     return x;
   }
@@ -33,11 +34,12 @@ class Class extends core::Object /*hasConstConstructor*/  {
 }
 static method foo() → core::int {
   core::int x;
-  return (let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:10:10: Error: Non-nullable variable 'x' must be assigned before it can be used.
+  return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:10:10: Error: Non-nullable variable 'x' must be assigned before it can be used.
   return x;
-         ^" in x) as{TypeError,ForNonNullableByDefault} core::int;
+         ^" in x;
 }
-static method bar() → core::int {}
+static method bar() → core::int
+  return 0;
 static method baz(core::int x) → core::int {
   return x;
 }

@@ -1789,9 +1789,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (extendsClause != null) {
-      InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement = superclassType?.element;
-      if (superclassElement != null && superclassElement.name == "Function") {
+      Element superElement = extendsClause.superclass.name.staticElement;
+      if (superElement != null && superElement.name == "Function") {
         _errorReporter.reportErrorForNode(
             HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
       }
@@ -3300,13 +3299,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       InstanceCreationExpression node, InterfaceType type) {
     if (!_isNonNullableByDefault) return;
 
-    if (node.constructorName.name == null &&
-        node.argumentList.arguments.length == 1 &&
-        type.isDartCoreList &&
-        _typeSystem.isPotentiallyNonNullable(type.typeArguments[0])) {
+    if (node.constructorName.name == null && type.isDartCoreList) {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
-          node.constructorName);
+        CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR,
+        node.constructorName,
+      );
     }
   }
 

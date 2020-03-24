@@ -22,6 +22,7 @@ import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
+import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 
 import 'edge_origin.dart';
 
@@ -74,7 +75,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.exceptionParameter != null) {
       // If there is no `on Type` part of the catch clause, the type is dynamic.
       if (exceptionType == null) {
-        var target = NullabilityNodeTarget.codeRef('exception', node);
+        var target = NullabilityNodeTarget.text('exception').withCodeRef(node);
         exceptionType = DecoratedType.forImplicitType(
             _typeProvider, _typeProvider.dynamicType, _graph, target);
         instrumentation?.implicitType(
@@ -85,7 +86,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     if (node.stackTraceParameter != null) {
       // The type of stack traces is always StackTrace (non-nullable).
-      var target = NullabilityNodeTarget.codeRef('stack trace', node);
+      var target = NullabilityNodeTarget.text('stack trace').withCodeRef(node);
       var nullabilityNode = NullabilityNode.forInferredType(target);
       _graph.makeNonNullableUnion(nullabilityNode,
           StackTraceTypeOrigin(source, node.stackTraceParameter));
@@ -273,6 +274,24 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitFormalParameterList(FormalParameterList node) {
+    int index = 0;
+    for (var parameter in node.parameters) {
+      var element = parameter.declaredElement;
+      NullabilityNodeTarget newTarget;
+      if (_target == null) {
+        newTarget = null;
+      } else if (element.isNamed) {
+        newTarget = _target.namedParameter(element.name);
+      } else {
+        newTarget = _target.positionalParameter(index++);
+      }
+      _pushNullabilityNodeTarget(newTarget, () => parameter.accept(this));
+    }
+    return null;
+  }
+
+  @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     _handleExecutableDeclaration(
         node,
@@ -398,8 +417,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTypeAnnotation(TypeAnnotation node) {
     assert(node != null); // TODO(paulberry)
     var type = node.type;
-    var target =
-        _target ?? NullabilityNodeTarget.codeRef('explicit type', node);
+    var target = (_target ?? NullabilityNodeTarget.text('explicit type'))
+        .withCodeRef(node);
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(target);
       var decoratedType = DecoratedType(type, nullabilityNode);
@@ -457,13 +476,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     NullabilityNode nullabilityNode;
-    var parent = node.parent;
-    if (parent is ExtendsClause ||
-        parent is ImplementsClause ||
-        parent is WithClause ||
-        parent is OnClause ||
-        parent is ClassTypeAlias ||
-        parent is GenericTypeAlias) {
+    if (typeIsNonNullableByContext(node)) {
       nullabilityNode = _graph.never;
     } else {
       nullabilityNode = NullabilityNode.forTypeAnnotation(target);
@@ -612,7 +625,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType decoratedFunctionType;
     try {
       typeParameters?.accept(this);
-      parameters?.accept(this);
+      _pushNullabilityNodeTarget(target, () => parameters?.accept(this));
       redirectedConstructor?.accept(this);
       initializers?.accept(this);
       decoratedFunctionType = DecoratedType(functionType, _graph.never,
@@ -708,8 +721,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var supertype in supertypes) {
       DecoratedType decoratedSupertype;
       if (supertype == null) {
-        var target =
-            NullabilityNodeTarget.codeRef('implicit object supertype', astNode);
+        var target = NullabilityNodeTarget.text('implicit object supertype')
+            .withCodeRef(astNode);
         var nullabilityNode = NullabilityNode.forInferredType(target);
         _graph.makeNonNullableUnion(
             nullabilityNode, NonNullableObjectSuperclass(source, astNode));

@@ -259,6 +259,7 @@ class A7 extends A6 {
     extensionMethod(4);
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+//                 ^
 // [cfe] 'extensionMethod' isn't a function or method and can't be invoked.
   }
 }

@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -519,9 +520,8 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get allSupertypes {
-    List<InterfaceType> list = <InterfaceType>[];
-    collectAllSupertypes(list, thisType, thisType);
-    return list;
+    var sessionImpl = library.session as AnalysisSessionImpl;
+    return sessionImpl.classHierarchy.implementedInterfaces(this);
   }
 
   @override
@@ -1164,7 +1164,13 @@ class ClassElementImpl extends AbstractClassElementImpl
   bool _isInterfaceTypeClass(DartType type) {
     if (type is InterfaceType) {
       var element = type.element;
-      return !element.isEnum && !element.isMixin;
+      if (element.isEnum || element.isMixin) {
+        return false;
+      }
+      if (type.isDartCoreFunction) {
+        return false;
+      }
+      return true;
     }
     return false;
   }
@@ -1172,7 +1178,9 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Return `true` if the given [type] is an [InterfaceType] that can be used
   /// as an interface or a mixin.
   bool _isInterfaceTypeInterface(DartType type) {
-    return type is InterfaceType && !type.element.isEnum;
+    return type is InterfaceType &&
+        !type.element.isEnum &&
+        !type.isDartCoreFunction;
   }
 
   bool _safeIsOrInheritsProxy(

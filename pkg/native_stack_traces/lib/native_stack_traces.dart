@@ -4,4 +4,5 @@
 
 export 'src/convert.dart'
     show collectPCOffsets, DwarfStackTraceDecoder, StackTraceHeader;
-export 'src/dwarf.dart' show CallInfo, Dwarf, PCOffset;
+export 'src/dwarf.dart'
+    show CallInfo, DartCallInfo, StubCallInfo, Dwarf, PCOffset;

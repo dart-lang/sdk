@@ -92,15 +92,12 @@ import '../messages.dart'
         FormattedMessage,
         messageConstConstructorLateFinalFieldCause,
         messageConstConstructorLateFinalFieldError,
-        messageConstConstructorLateFinalFieldWarning,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
-        templateFieldNonNullableNotInitializedByConstructorWarning,
         templateFieldNonNullableWithoutInitializerError,
-        templateFieldNonNullableWithoutInitializerWarning,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
         templateInferredPackageUri,
@@ -154,8 +151,11 @@ class KernelTarget extends TargetImplementation {
       new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null);
 
   // Null is always nullable.
-  final TypeBuilder bottomType =
+  final TypeBuilder nullType =
       new NamedTypeBuilder("Null", const NullabilityBuilder.nullable(), null);
+
+  final TypeBuilder bottomType =
+      new NamedTypeBuilder("Never", const NullabilityBuilder.omitted(), null);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
@@ -278,11 +278,11 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype =
+    builder.supertypeBuilder =
         new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null)
           ..bind(objectClassBuilder);
-    builder.interfaces = null;
-    builder.mixedInType = null;
+    builder.interfaceBuilders = null;
+    builder.mixedInTypeBuilder = null;
   }
 
   @override
@@ -294,12 +294,15 @@ class KernelTarget extends TargetImplementation {
       loader.coreLibrary.becomeCoreLibrary();
       dynamicType.bind(
           loader.coreLibrary.lookupLocalMember("dynamic", required: true));
+      bottomType
+          .bind(loader.coreLibrary.lookupLocalMember("Never", required: true));
       loader.resolveParts();
       loader.computeLibraryScopes();
       setupTopAndBottomTypes();
       loader.resolveTypes();
       loader.computeVariances();
-      loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
+      loader.computeDefaultTypes(
+          dynamicType, nullType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses =
           loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
@@ -420,12 +423,12 @@ class KernelTarget extends TargetImplementation {
             Class cls = declaration.cls;
             if (cls != objectClass) {
               cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertype ??= new NamedTypeBuilder(
+              declaration.supertypeBuilder ??= new NamedTypeBuilder(
                   "Object", const NullabilityBuilder.omitted(), null)
                 ..bind(objectClassBuilder);
             }
             if (declaration.isMixinApplication) {
-              cls.mixedInType = declaration.mixedInType.buildMixedInType(
+              cls.mixedInType = declaration.mixedInTypeBuilder.buildMixedInType(
                   library, declaration.charOffset, declaration.fileUri);
             }
           }
@@ -514,7 +517,7 @@ class KernelTarget extends TargetImplementation {
     /// >that is accessible to LM , C has an implicitly declared constructor
     /// >named q'i = [C/S]qi of the form q'i(ai1,...,aiki) :
     /// >super(ai1,...,aiki);.
-    TypeBuilder type = builder.supertype;
+    TypeBuilder type = builder.supertypeBuilder;
     TypeDeclarationBuilder supertype;
     if (type is NamedTypeBuilder) {
       supertype = type.declaration;
@@ -671,7 +674,7 @@ class KernelTarget extends TargetImplementation {
     ClassBuilder nullClassBuilder =
         loader.coreLibrary.lookupLocalMember("Null", required: true);
     nullClassBuilder.isNullClass = true;
-    bottomType.bind(nullClassBuilder);
+    nullType.bind(nullClassBuilder);
   }
 
   void computeCoreTypes() {
@@ -864,23 +867,13 @@ class KernelTarget extends TargetImplementation {
         SourceLibraryBuilder library = builder.library;
         if (library.isNonNullableByDefault) {
           if (constructor.isConst && lateFinalFields.isNotEmpty) {
-            if (library.loader.nnbdMode == NnbdMode.Weak) {
-              builder.addProblem(messageConstConstructorLateFinalFieldWarning,
-                  constructor.fileOffset, noLength,
-                  context: lateFinalFields
-                      .map((field) => messageConstConstructorLateFinalFieldCause
-                          .withLocation(
-                              field.fileUri, field.charOffset, noLength))
-                      .toList());
-            } else {
-              builder.addProblem(messageConstConstructorLateFinalFieldError,
-                  constructor.fileOffset, noLength,
-                  context: lateFinalFields
-                      .map((field) => messageConstConstructorLateFinalFieldCause
-                          .withLocation(
-                              field.fileUri, field.charOffset, noLength))
-                      .toList());
-            }
+            builder.addProblem(messageConstConstructorLateFinalFieldError,
+                constructor.fileOffset, noLength,
+                context: lateFinalFields
+                    .map((field) =>
+                        messageConstConstructorLateFinalFieldCause.withLocation(
+                            field.fileUri, field.charOffset, noLength))
+                    .toList());
             lateFinalFields.clear();
           }
         }
@@ -950,27 +943,14 @@ class KernelTarget extends TargetImplementation {
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
-              if (library.loader.nnbdMode == NnbdMode.Weak) {
-                library.addProblem(
-                    templateFieldNonNullableWithoutInitializerWarning
-                        .withArguments(
-                            fieldBuilder.name,
-                            fieldBuilder.field.type,
-                            library.isNonNullableByDefault),
-                    fieldBuilder.charOffset,
-                    fieldBuilder.name.length,
-                    fieldBuilder.fileUri);
-              } else {
-                library.addProblem(
-                    templateFieldNonNullableWithoutInitializerError
-                        .withArguments(
-                            fieldBuilder.name,
-                            fieldBuilder.field.type,
-                            library.isNonNullableByDefault),
-                    fieldBuilder.charOffset,
-                    fieldBuilder.name.length,
-                    fieldBuilder.fileUri);
-              }
+              library.addProblem(
+                  templateFieldNonNullableWithoutInitializerError.withArguments(
+                      fieldBuilder.name,
+                      fieldBuilder.field.type,
+                      library.isNonNullableByDefault),
+                  fieldBuilder.charOffset,
+                  fieldBuilder.name.length,
+                  fieldBuilder.fileUri);
             }
           }
         }
@@ -1008,27 +988,13 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.field.type, loader.coreTypes.futureOrClass)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
-              if (library.loader.nnbdMode == NnbdMode.Weak) {
-                library.addProblem(
-                    templateFieldNonNullableNotInitializedByConstructorWarning
-                        .withArguments(
-                            fieldBuilder.name,
-                            fieldBuilder.field.type,
-                            library.isNonNullableByDefault),
-                    fieldBuilder.charOffset,
-                    fieldBuilder.name.length,
-                    fieldBuilder.fileUri);
-              } else {
-                library.addProblem(
-                    templateFieldNonNullableNotInitializedByConstructorError
-                        .withArguments(
-                            fieldBuilder.name,
-                            fieldBuilder.field.type,
-                            library.isNonNullableByDefault),
-                    fieldBuilder.charOffset,
-                    fieldBuilder.name.length,
-                    fieldBuilder.fileUri);
-              }
+              library.addProblem(
+                  templateFieldNonNullableNotInitializedByConstructorError
+                      .withArguments(fieldBuilder.name, fieldBuilder.field.type,
+                          library.isNonNullableByDefault),
+                  fieldBuilder.charOffset,
+                  fieldBuilder.name.length,
+                  fieldBuilder.fileUri);
             }
           }
         }

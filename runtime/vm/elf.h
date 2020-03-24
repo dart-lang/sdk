@@ -33,7 +33,8 @@ class Elf : public ZoneAllocated {
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
   void AddStaticSymbol(intptr_t section,
                        const char* name,
-                       size_t memory_offset);
+                       intptr_t address,
+                       intptr_t size);
 
   void Finalize();
 

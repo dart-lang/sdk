@@ -43,8 +43,22 @@ class AsyncError implements Error {
   final Object error;
   final StackTrace stackTrace;
 
-  AsyncError(this.error, this.stackTrace) {
+  AsyncError(this.error, StackTrace stackTrace)
+      : stackTrace = stackTrace ?? defaultStackTrace(error) {
     ArgumentError.checkNotNull(error, "error");
+  }
+
+  /// A default stack trace for an error.
+  ///
+  /// If [error] is an [Error] and it has an [Error.stackTrace],
+  /// that stack trace is returned.
+  /// If not, the [StackTrace.empty] default stack trace is returned.
+  static StackTrace defaultStackTrace(Object error) {
+    if (error is Error) {
+      var stackTrace = error.stackTrace;
+      if (stackTrace != null) return stackTrace;
+    }
+    return StackTrace.empty;
   }
 
   String toString() => '$error';

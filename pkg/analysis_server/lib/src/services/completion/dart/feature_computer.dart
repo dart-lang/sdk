@@ -7,7 +7,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, FieldElement;
+    show ClassElement, Element, FieldElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -87,6 +87,11 @@ class FeatureComputer {
       // Unrelated.
       return 0.13;
     }
+  }
+
+  /// Return the value of the _has deprecated_ feature for the given [element].
+  double hasDeprecatedFeature(Element element) {
+    return element.hasDeprecated ? 0.0 : 1.0;
   }
 
   /// Return the inheritance distance between the [subclass] and the

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /// This file contains tests of assertions when assertions are _enabled_. The
 /// file 'assert.dart' contains similar tests for when assertions are
 /// _disabled_.

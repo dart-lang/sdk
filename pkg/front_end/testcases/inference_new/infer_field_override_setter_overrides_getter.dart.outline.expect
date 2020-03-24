@@ -6,6 +6,12 @@ library test;
 // Try adding an explicit type.
 //   var x;
 //       ^
+// pkg/front_end/testcases/inference_new/infer_field_override_setter_overrides_getter.dart:9:11: Context: This is one of the inherited members.
+//   num get x;
+//           ^
+// pkg/front_end/testcases/inference_new/infer_field_override_setter_overrides_getter.dart:13:12: Context: This is one of the inherited members.
+//   void set x(int value);
+//            ^
 //
 import self as self;
 import "dart:core" as core;

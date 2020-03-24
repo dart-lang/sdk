@@ -346,6 +346,7 @@ class RunServiceTask : public ThreadPool::Task {
 
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
+    api_flags.null_safety = false;
 
     isolate = reinterpret_cast<Isolate*>(
         create_group_callback(ServiceIsolate::kName, ServiceIsolate::kName,

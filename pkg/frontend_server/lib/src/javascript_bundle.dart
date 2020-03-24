@@ -156,6 +156,7 @@ class JavaScriptBundler {
         mapUrl: '$moduleUrl.lib.js.map',
         sourceMapBase: sourceMapBase,
         customScheme: _fileSystemScheme,
+        component: summaryComponent,
       );
       final codeBytes = utf8.encode(code.code);
       final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));

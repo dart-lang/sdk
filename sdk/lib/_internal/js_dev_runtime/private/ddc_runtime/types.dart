@@ -46,10 +46,9 @@ final metadata = JS('', 'Symbol("metadata")');
 ///
 ///     T.is(o): Implements 'o is T'.
 ///     T.as(o): Implements 'o as T'.
-///     T._check(o): Implements the type assertion of 'T x = o;'
 ///
 /// By convention, we used named JavaScript functions for these methods with the
-/// name 'is_X', 'as_X' and 'check_X' for various X to indicate the type or the
+/// name 'is_X' and 'as_X' for various X to indicate the type or the
 /// implementation strategy for the test (e.g 'is_String', 'is_G' for generic
 /// types, etc.)
 // TODO(jmesserly): we shouldn't implement Type here. It should be moved down
@@ -63,10 +62,7 @@ class DartType implements Type {
   bool is_T(object) => instanceOf(object, this);
 
   @JSExportName('as')
-  as_T(object) => cast(object, this, false);
-
-  @JSExportName('_check')
-  check_T(object) => cast(object, this, true);
+  as_T(object) => cast(object, this);
 }
 
 class DynamicType extends DartType {
@@ -77,9 +73,6 @@ class DynamicType extends DartType {
 
   @JSExportName('as')
   as_T(object) => object;
-
-  @JSExportName('_check')
-  check_T(object) => object;
 }
 
 @notNull
@@ -178,10 +171,7 @@ class LazyJSType extends DartType {
   bool is_T(obj) => isRawJSType(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
-  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, false);
-
-  @JSExportName('_check')
-  check_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, true);
+  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this);
 }
 
 /// An anonymous JS type
@@ -196,10 +186,7 @@ class AnonymousJSType extends DartType {
   bool is_T(obj) => _isJsObject(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
-  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this, false);
-
-  @JSExportName('_check')
-  check_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this, true);
+  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this);
 }
 
 void _warn(arg) {
@@ -486,7 +473,7 @@ class FunctionType extends AbstractFunctionType {
   }
 
   @JSExportName('as')
-  as_T(obj, [@notNull bool isImplicit = false]) {
+  as_T(obj) {
     if (obj == null) return obj;
     if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
@@ -496,11 +483,8 @@ class FunctionType extends AbstractFunctionType {
         return obj;
       }
     }
-    return castError(obj, this, isImplicit);
+    return castError(obj, this);
   }
-
-  @JSExportName('_check')
-  check_T(obj) => as_T(obj, true);
 }
 
 /// A type variable, used by [GenericFunctionType] to represent a type formal.
@@ -677,13 +661,7 @@ class GenericFunctionType extends AbstractFunctionType {
   @JSExportName('as')
   as_T(obj) {
     if (obj == null || is_T(obj)) return obj;
-    return castError(obj, this, false);
-  }
-
-  @JSExportName('_check')
-  check_T(obj) {
-    if (obj == null || is_T(obj)) return obj;
-    return castError(obj, this, true);
+    return castError(obj, this);
   }
 }
 

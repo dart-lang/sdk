@@ -23,7 +23,7 @@ class SetIteratorTest {
     testDifferentHashCodes();
   }
 
-  static int sum(int expected, Iterator<int> it) {
+  static void sum(int expected, Iterator<int> it) {
     int count = 0;
     while (it.moveNext()) {
       count += it.current;

@@ -907,6 +907,8 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
 #error What architecture?
 #endif
+
+    ADD_ISOLATE_FLAG(null_safety, null_safety, FLAG_null_safety);
   }
 
   if (Dart::non_nullable_flag()) {

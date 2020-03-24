@@ -2932,6 +2932,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       BuildTypeArguments(length);  // read type arguments.
   result_ =
       Type::New(klass, type_arguments, TokenPosition::kNoSource, nullability);
+  result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);

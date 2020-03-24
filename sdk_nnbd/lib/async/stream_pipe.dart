@@ -5,8 +5,8 @@
 part of dart.async;
 
 /** Runs user code and takes actions depending on success or failure. */
-_runUserCode<T>(
-    T userCode(), onSuccess(T value), onError(Object error, StackTrace? stackTrace)) {
+_runUserCode<T>(T userCode(), onSuccess(T value),
+    onError(Object error, StackTrace stackTrace)) {
   try {
     onSuccess(userCode());
   } catch (e, s) {
@@ -24,7 +24,7 @@ _runUserCode<T>(
 /** Helper function to cancel a subscription and wait for the potential future,
   before completing with an error. */
 void _cancelAndError(StreamSubscription subscription, _Future future,
-    Object error, StackTrace? stackTrace) {
+    Object error, StackTrace stackTrace) {
   var cancelFuture = subscription.cancel();
   if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._completeError(error, stackTrace));
@@ -34,7 +34,7 @@ void _cancelAndError(StreamSubscription subscription, _Future future,
 }
 
 void _cancelAndErrorWithReplacement(StreamSubscription subscription,
-    _Future future, Object error, StackTrace? stackTrace) {
+    _Future future, Object error, StackTrace stackTrace) {
   AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
@@ -43,12 +43,10 @@ void _cancelAndErrorWithReplacement(StreamSubscription subscription,
   _cancelAndError(subscription, future, error, stackTrace);
 }
 
-typedef void _ErrorCallback(Object error, StackTrace? stackTrace);
-
 /** Helper function to make an onError argument to [_runUserCode]. */
-_ErrorCallback _cancelAndErrorClosure(
+void Function(Object error, StackTrace stackTrace) _cancelAndErrorClosure(
     StreamSubscription subscription, _Future future) {
-  return (Object error, StackTrace? stackTrace) {
+  return (Object error, StackTrace stackTrace) {
     _cancelAndError(subscription, future, error, stackTrace);
   };
 }
@@ -95,7 +93,7 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
 
   void _handleData(S data, _EventSink<T> sink);
 
-  void _handleError(Object error, StackTrace? stackTrace, _EventSink<T> sink) {
+  void _handleError(Object error, StackTrace stackTrace, _EventSink<T> sink) {
     sink._addError(error, stackTrace);
   }
 
@@ -129,7 +127,7 @@ class _ForwardingStreamSubscription<S, T>
     super._add(data);
   }
 
-  void _addError(Object error, StackTrace? stackTrace) {
+  void _addError(Object error, StackTrace stackTrace) {
     if (_isClosed) return;
     super._addError(error, stackTrace);
   }
@@ -159,7 +157,7 @@ class _ForwardingStreamSubscription<S, T>
     _stream._handleData(data, this);
   }
 
-  void _handleError(error, StackTrace? stackTrace) {
+  void _handleError(error, StackTrace stackTrace) {
     _stream._handleError(error, stackTrace, this);
   }
 
@@ -173,7 +171,7 @@ class _ForwardingStreamSubscription<S, T>
 // -------------------------------------------------------------------
 
 void _addErrorWithReplacement(
-    _EventSink sink, Object error, StackTrace? stackTrace) {
+    _EventSink sink, Object error, StackTrace stackTrace) {
   AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
@@ -268,7 +266,7 @@ class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
     sink._add(data);
   }
 
-  void _handleError(Object error, StackTrace? stackTrace, _EventSink<T> sink) {
+  void _handleError(Object error, StackTrace stackTrace, _EventSink<T> sink) {
     bool matches = true;
     var test = _test;
     if (test != null) {

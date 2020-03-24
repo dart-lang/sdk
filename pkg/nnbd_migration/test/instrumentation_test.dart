@@ -29,7 +29,11 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   @override
   void changes(Source source, Map<int, List<AtomicEdit>> changes) {
     expect(test.changes, isNull);
-    test.changes = changes;
+    test.changes = {
+      for (var entry in changes.entries)
+        if (entry.value.any((edit) => !edit.isInformative))
+          entry.key: entry.value
+    };
   }
 
   @override

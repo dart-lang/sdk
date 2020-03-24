@@ -4155,9 +4155,9 @@ class PersistentHandleVisitor : public HandleVisitor {
         reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
     // Attempt to include a native symbol name.
     char* name = NativeSymbolResolver::LookupSymbolName(
-        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()), NULL);
-    obj.AddProperty("callbackSymbolName", (name == NULL) ? "" : name);
-    if (name != NULL) {
+        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
+    obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
+    if (name != nullptr) {
       NativeSymbolResolver::FreeSymbolName(name);
     }
     obj.AddPropertyF("externalSize", "%" Pd "",

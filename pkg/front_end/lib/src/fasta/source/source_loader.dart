@@ -585,13 +585,13 @@ class SourceLoader extends Loader {
     ticker.logMs("Computed variances of $count type variables");
   }
 
-  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass) {
+  void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count +=
-            library.computeDefaultTypes(dynamicType, bottomType, objectClass);
+        count += library.computeDefaultTypes(
+            dynamicType, nullType, bottomType, objectClass);
       }
     });
     ticker.logMs("Computed default types for $count type variables");
@@ -622,20 +622,20 @@ class SourceLoader extends Loader {
   void checkObjectClassHierarchy(ClassBuilder objectClass) {
     if (objectClass is SourceClassBuilder &&
         objectClass.library.loader == this) {
-      if (objectClass.supertype != null) {
-        objectClass.supertype = null;
+      if (objectClass.supertypeBuilder != null) {
+        objectClass.supertypeBuilder = null;
         objectClass.addProblem(
             messageObjectExtends, objectClass.charOffset, noLength);
       }
-      if (objectClass.interfaces != null) {
+      if (objectClass.interfaceBuilders != null) {
         objectClass.addProblem(
             messageObjectImplements, objectClass.charOffset, noLength);
-        objectClass.interfaces = null;
+        objectClass.interfaceBuilders = null;
       }
-      if (objectClass.mixedInType != null) {
+      if (objectClass.mixedInTypeBuilder != null) {
         objectClass.addProblem(
             messageObjectMixesIn, objectClass.charOffset, noLength);
-        objectClass.mixedInType = null;
+        objectClass.mixedInTypeBuilder = null;
       }
     }
   }
@@ -763,7 +763,7 @@ class SourceLoader extends Loader {
     }
 
     // Check that the mixed-in type can be used as a mixin.
-    final TypeBuilder mixedInType = cls.mixedInType;
+    final TypeBuilder mixedInType = cls.mixedInTypeBuilder;
     if (mixedInType != null) {
       bool isClassBuilder = false;
       if (mixedInType is NamedTypeBuilder) {

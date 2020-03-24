@@ -17,8 +17,7 @@ String get TRACE_FILTER_PATTERN => TRACE_FILTER_PATTERN_FROM_ENVIRONMENT != ''
     : TRACE_FILTER_PATTERN_FOR_TEST;
 
 const String TRACE_FILTER_PATTERN_FROM_ENVIRONMENT =
-    // TODO(sigmund): remove `?? ''` once #40678 is backported.
-    const String.fromEnvironment("DUMP_IR") ?? '';
+    String.fromEnvironment("DUMP_IR", defaultValue: "");
 String TRACE_FILTER_PATTERN_FOR_TEST;
 
 /// Dumps the intermediate representation after each phase in a format

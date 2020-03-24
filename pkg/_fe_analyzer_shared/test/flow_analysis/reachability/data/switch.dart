@@ -37,7 +37,7 @@ void all_cases_exit(int i) {
   /*stmt: unreachable*/ 1;
 }
 
-/*analyzer.member: enum_no_default:doesNotComplete*/
+/*member: enum_no_default:doesNotComplete*/
 void enum_no_default(MyEnum e) {
   switch (e) {
     case MyEnum.a:
@@ -45,5 +45,5 @@ void enum_no_default(MyEnum e) {
     case MyEnum.b:
       return;
   }
-  /*analyzer.stmt: unreachable*/ 1;
+  /*stmt: unreachable*/ 1;
 }

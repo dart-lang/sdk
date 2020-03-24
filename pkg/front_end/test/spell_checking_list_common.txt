@@ -564,6 +564,7 @@ conflicting
 conflicts
 conform
 conformed
+confuse
 confused
 connect
 connected
@@ -1112,6 +1113,7 @@ fake
 fall
 fallback
 falls
+fallthrough
 false
 far
 fashion
@@ -1327,6 +1329,7 @@ hexadecimal
 hidden
 hide
 hides
+hiding
 hierarchies
 hierarchy
 high
@@ -3025,6 +3028,7 @@ unaliased
 unambiguous
 unary
 unassignable
+unassigned
 unbalanced
 unbind
 uncertain
@@ -3095,6 +3099,7 @@ until
 untranslatable
 untyped
 unused
+unwanted
 unwrap
 unwrapped
 up
@@ -3175,6 +3180,7 @@ wait
 walk
 walked
 want
+wanted
 warn
 warning
 warnings

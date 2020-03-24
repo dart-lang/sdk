@@ -419,7 +419,7 @@ Future testShutdown() async {
   asyncEnd();
 }
 
-Future testInvalidReadWriteOperations() {
+void testInvalidReadWriteOperations() {
   asyncStart();
   RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((socket) {});

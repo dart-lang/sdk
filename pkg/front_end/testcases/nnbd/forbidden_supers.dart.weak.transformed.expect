@@ -2,59 +2,59 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:12:7: Warning: Mixing in 'Aoo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:12:7: Error: Can't mix 'Aoo' in because it's marked with '?'.
 // class Coo extends Boo with Aoo? {}
 //       ^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:14:7: Warning: Extending 'Aoo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:14:7: Error: Can't extend 'Aoo' because it's marked with '?'.
 // class Doo extends Aoo? {}
 //       ^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:16:7: Warning: Implementing 'Boo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:16:7: Error: Can't implement 'Boo' because it's marked with '?'.
 // class Eoo implements Boo? {}
 //       ^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:18:7: Warning: Extending 'Boo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:18:7: Error: Can't extend 'Boo' because it's marked with '?'.
 // class Foo extends Boo? with Aoo {}
 //       ^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:20:7: Warning: Extending 'Boo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:20:7: Error: Can't extend 'Boo' because it's marked with '?'.
 // class Goo = Boo? with Aoo?;
 //       ^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:20:7: Warning: Mixing in 'Aoo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:20:7: Error: Can't mix 'Aoo' in because it's marked with '?'.
 // class Goo = Boo? with Aoo?;
 //       ^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:22:7: Warning: Implementing 'Boo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:22:7: Error: Can't implement 'Boo' because it's marked with '?'.
 // class Hoo extends Object with Aoo implements Boo? {}
 //       ^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:24:7: Warning: Implementing 'Boo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:24:7: Error: Can't implement 'Boo' because it's marked with '?'.
 // class Ioo = Object with Aoo implements Boo?;
 //       ^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:32:7: Warning: Extending 'Aoo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:32:7: Error: Can't extend 'Aoo' because it's marked with '?'.
 // mixin Moo1 on Aoo? implements Boo? {}
 //       ^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:32:7: Warning: Implementing 'Boo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:32:7: Error: Can't implement 'Boo' because it's marked with '?'.
 // mixin Moo1 on Aoo? implements Boo? {}
 //       ^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:34:7: Warning: Extending 'Aoo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:34:7: Error: Can't extend 'Aoo' because it's marked with '?'.
 // mixin Moo2 on Aoo?, Boo? {}
 //       ^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:34:7: Warning: Extending 'Boo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:34:7: Error: Can't extend 'Boo' because it's marked with '?'.
 // mixin Moo2 on Aoo?, Boo? {}
 //       ^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:36:7: Warning: Implementing 'Aoo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:36:7: Error: Can't implement 'Aoo' because it's marked with '?'.
 // mixin Moo3 implements Aoo?, Boo? {}
 //       ^^^^
 //
-// pkg/front_end/testcases/nnbd/forbidden_supers.dart:36:7: Warning: Implementing 'Boo' marked with '?'.
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:36:7: Error: Can't implement 'Boo' because it's marked with '?'.
 // mixin Moo3 implements Aoo?, Boo? {}
 //       ^^^^
 //

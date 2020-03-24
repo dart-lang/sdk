@@ -33,7 +33,8 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     }
   }
 
-  void completeError(e, [st]) {
+  void completeError(Object e, [StackTrace? st]) {
+    st ??= AsyncError.defaultStackTrace(e);
     if (isSync) {
       _future._completeError(e, st);
     } else {
@@ -77,7 +78,7 @@ Function _asyncThenWrapperHelper(continuation) {
 // parameter to the continuation.  See vm/ast_transformer.cc for usage.
 Function _asyncErrorWrapperHelper(continuation) {
   // See comments of `_asyncThenWrapperHelper`.
-  var errorCallback = (e, s) => continuation(null, e, s);
+  void errorCallback(Object e, StackTrace s) => continuation(null, e, s);
   if (Zone.current == Zone.root) return errorCallback;
   return Zone.current.registerBinaryCallback(errorCallback);
 }

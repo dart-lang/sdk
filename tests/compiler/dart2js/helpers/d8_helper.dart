@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Partial test that the closed world computed from [WorldImpact]s derived from
 // kernel is equivalent to the original computed from resolution.
 library dart2js.kernel.compiler_helper;

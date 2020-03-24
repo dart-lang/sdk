@@ -142,7 +142,8 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * The default value is `null`.
    */
-  String? serverHeader;
+  String? get serverHeader;
+  void set serverHeader(String? newServerHeader);
 
   /**
    * Default set of headers added to all response objects.
@@ -169,7 +170,8 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * The default value is `false` (compression disabled).
    * To enable, set `autoCompress` to `true`.
    */
-  bool autoCompress;
+  bool get autoCompress;
+  void set autoCompress(bool newAutoCompress);
 
   /**
    * Gets or sets the timeout used for idle keep-alive connections. If no
@@ -183,7 +185,8 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * To disable, set [idleTimeout] to `null`.
    */
-  Duration? idleTimeout;
+  Duration? get idleTimeout;
+  void set idleTimeout(Duration? newIdleTimeout);
 
   /**
    * Starts listening for HTTP requests on the specified [address] and
@@ -772,6 +775,11 @@ abstract class HttpHeaders {
  * [HeaderValue] can be used to conveniently build and parse header
  * values on this form.
  *
+ * Parameter values can be omitted, in which case the value is parsed as `null`.
+ * Values can be doubled quoted to allow characters outside of the RFC 7230
+ * token characters and backslash sequences can be used to represent the double
+ * quote and backslash characters themselves.
+ *
  * To build an "accepts" header with the value
  *
  *     text/plain; q=0.3, text/html
@@ -798,7 +806,8 @@ abstract class HeaderValue {
   /**
    * Creates a new header value object setting the value and parameters.
    */
-  factory HeaderValue([String value = "", Map<String, String>? parameters]) {
+  factory HeaderValue(
+      [String value = "", Map<String, String?> parameters = const {}]) {
     return new _HeaderValue(value, parameters);
   }
 
@@ -826,7 +835,7 @@ abstract class HeaderValue {
    *
    * This map cannot be modified.
    */
-  Map<String, String> get parameters;
+  Map<String, String?> get parameters;
 
   /**
    * Returns the formatted string representation in the form:
@@ -916,7 +925,7 @@ abstract class ContentType implements HeaderValue {
    * or in `parameters`, will have its value converted to lower-case.
    */
   factory ContentType(String primaryType, String subType,
-      {String? charset, Map<String, String>? parameters}) {
+      {String? charset, Map<String, String?> parameters = const {}}) {
     return new _ContentType(primaryType, subType, charset, parameters);
   }
 
@@ -988,7 +997,8 @@ abstract class Cookie {
    * `(`, `)`, `<`, `>`, `@`, `,`, `;`, `:`, `\`, `"`, `/`, `[`, `]`, `?`, `=`,
    * `{`, and `}`.
    */
-  String name;
+  String get name;
+  void set name(String newName);
 
   /**
    * The value of the cookie.
@@ -1001,39 +1011,46 @@ abstract class Cookie {
    * Cookie values may be wrapped in a single pair of double quotes
    * (U+0022, `"`).
    */
-  String value;
+  String get value;
+  void set value(String newValue);
 
   /**
    * The time at which the cookie expires.
    */
-  DateTime? expires;
+  DateTime? get expires;
+  void set expires(DateTime? newExpires);
 
   /**
    * The number of seconds until the cookie expires. A zero or negative value
    * means the cookie has expired.
    */
-  int? maxAge;
+  int? get maxAge;
+  void set maxAge(int? newMaxAge);
 
   /**
    * The domain that the cookie applies to.
    */
-  String? domain;
+  String? get domain;
+  void set domain(String? newDomain);
 
   /**
    * The path within the [domain] that the cookie applies to.
    */
-  String? path;
+  String? get path;
+  void set path(String? newPath);
 
   /**
    * Whether to only send this cookie on secure connections.
    */
-  bool secure;
+  bool get secure;
+  void set secure(bool newSecure);
 
   /**
    * Whether the cookie is only sent in the HTTP request and is not made
    * available to client side scripts.
    */
-  bool httpOnly;
+  bool get httpOnly;
+  void set httpOnly(bool newHttpOnly);
 
   /**
    * Creates a new cookie setting the name and value.
@@ -1490,7 +1507,8 @@ abstract class HttpClient {
   /// connections.
   ///
   /// The default value is 15 seconds.
-  Duration idleTimeout;
+  Duration get idleTimeout;
+  void set idleTimeout(Duration newIdleTimeout);
 
   /// Gets and sets the connection timeout.
   ///
@@ -1500,7 +1518,8 @@ abstract class HttpClient {
   ///
   /// When this is `null`, the OS default timeout is used. The default is
   /// `null`.
-  Duration? connectionTimeout;
+  Duration? get connectionTimeout;
+  void set connectionTimeout(Duration? newConnectionTimeout);
 
   /**
    * Gets and sets the maximum number of live connections, to a single host.
@@ -1512,7 +1531,8 @@ abstract class HttpClient {
    *
    * Default is `null`.
    */
-  int? maxConnectionsPerHost;
+  int? get maxConnectionsPerHost;
+  void set maxConnectionsPerHost(int? newMaxConnectionsPerHost);
 
   /**
    * Gets and sets whether the body of a response will be automatically
@@ -1540,7 +1560,8 @@ abstract class HttpClient {
    *
    * Default is `true`.
    */
-  bool autoUncompress;
+  bool get autoUncompress;
+  void set autoUncompress(bool newAutoUncompress);
 
   /// Gets and sets the default value of the `User-Agent` header for all requests
   /// generated by this [HttpClient].
@@ -1549,7 +1570,8 @@ abstract class HttpClient {
   ///
   /// If the userAgent is set to `null`, no default `User-Agent` header will be
   /// added to each request.
-  String? userAgent;
+  String? get userAgent;
+  void set userAgent(String? newUserAgent);
 
   factory HttpClient({SecurityContext? context}) {
     HttpOverrides? overrides = HttpOverrides.current;

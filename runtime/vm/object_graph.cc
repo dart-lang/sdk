@@ -983,10 +983,10 @@ class Pass2Visitor : public ObjectVisitor,
     writer_->WriteUnsigned(writer_->GetObjectId(weak_persistent_handle->raw()));
     writer_->WriteUnsigned(weak_persistent_handle->external_size());
     // Attempt to include a native symbol name.
-    char* name = NativeSymbolResolver::LookupSymbolName(
-        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()), NULL);
-    writer_->WriteUtf8((name == NULL) ? "Unknown native function" : name);
-    if (name != NULL) {
+    auto const name = NativeSymbolResolver::LookupSymbolName(
+        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
+    writer_->WriteUtf8((name == nullptr) ? "Unknown native function" : name);
+    if (name != nullptr) {
       NativeSymbolResolver::FreeSymbolName(name);
     }
   }

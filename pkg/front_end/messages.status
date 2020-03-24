@@ -14,6 +14,9 @@ AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
+AmbiguousExtensionMethod/analyzerCode: Fail
+AmbiguousExtensionOperator/analyzerCode: Fail
+AmbiguousExtensionProperty/analyzerCode: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
 AnnotationOnFunctionTypeTypeVariable/analyzerCode: Fail
@@ -223,6 +226,8 @@ ExportOptOutFromOptIn/analyzerCode: Fail
 ExportOptOutFromOptIn/part_wrapped_script: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
+ExtendFunction/part_wrapped_script: Fail
+ExtendFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
 ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
@@ -340,6 +345,8 @@ IllegalRecursiveType/analyzerCode: Fail
 IllegalRecursiveType/part_wrapped_script: Fail
 IllegalRecursiveType/script: Fail
 IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
+ImplementFunction/part_wrapped_script: Fail
+ImplementFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 ImplementsBeforeExtends/part_wrapped_script: Fail
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeOn/part_wrapped_script: Fail
@@ -360,6 +367,7 @@ ImplementsVoid/example: Fail # Feature not yet enabled by default.
 ImplicitCallOfNonMethod/example: Fail
 ImplicitMixinOverride/analyzerCode: Fail
 ImplicitMixinOverride/example: Fail
+ImplicitReturnNull/analyzerCode: Fail
 ImportAfterPart/part_wrapped_script1: Fail
 ImportAfterPart/script1: Fail
 IncompatibleRedirecteeFunctionType/part_wrapped_script6: Fail
@@ -451,6 +459,8 @@ MissingMain/example: Fail
 MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
 MixinDeclaresConstructor/example: Fail
+MixinFunction/part_wrapped_script: Fail
+MixinFunction/script: Fail # TODO(johnniwinther): This message is currently ignored.
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
@@ -482,8 +492,9 @@ NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonNullableInNullAware/analyzerCode: Fail
 NonNullableInNullAware/example: Fail
+NonNullableLateDefinitelyAssignedError/analyzerCode: Fail
+NonNullableLateDefinitelyUnassignedError/analyzerCode: Fail
 NonNullableNotAssignedError/analyzerCode: Fail
-NonNullableNotAssignedError/example: Fail
 NonNullableNotAssignedWarning/analyzerCode: Fail
 NonNullableNotAssignedWarning/example: Fail
 NonNullableOptOut/analyzerCode: Fail
@@ -540,6 +551,7 @@ OptionalNonNullableWithoutInitializerWarning/analyzerCode: Fail
 OverrideFewerNamedArguments/example: Fail
 OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/example: Fail
+OverrideMismatchRequiredNamedParameter/analyzerCode: Fail
 OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
 OverrideTypeMismatchParameterWarning/example: Fail
@@ -651,6 +663,7 @@ TypeVariableDuplicatedName/example: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
 TypedefNotType/example: Fail # Feature not yet enabled by default.
+TypedefNullableType/analyzerCode: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

@@ -4,6 +4,7 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 static method main() → dynamic {
+  core::bool b = false;
   final core::int? lateLocal;
   function #lateLocal#get() → core::int
     return let final core::int? #t1 = lateLocal in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has not been initialized.") : #t1{core::int};
@@ -12,9 +13,14 @@ static method main() → dynamic {
       return lateLocal = #t2;
     else
       throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has already been initialized.");
+  if(b) {
+    #lateLocal#set.call(123);
+  }
   self::throws(() → core::int => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
-  self::expect(123, #lateLocal#set.call(123));
-  self::expect(123, #lateLocal#get.call());
+  if(!b) {
+    self::expect(123, #lateLocal#set.call(123));
+    self::expect(123, #lateLocal#get.call());
+  }
   self::throws(() → core::int => #lateLocal#set.call(124), "Write value to initialized lateLocal");
   function local<T extends core::Object? = dynamic>(T% value) → core::Null? {
     final T? lateGenericLocal;
@@ -28,9 +34,14 @@ static method main() → dynamic {
         #lateGenericLocal#isSet = true;
         return lateGenericLocal = #t3;
       }
+    if(b) {
+      #lateGenericLocal#set.call(value);
+    }
     self::throws(() → T% => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
-    self::expect(value, #lateGenericLocal#set.call(value));
-    self::expect(value, #lateGenericLocal#get.call());
+    if(!b) {
+      self::expect(value, #lateGenericLocal#set.call(value));
+      self::expect(value, #lateGenericLocal#get.call());
+    }
     self::throws(() → T% => #lateGenericLocal#set.call(value), "Write value to initialized lateGenericLocal");
   }
   local.call<core::int?>(null);

@@ -54,10 +54,9 @@ final metadata = JS('', 'Symbol("metadata")');
 ///
 ///     T.is(o): Implements 'o is T'.
 ///     T.as(o): Implements 'o as T'.
-///     T._check(o): Implements the type assertion of 'T x = o;'
 ///
 /// By convention, we used named JavaScript functions for these methods with the
-/// name 'is_X', 'as_X' and 'check_X' for various X to indicate the type or the
+/// name 'is_X' and 'as_X' for various X to indicate the type or the
 /// implementation strategy for the test (e.g 'is_String', 'is_G' for generic
 /// types, etc.)
 // TODO(jmesserly): we shouldn't implement Type here. It should be moved down
@@ -71,10 +70,7 @@ class DartType implements Type {
   bool is_T(object) => instanceOf(object, this);
 
   @JSExportName('as')
-  as_T(object) => cast(object, this, false);
-
-  @JSExportName('_check')
-  check_T(object) => cast(object, this, true);
+  as_T(object) => cast(object, this);
 
   DartType() {
     // Every instance of a DartType requires a set of type caches.
@@ -91,9 +87,6 @@ class DynamicType extends DartType {
 
   @JSExportName('as')
   Object? as_T(Object? object) => object;
-
-  @JSExportName('_check')
-  Object? check_T(Object? object) => object;
 }
 
 @notNull
@@ -119,10 +112,10 @@ bool isDartFunction(obj) =>
 Expando<Function> _assertInteropExpando = Expando<Function>();
 
 @NoReifyGeneric()
-F tearoffInterop<F extends Function>(F f) {
+F tearoffInterop<F extends Function?>(F f) {
   // Wrap a JS function with a closure that ensures all function arguments are
   // native JS functions.
-  if (!_isJsObject(f)) return f;
+  if (!_isJsObject(f) || f == null) return f;
   var ret = _assertInteropExpando[f];
   if (ret == null) {
     ret = JS(
@@ -194,10 +187,7 @@ class LazyJSType extends DartType {
   bool is_T(obj) => isRawJSType(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
-  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, false);
-
-  @JSExportName('_check')
-  check_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, true);
+  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this);
 }
 
 /// An anonymous JS type
@@ -212,10 +202,7 @@ class AnonymousJSType extends DartType {
   bool is_T(obj) => _isJsObject(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
-  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this, false);
-
-  @JSExportName('_check')
-  check_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this, true);
+  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this);
 }
 
 void _warn(arg) {
@@ -362,12 +349,7 @@ class NullableType extends DartType {
   @JSExportName('as')
   as_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
       ? obj
-      : cast(obj, this, false);
-
-  @JSExportName('_check')
-  check_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
-      ? obj
-      : cast(obj, this, true);
+      : cast(obj, this);
 }
 
 /// A wrapper to identify a legacy (star, *) type of the form [type]*.
@@ -395,15 +377,10 @@ class LegacyType extends DartType {
   @JSExportName('as')
   as_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
       ? obj
-      : cast(obj, this, false);
-
-  @JSExportName('_check')
-  check_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
-      ? obj
-      : cast(obj, this, true);
+      : cast(obj, this);
 }
 
-// TODO(nshahan) Add override optimizations for is, as and _check?
+// TODO(nshahan) Add override optimizations for is and as?
 class NeverType extends DartType {
   @override
   toString() => 'Never';
@@ -424,9 +401,6 @@ class VoidType extends DartType {
 
   @JSExportName('as')
   Object? as_T(Object? object) => object;
-
-  @JSExportName('_check')
-  Object? check_T(Object? object) => object;
 }
 
 @JSExportName('void')
@@ -786,7 +760,8 @@ class FunctionType extends AbstractFunctionType {
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
         buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
-      if (JS('!', 'Object.keys(#).length > 0', requiredNamed)) buffer += ', ';
+      if (JS('!', 'Object.keys(#).length > 0 && #.length > 0', requiredNamed,
+          names)) buffer += ', ';
       names = getOwnPropertyNames(requiredNamed);
       JS('', '#.sort()', names);
       for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
@@ -817,7 +792,7 @@ class FunctionType extends AbstractFunctionType {
   }
 
   @JSExportName('as')
-  as_T(obj, [@notNull bool isImplicit = false]) {
+  as_T(obj) {
     if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
       // If there's no actual type, it's a JS function.
@@ -826,11 +801,8 @@ class FunctionType extends AbstractFunctionType {
         return obj;
       }
     }
-    return castError(obj, this, isImplicit);
+    return castError(obj, this);
   }
-
-  @JSExportName('_check')
-  check_T(obj) => as_T(obj, true);
 }
 
 /// A type variable, used by [GenericFunctionType] to represent a type formal.
@@ -1047,13 +1019,7 @@ class GenericFunctionType extends AbstractFunctionType {
   @JSExportName('as')
   as_T(obj) {
     if (is_T(obj)) return obj;
-    return castError(obj, this, false);
-  }
-
-  @JSExportName('_check')
-  check_T(obj) {
-    if (is_T(obj)) return obj;
-    return castError(obj, this, true);
+    return castError(obj, this);
   }
 }
 

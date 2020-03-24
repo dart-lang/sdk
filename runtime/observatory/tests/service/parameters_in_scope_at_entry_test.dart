@@ -6,7 +6,7 @@
 import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 import 'dart:developer';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'service_test_common.dart';
 

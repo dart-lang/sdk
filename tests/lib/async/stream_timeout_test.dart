@@ -16,7 +16,7 @@ main() {
     expect(tos.isBroadcast, false);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
-      expect(s, null);
+      expect(s, StackTrace.empty);
     })).listen((v) {
       fail("Unexpected event");
     });
@@ -77,7 +77,7 @@ main() {
     expect(tos.isBroadcast, true);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
-      expect(s, null);
+      expect(s, StackTrace.empty);
     })).listen((v) {
       fail("Unexpected event");
     });
@@ -89,7 +89,7 @@ main() {
     expect(tos.isBroadcast, true);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
-      expect(s, null);
+      expect(s, StackTrace.empty);
     })).listen((v) {
       fail("Unexpected event");
     });
@@ -101,7 +101,7 @@ main() {
     expect(tos.isBroadcast, false);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
-      expect(s, null);
+      expect(s, StackTrace.empty);
     })).listen((v) {
       fail("Unexpected event");
     });

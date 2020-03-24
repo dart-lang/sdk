@@ -1424,7 +1424,7 @@ class ProfileBuilder : public ValueObject {
     // We haven't seen this pc yet.
 
     // Check NativeSymbolResolver for pc.
-    uintptr_t native_start = 0;
+    uword native_start = 0;
     char* native_name =
         NativeSymbolResolver::LookupSymbolName(pc, &native_start);
     if (native_name == NULL) {

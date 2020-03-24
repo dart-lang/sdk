@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // Tests that the dart2js compiler can be run in a js engine.  This ensures that
 // the internal compiler APIs have no dependency on dart:io.
 library dummy_compiler;

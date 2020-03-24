@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/ansi.dart';
@@ -52,11 +51,11 @@ class AnalysisStats {
 
   /// Print statistics to [out].
   void print(StringSink out) {
-    bool hasErrors = errorCount != 0;
-    bool hasWarns = warnCount != 0;
-    bool hasHints = hintCount != 0;
-    bool hasLints = lintCount != 0;
-    bool hasContent = false;
+    var hasErrors = errorCount != 0;
+    var hasWarns = warnCount != 0;
+    var hasHints = hintCount != 0;
+    var hasLints = lintCount != 0;
+    var hasContent = false;
     if (hasErrors) {
       out.write(errorCount);
       out.write(' ');
@@ -150,7 +149,7 @@ class CLIError implements Comparable<CLIError> {
   @override
   int compareTo(CLIError other) {
     // severity
-    int compare = _severityCompare[other.severity] - _severityCompare[severity];
+    var compare = _severityCompare[other.severity] - _severityCompare[severity];
     if (compare != 0) return compare;
 
     // path
@@ -195,10 +194,10 @@ abstract class ErrorFormatter {
   void formatErrors(List<ErrorsResult> results) {
     stats.unfilteredCount += results.length;
 
-    List<AnalysisError> errors = <AnalysisError>[];
-    Map<AnalysisError, ErrorsResult> errorToLine = {};
-    for (ErrorsResult result in results) {
-      for (AnalysisError error in result.errors) {
+    var errors = <AnalysisError>[];
+    var errorToLine = <AnalysisError, ErrorsResult>{};
+    for (var result in results) {
+      for (var error in result.errors) {
         if (_computeSeverity(error) != null) {
           errors.add(error);
           errorToLine[error] = result;
@@ -206,7 +205,7 @@ abstract class ErrorFormatter {
       }
     }
 
-    for (AnalysisError error in errors) {
+    for (var error in errors) {
       formatError(errorToLine, error);
     }
   }
@@ -233,10 +232,10 @@ class HumanErrorFormatter extends ErrorFormatter {
   @override
   void flush() {
     // sort
-    List<CLIError> sortedErrors = batchedErrors.toList()..sort();
+    var sortedErrors = batchedErrors.toList()..sort();
 
     // print
-    for (CLIError error in sortedErrors) {
+    for (var error in sortedErrors) {
       if (error.isError) {
         stats.errorCount++;
       } else if (error.isWarning) {
@@ -248,7 +247,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       }
 
       // warning • 'foo' is not a bar. • lib/foo.dart:1:2 • foo_warning
-      String issueColor = (error.isError || error.isWarning) ? ansi.red : '';
+      var issueColor = (error.isError || error.isWarning) ? ansi.red : '';
       out.write('  $issueColor${error.severity}${ansi.none} '
           '${ansi.bullet} ${ansi.bold}${error.message}${ansi.none} ');
       out.write('${ansi.bullet} ${error.sourcePath}');
@@ -258,7 +257,7 @@ class HumanErrorFormatter extends ErrorFormatter {
 
       // If verbose, also print any associated correction and URL.
       if (options.verbose) {
-        String padding = ' '.padLeft(error.severity.length + 2);
+        var padding = ' '.padLeft(error.severity.length + 2);
         for (var message in error.contextMessages) {
           out.write('$padding${message.message} ');
           out.write('at ${message.filePath}');
@@ -280,14 +279,14 @@ class HumanErrorFormatter extends ErrorFormatter {
   @override
   void formatError(
       Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
-    Source source = error.source;
+    var source = error.source;
     var result = errorToLine[error];
     var location = result.lineInfo.getLocation(error.offset);
 
-    ErrorSeverity severity = _severityProcessor(error);
+    var severity = _severityProcessor(error);
 
     // Get display name; translate INFOs into LINTS and HINTS.
-    String errorType = severity.displayName;
+    var errorType = severity.displayName;
     if (severity == ErrorSeverity.INFO) {
       if (error.errorCode.type == ErrorType.HINT ||
           error.errorCode.type == ErrorType.LINT) {
@@ -308,12 +307,11 @@ class HumanErrorFormatter extends ErrorFormatter {
     } else {
       sourcePath = _relative(source.fullName);
     }
-    List<ContextMessage> contextMessages = [];
+    var contextMessages = <ContextMessage>[];
     for (var message in error.contextMessages) {
       var session = result.session.analysisContext;
       if (session is DriverBasedAnalysisContext) {
-        LineInfo lineInfo =
-            session.driver.getFileSync(message.filePath)?.lineInfo;
+        var lineInfo = session.driver.getFileSync(message.filePath)?.lineInfo;
         var location = lineInfo.getLocation(message.offset);
         contextMessages.add(ContextMessage(message.filePath, message.message,
             location.lineNumber, location.columnNumber));
@@ -357,11 +355,11 @@ class MachineErrorFormatter extends ErrorFormatter {
     if (!_seenErrors.add(error)) {
       return;
     }
-    Source source = error.source;
+    var source = error.source;
     var location = errorToLine[error].lineInfo.getLocation(error.offset);
-    int length = error.length;
+    var length = error.length;
 
-    ErrorSeverity severity = _severityProcessor(error);
+    var severity = _severityProcessor(error);
 
     if (severity == ErrorSeverity.ERROR) {
       stats.errorCount++;
@@ -392,8 +390,8 @@ class MachineErrorFormatter extends ErrorFormatter {
   }
 
   static String _escapeForMachineMode(String input) {
-    StringBuffer result = StringBuffer();
-    for (int c in input.codeUnits) {
+    var result = StringBuffer();
+    for (var c in input.codeUnits) {
       if (c == _newline) {
         result.write(r'\n');
       } else if (c == _return) {

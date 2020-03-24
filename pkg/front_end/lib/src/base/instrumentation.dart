@@ -52,7 +52,8 @@ class InstrumentationValueForType extends InstrumentationValue {
   InstrumentationValueForType(this.type);
 
   @override
-  String toString() => _shortenInstrumentationString(type.toString());
+  String toString() =>
+      _shortenInstrumentationString(type.leakingDebugToString());
 }
 
 /// Instance of [InstrumentationValue] describing a list of [DartType]s.

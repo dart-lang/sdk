@@ -38,7 +38,6 @@ general/expressions: RuntimeError
 general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
-general/invalid_type: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invocations: RuntimeError
 general/issue37776: RuntimeError
@@ -92,7 +91,6 @@ general_nnbd_opt_out/error_locations/error_location_06: RuntimeError
 general_nnbd_opt_out/expressions: RuntimeError
 general_nnbd_opt_out/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 general_nnbd_opt_out/incomplete_field_formal_parameter: RuntimeError
-general_nnbd_opt_out/invalid_type: TypeCheckError
 general_nnbd_opt_out/invocations: RuntimeError
 general_nnbd_opt_out/issue37776: RuntimeError
 general_nnbd_opt_out/issue38938: RuntimeError # no main and compile time errors.
@@ -150,7 +148,6 @@ inference/mixin_inference_unification_2: TypeCheckError
 inference/override_equals: RuntimeError
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: InstrumentationMismatch # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: InstrumentationMismatch # Issue #25824
-inference_new/dependency_only_if_overloaded: TypeCheckError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError

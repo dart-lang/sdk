@@ -2,47 +2,47 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/bounds_checks.dart:7:13: Warning: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:7:13: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
 // Try changing type arguments so that they conform to the bounds.
-// foo(A<num?> a) {} // Error in strong mode and Warning in weak mode.
+// foo(A<num?> a) {} // Error
 //             ^
 // pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends num> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/bounds_checks.dart:9:12: Warning: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A' in the return type.
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:9:13: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A' in the return type.
 // Try changing type arguments so that they conform to the bounds.
-// A<num?> bar() {} // Error in strong mode and Warning in weak mode.
-//            ^
+// A<num?>? bar() {} // Error
+//             ^
 // pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends num> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/bounds_checks.dart:11:5: Warning: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:11:5: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
 // Try changing type arguments so that they conform to the bounds.
-// baz<T extends A<num?>>() {} // Error in strong mode and Warning in weak mode.
+// baz<T extends A<num?>>() {} // Error
 //     ^
 // pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends num> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/bounds_checks.dart:13:7: Warning: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A' in the supertype 'A' of class 'B'.
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:13:7: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A' in the supertype 'A' of class 'B'.
 // Try changing type arguments so that they conform to the bounds.
-// class B extends A<num?> {} // Error in strong mode and Warning in weak mode.
+// class B extends A<num?> {} // Error
 //       ^
 // pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends num> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/bounds_checks.dart:15:9: Warning: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:15:9: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
 // Try changing type arguments so that they conform to the bounds.
-// class C<T extends A<num?>> {} // Error in strong mode and Warning in weak mode.
+// class C<T extends A<num?>> {} // Error
 //         ^
 // pkg/front_end/testcases/nnbd/bounds_checks.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends num> {}
 //         ^
 //
-// pkg/front_end/testcases/nnbd/bounds_checks.dart:24:3: Warning: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'T' on 'hest'.
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:24:3: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'T' on 'hest'.
 // Try changing type arguments so that they conform to the bounds.
 //   hest<num?>();
 //   ^
@@ -50,7 +50,7 @@ library /*isNonNullableByDefault*/;
 // void hest<T extends num>() {}
 //           ^
 //
-// pkg/front_end/testcases/nnbd/bounds_checks.dart:25:5: Warning: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'T' on 'Hest.hest'.
+// pkg/front_end/testcases/nnbd/bounds_checks.dart:25:5: Error: Type argument 'num?' doesn't conform to the bound 'num' of the type variable 'T' on 'Hest.hest'.
 //  - 'Hest' is from 'pkg/front_end/testcases/nnbd/bounds_checks.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   h.hest<num?>();
@@ -81,7 +81,7 @@ class Hest extends core::Object {
   method hest<T extends core::num = core::num>() → void {}
 }
 static method foo(self::A<core::num?> a) → dynamic {}
-static method bar() → self::A<core::num?> {}
+static method bar() → self::A<core::num?>? {}
 static method baz<T extends self::A<core::num?> = self::A<core::num?>>() → dynamic {}
 static method hest<T extends core::num = core::num>() → void {}
 static method fisk(self::Hest h) → dynamic {

@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/nullable_access.dart:23:18: Warning: Property 'nonNullableField' is accessed on 'Class?' which is potentially null.
+// pkg/front_end/testcases/nnbd/nullable_access.dart:23:18: Error: Property 'nonNullableField' cannot be accessed on 'Class?' because it is potentially null.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_access.dart'.
 // Try accessing using ?. instead.
 //   throws(() => c.nonNullableField);
@@ -33,9 +33,13 @@ class A extends core::Object /*hasConstConstructor*/  {
 }
 static method main() → dynamic {
   self::Class? c;
-  self::throws(() → self::A => c.{self::Class::nonNullableField});
-  self::expect(null, let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::A?} null : #t1{self::Class}.{self::Class::nonNullableField});
-  self::expect(null, let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{self::A?} null : #t2{self::Class}.{self::Class::nonNullableField}.{self::A::nonNullableProperty});
+  self::throws(() → self::A => let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_access.dart:23:18: Error: Property 'nonNullableField' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_access.dart'.
+Try accessing using ?. instead.
+  throws(() => c.nonNullableField);
+                 ^^^^^^^^^^^^^^^^" in c.{self::Class::nonNullableField});
+  self::expect(null, let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{self::A?} null : #t2{self::Class}.{self::Class::nonNullableField});
+  self::expect(null, let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{self::A?} null : #t3{self::Class}.{self::Class::nonNullableField}.{self::A::nonNullableProperty});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

@@ -12,13 +12,13 @@ import 'generics_helper.dart';
 
 class C<T> {
   makeClosure1() {
-    T closure1(T t) {}
+    T closure1(T t) => t;
     return closure1;
   }
 
   makeClosure2() {
     enclosing() {
-      T closure2(T t) {}
+      T closure2(T t) => t;
       return closure2;
     }
 

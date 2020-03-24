@@ -193,7 +193,7 @@ abstract class _FileSystemWatcher {
   // Called when a watcher is no longer needed.
   void _doneWatcher() {}
   // Called when a new path is being watched.
-  Stream _pathWatched() {}
+  Stream _pathWatched();
   // Called when a path is no longer being watched.
   void _donePathWatched() {}
 

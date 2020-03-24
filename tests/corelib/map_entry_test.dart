@@ -27,18 +27,18 @@ void main() {
   checkEntries(baseMap, baseMap);
   checkEntries(baseMap, new Map<String, Object>.unmodifiable(baseMap));
   checkMap({"x": 0, "y": 1});
-  checkMap(new Map<String, Object>.from(baseMap));
-  checkMap(new HashMap<String, Object>.from(baseMap));
-  checkMap(new LinkedHashMap<String, Object>.from(baseMap));
-  checkMap(new SplayTreeMap<String, Object>.from(baseMap));
+  checkMap(new Map<String, dynamic>.from(baseMap));
+  checkMap(new HashMap<String, dynamic>.from(baseMap));
+  checkMap(new LinkedHashMap<String, dynamic>.from(baseMap));
+  checkMap(new SplayTreeMap<String, dynamic>.from(baseMap));
   checkMap(json.decode('{"x":0,"y":1}'));
 }
 
-void checkMap(Map<String, Object> map) {
+void checkMap(Map<String, dynamic> map) {
   checkEntries(baseMap, map);
-  map.addEntries([new MapEntry<String, Object>("z", 2)]);
+  map.addEntries([new MapEntry<String, dynamic>("z", 2)]);
   checkEntries({"x": 0, "y": 1, "z": 2}, map);
-  map.addEntries(<MapEntry<String, Object>>[
+  map.addEntries(<MapEntry<String, dynamic>>[
     new MapEntry("y", 11),
     new MapEntry("v", 3),
     new MapEntry("w", 4)

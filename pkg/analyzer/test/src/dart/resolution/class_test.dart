@@ -130,6 +130,54 @@ class X extends A {}
     );
   }
 
+  test_element_typeFunction_extends() async {
+    await assertErrorsInCode(r'''
+class A extends Function {}
+''', [
+      error(HintCode.DEPRECATED_EXTENDS_FUNCTION, 16, 8),
+    ]);
+    var a = findElement.class_('A');
+    assertType(a.supertype, 'Object');
+  }
+
+  test_element_typeFunction_implements() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B {}
+class C implements A, Function, B {}
+''');
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.class_('C');
+    assertElementTypes(
+      c.interfaces,
+      [
+        interfaceTypeStar(a),
+        interfaceTypeStar(b),
+      ],
+    );
+  }
+
+  test_element_typeFunction_with() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class C extends Object with A, Function, B {}
+''', [
+      error(HintCode.DEPRECATED_MIXIN_FUNCTION, 53, 8),
+    ]);
+    var a = findElement.class_('A');
+    var b = findElement.class_('B');
+    var c = findElement.class_('C');
+    assertElementTypes(
+      c.mixins,
+      [
+        interfaceTypeStar(a),
+        interfaceTypeStar(b),
+      ],
+    );
+  }
+
   test_error_conflictingConstructorAndStaticField_field() async {
     await assertErrorsInCode(r'''
 class C {

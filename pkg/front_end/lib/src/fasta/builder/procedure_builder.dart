@@ -565,23 +565,6 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   List<ClassMember> get localSetters => isSetter
       ? <ClassMember>[new SourceProcedureMember(this)]
       : const <ClassMember>[];
-
-  static const int inferredTypesFromMethod = 3;
-  static const int inferredTypesFromField = 3;
-  static const int inferredTypesFromGetter = 1;
-  static const int inferredTypesFromSetter = 2;
-
-  /// Bit mask showing where types have been inferred from.
-  ///
-  /// The mask uses the values [inferredTypesFromMethod],
-  /// [inferredTypesFromField], [inferredTypesFromGetter],
-  /// [inferredTypesFromSetter].
-  ///
-  /// It is used to detect whether types have already been inferred and in
-  /// getter type inference to favor types from getters over types from
-  /// setters, and in setter type inference to favor types from setters over
-  /// types from getters.
-  int hadTypesInferredFrom = 0;
 }
 
 class SourceProcedureMember extends BuilderClassMember {
@@ -592,12 +575,6 @@ class SourceProcedureMember extends BuilderClassMember {
 
   @override
   bool get isSourceDeclaration => true;
-
-  int get hadTypesInferredFrom => memberBuilder.hadTypesInferredFrom;
-
-  void set hadTypesInferredFrom(int value) {
-    memberBuilder.hadTypesInferredFrom = value;
-  }
 
   @override
   void inferType(ClassHierarchyBuilder hierarchy) {
@@ -625,20 +602,6 @@ class SourceProcedureMember extends BuilderClassMember {
 
   @override
   bool get isFunction => !isProperty;
-
-  List<FormalParameterBuilder> get formals => memberBuilder.formals;
-
-  TypeBuilder get returnType => memberBuilder.returnType;
-
-  @override
-  bool get hasExplicitReturnType {
-    return memberBuilder.returnType != null;
-  }
-
-  @override
-  bool hasExplicitlyTypedFormalParameter(int index) {
-    return memberBuilder.formals[index].type != null;
-  }
 }
 
 class RedirectingFactoryBuilder extends ProcedureBuilderImpl {

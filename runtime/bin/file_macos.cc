@@ -619,9 +619,12 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kOther;
 }
 
-File::Identical File::AreIdentical(Namespace* namespc,
+File::Identical File::AreIdentical(Namespace* namespc_1,
                                    const char* file_1,
+                                   Namespace* namespc_2,
                                    const char* file_2) {
+  USE(namespc_1);
+  USE(namespc_2);
   struct stat file_1_info;
   struct stat file_2_info;
   if ((NO_RETRY_EXPECTED(lstat(file_1, &file_1_info)) == -1) ||

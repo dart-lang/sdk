@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 // This is the same test as `closureCallToString` in 'local_functions.dart' but
 // with a different expectancy because the closed world contains less '.call'
 // methods.

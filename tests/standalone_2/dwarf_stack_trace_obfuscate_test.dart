@@ -49,12 +49,12 @@ final expectedCallsInfo = <List<CallInfo>>[
   // The first frame should correspond to the throw in bar, which was inlined
   // into foo (so we'll get information for two calls for that PC address).
   [
-    CallInfo(
+    DartCallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
         line: 17,
         inlined: true),
-    CallInfo(
+    DartCallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
         line: 23,
@@ -62,7 +62,7 @@ final expectedCallsInfo = <List<CallInfo>>[
   ],
   // The second frame corresponds to call to foo in main.
   [
-    CallInfo(
+    DartCallInfo(
         function: "main",
         filename: "dwarf_stack_trace_obfuscate_test.dart",
         line: 29,

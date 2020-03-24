@@ -264,6 +264,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
 
+  /// Whether to restrict the generated JavaScript to features that work on the
+  /// oldest supported versions of JavaScript. This currently means IE11. If
+  /// `true`, the generated code runs on the legacy JavaScript platform. If
+  /// `false`, the code will fail on the legacy JavaScript platform.
+  bool legacyJavaScript = true; // default value.
+  bool _legacyJavaScript = false;
+  bool _noLegacyJavaScript = false;
+
   /// What should the compiler do with parameter type assertions.
   ///
   /// This is an internal configuration option derived from other flags.
@@ -446,6 +454,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
+      .._legacyJavaScript = _hasOption(options, Flags.legacyJavaScript)
+      .._noLegacyJavaScript = _hasOption(options, Flags.noLegacyJavaScript)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustJSInteropTypeAnnotations =
           _hasOption(options, Flags.trustJSInteropTypeAnnotations)
@@ -493,6 +503,10 @@ class CompilerOptions implements DiagnosticOptions {
         equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
+    if (_legacyJavaScript && _noLegacyJavaScript) {
+      throw ArgumentError("'${Flags.legacyJavaScript}' incompatible with "
+          "'${Flags.noLegacyJavaScript}'");
+    }
   }
 
   void deriveOptions() {
@@ -507,6 +521,9 @@ class CompilerOptions implements DiagnosticOptions {
       // we should remove it once we start benchmarking NNBD.
       useNewRti = false;
     }
+
+    if (_noLegacyJavaScript) legacyJavaScript = false;
+    if (_legacyJavaScript) legacyJavaScript = true;
 
     if (optimizationLevel != null) {
       if (optimizationLevel == 0) {

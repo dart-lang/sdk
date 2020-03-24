@@ -271,6 +271,9 @@ abstract class StandardBounds {
   /// additionally handles the unknown type that appears during type inference.
   DartType getStandardLowerBound(
       DartType type1, DartType type2, Library clientLibrary) {
+    if (type1 is InvalidType || type2 is InvalidType) {
+      return const InvalidType();
+    }
     if (clientLibrary.isNonNullableByDefault) {
       return _getNullabilityAwareStandardLowerBound(
           type1, type2, clientLibrary);
@@ -555,6 +558,9 @@ abstract class StandardBounds {
   /// additionally handles the unknown type that appears during type inference.
   DartType getStandardUpperBound(
       DartType type1, DartType type2, Library clientLibrary) {
+    if (type1 is InvalidType || type2 is InvalidType) {
+      return const InvalidType();
+    }
     if (clientLibrary.isNonNullableByDefault) {
       return _getNullabilityAwareStandardUpperBound(
           type1, type2, clientLibrary);

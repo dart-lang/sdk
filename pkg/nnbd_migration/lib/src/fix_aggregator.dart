@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -24,7 +26,35 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   final EditPlanner planner;
 
-  FixAggregator._(this.planner, this._changes);
+  /// Map from library to the prefix we should use when inserting code that
+  /// refers to it.
+  final Map<LibraryElement, String> _importPrefixes = {};
+
+  FixAggregator._(this.planner, this._changes,
+      CompilationUnitElement compilationUnitElement) {
+    for (var importElement in compilationUnitElement.library.imports) {
+      // TODO(paulberry): the `??=` should ensure that if there are two imports,
+      // one prefixed and one not, we prefer the prefix.  Test this.
+      _importPrefixes[importElement.importedLibrary] ??=
+          importElement.prefix?.name;
+    }
+  }
+
+  /// Creates the necessary Dart code to refer to the given element, using an
+  /// import prefix if necessary.
+  ///
+  /// TODO(paulberry): if the element is not currently imported, we should
+  /// update or add an import statement as necessary.
+  String elementToCode(Element element) {
+    var name = element.name;
+    var library = element.library;
+    var prefix = _importPrefixes[library];
+    if (prefix != null) {
+      return '$prefix.$name';
+    } else {
+      return name;
+    }
+  }
 
   /// Gathers all the changes to nodes descended from [node] into a single
   /// [EditPlan].
@@ -57,6 +87,75 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     }
   }
 
+  /// Creates a string representation of the given type parameter element,
+  /// suitable for inserting into the user's source code.
+  String typeFormalToCode(TypeParameterElement formal) {
+    var bound = formal.bound;
+    if (bound == null ||
+        bound.isDynamic ||
+        (bound.isDartCoreObject &&
+            bound.nullabilitySuffix != NullabilitySuffix.none)) {
+      return formal.name;
+    }
+    return '${formal.name} extends ${typeToCode(bound)}';
+  }
+
+  String typeToCode(DartType type) {
+    // TODO(paulberry): is it possible to share code with DartType.toString()
+    // somehow?
+    String suffix =
+        type.nullabilitySuffix == NullabilitySuffix.question ? '?' : '';
+    if (type is InterfaceType) {
+      var name = elementToCode(type.element);
+      var typeArguments = type.typeArguments;
+      if (typeArguments.isEmpty) {
+        return '$name$suffix';
+      } else {
+        var args = [for (var arg in typeArguments) typeToCode(arg)].join(', ');
+        return '$name<$args>$suffix';
+      }
+    } else if (type is FunctionType) {
+      var buffer = StringBuffer();
+      buffer.write(typeToCode(type.returnType));
+      buffer.write(' Function');
+      var typeFormals = type.typeFormals;
+      if (typeFormals.isNotEmpty) {
+        var formals = [for (var formal in typeFormals) typeFormalToCode(formal)]
+            .join(', ');
+        buffer.write('<$formals>');
+      }
+      buffer.write('(');
+      String optionalOrNamedCloser = '';
+      bool commaNeeded = false;
+      for (var parameter in type.parameters) {
+        if (commaNeeded) {
+          buffer.write(', ');
+        } else {
+          commaNeeded = true;
+        }
+        if (optionalOrNamedCloser.isEmpty && !parameter.isRequiredPositional) {
+          if (parameter.isPositional) {
+            buffer.write('[');
+            optionalOrNamedCloser = ']';
+          } else {
+            buffer.write('{');
+            optionalOrNamedCloser = '}';
+          }
+        }
+        buffer.write(typeToCode(parameter.type));
+        if (parameter.isNamed) {
+          buffer.write(' ${parameter.name}');
+        }
+      }
+      buffer.write(optionalOrNamedCloser);
+      buffer.write(')');
+      buffer.write(suffix);
+      return buffer.toString();
+    } else {
+      return type.toString();
+    }
+  }
+
   @override
   void visitNode(AstNode node) {
     var change = _changes[node];
@@ -76,7 +175,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
       {bool removeViaComments: false}) {
     var planner = EditPlanner(unit.lineInfo, sourceText,
         removeViaComments: removeViaComments);
-    var aggregator = FixAggregator._(planner, changes);
+    var aggregator = FixAggregator._(planner, changes, unit.declaredElement);
     unit.accept(aggregator);
     if (aggregator._plans.isEmpty) return {};
     EditPlan plan;
@@ -93,6 +192,10 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 /// a particular AST node.
 abstract class NodeChange<N extends AstNode> {
   NodeChange._();
+
+  /// Indicates whether this node exists solely to provide informative
+  /// information.
+  bool get isInformative => false;
 
   /// Applies this change to the given [node], producing an [EditPlan].  The
   /// [aggregator] may be used to gather up any edits to the node's descendants
@@ -289,7 +392,7 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
 
   AtomicEditInfo _addNullCheckInfo;
 
-  String _introducesAsType;
+  DartType _introducesAsType;
 
   AtomicEditInfo _introduceAsInfo;
 
@@ -308,7 +411,7 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
 
   /// Causes a cast to the given [type] to be added to this expression, with
   /// the given [info].
-  void introduceAs(String type, AtomicEditInfo info) {
+  void introduceAs(DartType type, AtomicEditInfo info) {
     assert(!_addsNullCheck);
     assert(_introducesAsType == null);
     assert(type != null);
@@ -332,7 +435,7 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
           .addUnaryPostfix(innerPlan, TokenType.BANG, info: _addNullCheckInfo);
     } else if (_introducesAsType != null) {
       return aggregator.planner.addBinaryPostfix(
-          innerPlan, TokenType.AS, _introducesAsType,
+          innerPlan, TokenType.AS, aggregator.typeToCode(_introducesAsType),
           info: _introduceAsInfo);
     } else {
       return innerPlan;
@@ -461,20 +564,35 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   /// Indicates whether the type should be made nullable by adding a `?`.
   bool makeNullable = false;
 
-  /// If [makeNullable] is `true`, the decorated type that results.
-  DecoratedType makeNullableType;
+  /// The decorated type of the type annotation, or `null` if there is no
+  /// decorated type info of interest.  If [makeNullable] is `true`, the node
+  /// from this type will be attached to the edit that adds the `?`. If
+  /// [makeNullable] is `false`, the node from this type will be attached to the
+  /// information about why the node wasn't made nullable.
+  DecoratedType decoratedType;
 
   NodeChangeForTypeAnnotation() : super._();
 
   @override
+  bool get isInformative => !makeNullable;
+
+  @override
   EditPlan _apply(TypeAnnotation node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
-    if (!makeNullable) return innerPlan;
-    return aggregator.planner.makeNullable(innerPlan,
-        info: AtomicEditInfo(
-            NullabilityFixDescription.makeTypeNullable(
-                makeNullableType.type.getDisplayString(withNullability: false)),
-            [makeNullableType.node]));
+    if (decoratedType == null) return innerPlan;
+    if (makeNullable) {
+      return aggregator.planner.makeNullable(innerPlan,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.makeTypeNullable(
+                  decoratedType.type.getDisplayString(withNullability: false)),
+              [decoratedType.node]));
+    } else {
+      return aggregator.planner.explainNonNullable(innerPlan,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.typeNotMadeNullable(
+                  decoratedType.type.getDisplayString(withNullability: false)),
+              [decoratedType.node]));
+    }
   }
 }
 

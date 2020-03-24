@@ -566,7 +566,7 @@ import "dart:core" as core;
 class Operators1 extends core::Object {
   synthetic constructor •() → self::Operators1*
     ;
-  operator ==() → dynamic
+  operator ==() → core::bool*
     ;
   operator <() → dynamic
     ;
@@ -606,7 +606,7 @@ class Operators1 extends core::Object {
 class Operators2 extends core::Object {
   synthetic constructor •() → self::Operators2*
     ;
-  operator ==(dynamic a, dynamic b) → dynamic
+  operator ==(dynamic a, dynamic b) → core::bool*
     ;
   operator <(dynamic a, dynamic b) → dynamic
     ;
@@ -690,7 +690,7 @@ class Operators3 extends core::Object {
 class Operators4 extends core::Object {
   synthetic constructor •() → self::Operators4*
     ;
-  operator ==({dynamic a}) → dynamic
+  operator ==({dynamic a}) → core::bool*
     ;
   operator <({dynamic a}) → dynamic
     ;

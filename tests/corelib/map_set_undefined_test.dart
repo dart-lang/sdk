@@ -23,7 +23,7 @@ main() {
       isValidKey: (_) => true));
 }
 
-testMap(Map<Object, Object> map) {
+testMap(Map<Object, Object?> map) {
   var t = map.runtimeType.toString();
   var s = ' (length ${map.length})';
   checkUndefined('$t.[]$s', map['hi']);

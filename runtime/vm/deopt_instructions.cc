@@ -358,9 +358,6 @@ static void FillDeferredSlots(DeoptContext* deopt_context,
 // Materializes all deferred objects.  Returns the total number of
 // artificial arguments used during deoptimization.
 intptr_t DeoptContext::MaterializeDeferredObjects() {
-  // This region is initialized by a mixture of C++ and generated code.
-  MSAN_UNPOISON(dest_frame_, dest_frame_size_ * kWordSize);
-
   // Populate slots with references to all unboxed "primitive" values (doubles,
   // mints, simd) and deferred objects. Deferred objects are only allocated
   // but not filled with data. This is done later because deferred objects

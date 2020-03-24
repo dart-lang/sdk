@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 import "dart:core" as core;
 
-class A extends core::Object implements core::Function {
+class A extends core::Object {
   synthetic constructor •() → self::A*
     ;
   operator ==(dynamic other) → core::bool*

@@ -434,7 +434,7 @@ class PartitionDiff {
     rootDiff.name = root;
     rootDiff.sizeA = graphA.processPartitions[root] ?? 0;
     rootDiff.sizeB = graphB.processPartitions[root] ?? 0;
-    rootDiff.children = new List<PartitionDiff>();
+    rootDiff.children = <PartitionDiff>[];
     partitions.remove(root);
 
     var childrenA = 0;
@@ -518,7 +518,7 @@ class SnapshotClassDiff {
       SnapshotGraph graphA, SnapshotGraph graphB) {
     // Matching classes by SnapshotClass.qualifiedName.
     var classesB = new Map<String, SnapshotClass>();
-    var classesDiff = new List<SnapshotClassDiff>();
+    var classesDiff = <SnapshotClassDiff>[];
     for (var classB in graphB.classes) {
       classesB[classB.qualifiedName] = classB;
     }
@@ -581,7 +581,7 @@ class MergedDominatorDiff {
     // dominator tree can be arbitrarily deep. We need to compute the full
     // tree to compute areas, so we do this eagerly to avoid having to
     // repeatedly test for initialization.
-    var worklist = new List<MergedDominatorDiff>();
+    var worklist = <MergedDominatorDiff>[];
     worklist.add(root);
     // Compute children top-down.
     for (var i = 0; i < worklist.length; i++) {
@@ -597,7 +597,7 @@ class MergedDominatorDiff {
 
   void _computeChildren(List<MergedDominatorDiff> worklist) {
     assert(children == null);
-    children = new List<MergedDominatorDiff>();
+    children = <MergedDominatorDiff>[];
 
     // Matching children by MergedObjectVertex.klass.qualifiedName.
     final childrenB = <String, SnapshotMergedDominator>{};
@@ -681,7 +681,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   M.ObjectRepository _objects;
   SnapshotReader _reader;
   String _status;
-  List<SnapshotGraph> _loadedSnapshots = new List<SnapshotGraph>();
+  List<SnapshotGraph> _loadedSnapshots = <SnapshotGraph>[];
   SnapshotGraph _snapshotA;
   SnapshotGraph _snapshotB;
   HeapSnapshotTreeMode _mode = HeapSnapshotTreeMode.mergedDominatorTreeMap;

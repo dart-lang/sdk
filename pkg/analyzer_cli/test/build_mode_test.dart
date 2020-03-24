@@ -132,7 +132,7 @@ class WorkerLoopTest {
     var writer = CodedBufferWriter();
     writer.writeInt32NoTag(buffer.length);
 
-    List<int> result = [];
+    var result = <int>[];
     result.addAll(writer.toBuffer());
     result.addAll(buffer);
     return result;

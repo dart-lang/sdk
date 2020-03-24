@@ -1,12 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/constants.dart:45:7: Error: Property 'length' cannot be accessed on 'String?' because it is potentially null.
-// Try accessing using ?. instead.
-//     s.length; // This will be an invalid expression in strong mode.
-//       ^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 import "constants_lib.dart" as con;
@@ -39,34 +31,20 @@ static const field core::bool setConcatenationIdentical = #C16;
 static const field core::bool mapConcatenationIdentical = #C16;
 static final field core::bool inStrongMode = self::_inStrongMode();
 static method _inStrongMode() → core::bool {
-  (core::String?) → core::Null? f = (core::String? s) → core::Null? {
-    let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/constants.dart:45:7: Error: Property 'length' cannot be accessed on 'String?' because it is potentially null.
-Try accessing using ?. instead.
-    s.length; // This will be an invalid expression in strong mode.
-      ^^^^^^" in s.{core::String::length};
-  };
-  try {
-    f.call("foo");
-  }
-  on dynamic catch(final dynamic e) {
-    core::print("Running in strong mode.");
-    return true;
-  }
-  core::print("Running in weak mode.");
-  return false;
+  return !((#C17) is{ForNonNullableByDefault} core::List<core::int>);
 }
 static method main() → dynamic {
-  self::test(#C1, #C17);
-  self::test(#C3, #C18);
-  self::test(#C5, #C19);
-  self::test(#C6, #C20);
-  self::test(#C7, #C21);
-  self::test(#C8, #C22);
-  self::test(#C12, #C24);
-  self::test(#C15, #C25);
-  self::test(#C8, #C22);
-  self::test(#C12, #C24);
-  self::test(#C15, #C25);
+  self::test(#C1, #C18);
+  self::test(#C3, #C19);
+  self::test(#C5, #C20);
+  self::test(#C6, #C21);
+  self::test(#C7, #C22);
+  self::test(#C8, #C23);
+  self::test(#C12, #C25);
+  self::test(#C15, #C26);
+  self::test(#C8, #C23);
+  self::test(#C12, #C25);
+  self::test(#C15, #C26);
   self::test(true, #C16);
   self::test(true, #C16);
   self::test(true, #C16);
@@ -105,29 +83,29 @@ class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstCo
     : con::Class::field = field, super core::Object::•()
     ;
 }
-static const field core::Type* objectTypeLiteral = #C17;
-static const field (core::Object*, core::Object*) →* core::bool* c2 = #C26;
-static const field (core::int*) →* core::int* partialInstantiation = #C18;
-static const field con::Class<core::int*>* instance = #C19;
-static const field core::Type* functionTypeLiteral = #C20;
-static const field core::Type* genericFunctionTypeLiteral = #C21;
-static const field core::List<core::int*>* listLiteral = #C22;
-static const field core::Set<core::int*>* setLiteral = #C24;
-static const field core::Map<core::int*, core::String*>* mapLiteral = #C25;
-static const field core::List<core::int*>* listConcatenation = #C22;
-static const field core::Set<core::int*>* setConcatenation = #C24;
-static const field core::Map<core::int*, core::String*>* mapConcatenation = #C25;
+static const field core::Type* objectTypeLiteral = #C18;
+static const field (core::Object*, core::Object*) →* core::bool* c2 = #C27;
+static const field (core::int*) →* core::int* partialInstantiation = #C19;
+static const field con::Class<core::int*>* instance = #C20;
+static const field core::Type* functionTypeLiteral = #C21;
+static const field core::Type* genericFunctionTypeLiteral = #C22;
+static const field core::List<core::int*>* listLiteral = #C23;
+static const field core::Set<core::int*>* setLiteral = #C25;
+static const field core::Map<core::int*, core::String*>* mapLiteral = #C26;
+static const field core::List<core::int*>* listConcatenation = #C23;
+static const field core::Set<core::int*>* setConcatenation = #C25;
+static const field core::Map<core::int*, core::String*>* mapConcatenation = #C26;
 static method id<T extends core::Object* = dynamic>(con::id::T* t) → con::id::T*
   return t;
 
 constants  {
-  #C1 = TypeLiteralConstant(dart.core::Object)
+  #C1 = TypeLiteralConstant(core::Object)
   #C2 = tearoff con::id
   #C3 = partial-instantiation con::id <core::int>
   #C4 = 0
   #C5 = con::Class<core::int> {field:#C4}
   #C6 = TypeLiteralConstant((dynamic) → dynamic)
-  #C7 = TypeLiteralConstant(<T extends dart.core::Object? = dynamic>(T%) → T%)
+  #C7 = TypeLiteralConstant(<T extends core::Object? = dynamic>(T%) → T%)
   #C8 = <core::int>[#C4]
   #C9 = null
   #C10 = <dynamic>[#C4, #C9]
@@ -137,14 +115,15 @@ constants  {
   #C14 = <dynamic>[#C4, #C13]
   #C15 = core::_ImmutableMap<core::int, core::String> {_kvPairs:#C14}
   #C16 = false
-  #C17 = TypeLiteralConstant(dart.core::Object*)
-  #C18 = partial-instantiation con::id <core::int*>
-  #C19 = con::Class<core::int*> {field:#C4}
-  #C20 = TypeLiteralConstant((dynamic) →* dynamic)
-  #C21 = TypeLiteralConstant(<T extends dart.core::Object* = dynamic>(T*) →* T*)
-  #C22 = <core::int*>[#C4]
-  #C23 = core::_ImmutableMap<core::int*, core::Null?> {_kvPairs:#C10}
-  #C24 = col::_UnmodifiableSet<core::int*> {_map:#C23}
-  #C25 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C14}
-  #C26 = tearoff core::identical
+  #C17 = <core::int?>[]
+  #C18 = TypeLiteralConstant(core::Object*)
+  #C19 = partial-instantiation con::id <core::int*>
+  #C20 = con::Class<core::int*> {field:#C4}
+  #C21 = TypeLiteralConstant((dynamic) →* dynamic)
+  #C22 = TypeLiteralConstant(<T extends core::Object* = dynamic>(T*) →* T*)
+  #C23 = <core::int*>[#C4]
+  #C24 = core::_ImmutableMap<core::int*, core::Null?> {_kvPairs:#C10}
+  #C25 = col::_UnmodifiableSet<core::int*> {_map:#C24}
+  #C26 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C14}
+  #C27 = tearoff core::identical
 }

@@ -11,6 +11,7 @@ agnostic/map: TextSerializationFailure
 agnostic/set: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
+extensions/ambiguous: TextSerializationFailure
 extensions/annotations: TextSerializationFailure
 extensions/builtin_identifiers: TextSerializationFailure
 extensions/call_methods: TypeCheckError
@@ -57,6 +58,7 @@ extensions/issue38745: TextSerializationFailure
 extensions/issue38750: TextSerializationFailure
 extensions/issue38755: TextSerializationFailure
 extensions/issue38915: TextSerializationFailure
+extensions/issue39527: TextSerializationFailure
 extensions/issue39889: TextSerializationFailure
 extensions/issue39938/issue39938: TextSerializationFailure
 extensions/issue40596: TextSerializationFailure
@@ -217,6 +219,7 @@ general/infer_field_from_multiple: TypeCheckError
 general/infer_field_type: TextSerializationFailure
 general/infer_fixed_generic_return_type: TextSerializationFailure
 general/infer_map_literal_with_closure: TextSerializationFailure
+general/inherit_function: TextSerializationFailure
 general/interface_conflict: TextSerializationFailure
 general/interface_contravariant_from_class: TextSerializationFailure
 general/interface_covariantImpl_from_class: TextSerializationFailure
@@ -225,7 +228,7 @@ general/invalid_assignment: TextSerializationFailure # Was: Pass
 general/invalid_cast: TextSerializationFailure # Was: Pass
 general/invalid_operator2: TextSerializationFailure
 general/invalid_operator: TypeCheckError
-general/invalid_type: TypeCheckError
+general/invalid_type: TextSerializationFailure
 general/invocations: TextSerializationFailure # Was: RuntimeError
 general/issue129167943: TextSerializationFailure
 general/issue34515: TextSerializationFailure
@@ -512,7 +515,7 @@ general_nnbd_opt_out/interface_covariantImpl_from_class: TextSerializationFailur
 general_nnbd_opt_out/interface_covariantInterface_from_class: TextSerializationFailure
 general_nnbd_opt_out/invalid_assignment: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/invalid_cast: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/invalid_type: TypeCheckError
+general_nnbd_opt_out/invalid_type: TextSerializationFailure
 general_nnbd_opt_out/invocations: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/issue129167943: TextSerializationFailure
 general_nnbd_opt_out/issue34515: TextSerializationFailure
@@ -1211,8 +1214,12 @@ instantiate_to_bound/typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
+late_lowering/compound: TextSerializationFailure
+late_lowering/definitely_assigned: TextSerializationFailure
+late_lowering/definitely_unassigned: TextSerializationFailure
 late_lowering/initializer_rewrite: TextSerializationFailure
 late_lowering/infer_late_field_type: TextSerializationFailure
+late_lowering/infer_from_late_variable: TextSerializationFailure
 late_lowering/injected_late_field_checks/main: TextSerializationFailure
 late_lowering/instance_field_with_initializer: TextSerializationFailure
 late_lowering/instance_field_without_initializer: TextSerializationFailure
@@ -1223,6 +1230,7 @@ late_lowering/instance_nullable_final_field_without_initializer: TextSerializati
 late_lowering/issue40093: TextSerializationFailure
 late_lowering/issue40373: TextSerializationFailure
 late_lowering/issue40373b: TextSerializationFailure
+late_lowering/issue40601: TextSerializationFailure
 late_lowering/issue40805: TextSerializationFailure
 late_lowering/late_field_inference: TextSerializationFailure
 late_lowering/late_field_with_initializer: TextSerializationFailure
@@ -1255,6 +1263,8 @@ nnbd/call: TextSerializationFailure
 nnbd/constants: TextSerializationFailure
 nnbd/covariant_nnbd_top_merge: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
+nnbd/definitely_assigned: TextSerializationFailure
+nnbd/definitely_unassigned: TextSerializationFailure
 nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
 nnbd/export_from_opt_out: TextSerializationFailure
@@ -1265,6 +1275,7 @@ nnbd/function_types: TextSerializationFailure
 nnbd/future_or_variables: TextSerializationFailure
 nnbd/generic_override: TextSerializationFailure
 nnbd/infer_constraints_from_opt_in: TextSerializationFailure
+nnbd/infer_from_late_variable: TextSerializationFailure
 nnbd/infer_from_opt_in: TextSerializationFailure
 nnbd/infer_from_opt_out: TextSerializationFailure
 nnbd/infer_if_null: TextSerializationFailure
@@ -1280,7 +1291,10 @@ nnbd/issue40093: TextSerializationFailure
 nnbd/issue40134: TextSerializationFailure
 nnbd/issue40512/issue40512: TextSerializationFailure
 nnbd/issue40600: TextSerializationFailure
+nnbd/issue40601: TextSerializationFailure
 nnbd/issue40805: TextSerializationFailure
+nnbd/issue41102: TextSerializationFailure
+nnbd/issue41103: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
@@ -1288,6 +1302,7 @@ nnbd/later: TextSerializationFailure
 nnbd/lhs_of_if_null: TextSerializationFailure
 nnbd/list_constructor: TextSerializationFailure
 nnbd/literal_from_opt_in: TextSerializationFailure
+nnbd/load_library: TextSerializationFailure
 nnbd/member_inheritance_from_opt_in: TextSerializationFailure
 nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
@@ -1330,8 +1345,10 @@ nnbd/platform_optional_parameters/main: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required: TextSerializationFailure
+nnbd/required_name_override: TextSerializationFailure
 nnbd/required_named_parameter: TextSerializationFailure
 nnbd/return_late: TextSerializationFailure
+nnbd/return_null: TextSerializationFailure
 nnbd/shorting_stop: TextSerializationFailure
 nnbd/simple_never: TextSerializationFailure
 nnbd/sink_hierarchy: TextSerializationFailure

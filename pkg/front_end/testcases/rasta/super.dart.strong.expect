@@ -229,43 +229,43 @@ library;
 //     use(super.m -= 42);
 //               ^
 //
-// pkg/front_end/testcases/rasta/super.dart:95:12: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:95:12: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     super.m++;
 //            ^
 //
-// pkg/front_end/testcases/rasta/super.dart:96:16: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:96:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     use(super.m++);
 //                ^
 //
-// pkg/front_end/testcases/rasta/super.dart:97:12: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:97:12: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     super.n++;
 //            ^
 //
-// pkg/front_end/testcases/rasta/super.dart:98:16: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     use(super.n++);
 //                ^
 //
-// pkg/front_end/testcases/rasta/super.dart:120:5: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:120:5: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     ++super.m;
 //     ^
 //
-// pkg/front_end/testcases/rasta/super.dart:121:9: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:121:9: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     use(++super.m);
 //         ^
 //
-// pkg/front_end/testcases/rasta/super.dart:122:5: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:122:5: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     ++super.n;
 //     ^
 //
-// pkg/front_end/testcases/rasta/super.dart:123:9: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:123:9: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     use(++super.n);
 //         ^
 //
@@ -293,43 +293,43 @@ library;
 //     use(super.n(87));
 //                ^
 //
-// pkg/front_end/testcases/rasta/super.dart:222:13: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:222:13: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     super.m += 42;
 //             ^
 //
-// pkg/front_end/testcases/rasta/super.dart:223:17: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:223:17: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     use(super.m += 42);
 //                 ^
 //
-// pkg/front_end/testcases/rasta/super.dart:224:13: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     super.n += 42;
 //             ^
 //
-// pkg/front_end/testcases/rasta/super.dart:225:17: Error: The method '+' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '+'.
+// pkg/front_end/testcases/rasta/super.dart:225:17: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
 //     use(super.n += 42);
 //                 ^
 //
-// pkg/front_end/testcases/rasta/super.dart:247:13: Error: The method '-' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '-'.
+// pkg/front_end/testcases/rasta/super.dart:247:13: Error: The operator '-' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
 //     super.m -= 42;
 //             ^
 //
-// pkg/front_end/testcases/rasta/super.dart:248:17: Error: The method '-' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '-'.
+// pkg/front_end/testcases/rasta/super.dart:248:17: Error: The operator '-' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
 //     use(super.m -= 42);
 //                 ^
 //
-// pkg/front_end/testcases/rasta/super.dart:249:13: Error: The method '-' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '-'.
+// pkg/front_end/testcases/rasta/super.dart:249:13: Error: The operator '-' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
 //     super.n -= 42;
 //             ^
 //
-// pkg/front_end/testcases/rasta/super.dart:250:17: Error: The method '-' isn't defined for the class 'void Function()'.
-// Try correcting the name to the name of an existing method, or defining a method named '-'.
+// pkg/front_end/testcases/rasta/super.dart:250:17: Error: The operator '-' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
 //     use(super.n -= 42);
 //                 ^
 //
@@ -455,20 +455,20 @@ To delegate a constructor to a super constructor, put the super call as an initi
     self::use(let final dynamic #t17 = super.{self::A::i} in let final dynamic #t18 = super.{self::B::i} = #t17.+(1) in #t17);
     let final core::int* #t19 = 87 in super.{self::A::[]=}(#t19, super.{self::A::[]}(#t19).+(1));
     self::use(let final core::int* #t20 = 87 in let final dynamic #t21 = super.{self::A::[]}(#t20) in let final void #t22 = super.{self::A::[]=}(#t20, #t21.+(1)) in #t21);
-    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:95:12: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:95:12: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m++;
            ^";
-    self::use(let final () →* void #t23 = super.{self::A::m} in let final dynamic #t24 = super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:96:16: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    self::use(let final () →* void #t23 = super.{self::A::m} in let final dynamic #t24 = super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:96:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.m++);
                ^" in #t23);
-    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:97:12: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:97:12: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     super.n++;
            ^";
-    self::use(let final () →* void #t25 = super.{self::A::n} in let final dynamic #t26 = super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:16: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    self::use(let final () →* void #t25 = super.{self::A::n} in let final dynamic #t26 = super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.n++);
                ^" in #t25);
     super.{self::A::a} = super.{self::A::a}.+(1);
@@ -491,20 +491,20 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(super.{self::B::i} = super.{self::A::i}.+(1));
     let final core::int* #t27 = 87 in let final dynamic #t28 = super.{self::A::[]}(#t27).+(1) in let final void #t29 = super.{self::A::[]=}(#t27, #t28) in #t28;
     self::use(let final core::int* #t30 = 87 in let final dynamic #t31 = super.{self::A::[]}(#t30).+(1) in let final void #t32 = super.{self::A::[]=}(#t30, #t31) in #t31);
-    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:120:5: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:120:5: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     ++super.m;
     ^";
-    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:121:9: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:121:9: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     use(++super.m);
         ^");
-    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:122:5: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:122:5: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     ++super.n;
     ^";
-    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:123:9: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:123:9: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     use(++super.n);
         ^");
     super.{self::A::a}.call();
@@ -615,20 +615,20 @@ Try removing the extra positional arguments.
     self::use(super.{self::B::i} = super.{self::A::i}.+(42));
     let final core::int* #t57 = 87 in super.{self::A::[]=}(#t57, super.{self::A::[]}(#t57).+(42));
     self::use(let final core::int* #t58 = 87 in let final dynamic #t59 = super.{self::A::[]}(#t58).+(42) in let final void #t60 = super.{self::A::[]=}(#t58, #t59) in #t59);
-    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:222:13: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:222:13: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m += 42;
             ^";
-    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:223:17: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:223:17: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.m += 42);
                 ^");
-    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:224:13: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     super.n += 42;
             ^";
-    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:225:17: Error: The method '+' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '+'.
+    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:225:17: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.n += 42);
                 ^");
     super.{self::A::a} = super.{self::A::a}.-(42);
@@ -651,20 +651,20 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(super.{self::B::i} = super.{self::A::i}.-(42));
     let final core::int* #t61 = 87 in super.{self::A::[]=}(#t61, super.{self::A::[]}(#t61).-(42));
     self::use(let final core::int* #t62 = 87 in let final dynamic #t63 = super.{self::A::[]}(#t62).-(42) in let final void #t64 = super.{self::A::[]=}(#t62, #t63) in #t63);
-    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:247:13: Error: The method '-' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '-'.
+    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:247:13: Error: The operator '-' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
     super.m -= 42;
             ^";
-    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:248:17: Error: The method '-' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '-'.
+    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:248:17: Error: The operator '-' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
     use(super.m -= 42);
                 ^");
-    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:249:13: Error: The method '-' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '-'.
+    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:249:13: Error: The operator '-' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
     super.n -= 42;
             ^";
-    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:250:17: Error: The method '-' isn't defined for the class 'void Function()'.
-Try correcting the name to the name of an existing method, or defining a method named '-'.
+    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:250:17: Error: The operator '-' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
     use(super.n -= 42);
                 ^");
   }

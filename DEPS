@@ -99,7 +99,7 @@ vars = {
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "c56c671998902fcc4fc9ace88c83daa99f980793",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
-  "intl_tag": "0.15.7",
+  "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
   "linter_tag": "0.1.113",
@@ -119,7 +119,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "429a06039d185149f387a65e3503b0693ce6d24e",
+  "pub_rev": "11afdac99fe67373829f37acc75b625011d360ad",
   "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
@@ -127,12 +127,13 @@ vars = {
   "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "2.0.0",
+  "shelf_proxy_tag": "0.1.0+7",
   "shelf_tag": "0.7.3+3",
   "shelf_web_socket_tag": "0.2.2+3",
   "source_map_stack_trace_tag": "2.0.0",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
-  "source_span_tag": "1.5.5",
+  "source_span_tag": "1.7.0",
   "stack_trace_tag": "1.9.3",
   "stagehand_tag": "v3.3.7",
   "stream_channel_tag": "2.0.0",
@@ -144,11 +145,10 @@ vars = {
   "test_tag": "test_core-v0.3.2",
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "1.1.6",
-  "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
   "watcher_rev": "0.9.7+14",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_tag": "1.0.9",
+  "web_socket_channel_tag": "1.0.15",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "2.2.0",
   "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
@@ -365,6 +365,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
       Var("dart_git") + "shelf_packages_handler.git"
       + "@" + Var("shelf_packages_handler_tag"),
+  Var("dart_root") + "/third_party/pkg/shelf_proxy":
+      Var("dart_git") + "shelf_proxy.git" + "@" + Var("shelf_proxy_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
       Var("dart_git") + "shelf_static.git" + "@" + Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
@@ -402,12 +404,6 @@ deps = {
       "@" + Var("test_reflective_loader_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
-  # Unittest is an early version, 0.11.x, of the package "test"
-  # Do not use it in any new tests. Fetched from chromium_git to avoid
-  # race condition in cache with pkg/test.
-  Var("dart_root") + "/third_party/pkg/unittest":
-      Var("chromium_git") + "/external/github.com/dart-lang/test.git" +
-      "@" + Var("unittest_rev"),
   Var("dart_root") + "/third_party/pkg/usage":
       Var("dart_git") + "usage.git" + "@" + Var("usage_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":

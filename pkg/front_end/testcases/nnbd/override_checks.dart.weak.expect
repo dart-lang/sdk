@@ -7,14 +7,14 @@ library /*isNonNullableByDefault*/;
 //   factory C1 = C2<int?>; // Error in strong mode and Warning in weak mode.
 //              ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:14:7: Warning: The field 'B2.bar' has type 'num', which does not match the corresponding type, 'num?', in the overridden setter, 'B1.bar'.
+// pkg/front_end/testcases/nnbd/override_checks.dart:14:7: Error: The field 'B2.bar' has type 'num', which does not match the corresponding type, 'num?', in the overridden setter, 'B1.bar'.
 //   num bar = 3.14; // Error in strong mode and Warning in weak mode.
 //       ^
 // pkg/front_end/testcases/nnbd/override_checks.dart:8:12: Context: This is the overridden method ('bar').
 //   void set bar(num? value) {}
 //            ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:15:12: Warning: The return type of the method 'B2.baz' is 'num?', which does not match the return type, 'num', of the overridden method, 'B1.baz'.
+// pkg/front_end/testcases/nnbd/override_checks.dart:15:12: Error: The return type of the method 'B2.baz' is 'num?', which does not match the return type, 'num', of the overridden method, 'B1.baz'.
 // Change to a subtype of 'num'.
 //   num? get baz => null; // Error in strong mode and Warning in weak mode.
 //            ^
@@ -22,7 +22,7 @@ library /*isNonNullableByDefault*/;
 //   num get baz => 42;
 //           ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:16:17: Warning: The parameter 'value' of the method 'B2.hest' has type 'num', which does not match the corresponding type, 'num?', in the overridden method, 'B1.hest'.
+// pkg/front_end/testcases/nnbd/override_checks.dart:16:17: Error: The parameter 'value' of the method 'B2.hest' has type 'num', which does not match the corresponding type, 'num?', in the overridden method, 'B1.hest'.
 // Change to a supertype of 'num?', or, for a covariant parameter, a subtype.
 //   void hest(num value) {} // Error in strong mode and Warning in weak mode.
 //                 ^
@@ -30,12 +30,12 @@ library /*isNonNullableByDefault*/;
 //   void hest(num? value) {}
 //        ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:20:16: Warning: The type 'int?' doesn't extend 'int'.
+// pkg/front_end/testcases/nnbd/override_checks.dart:20:16: Error: The type 'int?' doesn't extend 'int'.
 // Try using a different type as argument.
 //   factory C1 = C2<int?>; // Error in strong mode and Warning in weak mode.
 //                ^
 //
-// pkg/front_end/testcases/nnbd/override_checks.dart:27:27: Warning: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
+// pkg/front_end/testcases/nnbd/override_checks.dart:27:27: Error: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
 //  - 'D' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
 //   factory D.bar(num? x) = D.foo; // Error in strong mode and Warning in weak mode.
 //                           ^

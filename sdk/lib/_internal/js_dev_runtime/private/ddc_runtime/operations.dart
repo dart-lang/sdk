@@ -134,7 +134,7 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
+      return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
@@ -179,14 +179,14 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   }
   // Now that we know the signature matches, we can perform type checks.
   for (var i = 0; i < requiredCount; ++i) {
-    JS('', '#[#]._check(#[#])', required, i, actuals, i);
+    JS('', '#[#].as(#[#])', required, i, actuals, i);
   }
   for (var i = 0; i < extras; ++i) {
-    JS('', '#[#]._check(#[#])', optionals, i, actuals, i + requiredCount);
+    JS('', '#[#].as(#[#])', optionals, i, actuals, i + requiredCount);
   }
   if (names != null) {
     for (var name in names) {
-      JS('', '#[#]._check(#[#])', named, name, namedActuals, name);
+      JS('', '#[#].as(#[#])', named, name, namedActuals, name);
     }
   }
   return null;
@@ -397,13 +397,13 @@ bool instanceOf(obj, type) {
 }
 
 @JSExportName('as')
-cast(obj, type, @notNull bool isImplicit) {
+cast(obj, type) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
   if (isSubtypeOf(actual, type)) {
     return obj;
   }
-  return castError(obj, type, isImplicit);
+  return castError(obj, type);
 }
 
 bool test(bool obj) {
@@ -419,7 +419,7 @@ bool dtest(obj) {
 void _throwBooleanConversionError() => throw BooleanConversionAssertionError();
 
 void booleanConversionFailed(obj) {
-  var actual = typeName(getReifiedType(test(obj)));
+  var actual = typeName(getReifiedType(obj));
   throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
 }
 
@@ -427,7 +427,7 @@ asInt(obj) {
   if (obj == null) return null;
 
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    castError(obj, JS('', '#', int), false);
+    castError(obj, JS('', '#', int));
   }
   return obj;
 }
@@ -448,7 +448,7 @@ _notNull(x) {
 }
 
 /// No-op without null safety enabled.
-nullCast(x, type, [@notNull bool isImplicit = false]) => x;
+nullCast(x, type) => x;
 
 /// The global constant map table.
 final constantMaps = JS('', 'new Map()');

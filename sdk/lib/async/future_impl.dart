@@ -26,6 +26,7 @@ abstract class _Completer<T> implements Completer<T> {
       error = _nonNullError(replacement.error);
       stackTrace = replacement.stackTrace;
     }
+    stackTrace ??= AsyncError.defaultStackTrace(error);
     _completeError(error, stackTrace);
   }
 
@@ -229,7 +230,7 @@ class _Future<T> implements Future<T> {
     _setValue(value);
   }
 
-  _Future.immediateError(var error, [StackTrace stackTrace])
+  _Future.immediateError(var error, StackTrace stackTrace)
       : _zone = Zone.current {
     _asyncCompleteError(error, stackTrace);
   }

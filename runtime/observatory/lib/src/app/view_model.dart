@@ -24,7 +24,7 @@ class SortedTableRow {
 
 class SortedTable {
   final List<SortedTableColumn> columns;
-  final List<SortedTableRow> rows = new List<SortedTableRow>();
+  final List<SortedTableRow> rows = <SortedTableRow>[];
   final List<int> sortedRows = [];
 
   SortedTable(this.columns);

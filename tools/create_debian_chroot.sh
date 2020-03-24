@@ -9,7 +9,7 @@
 #
 
 function usage {
-  USAGE="Usage: $0 i386|amd64 [target dir] [be|dev|<stable version>]]\n
+  USAGE="Usage: $0 i386|amd64 [target dir] [be|beta|dev|<stable version>]]\n
 \n
 The first mandatory argument speciifies the CPU architecture using\n
 the Debian convention (e.g. i386 and amd64).\n

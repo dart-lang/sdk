@@ -6,11 +6,23 @@ library test;
 // Try adding an explicit type.
 //   get a => null;
 //       ^
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:17:12: Context: This is one of the inherited members.
+//   final I1 a = null;
+//            ^
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:21:12: Context: This is one of the inherited members.
+//   final I2 a = null;
+//            ^
 //
 // pkg/front_end/testcases/inference/conflicts_can_happen.dart:30:7: Error: Can't infer a return type for 'a' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   get a => null;
 //       ^
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:21:12: Context: This is one of the inherited members.
+//   final I2 a = null;
+//            ^
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:17:12: Context: This is one of the inherited members.
+//   final I1 a = null;
+//            ^
 //
 import self as self;
 import "dart:core" as core;

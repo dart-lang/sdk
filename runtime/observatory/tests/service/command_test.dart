@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:observatory/cli.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 class TestCommand extends Command {
   TestCommand(this.out, name, children) : super(name, children);

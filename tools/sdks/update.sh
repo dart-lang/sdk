@@ -8,9 +8,10 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-channel="stable"
 case "$1" in
-*-dev.*) channel="dev";;
+*-dev.*.0) channel="dev";;
+*-dev.*) channel="beta";;
+*) channel="stable";;
 esac
 
 tmpdir=$(mktemp -d)

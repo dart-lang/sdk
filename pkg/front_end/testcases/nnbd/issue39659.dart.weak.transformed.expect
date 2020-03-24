@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue39659.dart:8:9: Warning: Throwing a value of 'String?' that is neither dynamic nor non-nullable.
+// pkg/front_end/testcases/nnbd/issue39659.dart:8:9: Error: Can't throw a value of 'String?' since it is neither dynamic nor non-nullable.
 //   throw bar();
 //         ^
 //
@@ -10,7 +10,9 @@ import self as self;
 import "dart:core" as core;
 
 static method foo() → dynamic {
-  throw self::bar();
+  invalid-expression "pkg/front_end/testcases/nnbd/issue39659.dart:8:9: Error: Can't throw a value of 'String?' since it is neither dynamic nor non-nullable.
+  throw bar();
+        ^";
 }
 static method bar() → core::String?
   return "asdf";

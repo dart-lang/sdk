@@ -1348,15 +1348,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "A continue label resolves to switch, must be loop or switch member");
 
   /**
-   * It is an error to call the default List constructor with a length argument
-   * and a type argument which is potentially non-nullable.
+   * It is an error to call the default `List` constructor.
    */
-  static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR_MISMATCH =
-      CompileTimeErrorCode(
-          'DEFAULT_LIST_CONSTRUCTOR_MISMATCH',
-          "A list whose values can't be 'null' can't be given an initial "
-              "length because the initial values would all be 'null'.",
-          correction: "Try removing the argument or using 'List.filled'.");
+  static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
+      CompileTimeErrorCode('DEFAULT_LIST_CONSTRUCTOR',
+          "It is an error to call the default List constructor.",
+          correction: "Try using 'List.filled' or 'List.generate'.");
 
   /**
    * 6.2.1 Required Formals: By means of a function signature that names the

@@ -46,6 +46,9 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', true);
 
+  static final isExplainNonNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
+      .having((c) => c.makeNullable, 'makeNullable', false);
+
   static final isNullCheck = TypeMatcher<NodeChangeForExpression>()
       .having((c) => c.addsNullCheck, 'addsNullCheck', true);
 
@@ -78,7 +81,16 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           FixBuilder fixBuilder, AstNode scope) =>
       {
         for (var entry in fixBuilder.changes.entries)
-          if (_isInScope(entry.key, scope)) entry.key: entry.value
+          if (_isInScope(entry.key, scope) && !entry.value.isInformative)
+            entry.key: entry.value
+      };
+
+  Map<AstNode, NodeChange> scopedInformative(
+          FixBuilder fixBuilder, AstNode scope) =>
+      {
+        for (var entry in fixBuilder.changes.entries)
+          if (_isInScope(entry.key, scope) && entry.value.isInformative)
+            entry.key: entry.value
       };
 
   Map<AstNode, Set<Problem>> scopedProblems(
@@ -1216,8 +1228,18 @@ void _f() {
   void Function() x = _f;
 }
 ''');
-    visitTypeAnnotation(
-        findNode.genericFunctionType('Function'), 'void Function()');
+    var genericFunctionType = findNode.genericFunctionType('Function');
+    visitTypeAnnotation(genericFunctionType, 'void Function()',
+        informative: {genericFunctionType: isExplainNonNullable});
+  }
+
+  Future<void> test_genericFunctionType_nonNullable_by_context() async {
+    await analyze('''
+typedef F = void Function();
+''');
+    var genericFunctionType = findNode.genericFunctionType('Function');
+    visitTypeAnnotation(genericFunctionType, 'void Function()',
+        informative: isEmpty);
   }
 
   Future<void> test_genericFunctionType_nullable() async {
@@ -2575,7 +2597,17 @@ void _f() {
   int i = 0;
 }
 ''');
-    visitTypeAnnotation(findNode.typeAnnotation('int'), 'int');
+    var typeAnnotation = findNode.typeAnnotation('int');
+    visitTypeAnnotation(typeAnnotation, 'int',
+        informative: {typeAnnotation: isExplainNonNullable});
+  }
+
+  Future<void> test_typeName_simple_nonNullable_by_context() async {
+    await analyze('''
+class C extends Object {}
+''');
+    visitTypeAnnotation(findNode.typeAnnotation('Object'), 'Object',
+        informative: isEmpty);
   }
 
   Future<void> test_typeName_simple_nullable() async {
@@ -2715,13 +2747,15 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 
   void visitTypeAnnotation(TypeAnnotation node, String expectedType,
       {Map<AstNode, Matcher> changes = const <AstNode, Matcher>{},
-      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
+      dynamic informative = anything}) {
     var fixBuilder = _createFixBuilder(node);
     fixBuilder.visitAll();
     var type = node.type;
     expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
+    expect(scopedInformative(fixBuilder, node), informative);
   }
 
   AssignmentTargetInfo _computeAssignmentTargetInfo(

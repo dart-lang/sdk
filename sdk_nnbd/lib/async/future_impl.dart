@@ -24,11 +24,14 @@ abstract class _Completer<T> implements Completer<T> {
     if (replacement != null) {
       error = replacement.error;
       stackTrace = replacement.stackTrace;
+    } else {
+      stackTrace ??= AsyncError.defaultStackTrace(error);
     }
+    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _completeError(error, stackTrace);
   }
 
-  void _completeError(Object error, StackTrace? stackTrace);
+  void _completeError(Object error, StackTrace stackTrace);
 
   // The future's _isComplete doesn't take into account pending completions.
   // We therefore use _mayComplete.
@@ -41,7 +44,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
     future._asyncComplete(value as FutureOr<T>);
   }
 
-  void _completeError(Object error, StackTrace? stackTrace) {
+  void _completeError(Object error, StackTrace stackTrace) {
     future._asyncCompleteError(error, stackTrace);
   }
 }
@@ -52,7 +55,7 @@ class _SyncCompleter<T> extends _Completer<T> {
     future._complete(value as FutureOr<T>);
   }
 
-  void _completeError(Object error, StackTrace? stackTrace) {
+  void _completeError(Object error, StackTrace stackTrace) {
     future._completeError(error, stackTrace);
   }
 }
@@ -150,8 +153,8 @@ class _FutureListener<S, T> {
     var errorCallback = this.errorCallback; // To enable promotion.
     // If the errorCallback returns something which is not a FutureOr<T>,
     // this return statement throws, and the caller handles the error.
-    if (errorCallback is dynamic Function(Object, StackTrace?)) {
-      return _zone.runBinary<dynamic, Object, StackTrace?>(
+    if (errorCallback is dynamic Function(Object, StackTrace)) {
+      return _zone.runBinary<dynamic, Object, StackTrace>(
           errorCallback, asyncError.error, asyncError.stackTrace);
     } else {
       return _zone.runUnary<dynamic, Object>(
@@ -229,7 +232,7 @@ class _Future<T> implements Future<T> {
     _setValue(value);
   }
 
-  _Future.immediateError(var error, [StackTrace? stackTrace])
+  _Future.immediateError(var error, StackTrace stackTrace)
       : _zone = Zone._current {
     _asyncCompleteError(error, stackTrace);
   }
@@ -353,7 +356,7 @@ class _Future<T> implements Future<T> {
     _resultOrListeners = error;
   }
 
-  void _setError(Object error, StackTrace? stackTrace) {
+  void _setError(Object error, StackTrace stackTrace) {
     _setErrorObject(new AsyncError(error, stackTrace));
   }
 
@@ -465,12 +468,7 @@ class _Future<T> implements Future<T> {
         // so use _complete instead of _completeWithValue.
         target._clearPendingComplete(); // Clear this first, it's set again.
         target._complete(value);
-      },
-          // TODO(floitsch): eventually we would like to make this non-optional
-          // and dependent on the listeners of the target future. If none of
-          // the target future's listeners want to have the stack trace we don't
-          // need a trace.
-          onError: (Object error, [StackTrace? stackTrace]) {
+      }, onError: (Object error, StackTrace stackTrace) {
         assert(target._isPendingComplete);
         target._completeError(error, stackTrace);
       });
@@ -528,7 +526,7 @@ class _Future<T> implements Future<T> {
     _propagateToListeners(this, listeners);
   }
 
-  void _completeError(Object error, [StackTrace? stackTrace]) {
+  void _completeError(Object error, StackTrace stackTrace) {
     assert(!_isComplete);
 
     _FutureListener? listeners = _removeListeners();
@@ -577,7 +575,7 @@ class _Future<T> implements Future<T> {
     _chainForeignFuture(value, this);
   }
 
-  void _asyncCompleteError(Object error, StackTrace? stackTrace) {
+  void _asyncCompleteError(Object error, StackTrace stackTrace) {
     assert(!_isComplete);
 
     _setPendingComplete();
@@ -767,7 +765,8 @@ class _Future<T> implements Future<T> {
     if (onTimeout == null) {
       timer = new Timer(timeLimit, () {
         result._completeError(
-            new TimeoutException("Future not completed", timeLimit));
+            new TimeoutException("Future not completed", timeLimit),
+            StackTrace.empty);
       });
     } else {
       Zone zone = Zone.current;
@@ -787,7 +786,7 @@ class _Future<T> implements Future<T> {
         timer.cancel();
         result._completeWithValue(v);
       }
-    }, onError: (Object e, StackTrace? s) {
+    }, onError: (Object e, StackTrace s) {
       if (timer.isActive) {
         timer.cancel();
         result._completeError(e, s);

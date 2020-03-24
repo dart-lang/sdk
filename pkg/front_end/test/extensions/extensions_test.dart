@@ -168,9 +168,9 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       }
     }
 
-    features[Tags.builderSupertype] = clsBuilder.supertype?.name;
-    if (clsBuilder.interfaces != null) {
-      for (TypeBuilder superinterface in clsBuilder.interfaces) {
+    features[Tags.builderSupertype] = clsBuilder.supertypeBuilder?.name;
+    if (clsBuilder.interfaceBuilders != null) {
+      for (TypeBuilder superinterface in clsBuilder.interfaceBuilders) {
         features.addElement(Tags.builderInterfaces, superinterface.name);
       }
     }

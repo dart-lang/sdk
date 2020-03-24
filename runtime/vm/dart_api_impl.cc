@@ -1339,13 +1339,14 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
           old_space->set_tasks(0);
           ml.NotifyAll();
         }
-
-        spawning_group->Shutdown();
       });
     }
 
     Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
   }
+
+  spawning_group->Shutdown();
+
   Dart_EnterIsolate(Api::CastIsolate(isolate));
   ASSERT(Thread::Current()->isolate_group() == isolate->group());
 

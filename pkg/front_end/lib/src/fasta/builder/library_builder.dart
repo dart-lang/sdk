@@ -148,8 +148,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type variables
   /// that were instantiated in this library.
-  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass);
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass);
 
   void becomeCoreLibrary();
 
@@ -368,8 +368,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   int computeVariances() => 0;
 
   @override
-  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
-      ClassBuilder objectClass) {
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass) {
     return 0;
   }
 

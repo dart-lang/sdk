@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.7
+
 /*member: returnNum1:Union([exact=JSDouble], [exact=JSUInt31])*/
 returnNum1(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
@@ -654,7 +656,7 @@ testReturnNotEquals() {
 }
 
 /*member: testReturnInvokeDynamicGetter:[null|subclass=Object]*/
-testReturnInvokeDynamicGetter() => new A(). /*invoke: [exact=A]*/ myFactory();
+testReturnInvokeDynamicGetter() => new A().myFactory /*invoke: [exact=A]*/ ();
 
 /*member: topLevelConstList:Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/
 var topLevelConstList = const [42];

@@ -46,27 +46,22 @@ class double extends num {}
 /*class: String:Object,String*/
 class String {}
 
-/*cfe|cfe:builder.class: Iterable:Iterable<E*>,Object*/
-/*analyzer.class: Iterable:Iterable<E>,Object*/
+/*class: Iterable:Iterable<E*>,Object*/
 abstract class Iterable<E> {}
 
-/*cfe|cfe:builder.class: List:EfficientLengthIterable<E*>,Iterable<E*>,List<E*>,Object*/
-/*analyzer.class: List:Iterable<E>,List<E>,Object*/
+/*class: List:EfficientLengthIterable<E*>,Iterable<E*>,List<E*>,Object*/
 abstract class List<E> implements EfficientLengthIterable<E> {
   /*cfe|cfe:builder.member: List.==:bool* Function(Object*)**/
   bool operator ==(Object other);
 }
 
-/*cfe|cfe:builder.class: Set:Iterable<E*>,Object,Set<E*>*/
-/*analyzer.class: Set:Iterable<E>,Object,Set<E>*/
+/*class: Set:Iterable<E*>,Object,Set<E*>*/
 class Set<E> implements Iterable<E> {}
 
-/*cfe|cfe:builder.class: Map:Map<K*, V*>,Object*/
-/*analyzer.class: Map:Map<K, V>,Object*/
+/*class: Map:Map<K*, V*>,Object*/
 class Map<K, V> {}
 
-/*cfe|cfe:builder.class: Stream:Object,Stream<E*>*/
-/*analyzer.class: Stream:Object,Stream<E>*/
+/*class: Stream:Object,Stream<E*>*/
 class Stream<E> {}
 
 /*class: Function:Function,Object*/

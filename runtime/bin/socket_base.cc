@@ -9,6 +9,7 @@
 #include "bin/isolate_data.h"
 #include "bin/lockers.h"
 #include "bin/thread.h"
+#include "bin/typed_data_utils.h"
 #include "bin/utils.h"
 
 #include "include/dart_api.h"
@@ -20,16 +21,33 @@ namespace dart {
 namespace bin {
 
 int SocketAddress::GetType() {
-  if (addr_.ss.ss_family == AF_INET6) {
-    return TYPE_IPV6;
+  switch (addr_.ss.ss_family) {
+    case AF_INET6:
+      return TYPE_IPV6;
+    case AF_INET:
+      return TYPE_IPV4;
+    case AF_UNIX:
+      return TYPE_UNIX;
+    default:
+      UNREACHABLE();
+      return TYPE_ANY;
   }
-  return TYPE_IPV4;
 }
 
 intptr_t SocketAddress::GetAddrLength(const RawAddr& addr) {
-  ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
-  return (addr.ss.ss_family == AF_INET6) ? sizeof(struct sockaddr_in6)
-                                         : sizeof(struct sockaddr_in);
+  ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6) ||
+         (addr.ss.ss_family == AF_UNIX));
+  switch (addr.ss.ss_family) {
+    case AF_INET6:
+      return sizeof(struct sockaddr_in6);
+    case AF_INET:
+      return sizeof(struct sockaddr_in);
+    case AF_UNIX:
+      return sizeof(struct sockaddr_un);
+    default:
+      UNREACHABLE();
+      return 0;
+  }
 }
 
 intptr_t SocketAddress::GetInAddrLength(const RawAddr& addr) {
@@ -39,18 +57,24 @@ intptr_t SocketAddress::GetInAddrLength(const RawAddr& addr) {
 }
 
 bool SocketAddress::AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
+  if (a.ss.ss_family != b.ss.ss_family) {
+    return false;
+  }
   if (a.ss.ss_family == AF_INET) {
-    if (b.ss.ss_family != AF_INET) {
-      return false;
-    }
     return memcmp(&a.in.sin_addr, &b.in.sin_addr, sizeof(a.in.sin_addr)) == 0;
   } else if (a.ss.ss_family == AF_INET6) {
-    if (b.ss.ss_family != AF_INET6) {
-      return false;
-    }
     return memcmp(&a.in6.sin6_addr, &b.in6.sin6_addr,
                   sizeof(a.in6.sin6_addr)) == 0 &&
            a.in6.sin6_scope_id == b.in6.sin6_scope_id;
+  } else if (a.ss.ss_family == AF_UNIX) {
+    // This is not used anywhere. The comparison of file path is done via
+    // File::AreIdentical().
+    int len = sizeof(a.un.sun_path);
+    for (int i = 0; i < len; i++) {
+      if (a.un.sun_path[i] != b.un.sun_path[i]) return false;
+      if (a.un.sun_path[i] == '\0') return true;
+    }
+    return true;
   } else {
     UNREACHABLE();
     return false;
@@ -82,12 +106,34 @@ void SocketAddress::GetSockAddr(Dart_Handle obj, RawAddr* addr) {
   Dart_TypedDataReleaseData(obj);
 }
 
+Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
+                                                 Namespace* namespc,
+                                                 RawAddr* addr) {
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+  NamespaceScope ns(namespc, path);
+  path = ns.path();
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+  if (sizeof(path) > sizeof(addr->un.sun_path)) {
+    OSError os_error(-1,
+                     "The length of path exceeds the limit. "
+                     "Check out man 7 unix page",
+                     OSError::kUnknown);
+    return DartUtils::NewDartOSError(&os_error);
+  }
+  addr->un.sun_family = AF_UNIX;
+  Utils::SNPrint(addr->un.sun_path, sizeof(addr->un.sun_path), "%s", path);
+  return Dart_Null();
+}
+
 int16_t SocketAddress::FromType(int type) {
   if (type == TYPE_ANY) {
     return AF_UNSPEC;
   }
   if (type == TYPE_IPV4) {
     return AF_INET;
+  }
+  if (type == TYPE_UNIX) {
+    return AF_UNIX;
   }
   ASSERT((type == TYPE_IPV6) && "Invalid type");
   return AF_INET6;
@@ -96,16 +142,23 @@ int16_t SocketAddress::FromType(int type) {
 void SocketAddress::SetAddrPort(RawAddr* addr, intptr_t port) {
   if (addr->ss.ss_family == AF_INET) {
     addr->in.sin_port = htons(port);
-  } else {
+  } else if (addr->ss.ss_family == AF_INET6) {
     addr->in6.sin6_port = htons(port);
+  } else {
+    UNREACHABLE();
   }
 }
 
 intptr_t SocketAddress::GetAddrPort(const RawAddr& addr) {
   if (addr.ss.ss_family == AF_INET) {
     return ntohs(addr.in.sin_port);
-  } else {
+  } else if (addr.ss.ss_family == AF_INET6) {
     return ntohs(addr.in6.sin6_port);
+  } else if (addr.ss.ss_family == AF_UNIX) {
+    return 0;
+  } else {
+    UNREACHABLE();
+    return -1;
   }
 }
 
@@ -176,16 +229,27 @@ void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   }
 }
 
+void FUNCTION_NAME(InternetAddress_RawAddrToString)(Dart_NativeArguments args) {
+  RawAddr addr;
+  SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 0), &addr);
+  // INET6_ADDRSTRLEN is larger than INET_ADDRSTRLEN
+  char str[INET6_ADDRSTRLEN];
+  bool ok = SocketBase::RawAddrToString(&addr, str);
+  if (!ok) {
+    str[0] = '\0';
+  }
+  Dart_SetReturnValue(args, ThrowIfError(DartUtils::NewString(str)));
+}
+
 void FUNCTION_NAME(NetworkInterface_ListSupported)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args,
-                      Dart_NewBoolean(SocketBase::ListInterfacesSupported()));
+  Dart_SetBooleanReturnValue(args, SocketBase::ListInterfacesSupported());
 }
 
 void FUNCTION_NAME(SocketBase_IsBindError)(Dart_NativeArguments args) {
   intptr_t error_number =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
   bool is_bind_error = SocketBase::IsBindError(error_number);
-  Dart_SetReturnValue(args, is_bind_error ? Dart_True() : Dart_False());
+  Dart_SetBooleanReturnValue(args, is_bind_error ? true : false);
 }
 
 }  // namespace bin

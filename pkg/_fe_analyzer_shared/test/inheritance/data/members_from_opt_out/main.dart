@@ -39,21 +39,11 @@ abstract class Interface {
   /*member: Interface.method5b:int Function({int a, int b})*/
   int method5b({int a: 0, int b: 0});
 
-  /*member: Interface.method5c:int Function({required int a, required int b})*/
-  int method5c(
-      {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ a:
-          0,
-      required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ b:
-          0});
-
   /*member: Interface.method6a:int? Function(int?, {int? b})*/
   int? method6a(int? a, {int? b});
 
   /*member: Interface.method6b:int? Function({int? a, int? b})*/
   int? method6b({int? a, int? b});
-
-  /*member: Interface.method6c:int? Function({required int? a, required int? b})*/
-  int? method6c({required int? a, required int? b});
 
   /*member: Interface.getter1:int*/
   int get getter1;
@@ -134,10 +124,8 @@ class Class1 extends LegacyClass {
   /*member: Class1.method4c:int* Function([int*, int*])**/
   /*member: Class1.method5a:int* Function(int*, {int* b})**/
   /*member: Class1.method5b:int* Function({int* a, int* b})**/
-  /*member: Class1.method5c:int* Function({int* a, int* b})**/
   /*member: Class1.method6a:int* Function(int*, {int* b})**/
   /*member: Class1.method6b:int* Function({int* a, int* b})**/
-  /*member: Class1.method6c:int* Function({int* a, int* b})**/
   /*member: Class1.getter1:int**/
   /*member: Class1.getter2:int**/
   /*member: Class1.setter1=:int**/
@@ -190,21 +178,11 @@ class Class2a extends LegacyClass implements Interface {
   /*cfe|cfe:builder.member: Class2a.method5b:int Function({int a, int b})*/
   /*analyzer.member: Class2a.method5b:int* Function({int* a, int* b})**/
 
-  // TODO(johnniwinther): Should `method5c` be an error? It mixes required
-  // and optional named parameters.
-  /*cfe|cfe:builder.member: Class2a.method5c:int Function({int a, int b})*/
-  /*analyzer.member: Class2a.method5c:int* Function({int* a, int* b})**/
-
   /*cfe|cfe:builder.member: Class2a.method6a:int? Function(int?, {int? b})*/
   /*analyzer.member: Class2a.method6a:int* Function(int*, {int* b})**/
 
   /*cfe|cfe:builder.member: Class2a.method6b:int? Function({int? a, int? b})*/
   /*analyzer.member: Class2a.method6b:int* Function({int* a, int* b})**/
-
-  // TODO(johnniwinther): Should `method6c` be an error? It mixes required
-  // and optional named parameters.
-  /*cfe|cfe:builder.member: Class2a.method6c:int? Function({int? a, int? b})*/
-  /*analyzer.member: Class2a.method6c:int* Function({int* a, int* b})**/
 
   /*cfe|cfe:builder.member: Class2a.getter1:int*/
   /*analyzer.member: Class2a.getter1:int**/
@@ -299,25 +277,11 @@ class Class2b extends LegacyClass implements Interface {
   /*member: Class2b.method5b:int Function({int a, int b})*/
   int method5b({int a: 0, int b: 0}) => 0;
 
-  /*member: Class2b.method5c:int Function({required int a, required int b})*/
-  int /*analyzer.error: CompileTimeErrorCode.INVALID_OVERRIDE*/
-      method5c(
-              {required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ a:
-                  0,
-              required int /*analyzer.error: CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER*/ b:
-                  0}) =>
-          0;
-
   /*member: Class2b.method6a:int? Function(int?, {int? b})*/
   int? method6a(int? a, {int? b}) => 0;
 
   /*member: Class2b.method6b:int? Function({int? a, int? b})*/
   int? method6b({int? a, int? b}) => 0;
-
-  /*member: Class2b.method6c:int? Function({required int? a, required int? b})*/
-  int? /*analyzer.error: CompileTimeErrorCode.INVALID_OVERRIDE*/ method6c(
-          {required int? a, required int? b}) =>
-      0;
 
   /*member: Class2b.getter1:int*/
   int get getter1 => 0;

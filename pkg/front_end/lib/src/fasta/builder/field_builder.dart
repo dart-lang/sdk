@@ -49,8 +49,6 @@ abstract class FieldBuilder implements MemberBuilder {
 
   Token get constInitializerToken;
 
-  bool hadTypesInferred;
-
   bool get isCovariant;
 
   bool get isLate;
@@ -645,20 +643,6 @@ class SourceFieldMember extends BuilderClassMember {
 
   @override
   bool get isFunction => false;
-
-  TypeBuilder get type => memberBuilder.type;
-
-  bool get hadTypesInferred => memberBuilder.hadTypesInferred;
-
-  void set hadTypesInferred(bool value) {
-    memberBuilder.hadTypesInferred = value;
-  }
-
-  DartType get fieldType => memberBuilder.fieldType;
-
-  void set fieldType(DartType value) {
-    memberBuilder.fieldType = value;
-  }
 }
 
 abstract class AbstractLateFieldEncoding implements FieldEncoding {
@@ -1219,19 +1203,6 @@ class _LateFieldClassMember implements ClassMember {
 
   @override
   bool get isAbstract => _member.isAbstract;
-
-  @override
-  bool get hasExplicitReturnType {
-    // The return type of the getter is explicit if the field type is explicit.
-    return fieldBuilder.type != null;
-  }
-
-  @override
-  bool hasExplicitlyTypedFormalParameter(int index) {
-    // The type of the setter parameter is explicit if the field type is
-    // explicit.
-    return fieldBuilder.type != null;
-  }
 
   @override
   bool get needsComputation => false;

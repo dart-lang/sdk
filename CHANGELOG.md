@@ -6,13 +6,28 @@
 
 ### Core libraries
 
+#### `dart:async`
+
+* Make stack traces non-null. Where methods like `completer.completeError`
+  allows omitting a stack trace, the platform will now insert a default
+  stack trace rather than propagate a `null` value.
+  Error handling functions need no longer be prepared for `null` stack traces.
+
 #### `dart:core`
+
+* Adds `StackTrace.empty` constant which is the stack trace used as default
+  stack trace when no better alternative is available.
 
 * The class `TypeError` no longer extends `AssertionError`.
   This also means that it no longer inherits the spurious `message` getter
   which was added to `AssertionError` when the second operand to `assert`
   was allowed. The value of that getter on a `TypeError` was the same
   string as returned by `toString`, so it is still available.
+* `ArgumentError.checkNotNull` and the `RangeError` static methods
+  `checkValueInInterval`, `checkValidIndex` and `checkNotNegative`
+  all return their first argument on success.
+  This makes these functions more convenient to use in-line in,
+  for example, `=>` function bodies or constructor initialization lists.
 
 #### `dart:developer`
 
@@ -73,6 +88,54 @@ used (see Issue [39627][]).
   The dummy object returned if `FileStat.stat()` and `FileStat.statSync()` fail
   now contains Unix epoch timestamps instead of `null` for the `accessed`,
   `changed`, and `modified` getters.
+
+* **Breaking change** [#40709](https://github.com/dart-lang/sdk/issues/40709):
+  The `HeaderValue` class now parses more strictly in two invalid edge cases.
+  This is the class used to parse the semicolon delimited parameters used in the
+  `Accept`, `Authorization`, `Content-Type`, and other such HTTP headers.
+
+  The empty parameter value without double quotes (which is not allowed by the
+  standards) is now parsed as the empty string rather than `null`. E.g.
+  `HeaderValue.parse("v;a=").parameters` now gives `{"a": ""}` rather than
+  `{"a": null}`.
+
+  Invalid inputs with unbalanced double quotes are now rejected. E.g.
+  `HeaderValue.parse('v;a="b').parameters` will now throw a `HttpException`
+  instead of giving `{"a": "b"}`.
+
+* The `HeaderValue.toString()` method now supports parameters with `null` values
+  by omitting the value. `HeaderValue("v", {"a": null, "b": "c"}).toString()`
+  now gives `v; a; b=c`. This behavior can be used to implement some features in
+  the `Accept` and `Sec-WebSocket-Extensions` headers.
+
+  Likewise the empty value and values using characters outside of
+  [RFC 7230 tokens](https://tools.ietf.org/html/rfc7230#section-3.2.6) are now
+  correctly implemented by double quoting such values with escape sequences.
+  E.g:
+
+  ```dart
+  HeaderValue("v",
+      {"a": "A", "b": "(B)", "c": "", "d": "ø", "e": "\\\""}).toString()
+  ```
+
+  now gives `v;a=A;b="(B)";c="";d="ø";e="\\\""`.
+
+* [Unix domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket) are
+  now supported on Linux, Android and MacOS, which can be used by passing a
+  `InternetAddress` of `InternetAddressType.Unix` into `connect`, `startConnect`
+  and `bind` methods. `port` argument in those methods will be ignored. Getter
+  of `port` will always return 0 for Unix domain sockets.
+
+* Class `InternetAddressType` gains one more option `Unix`, which represents a
+  Unix domain address.
+
+* Class `InternetAddress`:
+  * `InternetAddress` constructor gains an optional `type` parameter. To create
+    a Unix domain address, `type` is set to `InternetAddressType.Unix` and
+    `address` is a file path.
+  * `InternetAddress` gains a new constructor `fromRawAddress` that takes an
+    address in byte format for Internet addresses or raw file path for Unix
+    domain addresses.
 
 #### `dart:mirrors`
 
@@ -166,6 +229,9 @@ The Linter was updated to `0.1.113`, which includes:
 
 #### Pub
 
+* Added `pub outdated` command which lists outdated package dependencies, and
+  gives advice on how to upgrade.
+
 * `pub get` and `pub upgrade` now fetches version information about hosted
   dependencies in parallel, improving the time package resolution performance.
 
@@ -178,13 +244,19 @@ The Linter was updated to `0.1.113`, which includes:
 * Importing packages not in `pubspec.yaml` now causes `pub publish` to reject
   the package.
 
+* `pub publish` no longer requires the presence of a `homepage` field, if the
+  `repository` field is provided.
+
+* `pub publish` will now warn if non-pre-release packages depends on pre-release
+  packages or pre-release Dart SDKs.
+
 * Relative paths in `pubspec.lock` are now using `/` also on Windows to make
   the file sharable between machines.
 
 * Fixed language version in [`.dart_tool/package_config.json`](https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/package-config-file-v2.md)
   for packages without an explicit sdk constraint.
 
-  Now writes an empty language-version while efore the language version of the
+  Now writes an empty language-version while before the language version of the
   current sdk would be used.
 
 * `%LOCALAPPDATA%` is now preferred over `%APPDATA%` when creating a pub cache
@@ -243,9 +315,14 @@ representation soon.
 
 [17207]: https://github.com/dart-lang/sdk/issues/17207
 
-## 2.7.2 - 2020-03-16
+## 2.7.2 - 2020-03-23
 
-This is a patch release that improves compatibility with ARMv8 processors
+This is a patch release that addresses a vulnerability dart:html
+[NodeValidator](https://api.dart.dev/stable/dart-html/NodeValidator-class.html)
+related to DOM clobbering of `previousSibling`. Thanks to **Vincenzo di Cicco**
+for finding and reporting this issue.
+
+This release also improves compatibility with ARMv8 processors
 (issue [40001][]) and dart:io stability (issue [40589][]).
 
 [40001]: https://github.com/dart-lang/sdk/issues/40001

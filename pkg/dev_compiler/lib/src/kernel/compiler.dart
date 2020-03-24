@@ -1055,13 +1055,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         body.add(js.statement('''
             #.as = function as_FutureOr(o) {
               if (#.is(o) || #.is(o)) return o;
-              return #.as(o, this, false);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        body.add(js.statement('''
-            #._check = function check_FutureOr(o) {
-              if (#.is(o) || #.is(o)) return o;
-              return #.as(o, this, true);
+              return #.as(o, this);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         return null;
@@ -1079,13 +1073,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         body.add(js.statement('''
             #.as = function as_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              #.castError(o, this, false);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        body.add(js.statement('''
-            #._check = function check_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              #.castError(o, this, true);
+              #.castError(o, this);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         return null;
@@ -2296,8 +2284,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     switch (name) {
       // Reserved for the compiler to do `x as T`.
       case 'as':
-      // Reserved for the compiler to do implicit cast `T x = y`.
-      case '_check':
       // Reserved for the SDK to compute `Type.toString()`.
       case 'name':
       // Reserved by JS, not a valid static member name.
@@ -5258,8 +5244,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         from.withNullability(Nullability.nonNullable) == to &&
         _mustBeNonNullable(to)) {
       // If the underlying type is the same, we only need a null check.
-      return runtimeCall('nullCast(#, #, #)',
-          [jsFrom, _emitType(to), js.boolean(isTypeError)]);
+      return runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);
     }
 
     // All Dart number types map to a JS double.  We can specialize these
@@ -5278,8 +5263,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (from.nullability == Nullability.nonNullable) {
           return jsFrom;
         }
-        return runtimeCall('nullCast(#, #, #)',
-            [jsFrom, _emitType(to), js.boolean(isTypeError)]);
+        return runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);
       }
 
       // * -> int : asInt check
@@ -5294,16 +5278,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
-    return _emitCast(jsFrom, to, implicit: isTypeError);
+    return _emitCast(jsFrom, to);
   }
 
-  js_ast.Expression _emitCast(js_ast.Expression expr, DartType type,
-      {bool implicit = true}) {
-    if (_types.isTop(type)) return expr;
-
-    var code = implicit ? '#._check(#)' : '#.as(#)';
-    return js.call(code, [_emitType(type), expr]);
-  }
+  js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) =>
+      _types.isTop(type) ? expr : js.call('#.as(#)', [_emitType(type), expr]);
 
   @override
   js_ast.Expression visitSymbolLiteral(SymbolLiteral node) =>

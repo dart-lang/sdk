@@ -48,20 +48,13 @@ class InfoBuilder {
   /// The [NullabilityMigration] instance for this migration.
   final NullabilityMigration migration;
 
-  /// A flag indicating whether types that were not changed (because they should
-  /// be non-nullable) should be explained.
-  final bool explainNonNullableTypes;
-
   /// A map from the path of a compilation unit to the information about that
   /// unit.
   final Map<String, UnitInfo> unitMap = {};
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.adapter, this.migration,
-      // TODO(srawlins): Re-enable once
-      //  https://github.com/dart-lang/sdk/issues/40253 is fixed.
-      {this.explainNonNullableTypes = false});
+      this.adapter, this.migration);
 
   /// The analysis server used to get information about libraries.
   AnalysisServer get server => listener.server;
@@ -478,7 +471,7 @@ class InfoBuilder {
         // There's no need for hints around code that is being removed.
         break;
       case NullabilityFixKind.makeTypeNullable:
-      case NullabilityFixKind.noModification:
+      case NullabilityFixKind.typeNotMadeNullable:
         edits.add(
             EditDetail('Force type to be non-nullable.', offset, 0, '/*!*/'));
         edits.add(EditDetail('Force type to be nullable.', offset, 0, '/*?*/'));
@@ -523,6 +516,11 @@ class InfoBuilder {
     }
     assert(identical(step.node, node));
     while (step != null) {
+      if (step.node == info.never) {
+        // Assert that we are only ever trimming off the last step.
+        assert(step.principalCause == null);
+        break;
+      }
       entries.add(_nodeToTraceEntry(step.node));
       if (step.codeReference != null) {
         entries.add(_stepToTraceEntry(step));
@@ -543,6 +541,12 @@ class InfoBuilder {
     assert(identical(step.targetNode, node));
     while (step != null) {
       entries.add(_nodeToTraceEntry(step.targetNode));
+      if (step.targetNode.upstreamEdges.isNotEmpty &&
+          step.targetNode.upstreamEdges.first.sourceNode == info.always) {
+        // Assert that we are only ever trimming off the last step.
+        assert(step.principalCause == null);
+        break;
+      }
       if (step.codeReference != null) {
         entries.add(_stepToTraceEntry(step));
       }
@@ -558,6 +562,8 @@ class InfoBuilder {
       if (reason is NullabilityNodeInfo) {
         if (reason.isNullable) {
           _computeTraceNullableInfo(reason, traces);
+        } else {
+          _computeTraceNonNullableInfo(reason, traces);
         }
       } else if (reason is EdgeInfo) {
         assert(reason.sourceNode.isNullable);
@@ -569,36 +575,6 @@ class InfoBuilder {
       }
     }
     return traces;
-  }
-
-  /// Compute details about [edgeInfos] which are upstream triggered.
-  List<RegionDetail> _computeUpstreamTriggeredDetails(
-      Iterable<EdgeInfo> edgeInfos) {
-    List<RegionDetail> details = [];
-    for (var edge in edgeInfos) {
-      EdgeOriginInfo origin = info.edgeOrigin[edge];
-      if (origin == null) {
-        // TODO(srawlins): I think this shouldn't happen? But it does on the
-        //  collection and path packages.
-        assert(false, 'edge with no origin $edge');
-        continue;
-      }
-      NavigationTarget target =
-          _proximateTargetForNode(origin.source.fullName, origin.node);
-      if (origin.kind == EdgeOriginKind.expressionChecks) {
-        details.add(RegionDetail(
-            'This value is unconditionally used in a non-nullable context',
-            target));
-      } else if (origin.kind == EdgeOriginKind.nonNullAssertion) {
-        details
-            .add(RegionDetail('This value is asserted to be non-null', target));
-      } else if (origin.kind == EdgeOriginKind.nullabilityComment) {
-        details.add(RegionDetail(
-            'This type is annotated with a non-nullability comment ("/*!*/")',
-            target));
-      }
-    }
-    return details;
   }
 
   /// Describe why an edge may have gotten a '!'.
@@ -616,37 +592,6 @@ class InfoBuilder {
     }
 
     return 'This value must be null-checked before use here.';
-  }
-
-  /// Explain the type annotations that were not changed because they were
-  /// determined to be non-nullable.
-  void _explainNonNullableTypes(SourceInformation sourceInfo,
-      List<RegionInfo> regions, OffsetMapper mapper, LineInfo lineInfo) {
-    Iterable<MapEntry<TypeAnnotation, NullabilityNodeInfo>> nonNullableTypes =
-        sourceInfo.explicitTypeNullability.entries
-            .where((entry) => !entry.value.isNullable);
-    for (MapEntry<TypeAnnotation, NullabilityNodeInfo> nonNullableType
-        in nonNullableTypes) {
-      Iterable<EdgeInfo> upstreamTriggeredEdgeInfos = info.edgeOrigin.keys
-          .where((e) =>
-              e.sourceNode == nonNullableType.value &&
-              e.isUpstreamTriggered &&
-              !e.destinationNode.isNullable);
-      if (upstreamTriggeredEdgeInfos.isNotEmpty) {
-        List<RegionDetail> details =
-            _computeUpstreamTriggeredDetails(upstreamTriggeredEdgeInfos);
-        if (details.isNotEmpty) {
-          TypeAnnotation node = nonNullableType.key;
-          regions.add(RegionInfo(
-              RegionType.unchanged,
-              mapper.map(node.offset),
-              node.length,
-              lineInfo.getLocation(node.offset).lineNumber,
-              'This type is not changed; it is determined to be non-nullable',
-              details));
-        }
-      }
-    }
   }
 
   /// Return the migration information for the unit associated with the
@@ -703,9 +648,15 @@ class InfoBuilder {
                 lineNumber, explanation, details,
                 edits: edits, traces: traces));
           } else {
-            regions.add(RegionInfo(RegionType.add, offset, replacement.length,
-                lineNumber, explanation, details,
-                edits: edits, traces: traces));
+            if (edit.isInformative) {
+              regions.add(RegionInfo(RegionType.informative, offset,
+                  replacement.length, lineNumber, explanation, const [],
+                  edits: edits, traces: traces));
+            } else {
+              regions.add(RegionInfo(RegionType.add, offset, replacement.length,
+                  lineNumber, explanation, details,
+                  edits: edits, traces: traces));
+            }
           }
         }
         offset += replacement.length;
@@ -718,11 +669,6 @@ class InfoBuilder {
     List<SourceEdit> edits = insertions.toSourceEdits();
     edits.sort((first, second) => first.offset.compareTo(second.offset));
     OffsetMapper mapper = OffsetMapper.forEdits(edits);
-
-    if (explainNonNullableTypes) {
-      _explainNonNullableTypes(
-          sourceInfo, regions, mapper, result.unit.lineInfo);
-    }
     regions.sort((first, second) => first.offset.compareTo(second.offset));
     unitInfo.offsetMapper = mapper;
     unitInfo.content = content;

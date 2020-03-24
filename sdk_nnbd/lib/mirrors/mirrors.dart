@@ -226,7 +226,7 @@ abstract class IsolateMirror implements Mirror {
    * 2. the isolate being reflected by this mirror is the same isolate being
    *    reflected by [other].
    */
-  bool operator ==(other);
+  bool operator ==(Object other);
 
   /**
    * Loads the library at the given uri into this isolate.
@@ -545,7 +545,7 @@ abstract class InstanceMirror implements ObjectMirror {
    *    b. the remote objects reflected by this mirror and by [other] are
    *    identical.
    */
-  bool operator ==(other);
+  bool operator ==(Object other);
 }
 
 /**
@@ -630,7 +630,7 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    * 2. The library being reflected by this mirror and the library being
    *    reflected by [other] are the same library in the same isolate.
    */
-  bool operator ==(other);
+  bool operator ==(Object other);
 
   /**
    * Returns a list of the imports and exports in this library;
@@ -888,7 +888,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * Note that if the reflected class is an invocation of a generic class, 2.
    * implies that the reflected class and [other] have equal type arguments.
    */
-  bool operator ==(other);
+  bool operator ==(Object other);
 
   /**
    * Returns whether the class denoted by the receiver is a subclass of the
@@ -948,7 +948,7 @@ abstract class TypeVariableMirror extends TypeMirror {
    * 1. [other] is a mirror of the same kind, and
    * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-  bool operator ==(other);
+  bool operator ==(Object other);
 }
 
 /**
@@ -1081,7 +1081,7 @@ abstract class MethodMirror implements DeclarationMirror {
    * 1. [other] is a mirror of the same kind, and
    * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-  bool operator ==(other);
+  bool operator ==(Object other);
 }
 
 /**
@@ -1127,7 +1127,7 @@ abstract class VariableMirror implements DeclarationMirror {
    * 1. [other] is a mirror of the same kind, and
    * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-  bool operator ==(other);
+  bool operator ==(Object other);
 }
 
 /**
