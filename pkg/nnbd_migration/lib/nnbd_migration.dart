@@ -51,6 +51,13 @@ class NullabilityFixDescription {
   );
 
   /// An unnecessary downcast has been discarded.
+  static const removeLanguageVersionComment = const NullabilityFixDescription._(
+    appliedMessage: 'Removed language version comment so that NNBD features '
+        'will be allowed in this file',
+    kind: NullabilityFixKind.removeLanguageVersionComment,
+  );
+
+  /// An unnecessary downcast has been discarded.
   static const removeAs = const NullabilityFixDescription._(
     appliedMessage: 'Discarded a downcast that is now unnecessary',
     kind: NullabilityFixKind.removeAs,
@@ -126,6 +133,7 @@ enum NullabilityFixKind {
   discardThen,
   makeTypeNullable,
   removeAs,
+  removeLanguageVersionComment,
   removeNullAwareness,
   typeNotMadeNullable,
 }

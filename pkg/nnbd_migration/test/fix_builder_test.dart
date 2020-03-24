@@ -52,6 +52,12 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   static final isNullCheck = TypeMatcher<NodeChangeForExpression>()
       .having((c) => c.addsNullCheck, 'addsNullCheck', true);
 
+  static final isRemoveLanguageVersion =
+      TypeMatcher<NodeChangeForCompilationUnit>().having(
+          (c) => c.removeLanguageVersionComment,
+          'removeLanguageVersionComment',
+          true);
+
   static final isRemoveNullAwareness =
       TypeMatcher<NodeChangeForPropertyAccess>()
           .having((c) => c.removeNullAwareness, 'removeNullAwareness', true);
@@ -2357,6 +2363,14 @@ abstract class _C<T> {
 _f(_C<int> c) => (c).x;
 ''');
     visitSubexpression(findNode.propertyAccess('(c).x'), 'List<int>');
+  }
+
+  Future<void> test_removeLanguageVersionComment() async {
+    await analyze('''
+// @dart = 2.6
+void main() {}
+''');
+    visitAll(changes: {findNode.unit: isRemoveLanguageVersion});
   }
 
   Future<void> test_set_ifElement_alive() async {

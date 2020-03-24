@@ -252,6 +252,28 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on
+/// [CompilationUnit] nodes.
+class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
+  NodeChangeForCompilationUnit() : super._();
+
+  bool removeLanguageVersionComment = false;
+
+  @override
+  EditPlan _apply(CompilationUnit node, FixAggregator aggregator) {
+    List<EditPlan> innerPlans = [];
+    if (removeLanguageVersionComment) {
+      innerPlans.add(aggregator.planner.replaceToken(
+          node, node.beginToken.precedingComments, [],
+          info: AtomicEditInfo(
+              NullabilityFixDescription.removeLanguageVersionComment,
+              const [])));
+    }
+    innerPlans.addAll(aggregator.innerPlansForNode(node));
+    return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+  }
+}
+
 /// Implementation of [NodeChange] specialized for operating on [AsExpression]
 /// nodes.
 class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
@@ -658,6 +680,10 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
   @override
   NodeChange visitMethodInvocation(MethodInvocation node) =>
       NodeChangeForMethodInvocation();
+
+  @override
+  NodeChange visitCompilationUnit(CompilationUnit node) =>
+      NodeChangeForCompilationUnit();
 
   @override
   NodeChange visitNode(AstNode node) =>

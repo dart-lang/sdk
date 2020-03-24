@@ -865,6 +865,49 @@ f(Object o) => o as a.Future<Null>;
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a < b | c;');
   }
 
+  Future<void> test_removeLanguageVersion() async {
+    await analyze('''
+//@dart=2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nvoid main() {}\n');
+  }
+
+  Future<void> test_removeLanguageVersion_spaces() async {
+    await analyze('''
+// @dart = 2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nvoid main() {}\n');
+  }
+
+  Future<void> test_removeLanguageVersion_withOtherChanges() async {
+    await analyze('''
+//@dart=2.6
+int f() => null;
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true,
+      findNode.typeAnnotation('int'): NodeChangeForTypeAnnotation()
+        ..makeNullable = true
+        ..decoratedType = MockDecoratedType(
+            MockDartType(toStringValueWithoutNullability: 'int'))
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nint? f() => null;\n');
+  }
+
   Future<void> test_removeNullAwarenessFromMethodInvocation() async {
     await analyze('f(x) => x?.m();');
     var methodInvocation = findNode.methodInvocation('?.');

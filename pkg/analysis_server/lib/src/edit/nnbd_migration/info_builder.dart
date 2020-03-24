@@ -468,6 +468,7 @@ class InfoBuilder {
       case NullabilityFixKind.discardThen:
       case NullabilityFixKind.removeAs:
       case NullabilityFixKind.removeNullAwareness:
+      case NullabilityFixKind.removeLanguageVersionComment:
         // There's no need for hints around code that is being removed.
         break;
       case NullabilityFixKind.makeTypeNullable:

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -568,6 +569,16 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
 
   @override
   Source get source => _fixBuilder.source;
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    final comment = node.beginToken.precedingComments;
+    if (comment is LanguageVersionToken) {
+      (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
+          .removeLanguageVersionComment = true;
+    }
+    super.visitCompilationUnit(node);
+  }
 
   @override
   void visitAsExpression(AsExpression node) {
