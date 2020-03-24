@@ -202,24 +202,14 @@ create_timestamp_file("dartdevc_sdk_patch_stamp") {
 group("dartdevc_test_kernel_pkg") {
   deps = [
     ":async_helper_js",
+    ":collection_js",
     ":expect_js",
     ":js_js",
+    ":matcher_js",
     ":meta_js",
+    ":path_js",
+    ":stack_trace_js",
   ]
-
-  # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (!use_nnbd) {
-    # TODO(sigmund): Merge this list into above. We turned this off temporarily
-    # while the migration of libraries is in flux, this step otherwise fails
-    # with many nnbd-related compile-time errors because the packages are
-    # assumed to be nnbd compilant.
-    deps += [
-      ":collection_js",
-      ":matcher_js",
-      ":path_js",
-      ":stack_trace_js",
-    ]
-  }
 }
 
 template("dartdevc_kernel_compile") {
