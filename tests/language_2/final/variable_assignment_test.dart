@@ -9,17 +9,17 @@ main() {
   x = 0;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Setter not found: 'x'.
+// [cfe] Can't assign to the final variable 'x'.
   x += 1;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Setter not found: 'x'.
+// [cfe] Can't assign to the final variable 'x'.
   ++x;
   //^
   // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
-  // [cfe] Setter not found: 'x'.
+  // [cfe] Can't assign to the final variable 'x'.
   x++;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Setter not found: 'x'.
+// [cfe] Can't assign to the final variable 'x'.
 }

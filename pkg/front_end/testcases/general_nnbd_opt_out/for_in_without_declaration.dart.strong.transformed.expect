@@ -42,7 +42,7 @@ library;
 //     for (var x, y in <int>[]) {
 //          ^^^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:48:10: Error: Setter not found: 'constant'.
+// pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:48:10: Error: Can't assign to the const variable 'constant'.
 //     for (constant in []) {}
 //          ^^^^^^^^
 //
@@ -276,7 +276,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t18 = :sync-for-iterator.{core::Iterator::current};
         {
-          invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:48:10: Error: Setter not found: 'constant'.
+          invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:48:10: Error: Can't assign to the const variable 'constant'.
     for (constant in []) {}
          ^^^^^^^^";
         }

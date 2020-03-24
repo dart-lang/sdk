@@ -10,7 +10,7 @@ class C<T> {
     T = null;
 //  ^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
-// [cfe] Setter not found: 'T'.
+// [cfe] Can't assign to a type literal.
   }
 }
 
@@ -25,13 +25,13 @@ main() {
   D = null;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
-// [cfe] Setter not found: 'D'.
+// [cfe] Can't assign to a type literal.
   E = null;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
-// [cfe] Setter not found: 'E'.
+// [cfe] Can't assign to a type literal.
   F = null;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
-// [cfe] Setter not found: 'F'.
+// [cfe] Can't assign to a type literal.
 }

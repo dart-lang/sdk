@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/assign_to_initializing_formal.dart:13:11: Error: Setter not found: 'x'.
+// pkg/front_end/testcases/general/assign_to_initializing_formal.dart:13:11: Error: Can't assign to the final variable 'x'.
 //           x = 3;
 //           ^
 //
@@ -16,7 +16,7 @@ class A extends core::Object {
   field dynamic y;
   constructor •(dynamic x) → self::A*
     : self::A::x = x, self::A::y = () → core::Null? {
-      invalid-expression "pkg/front_end/testcases/general/assign_to_initializing_formal.dart:13:11: Error: Setter not found: 'x'.
+      invalid-expression "pkg/front_end/testcases/general/assign_to_initializing_formal.dart:13:11: Error: Can't assign to the final variable 'x'.
           x = 3;
           ^";
     }, super core::Object::•()

@@ -180,15 +180,15 @@ library;
 //   Map<int, String> map41 = <int, String>{if (oracle("foo")) 42: true else 42: 42};
 //                                                                               ^
 //
-// pkg/front_end/testcases/general/control_flow_collection_inference.dart:230:14: Error: Setter not found: 'i'.
+// pkg/front_end/testcases/general/control_flow_collection_inference.dart:230:14: Error: Can't assign to the final variable 'i'.
 //   <int>[for (i in <int>[1]) i];
 //              ^
 //
-// pkg/front_end/testcases/general/control_flow_collection_inference.dart:231:14: Error: Setter not found: 'i'.
+// pkg/front_end/testcases/general/control_flow_collection_inference.dart:231:14: Error: Can't assign to the final variable 'i'.
 //   <int>{for (i in <int>[1]) i, null};
 //              ^
 //
-// pkg/front_end/testcases/general/control_flow_collection_inference.dart:232:21: Error: Setter not found: 'i'.
+// pkg/front_end/testcases/general/control_flow_collection_inference.dart:232:21: Error: Can't assign to the final variable 'i'.
 // 	<String, int>{for (i in <int>[1]) "bar": i, "baz": null};
 // 	                   ^
 //
@@ -1991,7 +1991,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::List<core::int*>* #t376 = <core::int*>[];
     for (final core::int* #t377 in <core::int*>[1]) {
-      invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:230:14: Error: Setter not found: 'i'.
+      invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:230:14: Error: Can't assign to the final variable 'i'.
   <int>[for (i in <int>[1]) i];
              ^";
       #t376.{core::List::add}(i);
@@ -2000,7 +2000,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Set<core::int*>* #t378 = col::LinkedHashSet::•<core::int*>();
     for (final core::int* #t379 in <core::int*>[1]) {
-      invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:231:14: Error: Setter not found: 'i'.
+      invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:231:14: Error: Can't assign to the final variable 'i'.
   <int>{for (i in <int>[1]) i, null};
              ^";
       #t378.{core::Set::add}(i);
@@ -2010,7 +2010,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   block {
     final core::Map<core::String*, core::int*>* #t380 = <core::String*, core::int*>{};
     for (final core::int* #t381 in <core::int*>[1]) {
-      invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:232:21: Error: Setter not found: 'i'.
+      invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:232:21: Error: Can't assign to the final variable 'i'.
 \t<String, int>{for (i in <int>[1]) \"bar\": i, \"baz\": null};
 \t                   ^";
       #t380.{core::Map::[]=}("bar", i);

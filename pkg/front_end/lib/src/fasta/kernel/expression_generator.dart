@@ -2900,7 +2900,16 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
 
   TypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
       this.declaration, String targetName)
-      : super(helper, token, null, targetName);
+      : super(
+            helper,
+            token,
+            null,
+            targetName,
+            // TODO(johnniwinther): InvalidTypeDeclarationBuilder is currently
+            // misused for import conflict.
+            declaration is InvalidTypeDeclarationBuilder
+                ? ReadOnlyAccessKind.InvalidDeclaration
+                : ReadOnlyAccessKind.TypeLiteral);
 
   @override
   String get _debugName => "TypeUseGenerator";
@@ -3100,6 +3109,16 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   }
 }
 
+enum ReadOnlyAccessKind {
+  ConstVariable,
+  FinalVariable,
+  ExtensionThis,
+  LetVariable,
+  TypeLiteral,
+  ParenthesizedExpression,
+  InvalidDeclaration,
+}
+
 /// [ReadOnlyAccessGenerator] represents the subexpression whose prefix is the
 /// name of final local variable, final parameter, or catch clause variable or
 /// `this` in an instance method in an extension declaration.
@@ -3132,10 +3151,10 @@ class ReadOnlyAccessGenerator extends Generator {
 
   Expression expression;
 
-  VariableDeclaration value;
+  final ReadOnlyAccessKind kind;
 
   ReadOnlyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.expression, this.targetName)
+      this.expression, this.targetName, this.kind)
       : super(helper, token);
 
   @override
@@ -3148,6 +3167,38 @@ class ReadOnlyAccessGenerator extends Generator {
   Expression buildSimpleRead() => _createRead();
 
   Expression _createRead() => expression;
+
+  Expression _makeInvalidWrite(Expression value) {
+    switch (kind) {
+      case ReadOnlyAccessKind.ConstVariable:
+        assert(targetName != null);
+        return _helper.buildProblem(
+            templateCannotAssignToConstVariable.withArguments(targetName),
+            fileOffset,
+            lengthForToken(token));
+      case ReadOnlyAccessKind.FinalVariable:
+        assert(targetName != null);
+        return _helper.buildProblem(
+            templateCannotAssignToFinalVariable.withArguments(targetName),
+            fileOffset,
+            lengthForToken(token));
+      case ReadOnlyAccessKind.ExtensionThis:
+        return _helper.buildProblem(messageCannotAssignToExtensionThis,
+            fileOffset, lengthForToken(token));
+      case ReadOnlyAccessKind.TypeLiteral:
+        return _helper.buildProblem(messageCannotAssignToTypeLiteral,
+            fileOffset, lengthForToken(token));
+      case ReadOnlyAccessKind.ParenthesizedExpression:
+        return _helper.buildProblem(
+            messageCannotAssignToParenthesizedExpression,
+            fileOffset,
+            lengthForToken(token));
+      case ReadOnlyAccessKind.LetVariable:
+      case ReadOnlyAccessKind.InvalidDeclaration:
+        break;
+    }
+    return super._makeInvalidWrite(value);
+  }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
@@ -3205,8 +3256,8 @@ class ReadOnlyAccessGenerator extends Generator {
     printNodeOn(expression, sink, syntheticNames: syntheticNames);
     sink.write(", plainNameForRead: ");
     sink.write(targetName);
-    sink.write(", value: ");
-    printNodeOn(value, sink, syntheticNames: syntheticNames);
+    sink.write(", kind: ");
+    sink.write(kind);
   }
 }
 
@@ -4437,7 +4488,8 @@ class IncompletePropertyAccessGenerator extends Generator
 class ParenthesizedExpressionGenerator extends ReadOnlyAccessGenerator {
   ParenthesizedExpressionGenerator(
       ExpressionGeneratorHelper helper, Token token, Expression expression)
-      : super(helper, token, expression, null);
+      : super(helper, token, expression, null,
+            ReadOnlyAccessKind.ParenthesizedExpression);
 
   @override
   Expression buildSimpleRead() => expression;
@@ -4447,11 +4499,6 @@ class ParenthesizedExpressionGenerator extends ReadOnlyAccessGenerator {
       _helper.forest.createParenthesized(fileOffset, expression);
 
   String get _debugName => "ParenthesizedExpressionGenerator";
-
-  Expression _makeInvalidWrite(Expression value) {
-    return _helper.buildProblem(messageCannotAssignToParenthesizedExpression,
-        fileOffset, lengthForToken(token));
-  }
 
   /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
