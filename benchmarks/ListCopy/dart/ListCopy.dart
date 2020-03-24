@@ -57,7 +57,7 @@ class Benchmark extends BenchmarkBase {
       var variants = makeVariants();
       inputs.addAll(variants);
       totalLength +=
-          variants.fold(0, (sum, iterable) => sum + iterable.length) as int;
+          variants.fold<int>(0, (sum, iterable) => sum + iterable.length);
     }
 
     // Sanity checks.
