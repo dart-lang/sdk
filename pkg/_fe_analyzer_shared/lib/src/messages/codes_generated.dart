@@ -6843,6 +6843,37 @@ Message _withArgumentsOverrideMismatchNamedParameter(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String name3)>
+    templateOverrideMismatchRequiredNamedParameter =
+    const Template<Message Function(String name, String name2, String name3)>(
+        messageTemplate:
+            r"""The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'.""",
+        withArguments: _withArgumentsOverrideMismatchRequiredNamedParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String name3)>
+    codeOverrideMismatchRequiredNamedParameter =
+    const Code<Message Function(String name, String name2, String name3)>(
+  "OverrideMismatchRequiredNamedParameter",
+  templateOverrideMismatchRequiredNamedParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideMismatchRequiredNamedParameter(
+    String name, String name2, String name3) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeOverrideMismatchRequiredNamedParameter,
+      message:
+          """The required named parameter '${name}' in method '${name2}' is not required in overridden method '${name3}'.""",
+      arguments: {'name': name, 'name2': name2, 'name3': name3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,

@@ -550,6 +550,7 @@ OptionalNonNullableWithoutInitializerWarning/analyzerCode: Fail
 OverrideFewerNamedArguments/example: Fail
 OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/example: Fail
+OverrideMismatchRequiredNamedParameter/analyzerCode: Fail
 OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
 OverrideTypeMismatchParameterWarning/example: Fail

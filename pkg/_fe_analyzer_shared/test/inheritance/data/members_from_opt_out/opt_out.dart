@@ -39,17 +39,11 @@ class LegacyClass {
   /*member: LegacyClass.method5b:int* Function({int* a, int* b})**/
   int method5b({int a, int b}) => 0;
 
-  /*member: LegacyClass.method5c:int* Function({int* a, int* b})**/
-  int method5c({int a, int b}) => 0;
-
   /*member: LegacyClass.method6a:int* Function(int*, {int* b})**/
   int method6a(int a, {int b}) => 0;
 
   /*member: LegacyClass.method6b:int* Function({int* a, int* b})**/
   int method6b({int a, int b}) => 0;
-
-  /*member: LegacyClass.method6c:int* Function({int* a, int* b})**/
-  int method6c({int a, int b}) => 0;
 
   /*member: LegacyClass.getter1:int**/
   int get getter1 => 0;

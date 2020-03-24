@@ -1344,6 +1344,7 @@ nnbd/platform_optional_parameters/main: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required: TextSerializationFailure
+nnbd/required_name_override: TextSerializationFailure
 nnbd/required_named_parameter: TextSerializationFailure
 nnbd/return_late: TextSerializationFailure
 nnbd/shorting_stop: TextSerializationFailure

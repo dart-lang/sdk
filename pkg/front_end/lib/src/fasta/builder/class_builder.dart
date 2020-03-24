@@ -1506,6 +1506,26 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           declaredParameter.isCovariant,
           declaredParameter,
           isInterfaceCheck);
+      if (declaredParameter.isRequired &&
+          !interfaceNamedParameters.current.isRequired) {
+        reportInvalidOverride(
+            isInterfaceCheck,
+            declaredMember,
+            templateOverrideMismatchRequiredNamedParameter.withArguments(
+                declaredParameter.name,
+                "${declaredMember.enclosingClass.name}."
+                    "${declaredMember.name.name}",
+                "${interfaceMember.enclosingClass.name}."
+                    "${interfaceMember.name.name}"),
+            declaredParameter.fileOffset,
+            noLength,
+            context: [
+              templateOverriddenMethodCause
+                  .withArguments(interfaceMember.name.name)
+                  .withLocation(_getMemberUri(interfaceMember),
+                      interfaceMember.fileOffset, noLength)
+            ]);
+      }
       if (declaredParameter.isCovariant) seenCovariant = true;
     }
     return seenCovariant;

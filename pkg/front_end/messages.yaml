@@ -2093,6 +2093,17 @@ OverrideTypeMismatchSetter:
   template: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
+OverrideMismatchRequiredNamedParameter:
+  template: "The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      method({int? a});
+    }
+    abstract class B implements A {
+      method({required int? a});
+    }
+
 PartOfSelf:
   template: "A file can't be a part of itself."
   analyzerCode: PART_OF_NON_PART
