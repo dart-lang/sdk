@@ -1409,7 +1409,8 @@ void BytecodeFlowGraphBuilder::BuildNullCheck() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  const String& selector = String::Cast(ConstantAt(DecodeOperandD()).value());
+  const String& selector =
+      String::CheckedZoneHandle(Z, ConstantAt(DecodeOperandD()).value().raw());
 
   LocalVariable* receiver_temp = B->MakeTemporary();
   code_ +=
