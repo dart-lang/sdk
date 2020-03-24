@@ -47,6 +47,11 @@ class ReachabilityDataComputer
     member.accept(new ReachabilityDataExtractor(compilerResult, actualMap,
         memberBuilder.dataForTesting.inferenceData.flowAnalysisResult));
   }
+
+  /// Errors are supported for testing erroneous code. The reported errors are
+  /// not tested.
+  @override
+  bool get supportsErrors => true;
 }
 
 class ReachabilityDataExtractor

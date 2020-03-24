@@ -36,6 +36,7 @@ main() {
   shouldForward = false;
   result = forked.runUnary<int, int>((arg) {
     Expect.fail("should not be invoked");
+    return -1;
   }, 99);
   Expect.equals(42, result);
   events.add("executed run2");

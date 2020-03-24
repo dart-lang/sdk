@@ -54,7 +54,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 
   String toString() => MapBase.mapToString(this);
 
-  static void _throwUnmodifiable() {
+  static Never _throwUnmodifiable() {
     throw new UnsupportedError('Cannot modify unmodifiable Map');
   }
 

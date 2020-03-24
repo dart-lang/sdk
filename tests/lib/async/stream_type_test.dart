@@ -26,7 +26,7 @@ main() {
   // Generic function used as parameter for, e.g., `skipWhile` and `reduce`.
   f([_1, _2]) => throw "unreachable";
 
-  bool testIntStream(stream(), name, int recursionDepth) {
+  void testIntStream(stream(), name, int recursionDepth) {
     checkIntStream(stream(), name);
     if (recursionDepth > 0) {
       checkIntSubscription(stream().listen(null), "$name.listen");

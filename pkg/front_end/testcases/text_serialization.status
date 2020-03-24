@@ -1348,6 +1348,7 @@ nnbd/required: TextSerializationFailure
 nnbd/required_name_override: TextSerializationFailure
 nnbd/required_named_parameter: TextSerializationFailure
 nnbd/return_late: TextSerializationFailure
+nnbd/return_null: TextSerializationFailure
 nnbd/shorting_stop: TextSerializationFailure
 nnbd/simple_never: TextSerializationFailure
 nnbd/sink_hierarchy: TextSerializationFailure

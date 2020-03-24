@@ -36,8 +36,8 @@ class C extends S {
     : _y = y,
       super();
 
-  factory C.other(num z) {}
-  factory C.other2() {}
+  factory C.other(num z) => C(z, z);
+  factory C.other2() => C(0, 0);
   factory C.other3() = C.other2;
 
   static dynamic foo() {
@@ -87,7 +87,7 @@ main() {
       "    : _y = y,\n"
       "      super();");
   expectSource(cm.declarations[#C.other]!,
-      "factory C.other(num z) {}");
+      "factory C.other(num z) => C(z, z);");
   expectSource(cm.declarations[#C.other3]!,
       "factory C.other3() = C.other2;");
 

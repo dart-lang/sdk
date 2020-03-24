@@ -13,7 +13,7 @@ import 'dart:mirrors';
 class C<T> {}
 
 class X {
-  Type foo() {}
+  Type foo() => Object;
 }
 
 main() {

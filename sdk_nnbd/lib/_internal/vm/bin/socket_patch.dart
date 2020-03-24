@@ -167,6 +167,7 @@ class _InternetAddress implements InternetAddress {
       case InternetAddressType.unix:
         return false;
     }
+    throw new UnsupportedError("Unexpected address type $type");
   }
 
   bool get isLinkLocal {
@@ -182,6 +183,7 @@ class _InternetAddress implements InternetAddress {
       case InternetAddressType.unix:
         return false;
     }
+    throw new UnsupportedError("Unexpected address type $type");
   }
 
   bool get isMulticast {
@@ -197,6 +199,7 @@ class _InternetAddress implements InternetAddress {
       case InternetAddressType.unix:
         return false;
     }
+    throw new UnsupportedError("Unexpected address type $type");
   }
 
   Future<InternetAddress> reverse() {

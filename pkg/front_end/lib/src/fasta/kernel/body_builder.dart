@@ -953,8 +953,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     if (body != null) {
-      body = typeInferrer?.inferFunctionBody(
-          this, _computeReturnTypeContext(member), asyncModifier, body);
+      body = typeInferrer?.inferFunctionBody(this, member.charOffset,
+          _computeReturnTypeContext(member), asyncModifier, body);
       libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
           transformCollections, libraryBuilder.library);
     }
@@ -1288,6 +1288,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
+    int fileOffset = offsetForToken(token);
     List<TypeVariableBuilder> typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <TypeVariableBuilder>[];
@@ -1309,7 +1310,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     enterLocalScope(
         null,
-        new FormalParameters(formals, offsetForToken(token), noLength, uri)
+        new FormalParameters(formals, fileOffset, noLength, uri)
             .computeFormalParameterScope(scope, member, this));
 
     token = parser.parseExpression(parser.syntheticPreviousToken(token));
@@ -1327,7 +1328,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
     typeInferrer?.inferFunctionBody(
-        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+        this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
   }

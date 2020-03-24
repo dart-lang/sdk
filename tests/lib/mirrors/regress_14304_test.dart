@@ -8,7 +8,7 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class A<T> {
-  T m() {}
+  T m(T t) => t;
 }
 
 main() {

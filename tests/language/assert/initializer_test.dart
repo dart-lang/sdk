@@ -82,7 +82,7 @@ void test(int x, int y) {
   bool assertionsEnabled = false;
   assert(assertionsEnabled = true);
 
-  bool Function(C Function()) doTest = (assertionsEnabled && x >= y)
+  void Function(C Function()) doTest = (assertionsEnabled && x >= y)
     ? (f) { Expect.throwsAssertionError(f); }
     : (f) { Expect.equals(x, f().x); };
 

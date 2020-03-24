@@ -3347,6 +3347,12 @@ ReturnWithoutExpression:
   analyzerCode: RETURN_WITHOUT_VALUE
   declaration: "int foo() { return; }"
 
+ImplicitReturnNull:
+  template: "A non-null value must be returned since the return type '#type' doesn't allow null."
+  configuration: nnbd-strong
+  script: |
+    String method() {}
+
 RethrowNotCatch:
   template: "'rethrow' can only be used in catch clauses."
   analyzerCode: RETHROW_OUTSIDE_CATCH

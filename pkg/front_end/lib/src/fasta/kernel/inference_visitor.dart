@@ -5151,6 +5151,14 @@ class InferenceVisitor
         isVoidAllowed: false);
     node.expression = expressionResult.expression..parent = node;
     DartType expressionType = expressionResult.inferredType;
+
+    Set<Field> enumFields;
+    if (expressionType is InterfaceType && expressionType.classNode.isEnum) {
+      enumFields = expressionType.classNode.fields
+          .where((Field field) => field.isConst && field.type == expressionType)
+          .toSet();
+    }
+
     inferrer.flowAnalysis.switchStatement_expressionEnd(node);
 
     bool hasDefault = false;
@@ -5167,6 +5175,9 @@ class InferenceVisitor
         Expression caseExpression = caseExpressionResult.expression;
         switchCase.expressions[index] = caseExpression..parent = switchCase;
         DartType caseExpressionType = caseExpressionResult.inferredType;
+        if (enumFields != null && caseExpression is StaticGet) {
+          enumFields.remove(caseExpression.target);
+        }
 
         if (!inferrer.isTopLevel) {
           if (inferrer.library.isNonNullableByDefault) {
@@ -5222,7 +5233,9 @@ class InferenceVisitor
         }
       }
     }
-    inferrer.flowAnalysis.switchStatement_end(hasDefault);
+    bool isExhaustive =
+        hasDefault || (enumFields != null && enumFields.isEmpty);
+    inferrer.flowAnalysis.switchStatement_end(isExhaustive);
     return const StatementInferenceResult();
   }
 

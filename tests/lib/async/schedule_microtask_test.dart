@@ -71,7 +71,7 @@ Future testTimerThenScheduleMicrotaskChain() {
       Expect.equals(TOTAL, scheduleMicrotaskDone);
       completer.complete();
     });
-    Future scheduleMicrotaskCallback() {
+    void scheduleMicrotaskCallback() {
       scheduleMicrotaskDone++;
       if (scheduleMicrotaskDone != TOTAL) {
         scheduleMicrotask(scheduleMicrotaskCallback);

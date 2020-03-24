@@ -24,7 +24,8 @@ class Class extends core::Object /*hasConstConstructor*/  {
     return x;
            ^" in x;
   }
-  method bar() → core::int {}
+  method bar() → core::int
+    return 0;
   method baz(core::int x) → core::int {
     return x;
   }
@@ -37,7 +38,8 @@ static method foo() → core::int {
   return x;
          ^" in x;
 }
-static method bar() → core::int {}
+static method bar() → core::int
+  return 0;
 static method baz(core::int x) → core::int {
   return x;
 }

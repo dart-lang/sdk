@@ -125,6 +125,8 @@ class ClosureContext {
 
   final bool _needToInferReturnType;
 
+  DartType _inferredReturnType;
+
   /// The type that actually appeared as the subexpression of `return` or
   /// `yield` statements inside the function.
   ///
@@ -364,7 +366,56 @@ class ClosureContext {
           returnExpressionTypes[i]);
     }
 
-    return demoteTypeInLibrary(inferredType, inferrer.library.library);
+    return _inferredReturnType =
+        demoteTypeInLibrary(inferredType, inferrer.library.library);
+  }
+
+  StatementInferenceResult handleImplicitReturn(
+      TypeInferrerImpl inferrer,
+      Statement body,
+      StatementInferenceResult inferenceResult,
+      int fileOffset) {
+    if (isGenerator) {
+      // There is no implicit return.
+      return inferenceResult;
+    }
+
+    DartType returnType;
+    if (_needToInferReturnType) {
+      assert(_inferredReturnType != null,
+          "Return type has not yet been inferred.");
+      returnType = _inferredReturnType;
+    } else {
+      returnType = declaredReturnType;
+    }
+    if (isAsync) {
+      returnType = inferrer.typeSchemaEnvironment.unfutureType(returnType);
+    }
+    if (inferrer.library.isNonNullableByDefault &&
+        isPotentiallyNonNullable(
+            returnType, inferrer.coreTypes.futureOrClass) &&
+        inferrer.flowAnalysis.isReachable) {
+      Statement resultStatement =
+          inferenceResult.hasChanged ? inferenceResult.statement : body;
+      // Create a synthetic return statement with the error.
+      Statement returnStatement = new ReturnStatement(inferrer.helper
+          .wrapInProblem(
+              new NullLiteral()..fileOffset = fileOffset,
+              templateImplicitReturnNull.withArguments(
+                  returnType, inferrer.library.isNonNullableByDefault),
+              fileOffset,
+              noLength))
+        ..fileOffset = fileOffset;
+      if (resultStatement is Block) {
+        resultStatement.statements.add(returnStatement);
+      } else {
+        resultStatement =
+            new Block(<Statement>[resultStatement, returnStatement])
+              ..fileOffset = fileOffset;
+      }
+      return new StatementInferenceResult.single(resultStatement);
+    }
+    return inferenceResult;
   }
 
   DartType _wrapAsyncOrGenerator(
@@ -429,8 +480,8 @@ abstract class TypeInferrer {
       InferenceHelper helper, DartType declaredType, Expression initializer);
 
   /// Performs type inference on the given function body.
-  Statement inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body);
+  Statement inferFunctionBody(InferenceHelper helper, int fileOffset,
+      DartType returnType, AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
   void inferInitializer(InferenceHelper helper, Initializer initializer);
@@ -1907,21 +1958,23 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  Statement inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body) {
+  Statement inferFunctionBody(InferenceHelper helper, int fileOffset,
+      DartType returnType, AsyncMarker asyncMarker, Statement body) {
     assert(body != null);
     assert(closureContext == null);
     this.helper = helper;
     closureContext = new ClosureContext(this, asyncMarker, returnType, false);
     StatementInferenceResult result = inferStatement(body);
-    closureContext = null;
-    this.helper = null;
     if (dataForTesting != null) {
       if (!flowAnalysis.isReachable) {
         dataForTesting.flowAnalysisResult.functionBodiesThatDontComplete
             .add(body);
       }
     }
+    result =
+        closureContext.handleImplicitReturn(this, body, result, fileOffset);
+    closureContext = null;
+    this.helper = null;
     flowAnalysis.finish();
     return result.hasChanged ? result.statement : body;
   }
@@ -2489,9 +2542,6 @@ class TypeInferrerImpl implements TypeInferrer {
         this, function.asyncMarker, returnContext, needToSetReturnType);
     this.closureContext = closureContext;
     StatementInferenceResult bodyResult = inferStatement(function.body);
-    if (bodyResult.hasChanged) {
-      function.body = bodyResult.statement..parent = function;
-    }
 
     // If the closure is declared with `async*` or `sync*`, let `M` be the
     // least upper bound of the types of the `yield` expressions in `B’`, or
@@ -2510,6 +2560,12 @@ class TypeInferrerImpl implements TypeInferrer {
       instrumentation?.record(uriForInstrumentation, fileOffset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       function.returnType = inferredReturnType;
+    }
+    bodyResult = closureContext.handleImplicitReturn(
+        this, function.body, bodyResult, fileOffset);
+
+    if (bodyResult.hasChanged) {
+      function.body = bodyResult.statement..parent = function;
     }
     this.closureContext = oldClosureContext;
     return function.computeFunctionType(library.nonNullable);

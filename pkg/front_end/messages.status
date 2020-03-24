@@ -367,6 +367,7 @@ ImplementsVoid/example: Fail # Feature not yet enabled by default.
 ImplicitCallOfNonMethod/example: Fail
 ImplicitMixinOverride/analyzerCode: Fail
 ImplicitMixinOverride/example: Fail
+ImplicitReturnNull/analyzerCode: Fail
 ImportAfterPart/part_wrapped_script1: Fail
 ImportAfterPart/script1: Fail
 IncompatibleRedirecteeFunctionType/part_wrapped_script6: Fail

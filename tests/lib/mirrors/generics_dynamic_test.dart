@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 class A<T> {}
 
 class B<T extends A> extends A implements C {
-  A m(A a) {}
+  A m(A a) => a;
   late A field;
 }
 

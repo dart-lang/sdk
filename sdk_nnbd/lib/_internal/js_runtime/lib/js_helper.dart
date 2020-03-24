@@ -2696,6 +2696,7 @@ class BoundClosure extends TearOffClosure {
         return JS('String', '#', name);
       }
     }
+    throw new ArgumentError("Field name $fieldName not found.");
   }
 }
 

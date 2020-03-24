@@ -1091,6 +1091,38 @@ Message _withArgumentsImplicitCallOfNonMethod(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(
+        DartType _type,
+        bool
+            isNonNullableByDefault)> templateImplicitReturnNull = const Template<
+        Message Function(DartType _type, bool isNonNullableByDefault)>(
+    messageTemplate:
+        r"""A non-null value must be returned since the return type '#type' doesn't allow null.""",
+    withArguments: _withArgumentsImplicitReturnNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeImplicitReturnNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "ImplicitReturnNull",
+  templateImplicitReturnNull,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplicitReturnNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeImplicitReturnNull,
+      message:
+          """A non-null value must be returned since the return type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateIncompatibleRedirecteeFunctionType = const Template<
