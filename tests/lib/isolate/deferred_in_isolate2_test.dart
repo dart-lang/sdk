@@ -14,7 +14,7 @@ import 'package:async_helper/async_minitest.dart';
 import 'deferred_in_isolate2_lib.dart' deferred as lib;
 
 loadDeferred(port) {
-  lib.loadLibrary()!.then((_) {
+  lib.loadLibrary().then((_) {
     port.send(lib.f());
   });
 }

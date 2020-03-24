@@ -19,7 +19,7 @@ funcChild(args) {
   var replyPort = args[0];
   // Deferred load a library, create an object from that library and send
   // it over to the parent isolate which has not yet loaded that library.
-  lib.loadLibrary()!.then((_) {
+  lib.loadLibrary().then((_) {
     replyPort.send(new lib.FromChildIsolate());
   });
 }

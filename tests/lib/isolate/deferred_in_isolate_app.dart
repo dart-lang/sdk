@@ -16,7 +16,7 @@ void main(args, msg) {
   try {
     print("BeforeLibraryLoading");
 
-    test.loadLibrary()!.then((_) {
+    test.loadLibrary().then((_) {
       var obj = new test.DeferredObj(expectedMsg);
       replyPort.send(obj.toString());
     }).catchError((error) {
