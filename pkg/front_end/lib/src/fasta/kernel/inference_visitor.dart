@@ -4564,7 +4564,7 @@ class InferenceVisitor
         : const ObjectAccessTarget.missing();
 
     DartType writeIndexType =
-        inferrer.getIndexSetValueType(writeTarget, receiverType);
+        inferrer.getIndexKeyType(writeTarget, receiverType);
     Expression writeIndex = createVariableGet(indexVariable);
     writeIndex = inferrer.ensureAssignable(
         writeIndexType, indexResult.inferredType, writeIndex);

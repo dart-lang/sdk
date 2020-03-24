@@ -58,6 +58,7 @@ extensions/issue38745: TextSerializationFailure
 extensions/issue38750: TextSerializationFailure
 extensions/issue38755: TextSerializationFailure
 extensions/issue38915: TextSerializationFailure
+extensions/issue39527: TextSerializationFailure
 extensions/issue39889: TextSerializationFailure
 extensions/issue39938/issue39938: TextSerializationFailure
 extensions/issue40596: TextSerializationFailure
