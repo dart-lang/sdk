@@ -25,14 +25,14 @@ const
     int //   //# 10: ok
     String //# 11: compile-time error
     Foo //   //# 12: compile-time error
-    c = const int.fromEnvironment('c');
+    c = const int.fromEnvironment('c', defaultValue: 0);
 
 const
     bool //  //# 13: compile-time error
     int //   //# 14: compile-time error
     String //# 15: ok
     Foo //   //# 16: compile-time error
-    d = const String.fromEnvironment('d');
+    d = const String.fromEnvironment('d', defaultValue: '');
 
 main() {
   Expect.equals(false, a);

@@ -32,7 +32,7 @@ const bool kScopeTrace =
     const bool.fromEnvironment('global.type.flow.scope.trace');
 
 const int kScopeIndent =
-    const int.fromEnvironment('global.type.flow.scope.indent');
+    const int.fromEnvironment('global.type.flow.scope.indent', defaultValue: 1);
 
 /// Extended 'assert': always checks condition.
 assertx(bool cond, {details}) {
@@ -57,7 +57,7 @@ class _ScopedLogger implements _Logger {
     "\u001b[35m", // magenta
     "\u001b[36m", // cyan
   ];
-  static const int _scopeIndent = kScopeIndent ?? 1;
+  static const int _scopeIndent = kScopeIndent;
 
   int _scope = 0;
   List<String> _scopePrefixes = <String>[""];

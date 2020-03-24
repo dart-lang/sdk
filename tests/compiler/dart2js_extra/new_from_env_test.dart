@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 /// `new` instead of `const`.
 main() {
   Expect.isFalse(const bool.fromEnvironment('X'));
-  Expect.isNull(const String.fromEnvironment('X'));
+  Expect.equals('', const String.fromEnvironment('X', defaultValue: ''));
   Expect.equals(const int.fromEnvironment('X', defaultValue: 0), 0);
 
   Expect.throws(() => new bool.fromEnvironment('X'));
