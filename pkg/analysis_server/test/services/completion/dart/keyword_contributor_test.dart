@@ -1283,6 +1283,18 @@ class A {
         pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
+  Future<void> test_function_body_inUnit_return_with_header() async {
+    addTestSource('/// comment\n ^ foo() {}}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.DYNAMIC, Keyword.VOID]);
+  }
+
+  Future<void> test_function_body_inUnit_return_with_header_prefix() async {
+    addTestSource('/// comment\n d^ foo() {}}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.DYNAMIC, Keyword.VOID]);
+  }
+
   Future<void> test_function_body_inUnit_sync_star() async {
     addTestSource('main() sync* {n^}');
     await computeSuggestions();
