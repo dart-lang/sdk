@@ -263,6 +263,11 @@ The Linter was updated to `0.1.113`, which includes:
   directory on Windows. `%LOCALAPPDATA%` is not copied when users roam between
   devices.
 
+* `pub publish` warns if LICENSE and README.md files are not called those exact
+  names.
+
+* `pub repair cache` downloads hosted packages in parallel.
+
 #### dart2js
 
 A new representation of runtime types was enabled by default.
