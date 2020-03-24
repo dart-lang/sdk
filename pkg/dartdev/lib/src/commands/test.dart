@@ -11,7 +11,8 @@ import '../core.dart';
 import '../sdk.dart';
 
 class TestCommand extends DartdevCommand<int> {
-  TestCommand({bool verbose = false}) : super('test', 'todo: .');
+  TestCommand({bool verbose = false})
+      : super('test', 'Runs tests in this project.');
 
   final ArgParser argParser = ArgParser.allowAnything();
 
