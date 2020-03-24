@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,6 +20,7 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 
@@ -502,17 +502,16 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedType,
         PotentiallyAddQuestionSuffix(
             nullabilityNode, decoratedType.type, node.end));
-    var commentToken = node.endToken.next.precedingComments;
-    switch (_classifyComment(commentToken)) {
-      case _NullabilityComment.bang:
+    switch (getPostfixHint(node)) {
+      case NullabilityComment.bang:
         _graph.makeNonNullableUnion(
             decoratedType.node, NullabilityCommentOrigin(source, node));
         break;
-      case _NullabilityComment.question:
+      case NullabilityComment.question:
         _graph.makeNullableUnion(
             decoratedType.node, NullabilityCommentOrigin(source, node));
         break;
-      case _NullabilityComment.none:
+      case NullabilityComment.none:
         break;
     }
     return decoratedType;
@@ -560,14 +559,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       variable.initializer?.accept(this);
     }
     return null;
-  }
-
-  _NullabilityComment _classifyComment(Token token) {
-    if (token is CommentToken) {
-      if (token.lexeme == '/*!*/') return _NullabilityComment.bang;
-      if (token.lexeme == '/*?*/') return _NullabilityComment.question;
-    }
-    return _NullabilityComment.none;
   }
 
   DecoratedType _createDecoratedTypeForClass(
@@ -839,18 +830,4 @@ abstract class VariableRepository {
   /// Records the fact that prior to migration, an unnecessary cast existed at
   /// [node].
   void recordUnnecessaryCast(Source source, AsExpression node);
-}
-
-/// Types of comments that can influence nullability
-enum _NullabilityComment {
-  /// The comment `/*!*/`, which indicates that the type should not have a `?`
-  /// appended.
-  bang,
-
-  /// The comment `/*?*/`, which indicates that the type should have a `?`
-  /// appended.
-  question,
-
-  /// No special comment.
-  none,
 }

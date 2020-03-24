@@ -27,6 +27,7 @@ import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/scoped_set.dart';
@@ -764,15 +765,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     final typeArguments = node.typeArguments;
     typeArguments?.accept(this);
     DecoratedType calleeType = _checkExpressionNotNull(node.function);
+    DecoratedType result;
     if (calleeType.type is FunctionType) {
-      return _handleInvocationArguments(node, argumentList.arguments,
+      result = _handleInvocationArguments(node, argumentList.arguments,
           typeArguments, node.typeArgumentTypes, calleeType, null,
           invokeType: node.staticInvokeType);
     } else {
       // Invocation of type `dynamic` or `Function`.
       argumentList.accept(this);
-      return _makeNullableDynamicType(node);
+      result = _makeNullableDynamicType(node);
     }
+    return _handleNullCheckHint(node, result);
   }
 
   @override
@@ -867,21 +870,24 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       targetType = _checkExpressionNotNull(target);
     }
     var callee = node.staticElement;
+    DecoratedType result;
     if (callee == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
-      return _makeNullableDynamicType(node);
-    }
-    var calleeType = getOrComputeElementType(callee, targetType: targetType);
-    // TODO(paulberry): substitute if necessary
-    _handleAssignment(node.index,
-        destinationType: calleeType.positionalParameters[0]);
-    if (node.inSetterContext()) {
-      return calleeType.positionalParameters[1];
+      result = _makeNullableDynamicType(node);
     } else {
-      return calleeType.returnType;
+      var calleeType = getOrComputeElementType(callee, targetType: targetType);
+      // TODO(paulberry): substitute if necessary
+      _handleAssignment(node.index,
+          destinationType: calleeType.positionalParameters[0]);
+      if (node.inSetterContext()) {
+        result = calleeType.positionalParameters[1];
+      } else {
+        result = calleeType.returnType;
+      }
     }
+    return _handleNullCheckHint(node, result);
   }
 
   @override
@@ -1060,31 +1066,33 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (target == null && callee.enclosingElement is ClassElement) {
       targetType = _thisOrSuper(node);
     }
+    DecoratedType expressionType;
     if (callee == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
       node.argumentList.accept(this);
-      return _makeNullableDynamicType(node);
+      expressionType = _makeNullableDynamicType(node);
+    } else {
+      var calleeType = getOrComputeElementType(callee, targetType: targetType);
+      if (callee is PropertyAccessorElement) {
+        calleeType = calleeType.returnType;
+      }
+      expressionType = _handleInvocationArguments(
+          node,
+          node.argumentList.arguments,
+          node.typeArguments,
+          node.typeArgumentTypes,
+          calleeType,
+          null,
+          invokeType: node.staticInvokeType);
+      if (isNullAware) {
+        expressionType = expressionType.withNode(
+            NullabilityNode.forLUB(targetType.node, expressionType.node));
+        _variables.recordDecoratedExpressionType(node, expressionType);
+      }
     }
-    var calleeType = getOrComputeElementType(callee, targetType: targetType);
-    if (callee is PropertyAccessorElement) {
-      calleeType = calleeType.returnType;
-    }
-    var expressionType = _handleInvocationArguments(
-        node,
-        node.argumentList.arguments,
-        node.typeArguments,
-        node.typeArgumentTypes,
-        calleeType,
-        null,
-        invokeType: node.staticInvokeType);
-    if (isNullAware) {
-      expressionType = expressionType.withNode(
-          NullabilityNode.forLUB(targetType.node, expressionType.node));
-      _variables.recordDecoratedExpressionType(node, expressionType);
-    }
-    return expressionType;
+    return _handleNullCheckHint(node, expressionType);
   }
 
   @override
@@ -1117,7 +1125,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitParenthesizedExpression(ParenthesizedExpression node) {
     var result = node.expression.accept(this);
     _flowAnalysis.parenthesizedExpression(node, node.expression);
-    return result;
+    return _handleNullCheckHint(node, result);
   }
 
   @override
@@ -1162,8 +1170,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry)
       _unimplemented(node, 'PrefixedIdentifier with a prefix');
     } else {
-      return _handlePropertyAccess(
+      var type = _handlePropertyAccess(
           node, node.prefix, node.identifier, false, false);
+      return _handleNullCheckHint(node, type);
     }
   }
 
@@ -1208,8 +1217,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(node, node.target, node.propertyName,
+    var type = _handlePropertyAccess(node, node.target, node.propertyName,
         node.isNullAware, node.isCascaded);
+    return _handleNullCheckHint(node, type);
   }
 
   @override
@@ -1332,6 +1342,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
+    DecoratedType result;
     var staticElement = node.staticElement;
     if (staticElement is PromotableElement) {
       if (!node.inDeclarationContext()) {
@@ -1344,11 +1355,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           !_flowAnalysis.isAssigned(staticElement)) {
         _graph.makeNullable(type.node, UninitializedReadOrigin(source, node));
       }
-      return type;
+      result = type;
     } else if (staticElement is FunctionElement ||
         staticElement is MethodElement ||
         staticElement is ConstructorElement) {
-      return getOrComputeElementType(staticElement,
+      result = getOrComputeElementType(staticElement,
           targetType: staticElement.enclosingElement is ClassElement
               ? _thisOrSuper(node)
               : null);
@@ -1357,24 +1368,25 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           targetType: staticElement.enclosingElement is ClassElement
               ? _thisOrSuper(node)
               : null);
-      return staticElement.isGetter
+      result = staticElement.isGetter
           ? elementType.returnType
           : elementType.positionalParameters[0];
     } else if (staticElement is TypeDefiningElement) {
-      return _makeNonNullLiteralType(node);
+      result = _makeNonNullLiteralType(node);
     } else if (staticElement is ExtensionElement) {
-      return _makeNonNullLiteralType(node);
+      result = _makeNonNullLiteralType(node);
     } else if (staticElement == null) {
       assert(node.toString() == 'void');
-      return _makeNullableVoidType(node);
+      result = _makeNullableVoidType(node);
     } else if (staticElement.enclosingElement is ClassElement &&
         (staticElement.enclosingElement as ClassElement).isEnum) {
-      return getOrComputeElementType(staticElement);
+      result = getOrComputeElementType(staticElement);
     } else {
       // TODO(paulberry)
       _unimplemented(node,
           'Simple identifier with a static element of type ${staticElement.runtimeType}');
     }
+    return _handleNullCheckHint(node, result);
   }
 
   @override
@@ -1484,7 +1496,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return _thisOrSuper(node);
+    var type = _thisOrSuper(node);
+    return _handleNullCheckHint(node, type);
   }
 
   @override
@@ -2445,6 +2458,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _guards, _graph, NamedParameterNotSuppliedOrigin(source, node));
     }
     return calleeType.returnType;
+  }
+
+  DecoratedType _handleNullCheckHint(
+      Expression expression, DecoratedType type) {
+    switch (getPostfixHint(expression)) {
+      case NullabilityComment.bang:
+        return type.withNode(_graph.never);
+      default:
+        return type;
+    }
   }
 
   DecoratedType _handlePropertyAccess(Expression node, Expression target,

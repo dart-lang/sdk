@@ -1697,6 +1697,16 @@ int f(int?/*?*/ i) => i! + 1;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_expression_bang_hint() async {
+    var content = '''
+int f(int/*?*/ i) => i/*!*/;
+''';
+    var expected = '''
+int f(int?/*?*/ i) => i!/*!*/;
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_addsNullCheckToThis() async {
     var content = '''
