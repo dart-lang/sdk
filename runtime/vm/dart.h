@@ -125,10 +125,6 @@ class Dart : public AllStatic {
     return entropy_source_callback_;
   }
 
-  // TODO(dartbug.com/40342): Delete these functions.
-  static void set_non_nullable_flag(bool value) { non_nullable_flag_ = value; }
-  static bool non_nullable_flag() { return true; }
-
  private:
   static constexpr const char* kVmIsolateName = "vm-isolate";
 
@@ -147,7 +143,6 @@ class Dart : public AllStatic {
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
-  static bool non_nullable_flag_;
 };
 
 }  // namespace dart
