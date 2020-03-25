@@ -211,4 +211,20 @@ class FunctionExpressionWithNnbdTest extends FunctionExpressionTest {
 
   @override
   bool get typeToStringWithNullability => true;
+
+  test_optOut_returnType_expressionBody_Null() async {
+    newFile('/test/lib/a.dart', content: r'''
+void foo(Map<String, String> Function() f) {}
+''');
+    await resolveTestCode('''
+// @dart = 2.5
+import 'a.dart';
+
+void main() {
+  foo(() => null);
+}
+''');
+    var element = findNode.functionExpression('() =>').declaredElement;
+    assertType(element.returnType, 'Null*');
+  }
 }
