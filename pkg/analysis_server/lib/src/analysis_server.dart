@@ -312,7 +312,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
     performance.logRequestTiming(request.clientRequestTime);
-    runZoned(() {
+    runZonedGuarded(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
         int count = handlers.length;
         for (int i = 0; i < count; i++) {
@@ -341,7 +341,7 @@ class AnalysisServer extends AbstractAnalysisServer {
         }
         channel.sendResponse(Response.unknownRequest(request));
       });
-    }, onError: (exception, stackTrace) {
+    }, (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
           FatalException('Failed to handle request: ${request.method}',
               exception, stackTrace));

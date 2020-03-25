@@ -92,11 +92,7 @@ abstract class IOOverrides {
       // ServerSocket
       Future<ServerSocket> Function(dynamic, int,
               {int backlog, bool v6Only, bool shared})
-          serverSocketBind,
-
-      // Optional Zone parameters
-      ZoneSpecification zoneSpecification,
-      Function onError}) {
+          serverSocketBind}) {
     IOOverrides overrides = new _IOOverridesScope(
       // Directory
       createDirectory,
@@ -131,22 +127,15 @@ abstract class IOOverrides {
       // ServerSocket
       serverSocketBind,
     );
-    return _asyncRunZoned<R>(body,
-        zoneValues: {_ioOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+    return _asyncRunZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
   ///
   /// Note that [overrides] should be an instance of a class that extends
   /// [IOOverrides].
-  static R runWithIOOverrides<R>(R body(), IOOverrides overrides,
-      {ZoneSpecification zoneSpecification, Function onError}) {
-    return _asyncRunZoned<R>(body,
-        zoneValues: {_ioOverridesToken: overrides},
-        zoneSpecification: zoneSpecification,
-        onError: onError);
+  static R runWithIOOverrides<R>(R body(), IOOverrides overrides) {
+    return _asyncRunZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   // Directory

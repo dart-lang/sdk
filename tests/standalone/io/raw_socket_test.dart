@@ -426,7 +426,7 @@ void testSocketZone() {
 void testSocketZoneError() {
   asyncStart();
   Expect.equals(Zone.root, Zone.current);
-  runZoned(() {
+  runZonedGuarded(() {
     Expect.notEquals(Zone.root, Zone.current);
     RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
       Expect.notEquals(Zone.root, Zone.current);
@@ -451,7 +451,7 @@ void testSocketZoneError() {
         socket.close();
       });
     });
-  }, onError: (e) {
+  }, (e, s) {
     asyncEnd();
   });
 }

@@ -144,9 +144,9 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
 
   /// Send the string [s] to [_output] followed by a newline.
   void _outputLine(String s) {
-    runZoned(() {
+    runZonedGuarded(() {
       _output.writeln(s);
-    }, onError: (e) {
+    }, (e, s) {
       close();
     });
   }

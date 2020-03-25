@@ -11,7 +11,7 @@ Stream catchErrors(dynamic body()) {
   }
 
   void onListen() {
-    runZoned(body, onError: onError);
+    runZonedGuarded(body, onError);
   }
 
   controller = new StreamController(onListen: onListen);
@@ -21,7 +21,7 @@ Stream catchErrors(dynamic body()) {
 runZonedScheduleMicrotask(body(),
     {void onScheduleMicrotask(void callback()), Function? onError}) {
   if (onScheduleMicrotask == null) {
-    return runZoned(body, onError: onError);
+    return runZonedGuarded(body, onError);
   }
   HandleUncaughtErrorHandler errorHandler;
   if (onError != null) {

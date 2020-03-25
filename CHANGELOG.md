@@ -13,6 +13,13 @@
   stack trace rather than propagate a `null` value.
   Error handling functions need no longer be prepared for `null` stack traces.
 
+* **Breaking change**: [#40681](https://github.com/dart-lang/sdk/issues/40681)
+  The `runZoned` function is split into two functions: `runZoned` and
+  `runZonedGuarded`, where the latter has a required `onError` parameter,
+  and the former has none.
+  This prepares the functions for Null Safety where the two functions will
+  differ in the nullability of their return types.
+
 #### `dart:core`
 
 * Adds `StackTrace.empty` constant which is the stack trace used as default
@@ -137,6 +144,18 @@ used (see Issue [39627][]).
     address in byte format for Internet addresses or raw file path for Unix
     domain addresses.
 
+* **Breaking change** [#40681](https://github.com/dart-lang/sdk/issues/40681)
+  The static method `runZoned` and `runWithHttpOverrides` on `HttpOverrides`
+  no longer accept `zoneSpecification` and `onError` parameters.
+  Use the `runZoned` or `runZonedGuarded` functions from `dart:async`
+  directly if needing to specify those.
+
+* **Breaking change** [#40681](https://github.com/dart-lang/sdk/issues/40681)
+  The static method `runZoned` and `runWithIOOverrides` on `IOOverrides`
+  no longer accept `zoneSpecification` and `onError` parameters.
+  Use the `runZoned` or `runZonedGuarded` functions from `dart:async`
+  directly if needing to specify those.
+
 #### `dart:mirrors`
 
 * Added `MirrorSystem.neverType`.
@@ -188,7 +207,7 @@ additional details see the [announcement].
   Use of this library on the web has been unsupported and prevented by the Dart
   build systems since Dart v2.0.0. All known exception cases have been cleaned
   up. This change makes DDC and dart2js now behave consistently.
-  
+
   The library can still be imported on web apps, but all APIs throw. In a future
   breaking change release, imports to this library will likely become a
   compile-time error.

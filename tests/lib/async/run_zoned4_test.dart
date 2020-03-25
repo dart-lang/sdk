@@ -10,7 +10,7 @@ main() {
   // error handler is defined.
   Expect.equals(
       499,
-      runZoned(() => 499, onError: (e) {
+      runZonedGuarded(() => 499, (e, s) {
         throw "Unexpected";
       }));
 }

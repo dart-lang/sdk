@@ -245,7 +245,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
     performance.logRequestTiming(null);
-    runZoned(() {
+    runZonedGuarded(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
         try {
           if (message is ResponseMessage) {
@@ -284,7 +284,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           logException(errorMessage, error, stackTrace);
         }
       });
-    }, onError: socketError);
+    }, socketError);
   }
 
   /// Logs the error on the client using window/logMessage.

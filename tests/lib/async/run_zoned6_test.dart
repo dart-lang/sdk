@@ -12,9 +12,9 @@ main() {
   // in the error handler at that point (when it is a synchronous error) yields
   // a synchronous error.
   try {
-    runZoned(() {
+    runZonedGuarded(() {
       throw 0;
-    }, onError: (e) {
+    }, (e, s) {
       Expect.equals(0, e);
       throw e;  //#01 : ok
       asyncEnd();
