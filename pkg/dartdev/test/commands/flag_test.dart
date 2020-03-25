@@ -20,7 +20,7 @@ void command() {
     DartdevRunner([]).commands.forEach((String commandKey, Command command) {
       expect(commandKey, isNotEmpty);
       expect(command.description, isNotEmpty);
-      expect(command.description, endsWith('.'));
+      expect(command.description.split('\n').first, endsWith('.'));
       expect(command.description.trim(), equals(command.description));
     });
   });

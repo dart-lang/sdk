@@ -11,6 +11,7 @@ import 'src/commands/analyze.dart';
 import 'src/commands/create.dart';
 import 'src/commands/format.dart';
 import 'src/commands/pub.dart';
+import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
 
@@ -29,6 +30,7 @@ class DartdevRunner<int> extends CommandRunner {
     addCommand(FormatCommand(verbose: verbose));
     addCommand(MigrateCommand(logProvider: () => log, hidden: !verbose));
     addCommand(PubCommand(verbose: verbose));
+    addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand(verbose: verbose));
   }
 

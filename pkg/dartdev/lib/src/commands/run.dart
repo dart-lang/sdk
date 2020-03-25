@@ -10,22 +10,29 @@ import 'package:args/args.dart';
 import '../core.dart';
 import '../sdk.dart';
 
-class PubCommand extends DartdevCommand<int> {
-  PubCommand({bool verbose = false}) : super('pub', 'Work with packages.');
-
+class RunCommand extends DartdevCommand<int> {
   final ArgParser argParser = ArgParser.allowAnything();
+
+  RunCommand({bool verbose = false}) : super('run', '''
+Run a Dart app or package.
+
+dart run <file path>   run the specified Dart file
+dart run package:foo   run the Dart file specified by some <package>:<executable>''');
+
+  @override
+  String get invocation => '${super.invocation} <dart file | package target>';
 
   @override
   void printUsage() {
-    // Override [printUsage] for invocations of 'dart help pub' which won't
-    // execute [run] below.  Without this, the 'dart help pub' reports the
+    // Override [printUsage] for invocations of 'dart help run' which won't
+    // execute [run] below.  Without this, the 'dart help run' reports the
     // command pub with no commands or flags.
-    final command = sdk.pub;
-    final args = ['help'];
+    final command = sdk.dart;
+    final args = ['--help'];
 
     log.trace('$command ${args.first}');
 
-    // Call 'pub help'
+    // Call 'dart --help'
     // Process.runSync(..) is used since [printUsage] is not an async method,
     // and we want to guarantee that the result (the help text for the console)
     // is printed before command exits.
@@ -36,16 +43,16 @@ class PubCommand extends DartdevCommand<int> {
 
   @override
   FutureOr<int> run() async {
-    final command = sdk.pub;
+    // the command line arguments after 'run'
     final args = argResults.arguments;
 
-    log.trace('$command ${args.join(' ')}');
+    // TODO(jwren) Implement support for pubspec executables, see
+    //  https://dart.dev/tools/pub/pubspec#executables
 
     // Starting in ProcessStartMode.inheritStdio mode means the child process
     // can detect support for ansi chars.
-    var process =
-        await Process.start(command, args, mode: ProcessStartMode.inheritStdio);
-
+    var process = await Process.start(sdk.dart, args,
+        mode: ProcessStartMode.inheritStdio);
     return process.exitCode;
   }
 }
