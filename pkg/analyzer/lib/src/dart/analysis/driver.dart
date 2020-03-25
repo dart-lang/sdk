@@ -556,6 +556,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// interactive analysis, such as Analysis Server or its plugins.
   Future<ErrorsResult> getErrors(String path) async {
     _throwIfNotAbsolutePath(path);
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
 
     // Ask the analysis result without unit, so return cached errors.
     // If no cached analysis result, it will be computed.
