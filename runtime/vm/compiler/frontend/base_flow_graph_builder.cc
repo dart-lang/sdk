@@ -1014,7 +1014,7 @@ void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
   // reconsider this heuristic if we identify non-inlined type-checks in
   // hotspots of new benchmarks.
   if (!IsInlining() && (parsed_function_->function().IsClosureFunction() ||
-                        !FLAG_precompiled_mode)) {
+                        !CompilerState::Current().is_aot())) {
     graph_entry->set_unchecked_entry(unchecked_entry);
   } else if (InliningUncheckedEntry()) {
     graph_entry->set_normal_entry(unchecked_entry);

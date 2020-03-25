@@ -255,7 +255,7 @@ const Slot& Slot::Get(const Field& field,
     } else {
       // In precompiled mode we use guarded_cid field for type information
       // inferred by TFA.
-      ASSERT(FLAG_precompiled_mode);
+      ASSERT(CompilerState::Current().is_aot());
     }
   }
 

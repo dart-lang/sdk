@@ -454,7 +454,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
 bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                                             intptr_t* lower_limit,
                                             intptr_t* upper_limit) {
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(CompilerState::Current().is_aot());
   if (CanUseSubtypeRangeCheckFor(type)) {
     const Class& type_class =
         Class::Handle(thread()->zone(), type.type_class());
@@ -908,7 +908,7 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
       num_context_variables_(num_context_variables),
       identity_(AliasIdentity::Unknown()) {
   // This instruction is not used in AOT for code size reasons.
-  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!CompilerState::Current().is_aot());
 }
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
@@ -3995,7 +3995,7 @@ LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,
 }
 
 void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!CompilerState::Current().is_aot());
   ASSERT(compiler->is_optimizing());
   __ Bind(compiler->GetJumpLabel(this));
 
@@ -4327,7 +4327,7 @@ Representation InstanceCallBaseInstr::representation() const {
 }
 
 void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
-  if (FLAG_precompiled_mode && !receiver_is_not_smi()) {
+  if (CompilerState::Current().is_aot() && !receiver_is_not_smi()) {
     if (Receiver()->Type()->IsNotSmi()) {
       set_receiver_is_not_smi(true);
       return;
@@ -4720,7 +4720,7 @@ Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 bool PolymorphicInstanceCallInstr::IsSureToCallSingleRecognizedTarget() const {
-  if (FLAG_precompiled_mode && !complete()) return false;
+  if (CompilerState::Current().is_aot() && !complete()) return false;
   return targets_.HasSingleRecognizedTarget();
 }
 
@@ -4743,7 +4743,7 @@ bool StaticCallInstr::InitResultType(Zone* zone) {
 }
 
 Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!FLAG_precompiled_mode) {
+  if (!CompilerState::Current().is_aot()) {
     return this;
   }
 

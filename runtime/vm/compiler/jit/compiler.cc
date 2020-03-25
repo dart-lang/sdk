@@ -347,7 +347,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
     compiler::Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph) {
-  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!CompilerState::Current().is_aot());
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
 
@@ -531,7 +531,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
-      CompilerState compiler_state(thread());
+      CompilerState compiler_state(thread(), /*is_aot=*/false);
 
       {
         if (optimized()) {
@@ -750,7 +750,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
 
-
     const Code& result = Code::Handle(helper.Compile(pipeline));
 
     if (result.IsNull()) {
@@ -948,6 +947,7 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
+  ASSERT(!FLAG_precompiled_mode);
   const Function& function = Function::Handle(code.function());
   ASSERT(code.var_descriptors() == Object::null());
   // IsIrregexpFunction have eager var descriptors generation.
@@ -956,7 +956,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   // if state changed while compiling in background.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  CompilerState state(thread);
+  CompilerState state(thread, /*is_aot=*/false);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ParsedFunction* parsed_function =

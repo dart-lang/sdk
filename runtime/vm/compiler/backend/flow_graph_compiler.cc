@@ -173,19 +173,14 @@ FlowGraphCompiler::FlowGraphCompiler(
 }
 
 bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
-  bool valid_class;
-  if (FLAG_precompiled_mode) {
-    valid_class =
-        (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
-        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
-        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
-        field.is_non_nullable_integer();
-  } else {
-    valid_class =
-        (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
-        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
-        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid));
-  }
+  // The `field.is_non_nullable_integer()` is set in the kernel loader and can
+  // only be set if we consume a AOT kernel (annotated with inferred types).
+  ASSERT(!field.is_non_nullable_integer() || FLAG_precompiled_mode);
+  const bool valid_class =
+      (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
+      (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
+      (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
+      field.is_non_nullable_integer();
   return field.is_unboxing_candidate() && !field.is_nullable() && valid_class;
 }
 

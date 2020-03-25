@@ -529,7 +529,7 @@ Definition* FlowGraph::CreateCheckBound(Definition* length,
                                         intptr_t deopt_id) {
   Value* val1 = new (zone()) Value(length);
   Value* val2 = new (zone()) Value(index);
-  if (FLAG_precompiled_mode) {
+  if (CompilerState::Current().is_aot()) {
     return new (zone()) GenericCheckBoundInstr(val1, val2, deopt_id);
   }
   return new (zone()) CheckArrayBoundInstr(val1, val2, deopt_id);

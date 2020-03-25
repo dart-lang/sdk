@@ -71,7 +71,7 @@ class TestPipeline : public ValueObject {
                         CompilerPass::PipelineMode mode)
       : function_(function),
         thread_(Thread::Current()),
-        compiler_state_(thread_),
+        compiler_state_(thread_, mode == CompilerPass::PipelineMode::kAOT),
         mode_(mode) {}
   ~TestPipeline() { delete pass_state_; }
 

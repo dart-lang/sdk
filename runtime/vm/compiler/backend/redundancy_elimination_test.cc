@@ -16,6 +16,7 @@
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
+#include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/object.h"
 #include "vm/parser.h"
@@ -270,7 +271,7 @@ static void TestAliasingViaRedefinition(
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -432,7 +433,7 @@ static void TestAliasingViaStore(
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -587,7 +588,7 @@ ISOLATE_UNIT_TEST_CASE(
 // https://github.com/flutter/flutter/issues/48114.
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   using compiler::BlockBuilder;
-  CompilerState S(thread);
+  CompilerState S(thread, /*is_aot=*/false);
   FlowGraphBuilderHelper H;
 
   const auto& lib = Library::Handle(Library::TypedDataLibrary());

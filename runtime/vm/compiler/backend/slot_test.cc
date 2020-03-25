@@ -63,7 +63,7 @@ TEST_CASE(SlotFromGuardedField) {
   field.set_is_nullable(false);
 
   // Enter compiler state.
-  CompilerState compiler_state(thread);
+  CompilerState compiler_state(thread, /*is_aot=*/false);
 
   const Field& field_clone_1 = Field::ZoneHandle(field.CloneFromOriginal());
   const Field& field_clone_2 = Field::ZoneHandle(field.CloneFromOriginal());

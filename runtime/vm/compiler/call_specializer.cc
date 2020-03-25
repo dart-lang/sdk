@@ -113,7 +113,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
 
   const Token::Kind op_kind = call->token_kind();
   if (FLAG_guess_icdata_cid) {
-    if (FLAG_precompiled_mode) {
+    if (CompilerState::Current().is_aot()) {
       // In precompiler speculate that both sides of bitwise operation
       // are Smi-s.
       if (Token::IsBinaryBitwiseOperator(op_kind) &&
@@ -757,7 +757,7 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
                    call->env(), call);
       break;
     case FlowGraph::ToCheck::kCheckCid:
-      if (FLAG_precompiled_mode) {
+      if (CompilerState::Current().is_aot()) {
         return false;  // AOT cannot class check
       }
       AddReceiverCheck(call);
@@ -813,7 +813,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
                    instr->env(), instr);
       break;
     case FlowGraph::ToCheck::kCheckCid:
-      if (FLAG_precompiled_mode) {
+      if (CompilerState::Current().is_aot()) {
         return false;  // AOT cannot class check
       }
       AddReceiverCheck(instr);
@@ -824,7 +824,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // True if we can use unchecked entry into the setter.
   bool is_unchecked_call = false;
-  if (!FLAG_precompiled_mode) {
+  if (!CompilerState::Current().is_aot()) {
     if (targets.IsMonomorphic() && targets.MonomorphicExactness().IsExact()) {
       if (targets.MonomorphicExactness().IsTriviallyExact()) {
         flow_graph()->AddExactnessGuard(instr,
@@ -1147,7 +1147,7 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Private classes cannot be subclassed by later loaded libs.
   if (!type_class.IsPrivate()) {
     // In AOT mode we can't use CHA deoptimizations.
-    ASSERT(!FLAG_precompiled_mode || !FLAG_use_cha_deopt);
+    ASSERT(!CompilerState::Current().is_aot() || !FLAG_use_cha_deopt);
     if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
         THR_Print(
@@ -1296,7 +1296,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         new (Z) ZoneGrowableArray<intptr_t>(number_of_checks * 2);
     const Bool& as_bool =
         Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
-    if (as_bool.IsNull() || FLAG_precompiled_mode) {
+    if (as_bool.IsNull() || CompilerState::Current().is_aot()) {
       if (results->length() == number_of_checks * 2) {
         const bool can_deopt = SpecializeTestCidsForNumericTypes(results, type);
         if (can_deopt &&

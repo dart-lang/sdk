@@ -55,7 +55,7 @@ void BlockScheduler::AssignEdgeWeights(FlowGraph* flow_graph) {
   if (!FLAG_reorder_basic_blocks) {
     return;
   }
-  if (FLAG_precompiled_mode) {
+  if (CompilerState::Current().is_aot()) {
     return;
   }
 
@@ -159,7 +159,7 @@ static void Union(GrowableArray<Chain*>* chains,
 }
 
 void BlockScheduler::ReorderBlocks(FlowGraph* flow_graph) {
-  if (FLAG_precompiled_mode) {
+  if (CompilerState::Current().is_aot()) {
     ReorderBlocksAOT(flow_graph);
   } else {
     ReorderBlocksJIT(flow_graph);

@@ -822,7 +822,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
       BuildFfiAsFunction();
       return;
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      if (FLAG_precompiled_mode) {
+      if (CompilerState::Current().is_aot()) {
         BuildFfiNativeCallbackFunction();
         return;
       }

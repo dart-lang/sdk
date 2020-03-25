@@ -8,6 +8,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/constant_reader.h"
+#include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"  // for ParsedFunction

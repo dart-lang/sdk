@@ -18,6 +18,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/bytecode_fingerprints.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
@@ -7366,7 +7367,7 @@ bool Function::CanBeInlined() const {
   // functions cannot deoptimize to unoptimized frames we prevent them from
   // being inlined (for now).
   if (ForceOptimize()) {
-    return FLAG_precompiled_mode;
+    return CompilerState::Current().is_aot();
   }
 #if defined(PRODUCT)
   return is_inlinable() && !is_external() && !is_generated_body();

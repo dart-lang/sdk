@@ -233,7 +233,11 @@ void Precompiler::DoCompileAll() {
       // optimized instruction count (used in inlining heuristics).
       ClassFinalizer::ClearAllCode(
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
-      PrecompileConstructors();
+
+      {
+        CompilerState state(thread_, /*is_aot=*/true);
+        PrecompileConstructors();
+      }
 
       ClassFinalizer::ClearAllCode(
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
@@ -2394,7 +2398,7 @@ static void GenerateNecessaryAllocationStubs(FlowGraph* flow_graph) {
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
 bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(CompilerState::Current().is_aot());
   if (optimized() && !parsed_function()->function().IsOptimizable()) {
     // All functions compiled by precompiler must be optimizable.
     UNREACHABLE();
@@ -2423,7 +2427,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
       const Function& function = parsed_function()->function();
 
-      CompilerState compiler_state(thread());
+      CompilerState compiler_state(thread(), /*is_aot=*/true);
 
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
@@ -2624,7 +2628,7 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
                                           const Function& function,
                                           bool optimized) {
   // Check that we optimize, except if the function is not optimizable.
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(CompilerState::Current().is_aot());
   ASSERT(!function.IsOptimizable() || optimized);
   ASSERT(!function.HasCode());
   LongJumpScope jump;
@@ -2701,7 +2705,7 @@ RawError* Precompiler::CompileFunction(Precompiler* precompiler,
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(CompilerState::Current().is_aot());
   const bool optimized = function.IsOptimizable();  // False for natives.
   DartCompilationPipeline pipeline;
   return PrecompileFunctionHelper(precompiler, &pipeline, function, optimized);

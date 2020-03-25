@@ -57,8 +57,8 @@ class DeoptId : public AllStatic {
 // Global compiler state attached to the thread.
 class CompilerState : public ThreadStackResource {
  public:
-  explicit CompilerState(Thread* thread)
-      : ThreadStackResource(thread), cha_(thread) {
+  CompilerState(Thread* thread, bool is_aot)
+      : ThreadStackResource(thread), cha_(thread), is_aot_(is_aot) {
     previous_ = thread->SetCompilerState(this);
   }
 
@@ -119,6 +119,8 @@ class CompilerState : public ThreadStackResource {
   // share id 255.
   LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
 
+  bool is_aot() const { return is_aot_; }
+
  private:
   CHA cha_;
   intptr_t deopt_id_ = 0;
@@ -130,6 +132,8 @@ class CompilerState : public ThreadStackResource {
   // to IL translation.
   ZoneGrowableArray<ZoneGrowableArray<const Slot*>*>* dummy_slots_ = nullptr;
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
+
+  bool is_aot_;
 
   CompilerState* previous_;
 };
