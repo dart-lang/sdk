@@ -271,7 +271,7 @@ class _Link extends FileSystemEntity implements Link {
     return result;
   }
 
-  static throwIfError(Object result, String msg, [String path = ""]) {
+  static throwIfError(Object? result, String msg, [String path = ""]) {
     if (result is OSError) {
       throw new FileSystemException(msg, path, result);
     }

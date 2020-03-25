@@ -519,7 +519,7 @@ abstract class _ChunkedJsonParser<T> {
    * The parser is closed by calling [close] or calling [addSourceChunk] with
    * `true` as second (`isLast`) argument.
    */
-  Object get result {
+  dynamic get result {
     return listener.result;
   }
 
