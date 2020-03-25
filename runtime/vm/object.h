@@ -888,7 +888,7 @@ enum class TypeEquality {
 
 // The NNBDMode reflects the opted-in status of libraries.
 // Note that the weak or strong testing mode is not reflected in NNBDMode, but
-// imposed globally by the value of FLAG_null_safety.
+// imposed globally by the value of --null-safety.
 enum class NNBDMode {
   // Status of the library:
   kLegacyLib = 0,   // Library is legacy.
@@ -1230,10 +1230,11 @@ class Class : public Object {
         cls->ptr()->library_->ptr()->flags_);
   }
 
-  // Returns true if the type specified by cls and type_arguments is a subtype
-  // of the other type.
+  // Returns true if the type specified by cls, type_arguments, and nullability
+  // is a subtype of the other type.
   static bool IsSubtypeOf(const Class& cls,
                           const TypeArguments& type_arguments,
+                          Nullability nullability,
                           const AbstractType& other,
                           Heap::Space space);
 

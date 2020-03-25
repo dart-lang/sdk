@@ -362,8 +362,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ tst(TypeTestABI::kInstanceReg, compiler::Operand(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
-  if (Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type,
-                         Heap::kOld)) {
+  if (Class::IsSubtypeOf(smi_class, Object::null_type_arguments(),
+                         Nullability::kNonNullable, type, Heap::kOld)) {
     // Fast case for type = int/num/top-type.
     __ b(is_instance_lbl, EQ);
   } else {
