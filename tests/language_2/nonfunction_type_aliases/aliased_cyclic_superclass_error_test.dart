@@ -4,26 +4,11 @@
 
 // SharedOptions=--enable-experiment=nonfunction-type-aliases
 
-// Introduce an aliased type.
+typedef T = C;
 
-class A {
-  A();
-  A.named();
-  static void staticMethod<X>() {}
-}
-
-typedef T<X extends A> = X;
-
-// Use the aliased type.
-
-main() {
-  T().unknownInstanceMethod();
-  //  ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-
-  T.unknownStaticMethod();
-//  ^
+class C extends T {}
+//    ^
 // [analyzer] unspecified
 // [cfe] unspecified
-}
+
+main() => C();

@@ -4,9 +4,6 @@
 
 // SharedOptions=--enable-experiment=nonfunction-type-aliases
 
-// Test that a non-function type alias can be used as the denoted type in
-// many situations.
-
 import 'dart:async';
 
 // Introduce an aliased type.
@@ -49,9 +46,7 @@ abstract class C {
 }
 
 class D1<X> extends T<X> {}
-abstract class D2 extends C with T<int> {}
 abstract class D3<X, Y> implements T<T> {}
-abstract class D4 = C with T<void>;
 
 extension E on T<dynamic> {
   T<dynamic> foo(T<dynamic> t) => t;
@@ -72,5 +67,5 @@ main() {
   T<Null>.named();
   T<Object> v12 = foo<T<bool>>(T<bool>());
   id(v12);
-  T<List<List<List<List>>>>.staticMethod<T<int>>();
+  T.staticMethod<T<int>>();
 }
