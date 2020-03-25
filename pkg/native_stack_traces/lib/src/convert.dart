@@ -5,6 +5,7 @@
 import "dart:async";
 import "dart:math";
 
+import 'constants.dart' as constants;
 import "dwarf.dart";
 
 String _stackTracePiece(CallInfo call, int depth) => "#${depth}\t${call}";
@@ -53,15 +54,47 @@ class StackTraceHeader {
 ///   - The absolute address of the program counter.
 ///   - The virtual address of the program counter, if the snapshot was
 ///     loaded as a dynamic library, otherwise not present.
-///   - The path to the snapshot, if it was loaded as a dynamic library,
-///     otherwise the string "<unknown>".
-final _traceLineRE =
-    RegExp(r'    #(\d{2}) abs ([\da-f]+)(?: virt ([\da-f]+))? (.*)$');
+///   - The location of the virtual address, which is one of the following:
+///     - A dynamic symbol name, a plus sign, and a hexadecimal offset.
+///     - The path to the snapshot, if it was loaded as a dynamic library,
+///       otherwise the string "<unknown>".
+const _symbolREString = r'(?:(?<symbol>' +
+    constants.vmSymbolName +
+    r'|' +
+    constants.isolateSymbolName +
+    r')\+0x(?<offset>[\da-f]+))';
+final _traceLineRE = RegExp(
+    r'    #(\d{2}) abs (?<address>[\da-f]+)(?: virt ([\da-f]+))? (?:' +
+        _symbolREString +
+        r'|.*)$');
 
-PCOffset _retrievePCOffset(StackTraceHeader header, Match match) {
-  if (header == null || match == null) return null;
-  final address = int.tryParse(match[2], radix: 16);
-  return header.offsetOf(address);
+PCOffset _retrievePCOffset(StackTraceHeader header, RegExpMatch match) {
+  if (match == null) return null;
+  // Try using the symbol information first, since we don't need the header
+  // information to translate it.
+  final symbolString = match.namedGroup('symbol');
+  final offsetString = match.namedGroup('offset');
+  if (symbolString != null && offsetString != null) {
+    final offset = int.tryParse(offsetString, radix: 16);
+    if (offset != null) {
+      switch (symbolString) {
+        case constants.vmSymbolName:
+          return PCOffset(offset, InstructionsSection.vm);
+        case constants.isolateSymbolName:
+          return PCOffset(offset, InstructionsSection.isolate);
+        default:
+          break;
+      }
+    }
+  }
+  // If we're parsing the absolute address, we can only convert it into
+  // a PCOffset if we saw the instructions line of the stack trace header.
+  final addressString = match.namedGroup('address');
+  if (addressString != null && header != null) {
+    final address = int.tryParse(addressString, radix: 16);
+    return header.offsetOf(address);
+  }
+  return null;
 }
 
 /// The [PCOffset]s for frames of the non-symbolic stack traces in [lines].

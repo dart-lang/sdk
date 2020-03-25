@@ -5,6 +5,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'constants.dart' as constants;
 import 'elf.dart';
 import 'reader.dart';
 
@@ -1201,9 +1202,6 @@ class Dwarf {
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
   static Dwarf fromFile(String path) => Dwarf.fromReader(Reader.fromFile(path));
 
-  static const String _vmSymbolName = "_kDartVmSnapshotInstructions";
-  static const String _isolateSymbolName = "_kDartIsolateSnapshotInstructions";
-
   static Dwarf _loadSectionsFromElf(Elf elf) {
     final abbrevSection = elf.namedSections(".debug_abbrev").single;
     final abbreviationTables = <int, _AbbreviationsTable>{};
@@ -1223,17 +1221,18 @@ class Dwarf {
     final debugInfo = DebugInfo.fromReader(
         infoSection.reader, abbreviationTables, lineNumberInfo);
 
-    final vmStartSymbol = elf.dynamicSymbolFor(_vmSymbolName);
+    final vmStartSymbol = elf.dynamicSymbolFor(constants.vmSymbolName);
     if (vmStartSymbol == null) {
       throw FormatException(
-          "Expected a dynamic symbol with name ${_vmSymbolName}");
+          "Expected a dynamic symbol with name ${constants.vmSymbolName}");
     }
     final vmStartAddress = vmStartSymbol.value;
 
-    final isolateStartSymbol = elf.dynamicSymbolFor(_isolateSymbolName);
+    final isolateStartSymbol =
+        elf.dynamicSymbolFor(constants.isolateSymbolName);
     if (isolateStartSymbol == null) {
       throw FormatException(
-          "Expected a dynamic symbol with name ${_isolateSymbolName}");
+          "Expected a dynamic symbol with name ${constants.isolateSymbolName}");
     }
     final isolateStartAddress = isolateStartSymbol.value;
 

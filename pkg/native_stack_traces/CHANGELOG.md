@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Uses dynamic symbol information embedded in stack frame lines when available.
+
 ## 0.3.0
 
 - Adds handling of virtual addresses within stub code payloads.
