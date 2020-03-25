@@ -1,3 +1,9 @@
+# 0.1.114
+
+* fixed `avoid_shadowing_type_parameters` to support extensions and mixins
+* updated `non_constant_identifier_names` to allow named constructors made up of only underscores (`_`)
+* updated `avoid_unused_constructor_parameters` to ignore unused params named in all underscores (`_`)
+
 # 0.1.113
 
 * updated documentation links
