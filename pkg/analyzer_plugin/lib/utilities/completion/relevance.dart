@@ -67,6 +67,9 @@ abstract class Relevance {
   /// The relevance used when suggesting an override of an inherited member.
   static const int override = 750;
 
+  /// The relevance used when suggesting a prefix from an import directive.
+  static const int prefix = 50;
+
   /// The relevance used when suggesting a named argument corresponding to a
   /// named parameter that is required.
   static const int requiredNamedArgument = 950;
