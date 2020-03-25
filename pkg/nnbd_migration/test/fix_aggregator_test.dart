@@ -673,6 +673,17 @@ f(Object o) => o as a.Future<Null>;
 ''');
   }
 
+  Future<void> test_introduceAs_withNullCheck() async {
+    await analyze('f(x) => x;');
+    var expr = findNode.simple('x;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.intType, _MockInfo())
+        ..addNullCheck(_MockInfo())
+    });
+    expect(previewInfo.applyTo(code), 'f(x) => x! as int;');
+  }
+
   Future<void> test_keep_redundant_parens() async {
     await analyze('f(a, b, c) => a + (b * c);');
     var previewInfo = run({});

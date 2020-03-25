@@ -426,7 +426,6 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Causes a null check to be added to this expression, with the given [info].
   void addNullCheck(AtomicEditInfo info) {
     assert(!_addsNullCheck);
-    assert(_introducesAsType == null);
     _addsNullCheck = true;
     _addNullCheckInfo = info;
   }
@@ -434,7 +433,6 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Causes a cast to the given [type] to be added to this expression, with
   /// the given [info].
   void introduceAs(DartType type, AtomicEditInfo info) {
-    assert(!_addsNullCheck);
     assert(_introducesAsType == null);
     assert(type != null);
     _introducesAsType = type;
@@ -452,16 +450,17 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Otherwise returns [innerPlan] unchanged.
   NodeProducingEditPlan _applyExpression(
       FixAggregator aggregator, NodeProducingEditPlan innerPlan) {
+    var plan = innerPlan;
     if (_addsNullCheck) {
-      return aggregator.planner
-          .addUnaryPostfix(innerPlan, TokenType.BANG, info: _addNullCheckInfo);
-    } else if (_introducesAsType != null) {
-      return aggregator.planner.addBinaryPostfix(
-          innerPlan, TokenType.AS, aggregator.typeToCode(_introducesAsType),
-          info: _introduceAsInfo);
-    } else {
-      return innerPlan;
+      plan = aggregator.planner
+          .addUnaryPostfix(plan, TokenType.BANG, info: _addNullCheckInfo);
     }
+    if (_introducesAsType != null) {
+      plan = aggregator.planner.addBinaryPostfix(
+          plan, TokenType.AS, aggregator.typeToCode(_introducesAsType),
+          info: _introduceAsInfo);
+    }
+    return plan;
   }
 }
 

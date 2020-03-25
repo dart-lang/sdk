@@ -1719,6 +1719,14 @@ int?/*?*/ f(int?/*?*/ i) => i!/*!*/;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_expression_bang_hint_with_cast() async {
+    var content = 'int f(Object/*?*/ o) => o/*!*/;';
+    // TODO(paulberry): it would be better to remove the `/*` and `*/` so we
+    // would be left with `o! as int;`
+    var expected = 'int f(Object?/*?*/ o) => o! as int/*!*/;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_addsNullCheckToThis() async {
     var content = '''
