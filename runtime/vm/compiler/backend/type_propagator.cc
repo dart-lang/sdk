@@ -815,17 +815,13 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
   if (other.IsTopTypeForAssignability()) {
     return true;
   }
-
   if (IsNone()) {
     return false;
   }
-
-  // Consider the compile type of the value.
-  const AbstractType& compile_type = *ToAbstractType();
-  if (compile_type.IsNullType()) {
-    return Instance::NullIsAssignableTo(other);
+  if (is_nullable() && !Instance::NullIsAssignableTo(other)) {
+    return false;
   }
-  return compile_type.IsSubtypeOf(other, Heap::kOld);
+  return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
 }
 
 bool CompileType::IsInstanceOf(const AbstractType& other) {
