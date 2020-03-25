@@ -32,6 +32,9 @@ Set<String> whitelistedExternalDartFiles = {
   "third_party/pkg_tested/package_config/lib/src/packages_file.dart",
   "third_party/pkg_tested/package_config/lib/src/util.dart",
 
+  // TODO(johnniwinther): Fix to allow dependency of package:package_config.
+  "third_party/pkg_tested/package_config/lib/src/util_io.dart",
+
   // TODO(CFE-team): This file should not be included.
   // The package isn't even in pubspec.yaml.
   "pkg/meta/lib/meta.dart",
