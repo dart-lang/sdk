@@ -167,6 +167,7 @@ class ListeningSocketRegistry {
   ListeningSocketRegistry()
       : sockets_by_port_(SameIntptrValue, kInitialSocketsCount),
         sockets_by_fd_(SameIntptrValue, kInitialSocketsCount),
+        unix_domain_sockets_(nullptr),
         mutex_() {}
 
   ~ListeningSocketRegistry() {

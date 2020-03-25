@@ -381,7 +381,10 @@ void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
 #else
   RawAddr addr;
   Dart_Handle address = Dart_GetNativeArgument(args, 1);
-  ASSERT(Dart_IsString(address));
+  if (Dart_IsNull(address)) {
+    Dart_SetReturnValue(args,
+        DartUtils::NewDartArgumentError("expect address to be of type String"));
+  }
   Dart_Handle result = SocketAddress::GetUnixDomainSockAddr(
       DartUtils::GetStringValue(address), Namespace::GetNamespace(args, 3),
       &addr);
@@ -391,7 +394,10 @@ void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
 
   RawAddr sourceAddr;
   address = Dart_GetNativeArgument(args, 2);
-  ASSERT(Dart_IsString(address));
+  if (Dart_IsNull(address)) {
+    Dart_SetReturnValue(args,
+        DartUtils::NewDartArgumentError("expect address to be of type String"));
+  }
   result = SocketAddress::GetUnixDomainSockAddr(
       DartUtils::GetStringValue(address), Namespace::GetNamespace(args, 3),
       &sourceAddr);
@@ -419,7 +425,10 @@ void FUNCTION_NAME(Socket_CreateUnixDomainConnect)(Dart_NativeArguments args) {
 #else
   RawAddr addr;
   Dart_Handle address = Dart_GetNativeArgument(args, 1);
-  ASSERT(Dart_IsString(address));
+  if (Dart_IsNull(address)) {
+    Dart_SetReturnValue(args,
+        DartUtils::NewDartArgumentError("expect address to be of type String"));
+  }
   Dart_Handle result = SocketAddress::GetUnixDomainSockAddr(
       DartUtils::GetStringValue(address), Namespace::GetNamespace(args, 2),
       &addr);
@@ -810,7 +819,10 @@ void FUNCTION_NAME(ServerSocket_CreateUnixDomainBindListen)(
   Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
 #else
   Dart_Handle address = Dart_GetNativeArgument(args, 1);
-  ASSERT(Dart_IsString(address));
+  if (Dart_IsNull(address)) {
+    Dart_SetReturnValue(args,
+        DartUtils::NewDartArgumentError("expect address to be of type String"));
+  }
   const char* path = DartUtils::GetStringValue(address);
   int64_t backlog = DartUtils::GetInt64ValueCheckRange(
       Dart_GetNativeArgument(args, 2), 0, 65535);
