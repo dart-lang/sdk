@@ -25,7 +25,7 @@ class NamedArgumentRelevanceTest extends CompletionRelevanceTest
   void setUp() {
     super.setUp();
     newFile('$projectPath/.packages', content: '''
-meta:/.pub-cache/meta/lib
+meta:${toUri('/.pub-cache/meta/lib')}
 project:${toUri('$projectPath/lib')}
 ''');
   }
