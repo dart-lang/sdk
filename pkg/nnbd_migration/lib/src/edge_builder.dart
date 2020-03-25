@@ -1252,9 +1252,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           NullabilityNodeTarget.text('implicit null return').withCodeRef(node);
       var implicitNullType = DecoratedType.forImplicitType(
           typeProvider, typeProvider.nullType, _graph, target);
-      _graph.makeNullable(
-          implicitNullType.node, AlwaysNullableTypeOrigin(source, node));
-      _checkAssignment(ImplicitNullReturnOrigin(source, node),
+      var origin = ImplicitNullReturnOrigin(source, node);
+      _graph.makeNullable(implicitNullType.node, origin);
+      _checkAssignment(origin,
           source:
               isAsync ? _futureOf(implicitNullType, node) : implicitNullType,
           destination: returnType,
@@ -2623,7 +2623,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.dynamicType, _graph, target);
     _graph.makeNullable(
-        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode));
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode, false));
     return decoratedType;
   }
 
@@ -2632,7 +2632,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.voidType, _graph, target);
     _graph.makeNullable(
-        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode));
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode, true));
     return decoratedType;
   }
 
@@ -2653,8 +2653,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     NullabilityNode makeNonNullableNode(NullabilityNodeTarget target) {
       var nullabilityNode = NullabilityNode.forInferredType(target);
-      _graph.makeNonNullableUnion(
-          nullabilityNode, ThisOrSuperOrigin(source, node));
+      _graph.makeNonNullableUnion(nullabilityNode,
+          ThisOrSuperOrigin(source, node, node is ThisExpression));
       return nullabilityNode;
     }
 

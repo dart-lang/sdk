@@ -744,7 +744,8 @@ class InfoBuilder {
   }
 
   TraceEntryInfo _stepToTraceEntry(PropagationStepInfo step) {
-    var description = step.toString(); // TODO(paulberry): improve this message.
+    String description = step.edge?.description;
+    description ??= step.toString(); // TODO(paulberry): improve this message.
     return _makeTraceEntry(description, step.codeReference);
   }
 

@@ -290,8 +290,8 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     }
   }
 
-  void assertTraceEntry(
-      UnitInfo unit, TraceEntryInfo entryInfo, String function, int offset) {
+  void assertTraceEntry(UnitInfo unit, TraceEntryInfo entryInfo,
+      String function, int offset, Object descriptionMatcher) {
     assert(offset >= 0);
     var lineInfo = LineInfo.fromContent(unit.content);
     var expectedLocation = lineInfo.getLocation(offset);
@@ -299,6 +299,7 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     expect(entryInfo.target.line, expectedLocation.lineNumber);
     expect(entryInfo.target.offset, expectedLocation.columnNumber);
     expect(entryInfo.function, function);
+    expect(entryInfo.description, descriptionMatcher);
   }
 
   Future<void> test_asExpression() async {
@@ -1423,7 +1424,8 @@ void f(A  a) => a.m = null;
     expect(entries, hasLength(1));
     // Entry 0 is the nullability of the type of A.m.
     // TODO(srawlins): "A" is probably incorrect here. Should be "A.m".
-    assertTraceEntry(unit, entries[0], 'A', unit.content.indexOf('int?'));
+    assertTraceEntry(unit, entries[0], 'A', unit.content.indexOf('int?'),
+        contains('explicit type'));
   }
 
   Future<void> test_parameter_named_omittedInCall() async {
@@ -1787,9 +1789,11 @@ void f(int /*!*/ i) {
     var entries = trace.entries;
     expect(entries, hasLength(2));
     // Entry 0 is the nullability of f's argument
-    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int'));
+    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int'),
+        contains('parameter 0 of f'));
     // Entry 1 is the edge from f's argument to never, due to the `/*!*/` hint.
-    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int'));
+    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int'),
+        'explicitly hinted to be non-nullable');
   }
 
   Future<void> test_trace_nullableType() async {
@@ -1820,18 +1824,21 @@ void h() {
     var entries = trace.entries;
     expect(entries, hasLength(5));
     // Entry 0 is the nullability of f's argument
-    assertTraceEntry(
-        unit, entries[0], 'f', unit.content.indexOf('int? i) {} // f'));
+    assertTraceEntry(unit, entries[0], 'f',
+        unit.content.indexOf('int? i) {} // f'), contains('parameter 0 of f'));
     // Entry 1 is the edge from g's argument to f's argument, due to g's call to
     // f.
-    assertTraceEntry(unit, entries[1], 'g', unit.content.indexOf('i);'));
-    // Entry 2 is the nullability of g's argument
     assertTraceEntry(
-        unit, entries[2], 'g', unit.content.indexOf('int? i) { // g'));
+        unit, entries[1], 'g', unit.content.indexOf('i);'), 'data flow');
+    // Entry 2 is the nullability of g's argument
+    assertTraceEntry(unit, entries[2], 'g',
+        unit.content.indexOf('int? i) { // g'), contains('parameter 0 of g'));
     // Entry 3 is the edge from null to g's argument, due to h's call to g.
-    assertTraceEntry(unit, entries[3], 'h', unit.content.indexOf('null'));
+    assertTraceEntry(
+        unit, entries[3], 'h', unit.content.indexOf('null'), 'data flow');
     // Entry 4 is the nullability of the null literal.
-    assertTraceEntry(unit, entries[4], 'h', unit.content.indexOf('null'));
+    assertTraceEntry(unit, entries[4], 'h', unit.content.indexOf('null'),
+        contains('null literal'));
   }
 
   Future<void> test_trace_nullCheck() async {
@@ -1848,7 +1855,8 @@ void h() {
     expect(entries, hasLength(1));
     // Entry 0 is the nullability of the type of i.
     // TODO(paulberry): -1 is a bug.
-    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int?') - 1);
+    assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int?') - 1,
+        contains('parameter 0 of f'));
     // Entry 1 is the edge from always to the type of i.
   }
 
@@ -1885,17 +1893,18 @@ void h(int?/*?*/ i) {
     var entries = trace.entries;
     expect(entries, hasLength(4));
     // Entry 0 is the nullability of g's argument
-    assertTraceEntry(
-        unit, entries[0], 'g', unit.content.indexOf('int  i) { // g'));
+    assertTraceEntry(unit, entries[0], 'g',
+        unit.content.indexOf('int  i) { // g'), contains('parameter 0 of g'));
     // Entry 1 is the edge from g's argument to f's argument, due to g's call to
     // f.
-    assertTraceEntry(
-        unit, entries[1], 'g', unit.content.indexOf('i); // call f'));
+    assertTraceEntry(unit, entries[1], 'g',
+        unit.content.indexOf('i); // call f'), 'data flow');
     // Entry 2 is the nullability of f's argument
-    assertTraceEntry(
-        unit, entries[2], 'f', unit.content.indexOf('int  i) { // f'));
+    assertTraceEntry(unit, entries[2], 'f',
+        unit.content.indexOf('int  i) { // f'), contains('parameter 0 of f'));
     // Entry 3 is the edge f's argument to never, due to the assert.
-    assertTraceEntry(unit, entries[3], 'f', unit.content.indexOf('assert'));
+    assertTraceEntry(unit, entries[3], 'f', unit.content.indexOf('assert'),
+        'value asserted to be non-null');
   }
 
   Future<void> test_trace_substitutionNode() async {

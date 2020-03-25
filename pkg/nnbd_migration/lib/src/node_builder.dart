@@ -505,11 +505,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     switch (getPostfixHint(node)) {
       case NullabilityComment.bang:
         _graph.makeNonNullableUnion(
-            decoratedType.node, NullabilityCommentOrigin(source, node));
+            decoratedType.node, NullabilityCommentOrigin(source, node, false));
         break;
       case NullabilityComment.question:
         _graph.makeNullableUnion(
-            decoratedType.node, NullabilityCommentOrigin(source, node));
+            decoratedType.node, NullabilityCommentOrigin(source, node, true));
         break;
       case NullabilityComment.none:
         break;
@@ -535,7 +535,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           NullabilityNodeTarget.typeParameterBound(element));
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
       _graph.connect(_graph.always, nullabilityNode,
-          AlwaysNullableTypeOrigin.forElement(element));
+          AlwaysNullableTypeOrigin.forElement(element, false));
     }
     DecoratedTypeParameterBounds.current.put(element, decoratedBound);
     return null;

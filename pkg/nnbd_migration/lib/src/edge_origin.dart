@@ -23,8 +23,15 @@ import 'package:nnbd_migration/instrumentation.dart';
 /// [NullabilityMigrationInstrumentation.externalDecoratedType] and
 /// [NullabilityMigrationInstrumentation.externalDecoratedTypeParameterBound].
 class AlreadyMigratedTypeOrigin extends EdgeOrigin {
-  AlreadyMigratedTypeOrigin.forElement(Element element)
+  /// Indicates whether the already-migrated type is nullable or not.
+  final bool isNullable;
+
+  AlreadyMigratedTypeOrigin.forElement(Element element, this.isNullable)
       : super.forElement(element);
+
+  @override
+  String get description => '${isNullable ? 'nullable' : 'non-nullable'}'
+      ' type in already-migrated code';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.alreadyMigratedType;
@@ -39,10 +46,19 @@ class AlreadyMigratedTypeOrigin extends EdgeOrigin {
 /// parameter, due to the fact that the `dynamic` type is always considered
 /// nullable.
 class AlwaysNullableTypeOrigin extends EdgeOrigin {
-  AlwaysNullableTypeOrigin(Source source, AstNode node) : super(source, node);
+  /// Indicates whether the always-nullable type is the `void` type (if `false`,
+  /// it is the `dynamic` type).
+  final bool isVoid;
 
-  AlwaysNullableTypeOrigin.forElement(Element element)
+  AlwaysNullableTypeOrigin(Source source, AstNode node, this.isVoid)
+      : super(source, node);
+
+  AlwaysNullableTypeOrigin.forElement(Element element, this.isVoid)
       : super.forElement(element);
+
+  @override
+  String get description =>
+      '${isVoid ? 'void' : 'dynamic'} type is nullable by definition';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.alwaysNullableType;
@@ -55,25 +71,22 @@ class CompoundAssignmentOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'compound assignment';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.compoundAssignment;
 
   @override
   AssignmentExpression get node => super.node as AssignmentExpression;
 }
 
-/// An edge origin used for edges that originated because of a default value on
-/// a parameter.
-class DefaultValueOrigin extends EdgeOrigin {
-  DefaultValueOrigin(Source source, Expression node) : super(source, node);
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.defaultValue;
-}
-
 /// An edge origin used for edges that originated because of an assignment
 /// involving a value with a dynamic type.
 class DynamicAssignmentOrigin extends EdgeOrigin {
   DynamicAssignmentOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'assignment of dynamic value';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.dynamicAssignment;
@@ -106,12 +119,18 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
     }
     return null;
   }
+
+  /// User-friendly description of the edge.
+  String get description;
 }
 
 /// An edge origin used for edges that originated because of a reference to an
 /// enum value, which cannot be null.
 class EnumValueOrigin extends EdgeOrigin {
   EnumValueOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'non-nullable enum value';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.enumValue;
@@ -122,6 +141,9 @@ class EnumValueOrigin extends EdgeOrigin {
 class FieldFormalParameterOrigin extends EdgeOrigin {
   FieldFormalParameterOrigin(Source source, FieldFormalParameter node)
       : super(source, node);
+
+  @override
+  String get description => 'field formal parameter';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.fieldFormalParameter;
@@ -135,6 +157,9 @@ class FieldFormalParameterOrigin extends EdgeOrigin {
 /// synthetic).
 class FieldNotInitializedOrigin extends EdgeOrigin {
   FieldNotInitializedOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'field not initialized';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.fieldNotInitialized;
@@ -153,6 +178,9 @@ class ForEachVariableOrigin extends EdgeOrigin {
   ForEachVariableOrigin(Source source, ForEachParts node) : super(source, node);
 
   @override
+  String get description => 'variable in "for each" loop';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.forEachVariable;
 }
 
@@ -169,12 +197,18 @@ class GreatestLowerBoundOrigin extends EdgeOrigin {
   GreatestLowerBoundOrigin(Source source, AstNode node) : super(source, node);
 
   @override
+  String get description => 'greatest lower bound';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.greatestLowerBound;
 }
 
 /// Edge origin resulting from the presence of a `??` operator.
 class IfNullOrigin extends EdgeOrigin {
   IfNullOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'if-null operator';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.ifNull;
@@ -198,6 +232,9 @@ class ImplicitMixinSuperCallOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'implicit super call in mixin constructor';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.implicitMixinSuperCall;
 }
 
@@ -208,6 +245,9 @@ class ImplicitNullInitializerOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'uninitialized variable';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.implicitNullInitializer;
 }
 
@@ -216,6 +256,9 @@ class ImplicitNullInitializerOrigin extends EdgeOrigin {
 class ImplicitNullReturnOrigin extends EdgeOrigin {
   ImplicitNullReturnOrigin(Source source, ReturnStatement node)
       : super(source, node);
+
+  @override
+  String get description => 'implicit return of null';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.implicitNullReturn;
@@ -231,22 +274,19 @@ class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
-  EdgeOriginKind get kind => EdgeOriginKind.inferredTypeParameterInstantiation;
-}
-
-/// Edge origin resulting from a type that is inferred from its initializer.
-class InitializerInferenceOrigin extends EdgeOrigin {
-  InitializerInferenceOrigin(Source source, VariableDeclaration node)
-      : super(source, node);
+  String get description => 'inferred type parameter';
 
   @override
-  EdgeOriginKind get kind => EdgeOriginKind.initializerInference;
+  EdgeOriginKind get kind => EdgeOriginKind.inferredTypeParameterInstantiation;
 }
 
 /// An edge origin used for edges that originated because of an instance
 /// creation expression.
 class InstanceCreationOrigin extends EdgeOrigin {
   InstanceCreationOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'instance creation';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.instanceCreation;
@@ -264,6 +304,9 @@ class InstantiateToBoundsOrigin extends EdgeOrigin {
   InstantiateToBoundsOrigin(Source source, TypeName node) : super(source, node);
 
   @override
+  String get description => 'type instantiated to bounds';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.instantiateToBounds;
 }
 
@@ -277,6 +320,9 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => '"is" check does not accept null';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
 }
 
@@ -287,6 +333,9 @@ class ListLengthConstructorOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'construction of list via a length';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.listLengthConstructor;
 }
 
@@ -294,6 +343,9 @@ class ListLengthConstructorOrigin extends EdgeOrigin {
 /// has a known nullability.
 class LiteralOrigin extends EdgeOrigin {
   LiteralOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'literal expression';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.literal;
@@ -316,6 +368,9 @@ class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'named parameter not supplied';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.namedParameterNotSupplied;
 }
 
@@ -323,6 +378,9 @@ class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
 /// the language definition to be non-nullable `bool`.
 class NonNullableBoolTypeOrigin extends EdgeOrigin {
   NonNullableBoolTypeOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'non-null boolean expression';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.nonNullableBoolType;
@@ -335,6 +393,9 @@ class NonNullableObjectSuperclass extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'implicit supertype of Object';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.nonNullableObjectSuperclass;
 }
 
@@ -342,6 +403,9 @@ class NonNullableObjectSuperclass extends EdgeOrigin {
 /// requires it to be non-nullable
 class NonNullableUsageOrigin extends EdgeOrigin {
   NonNullableUsageOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'value cannot be null';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.nonNullableUsage;
@@ -360,6 +424,9 @@ class NonNullAssertionOrigin extends EdgeOrigin {
   NonNullAssertionOrigin(Source source, Assertion node) : super(source, node);
 
   @override
+  String get description => 'value asserted to be non-null';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.nonNullAssertion;
 }
 
@@ -372,8 +439,16 @@ class NonNullAssertionOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting `always` to the type of f's `i`
 /// parameter, due to the presence of the `/*?*/` comment.
 class NullabilityCommentOrigin extends EdgeOrigin {
-  NullabilityCommentOrigin(Source source, TypeAnnotation node)
+  /// Indicates whether the nullability comment makes the type nullable or
+  /// non-nullable.
+  final bool isNullable;
+
+  NullabilityCommentOrigin(Source source, TypeAnnotation node, this.isNullable)
       : super(source, node);
+
+  @override
+  String get description =>
+      'explicitly hinted to be ${isNullable ? 'nullable' : 'non-nullable'}';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.nullabilityComment;
@@ -391,6 +466,9 @@ class OptionalFormalParameterOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'optional formal parameter must be nullable';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.optionalFormalParameter;
 }
 
@@ -398,6 +476,9 @@ class OptionalFormalParameterOrigin extends EdgeOrigin {
 /// parameters.
 class ParameterInheritanceOrigin extends EdgeOrigin {
   ParameterInheritanceOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'function parameter override';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.parameterInheritance;
@@ -410,6 +491,9 @@ class ReturnTypeInheritanceOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  String get description => 'function return type override';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.returnTypeInheritance;
 }
 
@@ -420,12 +504,24 @@ class StackTraceTypeOrigin extends EdgeOrigin {
   StackTraceTypeOrigin(Source source, AstNode node) : super(source, node);
 
   @override
+  String get description => 'stack trace variable is nullable';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.stackTraceTypeOrigin;
 }
 
 /// Edge origin resulting from the use of `this` or `super`.
 class ThisOrSuperOrigin extends EdgeOrigin {
-  ThisOrSuperOrigin(Source source, AstNode node) : super(source, node);
+  /// Indicates whether the expression in question is `this`.  If `false`, the
+  /// expression in question is `super`.
+  final bool isThis;
+
+  ThisOrSuperOrigin(Source source, AstNode node, this.isThis)
+      : super(source, node);
+
+  @override
+  String get description =>
+      'type of "${isThis ? 'this' : 'super'}" is non-nullable';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.thisOrSuper;
@@ -435,6 +531,10 @@ class ThisOrSuperOrigin extends EdgeOrigin {
 /// `rethrow`.
 class ThrowOrigin extends EdgeOrigin {
   ThrowOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description =>
+      'type of thrown expression is presumed non-nullable';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.throw_;
@@ -450,6 +550,9 @@ class TypedefReferenceOrigin extends EdgeOrigin {
   TypedefReferenceOrigin(Source source, TypeName node) : super(source, node);
 
   @override
+  String get description => 'reference to typedef';
+
+  @override
   EdgeOriginKind get kind => EdgeOriginKind.typedefReference;
 }
 
@@ -458,6 +561,9 @@ class TypedefReferenceOrigin extends EdgeOrigin {
 class TypeParameterInstantiationOrigin extends EdgeOrigin {
   TypeParameterInstantiationOrigin(Source source, TypeAnnotation node)
       : super(source, node);
+
+  @override
+  String get description => 'type parameter instantiation';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.typeParameterInstantiation;
@@ -470,6 +576,9 @@ class TypeParameterInstantiationOrigin extends EdgeOrigin {
 /// definitely assigned a value.
 class UninitializedReadOrigin extends EdgeOrigin {
   UninitializedReadOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'local variable might not be initialized';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.uninitializedRead;

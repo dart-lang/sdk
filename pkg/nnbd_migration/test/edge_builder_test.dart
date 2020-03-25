@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
@@ -7388,6 +7387,12 @@ class _TestEdgeOrigin implements EdgeOrigin {
 
   @override
   CodeReference get codeReference => null;
+
+  @override
+  String get description => 'Test edge';
+
+  @override
+  EdgeOriginKind get kind => null;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
