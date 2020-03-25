@@ -665,6 +665,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
           _fixBuilder._addProblem(
               node, const NonNullableUnnamedOptionalParameter());
         }
+      } else if (element.metadata.any((m) => m.isRequired)) {
+        _addRequiredKeyword(node, nullabilityNode);
       }
     }
     super.visitDefaultFormalParameter(node);

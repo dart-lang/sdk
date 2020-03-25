@@ -1119,6 +1119,21 @@ int _f({@required int x}) => x + 1;
     });
   }
 
+  Future<void>
+      test_defaultFormalParameter_add_required_replace_annotation_nullable() async {
+    // TODO(paulberry): it would be nice to remove the import of `meta` if it's
+    // no longer needed after the change.
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+void _f({@required int/*?*/ x}) {}
+''');
+    visitAll(changes: {
+      findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword,
+      findNode.typeName('int'): isMakeNullable,
+    });
+  }
+
   Future<void> test_defaultFormalParameter_add_required_yes() async {
     await analyze('''
 int _f({int x}) => x + 1;
