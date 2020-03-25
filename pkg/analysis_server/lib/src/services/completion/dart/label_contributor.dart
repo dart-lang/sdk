@@ -17,9 +17,8 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
     show LocalDeclarationVisitor;
 
 /// A contributor that produces suggestions based on the labels that are in
-/// scope. More concretely, this class produces
-/// suggestions for expressions of the form `C.^`, where `C` is the name of a
-/// class, enum, or extension.
+/// scope. More concretely, this class produces completions in `break` and
+/// `continue` statements.
 class LabelContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
