@@ -53,6 +53,10 @@ abstract class Relevance {
   /// The relevance used when suggesting a label.
   static const int label = 1000;
 
+  /// The relevance used when suggesting the `loadLibrary` function from a
+  /// deferred imported library.
+  static const int loadLibrary = 200;
+
   /// The relevance used when suggesting a member of a class or extension and
   /// there are no features that can be used to provide a relevance score.
   static const int member = 500;

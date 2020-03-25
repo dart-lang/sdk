@@ -12,26 +12,26 @@ import 'package:analyzer/dart/element/element.dart';
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
-/// A contributor for calculating prefixed import library member suggestions
-/// `completion.getSuggestions` request results.
+/// A contributor that produces suggestions based on the members of a library
+/// when the library was imported using a prefix. More concretely, this class
+/// produces suggestions for expressions of the form `p.^`, where `p` is a
+/// prefix.
 class LibraryMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    // Determine if the target looks like a library prefix
-    Expression targetId = request.dotTarget;
+    // Determine if the target looks like a library prefix.
+    var targetId = request.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
-      Element elem = targetId.staticElement;
+      var elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
-        LibraryElement containingLibrary = request.libraryElement;
-        // Gracefully degrade if the library or directives
-        // could not be determined (e.g. detached part file or source change)
+        var containingLibrary = request.libraryElement;
+        // Gracefully degrade if the library or directives could not be
+        // determined (e.g. detached part file or source change).
         if (containingLibrary != null) {
-          List<ImportElement> imports = containingLibrary.imports;
+          var imports = containingLibrary.imports;
           if (imports != null) {
-            return _buildSuggestions(request, elem, containingLibrary, imports);
+            return _buildSuggestions(request, elem, imports);
           }
         }
       }
@@ -39,37 +39,35 @@ class LibraryMemberContributor extends DartCompletionContributor {
     return const <CompletionSuggestion>[];
   }
 
-  List<CompletionSuggestion> _buildSuggestions(
-      DartCompletionRequest request,
-      PrefixElement elem,
-      LibraryElement containingLibrary,
-      List<ImportElement> imports) {
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (ImportElement importElem in imports) {
+  List<CompletionSuggestion> _buildSuggestions(DartCompletionRequest request,
+      PrefixElement elem, List<ImportElement> imports) {
+    var parent = request.target.containingNode.parent;
+    var isConstructor = parent.parent is ConstructorName;
+    var typesOnly = parent is TypeName;
+    var instCreation = typesOnly && isConstructor;
+    var builder = LibraryElementSuggestionBuilder(
+        request, CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
+    for (var importElem in imports) {
       if (importElem.prefix?.name == elem.name) {
-        LibraryElement library = importElem.importedLibrary;
+        var library = importElem.importedLibrary;
         if (library != null) {
-          // Suggest elements from the imported library
-          AstNode parent = request.target.containingNode.parent;
-          bool isConstructor = parent.parent is ConstructorName;
-          bool typesOnly = parent is TypeName;
-          bool instCreation = typesOnly && isConstructor;
-          LibraryElementSuggestionBuilder builder =
-              LibraryElementSuggestionBuilder(containingLibrary,
-                  CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
+          // Suggest elements from the imported library.
           for (var element in importElem.namespace.definedNames.values) {
             element.accept(builder);
           }
-          suggestions.addAll(builder.suggestions);
-
-          // If the import is 'deferred' then suggest 'loadLibrary'
+          // If the import is 'deferred' then suggest 'loadLibrary'.
           if (importElem.isDeferred) {
-            FunctionElement loadLibFunct = library.loadLibraryFunction;
-            suggestions.add(createSuggestion(loadLibFunct));
+            var function = library.loadLibraryFunction;
+            var useNewRelevance = request.useNewRelevance;
+            var relevance = useNewRelevance
+                ? Relevance.loadLibrary
+                : DART_RELEVANCE_DEFAULT;
+            builder.suggestions.add(createSuggestion(function,
+                relevance: relevance, useNewRelevance: useNewRelevance));
           }
         }
       }
     }
-    return suggestions;
+    return builder.suggestions;
   }
 }
