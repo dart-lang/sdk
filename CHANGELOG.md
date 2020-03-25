@@ -31,6 +31,11 @@ There are no language changes in this release.
 
 #### `dart:core`
 
+* The class `CastError` is deprecated, and all implementation specific
+    classes implementing `TypeError` or `CastError` now implement both.  In
+    a future release, `CastError` will be removed.  See issue [40763][] for
+    details.
+
 *   Adds `StackTrace.empty` constant which is the stack trace used as default
     stack trace when no better alternative is available.
 
@@ -45,6 +50,8 @@ There are no language changes in this release.
     return their first argument on success. This makes these functions more
     convenient to use in-line in, for example, `=>` function bodies or
     constructor initialization lists.
+
+[40763]: https://github.com/dart-lang/sdk/issues/40763
 
 #### `dart:developer`
 

@@ -119,6 +119,7 @@ class TypeError extends Error {}
 /**
  * Error thrown by the runtime system when a cast operation fails.
  */
+@Deprecated("Use TypeError instead")
 class CastError extends Error {}
 
 /**
