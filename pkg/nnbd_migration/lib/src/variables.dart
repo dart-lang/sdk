@@ -57,6 +57,8 @@ class Variables {
 
   final _expressionChecks = <Source, Map<int, ExpressionChecks>>{};
 
+  final _nullCheckHints = <Source, Set<int>>{};
+
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
   final _unnecessaryCasts = <Source, Set<int>>{};
@@ -166,6 +168,13 @@ class Variables {
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
       _potentialModifications;
 
+  /// Queries whether the given [expression] is followed by a null check hint
+  /// (`/*!*/`).  See [recordNullCheckHint].
+  bool hasNullCheckHint(Source source, Expression expression) {
+    return (_nullCheckHints[source] ?? {})
+        .contains(uniqueIdentifierForSpan(expression.offset, expression.end));
+  }
+
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).
   void recordConditionalDiscard(
@@ -220,6 +229,13 @@ class Variables {
     (_expressionChecks[source] ??=
             {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
         origin.checks;
+  }
+
+  /// Records that the given [expression] is followed by a null check hint
+  /// (`/*!*/`), for later recall by [hasNullCheckHint].
+  void recordNullCheckHint(Source source, Expression expression) {
+    (_nullCheckHints[source] ??= {})
+        .add(uniqueIdentifierForSpan(expression.offset, expression.end));
   }
 
   /// Records that [node] is associated with the question of whether the named

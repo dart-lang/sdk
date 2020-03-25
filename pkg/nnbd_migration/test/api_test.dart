@@ -1707,6 +1707,18 @@ int f(int?/*?*/ i) => i!/*!*/;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_expression_bang_hint_unnecessary() async {
+    var content = '''
+int/*?*/ f(int/*?*/ i) => i/*!*/;
+''';
+    // The user requested a null check so we should add it even if it's not
+    // required to avoid compile errors.
+    var expected = '''
+int?/*?*/ f(int?/*?*/ i) => i!/*!*/;
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_addsNullCheckToThis() async {
     var content = '''

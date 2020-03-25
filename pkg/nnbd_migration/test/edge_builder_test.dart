@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -497,6 +498,9 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
   DecoratedType decoratedExpressionType(String text) {
     return variables.decoratedExpressionType(findNode.expression(text));
   }
+
+  bool hasNullCheckHint(Expression expression) =>
+      variables.hasNullCheckHint(testSource, expression);
 
   Future<void> test_already_migrated_field() async {
     await analyze('''
@@ -3222,6 +3226,8 @@ int f2(int Function() g2) => g2()/*!*/;
         hard: false);
     assertNoEdge(decoratedTypeAnnotation('int Function() g2').node,
         decoratedTypeAnnotation('int f2').node);
+    expect(hasNullCheckHint(findNode.functionExpressionInvocation('g2()')),
+        isTrue);
   }
 
   Future<void> test_functionExpressionInvocation_parameterType() async {
@@ -3738,6 +3744,7 @@ int f2(C c) => c[0]/*!*/;
         hard: false);
     assertNoEdge(decoratedTypeAnnotation('int operator').node,
         decoratedTypeAnnotation('int f2').node);
+    expect(hasNullCheckHint(findNode.index('c[0]/*!*/')), isTrue);
   }
 
   Future<void> test_indexExpression_dynamic() async {
@@ -4354,6 +4361,7 @@ int f2(C c) => c.m2()/*!*/;
         hard: false);
     assertNoEdge(decoratedTypeAnnotation('int m2').node,
         decoratedTypeAnnotation('int f2').node);
+    expect(hasNullCheckHint(findNode.methodInvocation('c.m2')), isTrue);
   }
 
   Future<void> test_methodInvocation_dynamic() async {
@@ -4988,6 +4996,11 @@ class C {
     expect(never.isNullable, isFalse);
   }
 
+  Future<void> test_non_null_hint_is_not_expression_hint() async {
+    await analyze('int/*!*/ x;');
+    expect(hasNullCheckHint(findNode.simple('int')), isFalse);
+  }
+
   Future<void> test_override_parameter_type_named() async {
     await analyze('''
 abstract class Base {
@@ -5243,6 +5256,7 @@ int f2(int i2) => (i2)/*!*/;
         hard: true);
     assertNoEdge(decoratedTypeAnnotation('int i2').node,
         decoratedTypeAnnotation('int f2').node);
+    expect(hasNullCheckHint(findNode.parenthesized('(i2)')), isTrue);
   }
 
   Future<void> test_part_metadata() async {
@@ -5955,6 +5969,7 @@ double f2() => m.PI/*!*/;
                 hard: false)
             .sourceNode,
         never);
+    expect(hasNullCheckHint(findNode.prefixed('m.PI/*!*/')), isTrue);
   }
 
   Future<void> test_prefixedIdentifier_field_type() async {
@@ -6224,6 +6239,7 @@ int f2(C c) => (c).i2/*!*/;
         hard: false);
     assertNoEdge(decoratedTypeAnnotation('int get i2').node,
         decoratedTypeAnnotation('int f2').node);
+    expect(hasNullCheckHint(findNode.propertyAccess('(c).i2')), isTrue);
   }
 
   Future<void> test_propertyAccess_dynamic() async {
@@ -6764,6 +6780,7 @@ int f2(int i2) => i2/*!*/;
         hard: true);
     assertNoEdge(decoratedTypeAnnotation('int i2').node,
         decoratedTypeAnnotation('int f2').node);
+    expect(hasNullCheckHint(findNode.simple('i2/*!*/')), isTrue);
   }
 
   Future<void> test_simpleIdentifier_function() async {
@@ -7013,6 +7030,7 @@ extension on int {
         assertEdge(anyNode, decoratedTypeAnnotation('int f2').node, hard: false)
             .sourceNode,
         never);
+    expect(hasNullCheckHint(findNode.this_('this/*!*/')), isTrue);
   }
 
   Future<void> test_thisExpression() async {

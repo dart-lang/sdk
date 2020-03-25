@@ -202,6 +202,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// initializer in the constructor declaration.
   Set<FieldElement> _fieldsNotInitializedByConstructor;
 
+  /// Current nesting depth of [visitTypeName]
+  int _typeNameNesting = 0;
+
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
@@ -1540,69 +1543,78 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
-    var typeArguments = typeName.typeArguments?.arguments;
-    var element = typeName.name.staticElement;
-    if (element is GenericTypeAliasElement) {
-      final typedefType = _variables.decoratedElementType(element.function);
-      final typeNameType = _variables.decoratedTypeAnnotation(source, typeName);
-
-      Map<TypeParameterElement, DecoratedType> substitutions;
-      if (typeName.typeArguments == null) {
-        // TODO(mfairhurst): substitute instantiations to bounds
-        substitutions = {};
-      } else {
-        substitutions = Map<TypeParameterElement, DecoratedType>.fromIterables(
-            element.typeParameters,
-            typeName.typeArguments.arguments
-                .map((t) => _variables.decoratedTypeAnnotation(source, t)));
-      }
-
-      final decoratedType = typedefType.substitute(substitutions);
-      final origin = TypedefReferenceOrigin(source, typeName);
-      _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
-          isUnion: true);
-      _linkDecoratedTypes(
-          decoratedType.returnType, typeNameType.returnType, origin,
-          isUnion: true);
-    } else if (element is TypeParameterizedElement) {
-      if (typeArguments == null) {
-        var instantiatedType =
+    try {
+      _typeNameNesting++;
+      var typeArguments = typeName.typeArguments?.arguments;
+      var element = typeName.name.staticElement;
+      if (element is GenericTypeAliasElement) {
+        final typedefType = _variables.decoratedElementType(element.function);
+        final typeNameType =
             _variables.decoratedTypeAnnotation(source, typeName);
-        if (instantiatedType == null) {
-          throw new StateError('No type annotation for type name '
-              '${typeName.toSource()}, offset=${typeName.offset}');
+
+        Map<TypeParameterElement, DecoratedType> substitutions;
+        if (typeName.typeArguments == null) {
+          // TODO(mfairhurst): substitute instantiations to bounds
+          substitutions = {};
+        } else {
+          substitutions =
+              Map<TypeParameterElement, DecoratedType>.fromIterables(
+                  element.typeParameters,
+                  typeName.typeArguments.arguments.map(
+                      (t) => _variables.decoratedTypeAnnotation(source, t)));
         }
-        var origin = InstantiateToBoundsOrigin(source, typeName);
-        for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
-          _linkDecoratedTypes(
-              instantiatedType.typeArguments[i],
-              _variables.decoratedTypeParameterBound(element.typeParameters[i]),
-              origin,
-              isUnion: false);
-        }
-      } else {
-        for (int i = 0; i < typeArguments.length; i++) {
-          DecoratedType bound;
-          bound =
-              _variables.decoratedTypeParameterBound(element.typeParameters[i]);
-          assert(bound != null);
-          var argumentType =
-              _variables.decoratedTypeAnnotation(source, typeArguments[i]);
-          if (argumentType == null) {
-            _unimplemented(typeName,
-                'No decorated type for type argument ${typeArguments[i]} ($i)');
+
+        final decoratedType = typedefType.substitute(substitutions);
+        final origin = TypedefReferenceOrigin(source, typeName);
+        _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
+            isUnion: true);
+        _linkDecoratedTypes(
+            decoratedType.returnType, typeNameType.returnType, origin,
+            isUnion: true);
+      } else if (element is TypeParameterizedElement) {
+        if (typeArguments == null) {
+          var instantiatedType =
+              _variables.decoratedTypeAnnotation(source, typeName);
+          if (instantiatedType == null) {
+            throw new StateError('No type annotation for type name '
+                '${typeName.toSource()}, offset=${typeName.offset}');
           }
-          _checkAssignment(
-              TypeParameterInstantiationOrigin(source, typeArguments[i]),
-              source: argumentType,
-              destination: bound,
-              hard: true);
+          var origin = InstantiateToBoundsOrigin(source, typeName);
+          for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
+            _linkDecoratedTypes(
+                instantiatedType.typeArguments[i],
+                _variables
+                    .decoratedTypeParameterBound(element.typeParameters[i]),
+                origin,
+                isUnion: false);
+          }
+        } else {
+          for (int i = 0; i < typeArguments.length; i++) {
+            DecoratedType bound;
+            bound = _variables
+                .decoratedTypeParameterBound(element.typeParameters[i]);
+            assert(bound != null);
+            var argumentType =
+                _variables.decoratedTypeAnnotation(source, typeArguments[i]);
+            if (argumentType == null) {
+              _unimplemented(typeName,
+                  'No decorated type for type argument ${typeArguments[i]} ($i)');
+            }
+            _checkAssignment(
+                TypeParameterInstantiationOrigin(source, typeArguments[i]),
+                source: argumentType,
+                destination: bound,
+                hard: true);
+          }
         }
       }
+      typeName.visitChildren(this);
+      typeNameVisited(
+          typeName); // Note this has been visited to TypeNameTracker.
+      return null;
+    } finally {
+      _typeNameNesting--;
     }
-    typeName.visitChildren(this);
-    typeNameVisited(typeName); // Note this has been visited to TypeNameTracker.
-    return null;
   }
 
   @override
@@ -2462,8 +2474,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType _handleNullCheckHint(
       Expression expression, DecoratedType type) {
+    // Sometimes we think we're looking at an expression but we're really not
+    // because we're inside a type name.  If this happens, ignore trailing
+    // `/*!*/`s because they're not expression null check hints, they're type
+    // non-nullability hints (which are handled by NodeBuilder).
+    if (_typeNameNesting > 0) return type;
     switch (getPostfixHint(expression)) {
       case NullabilityComment.bang:
+        _variables.recordNullCheckHint(source, expression);
         return type.withNode(_graph.never);
       default:
         return type;

@@ -2527,6 +2527,12 @@ _f(int/*?*/ x) {
     visitSubexpression(findNode.simple('x;'), 'int?');
   }
 
+  Future<void> test_simpleIdentifier_null_check_hint() async {
+    await analyze('int/*?*/ _f(int/*?*/ x) => x/*!*/;');
+    var xRef = findNode.simple('x/*!*/');
+    visitSubexpression(xRef, 'int', changes: {xRef: isNullCheck});
+  }
+
   Future<void> test_stringLiteral() async {
     await analyze('''
 f() => 'foo';

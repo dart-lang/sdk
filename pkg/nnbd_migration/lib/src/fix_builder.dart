@@ -386,6 +386,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   @override
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
+        if (_fixBuilder._variables.hasNullCheckHint(_fixBuilder.source, node)) {
+          type = _addNullCheck(node, type);
+        }
         if (type.isDynamic) return type;
         var ancestor = _findNullabilityContextAncestor(node);
         var context =
