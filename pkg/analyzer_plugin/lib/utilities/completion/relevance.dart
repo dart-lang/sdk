@@ -61,6 +61,9 @@ abstract class Relevance {
   /// named parameter that is not required.
   static const int namedArgument = 900;
 
+  /// The relevance used when suggesting a named constructor.
+  static const int namedConstructor = 1000;
+
   /// The relevance used when suggesting an override of an inherited member.
   static const int override = 750;
 
