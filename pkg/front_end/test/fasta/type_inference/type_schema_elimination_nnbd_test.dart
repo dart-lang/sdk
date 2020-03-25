@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -26,14 +26,14 @@ class TypeSchemaEliminationTest {
 
   DartType get nullType => coreTypes.nullType;
 
-  DartType get objectType => coreTypes.objectLegacyRawType;
-
   DartType greatestClosure(DartType schema) {
-    return typeSchemaElimination.greatestClosure(schema, nullType);
+    return typeSchemaElimination.greatestClosure(
+        schema, const NeverType(Nullability.nonNullable));
   }
 
   DartType leastClosure(DartType schema) {
-    return typeSchemaElimination.leastClosure(schema, nullType);
+    return typeSchemaElimination.leastClosure(
+        schema, const NeverType(Nullability.nonNullable));
   }
 
   void test_greatestClosure_contravariant() {
@@ -41,12 +41,12 @@ class TypeSchemaEliminationTest {
         greatestClosure(new FunctionType(
                 [unknownType], dynamicType, Nullability.legacy))
             .leakingDebugToString(),
-        '(dart.core::Null?) →* dynamic');
+        '(Never) →* dynamic');
     expect(
         greatestClosure(new FunctionType([], dynamicType, Nullability.legacy,
                 namedParameters: [new NamedType('foo', unknownType)]))
             .leakingDebugToString(),
-        '({foo: dart.core::Null?}) →* dynamic');
+        '({foo: Never}) →* dynamic');
   }
 
   void test_greatestClosure_contravariant_contravariant() {
@@ -78,8 +78,7 @@ class TypeSchemaEliminationTest {
               new NamedType('a', unknownType),
               new NamedType('b', unknownType)
             ])).leakingDebugToString(),
-        '(dart.core::Null?, dart.core::Null?, {a: dart.core::Null?, '
-        'b: dart.core::Null?}) →* dynamic');
+        '(Never, Never, {a: Never, b: Never}) →* dynamic');
   }
 
   void test_greatestClosure_simple() {
@@ -105,19 +104,19 @@ class TypeSchemaEliminationTest {
           new FunctionType([unknownType], dynamicType, Nullability.legacy)
         ], dynamicType, Nullability.legacy))
             .leakingDebugToString(),
-        '((dart.core::Null?) →* dynamic) →* dynamic');
+        '((Never) →* dynamic) →* dynamic');
   }
 
   void test_leastClosure_covariant() {
     expect(
         leastClosure(new FunctionType([], unknownType, Nullability.legacy))
             .leakingDebugToString(),
-        '() →* dart.core::Null?');
+        '() →* Never');
     expect(
         leastClosure(new InterfaceType(
                 coreTypes.listClass, Nullability.legacy, [unknownType]))
             .leakingDebugToString(),
-        'dart.core::List<dart.core::Null?>*');
+        'dart.core::List<Never>*');
   }
 
   void test_leastClosure_function_multipleUnknown() {
@@ -128,12 +127,11 @@ class TypeSchemaEliminationTest {
               new NamedType('a', unknownType),
               new NamedType('b', unknownType)
             ])).leakingDebugToString(),
-        '(dynamic, dynamic, {a: dynamic, b: dynamic}) →* dart.core::Null?');
+        '(dynamic, dynamic, {a: dynamic, b: dynamic}) →* Never');
   }
 
   void test_leastClosure_simple() {
-    expect(
-        leastClosure(unknownType).leakingDebugToString(), 'dart.core::Null?');
+    expect(leastClosure(unknownType).leakingDebugToString(), 'Never');
   }
 }
 

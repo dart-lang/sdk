@@ -39,6 +39,8 @@ class TypeSchemaEnvironmentTest {
 
   Class get objectClass => coreTypes.objectClass;
 
+  DartType get bottomType => const NeverType(Nullability.nonNullable);
+
   /// Converts the [text] representation of a type into a type.
   ///
   /// If [environment] is passed it's used to resolve the type terms in [text].
@@ -1051,60 +1053,72 @@ class TypeSchemaEnvironmentTest {
     // TODO(dmitryas): Test for various nullabilities.
 
     // Solve(? <: T <: ?) => ?
-    expect(env.solveTypeConstraint(_makeConstraint()), new UnknownType());
+    expect(env.solveTypeConstraint(_makeConstraint(), bottomType),
+        new UnknownType());
 
     // Solve(? <: T <: ?, grounded) => dynamic
-    expect(env.solveTypeConstraint(_makeConstraint(), grounded: true),
+    expect(
+        env.solveTypeConstraint(_makeConstraint(), bottomType, grounded: true),
         new DynamicType());
 
     // Solve(A <: T <: ?) => A
     expect(
-        env.solveTypeConstraint(_makeConstraint(lower: toType("A<dynamic>*"))),
+        env.solveTypeConstraint(
+            _makeConstraint(lower: toType("A<dynamic>*")), bottomType),
         toType("A<dynamic>*"));
 
     // Solve(A <: T <: ?, grounded) => A
     expect(
-        env.solveTypeConstraint(_makeConstraint(lower: toType("A<dynamic>*")),
+        env.solveTypeConstraint(
+            _makeConstraint(lower: toType("A<dynamic>*")), bottomType,
             grounded: true),
         toType("A<dynamic>*"));
 
     // Solve(A<?>* <: T <: ?) => A<?>*
     expect(
-        env.solveTypeConstraint(_makeConstraint(lower: toType("A<unknown>*"))),
+        env.solveTypeConstraint(
+            _makeConstraint(lower: toType("A<unknown>*")), bottomType),
         toType("A<unknown>*"));
 
-    // Solve(A<?>* <: T <: ?, grounded) => A<Null>*
+    // Solve(A<?>* <: T <: ?, grounded) => A<Never>*
     expect(
-        env.solveTypeConstraint(_makeConstraint(lower: toType("A<unknown>*")),
+        env.solveTypeConstraint(
+            _makeConstraint(lower: toType("A<unknown>*")), bottomType,
             grounded: true),
-        toType("A<Null>*"));
+        toType("A<Never>*"));
 
     // Solve(? <: T <: A*) => A*
     expect(
-        env.solveTypeConstraint(_makeConstraint(upper: toType("A<dynamic>*"))),
+        env.solveTypeConstraint(
+            _makeConstraint(upper: toType("A<dynamic>*")), bottomType),
         toType("A<dynamic>*"));
 
     // Solve(? <: T <: A*, grounded) => A*
     expect(
-        env.solveTypeConstraint(_makeConstraint(upper: toType("A<dynamic>*")),
+        env.solveTypeConstraint(
+            _makeConstraint(upper: toType("A<dynamic>*")), bottomType,
             grounded: true),
         toType("A<dynamic>*"));
 
     // Solve(? <: T <: A<?>*) => A<?>*
     expect(
-        env.solveTypeConstraint(_makeConstraint(upper: toType("A<unknown>*"))),
+        env.solveTypeConstraint(
+            _makeConstraint(upper: toType("A<unknown>*")), bottomType),
         toType("A<unknown>*"));
 
     // Solve(? <: T <: A<?>*, grounded) => A<dynamic>*
     expect(
-        env.solveTypeConstraint(_makeConstraint(upper: toType("A<unknown>*")),
+        env.solveTypeConstraint(
+            _makeConstraint(upper: toType("A<unknown>*")), bottomType,
             grounded: true),
         toType("A<dynamic>*"));
 
     // Solve(B* <: T <: A*) => B*
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            lower: toType("B<dynamic>*"), upper: toType("A<dynamic>*"))),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: toType("B<dynamic>*"), upper: toType("A<dynamic>*")),
+            bottomType),
         toType("B<dynamic>*"));
 
     // Solve(B* <: T <: A*, grounded) => B*
@@ -1112,13 +1126,16 @@ class TypeSchemaEnvironmentTest {
         env.solveTypeConstraint(
             _makeConstraint(
                 lower: toType("B<dynamic>*"), upper: toType("A<dynamic>*")),
+            bottomType,
             grounded: true),
         toType("B<dynamic>*"));
 
     // Solve(B<?>* <: T <: A*) => A*
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            lower: toType("B<unknown>*"), upper: toType("A<dynamic>*"))),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: toType("B<unknown>*"), upper: toType("A<dynamic>*")),
+            bottomType),
         toType("A<dynamic>*"));
 
     // Solve(B<?>* <: T <: A*, grounded) => A*
@@ -1126,13 +1143,16 @@ class TypeSchemaEnvironmentTest {
         env.solveTypeConstraint(
             _makeConstraint(
                 lower: toType("B<unknown>*"), upper: toType("A<dynamic>*")),
+            bottomType,
             grounded: true),
         toType("A<dynamic>*"));
 
     // Solve(B* <: T <: A<?>*) => B*
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            lower: toType("B<dynamic>*"), upper: toType("A<unknown>*"))),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: toType("B<dynamic>*"), upper: toType("A<unknown>*")),
+            bottomType),
         toType("B<dynamic>*"));
 
     // Solve(B* <: T <: A<?>*, grounded) => B*
@@ -1140,22 +1160,26 @@ class TypeSchemaEnvironmentTest {
         env.solveTypeConstraint(
             _makeConstraint(
                 lower: toType("B<dynamic>*"), upper: toType("A<unknown>*")),
+            bottomType,
             grounded: true),
         toType("B<dynamic>*"));
 
     // Solve(B<?>* <: T <: A<?>*) => B<?>*
     expect(
-        env.solveTypeConstraint(_makeConstraint(
-            lower: toType("B<unknown>*"), upper: toType("A<unknown>*"))),
+        env.solveTypeConstraint(
+            _makeConstraint(
+                lower: toType("B<unknown>*"), upper: toType("A<unknown>*")),
+            bottomType),
         toType("B<unknown>*"));
 
-    // Solve(B<?>* <: T <: A<?>*, grounded) => B<Null>*
+    // Solve(B<?>* <: T <: A<?>*, grounded) => B<Never>*
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
                 lower: toType("B<unknown>*"), upper: toType("A<unknown>*")),
+            bottomType,
             grounded: true),
-        toType("B<Null>*"));
+        toType("B<Never>*"));
   }
 
   void test_typeConstraint_default() {
