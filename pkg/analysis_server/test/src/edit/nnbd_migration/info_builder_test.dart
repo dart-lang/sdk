@@ -1418,10 +1418,10 @@ void f(A  a) => a.m = null;
     assertDetail(detail: regions[1].details[0], offset: 12, length: 3);
 
     expect(regions[0].traces, hasLength(1));
-    var trace = regions[0].traces.single;
+    var trace = regions[0].traces.first;
     expect(trace.description, 'Nullability reason');
     var entries = trace.entries;
-    expect(entries, hasLength(1));
+    expect(entries, hasLength(2));
     // Entry 0 is the nullability of the type of A.m.
     // TODO(srawlins): "A" is probably incorrect here. Should be "A.m".
     assertTraceEntry(unit, entries[0], 'A', unit.content.indexOf('int?'),
@@ -1787,13 +1787,19 @@ void f(int /*!*/ i) {
     var trace = region.traces.single;
     expect(trace.description, 'Non-nullability reason');
     var entries = trace.entries;
-    expect(entries, hasLength(2));
+    expect(entries, hasLength(3));
     // Entry 0 is the nullability of f's argument
     assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int'),
         contains('parameter 0 of f'));
     // Entry 1 is the edge from f's argument to never, due to the `/*!*/` hint.
     assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int'),
         'explicitly hinted to be non-nullable');
+    // Entry 2 is the "never" node.
+    // TODO(paulberry): this node provides no additional useful information and
+    // shouldn't be included in the trace.
+    expect(entries[2].description, 'never');
+    expect(entries[2].function, null);
+    expect(entries[2].target, null);
   }
 
   Future<void> test_trace_nullableType() async {
@@ -1822,7 +1828,7 @@ void h() {
     var trace = region.traces.single;
     expect(trace.description, 'Nullability reason');
     var entries = trace.entries;
-    expect(entries, hasLength(5));
+    expect(entries, hasLength(6));
     // Entry 0 is the nullability of f's argument
     assertTraceEntry(unit, entries[0], 'f',
         unit.content.indexOf('int? i) {} // f'), contains('parameter 0 of f'));
@@ -1839,6 +1845,11 @@ void h() {
     // Entry 4 is the nullability of the null literal.
     assertTraceEntry(unit, entries[4], 'h', unit.content.indexOf('null'),
         contains('null literal'));
+    // Entry 5 is the edge from always to null.
+    // TODO(paulberry): this edge provides no additional useful information and
+    // shouldn't be included in the trace.
+    assertTraceEntry(unit, entries[5], 'h', unit.content.indexOf('null'),
+        'literal expression');
   }
 
   Future<void> test_trace_nullCheck() async {
@@ -1852,12 +1863,16 @@ void h() {
     var trace = region.traces.single;
     expect(trace.description, 'Nullability reason');
     var entries = trace.entries;
-    expect(entries, hasLength(1));
+    expect(entries, hasLength(2));
     // Entry 0 is the nullability of the type of i.
     // TODO(paulberry): -1 is a bug.
     assertTraceEntry(unit, entries[0], 'f', unit.content.indexOf('int?') - 1,
         contains('parameter 0 of f'));
     // Entry 1 is the edge from always to the type of i.
+    // TODO(paulberry): this edge provides no additional useful information and
+    // shouldn't be included in the trace.
+    assertTraceEntry(unit, entries[1], 'f', unit.content.indexOf('int?') - 1,
+        'explicitly hinted to be nullable');
   }
 
   Future<void> test_trace_nullCheck_notNullableReason() async {
@@ -1891,7 +1906,7 @@ void h(int?/*?*/ i) {
     var trace = region.traces[1];
     expect(trace.description, 'Non-nullability reason');
     var entries = trace.entries;
-    expect(entries, hasLength(4));
+    expect(entries, hasLength(5));
     // Entry 0 is the nullability of g's argument
     assertTraceEntry(unit, entries[0], 'g',
         unit.content.indexOf('int  i) { // g'), contains('parameter 0 of g'));
@@ -1905,6 +1920,12 @@ void h(int?/*?*/ i) {
     // Entry 3 is the edge f's argument to never, due to the assert.
     assertTraceEntry(unit, entries[3], 'f', unit.content.indexOf('assert'),
         'value asserted to be non-null');
+    // Entry 4 is the "never" node.
+    // TODO(paulberry): this node provides no additional useful information and
+    // shouldn't be included in the trace.
+    expect(entries[4].description, 'never');
+    expect(entries[4].function, null);
+    expect(entries[4].target, null);
   }
 
   Future<void> test_trace_substitutionNode() async {
