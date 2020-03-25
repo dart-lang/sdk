@@ -26,5 +26,5 @@ static const field core::int* foo = #C1;
 static method main() → dynamic {}
 
 constants  {
-  #C1 = null
+  #C1 = 0
 }

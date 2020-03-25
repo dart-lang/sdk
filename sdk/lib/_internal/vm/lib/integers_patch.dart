@@ -10,7 +10,7 @@
 @patch
 class int {
   @patch
-  const factory int.fromEnvironment(String name, {int defaultValue})
+  const factory int.fromEnvironment(String name, {int defaultValue = 0})
       native "Integer_fromEnvironment";
 
   int _bitAndFromSmi(_Smi other);

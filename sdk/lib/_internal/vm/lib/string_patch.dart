@@ -47,7 +47,7 @@ class String {
   }
 
   @patch
-  const factory String.fromEnvironment(String name, {String defaultValue})
+  const factory String.fromEnvironment(String name, {String defaultValue = ""})
       native "String_fromEnvironment";
 
   bool get _isOneByte;

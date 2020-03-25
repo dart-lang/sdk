@@ -182,7 +182,7 @@ class int {
   }
 
   @patch
-  factory int.fromEnvironment(String name, {int defaultValue}) {
+  factory int.fromEnvironment(String name, {int defaultValue = 0}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
         'int.fromEnvironment can only be used as a const constructor');
@@ -556,7 +556,7 @@ class String {
   }
 
   @patch
-  factory String.fromEnvironment(String name, {String defaultValue}) {
+  factory String.fromEnvironment(String name, {String defaultValue = ""}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
         'String.fromEnvironment can only be used as a const constructor');
