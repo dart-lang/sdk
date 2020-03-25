@@ -335,16 +335,11 @@ In addition, we fixed some inconsistencies between Dart2JS and DDC:
 
 #### Linter
 
-Updated the Linter to `0.1.113`, which includes:
+Updated the Linter to `0.1.114`, which includes:
 
-*   Updated documentation links.
-*   Updated `one_member_abstracts` to not lint classes with mixins or
-    implementing interfaces.
-*   Fixed `unnecessary_getters_setters` to ignore cases where a getter/setter is
-    deprecated.
-*   Added `leading_newlines_in_multiline_strings`.
-*   Improved highlight ranges for `avoid_private_typedef_functions` and
-    `avoid_returning_null_for_future`.
+* Fixed `avoid_shadowing_type_parameters` to support extensions and mixins.
+* Updated `non_constant_identifier_names` to allow named constructors made up of only underscores (`_`).
+* Updated `avoid_unused_constructor_parameters` to ignore unused params named in all underscores (`_`).
 
 #### Analyzer
 
