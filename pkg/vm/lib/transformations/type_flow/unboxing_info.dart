@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:vm/transformations/type_flow/analysis.dart';
+import 'package:vm/transformations/type_flow/native_code.dart';
 import 'package:vm/transformations/type_flow/types.dart';
 
 import '../../metadata/unboxing_info.dart';
@@ -22,11 +23,13 @@ class UnboxingInfoManager {
 
   final TypeHierarchy _typeHierarchy;
   final CoreTypes _coreTypes;
+  final NativeCodeOracle _nativeCodeOracle;
   bool _finishedGraph;
 
   UnboxingInfoManager(TypeFlowAnalysis typeFlowAnalysis)
       : _typeHierarchy = typeFlowAnalysis.hierarchyCache,
         _coreTypes = typeFlowAnalysis.environment.coreTypes,
+        _nativeCodeOracle = typeFlowAnalysis.nativeCodeOracle,
         _finishedGraph = false;
 
   void registerMember(Member member) {
@@ -195,8 +198,10 @@ class UnboxingInfoManager {
     // Methods that do not need dynamic invocation forwarders can not have
     // unboxed parameters and return because dynamic calls always use boxed
     // values.
-
+    // Similarly C->Dart calls (entrypoints) and Dart->C calls (natives) need to
+    // have boxed parameters and return values.
     return (_isNative(member) ||
+        _nativeCodeOracle.isMemberReferencedFromNativeCode(member) ||
         _isEnclosingClassSubtypeOfNum(member) ||
         (!_isConstructorOrStatic(member) &&
             !_needsDynamicInvocationForwarder(member)));
