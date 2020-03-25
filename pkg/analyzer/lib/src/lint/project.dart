@@ -88,8 +88,6 @@ class DartProject {
   /// used.
   static Future<DartProject> create(AnalysisDriver driver, List<Source> sources,
       {Directory dir}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     DartProject project = DartProject._(driver, sources, dir: dir);
     await project._apiModel._calculate();
     return project;
@@ -124,8 +122,6 @@ class _ApiModel {
   }
 
   _calculate() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (sources == null || sources.isEmpty) {
       return;
     }
