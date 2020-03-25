@@ -13,9 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
-import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
@@ -23,6 +21,7 @@ import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
+import 'package:nnbd_migration/src/variables.dart';
 
 import 'edge_origin.dart';
 
@@ -37,7 +36,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         PermissiveModeVisitor<DecoratedType>,
         CompletenessTracker<DecoratedType> {
   /// Constraint variables and decorated types are stored here.
-  final VariableRecorder _variables;
+  final Variables _variables;
 
   @override
   final Source source;
@@ -753,81 +752,4 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     buffer.write('"');
     throw UnimplementedError(buffer.toString());
   }
-}
-
-/// Repository of constraint variables and decorated types corresponding to the
-/// code being migrated.
-///
-/// This data structure records the results of the first pass of migration
-/// ([NodeBuilder], which finds all the variables that need to be
-/// constrained).
-abstract class VariableRecorder {
-  /// Associates a [class_] with decorated type information for the superclasses
-  /// it directly implements/extends/etc.
-  void recordDecoratedDirectSupertypes(ClassElement class_,
-      Map<ClassElement, DecoratedType> decoratedDirectSupertypes);
-
-  /// Associates decorated type information with the given [element].
-  void recordDecoratedElementType(Element element, DecoratedType type);
-
-  /// Associates decorated type information with the given [type] node.
-  void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
-      DecoratedType type, PotentiallyAddQuestionSuffix potentialModification);
-
-  /// Records that [node] is associated with the question of whether the named
-  /// [parameter] should be optional (should not have a `required`
-  /// annotation added to it).
-  void recordPossiblyOptional(
-      Source source, DefaultFormalParameter parameter, NullabilityNode node);
-}
-
-/// Repository of constraint variables and decorated types corresponding to the
-/// code being migrated.
-///
-/// This data structure allows the second pass of migration
-/// ([ConstraintGatherer], which builds all the constraints) to access the
-/// results of the first ([NodeBuilder], which finds all the
-/// variables that need to be constrained).
-abstract class VariableRepository {
-  /// Given a [class_], gets the decorated type information for the superclasses
-  /// it directly implements/extends/etc.
-  Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
-      ClassElement class_);
-
-  /// Retrieves the [DecoratedType] associated with the static type of the given
-  /// [element].
-  ///
-  /// If no decorated type is found for the given element, and the element is in
-  /// a library that's not being migrated, a decorated type is synthesized using
-  /// [DecoratedType.forElement].
-  DecoratedType decoratedElementType(Element element);
-
-  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
-  DecoratedType decoratedTypeAnnotation(
-      Source source, TypeAnnotation typeAnnotation);
-
-  /// Retrieves the decorated bound of the given [typeParameter].
-  DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter);
-
-  /// Records conditional discard information for the given AST node (which is
-  /// an `if` statement or a conditional (`?:`) expression).
-  void recordConditionalDiscard(
-      Source source, AstNode node, ConditionalDiscard conditionalDiscard);
-
-  /// Associates decorated type information with the given [element].
-  ///
-  /// TODO(paulberry): why is this in both [VariableRecorder] and
-  /// [VariableRepository]?
-  void recordDecoratedElementType(Element element, DecoratedType type);
-
-  /// Associates decorated type information with the given expression [node].
-  void recordDecoratedExpressionType(Expression node, DecoratedType type);
-
-  /// Associates a set of nullability checks with the given expression [node].
-  void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecksOrigin origin);
-
-  /// Records the fact that prior to migration, an unnecessary cast existed at
-  /// [node].
-  void recordUnnecessaryCast(Source source, AsExpression node);
 }

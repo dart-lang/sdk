@@ -23,7 +23,6 @@ import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
-import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
@@ -42,7 +41,7 @@ class OffsetEndPair {
   String toString() => '$offset-$end';
 }
 
-class Variables implements VariableRecorder, VariableRepository {
+class Variables {
   final NullabilityGraph _graph;
 
   final TypeProvider _typeProvider;
@@ -73,14 +72,20 @@ class Variables implements VariableRecorder, VariableRepository {
       : _alreadyMigratedCodeDecorator =
             AlreadyMigratedCodeDecorator(_graph, _typeProvider);
 
-  @override
+  /// Given a [class_], gets the decorated type information for the superclasses
+  /// it directly implements/extends/etc.
   Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
       ClassElement class_) {
     return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
   }
 
-  @override
+  /// Retrieves the [DecoratedType] associated with the static type of the given
+  /// [element].
+  ///
+  /// If no decorated type is found for the given element, and the element is in
+  /// a library that's not being migrated, a decorated type is synthesized using
+  /// [DecoratedType.forElement].
   DecoratedType decoratedElementType(Element element) {
     assert(element is! TypeParameterElement,
         'Use decoratedTypeParameterBound instead');
@@ -88,7 +93,7 @@ class Variables implements VariableRecorder, VariableRepository {
         _createDecoratedElementType(element);
   }
 
-  @override
+  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
   DecoratedType decoratedTypeAnnotation(
       Source source, TypeAnnotation typeAnnotation) {
     var annotationsInSource = _decoratedTypeAnnotations[source];
@@ -106,6 +111,8 @@ class Variables implements VariableRecorder, VariableRepository {
     return decoratedTypeAnnotation;
   }
 
+  /// Retrieves the decorated bound of the given [typeParameter].
+  ///
   /// Note: the optional argument [allowNullUnparentedBounds] is intended for
   /// the FixBuilder stage only, to allow it to cope with the situation where
   /// a type parameter element with a null parent doesn't have a decorated type
@@ -115,7 +122,6 @@ class Variables implements VariableRecorder, VariableRepository {
   /// because at that point the types we are dealing with are all
   /// post-migration types, so their bounds already reflect the correct
   /// nullabilities.
-  @override
   DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter,
       {bool allowNullUnparentedBounds = false}) {
     var enclosingElement = typeParameter.enclosingElement;
@@ -160,7 +166,8 @@ class Variables implements VariableRecorder, VariableRepository {
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
       _potentialModifications;
 
-  @override
+  /// Records conditional discard information for the given AST node (which is
+  /// an `if` statement or a conditional (`?:`) expression).
   void recordConditionalDiscard(
       Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
     (_conditionalDiscards[source] ??= {})[node.offset] = conditionalDiscard;
@@ -168,12 +175,14 @@ class Variables implements VariableRecorder, VariableRepository {
         source, ConditionalModification(node, conditionalDiscard));
   }
 
-  @override
+  /// Associates a [class_] with decorated type information for the superclasses
+  /// it directly implements/extends/etc.
   void recordDecoratedDirectSupertypes(ClassElement class_,
       Map<ClassElement, DecoratedType> decoratedDirectSupertypes) {
     _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
   }
 
+  /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type) {
     assert(() {
       assert(element is! TypeParameterElement,
@@ -190,8 +199,10 @@ class Variables implements VariableRecorder, VariableRepository {
     _decoratedElementTypes[element] = type;
   }
 
+  /// Associates decorated type information with the given expression [node].
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
+  /// Associates decorated type information with the given [type] node.
   void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
       DecoratedType type, PotentiallyAddQuestionSuffix potentialModification) {
     instrumentation?.explicitTypeNullability(source, node, type.node);
@@ -202,7 +213,7 @@ class Variables implements VariableRecorder, VariableRepository {
     postmortemFileWriter?.storeFileDecorations(source.fullName, id, type);
   }
 
-  @override
+  /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(
       Source source, Expression expression, ExpressionChecksOrigin origin) {
     _addPotentialModification(source, origin.checks);
@@ -211,14 +222,17 @@ class Variables implements VariableRecorder, VariableRepository {
         origin.checks;
   }
 
-  @override
+  /// Records that [node] is associated with the question of whether the named
+  /// [parameter] should be optional (should not have a `required`
+  /// annotation added to it).
   void recordPossiblyOptional(
       Source source, DefaultFormalParameter parameter, NullabilityNode node) {
     var modification = PotentiallyAddRequired(parameter, node);
     _addPotentialModification(source, modification);
   }
 
-  @override
+  /// Records the fact that prior to migration, an unnecessary cast existed at
+  /// [node].
   void recordUnnecessaryCast(Source source, AsExpression node) {
     bool newlyAdded = (_unnecessaryCasts[source] ??= {})
         .add(uniqueIdentifierForSpan(node.offset, node.end));
