@@ -265,4 +265,10 @@ void ObjectStore::InitKnownObjects() {
 #endif
 }
 
+void ObjectStore::PostLoad() {
+  resume_capabilities_ = GrowableObjectArray::New();
+  exit_listeners_ = GrowableObjectArray::New();
+  error_listeners_ = GrowableObjectArray::New();
+}
+
 }  // namespace dart

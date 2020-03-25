@@ -145,9 +145,6 @@ class ObjectPointerVisitor;
   RW(Array, libraries_map)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
-  R_(GrowableObjectArray, resume_capabilities)                                 \
-  R_(GrowableObjectArray, exit_listeners)                                      \
-  R_(GrowableObjectArray, error_listeners)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
   RW(UnhandledException, preallocated_unhandled_exception)                     \
@@ -186,6 +183,9 @@ class ObjectPointerVisitor;
   RW(Code, array_write_barrier_stub)                                           \
   R_(Code, megamorphic_miss_code)                                              \
   R_(Function, megamorphic_miss_function)                                      \
+  R_(GrowableObjectArray, resume_capabilities)                                 \
+  R_(GrowableObjectArray, exit_listeners)                                      \
+  R_(GrowableObjectArray, error_listeners)                                     \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
@@ -262,6 +262,8 @@ class ObjectStore {
   RawError* PreallocateObjects();
 
   void InitKnownObjects();
+
+  void PostLoad();
 
   static void Init(Isolate* isolate);
 

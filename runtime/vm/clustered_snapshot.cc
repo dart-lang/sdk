@@ -6050,6 +6050,7 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   for (intptr_t i = 0; i < num_clusters_; i++) {
     clusters_[i]->PostLoad(refs, kind_, zone_);
   }
+  object_store->PostLoad();
 
   // Setup native resolver for bootstrap impl.
   Bootstrap::SetupNativeResolver();
