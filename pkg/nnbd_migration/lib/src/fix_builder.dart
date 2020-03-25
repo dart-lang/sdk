@@ -571,16 +571,6 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
   Source get source => _fixBuilder.source;
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    final comment = node.beginToken.precedingComments;
-    if (comment is LanguageVersionToken) {
-      (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
-          .removeLanguageVersionComment = true;
-    }
-    super.visitCompilationUnit(node);
-  }
-
-  @override
   void visitAsExpression(AsExpression node) {
     if (!_fixBuilder._variables.wasUnnecessaryCast(_fixBuilder.source, node) &&
         BestPracticesVerifier.isUnnecessaryCast(
@@ -588,6 +578,16 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       (_fixBuilder._getChange(node) as NodeChangeForAsExpression).removeAs =
           true;
     }
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    final comment = node.beginToken.precedingComments;
+    if (comment is LanguageVersionToken) {
+      (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
+          .removeLanguageVersionComment = true;
+    }
+    super.visitCompilationUnit(node);
   }
 
   @override
