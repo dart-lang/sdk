@@ -69,6 +69,7 @@ Dart_FileReadCallback Dart::file_read_callback_ = NULL;
 Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
+bool Dart::non_nullable_flag_ = false;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -169,12 +170,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         "To use --lazy-async-stacks, please disable --causal-async-stacks!");
   }
 
-  bool non_nullable_flag = KernelIsolate::GetExperimentalFlag("non-nullable");
-  if (FLAG_null_safety && !non_nullable_flag) {
-    return strdup(
-        "To use --null-safety, please enable --enable-experiment=non-nullable");
-  }
-
   const Snapshot* snapshot = nullptr;
   if (vm_isolate_snapshot != nullptr) {
     snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
@@ -239,6 +234,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
+
+    // Cache value of "non-nullable" experimental flag.
+    set_non_nullable_flag(KernelIsolate::GetExperimentalFlag("non-nullable"));
 
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
@@ -913,8 +911,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_ISOLATE_FLAG(null_safety, null_safety, FLAG_null_safety);
   }
 
-  buffer.AddString(" nnbd-experiment");
-
+  if (Dart::non_nullable_flag()) {
+    buffer.AddString(" nnbd-experiment");
+  }
 #undef ADD_ISOLATE_FLAG
 #undef ADD_D
 #undef ADD_C
