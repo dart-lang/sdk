@@ -171,11 +171,6 @@ There are no language changes in this release.
     `runZonedGuarded()` functions from `dart:async` directly if needing to
     specify those.
 
-*   **Breaking change** [#40681][]: The static method `runZoned()` and
-    `runWithIOOverrides` on `IOOverrides` no longer accepts `zoneSpecification`
-    and `onError` parameters. Use the `runZoned()` or `runZonedGuarded()`
-    functions from `dart:async` directly if needing to specify those.
-
 [#33501]: https://github.com/dart-lang/sdk/issues/33501
 [#40702]: https://github.com/dart-lang/sdk/issues/40702
 [#40483]: https://github.com/dart-lang/sdk/issues/40483
@@ -319,7 +314,7 @@ In addition, we fixed some inconsistencies between Dart2JS and DDC:
     subtypes rather than structurally equal up to renaming of bound type
     variables and equating all top types.
 
-*   **Breaking Change**: Types are now normalized. See [normalization] for the
+*   **Breaking Change**: Types are now normalized. See [normalization][] for the
     full specification. Types will now be printed in their normal form, and
     mutual subtypes with the same normal form will now be considered equal.
 
