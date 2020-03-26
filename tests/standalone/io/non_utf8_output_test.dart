@@ -7,7 +7,8 @@
 
 import 'dart:io';
 
-main() {
+main() async {
   String german = "German characters: aäbcdefghijklmnoöpqrsßtuüvwxyz";
   stdout.add(german.runes.toList());
+  await stdout.close();
 }
