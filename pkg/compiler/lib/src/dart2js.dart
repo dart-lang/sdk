@@ -113,7 +113,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   int codegenShards;
   List<String> bazelPaths;
   Uri packageConfig = null;
-  Uri packageRoot = null;
   List<String> options = new List<String>();
   bool wantHelp = false;
   bool wantVersion = false;
@@ -143,10 +142,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   void setLibrarySpecificationUri(String argument) {
     librariesSpecificationUri =
         Uri.base.resolve(extractPath(argument, isDirectory: false));
-  }
-
-  void setPackageRoot(String argument) {
-    packageRoot = Uri.base.resolve(extractPath(argument));
   }
 
   void setPackageConfig(String argument) {
@@ -434,7 +429,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.trustJSInteropTypeAnnotations, passThrough),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--packages=.+', setPackageConfig),
-    new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler(Flags.noSourceMaps, passThrough),
     new OptionHandler(Option.resolutionInput, ignoreOption),
     new OptionHandler(Option.bazelPaths, setBazelPaths),
@@ -568,10 +562,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   if (trustTypeAnnotations && checkedMode) {
     helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
         "checked mode.");
-  }
-
-  if (packageRoot != null && packageConfig != null) {
-    helpAndFail("Cannot specify both '--package-root' and '--packages.");
   }
 
   String scriptName = arguments[0];
@@ -773,7 +763,6 @@ Future<api.CompilationResult> compile(List<String> argv,
       onError: (String message) => fail(message),
       onWarning: (String message) => print(message))
     ..entryPoint = script
-    ..packageRoot = packageRoot
     ..packageConfig = packageConfig
     ..environment = environment
     ..kernelInitializedCompilerState = kernelInitializedCompilerState

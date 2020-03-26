@@ -42,11 +42,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
   Uri entryPoint;
 
-  /// Package root location.
-  ///
-  /// If not null then [packageConfig] should be null.
-  Uri packageRoot;
-
   /// Location of the package configuration file.
   ///
   /// If not null then [packageRoot] should be null.
@@ -491,13 +486,6 @@ class CompilerOptions implements DiagnosticOptions {
     if (librariesSpecificationUri.path.endsWith('/')) {
       throw new ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
-    }
-    if (packageRoot != null && packageConfig != null) {
-      throw new ArgumentError("Only one of [packageRoot] or [packageConfig] "
-          "may be given.");
-    }
-    if (packageRoot != null && !packageRoot.path.endsWith("/")) {
-      throw new ArgumentError("[packageRoot] must end with a /");
     }
     if (platformBinaries == null &&
         equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
