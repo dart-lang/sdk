@@ -185,6 +185,7 @@ compiler_sources_tests = [
   "backend/locations_helpers_test.cc",
   "backend/loops_test.cc",
   "backend/range_analysis_test.cc",
+  "backend/reachability_fence_test.cc",
   "backend/redundancy_elimination_test.cc",
   "backend/sexpression_test.cc",
   "backend/slot_test.cc",

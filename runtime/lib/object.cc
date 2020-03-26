@@ -209,6 +209,10 @@ DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
   return arguments->NativeArgAt(0);
 }
 
+DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
+  return Object::null();
+}
+
 static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const Class& instance_cls,
                                      const TypeArguments& instance_type_args,

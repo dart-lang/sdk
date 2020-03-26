@@ -555,6 +555,12 @@ Fragment BaseFlowGraphBuilder::RedefinitionWithType(const AbstractType& type) {
   return Fragment(redefinition);
 }
 
+Fragment BaseFlowGraphBuilder::ReachabilityFence() {
+  Fragment instructions;
+  instructions <<= new (Z) ReachabilityFenceInstr(Pop());
+  return instructions;
+}
+
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                 const Field& field) {
   return Fragment(

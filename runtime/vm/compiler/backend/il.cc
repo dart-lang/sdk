@@ -4064,6 +4064,21 @@ void RedefinitionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
+LocationSummary* ReachabilityFenceInstr::MakeLocationSummary(
+    Zone* zone,
+    bool optimizing) const {
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, 1, 0, LocationSummary::ContainsCall::kNoCall);
+  // Keep the parameter alive and reachable, in any location.
+  summary->set_in(0, Location::Any());
+  return summary;
+}
+
+void ReachabilityFenceInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // No native code, but we rely on the parameter being passed in here so that
+  // it stays alive and reachable.
+}
+
 LocationSummary* ParameterInstr::MakeLocationSummary(Zone* zone,
                                                      bool optimizing) const {
   UNREACHABLE();
