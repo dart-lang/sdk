@@ -116,6 +116,11 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode COVARIANT_AND_STATIC = _COVARIANT_AND_STATIC;
 
+  static const ParserErrorCode COVARIANT_CONSTRUCTOR = ParserErrorCode(
+      'COVARIANT_CONSTRUCTOR',
+      "A constructor can't be declared to be 'covariant'.",
+      correction: "Try removing the keyword 'covariant'.");
+
   static const ParserErrorCode COVARIANT_MEMBER = _COVARIANT_MEMBER;
 
   static const ParserErrorCode COVARIANT_TOP_LEVEL_DECLARATION =
@@ -123,20 +128,17 @@ class ParserErrorCode extends ErrorCode {
           "Top-level declarations can't be declared to be covariant.",
           correction: "Try removing the keyword 'covariant'.");
 
-  static const ParserErrorCode COVARIANT_CONSTRUCTOR = ParserErrorCode(
-      'COVARIANT_CONSTRUCTOR',
-      "A constructor can't be declared to be 'covariant'.",
-      correction: "Try removing the keyword 'covariant'.");
-
-  static const ParserErrorCode DEFERRED_AFTER_PREFIX = _DEFERRED_AFTER_PREFIX;
-
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE = ParserErrorCode(
       'DEFAULT_VALUE_IN_FUNCTION_TYPE',
       "Parameters in a function type cannot have default values",
       correction: "Try removing the default value.");
 
+  static const ParserErrorCode DEFERRED_AFTER_PREFIX = _DEFERRED_AFTER_PREFIX;
+
   static const ParserErrorCode DIRECTIVE_AFTER_DECLARATION =
       _DIRECTIVE_AFTER_DECLARATION;
+
+  static const ParserErrorCode DUPLICATE_DEFERRED = _DUPLICATE_DEFERRED;
 
   /**
    * Parameters:
@@ -145,15 +147,13 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT =
       _DUPLICATE_LABEL_IN_SWITCH_STATEMENT;
 
-  static const ParserErrorCode DUPLICATE_DEFERRED = _DUPLICATE_DEFERRED;
+  static const ParserErrorCode DUPLICATE_PREFIX = _DUPLICATE_PREFIX;
 
   /**
    * Parameters:
    * 0: the modifier that was duplicated
    */
   static const ParserErrorCode DUPLICATED_MODIFIER = _DUPLICATED_MODIFIER;
-
-  static const ParserErrorCode DUPLICATE_PREFIX = _DUPLICATE_PREFIX;
 
   static const ParserErrorCode EMPTY_ENUM_BODY = ParserErrorCode(
       'EMPTY_ENUM_BODY', "An enum must declare at least one constant name.",
@@ -182,6 +182,8 @@ class ParserErrorCode extends ErrorCode {
       correction:
           "This appears to be incomplete code. Try removing it or completing it.");
 
+  static const ParserErrorCode EXPECTED_INSTEAD = _EXPECTED_INSTEAD;
+
   static const ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = ParserErrorCode(
       'EXPECTED_LIST_OR_MAP_LITERAL', "Expected a list or map literal.",
       correction:
@@ -196,8 +198,6 @@ class ParserErrorCode extends ErrorCode {
    */
   static const ParserErrorCode EXPECTED_TOKEN =
       ParserErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
-
-  static const ParserErrorCode EXPECTED_INSTEAD = _EXPECTED_INSTEAD;
 
   static const ParserErrorCode EXPECTED_TYPE_NAME =
       ParserErrorCode('EXPECTED_TYPE_NAME', "Expected a type name.");
@@ -344,11 +344,11 @@ class ParserErrorCode extends ErrorCode {
       "A non-redirecting 'factory' constructor must have a body.",
       correction: "Try adding a body to the constructor.");
 
-  static const ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
-      _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR;
-
   static const ParserErrorCode FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS =
       _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS;
+
+  static const ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR =
+      _FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR;
 
   static const ParserErrorCode FINAL_AND_COVARIANT = _FINAL_AND_COVARIANT;
 
@@ -704,15 +704,15 @@ class ParserErrorCode extends ErrorCode {
           "through native extensions.",
       correction: "Try removing the native clause.");
 
+  static const ParserErrorCode NATIVE_CLAUSE_SHOULD_BE_ANNOTATION =
+      _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION;
+
   static const ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE =
       ParserErrorCode(
           'NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE',
           "Native functions can only be declared in the SDK and code that is "
               "loaded through native extensions.",
           correction: "Try removing the word 'native'.");
-
-  static const ParserErrorCode NATIVE_CLAUSE_SHOULD_BE_ANNOTATION =
-      _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION;
 
   static const ParserErrorCode NON_CONSTRUCTOR_FACTORY = ParserErrorCode(
       'NON_CONSTRUCTOR_FACTORY',
@@ -817,8 +817,6 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode TYPE_BEFORE_FACTORY = _TYPE_BEFORE_FACTORY;
 
-  static const ParserErrorCode TYPEDEF_IN_CLASS = _TYPEDEF_IN_CLASS;
-
   static const ParserErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
       _TYPE_PARAMETER_ON_CONSTRUCTOR;
 
@@ -830,6 +828,8 @@ class ParserErrorCode extends ErrorCode {
       'TYPE_PARAMETERS_ON_OPERATOR',
       "Types parameters aren't allowed when defining an operator.",
       correction: "Try removing the type parameters.");
+
+  static const ParserErrorCode TYPEDEF_IN_CLASS = _TYPEDEF_IN_CLASS;
 
   /**
    * Parameters:
@@ -847,23 +847,6 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode UNEXPECTED_TOKEN = ParserErrorCode(
       'UNEXPECTED_TOKEN', "Unexpected text '{0}'.",
       correction: "Try removing the text.");
-
-  static const ParserErrorCode WITH_BEFORE_EXTENDS = _WITH_BEFORE_EXTENDS;
-
-  static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER =
-      ParserErrorCode('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
-          "The default value of a positional parameter should be preceded by '='.",
-          correction: "Try replacing the ':' with '='.");
-
-  /**
-   * Parameters:
-   * 0: the terminator that was expected
-   * 1: the terminator that was found
-   */
-  static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP =
-      ParserErrorCode('WRONG_TERMINATOR_FOR_PARAMETER_GROUP',
-          "Expected '{0}' to close parameter group.",
-          correction: "Try replacing '{0}' with '{1}'.");
 
   static const ParserErrorCode VAR_AND_TYPE = _VAR_AND_TYPE;
 
@@ -886,6 +869,23 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode VOID_WITH_TYPE_ARGUMENTS =
       _VOID_WITH_TYPE_ARGUMENTS;
+
+  static const ParserErrorCode WITH_BEFORE_EXTENDS = _WITH_BEFORE_EXTENDS;
+
+  static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER =
+      ParserErrorCode('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
+          "The default value of a positional parameter should be preceded by '='.",
+          correction: "Try replacing the ':' with '='.");
+
+  /**
+   * Parameters:
+   * 0: the terminator that was expected
+   * 1: the terminator that was found
+   */
+  static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP =
+      ParserErrorCode('WRONG_TERMINATOR_FOR_PARAMETER_GROUP',
+          "Expected '{0}' to close parameter group.",
+          correction: "Try replacing '{0}' with '{1}'.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
