@@ -14,10 +14,13 @@
 namespace dart {
 namespace bin {
 
+// TODO(bkonyi): re-enable after 2.8 release.
+const bool kDartDevEnabled = false;
+
 bool DartDevUtils::ShouldParseCommand(const char* script_uri) {
   // If script_uri is not a file path or of a known URI scheme, we can assume
   // that this is a DartDev command.
-  return (!File::ExistsUri(nullptr, script_uri) &&
+  return (kDartDevEnabled && !File::ExistsUri(nullptr, script_uri) &&
           (strncmp(script_uri, "http://", 7) != 0) &&
           (strncmp(script_uri, "https://", 8) != 0) &&
           (strncmp(script_uri, "file://", 7) != 0) &&
