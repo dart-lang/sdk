@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
@@ -19,6 +20,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/isolate_analysis_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -217,6 +219,10 @@ class Driver implements ServerStarter {
   /// The name of the option used to enable DartPad specific functionality.
   static const String DARTPAD_OPTION = 'dartpad';
 
+  /// The name of the option used to disable exception handling.
+  static const String DISABLE_SERVER_EXCEPTION_HANDLING =
+      'disable-server-exception-handling';
+
   /// The name of the option to disable the completion feature.
   static const String DISABLE_SERVER_FEATURE_COMPLETION =
       'disable-server-feature-completion';
@@ -305,8 +311,11 @@ class Driver implements ServerStarter {
   Driver();
 
   /// Use the given command-line [arguments] to start this server.
+  ///
+  /// If [sendPort] is not null, assumes this is launched in an isolate and will
+  /// connect to the original isolate via an [IsolateChannel].
   @override
-  void start(List<String> arguments) {
+  void start(List<String> arguments, [SendPort sendPort]) {
     CommandLineParser parser = _createArgParser();
     ArgResults results = parser.parse(arguments, <String, String>{});
 
@@ -474,6 +483,10 @@ class Driver implements ServerStarter {
     }
 
     if (analysisServerOptions.useLanguageServerProtocol) {
+      if (sendPort != null) {
+        throw UnimplementedError(
+            'Isolate usage not implemented for LspAnalysisServer');
+      }
       startLspServer(results, analysisServerOptions, dartSdkManager,
           instrumentationService, diagnosticServerPort, errorNotifier);
     } else {
@@ -487,7 +500,8 @@ class Driver implements ServerStarter {
           RequestStatisticsHelper(),
           analytics,
           diagnosticServerPort,
-          errorNotifier);
+          errorNotifier,
+          sendPort);
     }
   }
 
@@ -502,7 +516,11 @@ class Driver implements ServerStarter {
     telemetry.Analytics analytics,
     int diagnosticServerPort,
     ErrorNotifier errorNotifier,
+    SendPort sendPort,
   ) {
+    var capture = results[DISABLE_SERVER_EXCEPTION_HANDLING]
+        ? (_, Function f, {Function(String) print}) => f()
+        : _captureExceptions;
     String trainDirectory = results[TRAIN_USING];
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
@@ -544,6 +562,10 @@ class Driver implements ServerStarter {
     }
 
     if (trainDirectory != null) {
+      if (sendPort != null) {
+        throw UnimplementedError(
+            'isolate usage not supported for DevAnalysisServer');
+      }
       Directory tempDriverDir =
           Directory.systemTemp.createTempSync('analysis_server_');
       analysisServerOptions.cacheFolder = tempDriverDir.path;
@@ -580,9 +602,17 @@ class Driver implements ServerStarter {
         exit(exitCode);
       }();
     } else {
-      _captureExceptions(instrumentationService, () {
-        StdioAnalysisServer stdioServer = StdioAnalysisServer(socketServer);
-        stdioServer.serveStdio().then((_) async {
+      capture(instrumentationService, () {
+        Future serveResult;
+        if (sendPort == null) {
+          StdioAnalysisServer stdioServer = StdioAnalysisServer(socketServer);
+          serveResult = stdioServer.serveStdio();
+        } else {
+          IsolateAnalysisServer isolateAnalysisServer =
+              IsolateAnalysisServer(socketServer);
+          serveResult = isolateAnalysisServer.serveIsolate(sendPort);
+        }
+        serveResult.then((_) async {
           // TODO(brianwilkerson) Determine whether this await is necessary.
           await null;
 
@@ -591,7 +621,7 @@ class Driver implements ServerStarter {
           }
           await instrumentationService.shutdown();
           socketServer.analysisServer.shutdown();
-          exit(0);
+          if (sendPort == null) exit(0);
         });
         startCompletionRanking(socketServer, null, analysisServerOptions);
       },
@@ -639,6 +669,9 @@ class Driver implements ServerStarter {
     int diagnosticServerPort,
     ErrorNotifier errorNotifier,
   ) {
+    var capture = args[DISABLE_SERVER_EXCEPTION_HANDLING]
+        ? (_, Function f, {Function(String) print}) => f()
+        : _captureExceptions;
     final serve_http = diagnosticServerPort != null;
 
     linter.registerLintRules();
@@ -660,7 +693,7 @@ class Driver implements ServerStarter {
       diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
-    _captureExceptions(instrumentationService, () {
+    capture(instrumentationService, () {
       LspStdioAnalysisServer stdioServer = LspStdioAnalysisServer(socketServer);
       stdioServer.serveStdio().then((_) async {
         // Only shutdown the server and exit if the server is not already
@@ -678,8 +711,8 @@ class Driver implements ServerStarter {
   /// exceptions and both report them to the client and send them to the given
   /// instrumentation [service]. If a [print] function is provided, then also
   /// capture any data printed by the callback and redirect it to the function.
-  dynamic _captureExceptions(
-      InstrumentationService service, dynamic Function() callback,
+  void _captureExceptions(
+      InstrumentationService service, void Function() callback,
       {void Function(String line) print}) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
@@ -707,6 +740,13 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_VERSION, help: 'the version of the client');
     parser.addFlag(DARTPAD_OPTION,
         help: 'enable DartPad specific functionality',
+        defaultsTo: false,
+        hide: true);
+    parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
+        // TODO(jcollins-g): Pipeline option through and apply to all
+        // exception-nullifying runZoned() calls.
+        help: 'disable analyzer exception capture for interactive debugging '
+            'of the server',
         defaultsTo: false,
         hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_COMPLETION,

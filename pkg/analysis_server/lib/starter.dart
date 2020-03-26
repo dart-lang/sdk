@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:isolate';
+
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/driver.dart';
@@ -29,5 +31,5 @@ abstract class ServerStarter {
   set instrumentationService(InstrumentationService service);
 
   /// Use the given command-line [arguments] to start this server.
-  void start(List<String> arguments);
+  void start(List<String> arguments, [SendPort sendPort]);
 }
