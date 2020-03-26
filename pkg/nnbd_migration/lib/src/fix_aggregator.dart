@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -282,8 +283,9 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
   EditPlan _apply(CompilationUnit node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
     if (removeLanguageVersionComment) {
-      innerPlans.add(aggregator.planner.replaceToken(
-          node, node.beginToken.precedingComments, [],
+      final comment = (node as CompilationUnitImpl).languageVersionToken;
+      assert(comment != null);
+      innerPlans.add(aggregator.planner.replaceToken(node, comment, [],
           info: AtomicEditInfo(
               NullabilityFixDescription.removeLanguageVersionComment,
               const [])));

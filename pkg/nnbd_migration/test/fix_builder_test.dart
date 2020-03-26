@@ -2388,6 +2388,15 @@ void main() {}
     visitAll(changes: {findNode.unit: isRemoveLanguageVersion});
   }
 
+  Future<void> test_removeLanguageVersionComment_withCopyright() async {
+    await analyze('''
+// Some copyright notice here...
+// @dart = 2.6
+void main() {}
+''');
+    visitAll(changes: {findNode.unit: isRemoveLanguageVersion});
+  }
+
   Future<void> test_set_ifElement_alive() async {
     await analyze('''
 _f(int x, bool b, int/*?*/ y) => {if (b) h(y) else g(y)};

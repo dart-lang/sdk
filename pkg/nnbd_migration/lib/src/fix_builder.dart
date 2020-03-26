@@ -584,8 +584,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final comment = node.beginToken.precedingComments;
-    if (comment is LanguageVersionToken) {
+    if ((node as CompilationUnitImpl).languageVersionToken != null) {
       (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
           .removeLanguageVersionComment = true;
     }

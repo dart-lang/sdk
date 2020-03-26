@@ -890,6 +890,28 @@ void main() {}
     expect(previewInfo.applyTo(code), '\nvoid main() {}\n');
   }
 
+  Future<void> test_removeLanguageVersion_after_license() async {
+    await analyze('''
+// Some licensing stuff here...
+// Some copyrighting stuff too...
+// etc...
+// @dart = 2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '''
+// Some licensing stuff here...
+// Some copyrighting stuff too...
+// etc...
+
+void main() {}
+''');
+  }
+
   Future<void> test_removeLanguageVersion_spaces() async {
     await analyze('''
 // @dart = 2.6
