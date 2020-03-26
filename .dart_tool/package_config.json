@@ -478,12 +478,6 @@
       "languageVersion": "2.7"
     },
     {
-      "name": "package_resolver",
-      "rootUri": "../third_party/pkg_tested/package_resolver",
-      "packageUri": "lib/",
-      "languageVersion": "2.1"
-    },
-    {
       "name": "path",
       "rootUri": "../third_party/pkg/path",
       "packageUri": "lib/",

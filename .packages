@@ -74,7 +74,6 @@ oauth2:third_party/pkg/oauth2/lib
 observatory:runtime/observatory/lib
 observatory_test_package:runtime/observatory/tests/service/observatory_test_package
 package_config:third_party/pkg_tested/package_config/lib
-package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
 pedantic:third_party/pkg/pedantic/lib
 pool:third_party/pkg/pool/lib

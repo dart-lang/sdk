@@ -21,7 +21,6 @@ http:../../third_party/pkg/http/lib
 http_parser:../../third_party/pkg/http_parser/lib
 matcher:../../third_party/pkg/matcher/lib
 package_config:../../third_party/pkg_tested/package_config/lib
-package_resolver:../../third_party/pkg_tested/package_resolver/lib
 pedantic:../../third_party/pkg/pedantic/lib
 pool:../../third_party/pkg/pool/lib
 pub_semver:../../third_party/pkg/pub_semver/lib
