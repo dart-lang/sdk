@@ -11,23 +11,21 @@ class _DummyMethods implements NativeBigIntMethods {
 
   bool get enabled => false;
 
-  static Object bad(String message) {
-    throw UnimplementedError(message);
-  }
+  static Object bad(String message) => UnimplementedError(message);
 
-  Object parse(String string) => bad('parse');
-  String toStringMethod(Object value) => bad('toStringMethod');
+  Object parse(String string) => throw bad('parse');
+  String toStringMethod(Object value) => throw bad('toStringMethod');
 
-  Object fromInt(int i) => bad('fromInt');
+  Object fromInt(int i) => throw bad('fromInt');
 
-  Object get one => bad('one');
-  Object get eight => bad('eight');
+  Object get one => throw bad('one');
+  Object get eight => throw bad('eight');
 
-  int bitLength(Object value) => bad('bitLength');
-  bool isEven(Object value) => bad('isEven');
+  int bitLength(Object value) => throw bad('bitLength');
+  bool isEven(Object value) => throw bad('isEven');
 
-  Object add(Object left, Object right) => bad('add');
-  Object shiftLeft(Object value, Object count) => bad('shiftLeft');
-  Object shiftRight(Object value, Object count) => bad('shiftRight');
-  Object subtract(Object left, Object right) => bad('subtract');
+  Object add(Object left, Object right) => throw bad('add');
+  Object shiftLeft(Object value, Object count) => throw bad('shiftLeft');
+  Object shiftRight(Object value, Object count) => throw bad('shiftRight');
+  Object subtract(Object left, Object right) => throw bad('subtract');
 }

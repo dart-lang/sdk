@@ -106,5 +106,6 @@ void _setup() {
   _eval('self.bigint_isEven = function isEven(b) { return (b & 1n) == 0n; }');
 }
 
-Object _one;
-Object _eight;
+// `dynamic` to allow null initialization pre- and post- NNBD.
+dynamic _one;
+dynamic _eight;
