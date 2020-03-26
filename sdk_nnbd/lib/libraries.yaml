@@ -93,6 +93,7 @@ vm:
         - "_internal/vm/lib/ffi_patch.dart"
         - "_internal/vm/lib/ffi_dynamic_library_patch.dart"
         - "_internal/vm/lib/ffi_native_type_patch.dart"
+        - "_internal/vm/lib/ffi_struct_patch.dart"
 
     wasm:
       uri: "wasm/wasm.dart"
