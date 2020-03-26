@@ -333,6 +333,13 @@ In addition, we fixed some inconsistencies between Dart2JS and DDC:
 
 [normalization]: https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 
+
+Other dart2js changes:
+
+* **Breaking Change**: The `--package-root` flag, which was hidden and disabled
+  in Dart 2.0.0, has been completely removed. Passing this flag will now cause
+  `dart2js` to fail.
+
 #### Linter
 
 Updated the Linter to `0.1.114`, which includes:
