@@ -476,6 +476,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         // ignore: deprecated_member_use_from_same_package
         element.parameterKind = node.kind;
         _setCodeRange(element, node);
+        element.metadata = _createElementAnnotations(node.metadata);
       }
       nameNode.staticElement = element;
     }
