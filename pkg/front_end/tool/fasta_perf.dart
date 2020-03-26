@@ -218,7 +218,7 @@ parseFull(Uri uri, List<int> source) {
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri)
-      : super(null, null, true, null, FeatureSet.fromEnableFlags([]), uri);
+      : super(null, null, true, FeatureSet.fromEnableFlags([]), uri);
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]

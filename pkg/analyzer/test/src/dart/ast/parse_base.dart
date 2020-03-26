@@ -37,7 +37,6 @@ class ParseBase with ResourceProviderMixin {
     var parser = Parser(
       source,
       errorListener,
-      languageVersion: scanner.languageVersion,
       featureSet: featureSet,
       useFasta: useFasta,
     );

@@ -1237,9 +1237,12 @@ abstract class CompilationUnit implements AstNode {
   /// resynthesized from a summary.
   FeatureSet get featureSet;
 
+  @Deprecated("Use languageVersionToken")
+  LanguageVersion get languageVersion;
+
   /// The language version override specified for this compilation unit using a
   /// token like '// @dart = 2.7', or `null` if no override is specified.
-  LanguageVersion get languageVersion;
+  LanguageVersionToken get languageVersionToken;
 
   /// Return the line information for this compilation unit.
   LineInfo get lineInfo;

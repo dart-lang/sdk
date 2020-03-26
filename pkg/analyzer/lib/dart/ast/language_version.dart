@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The language version override specified for a compilation unit.
+@Deprecated("Use unit.languageVersionToken instead")
 class LanguageVersion {
   final int major;
   final int minor;

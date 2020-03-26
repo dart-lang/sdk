@@ -187,19 +187,12 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
   }
 }
 
-/**
- * A specialized comment token representing a language version
- * (e.g. '// @dart = 2.1').
- */
-class LanguageVersionToken extends CommentToken {
-  /**
-   * The major language version.
-   */
+class LanguageVersionToken extends CommentToken
+    implements analyzer.LanguageVersionToken {
+  @override
   int major;
 
-  /**
-   * The minor language version.
-   */
+  @override
   int minor;
 
   LanguageVersionToken.from(String text, int offset, this.major, this.minor)

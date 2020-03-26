@@ -108,7 +108,6 @@ class FileState {
     Parser parser = Parser(
       source,
       errorListener,
-      languageVersion: scanner.languageVersion,
       featureSet: scanner.featureSet,
       useFasta: useFasta,
     );

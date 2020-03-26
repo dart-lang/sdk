@@ -15,7 +15,6 @@ import 'package:_fe_analyzer_shared/src/parser/type_info.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
@@ -202,12 +201,10 @@ class Parser {
   /// Initialize a newly created parser to parse tokens in the given [_source]
   /// and to report any errors that are found to the given [_errorListener].
   factory Parser(Source source, AnalysisErrorListener errorListener,
-      {bool useFasta,
-      LanguageVersion languageVersion,
-      @required FeatureSet featureSet}) {
+      {bool useFasta, @required FeatureSet featureSet}) {
     featureSet ??= FeatureSet.fromEnableFlags([]);
     if (useFasta ?? Parser.useFasta) {
-      return _Parser2(source, errorListener, languageVersion, featureSet,
+      return _Parser2(source, errorListener, featureSet,
           allowNativeClause: true);
     } else {
       return Parser.withoutFasta(source, errorListener, featureSet: featureSet);
@@ -1904,7 +1901,6 @@ class Parser {
           return astFactory.compilationUnit(
             beginToken: eof,
             endToken: eof,
-            languageVersion: null,
             featureSet: _featureSet,
           );
         }
@@ -1961,7 +1957,6 @@ class Parser {
       directives: directives,
       declarations: declarations,
       endToken: _currentToken,
-      languageVersion: null,
       featureSet: _featureSet,
     );
   }
@@ -2418,7 +2413,6 @@ class Parser {
           scriptTag: scriptTag,
           directives: directives,
           endToken: _currentToken,
-          languageVersion: null,
           featureSet: _featureSet,
         );
       }
@@ -2428,7 +2422,6 @@ class Parser {
       scriptTag: scriptTag,
       directives: directives,
       endToken: _currentToken,
-      languageVersion: null,
       featureSet: _featureSet,
     );
   }

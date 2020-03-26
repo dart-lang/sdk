@@ -2026,7 +2026,22 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   LineInfo lineInfo;
 
   @override
-  final LanguageVersion languageVersion;
+  LanguageVersion get languageVersion {
+    final token = languageVersionToken;
+    return LanguageVersion(token.major, token.minor);
+  }
+
+  @override
+  LanguageVersionToken get languageVersionToken {
+    CommentToken comment = beginToken.precedingComments;
+    while (comment != null) {
+      if (comment is LanguageVersionToken) {
+        return comment;
+      }
+      comment = comment.next;
+    }
+    return null;
+  }
 
   @override
   final FeatureSet featureSet;
@@ -2042,7 +2057,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
       this.endToken,
-      this.languageVersion,
       this.featureSet) {
     _scriptTag = _becomeParentOf(scriptTag);
     _directives = NodeListImpl<Directive>(this, directives);

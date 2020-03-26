@@ -1187,7 +1187,6 @@ library l;''');
     Parser parser = Parser(
       NonExistingSource.unknown,
       listener,
-      languageVersion: scanner.languageVersion,
       featureSet: featureSet,
     );
     CompilationUnit unit = parser.parseCompilationUnit(token);

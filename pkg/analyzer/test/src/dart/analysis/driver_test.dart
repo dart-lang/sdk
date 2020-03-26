@@ -1620,7 +1620,7 @@ class A{}
 ''');
 
     var result = await driver.getResult(path);
-    var languageVersion = result.unit.languageVersion;
+    var languageVersion = result.unit.languageVersionToken;
     expect(languageVersion.major, 2);
     expect(languageVersion.minor, 7);
   }
@@ -2208,7 +2208,7 @@ class A {}
 ''');
 
     var parseResult = driver.parseFileSync(path);
-    var languageVersion = parseResult.unit.languageVersion;
+    var languageVersion = parseResult.unit.languageVersionToken;
     expect(languageVersion.major, 2);
     expect(languageVersion.minor, 7);
   }
@@ -2221,7 +2221,7 @@ class A {}
 ''');
 
     var parseResult = driver.parseFileSync(path);
-    expect(parseResult.unit.languageVersion, isNull);
+    expect(parseResult.unit.languageVersionToken, isNull);
   }
 
   test_parseFileSync_notAbsolutePath() async {

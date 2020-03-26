@@ -50,7 +50,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/listener.dart';
@@ -127,13 +126,10 @@ class AstBuilder extends StackListener {
   /// `true` if variance behavior is enabled
   final bool enableVariance;
 
-  /// The language version override, `null` if not such token.
-  LanguageVersion _languageVersion;
-
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
-      this._languageVersion, this._featureSet,
+      this._featureSet,
       [Uri uri])
       : this.errorReporter = FastaErrorReporter(errorReporter),
         this.enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
@@ -959,7 +955,6 @@ class AstBuilder extends StackListener {
         directives: directives,
         declarations: declarations,
         endToken: endToken,
-        languageVersion: _languageVersion,
         featureSet: _featureSet) as CompilationUnitImpl;
     push(unit);
   }

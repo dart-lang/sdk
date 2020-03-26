@@ -536,7 +536,6 @@ class FileState {
     return astFactory.compilationUnit(
       beginToken: token,
       endToken: token,
-      languageVersion: null,
       featureSet: _featureSet,
     )..lineInfo = LineInfo(const <int>[0]);
   }
@@ -599,7 +598,6 @@ class FileState {
     Parser parser = Parser(
       source,
       errorListener,
-      languageVersion: scanner.languageVersion,
       featureSet: scanner.featureSet,
       useFasta: useFasta,
     );

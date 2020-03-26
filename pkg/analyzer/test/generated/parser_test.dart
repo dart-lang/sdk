@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerResult, scanString;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -115,7 +114,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   void createParser(
     String content, {
     int expectedEndOffset,
-    LanguageVersion languageVersion,
     FeatureSet featureSet,
   });
 
@@ -9476,7 +9474,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   void createParser(
     String content, {
     int expectedEndOffset,
-    LanguageVersion languageVersion,
+    LanguageVersionToken languageVersion,
     FeatureSet featureSet,
   }) {
     Source source = TestSource();
@@ -9488,7 +9486,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     parser = Parser(
       source,
       listener,
-      languageVersion: languageVersion,
       featureSet: featureSet,
     );
     parser.allowNativeClause = allowNativeClause;
@@ -9623,7 +9620,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     Parser parser = Parser(
       source,
       listener,
-      languageVersion: null,
       featureSet: FeatureSet.forTesting(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
@@ -9652,7 +9648,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     Parser parser = Parser(
       source,
       listener,
-      languageVersion: null,
       featureSet: FeatureSet.forTesting(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
@@ -9993,7 +9988,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     Parser parser = Parser(
       source,
       listener,
-      languageVersion: null,
       featureSet: FeatureSet.forTesting(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
@@ -10024,7 +10018,6 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     Parser parser = Parser(
       source,
       listener,
-      languageVersion: null,
       featureSet: FeatureSet.forTesting(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
@@ -12425,7 +12418,6 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
       Parser(
         NonExistingSource.unknown,
         null,
-        languageVersion: null,
         featureSet: FeatureSet.forTesting(),
       ),
       isNotNull,
