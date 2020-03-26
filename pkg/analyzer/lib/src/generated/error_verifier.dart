@@ -4990,41 +4990,51 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
     // Only need to report errors for parameters with explicitly defined type
     // parameters in classes or mixins.
-    if (_enclosingClass != null) {
-      for (var typeParameter in _enclosingClass.typeParameters) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
-          if (method.typeParameters != null) {
-            for (var methodTypeParameter
-                in method.typeParameters.typeParameters) {
-              Variance methodTypeParameterVariance = Variance.invariant.combine(
-                  Variance(typeParameter, methodTypeParameter.bound.type));
-              _checkForWrongVariancePosition(methodTypeParameterVariance,
-                  typeParameter, methodTypeParameter);
-            }
+    if (_enclosingClass == null) {
+      return;
+    }
+
+    for (var typeParameter in _enclosingClass.typeParameters) {
+      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      if ((typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+        continue;
+      }
+
+      var methodTypeParameters = method.typeParameters?.typeParameters;
+      if (methodTypeParameters != null) {
+        for (var methodTypeParameter in methodTypeParameters) {
+          if (methodTypeParameter.bound == null) {
+            continue;
           }
-          if (method.parameters != null) {
-            for (int i = 0; i < method.parameters.parameters.length; i++) {
-              var methodParameterElement =
-                  method.parameters.parameterElements[i];
-              var methodParameterNode = method.parameters.parameters[i];
-              if (!methodParameterElement.isCovariant) {
-                Variance methodParameterVariance = Variance.contravariant
-                    .combine(
-                        Variance(typeParameter, methodParameterElement.type));
-                _checkForWrongVariancePosition(methodParameterVariance,
-                    typeParameter, methodParameterNode);
-              }
-            }
-          }
-          if (method.returnType != null) {
-            Variance methodReturnTypeVariance =
-                Variance(typeParameter, method.returnType.type);
-            _checkForWrongVariancePosition(
-                methodReturnTypeVariance, typeParameter, method.returnType);
-          }
+          var methodTypeParameterVariance = Variance.invariant.combine(
+            Variance(typeParameter, methodTypeParameter.bound.type),
+          );
+          _checkForWrongVariancePosition(
+              methodTypeParameterVariance, typeParameter, methodTypeParameter);
         }
+      }
+
+      var methodParameters = method.parameters?.parameters;
+      if (methodParameters != null) {
+        for (var methodParameter in methodParameters) {
+          var methodParameterElement = methodParameter.declaredElement;
+          if (methodParameterElement.isCovariant) {
+            continue;
+          }
+          var methodParameterVariance = Variance.contravariant.combine(
+            Variance(typeParameter, methodParameterElement.type),
+          );
+          _checkForWrongVariancePosition(
+              methodParameterVariance, typeParameter, methodParameter);
+        }
+      }
+
+      var returnType = method.returnType;
+      if (returnType != null) {
+        var methodReturnTypeVariance = Variance(typeParameter, returnType.type);
+        _checkForWrongVariancePosition(
+            methodReturnTypeVariance, typeParameter, returnType);
       }
     }
   }
