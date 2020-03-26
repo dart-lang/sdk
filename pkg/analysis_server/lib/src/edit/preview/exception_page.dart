@@ -22,6 +22,9 @@ class ExceptionPage extends PreviewPage {
       : super(site, path.substring(1));
 
   @override
+  bool get requiresAuth => false;
+
+  @override
   void generateBody(Map<String, String> params) {
     buf.write('''
 <h1>500 Exception in preview</h1>

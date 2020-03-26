@@ -44,6 +44,8 @@ class NonNullableFix extends FixCodeTask {
   /// server should be started.
   int port;
 
+  String authToken;
+
   InstrumentationListener instrumentationListener;
 
   NullabilityMigrationAdapter adapter;
@@ -66,10 +68,14 @@ class NonNullableFix extends FixCodeTask {
   @override
   int get numPhases => 3;
 
-  /// Return a list of the Urls corresponding to the included roots.
+  /// Return a list of the URLs corresponding to the included roots.
   List<String> get previewUrls => [
-        Uri(scheme: 'http', host: 'localhost', port: port, path: includedRoot)
-            .toString()
+        Uri(
+            scheme: 'http',
+            host: 'localhost',
+            port: port,
+            path: includedRoot,
+            queryParameters: {'authToken': authToken}).toString()
       ];
 
   @override
@@ -82,6 +88,7 @@ class NonNullableFix extends FixCodeTask {
       server = HttpPreviewServer(state, rerun);
       server.serveHttp();
       port = await server.boundPort;
+      authToken = await server.authToken;
     }
   }
 

@@ -43,6 +43,12 @@ class HttpPreviewServer {
     return (await _serverFuture)?.port;
   }
 
+  Future<String> get authToken async {
+    await _serverFuture;
+    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    return previewSite.serviceAuthToken;
+  }
+
   void close() {
     _serverFuture?.then((HttpServer server) {
       server.close();

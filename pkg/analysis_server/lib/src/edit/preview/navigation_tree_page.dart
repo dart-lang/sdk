@@ -16,6 +16,9 @@ class NavigationTreePage extends PreviewPage {
       : super(site, site.migrationInfo.includedRoot);
 
   @override
+  bool get requiresAuth => true;
+
+  @override
   // TODO(srawlins): Refactor JSON-returning pages like this to not inherit all
   //  of the HTML logic from [PreviewPage].
   void generateBody(Map<String, String> params) {

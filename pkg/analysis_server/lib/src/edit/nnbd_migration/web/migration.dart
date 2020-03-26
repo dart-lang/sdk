@@ -110,8 +110,13 @@ void addClickHandlers(String selector, bool clearEditDetails) {
   });
 }
 
+Future<HttpRequest> doGet(String path,
+        {Map<String, String> queryParameters = const {}}) =>
+    HttpRequest.request(pathWithQueryParameters(path, queryParameters),
+        requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'});
+
 Future<HttpRequest> doPost(String path) => HttpRequest.request(
-      path,
+      pathWithQueryParameters(path, {}),
       method: 'POST',
       requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
     ).then((HttpRequest xhr) {
@@ -133,12 +138,23 @@ int getOffset(String location) {
   return str == null ? null : int.tryParse(str);
 }
 
+/// Returns the "authToken" query parameter value of the current location.
+// TODO(srawlins): This feels a little fragile, as the user can accidentally
+//  change/remove this text, and break their session. Normally auth tokens are
+//  stored in cookies, but there is no authentication step during which the
+//  server would attach such a token to cookies. We could do a little step where
+//  the first request to the server with the token is considered
+//  "authentication", and we subsequently store the token in cookies thereafter.
+final String authToken =
+    Uri.parse(window.location.href).queryParameters['authToken'];
+
 void handleNavLinkClick(
   MouseEvent event,
   bool clearEditDetails, {
   String relativeTo,
 }) {
   Element target = event.currentTarget;
+  event.preventDefault();
 
   String location = target.getAttribute('href');
   String path = location;
@@ -162,7 +178,6 @@ void handleNavLinkClick(
       pushState(path, null, null);
     });
   }
-  event.preventDefault();
 }
 
 void handlePostLinkClick(MouseEvent event) async {
@@ -193,13 +208,27 @@ void highlightAllCode() {
   });
 }
 
-/// Load the explanation for [region], into the ".panel-content" div.
+/// Returns [path], which may include query parameters, with a new path which
+/// adds (or replaces) parameters from [queryParameters].
+///
+/// Additionally, the "authToken" parameter will be added with the authToken
+/// found in the current location.
+String pathWithQueryParameters(
+    String path, Map<String, String> queryParameters) {
+  var uri = Uri.parse(path);
+  var mergedQueryParameters = {
+    ...uri.queryParameters,
+    ...queryParameters,
+    'authToken': authToken
+  };
+  return uri.replace(queryParameters: mergedQueryParameters).toString();
+}
+
+/// Loads the explanation for [region], into the ".panel-content" div.
 void loadAndPopulateEditDetails(String path, int offset) {
   // Request the region, then do work with the response.
-  HttpRequest.request(
-    '$path?region=region&offset=$offset',
-    requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
-  ).then((HttpRequest xhr) {
+  doGet(path, queryParameters: {'region': 'region', 'offset': '$offset'})
+      .then((HttpRequest xhr) {
     if (xhr.status == 200) {
       var response = EditDetails.fromJson(jsonDecode(xhr.responseText));
       populateEditDetails(response);
@@ -235,10 +264,7 @@ void loadFile(
   }
 
   // Navigating to another file; request it, then do work with the response.
-  HttpRequest.request(
-    path.contains('?') ? '$path&inline=true' : '$path?inline=true',
-    requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
-  ).then((HttpRequest xhr) {
+  doGet(path, queryParameters: {'inline': 'true'}).then((HttpRequest xhr) {
     if (xhr.status == 200) {
       Map<String, dynamic> response = jsonDecode(xhr.responseText);
       writeCodeAndRegions(
@@ -265,10 +291,7 @@ void loadNavigationTree() {
   String path = '/_preview/navigationTree.json';
 
   // Request the navigation tree, then do work with the response.
-  HttpRequest.request(
-    path,
-    requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
-  ).then((HttpRequest xhr) {
+  doGet(path).then((HttpRequest xhr) {
     if (xhr.status == 200) {
       dynamic response = jsonDecode(xhr.responseText);
       var navTree = document.querySelector('.nav-tree');
@@ -443,11 +466,13 @@ void populateProposedEdits(
 void pushState(String path, int offset, int line) {
   Uri uri = Uri.parse('${window.location.origin}$path');
 
-  Map<String, dynamic> params = {};
-  if (offset != null) params['offset'] = '$offset';
-  if (line != null) params['line'] = '$line';
+  var params = {
+    if (offset != null) 'offset': '$offset',
+    if (line != null) 'line': '$line',
+    'authToken': authToken,
+  };
 
-  uri = uri.replace(queryParameters: params.isEmpty ? null : params);
+  uri = uri.replace(queryParameters: params);
   window.history.pushState({}, '', uri.toString());
 }
 

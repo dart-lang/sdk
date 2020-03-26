@@ -13,6 +13,9 @@ class IndexFilePage extends PreviewPage {
       : super(site, site.migrationInfo.includedRoot);
 
   @override
+  bool get requiresAuth => true;
+
+  @override
   void generateBody(Map<String, String> params) {
     throw UnsupportedError('generateBody');
   }

@@ -16,6 +16,9 @@ abstract class PreviewPage extends Page {
   /// portion of the path to the page that follows the initial slash ('/').
   PreviewPage(this.site, String id) : super(id, '', description: '');
 
+  /// Whether pages of this type require authorization.
+  bool get requiresAuth;
+
   /// Generate the content of the body tag.
   void generateBody(Map<String, String> params);
 

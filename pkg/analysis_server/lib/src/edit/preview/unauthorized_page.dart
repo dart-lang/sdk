@@ -1,16 +1,16 @@
-// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
-/// The page that is displayed when an invalid URL is requested.
-class NotFoundPage extends PreviewPage {
-  /// Initialize a newly created file-not-found page within the given [site].
+/// The page that is displayed when a request could not be authenticated.
+class UnauthorizedPage extends PreviewPage {
+  /// Initialize a newly created unauthorized page within the given [site].
   /// The [id] is the portion of the path to the page that follows the initial
   /// slash ('/').
-  NotFoundPage(PreviewSite site, String id) : super(site, id);
+  UnauthorizedPage(PreviewSite site, String id) : super(site, id);
 
   @override
   bool get requiresAuth => false;
@@ -18,9 +18,9 @@ class NotFoundPage extends PreviewPage {
   @override
   void generateBody(Map<String, String> params) {
     buf.write('''
-<h1>404 Not found</h1>
+<h1>401 Unauthorized</h1>
 <p>
-'$path' not found.
+Request for '$path' is unauthorized.
 </p>
 ''');
   }
