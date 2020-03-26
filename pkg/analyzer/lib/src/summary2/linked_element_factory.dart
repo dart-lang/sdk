@@ -58,6 +58,15 @@ class LinkedElementFactory {
     var exportedReferences = exportsOfLibrary('$uri');
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference);
+      // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/41212
+      if (element == null) {
+        throw StateError(
+          '[No element]'
+          '[uri: $uri]'
+          '[exportedReferences: $exportedReferences]'
+          '[exportedReference: $exportedReference]',
+        );
+      }
       exportedNames[element.name] = element;
     }
 
