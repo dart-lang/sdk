@@ -2255,11 +2255,11 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
 
     if (createRuntimeType) {
       return new RuntimeType(
-          new InterfaceType(type.classNode, Nullability.legacy),
+          new InterfaceType(type.classNode, type.nullability),
           new List<RuntimeType>.from(flattenedTypeExprs));
     } else {
-      final instantiate =
-          new CreateRuntimeType(type.classNode, flattenedTypeExprs);
+      final instantiate = new CreateRuntimeType(
+          type.classNode, type.nullability, flattenedTypeExprs);
       summary.add(instantiate);
       return instantiate;
     }
@@ -2274,8 +2274,14 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     if (type.parameter.parent is! Class) return const AnyType();
     final interfaceClass = type.parameter.parent as Class;
     assertx(receiver != null);
+    // Undetermined nullability is equivalent to nonNullable when
+    // instantiating type parameter, so convert it right away.
+    Nullability nullability = type.nullability;
+    if (nullability == Nullability.undetermined) {
+      nullability = Nullability.nonNullable;
+    }
     final extract = new Extract(receiver, interfaceClass,
-        interfaceClass.typeParameters.indexOf(type.parameter));
+        interfaceClass.typeParameters.indexOf(type.parameter), nullability);
     summary.add(extract);
     return extract;
   }

@@ -26,7 +26,8 @@ class FakeTypesBuilder extends TypesBuilder {
   final Map<Class, TFClass> _classes = <Class, TFClass>{};
   int _classIdCounter = 0;
 
-  FakeTypesBuilder(CoreTypes coreTypes) : super(coreTypes);
+  FakeTypesBuilder(CoreTypes coreTypes)
+      : super(coreTypes, /*nullSafety=*/ false);
 
   @override
   TFClass getTFClass(Class c) =>

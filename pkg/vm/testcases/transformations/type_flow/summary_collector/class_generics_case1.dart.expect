@@ -16,9 +16,9 @@ RESULT: _T {}?
 %this = _Parameter #0 [_T (#lib::_NotRealHashMap)+]
 %key = _Parameter #1
 %value = _Parameter #2
-t3 = _Extract (%this[#lib::_NotRealHashMap/0])
+t3 = _Extract (%this[#lib::_NotRealHashMap/0]*)
 t4 = _TypeCheck (%key against t3) (for VariableDeclaration(key))
-t5 = _Extract (%this[#lib::_NotRealHashMap/1])
+t5 = _Extract (%this[#lib::_NotRealHashMap/1]*)
 t6 = _TypeCheck (%value against t5) (for VariableDeclaration(value))
 RESULT: _T {}?
 ------------ #lib::InheritedElement:: ------------
@@ -34,7 +34,7 @@ t4 = _Call [#lib::MockHashMap::setEntry] (t3, %dependent, %value)
 RESULT: _T {}?
 ------------ #lib::InheritedElement::_dependents ------------
 %this = _Parameter #0 [_T (#lib::InheritedElement)+]
-t1* = _Call direct [#lib::MockHashMap::] (#lib::Element, dart.core::Object)
+t1* = _Call direct [#lib::MockHashMap::] (#lib::Element*, dart.core::Object*)
 RESULT: t1
 ------------ #lib::main ------------
 t0 = _Call direct [#lib::InheritedElement::] (_T (#lib::InheritedElement))
