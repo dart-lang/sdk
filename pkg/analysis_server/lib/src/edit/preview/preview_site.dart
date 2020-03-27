@@ -51,6 +51,8 @@ class PreviewSite extends Site
 
   static const applyMigrationPath = '/apply-migration';
 
+  static const rerunMigrationPath = '/rerun-migration';
+
   /// The state of the migration being previewed.
   MigrationState migrationState;
 
@@ -59,7 +61,7 @@ class PreviewSite extends Site
   final Map<String, UnitInfo> unitInfoMap = {};
 
   // A function provided by DartFix to rerun the migration.
-  final Future<MigrationState> Function(List<String>) rerunFunction;
+  final Future<MigrationState> Function([List<String>]) rerunFunction;
 
   final String serviceAuthToken = _makeAuthToken();
 
@@ -172,6 +174,11 @@ class PreviewSite extends Site
 
         respondOk(request);
         return;
+      } else if (path == rerunMigrationPath) {
+        await rerunMigration();
+
+        respondOk(request);
+        return;
       } else if (uri.queryParameters.containsKey('replacement')) {
         await performEdit(uri);
 
@@ -218,7 +225,7 @@ class PreviewSite extends Site
     await rerunMigration([path]);
   }
 
-  Future<void> rerunMigration(List<String> changedPaths) async {
+  Future<void> rerunMigration([List<String> changedPaths]) async {
     migrationState = await rerunFunction(changedPaths);
     reset();
   }

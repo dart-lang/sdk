@@ -51,7 +51,7 @@ header h2 {
   font-size: 1.2em;
 }
 
-header .apply-migration {
+header .apply-migration, .rerun-migration {
   right: 0px;
   float: right;
   margin: 10px;

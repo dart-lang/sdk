@@ -33,7 +33,7 @@ class HttpPreviewServer {
   Future<HttpServer> _serverFuture;
 
   // A function which allows the migration to be rerun, taking changed paths.
-  final Future<MigrationState> Function(List<String>) rerunFunction;
+  final Future<MigrationState> Function([List<String>]) rerunFunction;
 
   /// Initialize a newly created HTTP server.
   HttpPreviewServer(this.migrationState, this.rerunFunction);

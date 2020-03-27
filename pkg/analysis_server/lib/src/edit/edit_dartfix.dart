@@ -14,6 +14,7 @@ import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart' show SourceKind;
 
@@ -162,27 +163,7 @@ class EditDartFix
     return null;
   }
 
-  /// Return `true` if the path in within the set of `included` files
-  /// or is within an `included` directory.
-  bool isIncluded(String filePath) {
-    if (filePath != null) {
-      for (File file in fixFiles) {
-        if (file.path == filePath) {
-          return true;
-        }
-      }
-      for (Folder folder in fixFolders) {
-        if (folder.contains(filePath)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /// Call the supplied [process] function to process each compilation unit.
-  Future processResources(
-      Future<void> Function(ResolvedUnitResult result) process) async {
+  Set<String> getPathsToProcess() {
     final contextManager = server.contextManager;
     final resourceProvider = server.resourceProvider;
     final resources = <Resource>[];
@@ -208,7 +189,31 @@ class EditDartFix
       }
       pathsToProcess.add(res.path);
     }
+    return pathsToProcess;
+  }
 
+  /// Return `true` if the path in within the set of `included` files
+  /// or is within an `included` directory.
+  bool isIncluded(String filePath) {
+    if (filePath != null) {
+      for (File file in fixFiles) {
+        if (file.path == filePath) {
+          return true;
+        }
+      }
+      for (Folder folder in fixFolders) {
+        if (folder.contains(filePath)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Call the supplied [process] function to process each compilation unit.
+  Future processResources(
+      Future<void> Function(ResolvedUnitResult result) process) async {
+    final pathsToProcess = getPathsToProcess();
     var pathsProcessed = <String>{};
     for (String path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
@@ -245,10 +250,20 @@ class EditDartFix
     }
   }
 
-  Future<bool> rerunTasks(List<String> changedPaths) async {
-    for (String path in changedPaths) {
-      var driver = server.getAnalysisDriver(path);
-      driver.changeFile(path);
+  Future<bool> rerunTasks([List<String> changedPaths]) async {
+    if (changedPaths == null) {
+      final drivers = <AnalysisDriver>{};
+      for (String path in getPathsToProcess()) {
+        drivers.add(server.getAnalysisDriver(path));
+      }
+      for (final driver in drivers) {
+        driver.knownFiles.forEach(driver.changeFile);
+      }
+    } else {
+      for (String path in changedPaths) {
+        var driver = server.getAnalysisDriver(path);
+        driver.changeFile(path);
+      }
     }
 
     return await runAllTasks();

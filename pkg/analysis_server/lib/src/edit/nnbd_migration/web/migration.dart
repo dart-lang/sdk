@@ -42,6 +42,21 @@ void main() {
         window.alert('Could not apply migration ($e).');
       });
     });
+
+    final rerunMigrationButton = document.querySelector('.rerun-migration');
+    rerunMigrationButton.onClick.listen((event) async {
+      try {
+        document.body.classes..add('rerunning');
+        await doPost('/rerun-migration');
+        window.location.reload();
+      } catch (e, st) {
+        logError('rerun migration: $e', st);
+
+        window.alert('Failed to rerun migration: $e.');
+      } finally {
+        document.body.classes.remove('rerunning');
+      }
+    });
   });
 
   window.addEventListener('popstate', (event) {
