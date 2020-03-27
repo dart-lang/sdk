@@ -588,14 +588,6 @@ dart_vm_extra_builder(
 dart_vm_extra_builder(
     "vm-kernel-precomp-linux-release-x64", category="vm|kernel-precomp|r")
 dart_vm_extra_builder(
-    "vm-kernel-precomp-bare-linux-release-x64", category="vm|kernel-precomp|b")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-bare-linux-release-simarm",
-    category="vm|kernel-precomp|b32")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-bare-linux-release-simarm64",
-    category="vm|kernel-precomp|b64")
-dart_vm_extra_builder(
     "vm-kernel-precomp-obfuscate-linux-release-x64",
     category="vm|kernel-precomp|o")
 dart_vm_extra_builder(
