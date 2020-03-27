@@ -455,7 +455,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkClass(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForMemberWithClassName();
       _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes();
       TypeName superclass = node.extendsClause?.superclass;
@@ -1007,7 +1006,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkMixin(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForMemberWithClassName();
       _checkForConflictingTypeVariableErrorCodes();
 
       OnClause onClause = node.onClause;
@@ -3377,31 +3375,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         verifier.verify(element);
       }
     }
-  }
-
-  /**
-   * Verify that the [_enclosingClass] does not define members with the same name
-   * as the enclosing class.
-   *
-   * See [CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME].
-   */
-  void _checkForMemberWithClassName() {
-    if (_enclosingClass == null) {
-      return;
-    }
-    String className = _enclosingClass.name;
-    if (className == null) {
-      return;
-    }
-
-    // check accessors
-    for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
-      if (className == accessor.displayName) {
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, accessor);
-      }
-    }
-    // don't check methods, they would be constructors
   }
 
   /**

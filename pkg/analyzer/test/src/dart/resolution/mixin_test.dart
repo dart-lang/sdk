@@ -369,7 +369,7 @@ mixin M {
   int get M => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
     ]);
   }
 
@@ -379,7 +379,7 @@ mixin M {
   static int get M => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
     ]);
   }
 
@@ -389,7 +389,7 @@ mixin M {
   void set M(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
     ]);
   }
 
@@ -399,7 +399,7 @@ mixin M {
   static void set M(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
     ]);
   }
 

@@ -446,8 +446,6 @@ LibraryDirectiveNotFirst/script3: Fail
 ListLiteralTooManyTypeArguments/example: Fail
 LoadLibraryTakesNoArguments/example: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
-MemberWithSameNameAsClass/analyzerCode: Fail
-MemberWithSameNameAsClass/example: Fail
 MetadataTypeArguments/example: Fail
 MethodNotFound/example: Fail
 MissingArgumentList/analyzerCode: Fail

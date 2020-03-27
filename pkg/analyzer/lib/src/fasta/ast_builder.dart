@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         MessageCode,
         messageConstConstructorWithBody,
-        messageConstructorWithReturnType,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
@@ -717,11 +716,6 @@ class AstBuilder extends StackListener {
       Token bodyToken = body.beginToken ?? modifiers.constKeyword;
       handleRecoverableError(
           messageConstConstructorWithBody, bodyToken, bodyToken);
-    }
-    if (returnType != null) {
-      // This error is also reported in OutlineBuilder.endMethod
-      handleRecoverableError(messageConstructorWithReturnType,
-          returnType.beginToken, returnType.beginToken);
     }
     ConstructorDeclaration constructor = ast.constructorDeclaration(
         comment,

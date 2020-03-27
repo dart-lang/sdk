@@ -930,6 +930,42 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
+    _endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken, false);
+  }
+
+  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    _endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken, true);
+  }
+
+  void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    _endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken, false);
+  }
+
+  void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    _endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken, false);
+  }
+
+  void endMixinConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    _endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken, true);
+  }
+
+  void endExtensionConstructor(Token getOrSet, Token beginToken,
+      Token beginParam, Token beginInitializers, Token endToken) {
+    _endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken, true);
+  }
+
+  void _endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken, bool isConstructor) {
     assert(checkState(beginToken, [ValueKinds.MethodBody]));
     debugEvent("Method");
     MethodBody bodyKind = pop();
@@ -1043,10 +1079,10 @@ class OutlineBuilder extends StackListenerImpl {
       return;
     }
 
-    String constructorName = kind == ProcedureKind.Getter ||
-            kind == ProcedureKind.Setter
-        ? null
-        : libraryBuilder.computeAndValidateConstructorName(name, charOffset);
+    String constructorName = isConstructor
+        ? (libraryBuilder.computeAndValidateConstructorName(name, charOffset) ??
+            name)
+        : null;
     if (constructorName == null &&
         (modifiers & staticMask) == 0 &&
         libraryBuilder.currentTypeParameterScopeBuilder.kind ==

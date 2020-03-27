@@ -149,6 +149,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     var unit = parseCompilationUnit('class{const():super.{n', errors: [
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+      expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 11, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 1),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1),
       expectedError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 20, 1),

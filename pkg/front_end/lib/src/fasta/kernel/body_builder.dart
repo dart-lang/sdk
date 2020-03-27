@@ -845,7 +845,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(!inInitializer);
     Object node = pop();
     List<Initializer> initializers;
-    if (node is Initializer) {
+
+    final ModifierBuilder member = this.member;
+    if (!(member is ConstructorBuilder && !member.isExternal)) {
+      // Initializer not allowed. An error will (hopefully) have been created
+      // already.
+      initializers = <Initializer>[];
+    } else if (node is Initializer) {
       initializers = <Initializer>[node];
     } else if (node is Generator) {
       initializers = node.buildFieldInitializer(initializedFields);
@@ -866,14 +872,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     _initializers ??= <Initializer>[];
     _initializers.addAll(initializers);
-    final ModifierBuilder member = this.member;
-    if (!(member is ConstructorBuilder && !member.isExternal)) {
-      addProblem(
-          fasta.templateInitializerOutsideConstructor
-              .withArguments(member.name),
-          token.charOffset,
-          member.name.length);
-    }
   }
 
   DartType _computeReturnTypeContext(MemberBuilder member) {

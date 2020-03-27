@@ -76,6 +76,7 @@ b23d3b125e9d246e07a2b43b61740759a0dace
 b2i
 b2m
 backping
+badly
 bang
 bar
 basically
@@ -332,6 +333,7 @@ emitting
 en
 enforce
 enforced
+enforces
 enumerates
 env
 eof
@@ -454,6 +456,7 @@ histogram
 hit
 hoc
 hoisted
+hopefully
 href
 html
 http
@@ -809,6 +812,7 @@ re
 reach
 react
 realign
+realise
 reassigned
 rebind
 rebuild

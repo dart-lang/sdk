@@ -736,10 +736,6 @@ InitializerForStaticField:
   template: "'#name' isn't an instance field of this class."
   analyzerCode: INITIALIZER_FOR_STATIC_FIELD
 
-InitializerOutsideConstructor:
-  template: "Only constructors can have initializers, and '#name' is not a constructor."
-  analyzerCode: INITIALIZER_OUTSIDE_CONSTRUCTOR
-
 MoreThanOneSuperOrThisInitializer:
   template: "Can't have more than one 'super' or 'this' initializer."
   analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
@@ -840,6 +836,22 @@ StaticConstructor:
   script:
     - "class C { static C() {} }"
     - "class C { static C.m() {} }"
+
+GetterConstructor:
+  index: 103
+  template: "Constructors can't be a getter."
+  tip: "Try removing 'get'."
+  analyzerCode: ParserErrorCode.GETTER_CONSTRUCTOR
+  script:
+    - "class C { get C.m() {} }"
+
+SetterConstructor:
+  index: 104
+  template: "Constructors can't be a setter."
+  tip: "Try removing 'set'."
+  analyzerCode: ParserErrorCode.SETTER_CONSTRUCTOR
+  script:
+    - "class C { set C.m(x) {} }"
 
 StaticOperator:
   index: 17
@@ -1335,6 +1347,7 @@ ConstructorWithReturnType:
   analyzerCode: ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE
   script:
     - "class C { int C() {} }"
+    - "class C { void C.m() {} }"
 
 ConstructorWithTypeParameters:
   index: 99
@@ -1357,7 +1370,8 @@ ConstructorWithTypeArguments:
 
 ConstructorWithWrongName:
   template: "The name of a constructor must match the name of the enclosing class."
-  analyzerCode: INVALID_CONSTRUCTOR_NAME
+  analyzerCode: ParserErrorCode.INVALID_CONSTRUCTOR_NAME
+  index: 102
   script:
     - "class A { B.foo() {} }"
     - "class A { factory B() => null; }"
@@ -2166,6 +2180,14 @@ ExternalMethodWithBody:
     - "class C {foo() native {}}"
     - "class C {foo() native 'bar' {}}"
 
+ExternalConstructorWithInitializer:
+  index: 106
+  template: "An external constructor can't have any initializers."
+  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER
+  script:
+    - "class C { int x; external C() : x = 1; }"
+    - "class C { int x; external C.foo() : x = 1; }"
+
 ExternalTypedef:
   index: 76
   template: "Typedefs can't be declared to be 'external'."
@@ -2503,6 +2525,16 @@ DuplicatedParameterNameCause:
 
 MemberWithSameNameAsClass:
   template: "A class member can't have the same name as the enclosing class."
+  tip: "Try renaming the member."
+  analyzerCode: ParserErrorCode.MEMBER_WITH_CLASS_NAME
+  index: 105
+  script:
+    - "class C { get C {} }"
+    - "class C { get C => 42; }"
+    - "class C { set C(x) {} }"
+    - "class C { set C(x) => 42; }"
+    - "class C { int C; }"
+    - "class C { int A, B, C, D, E; }"
 
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."

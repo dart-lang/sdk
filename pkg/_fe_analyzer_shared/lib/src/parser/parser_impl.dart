@@ -2397,7 +2397,8 @@ class Parser {
         beforeType,
         typeInfo,
         token.next,
-        DeclarationKind.TopLevel);
+        DeclarationKind.TopLevel,
+        null);
   }
 
   Token parseFields(
@@ -2410,7 +2411,8 @@ class Parser {
       Token beforeType,
       TypeInfo typeInfo,
       Token name,
-      DeclarationKind kind) {
+      DeclarationKind kind,
+      String enclosingDeclarationName) {
     if (externalToken != null) {
       reportRecoverableError(externalToken, codes.messageExternalField);
     }
@@ -2455,12 +2457,12 @@ class Parser {
     }
 
     int fieldCount = 1;
-    token =
-        parseFieldInitializerOpt(name, name, lateToken, varFinalOrConst, kind);
+    token = parseFieldInitializerOpt(
+        name, name, lateToken, varFinalOrConst, kind, enclosingDeclarationName);
     while (optional(',', token.next)) {
       name = ensureIdentifier(token.next, context);
-      token = parseFieldInitializerOpt(
-          name, name, lateToken, varFinalOrConst, kind);
+      token = parseFieldInitializerOpt(name, name, lateToken, varFinalOrConst,
+          kind, enclosingDeclarationName);
       ++fieldCount;
     }
     Token semicolon = token.next;
@@ -2564,8 +2566,16 @@ class Parser {
     return token;
   }
 
-  Token parseFieldInitializerOpt(Token token, Token name, Token lateToken,
-      Token varFinalOrConst, DeclarationKind kind) {
+  Token parseFieldInitializerOpt(
+      Token token,
+      Token name,
+      Token lateToken,
+      Token varFinalOrConst,
+      DeclarationKind kind,
+      String enclosingDeclarationName) {
+    if (name.lexeme == enclosingDeclarationName) {
+      reportRecoverableError(name, codes.messageMemberWithSameNameAsClass);
+    }
     Token next = token.next;
     if (optional('=', next)) {
       Token assignment = next;
@@ -3297,7 +3307,8 @@ class Parser {
           beforeType,
           typeInfo,
           token.next,
-          kind);
+          kind,
+          enclosingDeclarationName);
     }
     listener.endMember();
     return token;
@@ -3369,29 +3380,48 @@ class Parser {
     assert(token.next == (getOrSet ?? name));
     token = getOrSet ?? token;
 
+    bool hasQualifiedName = false;
+
     if (isOperator) {
       token = parseOperatorName(token);
     } else {
       token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
-      if (getOrSet == null) {
-        token = parseQualifiedRestOpt(
-            token, IdentifierContext.methodDeclarationContinuation);
+      // Possible recovery: This call only does something if the next token is
+      // a '.' --- that's not legal for get or set, but an error is reported
+      // later, and it will recover better if we allow it.
+      Token qualified = parseQualifiedRestOpt(
+          token, IdentifierContext.methodDeclarationContinuation);
+      if (token != qualified) {
+        hasQualifiedName = true;
       }
+      token = qualified;
     }
 
-    bool isGetter = false;
+    bool isConsideredGetter = false;
     if (getOrSet == null) {
       token = parseMethodTypeVar(token);
     } else {
-      isGetter = optional("get", getOrSet);
+      isConsideredGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token.next);
+
+      // If it becomes considered a constructor below, don't consider it a
+      // getter now (this also enforces parenthesis (and thus parameters)).
+      if (hasQualifiedName) {
+        isConsideredGetter = false;
+      } else if (isConsideredGetter && optional(':', token.next)) {
+        isConsideredGetter = false;
+      } else if (isConsideredGetter &&
+          name.lexeme == enclosingDeclarationName) {
+        // This is a simple case of an badly named getter so we don't consider
+        // that a constructor. We issue an error about the name below.
+      }
     }
 
     Token beforeParam = token;
     Token beforeInitializers = parseGetterOrFormalParameters(
         token,
         name,
-        isGetter,
+        isConsideredGetter,
         kind == DeclarationKind.Extension
             ? staticToken != null
                 ? MemberKind.ExtensionStaticMethod
@@ -3425,45 +3455,14 @@ class Parser {
 
     bool isConstructor = false;
     if (optional('.', name.next) || beforeInitializers != null) {
+      // This is only legal for constructors.
       isConstructor = true;
-      if (name.lexeme != enclosingDeclarationName) {
-        // Recovery: The name does not match,
-        // but the name is prefixed or the declaration contains initializers.
-        // Report an error and continue with invalid name.
-        // TODO(danrubel): report invalid constructor name
-        // Currently multiple listeners report this error, but that logic should
-        // be removed and the error reported here instead.
-        if (isOperator) {
-          isConstructor = false;
-        }
-      }
-      if (getOrSet != null) {
-        // Recovery
-        if (optional('.', name.next)) {
-          // Unexpected get/set before constructor.
-          // Report an error and skip over the token.
-          // TODO(danrubel): report an error on get/set token
-          // This is currently reported by listeners other than AstBuilder.
-          // It should be reported here rather than in the listeners.
-        } else {
-          isConstructor = false;
-          if (beforeInitializers != null) {
-            // Unexpected initializers after get/set declaration.
-            // Report an error on the initializers
-            // and continue with the get/set declaration.
-            // TODO(danrubel): report invalid initializers error
-            // Currently multiple listeners report this error, but that logic
-            // should be removed and the error reported here instead.
-          }
-        }
-      }
     } else if (name.lexeme == enclosingDeclarationName) {
       if (getOrSet != null) {
-        // Recovery: The get/set member name is invalid.
-        // Report an error and continue with invalid name.
-        // TODO(danrubel): report invalid get/set member name
-        // Currently multiple listeners report this error, but that logic should
-        // be removed and the error reported here instead.
+        // Recovery: The (simple) get/set member name is invalid.
+        // Report an error and continue with invalid name
+        // (keeping it as a getter/setter).
+        reportRecoverableError(name, codes.messageMemberWithSameNameAsClass);
       } else {
         isConstructor = true;
       }
@@ -3473,9 +3472,28 @@ class Parser {
       //
       // constructor
       //
+      if (name.lexeme != enclosingDeclarationName) {
+        reportRecoverableError(name, codes.messageConstructorWithWrongName);
+      }
       if (staticToken != null) {
         reportRecoverableError(staticToken, codes.messageStaticConstructor);
       }
+      if (getOrSet != null) {
+        if (optional("get", getOrSet)) {
+          reportRecoverableError(getOrSet, codes.messageGetterConstructor);
+        } else {
+          reportRecoverableError(getOrSet, codes.messageSetterConstructor);
+        }
+      }
+      if (typeInfo != noType) {
+        reportRecoverableError(
+            beforeType.next, codes.messageConstructorWithReturnType);
+      }
+      if (beforeInitializers != null && externalToken != null) {
+        reportRecoverableError(beforeInitializers.next,
+            codes.messageExternalConstructorWithInitializer);
+      }
+
       switch (kind) {
         case DeclarationKind.Class:
           // TODO(danrubel): Remove getOrSet from constructor events
@@ -6813,7 +6831,8 @@ class Parser {
           beforeType,
           typeInfo,
           token.next,
-          kind);
+          kind,
+          enclosingDeclarationName);
     }
 
     listener.endMember();

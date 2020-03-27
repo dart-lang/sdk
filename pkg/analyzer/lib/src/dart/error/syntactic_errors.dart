@@ -297,6 +297,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY =
       _EXTERNAL_CONSTRUCTOR_WITH_BODY;
 
+  static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER =
+      _EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER;
+
   static const ParserErrorCode EXTERNAL_ENUM = _EXTERNAL_ENUM;
 
   static const ParserErrorCode EXTERNAL_FACTORY_REDIRECTION =
@@ -382,6 +385,8 @@ class ParserErrorCode extends ErrorCode {
       "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.",
       correction: "Try replacing the keyword with a return type.");
 
+  static const ParserErrorCode GETTER_CONSTRUCTOR = _GETTER_CONSTRUCTOR;
+
   static const ParserErrorCode GETTER_IN_FUNCTION = ParserErrorCode(
       'GETTER_IN_FUNCTION',
       "Getters can't be defined within methods or functions.",
@@ -425,10 +430,8 @@ class ParserErrorCode extends ErrorCode {
       "Comment references should contain a possibly prefixed identifier and "
           "can start with 'new', but shouldn't contain anything else.");
 
-  static const ParserErrorCode INVALID_CONSTRUCTOR_NAME = ParserErrorCode(
-      'INVALID_CONSTRUCTOR_NAME',
-      "The keyword '{0}' cannot be used to name a constructor.",
-      correction: "Try giving the constructor a different name.");
+  static const ParserErrorCode INVALID_CONSTRUCTOR_NAME =
+      _INVALID_CONSTRUCTOR_NAME;
 
   static const ParserErrorCode INVALID_GENERIC_FUNCTION_TYPE = ParserErrorCode(
       'INVALID_GENERIC_FUNCTION_TYPE', "Invalid generic function type.",
@@ -521,6 +524,8 @@ class ParserErrorCode extends ErrorCode {
       ParserErrorCode('LOCAL_FUNCTION_DECLARATION_MODIFIER',
           "Local function declarations can't specify any modifiers.",
           correction: "Try removing the modifier.");
+
+  static const ParserErrorCode MEMBER_WITH_CLASS_NAME = _MEMBER_WITH_CLASS_NAME;
 
   static const ParserErrorCode MISSING_ASSIGNABLE_SELECTOR =
       _MISSING_ASSIGNABLE_SELECTOR;
@@ -771,6 +776,8 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
       _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR;
+
+  static const ParserErrorCode SETTER_CONSTRUCTOR = _SETTER_CONSTRUCTOR;
 
   static const ParserErrorCode SETTER_IN_FUNCTION = ParserErrorCode(
       'SETTER_IN_FUNCTION',
