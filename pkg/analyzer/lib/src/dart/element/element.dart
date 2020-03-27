@@ -521,8 +521,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   List<InterfaceType> get allSupertypes {
     var sessionImpl = library.session as AnalysisSessionImpl;
-    // TODO(mfairhurst): Don't copy this list, clients should instead if needed.
-    return sessionImpl.classHierarchy.implementedInterfaces(this).toList();
+    return sessionImpl.classHierarchy.implementedInterfaces(this);
   }
 
   @override
