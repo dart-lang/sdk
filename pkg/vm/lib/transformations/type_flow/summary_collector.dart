@@ -344,7 +344,19 @@ class _VariablesInfoCollector extends RecursiveVisitor<Null> {
     final savedNumVariablesAtFunctionEntry = numVariablesAtFunctionEntry;
     numVariablesAtFunctionEntry = numVariables;
 
-    node.function.accept(this);
+    final function = node.function;
+    function.accept(this);
+
+    if (function.asyncMarker == AsyncMarker.SyncYielding) {
+      // Mark parameters of synthetic async_op closures as captured
+      // to make sure their updates at yield points are taken into account.
+      for (var v in function.positionalParameters) {
+        _captureVariable(v);
+      }
+      for (var v in function.namedParameters) {
+        _captureVariable(v);
+      }
+    }
 
     activeStatements = savedActiveStatements;
     numVariablesAtActiveStatements = savedNumVariablesAtActiveStatements;
@@ -354,10 +366,14 @@ class _VariablesInfoCollector extends RecursiveVisitor<Null> {
   bool _isDeclaredBefore(int variableIndex, int entryDeclarationCounter) =>
       variableIndex < entryDeclarationCounter;
 
+  void _captureVariable(VariableDeclaration variable) {
+    (captured ??= <VariableDeclaration>{}).add(variable);
+  }
+
   void _useVariable(VariableDeclaration variable, bool isVarAssignment) {
     final index = varIndex[variable];
     if (_isDeclaredBefore(index, numVariablesAtFunctionEntry)) {
-      (captured ??= <VariableDeclaration>{}).add(variable);
+      _captureVariable(variable);
       return;
     }
     if (isVarAssignment && activeStatements != null) {
