@@ -18,9 +18,12 @@ main() {
   StackTrace trace = captureStackTrace();
   asyncStart();
   var f = new Future(() => 499);
-  f.then((_) => new Future.error("e", trace)).whenComplete(() => 499).then((_) {
+  f
+      .then((_) => new Future.error("e", trace))
+      .whenComplete(() => 499)
+      .then<Null>((_) {
     throw "should never be reached";
-  }).then((_) {
+  }).then<Null>((_) {
     throw "Unreachable";
   }, onError: (e, st) {
     Expect.equals("e", e);
