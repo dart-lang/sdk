@@ -1221,9 +1221,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     // Only instance fields could be covariant.
     ASSERT(!field_helper.IsCovariant() &&
            !field_helper.IsGenericCovariantImpl());
-    // In NNBD libraries, static fields act like late fields
-    // regardless of whether they're marked late.
-    const bool is_late = field_helper.IsLate() || library.is_nnbd();
+    const bool is_late = field_helper.IsLate();
     const bool is_extension_member = field_helper.IsExtensionMember();
     const Field& field = Field::Handle(
         Z, Field::NewTopLevel(name, is_final, field_helper.IsConst(), is_late,
@@ -1236,6 +1234,11 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
     CheckForInitializer(field);
+    // In NNBD libraries, static fields with initializers are
+    // implicitly late.
+    if (field.has_initializer() && library.is_nnbd()) {
+      field.set_is_late(true);
+    }
     field_helper.SetJustRead(FieldHelper::kType);
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
     intptr_t field_initializer_offset = helper_.ReaderOffset();
@@ -1579,10 +1582,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       // In the VM all const fields are implicitly final whereas in Kernel they
       // are not final because they are not explicitly declared that way.
       const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
-      // In NNBD libraries, static fields act like late fields
-      // regardless of whether they're marked late.
-      const bool is_late = field_helper.IsLate() ||
-                           (field_helper.IsStatic() && library.is_nnbd());
+      const bool is_late = field_helper.IsLate();
       const bool is_extension_member = field_helper.IsExtensionMember();
       Field& field = Field::Handle(
           Z, Field::New(name, field_helper.IsStatic(), is_final,
@@ -1597,6 +1597,12 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_extension_member(is_extension_member);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
+      // In NNBD libraries, static fields with initializers are
+      // implicitly late.
+      if (field_helper.IsStatic() && field.has_initializer() &&
+          library.is_nnbd()) {
+        field.set_is_late(true);
+      }
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = helper_.ReaderOffset();
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
