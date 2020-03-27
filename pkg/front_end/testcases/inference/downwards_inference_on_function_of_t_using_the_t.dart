@@ -8,18 +8,18 @@ library test;
 void main() {
   {
     T f<T>(T x) => null;
-    var /*@type=<T extends Object>(main::f::T) -> main::f::T*/ v1 = f;
-    v1 = <S> /*@returnType=main::::S*/ (/*@type=main::::S*/ x) => x;
+    var /*@type=<T extends Object* = dynamic>(T*) ->* T**/ v1 = f;
+    v1 = <S> /*@returnType=S**/ (/*@type=S**/ x) => x;
   }
   {
     List<T> f<T>(T x) => null;
-    var /*@type=<T extends Object>(main::f::T) -> List<main::f::T>*/ v2 = f;
-    v2 = <S> /*@returnType=List<main::::S>*/
-        (/*@type=main::::S*/ x) => /*@typeArgs=main::::S*/ [x];
-    Iterable<int> r = /*@typeArgs=int*/ v2(42);
-    Iterable<String> s = /*@typeArgs=String*/ v2('hello');
-    Iterable<List<int>> t = /*@typeArgs=List<int>*/ v2(<int>[]);
-    Iterable<num> u = /*@typeArgs=num*/ v2(42);
+    var /*@type=<T extends Object* = dynamic>(T*) ->* List<T*>**/ v2 = f;
+    v2 = <S> /*@returnType=List<S*>**/
+        (/*@type=S**/ x) => /*@typeArgs=S**/ [x];
+    Iterable<int> r = v2 /*@typeArgs=int**/ (42);
+    Iterable<String> s = v2 /*@typeArgs=String**/ ('hello');
+    Iterable<List<int>> t = v2 /*@typeArgs=List<int*>**/ (<int>[]);
+    Iterable<num> u = v2 /*@typeArgs=num**/ (42);
     Iterable<num> v = v2<num>(42);
   }
 }

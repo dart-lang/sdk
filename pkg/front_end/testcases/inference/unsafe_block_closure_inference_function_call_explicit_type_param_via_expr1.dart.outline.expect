@@ -4,11 +4,11 @@ library test;
 //
 // pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1.dart:9:15: Error: A comparison expression can't be an operand of another comparison expression.
 // Try putting parentheses around one of the comparisons.
-// var v = (f<int>)(() {
+// var v = (f<int>)(/*@returnType=int**/() {
 //               ^
 //
 // pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1.dart:9:16: Error: Expected an identifier, but got ')'.
-// var v = (f<int>)(() {
+// var v = (f<int>)(/*@returnType=int**/() {
 //                ^
 //
 import self as self;

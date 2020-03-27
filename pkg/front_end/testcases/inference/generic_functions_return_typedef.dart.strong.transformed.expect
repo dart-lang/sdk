@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef ToValue<contravariant T extends core::Object* = dynamic> = (T*) →* void;
+static method main() → dynamic {
+  function f<T extends core::Object* = dynamic>(T* x) → (T*) →* void
+    return null;
+  (core::int*) →* void x = f.call<core::int*>(42);
+  (core::int*) →* void y = f.call<core::int*>(42);
+  (core::int*) →* void takesInt = x;
+  takesInt = y;
+}

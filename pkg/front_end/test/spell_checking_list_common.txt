@@ -2809,6 +2809,7 @@ suffix
 suffixes
 suggested
 suitable
+suites
 summaries
 summarize
 summarizes

@@ -7,7 +7,7 @@
 foo() {}
 
 test() {
-  /*@warning=MethodNotFound*/ foo(null);
+  foo(null);
 }
 
 main() {}
