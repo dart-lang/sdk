@@ -32,15 +32,20 @@ void main() {
 
     final applyMigrationButton = document.querySelector('.apply-migration');
     applyMigrationButton.onClick.listen((event) {
-      doPost('/apply-migration').then((xhr) {
-        document.body.classes
-          ..remove('proposed')
-          ..add('applied');
-      }).catchError((e, st) {
-        logError('apply migration error: $e', st);
+      if (window.confirm(
+          "This will apply the changes you've previewed to your working"
+          " directory. It is recommended you commit any changes you made before"
+          " doing this.")) {
+        doPost('/apply-migration').then((xhr) {
+          document.body.classes
+            ..remove('proposed')
+            ..add('applied');
+        }).catchError((e, st) {
+          logError('apply migration error: $e', st);
 
-        window.alert('Could not apply migration ($e).');
-      });
+          window.alert('Could not apply migration ($e).');
+        });
+      }
     });
 
     final rerunMigrationButton = document.querySelector('.rerun-migration');
