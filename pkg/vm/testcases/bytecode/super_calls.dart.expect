@@ -494,7 +494,7 @@ ConstantPool {
     method testSuperGet() → dynamic
       return super.{#lib::Base1::bar};
     method testSuperCallViaGetter() → dynamic
-      return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{#lib::Base1::bar}.call<dart.core::int*>("param");
+      return [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] super.{#lib::Base1::bar}.call<dart.core::int*>("param");
     method testSuperSet() → dynamic {
       super.{#lib::Base1::bazz} = 3;
     }
@@ -518,7 +518,7 @@ ConstantPool {
     method testSuperGet() → dynamic
       return super.{#lib::Base2::bar};
     method testSuperCallViaGetter() → dynamic
-      return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{#lib::Base2::bar}.call<dart.core::int*>("param");
+      return [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] super.{#lib::Base2::bar}.call<dart.core::int*>("param");
     method testSuperSet() → dynamic {
       super.{#lib::Base2::bazz} = 3;
     }

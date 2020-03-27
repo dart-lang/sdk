@@ -10,12 +10,12 @@ class Element extends core::Object {
     ;
 }
 class InheritedElement extends self::Element {
-[@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<InterfaceType(Reference to #lib::Element*), InterfaceType(Reference to root::dart:core::Object*)>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  final field core::Map<self::Element*, core::Object*>* _dependents = <self::Element*, core::Object*>{};
+[@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<InterfaceType(#lib::Element*), InterfaceType(dart:core::Object*)>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  final field core::Map<self::Element*, core::Object*>* _dependents = <self::Element*, core::Object*>{};
   synthetic constructor •() → self::InheritedElement*
     : super self::Element::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method setDependencies([@vm.inferred-type.metadata=!] self::Element* dependent, [@vm.inferred-type.metadata=dart.core::_Smi?] core::Object* value) → void {
-    [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::Map*)] [@vm.direct-call.metadata=dart.collection::__InternalLinkedHashMap&_HashVMBase&MapMixin&_LinkedHashMapMixin::[]=] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::InheritedElement::_dependents] [@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<InterfaceType(Reference to #lib::Element*), InterfaceType(Reference to root::dart:core::Object*)>] this.{self::InheritedElement::_dependents}.{core::Map::[]=}(dependent, value);
+    [@vm.call-site-attributes.metadata=receiverType:InterfaceType(dart:core::Map<#lib::Element*, dart:core::Object*>*)] [@vm.direct-call.metadata=dart.collection::__InternalLinkedHashMap&_HashVMBase&MapMixin&_LinkedHashMapMixin::[]=] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::InheritedElement::_dependents] [@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<InterfaceType(#lib::Element*), InterfaceType(dart:core::Object*)>] this.{self::InheritedElement::_dependents}.{core::Map::[]=}(dependent, value);
   }
 }
 static method main() → dynamic {

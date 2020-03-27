@@ -27,5 +27,5 @@ class TearOffInterfaceMethod extends core::Object {
 static method knownResult() → dynamic
   return new self::B::•();
 static method main(core::List<core::String*>* args) → dynamic {
-  [@vm.call-site-attributes.metadata=receiverType:dynamic] [@vm.direct-call.metadata=#lib::TearOffInterfaceMethod::bazz] new self::TearOffInterfaceMethod::•(new self::B::•()).{self::TearOffInterfaceMethod::bazz}.call();
+  [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] [@vm.direct-call.metadata=#lib::TearOffInterfaceMethod::bazz] new self::TearOffInterfaceMethod::•(new self::B::•()).{self::TearOffInterfaceMethod::bazz}.call();
 }

@@ -51,7 +51,7 @@ static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCall
 static method use2([@vm.inferred-type.metadata=#lib::DeepCaller2] self::DeepCaller2* x, [@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller2::barL1] [@vm.inferred-type.metadata=! (skip check)] x.{self::DeepCaller2::barL1}(aa);
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::Function*)] self::unknown.call();
+  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(dart:core::Function*)] self::unknown.call();
 static method setField2([@vm.inferred-type.metadata=#lib::A] self::A* aa, [@vm.inferred-type.metadata=#lib::T2] dynamic value) → void {
   [@vm.direct-call.metadata=#lib::A::field2] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::field2} = value;
 }

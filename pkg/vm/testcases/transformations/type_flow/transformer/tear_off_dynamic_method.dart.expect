@@ -18,12 +18,12 @@ class TearOffDynamicMethod extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field dynamic bazz;
   constructor •(dynamic arg) → self::TearOffDynamicMethod*
     : self::TearOffDynamicMethod::bazz = arg.foo, super core::Object::•() {
-    [@vm.call-site-attributes.metadata=receiverType:dynamic] [@vm.direct-call.metadata=#lib::TearOffDynamicMethod::bazz] this.{self::TearOffDynamicMethod::bazz}.call();
+    [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] [@vm.direct-call.metadata=#lib::TearOffDynamicMethod::bazz] this.{self::TearOffDynamicMethod::bazz}.call();
   }
 }
 static method knownResult() → dynamic
   return new self::B::•();
 static method main(core::List<core::String*>* args) → dynamic {
   core::Function* closure = () → self::B* => new self::B::•();
-  new self::TearOffDynamicMethod::•([@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::Function*)] closure.call());
+  new self::TearOffDynamicMethod::•([@vm.call-site-attributes.metadata=receiverType:InterfaceType(dart:core::Function*)] closure.call());
 }

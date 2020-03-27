@@ -49,9 +49,9 @@ static method func2(self::T0* t0) → void {
   [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
 }
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::Function*)] self::unknown.call();
+  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(dart:core::Function*)] self::unknown.call();
 static method use(dynamic x) → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(Reference to root::dart:core::Function*)] self::unknown.call(x);
+  return [@vm.call-site-attributes.metadata=receiverType:InterfaceType(dart:core::Function*)] self::unknown.call(x);
 static method main(core::List<core::String*>* args) → dynamic {
   self::func1(self::getDynamic() as{TypeError,ForDynamic} self::T0*);
   self::use(#C1);

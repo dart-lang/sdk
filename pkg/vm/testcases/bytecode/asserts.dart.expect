@@ -90,7 +90,7 @@ ConstantPool {
     assert(condition);
   }
   static method test2(() →* dart.core::bool* condition, () →* dart.core::String* message) → void {
-    assert([@vm.call-site-attributes.metadata=receiverType:FunctionType()] condition.call(), [@vm.call-site-attributes.metadata=receiverType:FunctionType()] message.call());
+    assert([@vm.call-site-attributes.metadata=receiverType:FunctionType(dart:core::bool* Function()*)] condition.call(), [@vm.call-site-attributes.metadata=receiverType:FunctionType(dart:core::String* Function()*)] message.call());
   }
   static method main() → dynamic {}
 }

@@ -129,25 +129,6 @@ String _debugMemberName(Member node) {
       "null-named member ${node.runtimeType} ${node.hashCode}";
 }
 
-String _debugVariableDeclarationName(VariableDeclaration node) {
-  return node.name ??
-      "null-named VariableDeclaration ${node.runtimeType} ${node.hashCode}";
-}
-
-String _debugQualifiedTypeParameterName(TypeParameter node) {
-  if (node.parent is Class) {
-    return _debugQualifiedClassName(node.parent) +
-        '::' +
-        _debugTypeParameterName(node);
-  }
-  if (node.parent is Member) {
-    return _debugQualifiedMemberName(node.parent) +
-        '::' +
-        _debugTypeParameterName(node);
-  }
-  return _debugTypeParameterName(node);
-}
-
 String _debugTypeParameterName(TypeParameter node) {
   return node.name ??
       "null-named TypeParameter ${node.runtimeType} ${node.hashCode}";
@@ -167,6 +148,17 @@ abstract class Node {
   /// The data is generally bare-bones, but can easily be updated for your
   /// specific debugging needs.
   String toString();
+
+  /// Returns the textual representation of this node for use in debugging.
+  ///
+  /// [toStringInternal] should only be used for debugging, but should not leak.
+  ///
+  /// The data is generally bare-bones, but can easily be updated for your
+  /// specific debugging needs.
+  ///
+  /// This method is called internally by toString methods to create conciser
+  /// textual representations.
+  String toStringInternal();
 
   /// Returns the textual representation of this node for use in debugging.
   ///
@@ -324,11 +316,15 @@ class Reference {
   }
 
   String toString() {
+    return "Reference to ${toStringInternal()}";
+  }
+
+  String toStringInternal() {
     if (canonicalName != null) {
-      return 'Reference to $canonicalName';
+      return '${canonicalName.toStringInternal()}';
     }
     if (node != null) {
-      return 'Reference to $node';
+      return node.toStringInternal();
     }
     return 'Unbound reference';
   }
@@ -686,6 +682,7 @@ class Library extends NamedNode
   /// Returns a possibly synthesized name for this library, consistent with
   /// the names across all [toString] calls.
   String toString() => _debugLibraryName(this);
+  String toStringInternal() => _debugLibraryName(this);
 
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
@@ -771,7 +768,12 @@ class LibraryDependency extends TreeNode {
 
   @override
   String toString() {
-    return "LibraryDependency()";
+    return "LibraryDependency(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -804,7 +806,12 @@ class LibraryPart extends TreeNode {
 
   @override
   String toString() {
-    return "LibraryPart()";
+    return "LibraryPart(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -833,7 +840,12 @@ class Combinator extends TreeNode {
 
   @override
   String toString() {
-    return "Combinator()";
+    return "Combinator(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -905,7 +917,12 @@ class Typedef extends NamedNode implements FileUriNode {
 
   @override
   String toString() {
-    return "Typedef()";
+    return "Typedef(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${name}";
   }
 }
 
@@ -1419,6 +1436,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// Returns a possibly synthesized name for this class, consistent with
   /// the names used across all [toString] calls.
   String toString() => _debugQualifiedClassName(this);
+  String toStringInternal() => _debugQualifiedClassName(this);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -1519,7 +1537,12 @@ class Extension extends NamedNode implements FileUriNode {
 
   @override
   String toString() {
-    return "Extension()";
+    return "Extension(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1682,6 +1705,7 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   /// Returns a possibly synthesized name for this member, consistent with
   /// the names used across all [toString] calls.
   String toString() => _debugQualifiedMemberName(this);
+  String toStringInternal() => _debugQualifiedMemberName(this);
 
   void addAnnotation(Expression node) {
     if (annotations.isEmpty) {
@@ -2460,7 +2484,12 @@ class InvalidInitializer extends Initializer {
 
   @override
   String toString() {
-    return "InvalidInitializer()";
+    return "InvalidInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2506,7 +2535,12 @@ class FieldInitializer extends Initializer {
 
   @override
   String toString() {
-    return "FieldInitializer()";
+    return "FieldInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2553,7 +2587,12 @@ class SuperInitializer extends Initializer {
 
   @override
   String toString() {
-    return "SuperInitializer()";
+    return "SuperInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2596,7 +2635,12 @@ class RedirectingInitializer extends Initializer {
 
   @override
   String toString() {
-    return "RedirectingInitializer()";
+    return "RedirectingInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2626,7 +2670,12 @@ class LocalInitializer extends Initializer {
 
   @override
   String toString() {
-    return "LocalInitializer()";
+    return "LocalInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2650,7 +2699,12 @@ class AssertInitializer extends Initializer {
 
   @override
   String toString() {
-    return "AssertInitializer()";
+    return "AssertInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2804,7 +2858,12 @@ class FunctionNode extends TreeNode {
 
   @override
   String toString() {
-    return "FunctionNode()";
+    return "FunctionNode(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2935,7 +2994,12 @@ class InvalidExpression extends Expression {
 
   @override
   String toString() {
-    return "InvalidExpression()";
+    return "InvalidExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2966,7 +3030,12 @@ class VariableGet extends Expression {
 
   @override
   String toString() {
-    return "VariableGet()";
+    return "VariableGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3001,7 +3070,12 @@ class VariableSet extends Expression {
 
   @override
   String toString() {
-    return "VariableSet()";
+    return "VariableSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3066,7 +3140,12 @@ class PropertyGet extends Expression {
 
   @override
   String toString() {
-    return "PropertyGet($receiver.$name)";
+    return "PropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${receiver.toStringInternal()}.${name.toStringInternal()}";
   }
 }
 
@@ -3126,7 +3205,12 @@ class PropertySet extends Expression {
 
   @override
   String toString() {
-    return "PropertySet()";
+    return "PropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3173,7 +3257,12 @@ class DirectPropertyGet extends Expression {
 
   @override
   String toString() {
-    return "DirectPropertyGet()";
+    return "DirectPropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3226,7 +3315,12 @@ class DirectPropertySet extends Expression {
 
   @override
   String toString() {
-    return "DirectPropertySet()";
+    return "DirectPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3292,7 +3386,12 @@ class DirectMethodInvocation extends InvocationExpression {
 
   @override
   String toString() {
-    return "DirectMethodInvocation()";
+    return "DirectMethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3345,7 +3444,12 @@ class SuperPropertyGet extends Expression {
 
   @override
   String toString() {
-    return "SuperPropertyGet()";
+    return "SuperPropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3396,7 +3500,12 @@ class SuperPropertySet extends Expression {
 
   @override
   String toString() {
-    return "SuperPropertySet()";
+    return "SuperPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3429,7 +3538,12 @@ class StaticGet extends Expression {
 
   @override
   String toString() {
-    return "StaticGet()";
+    return "StaticGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3475,7 +3589,12 @@ class StaticSet extends Expression {
 
   @override
   String toString() {
-    return "StaticSet()";
+    return "StaticSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3527,7 +3646,13 @@ class Arguments extends TreeNode {
 
   @override
   String toString() {
-    return "Arguments()";
+    return "Arguments(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    // TODO(jensj): Make (much) better.
+    return "";
   }
 }
 
@@ -3555,7 +3680,12 @@ class NamedExpression extends TreeNode {
 
   @override
   String toString() {
-    return "NamedExpression()";
+    return "NamedExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3689,7 +3819,12 @@ class MethodInvocation extends InvocationExpression {
 
   @override
   String toString() {
-    return "MethodInvocation()";
+    return "MethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3749,7 +3884,12 @@ class SuperMethodInvocation extends InvocationExpression {
 
   @override
   String toString() {
-    return "SuperMethodInvocation()";
+    return "SuperMethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3805,7 +3945,13 @@ class StaticInvocation extends InvocationExpression {
 
   @override
   String toString() {
-    return "StaticInvocation($targetReference, $arguments)";
+    return "StaticInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${targetReference.toStringInternal()}, "
+        "${arguments.toStringInternal()}";
   }
 }
 
@@ -3877,7 +4023,12 @@ class ConstructorInvocation extends InvocationExpression {
 
   @override
   String toString() {
-    return "ConstructorInvocation()";
+    return "ConstructorInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3915,7 +4066,12 @@ class Instantiation extends Expression {
 
   @override
   String toString() {
-    return "Instantiation()";
+    return "Instantiation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3949,7 +4105,12 @@ class Not extends Expression {
 
   @override
   String toString() {
-    return "Not()";
+    return "Not(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3989,7 +4150,12 @@ class LogicalExpression extends Expression {
 
   @override
   String toString() {
-    return "LogicalExpression()";
+    return "LogicalExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4042,7 +4208,14 @@ class ConditionalExpression extends Expression {
 
   @override
   String toString() {
-    return "ConditionalExpression($condition ? $then : $otherwise)";
+    return "ConditionalExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${condition.toStringInternal()} ? "
+        "${then.toStringInternal()} : "
+        "${otherwise.toStringInternal()}";
   }
 }
 
@@ -4077,7 +4250,12 @@ class StringConcatenation extends Expression {
 
   @override
   String toString() {
-    return "StringConcatenation()";
+    return "StringConcatenation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4116,7 +4294,12 @@ class ListConcatenation extends Expression {
 
   @override
   String toString() {
-    return "ListConcatenation()";
+    return "ListConcatenation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4158,7 +4341,12 @@ class SetConcatenation extends Expression {
 
   @override
   String toString() {
-    return "SetConcatenation()";
+    return "SetConcatenation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4206,7 +4394,12 @@ class MapConcatenation extends Expression {
 
   @override
   String toString() {
-    return "MapConcatenation()";
+    return "MapConcatenation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4270,7 +4463,12 @@ class InstanceCreation extends Expression {
 
   @override
   String toString() {
-    return "InstanceCreation()";
+    return "InstanceCreation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4312,7 +4510,12 @@ class FileUriExpression extends Expression implements FileUriNode {
 
   @override
   String toString() {
-    return "FileUriExpression()";
+    return "FileUriExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4364,7 +4567,12 @@ class IsExpression extends Expression {
 
   @override
   String toString() {
-    return "IsExpression()";
+    return "IsExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4461,7 +4669,12 @@ class AsExpression extends Expression {
 
   @override
   String toString() {
-    return "AsExpression($operand as $type)";
+    return "AsExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${operand.toStringInternal()} as ${type.toStringInternal()}";
   }
 }
 
@@ -4500,7 +4713,12 @@ class NullCheck extends Expression {
 
   @override
   String toString() {
-    return "NullCheck()";
+    return "NullCheck(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4526,7 +4744,12 @@ class StringLiteral extends BasicLiteral {
 
   @override
   String toString() {
-    return "StringLiteral($value)";
+    return "StringLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "$value";
   }
 }
 
@@ -4548,7 +4771,12 @@ class IntLiteral extends BasicLiteral {
 
   @override
   String toString() {
-    return "IntLiteral($value)";
+    return "IntLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "$value";
   }
 }
 
@@ -4566,7 +4794,12 @@ class DoubleLiteral extends BasicLiteral {
 
   @override
   String toString() {
-    return "DoubleLiteral($value)";
+    return "DoubleLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "$value";
   }
 }
 
@@ -4584,7 +4817,12 @@ class BoolLiteral extends BasicLiteral {
 
   @override
   String toString() {
-    return "BoolLiteral($value)";
+    return "BoolLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "$value";
   }
 }
 
@@ -4600,7 +4838,12 @@ class NullLiteral extends BasicLiteral {
 
   @override
   String toString() {
-    return "NullLiteral()";
+    return "NullLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "null";
   }
 }
 
@@ -4621,7 +4864,12 @@ class SymbolLiteral extends Expression {
 
   @override
   String toString() {
-    return "SymbolLiteral(#$value)";
+    return "SymbolLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "#$value";
   }
 }
 
@@ -4647,7 +4895,12 @@ class TypeLiteral extends Expression {
 
   @override
   String toString() {
-    return "TypeLiteral($type)";
+    return "TypeLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "${type.toStringInternal()}";
   }
 }
 
@@ -4663,7 +4916,12 @@ class ThisExpression extends Expression {
 
   @override
   String toString() {
-    return "ThisExpression()";
+    return "ThisExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4682,7 +4940,12 @@ class Rethrow extends Expression {
 
   @override
   String toString() {
-    return "Rethrow()";
+    return "Rethrow(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4714,7 +4977,12 @@ class Throw extends Expression {
 
   @override
   String toString() {
-    return "Throw()";
+    return "Throw(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4749,7 +5017,12 @@ class ListLiteral extends Expression {
 
   @override
   String toString() {
-    return "ListLiteral()";
+    return "ListLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4784,7 +5057,12 @@ class SetLiteral extends Expression {
 
   @override
   String toString() {
-    return "SetLiteral()";
+    return "SetLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4826,7 +5104,12 @@ class MapLiteral extends Expression {
 
   @override
   String toString() {
-    return "MapLiteral()";
+    return "MapLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4859,7 +5142,12 @@ class MapEntry extends TreeNode {
 
   @override
   String toString() {
-    return "MapEntry()";
+    return "MapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4892,7 +5180,12 @@ class AwaitExpression extends Expression {
 
   @override
   String toString() {
-    return "AwaitExpression()";
+    return "AwaitExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4932,7 +5225,12 @@ class FunctionExpression extends Expression implements LocalFunction {
 
   @override
   String toString() {
-    return "FunctionExpression()";
+    return "FunctionExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -4962,7 +5260,12 @@ class ConstantExpression extends Expression {
 
   @override
   String toString() {
-    return "ConstantExpression()";
+    return "ConstantExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5000,7 +5303,12 @@ class Let extends Expression {
 
   @override
   String toString() {
-    return "Let()";
+    return "Let(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5038,7 +5346,12 @@ class BlockExpression extends Expression {
 
   @override
   String toString() {
-    return "BlockExpression()";
+    return "BlockExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5074,7 +5387,12 @@ class LoadLibrary extends Expression {
 
   @override
   String toString() {
-    return "LoadLibrary()";
+    return "LoadLibrary(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5098,7 +5416,12 @@ class CheckLibraryIsLoaded extends Expression {
 
   @override
   String toString() {
-    return "CheckLibraryIsLoaded()";
+    return "CheckLibraryIsLoaded(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5135,7 +5458,12 @@ class ExpressionStatement extends Statement {
 
   @override
   String toString() {
-    return "ExpressionStatement()";
+    return "ExpressionStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5169,7 +5497,12 @@ class Block extends Statement {
 
   @override
   String toString() {
-    return "Block()";
+    return "Block(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5209,7 +5542,12 @@ class AssertBlock extends Statement {
 
   @override
   String toString() {
-    return "AssertBlock()";
+    return "AssertBlock(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5223,7 +5561,12 @@ class EmptyStatement extends Statement {
 
   @override
   String toString() {
-    return "EmptyStatement()";
+    return "EmptyStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5269,7 +5612,12 @@ class AssertStatement extends Statement {
 
   @override
   String toString() {
-    return "AssertStatement()";
+    return "AssertStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5302,7 +5650,12 @@ class LabeledStatement extends Statement {
 
   @override
   String toString() {
-    return "LabeledStatement()";
+    return "LabeledStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5340,7 +5693,12 @@ class BreakStatement extends Statement {
 
   @override
   String toString() {
-    return "BreakStatement()";
+    return "BreakStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5375,7 +5733,12 @@ class WhileStatement extends Statement {
 
   @override
   String toString() {
-    return "WhileStatement()";
+    return "WhileStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5410,7 +5773,12 @@ class DoStatement extends Statement {
 
   @override
   String toString() {
-    return "DoStatement()";
+    return "DoStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5453,7 +5821,12 @@ class ForStatement extends Statement {
 
   @override
   String toString() {
-    return "ForStatement()";
+    return "ForStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5503,7 +5876,12 @@ class ForInStatement extends Statement {
 
   @override
   String toString() {
-    return "ForInStatement()";
+    return "ForInStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5539,7 +5917,12 @@ class SwitchStatement extends Statement {
 
   @override
   String toString() {
-    return "SwitchStatement()";
+    return "SwitchStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5588,7 +5971,12 @@ class SwitchCase extends TreeNode {
 
   @override
   String toString() {
-    return "SwitchCase()";
+    return "SwitchCase(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5607,7 +5995,12 @@ class ContinueSwitchStatement extends Statement {
 
   @override
   String toString() {
-    return "ContinueSwitchStatement()";
+    return "ContinueSwitchStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5649,7 +6042,12 @@ class IfStatement extends Statement {
 
   @override
   String toString() {
-    return "IfStatement()";
+    return "IfStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5677,7 +6075,12 @@ class ReturnStatement extends Statement {
 
   @override
   String toString() {
-    return "ReturnStatement()";
+    return "ReturnStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5710,7 +6113,12 @@ class TryCatch extends Statement {
 
   @override
   String toString() {
-    return "TryCatch()";
+    return "TryCatch(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5755,7 +6163,12 @@ class Catch extends TreeNode {
 
   @override
   String toString() {
-    return "Catch()";
+    return "Catch(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5790,7 +6203,12 @@ class TryFinally extends Statement {
 
   @override
   String toString() {
-    return "TryFinally()";
+    return "TryFinally(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -5839,7 +6257,12 @@ class YieldStatement extends Statement {
 
   @override
   String toString() {
-    return "YieldStatement()";
+    return "YieldStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -6040,7 +6463,13 @@ class VariableDeclaration extends Statement {
 
   /// Returns a possibly synthesized name for this variable, consistent with
   /// the names used across all [toString] calls.
-  String toString() => _debugVariableDeclarationName(this);
+  String toString() {
+    return "VariableDeclaration(${toStringInternal()})";
+  }
+
+  String toStringInternal() {
+    return name ?? "null-named VariableDeclaration (${hashCode})";
+  }
 }
 
 /// Declaration a local function.
@@ -6077,7 +6506,12 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   String toString() {
-    return "FunctionDeclaration()";
+    return "FunctionDeclaration(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -6143,7 +6577,8 @@ class _PrivateName extends Name {
       : this.libraryName = libraryName,
         super._internal(_computeHashCode(name, libraryName), name);
 
-  String toString() => library != null ? '$library::$name' : name;
+  String toString() => toStringInternal();
+  String toStringInternal() => library != null ? '$library::$name' : name;
 
   Library get library => libraryName.asLibrary;
 
@@ -6162,7 +6597,8 @@ class _PublicName extends Name {
 
   _PublicName(String name) : super._internal(name.hashCode, name);
 
-  String toString() => name;
+  String toString() => toStringInternal();
+  String toStringInternal() => name;
 }
 
 // ------------------------------------------------------------------------
@@ -6298,6 +6734,11 @@ class InvalidType extends DartType {
 
   @override
   String toString() {
+    return "InvalidType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
     return "invalid-type";
   }
 }
@@ -6332,6 +6773,11 @@ class DynamicType extends DartType {
 
   @override
   String toString() {
+    return "DynamicType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
     return "dynamic";
   }
 }
@@ -6366,6 +6812,11 @@ class VoidType extends DartType {
 
   @override
   String toString() {
+    return "VoidType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
     return "void";
   }
 }
@@ -6405,7 +6856,12 @@ class NeverType extends DartType {
 
   @override
   String toString() {
-    return "NeverType()";
+    return "NeverType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -6439,6 +6895,11 @@ class BottomType extends DartType {
 
   @override
   String toString() {
+    return "BottomType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
     return "<BottomType>";
   }
 }
@@ -6528,7 +6989,25 @@ class InterfaceType extends DartType {
 
   @override
   String toString() {
-    return "InterfaceType($className${_debugNullability(nullability)})";
+    return "InterfaceType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(className.toStringInternal());
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        sb.write(typeArgument.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    sb.write(_debugNullability(nullability));
+    return sb.toString();
   }
 }
 
@@ -6703,7 +7182,48 @@ class FunctionType extends DartType {
 
   @override
   String toString() {
-    return "FunctionType()";
+    return "FunctionType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(returnType.toStringInternal());
+    sb.write(" Function");
+    if (typeParameters.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (TypeParameter typeParameter in typeParameters) {
+        sb.write(comma);
+        sb.write(typeParameter.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+
+    sb.write("(");
+    for (int i = 0; i < positionalParameters.length; i++) {
+      if (i > 0) sb.write(", ");
+      if (i == requiredParameterCount) sb.write("[");
+      sb.write(positionalParameters[i].toStringInternal());
+    }
+    if (requiredParameterCount < positionalParameters.length) sb.write("]");
+
+    if (namedParameters.isNotEmpty) {
+      if (positionalParameters.isNotEmpty) {
+        sb.write(", ");
+      }
+      sb.write("{");
+      for (int i = 0; i < namedParameters.length; i++) {
+        if (i > 0) sb.write(", ");
+        sb.write(namedParameters[i].toStringInternal());
+      }
+      sb.write("}");
+    }
+    sb.write(")");
+    sb.write(_debugNullability(nullability));
+
+    return sb.toString();
   }
 }
 
@@ -6796,7 +7316,24 @@ class TypedefType extends DartType {
 
   @override
   String toString() {
-    return "TypedefType()";
+    return "TypedefType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(typedefNode.toStringInternal());
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        sb.write(typeArgument.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    return sb.toString();
   }
 }
 
@@ -6839,7 +7376,15 @@ class NamedType extends Node implements Comparable<NamedType> {
 
   @override
   String toString() {
-    return "NamedType()";
+    return "NamedType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    if (isRequired) sb.write("required ");
+    sb.write("$name: ${type.toStringInternal()}");
+    return sb.toString();
   }
 }
 
@@ -7114,7 +7659,31 @@ class TypeParameterType extends DartType {
 
   @override
   String toString() {
-    return "TypeParameterType()";
+    return "TypeParameterType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(parameter.toStringInternal());
+    sb.write(_debugNullability(typeParameterTypeNullability));
+    if (promotedBound != null) {
+      sb.write(" & ");
+      sb.write(promotedBound.toStringInternal());
+      sb.write(" /* '");
+      sb.write(_debugNullability(typeParameterTypeNullability));
+      sb.write("' & '");
+      if (promotedBound is InvalidType) {
+        sb.write(_debugNullability(Nullability.undetermined));
+      } else {
+        sb.write(_debugNullability(promotedBound.nullability));
+      }
+      sb.write("' = '");
+      sb.write(_debugNullability(nullability));
+      sb.write("' */");
+    }
+
+    return sb.toString();
   }
 }
 
@@ -7317,7 +7886,23 @@ class TypeParameter extends TreeNode {
 
   /// Returns a possibly synthesized name for this type parameter, consistent
   /// with the names used across all [toString] calls.
-  String toString() => _debugQualifiedTypeParameterName(this);
+  String toString() {
+    return "TypeParameter(${toStringInternal()})";
+  }
+
+  String toStringInternal() {
+    if (parent is Class) {
+      return _debugQualifiedClassName(parent) +
+          '::' +
+          _debugTypeParameterName(this);
+    }
+    if (parent is Member) {
+      return _debugQualifiedMemberName(parent) +
+          '::' +
+          _debugTypeParameterName(this);
+    }
+    return _debugTypeParameterName(this);
+  }
 
   bool get isFunctionTypeTypeParameter => parent == null;
 }
@@ -7368,7 +7953,12 @@ class Supertype extends Node {
 
   @override
   String toString() {
-    return "Supertype()";
+    return "Supertype(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -7409,7 +7999,8 @@ abstract class PrimitiveConstant<T> extends Constant {
 
   PrimitiveConstant(this.value);
 
-  String toString() => '$value';
+  String toString() => toStringInternal();
+  String toStringInternal() => '$value';
 
   int get hashCode => value.hashCode;
 
@@ -7491,7 +8082,9 @@ class SymbolConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitSymbolConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitSymbolConstantReference(this);
 
-  String toString() {
+  String toString() => toStringInternal();
+
+  String toStringInternal() {
     return libraryReference != null
         ? '#${libraryReference.asLibrary.importUri}::$name'
         : '#$name';
@@ -7528,7 +8121,10 @@ class MapConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitMapConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitMapConstantReference(this);
 
-  String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
+  String toString() => toStringInternal();
+  String toStringInternal() {
+    return '${this.runtimeType}<$keyType, $valueType>($entries)';
+  }
 
   int _cachedHashCode;
   int get hashCode {
@@ -7552,7 +8148,8 @@ class ConstantMapEntry {
   final Constant value;
   ConstantMapEntry(this.key, this.value);
 
-  String toString() => '$key: $value';
+  String toString() => toStringInternal();
+  String toStringInternal() => '$key: $value';
 
   int get hashCode => _Hash.hash2(key, value);
 
@@ -7576,7 +8173,10 @@ class ListConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitListConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitListConstantReference(this);
 
-  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+  String toString() => toStringInternal();
+  String toStringInternal() {
+    return '${runtimeType}<${typeArgument.toStringInternal()}>($entries)';
+  }
 
   int _cachedHashCode;
   int get hashCode {
@@ -7610,7 +8210,10 @@ class SetConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitSetConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitSetConstantReference(this);
 
-  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+  String toString() => toStringInternal();
+  String toStringInternal() {
+    return '${runtimeType}<${typeArgument.toStringInternal()}>($entries)';
+  }
 
   int _cachedHashCode;
   int get hashCode {
@@ -7651,12 +8254,13 @@ class InstanceConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitInstanceConstantReference(this);
 
-  String toString() {
+  String toString() => toStringInternal();
+  String toStringInternal() {
     final sb = new StringBuffer();
     sb.write('${classReference.asClass}');
     if (!classReference.asClass.typeParameters.isEmpty) {
       sb.write('<');
-      sb.write(typeArguments.map((type) => type.toString()).join(', '));
+      sb.write(typeArguments.map((type) => type.toStringInternal()).join(', '));
       sb.write('>');
     }
     sb.write(' {');
@@ -7703,8 +8307,10 @@ class PartialInstantiationConstant extends Constant {
   R acceptReference<R>(Visitor<R> v) =>
       v.visitPartialInstantiationConstantReference(this);
 
-  String toString() {
-    return '${runtimeType}(${tearOffConstant.procedure}<${types.join(', ')}>)';
+  String toString() => toStringInternal();
+  String toStringInternal() {
+    return '${runtimeType}(${tearOffConstant.procedure}<'
+        '${types.map((t) => t.toStringInternal()).join(', ')}>)';
   }
 
   int get hashCode => _Hash.combineFinish(
@@ -7745,7 +8351,8 @@ class TearOffConstant extends Constant {
   R accept<R>(ConstantVisitor<R> v) => v.visitTearOffConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitTearOffConstantReference(this);
 
-  String toString() {
+  String toString() => toStringInternal();
+  String toStringInternal() {
     return '${runtimeType}(${procedure})';
   }
 
@@ -7774,7 +8381,8 @@ class TypeLiteralConstant extends Constant {
   R acceptReference<R>(Visitor<R> v) =>
       v.visitTypeLiteralConstantReference(this);
 
-  String toString() => '${runtimeType}(${type})';
+  String toString() => toStringInternal();
+  String toStringInternal() => '${runtimeType}(${type})';
 
   int get hashCode => type.hashCode;
 
@@ -7809,7 +8417,12 @@ class UnevaluatedConstant extends Constant {
 
   @override
   String toString() {
-    return "UnevaluatedConstant()";
+    return "UnevaluatedConstant(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -7952,7 +8565,12 @@ class Component extends TreeNode {
 
   @override
   String toString() {
-    return "Component()";
+    return "Component(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 

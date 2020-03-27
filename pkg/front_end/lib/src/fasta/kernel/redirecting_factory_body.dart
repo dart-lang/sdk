@@ -132,7 +132,12 @@ class RedirectingFactoryBody extends ExpressionStatement {
 
   @override
   String toString() {
-    return "RedirectingFactoryBody()";
+    return "RedirectingFactoryBody(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 

@@ -412,9 +412,12 @@ class TypeVariableTypeWithContext implements ir.Node {
   }
 
   @override
-  String toString() =>
-      'TypeVariableTypeWithContext(type=$type,context=$context,'
-      'kind=$kind,typeDeclaration=$typeDeclaration)';
+  String toString() => 'TypeVariableTypeWithContext(${toStringInternal()})';
+
+  @override
+  String toStringInternal() =>
+      'type=${type.toStringInternal()},context=${context.toStringInternal()},'
+      'kind=$kind,typeDeclaration=${typeDeclaration.toStringInternal()}';
 
   @override
   String leakingDebugToString() => ir.debugNodeToString(this);

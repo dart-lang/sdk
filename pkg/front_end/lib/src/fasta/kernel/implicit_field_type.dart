@@ -174,5 +174,8 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
   }
 
   @override
-  String toString() => 'ImplicitFieldType($fieldBuilder)';
+  String toString() => 'ImplicitFieldType(${toStringInternal()})';
+
+  @override
+  String toStringInternal() => '$fieldBuilder';
 }

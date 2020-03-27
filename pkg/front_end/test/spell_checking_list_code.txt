@@ -197,6 +197,7 @@ compression
 concat
 concatenate
 concerned
+conciser
 cond
 condensed
 config
