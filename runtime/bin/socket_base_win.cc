@@ -91,6 +91,13 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return handle->RecvFrom(buffer, num_bytes, &addr->addr, addr_len);
 }
 
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
+  return client_socket->DataReady();
+}
+
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
                            intptr_t num_bytes,

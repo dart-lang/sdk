@@ -208,7 +208,7 @@ void Handle::ReadComplete(OverlappedBuffer* buffer) {
     // Currently only one outstanding read at the time.
     ASSERT(pending_read_ == buffer);
     ASSERT(data_ready_ == NULL);
-    if (!IsClosing() && !buffer->IsEmpty()) {
+    if (!IsClosing()) {
       data_ready_ = pending_read_;
     } else {
       OverlappedBuffer::DisposeBuffer(buffer);
@@ -611,8 +611,11 @@ intptr_t Handle::Available() {
   if (data_ready_ == NULL) {
     return 0;
   }
-  ASSERT(!data_ready_->IsEmpty());
   return data_ready_->GetRemainingLength();
+}
+
+bool Handle::DataReady() {
+  return data_ready_ != NULL;
 }
 
 intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
