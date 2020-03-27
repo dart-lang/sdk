@@ -6,10 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server_client/src/server_base.dart';
 import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
+import 'package:analysis_server_client/src/server_base.dart';
 import 'package:path/path.dart';
+
 export 'package:analysis_server_client/src/server_base.dart'
     show NotificationProcessor;
 
