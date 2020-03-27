@@ -1908,6 +1908,31 @@ void f(int a, {int b}) {}
     await assertOpType(typeNames: true);
   }
 
+  Future<void> test_SimpleFormalParameter_functionType_name() async {
+    addTestSource('void Function(int ^) v;');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  Future<void> test_SimpleFormalParameter_functionType_name_named() async {
+    addTestSource('void Function({int ^}) v;');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  Future<void> test_SimpleFormalParameter_functionType_name_optional() async {
+    addTestSource('void Function([int ^]) v;');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  Future<void> test_SimpleFormalParameter_functionType_type_withName() async {
+    addTestSource('void Function(Str^ name) v;');
+    await assertOpType(typeNames: true, varNames: false);
+  }
+
+  Future<void> test_SimpleFormalParameter_functionType_type_withName2() async {
+    addTestSource('void Function(^ name) v;');
+    await assertOpType(typeNames: true, varNames: false);
+  }
+
   Future<void> test_SimpleFormalParameter_name_typed() async {
     addTestSource('f(String ^, int b) {}');
     await assertOpType(typeNames: false, varNames: true);

@@ -973,9 +973,25 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     }
 
     // If "(Type name^)", then include parameter names.
-    if (type != null && name.offset <= offset && offset <= name.end) {
+    if (type != null &&
+        name != null &&
+        name.offset <= offset &&
+        offset <= name.end) {
       optype.includeVarNameSuggestions = true;
       return;
+    }
+
+    if (_isParameterOfGenericFunctionType(node) && type != null) {
+      // If "Function(^ Type)", then include types.
+      if (offset < type.offset) {
+        optype.includeTypeNameSuggestions = true;
+        return;
+      }
+      // If "Function(Type ^)", then include parameter names.
+      if (name == null && type.end < offset) {
+        optype.includeVarNameSuggestions = true;
+        return;
+      }
     }
   }
 
@@ -1148,5 +1164,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       return relevance;
     }
     return null;
+  }
+
+  static bool _isParameterOfGenericFunctionType(FormalParameter node) {
+    var parameterList = node.parent;
+    if (parameterList is DefaultFormalParameter) {
+      parameterList = parameterList.parent;
+    }
+    return parameterList is FormalParameterList &&
+        parameterList.parent is GenericFunctionType;
   }
 }
