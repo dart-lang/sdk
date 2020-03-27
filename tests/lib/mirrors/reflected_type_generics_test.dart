@@ -43,7 +43,7 @@ main() {
   expectReflectedType(reflectType(D, [P]), new D<P>().runtimeType);
   expectReflectedType(reflectType(E, [P]), new E<P>().runtimeType);
   expectReflectedType(
-      reflectType(FBounded, [new FBounded<Null>().runtimeType]), new FBounded<FBounded<Null>>().runtimeType);
+      reflectType(FBounded, [new FBounded<Never>().runtimeType]), new FBounded<FBounded<Never>>().runtimeType);
 
   var predicateHelper = new Helper<Predicate<P>>();
   expectReflectedType(reflectType(Predicate, [P]), predicateHelper.param); //# 01: ok
