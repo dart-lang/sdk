@@ -689,7 +689,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var fieldType = _variables.decoratedElementType(field);
     var origin = FieldFormalParameterOrigin(source, node);
     if (node.type == null) {
-      _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: true);
+      _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: false);
     } else {
       node.type.accept(this);
       _checkAssignment(origin,

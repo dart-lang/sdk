@@ -2876,8 +2876,9 @@ class C {
 ''');
     var decoratedConstructorParamType =
         decoratedConstructorDeclaration('named').positionalParameters[0];
-    assertUnion(decoratedConstructorParamType.node,
-        decoratedTypeAnnotation('int i').node);
+    assertEdge(decoratedConstructorParamType.node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true);
   }
 
   Future<void> test_for_each_element_with_declaration() async {
