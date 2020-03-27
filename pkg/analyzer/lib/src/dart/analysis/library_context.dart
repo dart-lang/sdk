@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -169,11 +170,16 @@ class LibraryContext {
         inputsTimer.stop();
         timerInputLibraries.stop();
 
-        timerLinking.start();
-        var linkResult = link2.link(elementFactory, inputLibraries);
-        librariesLinked += cycle.libraries.length;
-        counterLinkedLibraries += linkResult.bundle.libraries.length;
-        timerLinking.stop();
+        link2.LinkResult linkResult;
+        try {
+          timerLinking.start();
+          linkResult = link2.link(elementFactory, inputLibraries);
+          librariesLinked += cycle.libraries.length;
+          counterLinkedLibraries += linkResult.bundle.libraries.length;
+          timerLinking.stop();
+        } catch (exception, stackTrace) {
+          _throwLibraryCycleLinkException(cycle, exception, stackTrace);
+        }
 
         timerBundleToBytes.start();
         bytes = linkResult.bundle.toBuffer();
@@ -273,4 +279,34 @@ class LibraryContext {
       elementFactory.createTypeProviders(dartCore, dartAsync);
     }
   }
+
+  /// The [exception] was caught during the [cycle] linking.
+  ///
+  /// Throw another exception that wraps the given one, with more information.
+  @alwaysThrows
+  void _throwLibraryCycleLinkException(
+    LibraryCycle cycle,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
+    var fileContentMap = <String, String>{};
+    for (var libraryFile in cycle.libraries) {
+      for (var file in libraryFile.libraryFiles) {
+        fileContentMap[file.path] = file.content;
+      }
+    }
+    throw LibraryCycleLinkException(exception, stackTrace, fileContentMap);
+  }
+}
+
+/// Exception that wraps another exception that happened during linking, and
+/// includes the content of all files of the library cycle.
+class LibraryCycleLinkException extends CaughtException {
+  final Map<String, String> fileContentMap;
+
+  LibraryCycleLinkException(
+    Object exception,
+    StackTrace stackTrace,
+    this.fileContentMap,
+  ) : super(exception, stackTrace);
 }
