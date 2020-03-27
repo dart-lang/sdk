@@ -20,7 +20,6 @@ main() {
   testIterable(<int?>[1, 2, 3], <int?>[1, 2, 3]);
   testIterable(const [1, 2], [1, 2], 0);
   testIterable(const <int>[1, 2], <int>[1, 2], 0);
-  testIterable(const <int?>[1, 2], <int?>[1, 2]);
   testIterable(<dynamic, dynamic>{"x": 1, "y": 1}.keys, <dynamic>["x", "y"]);
   testIterable(<String, int>{"x": 1, "y": 1}.keys, <String>["x", "y"], "");
   testIterable(<String?, int>{"x": 1, "y": 1}.keys, <String?>["x", "y"]);
@@ -41,10 +40,10 @@ main() {
   testIterable(new Queue<int>.from(<int>[1, 2, 3]), <int>[1, 2, 3], 0);
   testIterable(new Queue<int?>.from(<int?>[1, 2, 3]), <int?>[1, 2, 3]);
   testIterable(new Uint8List.fromList(<int>[1, 2, 3]), //    //# 01: ok
-      <int>[1, 2, 3], 0); //                                    //# 01: continued
+      <int>[1, 2, 3], 0); //                                 //# 01: continued
   testIterable(new Float32List.fromList([1.0, 2.0, 3.0]), // //# 01: continued
-      <double>[1.0, 2.0, 3.0], 0.1); //                           //# 01: continued
-  testIterable("abc".codeUnits, <int>[97, 98, 99]); //       //# 01: continued
+      <double>[1.0, 2.0, 3.0], 0.1); //                      //# 01: continued
+  testIterable("abc".codeUnits, <int>[97, 98, 99], 99); //   //# 01: continued
   testIterable("abc".runes, <int>[97, 98, 99], 99);
 }
 

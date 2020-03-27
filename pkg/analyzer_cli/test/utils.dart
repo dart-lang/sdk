@@ -18,7 +18,9 @@ final String testDirectory = pathos.dirname(
 String get packageRoot {
   // If the package root directory is specified on the command line using
   // -DpkgRoot=..., use it.
-  var pkgRootVar = const String.fromEnvironment('pkgRoot');
+  var pkgRootVar = const bool.hasEnvironment('pkgRoot')
+      ? const String.fromEnvironment('pkgRoot')
+      : null;
   if (pkgRootVar != null) {
     var path = pathos.join(Directory.current.path, pkgRootVar);
     if (!path.endsWith(pathos.separator)) path += pathos.separator;

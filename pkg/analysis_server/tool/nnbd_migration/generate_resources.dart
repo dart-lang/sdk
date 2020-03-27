@@ -10,13 +10,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:args/args.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 
 void main(List<String> args) async {
-  if (args.isEmpty) {
-    // this is valid
-  } else if (args.length != 1 || args.first != '--verify') {
+  var argParser = ArgParser()
+    ..addFlag('verify', negatable: false)
+    ..addFlag('dev', negatable: false)
+    ..addFlag('help', negatable: false);
+  var argResults = argParser.parse(args);
+  if (argResults['help'] == true) {
     fail('''
 usage: dart pkg/analysis_server/tool/nnbd_migration/generate_resources.dart [--verify]
 
@@ -34,12 +38,13 @@ Run with '--verify' to validate that the web resource have been regenerated.
     fail('Please run this tool from the root of the sdk repo.');
   }
 
-  bool verify = args.isNotEmpty && args.first == '--verify';
+  bool verify = argResults['verify'];
+  bool dev = argResults['dev'];
 
   if (verify) {
     verifyResourcesGDartGenerated();
   } else {
-    await compileWebFrontEnd();
+    await compileWebFrontEnd(devMode: dev);
 
     print('');
 
@@ -81,15 +86,13 @@ String base64Encode(List<int> bytes) {
   return lines.join('\n');
 }
 
-void compileWebFrontEnd() async {
+void compileWebFrontEnd({bool devMode = false}) async {
   String sdkBinDir = path.dirname(Platform.resolvedExecutable);
   String dart2jsPath = path.join(sdkBinDir, 'dart2js');
 
-  const minified = true;
-
   // dart2js -m -o output source
   Process process = await Process.start(dart2jsPath, [
-    if (minified) '-m',
+    devMode ? '-O1' : '-m',
     '--no-frequency-based-minification',
     '-o',
     javascriptOutput.path,

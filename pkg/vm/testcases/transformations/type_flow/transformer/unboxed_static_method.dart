@@ -53,6 +53,12 @@ dynamic returnBoxedNullableIntOrDouble() =>
 dynamic returnBoxedNullableX() => kTrue ? X() : null;
 dynamic returnBoxedX() => X();
 
+@pragma('vm:entry-point')
+int returnBoxedSmiFromEntryPoint() => kTrue ? 1 : 2;
+
+@pragma('vm:entry-point')
+void takeBoxedSmiFromEntryPoint(int value) {}
+
 main() {
   takePositional(
       kTrue ? 1 : 2,
@@ -87,6 +93,8 @@ main() {
       boxedNullableX: kTrue ? X() : null,
       boxedX: X());
 
+  takeBoxedSmiFromEntryPoint(kTrue ? 1 : 2);
+
   use(returnUnboxedSmi());
   use(returnUnboxedInt());
   use(returnUnboxedDouble());
@@ -96,6 +104,7 @@ main() {
   use(returnBoxedNullableIntOrDouble());
   use(returnBoxedNullableX());
   use(returnBoxedX());
+  use(returnBoxedSmiFromEntryPoint());
 }
 
 void use(dynamic value) {}

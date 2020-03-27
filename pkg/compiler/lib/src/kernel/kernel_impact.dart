@@ -457,7 +457,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         new StaticUse.staticInvoke(target, callStructure, typeArguments));
 
     if (typeArguments.length != 1) return;
-    DartType matchedType = typeArguments.first;
+    DartType matchedType = dartTypes.eraseLegacy(typeArguments.first);
 
     if (matchedType is! InterfaceType) return;
     InterfaceType interfaceType = matchedType;

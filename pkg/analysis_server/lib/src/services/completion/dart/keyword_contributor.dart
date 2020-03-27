@@ -403,6 +403,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    // If the cursor is at the beginning of the declaration, include the
+    // compilation unit keywords.  See dartbug.com/41039.
+    if (entity == node.returnType || entity == node.name) {
+      _addSuggestion(Keyword.DYNAMIC);
+      _addSuggestion(Keyword.VOID);
+    }
+  }
+
+  @override
   void visitFunctionExpression(FunctionExpression node) {
     if (entity == node.body) {
       FunctionBody body = node.body;
@@ -511,8 +521,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
           _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
         }
       }
-    }
-    if (entity == node.returnType || entity == node.name) {
+    } else if (entity == node.returnType || entity == node.name) {
       // If the cursor is at the beginning of the declaration, include the class
       // body keywords.  See dartbug.com/41039.
       _addClassBodyKeywords();

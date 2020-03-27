@@ -1467,43 +1467,91 @@ const _rootZone = const _RootZone();
  *       var future2 = future.then((_) { throw "error in first error-zone"; });
  *       runZoned(() {
  *         var future3 = future2.catchError((e) { print("Never reached!"); });
- *       }, onError: (e) { print("unused error handler"); });
- *     }, onError: (e) { print("catches error of first error-zone."); });
+ *       }, onError: (e, s) { print("unused error handler"); });
+ *     }, onError: (e, s) { print("catches error of first error-zone."); });
  *
  * Example:
  *
  *     runZoned(() {
  *       new Future(() { throw "asynchronous error"; });
- *     }, onError: print);  // Will print "asynchronous error".
+ *     }, onError: (e, s) => print(e));  // Will print "asynchronous error".
  *
  * It is possible to manually pass an error from one error zone to another
  * by re-throwing it in the new zone. If [onError] throws, that error will
  * occur in the original zone where [runZoned] was called.
  */
 R runZoned<R>(R body(),
-    {Map zoneValues, ZoneSpecification zoneSpecification, Function onError}) {
-  if (onError == null) {
-    return _runZoned<R>(body, zoneValues, zoneSpecification);
+    {Map zoneValues,
+    ZoneSpecification zoneSpecification,
+    @Deprecated("Use runZonedGuarded instead") Function onError}) {
+  ArgumentError.checkNotNull(body, "body");
+
+  if (onError != null) {
+    void Function(Object, StackTrace) typedOnError;
+    if (onError is void Function(Object, StackTrace)) {
+      typedOnError = onError;
+    } else if (onError is void Function(Object)) {
+      typedOnError = (Object e, StackTrace _) => onError(e);
+    } else {
+      throw ArgumentError.value(onError, "onError",
+          "Should accept one error, or one error and a stack trace");
+    }
+    return runZonedGuarded(body, typedOnError,
+        zoneValues: zoneValues, zoneSpecification: zoneSpecification);
   }
-  void Function(Object) unaryOnError;
-  void Function(Object, StackTrace) binaryOnError;
-  if (onError is void Function(Object, StackTrace)) {
-    binaryOnError = onError;
-  } else if (onError is void Function(Object)) {
-    unaryOnError = onError;
-  } else {
-    throw new ArgumentError("onError callback must take either an Object "
-        "(the error), or both an Object (the error) and a StackTrace.");
-  }
+  return _runZoned<R>(body, zoneValues, zoneSpecification);
+}
+
+/**
+ * Runs [body] in its own error zone.
+ *
+ * Creates a new zone using [Zone.fork] based on [zoneSpecification] and
+ * [zoneValues], then runs [body] in that zone and returns the result.
+ *
+ * The [onError] function is used *both* to handle asynchronous errors
+ * by overriding [ZoneSpecification.handleUncaughtError] in [zoneSpecification],
+ * if any, *and* to handle errors thrown synchronously by the call to [body].
+ *
+ * If an error occurs synchronously in [body],
+ * then throwing in the [onError] handler
+ * makes the call to `runZonedGuarded` throw that error,
+ * and otherwise the call to `runZonedGuarded` returns `null`.
+ *
+ * If the zone specification has a `handleUncaughtError` value or the [onError]
+ * parameter is provided, the zone becomes an error-zone.
+ *
+ * Errors will never cross error-zone boundaries by themselves.
+ * Errors that try to cross error-zone boundaries are considered uncaught in
+ * their originating error zone.
+ *
+ *     var future = new Future.value(499);
+ *     runZoned(() {
+ *       var future2 = future.then((_) { throw "error in first error-zone"; });
+ *       runZoned(() {
+ *         var future3 = future2.catchError((e) { print("Never reached!"); });
+ *       }, onError: (e, s) { print("unused error handler"); });
+ *     }, onError: (e, s) { print("catches error of first error-zone."); });
+ *
+ * Example:
+ *
+ *     runZoned(() {
+ *       new Future(() { throw "asynchronous error"; });
+ *     }, onError: (e, s) => print(e));  // Will print "asynchronous error".
+ *
+ * It is possible to manually pass an error from one error zone to another
+ * by re-throwing it in the new zone. If [onError] throws, that error will
+ * occur in the original zone where [runZoned] was called.
+ */
+@Since("2.8")
+R runZonedGuarded<R>(R body(), void onError(Object error, StackTrace stack),
+    {Map zoneValues, ZoneSpecification zoneSpecification}) {
+  ArgumentError.checkNotNull(body, "body");
+  ArgumentError.checkNotNull(onError, "onError");
+
   HandleUncaughtErrorHandler errorHandler = (Zone self, ZoneDelegate parent,
       Zone zone, error, StackTrace stackTrace) {
     try {
-      if (binaryOnError != null) {
-        self.parent.runBinary(binaryOnError, error, stackTrace);
-      } else {
-        assert(unaryOnError != null);
-        self.parent.runUnary(unaryOnError, error);
-      }
+      self.parent.runBinary(onError, error, stackTrace);
     } catch (e, s) {
       if (identical(e, error)) {
         parent.handleUncaughtError(zone, error, stackTrace);
@@ -1521,13 +1569,8 @@ R runZoned<R>(R body(),
   }
   try {
     return _runZoned<R>(body, zoneValues, zoneSpecification);
-  } catch (e, stackTrace) {
-    if (binaryOnError != null) {
-      binaryOnError(e, stackTrace);
-    } else {
-      assert(unaryOnError != null);
-      unaryOnError(e);
-    }
+  } catch (error, stackTrace) {
+    onError(error, stackTrace);
   }
   return null;
 }

@@ -11,6 +11,7 @@ import 'edit/test_all.dart' as edit;
 import 'flutter/test_all.dart' as flutter;
 import 'lsp/test_all.dart' as lsp;
 import 'plugin/test_all.dart' as plugin;
+import 'server/test_all.dart' as server;
 import 'services/test_all.dart' as services;
 import 'utilities/test_all.dart' as utilities;
 
@@ -23,6 +24,7 @@ void main() {
     flutter.main();
     lsp.main();
     plugin.main();
+    server.main();
     services.main();
     utilities.main();
   }, name: 'src');

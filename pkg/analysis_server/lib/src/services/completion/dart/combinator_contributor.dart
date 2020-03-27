@@ -11,27 +11,23 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/// A contributor for calculating `completion.getSuggestions` request results
-/// for the import combinators show and hide.
+/// A contributor that produces suggestions based on the members of a library
+/// when the completion is in a show or hide combinator of an import or export.
 class CombinatorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    AstNode node = request.target.containingNode;
+    var node = request.target.containingNode;
     if (node is! Combinator) {
       return const <CompletionSuggestion>[];
     }
-
-    // Build list of suggestions
+    // Build the list of suggestions.
     var directive = node.thisOrAncestorOfType<NamespaceDirective>();
     if (directive is NamespaceDirective) {
-      LibraryElement library = directive.uriElement;
+      var library = directive.uriElement as LibraryElement;
       if (library != null) {
-        LibraryElementSuggestionBuilder builder =
-            LibraryElementSuggestionBuilder(request.libraryElement,
-                CompletionSuggestionKind.IDENTIFIER, false, false);
+        var builder = LibraryElementSuggestionBuilder(
+            request, CompletionSuggestionKind.IDENTIFIER, false, false);
         for (var element in library.exportNamespace.definedNames.values) {
           element.accept(builder);
         }

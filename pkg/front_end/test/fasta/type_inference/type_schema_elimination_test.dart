@@ -28,11 +28,13 @@ class TypeSchemaEliminationTest {
 
   DartType get objectType => coreTypes.objectLegacyRawType;
 
-  DartType greatestClosure(DartType schema) =>
-      typeSchemaElimination.greatestClosure(coreTypes, schema);
+  DartType greatestClosure(DartType schema) {
+    return typeSchemaElimination.greatestClosure(schema, nullType);
+  }
 
-  DartType leastClosure(DartType schema) =>
-      typeSchemaElimination.leastClosure(coreTypes, schema);
+  DartType leastClosure(DartType schema) {
+    return typeSchemaElimination.leastClosure(schema, nullType);
+  }
 
   void test_greatestClosure_contravariant() {
     expect(

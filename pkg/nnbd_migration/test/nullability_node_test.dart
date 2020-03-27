@@ -735,5 +735,11 @@ class _TestEdgeOrigin implements EdgeOrigin {
   @override
   CodeReference get codeReference => null;
 
+  @override
+  String get description => 'Test edge';
+
+  @override
+  EdgeOriginKind get kind => null;
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

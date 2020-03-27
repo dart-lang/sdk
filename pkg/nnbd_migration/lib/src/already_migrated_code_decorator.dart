@@ -31,7 +31,7 @@ class AlreadyMigratedCodeDecorator {
     if (type.isVoid || type.isDynamic) {
       var node = NullabilityNode.forAlreadyMigrated(target);
       _graph.makeNullableUnion(
-          node, AlwaysNullableTypeOrigin.forElement(element));
+          node, AlwaysNullableTypeOrigin.forElement(element, type.isVoid));
       return DecoratedType(type, node);
     }
     NullabilityNode node;
@@ -39,11 +39,11 @@ class AlreadyMigratedCodeDecorator {
     if (nullabilitySuffix == NullabilitySuffix.question) {
       node = NullabilityNode.forAlreadyMigrated(target);
       _graph.makeNullableUnion(
-          node, AlreadyMigratedTypeOrigin.forElement(element));
+          node, AlreadyMigratedTypeOrigin.forElement(element, true));
     } else {
       node = NullabilityNode.forAlreadyMigrated(target);
       _graph.makeNonNullableUnion(
-          node, AlreadyMigratedTypeOrigin.forElement(element));
+          node, AlreadyMigratedTypeOrigin.forElement(element, false));
     }
     if (type is FunctionType) {
       for (var element in type.typeFormals) {

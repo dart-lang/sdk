@@ -5876,7 +5876,7 @@ class LocalForInVariable implements ForInVariable {
 
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(
-        greatestClosure(inferrer.coreTypes, variableSet.variable.type),
+        greatestClosure(variableSet.variable.type, inferrer.bottomType),
         rhsType,
         variableSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
@@ -5936,7 +5936,7 @@ class PropertyForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(
-        greatestClosure(inferrer.coreTypes, _writeType), rhsType, _rhs,
+        greatestClosure(_writeType, inferrer.bottomType), rhsType, _rhs,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
         isVoidAllowed: true);
 
@@ -5970,7 +5970,7 @@ class SuperPropertyForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(
-        greatestClosure(inferrer.coreTypes, _writeType),
+        greatestClosure(_writeType, inferrer.bottomType),
         rhsType,
         superPropertySet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
@@ -5995,7 +5995,7 @@ class StaticForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(
-        greatestClosure(inferrer.coreTypes, staticSet.target.setterType),
+        greatestClosure(staticSet.target.setterType, inferrer.bottomType),
         rhsType,
         staticSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,

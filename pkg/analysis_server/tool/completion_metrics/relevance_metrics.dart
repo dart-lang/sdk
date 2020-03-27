@@ -1882,6 +1882,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (parameterType == null || parameterType.isDynamic) {
       return;
     }
+    if (parameterType is FunctionType) {
+      data.recordTypeMatch('function typed parameter',
+          argument is FunctionExpression ? 'closure' : 'non-closure');
+    }
     var context = _argumentListContext(argument.parent);
     var argumentType = argument.staticType;
     if (argumentType != null) {

@@ -4028,3 +4028,34 @@ MixinFunction:
   script: |
     class A extends Object with Function {}
 
+CannotAssignToFinalVariable:
+  template: "Can't assign to the final variable '#name'."
+  script: |
+     main() {
+       final int i = 0;
+       i = 42;
+     }
+
+CannotAssignToConstVariable:
+  template: "Can't assign to the const variable '#name'."
+  script: |
+    main() {
+      const int i = 0;
+      i = 42;
+    }
+
+CannotAssignToExtensionThis:
+  template: "Can't assign to 'this'."
+  script: |
+    extension E on String {
+      method() {
+        this = "";
+      }
+    }
+
+CannotAssignToTypeLiteral:
+  template: "Can't assign to a type literal."
+  script: |
+    main() {
+      Object = String;
+    }

@@ -2326,7 +2326,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   }
 
   if (!direct_call.target_.IsNull()) {
-    ASSERT(FLAG_precompiled_mode);
+    ASSERT(CompilerState::Current().is_aot());
     instructions +=
         StaticCall(position, direct_call.target_, 1, Array::null_array(),
                    ICData::kNoRebind, &result_type);
@@ -2413,7 +2413,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   }
 
   if (!direct_call_target->IsNull()) {
-    ASSERT(FLAG_precompiled_mode);
+    ASSERT(CompilerState::Current().is_aot());
     instructions +=
         StaticCall(position, *direct_call_target, 2, Array::null_array(),
                    ICData::kNoRebind, /*result_type=*/nullptr,
@@ -3005,7 +3005,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     // Even if TFA infers a concrete receiver type, the static type of the
     // call-site may still be dynamic and we need to call the dynamic invocation
     // forwarder to ensure type-checks are performed.
-    ASSERT(FLAG_precompiled_mode);
+    ASSERT(CompilerState::Current().is_aot());
     instructions +=
         StaticCall(position, *direct_call_target, argument_count,
                    argument_names, ICData::kNoRebind, &result_type,
@@ -3266,7 +3266,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   const auto recognized_kind = target.recognized_kind();
   if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
     return BuildFfiAsFunctionInternal();
-  } else if (FLAG_precompiled_mode &&
+  } else if (CompilerState::Current().is_aot() &&
              recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
     return BuildFfiNativeCallbackFunction();
   }

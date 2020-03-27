@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -271,6 +272,29 @@ class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on
+/// [CompilationUnit] nodes.
+class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
+  bool removeLanguageVersionComment = false;
+
+  NodeChangeForCompilationUnit() : super._();
+
+  @override
+  EditPlan _apply(CompilationUnit node, FixAggregator aggregator) {
+    List<EditPlan> innerPlans = [];
+    if (removeLanguageVersionComment) {
+      final comment = (node as CompilationUnitImpl).languageVersionToken;
+      assert(comment != null);
+      innerPlans.add(aggregator.planner.replaceToken(node, comment, [],
+          info: AtomicEditInfo(
+              NullabilityFixDescription.removeLanguageVersionComment,
+              const [])));
+    }
+    innerPlans.addAll(aggregator.innerPlansForNode(node));
+    return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+  }
+}
+
 /// Common infrastructure used by [NodeChange] objects that operate on AST nodes
 /// with conditional behavior (if statements, if elements, and conditional
 /// expressions).
@@ -404,7 +428,6 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Causes a null check to be added to this expression, with the given [info].
   void addNullCheck(AtomicEditInfo info) {
     assert(!_addsNullCheck);
-    assert(_introducesAsType == null);
     _addsNullCheck = true;
     _addNullCheckInfo = info;
   }
@@ -412,7 +435,6 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Causes a cast to the given [type] to be added to this expression, with
   /// the given [info].
   void introduceAs(DartType type, AtomicEditInfo info) {
-    assert(!_addsNullCheck);
     assert(_introducesAsType == null);
     assert(type != null);
     _introducesAsType = type;
@@ -430,16 +452,17 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Otherwise returns [innerPlan] unchanged.
   NodeProducingEditPlan _applyExpression(
       FixAggregator aggregator, NodeProducingEditPlan innerPlan) {
+    var plan = innerPlan;
     if (_addsNullCheck) {
-      return aggregator.planner
-          .addUnaryPostfix(innerPlan, TokenType.BANG, info: _addNullCheckInfo);
-    } else if (_introducesAsType != null) {
-      return aggregator.planner.addBinaryPostfix(
-          innerPlan, TokenType.AS, aggregator.typeToCode(_introducesAsType),
-          info: _introduceAsInfo);
-    } else {
-      return innerPlan;
+      plan = aggregator.planner
+          .addUnaryPostfix(plan, TokenType.BANG, info: _addNullCheckInfo);
     }
+    if (_introducesAsType != null) {
+      plan = aggregator.planner.addBinaryPostfix(
+          plan, TokenType.AS, aggregator.typeToCode(_introducesAsType),
+          info: _introduceAsInfo);
+    }
+    return plan;
   }
 }
 
@@ -637,6 +660,10 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
   @override
   NodeChange visitAsExpression(AsExpression node) =>
       NodeChangeForAsExpression();
+
+  @override
+  NodeChange visitCompilationUnit(CompilationUnit node) =>
+      NodeChangeForCompilationUnit();
 
   @override
   NodeChange visitDefaultFormalParameter(DefaultFormalParameter node) =>

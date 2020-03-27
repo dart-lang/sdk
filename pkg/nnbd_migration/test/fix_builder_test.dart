@@ -52,6 +52,12 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   static final isNullCheck = TypeMatcher<NodeChangeForExpression>()
       .having((c) => c.addsNullCheck, 'addsNullCheck', true);
 
+  static final isRemoveLanguageVersion =
+      TypeMatcher<NodeChangeForCompilationUnit>().having(
+          (c) => c.removeLanguageVersionComment,
+          'removeLanguageVersionComment',
+          true);
+
   static final isRemoveNullAwareness =
       TypeMatcher<NodeChangeForPropertyAccess>()
           .having((c) => c.removeNullAwareness, 'removeNullAwareness', true);
@@ -1110,6 +1116,21 @@ int _f({@required int x}) => x + 1;
 ''');
     visitAll(changes: {
       findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword
+    });
+  }
+
+  Future<void>
+      test_defaultFormalParameter_add_required_replace_annotation_nullable() async {
+    // TODO(paulberry): it would be nice to remove the import of `meta` if it's
+    // no longer needed after the change.
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+void _f({@required int/*?*/ x}) {}
+''');
+    visitAll(changes: {
+      findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword,
+      findNode.typeName('int'): isMakeNullable,
     });
   }
 
@@ -2359,6 +2380,23 @@ _f(_C<int> c) => (c).x;
     visitSubexpression(findNode.propertyAccess('(c).x'), 'List<int>');
   }
 
+  Future<void> test_removeLanguageVersionComment() async {
+    await analyze('''
+// @dart = 2.6
+void main() {}
+''');
+    visitAll(changes: {findNode.unit: isRemoveLanguageVersion});
+  }
+
+  Future<void> test_removeLanguageVersionComment_withCopyright() async {
+    await analyze('''
+// Some copyright notice here...
+// @dart = 2.6
+void main() {}
+''');
+    visitAll(changes: {findNode.unit: isRemoveLanguageVersion});
+  }
+
   Future<void> test_set_ifElement_alive() async {
     await analyze('''
 _f(int x, bool b, int/*?*/ y) => {if (b) h(y) else g(y)};
@@ -2511,6 +2549,12 @@ _f(int/*?*/ x) {
 }
 ''');
     visitSubexpression(findNode.simple('x;'), 'int?');
+  }
+
+  Future<void> test_simpleIdentifier_null_check_hint() async {
+    await analyze('int/*?*/ _f(int/*?*/ x) => x/*!*/;');
+    var xRef = findNode.simple('x/*!*/');
+    visitSubexpression(xRef, 'int', changes: {xRef: isNullCheck});
   }
 
   Future<void> test_stringLiteral() async {

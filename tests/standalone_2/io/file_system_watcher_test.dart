@@ -451,11 +451,11 @@ testWatchOverflow() async {
 }
 
 void watcher(SendPort sendPort) async {
-  runZoned(() {
+  runZonedGuarded(() {
     var watcher = Directory.systemTemp.watch(recursive: true);
     watcher.listen((data) async {});
     sendPort.send('start');
-  }, onError: (error) {
+  }, (error, stack) {
     print(error);
     sendPort.send('end');
   });

@@ -23,13 +23,14 @@ import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
-import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/scoped_set.dart';
+import 'package:nnbd_migration/src/variables.dart';
 
 import 'decorated_type_operations.dart';
 
@@ -103,7 +104,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   /// The repository of constraint variables and decorated types (from a
   /// previous pass over the source code).
-  final VariableRepository _variables;
+  final Variables _variables;
 
   final NullabilityMigrationListener /*?*/ listener;
 
@@ -200,6 +201,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// at their declaration sites *and* for which we haven't yet found an
   /// initializer in the constructor declaration.
   Set<FieldElement> _fieldsNotInitializedByConstructor;
+
+  /// Current nesting depth of [visitTypeName]
+  int _typeNameNesting = 0;
 
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
@@ -764,15 +768,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     final typeArguments = node.typeArguments;
     typeArguments?.accept(this);
     DecoratedType calleeType = _checkExpressionNotNull(node.function);
+    DecoratedType result;
     if (calleeType.type is FunctionType) {
-      return _handleInvocationArguments(node, argumentList.arguments,
+      result = _handleInvocationArguments(node, argumentList.arguments,
           typeArguments, node.typeArgumentTypes, calleeType, null,
           invokeType: node.staticInvokeType);
     } else {
       // Invocation of type `dynamic` or `Function`.
       argumentList.accept(this);
-      return _makeNullableDynamicType(node);
+      result = _makeNullableDynamicType(node);
     }
+    return _handleNullCheckHint(node, result);
   }
 
   @override
@@ -867,21 +873,24 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       targetType = _checkExpressionNotNull(target);
     }
     var callee = node.staticElement;
+    DecoratedType result;
     if (callee == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
-      return _makeNullableDynamicType(node);
-    }
-    var calleeType = getOrComputeElementType(callee, targetType: targetType);
-    // TODO(paulberry): substitute if necessary
-    _handleAssignment(node.index,
-        destinationType: calleeType.positionalParameters[0]);
-    if (node.inSetterContext()) {
-      return calleeType.positionalParameters[1];
+      result = _makeNullableDynamicType(node);
     } else {
-      return calleeType.returnType;
+      var calleeType = getOrComputeElementType(callee, targetType: targetType);
+      // TODO(paulberry): substitute if necessary
+      _handleAssignment(node.index,
+          destinationType: calleeType.positionalParameters[0]);
+      if (node.inSetterContext()) {
+        result = calleeType.positionalParameters[1];
+      } else {
+        result = calleeType.returnType;
+      }
     }
+    return _handleNullCheckHint(node, result);
   }
 
   @override
@@ -1060,31 +1069,33 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (target == null && callee.enclosingElement is ClassElement) {
       targetType = _thisOrSuper(node);
     }
+    DecoratedType expressionType;
     if (callee == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
       node.argumentList.accept(this);
-      return _makeNullableDynamicType(node);
+      expressionType = _makeNullableDynamicType(node);
+    } else {
+      var calleeType = getOrComputeElementType(callee, targetType: targetType);
+      if (callee is PropertyAccessorElement) {
+        calleeType = calleeType.returnType;
+      }
+      expressionType = _handleInvocationArguments(
+          node,
+          node.argumentList.arguments,
+          node.typeArguments,
+          node.typeArgumentTypes,
+          calleeType,
+          null,
+          invokeType: node.staticInvokeType);
+      if (isNullAware) {
+        expressionType = expressionType.withNode(
+            NullabilityNode.forLUB(targetType.node, expressionType.node));
+        _variables.recordDecoratedExpressionType(node, expressionType);
+      }
     }
-    var calleeType = getOrComputeElementType(callee, targetType: targetType);
-    if (callee is PropertyAccessorElement) {
-      calleeType = calleeType.returnType;
-    }
-    var expressionType = _handleInvocationArguments(
-        node,
-        node.argumentList.arguments,
-        node.typeArguments,
-        node.typeArgumentTypes,
-        calleeType,
-        null,
-        invokeType: node.staticInvokeType);
-    if (isNullAware) {
-      expressionType = expressionType.withNode(
-          NullabilityNode.forLUB(targetType.node, expressionType.node));
-      _variables.recordDecoratedExpressionType(node, expressionType);
-    }
-    return expressionType;
+    return _handleNullCheckHint(node, expressionType);
   }
 
   @override
@@ -1117,7 +1128,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitParenthesizedExpression(ParenthesizedExpression node) {
     var result = node.expression.accept(this);
     _flowAnalysis.parenthesizedExpression(node, node.expression);
-    return result;
+    return _handleNullCheckHint(node, result);
   }
 
   @override
@@ -1162,8 +1173,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry)
       _unimplemented(node, 'PrefixedIdentifier with a prefix');
     } else {
-      return _handlePropertyAccess(
+      var type = _handlePropertyAccess(
           node, node.prefix, node.identifier, false, false);
+      return _handleNullCheckHint(node, type);
     }
   }
 
@@ -1208,8 +1220,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(node, node.target, node.propertyName,
+    var type = _handlePropertyAccess(node, node.target, node.propertyName,
         node.isNullAware, node.isCascaded);
+    return _handleNullCheckHint(node, type);
   }
 
   @override
@@ -1242,9 +1255,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           NullabilityNodeTarget.text('implicit null return').withCodeRef(node);
       var implicitNullType = DecoratedType.forImplicitType(
           typeProvider, typeProvider.nullType, _graph, target);
-      _graph.makeNullable(
-          implicitNullType.node, AlwaysNullableTypeOrigin(source, node));
-      _checkAssignment(ImplicitNullReturnOrigin(source, node),
+      var origin = ImplicitNullReturnOrigin(source, node);
+      _graph.makeNullable(implicitNullType.node, origin);
+      _checkAssignment(origin,
           source:
               isAsync ? _futureOf(implicitNullType, node) : implicitNullType,
           destination: returnType,
@@ -1332,6 +1345,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
+    DecoratedType result;
     var staticElement = node.staticElement;
     if (staticElement is PromotableElement) {
       if (!node.inDeclarationContext()) {
@@ -1344,11 +1358,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           !_flowAnalysis.isAssigned(staticElement)) {
         _graph.makeNullable(type.node, UninitializedReadOrigin(source, node));
       }
-      return type;
+      result = type;
     } else if (staticElement is FunctionElement ||
         staticElement is MethodElement ||
         staticElement is ConstructorElement) {
-      return getOrComputeElementType(staticElement,
+      result = getOrComputeElementType(staticElement,
           targetType: staticElement.enclosingElement is ClassElement
               ? _thisOrSuper(node)
               : null);
@@ -1357,24 +1371,25 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           targetType: staticElement.enclosingElement is ClassElement
               ? _thisOrSuper(node)
               : null);
-      return staticElement.isGetter
+      result = staticElement.isGetter
           ? elementType.returnType
           : elementType.positionalParameters[0];
     } else if (staticElement is TypeDefiningElement) {
-      return _makeNonNullLiteralType(node);
+      result = _makeNonNullLiteralType(node);
     } else if (staticElement is ExtensionElement) {
-      return _makeNonNullLiteralType(node);
+      result = _makeNonNullLiteralType(node);
     } else if (staticElement == null) {
       assert(node.toString() == 'void');
-      return _makeNullableVoidType(node);
+      result = _makeNullableVoidType(node);
     } else if (staticElement.enclosingElement is ClassElement &&
         (staticElement.enclosingElement as ClassElement).isEnum) {
-      return getOrComputeElementType(staticElement);
+      result = getOrComputeElementType(staticElement);
     } else {
       // TODO(paulberry)
       _unimplemented(node,
           'Simple identifier with a static element of type ${staticElement.runtimeType}');
     }
+    return _handleNullCheckHint(node, result);
   }
 
   @override
@@ -1484,7 +1499,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return _thisOrSuper(node);
+    var type = _thisOrSuper(node);
+    return _handleNullCheckHint(node, type);
   }
 
   @override
@@ -1527,69 +1543,78 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
-    var typeArguments = typeName.typeArguments?.arguments;
-    var element = typeName.name.staticElement;
-    if (element is GenericTypeAliasElement) {
-      final typedefType = _variables.decoratedElementType(element.function);
-      final typeNameType = _variables.decoratedTypeAnnotation(source, typeName);
-
-      Map<TypeParameterElement, DecoratedType> substitutions;
-      if (typeName.typeArguments == null) {
-        // TODO(mfairhurst): substitute instantiations to bounds
-        substitutions = {};
-      } else {
-        substitutions = Map<TypeParameterElement, DecoratedType>.fromIterables(
-            element.typeParameters,
-            typeName.typeArguments.arguments
-                .map((t) => _variables.decoratedTypeAnnotation(source, t)));
-      }
-
-      final decoratedType = typedefType.substitute(substitutions);
-      final origin = TypedefReferenceOrigin(source, typeName);
-      _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
-          isUnion: true);
-      _linkDecoratedTypes(
-          decoratedType.returnType, typeNameType.returnType, origin,
-          isUnion: true);
-    } else if (element is TypeParameterizedElement) {
-      if (typeArguments == null) {
-        var instantiatedType =
+    try {
+      _typeNameNesting++;
+      var typeArguments = typeName.typeArguments?.arguments;
+      var element = typeName.name.staticElement;
+      if (element is GenericTypeAliasElement) {
+        final typedefType = _variables.decoratedElementType(element.function);
+        final typeNameType =
             _variables.decoratedTypeAnnotation(source, typeName);
-        if (instantiatedType == null) {
-          throw new StateError('No type annotation for type name '
-              '${typeName.toSource()}, offset=${typeName.offset}');
+
+        Map<TypeParameterElement, DecoratedType> substitutions;
+        if (typeName.typeArguments == null) {
+          // TODO(mfairhurst): substitute instantiations to bounds
+          substitutions = {};
+        } else {
+          substitutions =
+              Map<TypeParameterElement, DecoratedType>.fromIterables(
+                  element.typeParameters,
+                  typeName.typeArguments.arguments.map(
+                      (t) => _variables.decoratedTypeAnnotation(source, t)));
         }
-        var origin = InstantiateToBoundsOrigin(source, typeName);
-        for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
-          _linkDecoratedTypes(
-              instantiatedType.typeArguments[i],
-              _variables.decoratedTypeParameterBound(element.typeParameters[i]),
-              origin,
-              isUnion: false);
-        }
-      } else {
-        for (int i = 0; i < typeArguments.length; i++) {
-          DecoratedType bound;
-          bound =
-              _variables.decoratedTypeParameterBound(element.typeParameters[i]);
-          assert(bound != null);
-          var argumentType =
-              _variables.decoratedTypeAnnotation(source, typeArguments[i]);
-          if (argumentType == null) {
-            _unimplemented(typeName,
-                'No decorated type for type argument ${typeArguments[i]} ($i)');
+
+        final decoratedType = typedefType.substitute(substitutions);
+        final origin = TypedefReferenceOrigin(source, typeName);
+        _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
+            isUnion: true);
+        _linkDecoratedTypes(
+            decoratedType.returnType, typeNameType.returnType, origin,
+            isUnion: true);
+      } else if (element is TypeParameterizedElement) {
+        if (typeArguments == null) {
+          var instantiatedType =
+              _variables.decoratedTypeAnnotation(source, typeName);
+          if (instantiatedType == null) {
+            throw new StateError('No type annotation for type name '
+                '${typeName.toSource()}, offset=${typeName.offset}');
           }
-          _checkAssignment(
-              TypeParameterInstantiationOrigin(source, typeArguments[i]),
-              source: argumentType,
-              destination: bound,
-              hard: true);
+          var origin = InstantiateToBoundsOrigin(source, typeName);
+          for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
+            _linkDecoratedTypes(
+                instantiatedType.typeArguments[i],
+                _variables
+                    .decoratedTypeParameterBound(element.typeParameters[i]),
+                origin,
+                isUnion: false);
+          }
+        } else {
+          for (int i = 0; i < typeArguments.length; i++) {
+            DecoratedType bound;
+            bound = _variables
+                .decoratedTypeParameterBound(element.typeParameters[i]);
+            assert(bound != null);
+            var argumentType =
+                _variables.decoratedTypeAnnotation(source, typeArguments[i]);
+            if (argumentType == null) {
+              _unimplemented(typeName,
+                  'No decorated type for type argument ${typeArguments[i]} ($i)');
+            }
+            _checkAssignment(
+                TypeParameterInstantiationOrigin(source, typeArguments[i]),
+                source: argumentType,
+                destination: bound,
+                hard: true);
+          }
         }
       }
+      typeName.visitChildren(this);
+      typeNameVisited(
+          typeName); // Note this has been visited to TypeNameTracker.
+      return null;
+    } finally {
+      _typeNameNesting--;
     }
-    typeName.visitChildren(this);
-    typeNameVisited(typeName); // Note this has been visited to TypeNameTracker.
-    return null;
   }
 
   @override
@@ -2447,6 +2472,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return calleeType.returnType;
   }
 
+  DecoratedType _handleNullCheckHint(
+      Expression expression, DecoratedType type) {
+    // Sometimes we think we're looking at an expression but we're really not
+    // because we're inside a type name.  If this happens, ignore trailing
+    // `/*!*/`s because they're not expression null check hints, they're type
+    // non-nullability hints (which are handled by NodeBuilder).
+    if (_typeNameNesting > 0) return type;
+    switch (getPostfixHint(expression)) {
+      case NullabilityComment.bang:
+        _variables.recordNullCheckHint(source, expression);
+        return type.withNode(_graph.never);
+      default:
+        return type;
+    }
+  }
+
   DecoratedType _handlePropertyAccess(Expression node, Expression target,
       SimpleIdentifier propertyName, bool isNullAware, bool isCascaded) {
     DecoratedType targetType;
@@ -2600,7 +2641,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.dynamicType, _graph, target);
     _graph.makeNullable(
-        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode));
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode, false));
     return decoratedType;
   }
 
@@ -2609,7 +2650,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.voidType, _graph, target);
     _graph.makeNullable(
-        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode));
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode, true));
     return decoratedType;
   }
 
@@ -2630,8 +2671,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     NullabilityNode makeNonNullableNode(NullabilityNodeTarget target) {
       var nullabilityNode = NullabilityNode.forInferredType(target);
-      _graph.makeNonNullableUnion(
-          nullabilityNode, ThisOrSuperOrigin(source, node));
+      _graph.makeNonNullableUnion(nullabilityNode,
+          ThisOrSuperOrigin(source, node, node is ThisExpression));
       return nullabilityNode;
     }
 

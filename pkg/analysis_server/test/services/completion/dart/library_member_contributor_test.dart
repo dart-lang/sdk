@@ -12,7 +12,7 @@ import 'completion_contributor_util.dart';
 
 void main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(LibraryMemberContributorTest);
+    defineReflectiveTests(LibraryMemberContributorTest);
     defineReflectiveTests(LibraryMemberContributorWithExtensionMethodsTest);
   });
 }

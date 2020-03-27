@@ -1697,6 +1697,36 @@ int f(int?/*?*/ i) => i! + 1;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_expression_bang_hint() async {
+    var content = '''
+int f(int/*?*/ i) => i/*!*/;
+''';
+    var expected = '''
+int f(int?/*?*/ i) => i!/*!*/;
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
+  Future<void> test_expression_bang_hint_unnecessary() async {
+    var content = '''
+int/*?*/ f(int/*?*/ i) => i/*!*/;
+''';
+    // The user requested a null check so we should add it even if it's not
+    // required to avoid compile errors.
+    var expected = '''
+int?/*?*/ f(int?/*?*/ i) => i!/*!*/;
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
+  Future<void> test_expression_bang_hint_with_cast() async {
+    var content = 'int f(Object/*?*/ o) => o/*!*/;';
+    // TODO(paulberry): it would be better to remove the `/*` and `*/` so we
+    // would be left with `o! as int;`
+    var expected = 'int f(Object?/*?*/ o) => o! as int/*!*/;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_addsNullCheckToThis() async {
     var content = '''
@@ -3525,7 +3555,7 @@ main() {
 ''';
     var expected = '''
 import 'package:meta/meta.dart';
-void f({@required String? s}) {}
+void f({required String? s}) {}
 main() {
   f(s: null);
 }

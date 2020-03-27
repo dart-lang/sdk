@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: deprecated_member_use
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -672,6 +673,17 @@ f(Object o) => o as a.Future<Null>;
 ''');
   }
 
+  Future<void> test_introduceAs_withNullCheck() async {
+    await analyze('f(x) => x;');
+    var expr = findNode.simple('x;');
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAs(nnbdTypeProvider.intType, _MockInfo())
+        ..addNullCheck(_MockInfo())
+    });
+    expect(previewInfo.applyTo(code), 'f(x) => x! as int;');
+  }
+
   Future<void> test_keep_redundant_parens() async {
     await analyze('f(a, b, c) => a + (b * c);');
     var previewInfo = run({});
@@ -863,6 +875,71 @@ f(Object o) => o as a.Future<Null>;
     var previewInfo =
         run({expr.parent: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a < b | c;');
+  }
+
+  Future<void> test_removeLanguageVersion() async {
+    await analyze('''
+//@dart=2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nvoid main() {}\n');
+  }
+
+  Future<void> test_removeLanguageVersion_after_license() async {
+    await analyze('''
+// Some licensing stuff here...
+// Some copyrighting stuff too...
+// etc...
+// @dart = 2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '''
+// Some licensing stuff here...
+// Some copyrighting stuff too...
+// etc...
+
+void main() {}
+''');
+  }
+
+  Future<void> test_removeLanguageVersion_spaces() async {
+    await analyze('''
+// @dart = 2.6
+void main() {}
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nvoid main() {}\n');
+  }
+
+  Future<void> test_removeLanguageVersion_withOtherChanges() async {
+    await analyze('''
+//@dart=2.6
+int f() => null;
+''');
+    var previewInfo = run({
+      findNode.unit: NodeChangeForCompilationUnit()
+        ..removeLanguageVersionComment = true,
+      findNode.typeAnnotation('int'): NodeChangeForTypeAnnotation()
+        ..makeNullable = true
+        ..decoratedType = MockDecoratedType(
+            MockDartType(toStringValueWithoutNullability: 'int'))
+    });
+    // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
+    expect(previewInfo.applyTo(code), '\nint? f() => null;\n');
   }
 
   Future<void> test_removeNullAwarenessFromMethodInvocation() async {

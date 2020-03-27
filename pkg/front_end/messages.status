@@ -38,8 +38,12 @@ BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 BytecodeLimitExceededTooManyArguments/analyzerCode: Fail
 BytecodeLimitExceededTooManyArguments/example: Fail
+CannotAssignToConstVariable/analyzerCode: Fail
+CannotAssignToExtensionThis/analyzerCode: Fail
+CannotAssignToFinalVariable/analyzerCode: Fail
 CannotAssignToParenthesizedExpression/example: Fail
 CannotAssignToSuper/example: Fail
+CannotAssignToTypeLiteral/analyzerCode: Fail
 CannotReadPackagesFile/analyzerCode: Fail
 CannotReadPackagesFile/example: Fail
 CannotReadSdkSpecification/analyzerCode: Fail

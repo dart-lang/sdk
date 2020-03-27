@@ -782,7 +782,7 @@ class Instruction : public ZoneAllocated {
 
   intptr_t deopt_id() const {
     ASSERT(ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget() ||
-           FLAG_precompiled_mode);
+           CompilerState::Current().is_aot());
     return GetDeoptId();
   }
 
@@ -2385,7 +2385,7 @@ class PhiInstr : public Definition {
 
   // In AOT mode Phi instructions do not check types of inputs when unboxing.
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
-    return FLAG_precompiled_mode ? kNotSpeculative : kGuardInputs;
+    return CompilerState::Current().is_aot() ? kNotSpeculative : kGuardInputs;
   }
 
   virtual intptr_t Hashcode() const {
@@ -2870,7 +2870,9 @@ class ThrowInstr : public TemplateInstruction<1, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* exception() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -2903,7 +2905,9 @@ class ReThrowInstr : public TemplateInstruction<2, Throws> {
   Value* exception() const { return inputs_[0]; }
   Value* stacktrace() const { return inputs_[1]; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -3437,7 +3441,9 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
   const AbstractType& sub_type() const { return sub_type_; }
   const String& dst_name() const { return dst_name_; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
 
@@ -3511,7 +3517,9 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   }
   const String& dst_name() const { return dst_name_; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // AssertAssignable instructions that are specialized by the optimizer
@@ -3550,7 +3558,9 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -3765,7 +3775,9 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
@@ -3834,7 +3846,9 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Instance calls that are specialized by the optimizer need a
@@ -4548,7 +4562,9 @@ class StaticCallInstr : public TemplateDartCall<0> {
     return ic_data() == NULL ? call_count_ : ic_data()->AggregateCount();
   }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Static calls that are specialized by the optimizer (e.g. sqrt) need a
@@ -4893,7 +4909,9 @@ class FfiCallInstr : public Definition {
   virtual bool MayThrow() const { return false; }
 
   // FfiCallInstr calls C code, which can call back into Dart.
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
@@ -5018,8 +5036,9 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     // In AOT unbox is done based on TFA, therefore it was proven to be correct
     // and it can never deoptmize.
-    return (IsUnboxedStore() && FLAG_precompiled_mode) ? kNotSpeculative
-                                                       : kGuardInputs;
+    return (IsUnboxedStore() && CompilerState::Current().is_aot())
+               ? kNotSpeculative
+               : kGuardInputs;
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
@@ -5461,7 +5480,9 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   // Issues a static call to Dart code which calls toString on objects.
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual bool CanCallDart() const { return true; }
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   const Function& CallFunction() const;
 
@@ -5604,7 +5625,9 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -5895,7 +5918,9 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
 
   // Throw needs environment, which is created only if instruction can
   // deoptimize.
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6132,7 +6157,9 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6175,7 +6202,9 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6260,7 +6289,9 @@ class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
 
   DECLARE_INSTRUCTION(InitInstanceField)
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -6282,7 +6313,9 @@ class InitStaticFieldInstr : public TemplateInstruction<0, Throws> {
 
   DECLARE_INSTRUCTION(InitStaticField)
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -6316,7 +6349,9 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -7700,7 +7735,9 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -7829,7 +7866,9 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(DoubleToInteger)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -8265,7 +8304,9 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
   // so it needs a deopt ID in optimized and unoptimized code.
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -8406,7 +8447,9 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
 
   virtual bool MayThrow() const { return true; }
 

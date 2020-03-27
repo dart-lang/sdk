@@ -1561,8 +1561,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression expression = popForValue();
     if (expression is Cascade) {
       push(expression);
-      push(_createReadOnlyVariableAccess(
-          expression.variable, token, expression.fileOffset, null));
+      push(_createReadOnlyVariableAccess(expression.variable, token,
+          expression.fileOffset, null, ReadOnlyAccessKind.LetVariable));
     } else {
       bool isNullAware = optional('?..', token);
       if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
@@ -1572,8 +1572,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           forest.createVariableDeclarationForValue(expression);
       push(new Cascade(variable, isNullAware: isNullAware)
         ..fileOffset = expression.fileOffset);
-      push(_createReadOnlyVariableAccess(
-          variable, token, expression.fileOffset, null));
+      push(_createReadOnlyVariableAccess(variable, token, expression.fileOffset,
+          null, ReadOnlyAccessKind.LetVariable));
     }
   }
 
@@ -1908,9 +1908,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// using [token] and [charOffset] for offset information and [name]
   /// for `ExpressionGenerator._plainNameForRead`.
   ReadOnlyAccessGenerator _createReadOnlyVariableAccess(
-      VariableDeclaration variable, Token token, int charOffset, String name) {
+      VariableDeclaration variable,
+      Token token,
+      int charOffset,
+      String name,
+      ReadOnlyAccessKind kind) {
     return new ReadOnlyAccessGenerator(
-        this, token, createVariableGet(variable, charOffset), name);
+        this, token, createVariableGet(variable, charOffset), name, kind);
   }
 
   /// Look up [name] in [scope] using [token] as location information (both to
@@ -1993,7 +1997,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       VariableDeclaration variable = variableBuilder.variable;
       if (!variableBuilder.isAssignable) {
-        return _createReadOnlyVariableAccess(variable, token, charOffset, name);
+        return _createReadOnlyVariableAccess(
+            variable,
+            token,
+            charOffset,
+            name,
+            variableBuilder.isConst
+                ? ReadOnlyAccessKind.ConstVariable
+                : ReadOnlyAccessKind.FinalVariable);
       } else {
         return new VariableUseGenerator(this, token, variable);
       }
@@ -4339,8 +4350,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("ThisExpression");
     if (context.isScopeReference && isDeclarationInstanceContext) {
       if (extensionThis != null) {
-        push(_createReadOnlyVariableAccess(
-            extensionThis, token, offsetForToken(token), 'this'));
+        push(_createReadOnlyVariableAccess(extensionThis, token,
+            offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
       } else {
         push(new ThisAccessGenerator(this, token, inInitializer,
             inFieldInitializer, inLateFieldInitializer));

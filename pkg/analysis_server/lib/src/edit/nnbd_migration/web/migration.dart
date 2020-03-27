@@ -374,13 +374,13 @@ String pluralize(int count, String single, {String multiple}) {
 final Element editPanel = document.querySelector('.edit-panel .panel-content');
 
 void populateEditDetails([EditDetails response]) {
+  // Clear out any current edit details.
   editPanel.innerHtml = '';
-
   if (response == null) {
-    // Clear out any current edit details.
-    editPanel.append(ParagraphElement()
+    Element p = editPanel.append(ParagraphElement()
       ..text = 'See details about a proposed edit.'
       ..classes = ['placeholder']);
+    p.scrollIntoView();
     return;
   }
 
@@ -393,6 +393,7 @@ void populateEditDetails([EditDetails response]) {
   int line = response.line;
   Element explanation = editPanel.append(document.createElement('p'));
   explanation.append(Text('$explanationMessage at $relPath:$line.'));
+  explanation.scrollIntoView();
   _populateEditTraces(response, editPanel, parentDirectory);
   _populateEditLinks(response, editPanel);
   _populateEditRationale(response, editPanel, parentDirectory);

@@ -168,36 +168,56 @@ mixin ElementSuggestionBuilder {
   }
 }
 
-/// This class creates suggestions based upon top-level elements.
+/// This class creates suggestions based on top-level elements.
 class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
     with ElementSuggestionBuilder {
-  @override
-  final LibraryElement containingLibrary;
+  /// The completion request for which suggestions are being built.
+  final DartCompletionRequest request;
+
   @override
   final CompletionSuggestionKind kind;
+
   final bool typesOnly;
+
   final bool instCreation;
 
+  /// Return `true` if the new relevance scores should be produced.
+  final bool useNewRelevance;
+
   LibraryElementSuggestionBuilder(
-      this.containingLibrary, this.kind, this.typesOnly, this.instCreation);
+      this.request, this.kind, this.typesOnly, this.instCreation)
+      : useNewRelevance = request.useNewRelevance;
+
+  @override
+  LibraryElement get containingLibrary => request.libraryElement;
 
   @override
   void visitClassElement(ClassElement element) {
     if (instCreation) {
       element.visitChildren(this);
     } else {
-      addSuggestion(element);
+      // TODO(brianwilkerson) Determine whether this should be based on features
+      //  (such as the kind of the element) or a constant.
+      var relevance = useNewRelevance ? 750 : DART_RELEVANCE_DEFAULT;
+      addSuggestion(element,
+          relevance: relevance, useNewRelevance: useNewRelevance);
     }
   }
 
   @override
   void visitConstructorElement(ConstructorElement element) {
     if (instCreation) {
-      ClassElement classElem = element.enclosingElement;
+      var classElem = element.enclosingElement;
       if (classElem != null) {
-        String prefix = classElem.name;
+        var prefix = classElem.name;
         if (prefix != null && prefix.isNotEmpty) {
-          addSuggestion(element, prefix: prefix);
+          // TODO(brianwilkerson) Determine whether this should be based on features
+          //  (such as the kind of the element) or a constant.
+          var relevance = useNewRelevance ? 750 : DART_RELEVANCE_DEFAULT;
+          addSuggestion(element,
+              prefix: prefix,
+              relevance: relevance,
+              useNewRelevance: useNewRelevance);
         }
       }
     }
@@ -206,35 +226,59 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
   @override
   void visitExtensionElement(ExtensionElement element) {
     if (!instCreation) {
-      addSuggestion(element);
+      // TODO(brianwilkerson) Determine whether this should be based on features
+      //  (such as the kind of the element) or a constant.
+      var relevance = useNewRelevance ? 750 : DART_RELEVANCE_DEFAULT;
+      addSuggestion(element,
+          relevance: relevance, useNewRelevance: useNewRelevance);
     }
   }
 
   @override
   void visitFunctionElement(FunctionElement element) {
     if (!typesOnly) {
-      int relevance = element.library == containingLibrary
-          ? DART_RELEVANCE_LOCAL_FUNCTION
-          : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, relevance: relevance);
+      int relevance;
+      if (useNewRelevance) {
+        // TODO(brianwilkerson) Determine whether this should be based on
+        //  features (such as the kind of the element) or a constant.
+        relevance = element.library == containingLibrary ? 800 : 750;
+      } else {
+        relevance = element.library == containingLibrary
+            ? DART_RELEVANCE_LOCAL_FUNCTION
+            : DART_RELEVANCE_DEFAULT;
+      }
+      addSuggestion(element,
+          relevance: relevance, useNewRelevance: useNewRelevance);
     }
   }
 
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (!instCreation) {
-      addSuggestion(element);
+      // TODO(brianwilkerson) Determine whether this should be based on features
+      //  (such as the kind of the element) or a constant.
+      var relevance = useNewRelevance ? 750 : DART_RELEVANCE_DEFAULT;
+      addSuggestion(element,
+          relevance: relevance, useNewRelevance: useNewRelevance);
     }
   }
 
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!typesOnly) {
-      PropertyInducingElement variable = element.variable;
-      int relevance = variable.library == containingLibrary
-          ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
-          : DART_RELEVANCE_DEFAULT;
-      addSuggestion(variable, relevance: relevance);
+      var variable = element.variable;
+      int relevance;
+      if (useNewRelevance) {
+        // TODO(brianwilkerson) Determine whether this should be based on
+        //  features (such as the kind of the element) or a constant.
+        relevance = variable.library == containingLibrary ? 800 : 750;
+      } else {
+        relevance = variable.library == containingLibrary
+            ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
+            : DART_RELEVANCE_DEFAULT;
+      }
+      addSuggestion(variable,
+          relevance: relevance, useNewRelevance: useNewRelevance);
     }
   }
 }

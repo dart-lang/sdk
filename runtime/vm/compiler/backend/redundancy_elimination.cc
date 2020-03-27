@@ -1327,10 +1327,10 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   } else if (current->IsCheckEitherNonSmi()) {
     current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
   } else if (current->IsCheckArrayBound()) {
-    ASSERT(!FLAG_precompiled_mode);  // speculative in JIT only
+    ASSERT(!CompilerState::Current().is_aot());  // speculative in JIT only
     current->AsCheckArrayBound()->set_licm_hoisted(true);
   } else if (current->IsGenericCheckBound()) {
-    ASSERT(FLAG_precompiled_mode);  // non-speculative in AOT only
+    ASSERT(CompilerState::Current().is_aot());  // non-speculative in AOT only
     // Does not deopt, so no need for licm_hoisted flag.
   } else if (current->IsTestCids()) {
     current->AsTestCids()->set_licm_hoisted(true);
@@ -1405,7 +1405,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 
 void LICM::OptimisticallySpecializeSmiPhis() {
   if (flow_graph()->function().ProhibitsHoistingCheckClass() ||
-      FLAG_precompiled_mode) {
+      CompilerState::Current().is_aot()) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
     // hoisting of checks.

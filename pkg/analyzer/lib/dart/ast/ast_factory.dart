@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
@@ -166,8 +165,7 @@ abstract class AstFactory {
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
       @required Token endToken,
-      @required FeatureSet featureSet,
-      LanguageVersion languageVersion});
+      @required FeatureSet featureSet});
 
   /// Returns a newly created conditional expression.
   ConditionalExpression conditionalExpression(

@@ -475,6 +475,9 @@
         "builder-tag": "cfe"
       }
     },
+    "flutter-frontend": {
+      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
+    },
     "unittest-asserts-no-sdk-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -1042,7 +1045,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/front_end/test/unit_test_suites.dart",
-            "-ncfe-${system}-release-x64",
+            "-ncfe-unittest-asserts-${mode}-${system}",
             "--verbose"
           ]
         }
@@ -1937,7 +1940,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/dev_compiler/test/modular_suite.dart",
-            "-ndartdevk-${system}-release",
+            "-ndartdevk-checked-${system}-release-chrome",
             "--verbose",
             "--use-sdk"
           ]
@@ -2124,7 +2127,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/dev_compiler/test/modular_suite.dart",
-            "-ndartdevk-${system}-release",
+            "-ndartdevk-checked-mac-release-chrome",
             "--verbose",
             "--use-sdk"
           ]
@@ -2266,7 +2269,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/compiler/tool/modular_test_suite.dart",
-            "-ndart2js-${system}-release-d8",
+            "-nunittest-asserts-no-sdk-linux",
             "--verbose",
             "--use-sdk"
           ]

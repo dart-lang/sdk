@@ -245,6 +245,7 @@ general/issue38961: TextSerializationFailure
 general/issue39344: TextSerializationFailure
 general/issue39421: TextSerializationFailure
 general/issue39817: TextSerializationFailure
+general/issue40242: TextSerializationFailure
 general/issue40428: TextSerializationFailure
 general/issue40662: TextSerializationFailure
 general/issue40744: TextSerializationFailure

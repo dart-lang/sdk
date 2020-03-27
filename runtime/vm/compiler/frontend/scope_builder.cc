@@ -290,7 +290,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         parsed_function_->set_receiver_var(variable);
       }
       if (is_setter) {
-        if (FLAG_precompiled_mode) {
+        if (CompilerState::Current().is_aot()) {
           const intptr_t kernel_offset = field.kernel_offset();
           const InferredTypeMetadata parameter_type =
               inferred_type_metadata_helper_.GetInferredType(kernel_offset);

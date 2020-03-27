@@ -76,7 +76,6 @@ class CompilationUnitParser {
     var parser = Parser(
       stringSource,
       errorListener,
-      languageVersion: scanner.languageVersion,
       featureSet: featureSet,
     );
     var cu = parser.parseCompilationUnit(startToken);

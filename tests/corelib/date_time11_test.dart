@@ -122,7 +122,7 @@ void runTests() {
   }
 }
 
-void main(List<String> args) {
+void main() {
   // The following code constructs a String with all timezones that are
   // relevant for this test.
   // This can be helpful for running tests in multiple timezones.

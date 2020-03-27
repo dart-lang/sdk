@@ -214,7 +214,7 @@ class A {}
       featureSet: FeatureSet.fromEnableFlags([]),
     );
 
-    var languageVersion = result.unit.languageVersion;
+    var languageVersion = result.unit.languageVersionToken;
     expect(languageVersion.major, 2);
     expect(languageVersion.minor, 7);
   }
@@ -229,7 +229,7 @@ class A {}
       featureSet: FeatureSet.fromEnableFlags([]),
     );
 
-    expect(result.unit.languageVersion, isNull);
+    expect(result.unit.languageVersionToken, isNull);
   }
 
   test_parseString_lineInfo() {

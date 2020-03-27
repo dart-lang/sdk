@@ -44,7 +44,8 @@ abstract class int extends num {
   // Disable those static errors.
   //ignore: const_constructor_with_body
   //ignore: const_factory
-  external const factory int.fromEnvironment(String name, {int defaultValue});
+  external const factory int.fromEnvironment(String name,
+      {int defaultValue = 0});
 
   /**
    * Bit-wise and operator.

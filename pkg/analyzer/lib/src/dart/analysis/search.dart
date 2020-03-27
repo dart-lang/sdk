@@ -38,8 +38,6 @@ class Search {
    * Returns class or mixin members with the given [name].
    */
   Future<List<Element>> classMembers(String name) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<Element> elements = <Element>[];
 
     void addElement(Element element) {
@@ -70,8 +68,6 @@ class Search {
    */
   Future<List<SearchResult>> references(
       Element element, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (element == null) {
       return const <SearchResult>[];
     }
@@ -123,8 +119,6 @@ class Search {
    */
   Future<List<SearchResult>> subTypes(
       ClassElement type, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (type == null) {
       return const <SearchResult>[];
     }
@@ -178,8 +172,6 @@ class Search {
    * Returns top-level elements with names matching the given [regExp].
    */
   Future<List<Element>> topLevelElements(RegExp regExp) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<Element> elements = <Element>[];
 
     void addElement(Element element) {
@@ -211,8 +203,6 @@ class Search {
    */
   Future<List<SearchResult>> unresolvedMemberReferences(
       String name, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (name == null) {
       return const <SearchResult>[];
     }
@@ -250,8 +240,6 @@ class Search {
       Element element,
       SearchedFiles searchedFiles,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // Prepare the element name.
     String name = element.displayName;
     if (element is ConstructorElement) {
@@ -294,8 +282,6 @@ class Search {
       Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
       String file) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     AnalysisDriverUnitIndex index = await _driver.getIndex(file);
     if (index != null) {
       _IndexRequest request = _IndexRequest(index);
@@ -309,16 +295,12 @@ class Search {
   }
 
   Future<CompilationUnitElement> _getUnitElement(String file) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     UnitElementResult result = await _driver.getUnitElement(file);
     return result?.element;
   }
 
   Future<List<SearchResult>> _searchReferences(
       Element element, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element, searchedFiles,
         const {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE});
@@ -327,8 +309,6 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_CompilationUnit(
       CompilationUnitElement element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String path = element.source.fullName;
 
     // If the path is not known, then the file is not referenced.
@@ -357,8 +337,6 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Field(
       PropertyInducingElement field, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<SearchResult> results = <SearchResult>[];
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
@@ -393,8 +371,6 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Getter(
       PropertyAccessorElement getter, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, getter, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
@@ -405,8 +381,6 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Import(
       ImportElement element, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String path = element.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
@@ -427,8 +401,6 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Library(
       LibraryElement element, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String path = element.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
@@ -456,8 +428,6 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Local(Element element,
       bool Function(AstNode n) isRootNode, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String path = element.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
@@ -491,8 +461,6 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Parameter(
       ParameterElement parameter, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<SearchResult> results = <SearchResult>[];
     results.addAll(await _searchReferences_Local(
       parameter,
@@ -510,8 +478,6 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Prefix(
       PrefixElement element, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String path = element.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
@@ -865,8 +831,6 @@ class _IndexRequest {
       int elementId,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
       Future<CompilationUnitElement> Function() getEnclosingUnitElement) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // Find the first usage of the element.
     int i = _findFirstOccurrence(index.usedElements, elementId);
     if (i == -1) {
@@ -938,8 +902,6 @@ class _IndexRequest {
       String name,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
       Future<CompilationUnitElement> Function() getEnclosingUnitElement) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // Find the name identifier.
     int nameId = getStringId(name);
     if (nameId == -1) {

@@ -837,7 +837,7 @@ class BoundsCheckGeneralizer {
     scheduler_.Start();
 
     // AOT should only see non-deopting GenericCheckBound.
-    ASSERT(!FLAG_precompiled_mode);
+    ASSERT(!CompilerState::Current().is_aot());
 
     ConstantInstr* max_smi = flow_graph_->GetConstant(
         Smi::Handle(Smi::New(compiler::target::kSmiMax)));
@@ -1350,7 +1350,7 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
     // check earlier and we are not compiling precompiled code
     // (no optimistic hoisting of checks possible)
     const bool try_generalization =
-        !FLAG_precompiled_mode &&
+        !CompilerState::Current().is_aot() &&
         !function.ProhibitsBoundsCheckGeneralization();
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
     for (CheckBoundBase* check : bounds_checks_) {

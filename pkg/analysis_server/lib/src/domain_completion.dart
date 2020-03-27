@@ -217,7 +217,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       );
     }
 
-    return runZoned(() {
+    return runZonedGuarded(() {
       String requestName = request.method;
 
       if (requestName == COMPLETION_REQUEST_GET_SUGGESTION_DETAILS) {
@@ -233,7 +233,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         return setSubscriptions(request);
       }
       return null;
-    }, onError: (exception, stackTrace) {
+    }, (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
           CaughtException.withMessage(
               'Failed to handle completion domain request: ${request.method}',

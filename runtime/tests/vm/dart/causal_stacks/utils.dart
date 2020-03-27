@@ -140,10 +140,10 @@ Future listenAsyncStarThrowAsync() async {
 
 Future<void> customErrorZone() async {
   final completer = Completer<void>();
-  runZoned(() async {
+  runZonedGuarded(() async {
     await allYield();
     completer.complete(null);
-  }, onError: (e, s) {
+  }, (e, s) {
     completer.completeError(e, s);
   });
   return completer.future;
@@ -550,7 +550,7 @@ Future<void> doTestsCausal() async {
     r'#5      _rootRun ',
     r'#6      _CustomZone.run ',
     r'#7      _runZoned ',
-    r'#8      runZoned ',
+    r'#8      runZonedGuarded ',
     r'#9      customErrorZone \(.*/utils.dart:143(:3)?\)$',
   ];
   await doTestAwait(

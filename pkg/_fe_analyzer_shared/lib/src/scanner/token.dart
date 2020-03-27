@@ -461,6 +461,29 @@ class KeywordToken extends SimpleToken {
 }
 
 /**
+ * A specialized comment token representing a language version
+ * (e.g. '// @dart = 2.1').
+ */
+class LanguageVersionToken extends CommentToken {
+  /**
+   * The major language version.
+   */
+  final int major;
+
+  /**
+   * The minor language version.
+   */
+  final int minor;
+
+  LanguageVersionToken.from(String text, int offset, this.major, this.minor)
+      : super(TokenType.SINGLE_LINE_COMMENT, text, offset);
+
+  @override
+  LanguageVersionToken copy() =>
+      new LanguageVersionToken.from(lexeme, offset, major, minor);
+}
+
+/**
  * A token that was scanned from the input. Each token knows which tokens
  * precede and follow it, acting as a link in a doubly linked list of tokens.
  */

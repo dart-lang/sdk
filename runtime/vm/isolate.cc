@@ -1505,21 +1505,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
     return nullptr;
   }
 
-  // Now we register the isolate in the group. From this point on any GC would
-  // traverse the isolate roots (before this point, the roots are only pointing
-  // to vm-isolate objects, e.g. null)
-  isolate_group->RegisterIsolate(result);
-
-  if (ServiceIsolate::NameEquals(name_prefix)) {
-    ASSERT(!ServiceIsolate::Exists());
-    ServiceIsolate::SetServiceIsolate(result);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  } else if (KernelIsolate::NameEquals(name_prefix)) {
-    ASSERT(!KernelIsolate::Exists());
-    KernelIsolate::SetKernelIsolate(result);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  }
-
   // Setup the isolate message handler.
   MessageHandler* handler = new IsolateMessageHandler(result);
   ASSERT(handler != nullptr);
@@ -1534,6 +1519,21 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   result->set_origin_id(result->main_port());
   result->set_pause_capability(result->random()->NextUInt64());
   result->set_terminate_capability(result->random()->NextUInt64());
+
+  // Now we register the isolate in the group. From this point on any GC would
+  // traverse the isolate roots (before this point, the roots are only pointing
+  // to vm-isolate objects, e.g. null)
+  isolate_group->RegisterIsolate(result);
+
+  if (ServiceIsolate::NameEquals(name_prefix)) {
+    ASSERT(!ServiceIsolate::Exists());
+    ServiceIsolate::SetServiceIsolate(result);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  } else if (KernelIsolate::NameEquals(name_prefix)) {
+    ASSERT(!KernelIsolate::Exists());
+    KernelIsolate::SetKernelIsolate(result);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  }
 
 #if !defined(PRODUCT)
   result->debugger_ = new Debugger(result);

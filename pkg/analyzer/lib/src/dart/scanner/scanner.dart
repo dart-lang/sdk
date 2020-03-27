@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/language_version.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -72,7 +71,7 @@ class Scanner {
    */
   bool enableNonNullable = false;
 
-  LanguageVersion _languageVersion;
+  fasta.LanguageVersionToken _languageVersion;
 
   FeatureSet _featureSet;
 
@@ -114,7 +113,7 @@ class Scanner {
    * The language version override specified for this compilation unit using a
    * token like '// @dart = 2.7', or `null` if no override is specified.
    */
-  LanguageVersion get languageVersion => _languageVersion;
+  fasta.LanguageVersionToken get languageVersion => _languageVersion;
 
   set preserveComments(bool preserveComments) {
     this._preserveComments = preserveComments;
@@ -199,10 +198,7 @@ class Scanner {
   void _languageVersionChanged(
       fasta.Scanner scanner, fasta.LanguageVersionToken languageVersion) {
     if (languageVersion.major >= 0 && languageVersion.minor >= 0) {
-      _languageVersion = LanguageVersion(
-        languageVersion.major,
-        languageVersion.minor,
-      );
+      _languageVersion = languageVersion;
       if (_featureSet != null) {
         _featureSet = _featureSet.restrictToVersion(
             Version(languageVersion.major, languageVersion.minor, 0));

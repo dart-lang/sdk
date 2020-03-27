@@ -15,6 +15,7 @@
 #include "vm/dart_api_impl.h"  // For Api::IsFfiEnabled().
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/flags.h"
 #include "vm/hash.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -2445,7 +2446,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       if (!cls.IsTopLevel()) {
         scoped_function_class_ = H.GetExpressionEvaluationRealClass();
       }
-      CompilerState compiler_state(thread_);
+      CompilerState compiler_state(thread_, FLAG_precompiled_mode);
       ReadCode(function, function.bytecode_offset());
     }
 
@@ -3427,7 +3428,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
     } else if (function.is_declared_in_bytecode()) {
       const intptr_t code_offset = function.bytecode_offset();
       if (code_offset != 0) {
-        CompilerState compiler_state(thread);
+        CompilerState compiler_state(thread, FLAG_precompiled_mode);
 
         const Script& script = Script::Handle(zone, function.script());
         TranslationHelper translation_helper(thread);

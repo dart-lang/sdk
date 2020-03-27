@@ -367,8 +367,9 @@ class CallSites : public ValueObject {
       const InstanceCallInfo& info =
           instance_calls_[i + instance_call_start_ix];
       intptr_t aggregate_count =
-          FLAG_precompiled_mode ? AotCallCountApproximation(info.nesting_depth)
-                                : info.call->CallCount();
+          CompilerState::Current().is_aot()
+              ? AotCallCountApproximation(info.nesting_depth)
+              : info.call->CallCount();
       instance_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
@@ -377,8 +378,9 @@ class CallSites : public ValueObject {
     for (intptr_t i = 0; i < num_static_calls; ++i) {
       const StaticCallInfo& info = static_calls_[i + static_call_start_ix];
       intptr_t aggregate_count =
-          FLAG_precompiled_mode ? AotCallCountApproximation(info.nesting_depth)
-                                : info.call->CallCount();
+          CompilerState::Current().is_aot()
+              ? AotCallCountApproximation(info.nesting_depth)
+              : info.call->CallCount();
       static_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
@@ -449,7 +451,7 @@ class CallSites : public ValueObject {
         (depth >= inlining_depth_threshold_);
 
     // In AOT, compute loop hierarchy.
-    if (FLAG_precompiled_mode) {
+    if (CompilerState::Current().is_aot()) {
       graph->GetLoopHierarchy();
     }
 
@@ -913,7 +915,7 @@ class CallSiteInliner : public ValueObject {
 
     // Don't inline any intrinsified functions in precompiled mode
     // to reduce code size and make sure we use the intrinsic code.
-    if (FLAG_precompiled_mode && function.is_intrinsic() &&
+    if (CompilerState::Current().is_aot() && function.is_intrinsic() &&
         !inliner_->AlwaysInline(function)) {
       TRACE_INLINING(THR_Print("     Bailout: intrinisic\n"));
       PRINT_INLINING_TREE("intrinsic", &call_data->caller, &function,
@@ -923,7 +925,7 @@ class CallSiteInliner : public ValueObject {
 
     // Do not rely on function type feedback or presence of code to determine
     // if a function was compiled.
-    if (!FLAG_precompiled_mode && !function.WasCompiled()) {
+    if (!CompilerState::Current().is_aot() && !function.WasCompiled()) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
       PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
                           call_data->call);
@@ -932,7 +934,8 @@ class CallSiteInliner : public ValueObject {
 
     // Type feedback may have been cleared for this function (ClearICDataArray),
     // but we need it for inlining.
-    if (!FLAG_precompiled_mode && (function.ic_data_array() == Array::null())) {
+    if (!CompilerState::Current().is_aot() &&
+        (function.ic_data_array() == Array::null())) {
       TRACE_INLINING(THR_Print("     Bailout: type feedback cleared\n"));
       PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
                           call_data->call);
@@ -1050,7 +1053,7 @@ class CallSiteInliner : public ValueObject {
           CalleeGraphValidator::Validate(callee_graph);
         }
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-        if (FLAG_precompiled_mode) {
+        if (CompilerState::Current().is_aot()) {
           callee_graph->PopulateWithICData(parsed_function->function());
         }
 #endif
@@ -1058,7 +1061,7 @@ class CallSiteInliner : public ValueObject {
         // If we inline a function which is intrinsified without a fall-through
         // to IR code, we will not have any ICData attached, so we do it
         // manually here.
-        if (!FLAG_precompiled_mode && function.is_intrinsic()) {
+        if (!CompilerState::Current().is_aot() && function.is_intrinsic()) {
           callee_graph->PopulateWithICData(parsed_function->function());
         }
 
@@ -1143,7 +1146,7 @@ class CallSiteInliner : public ValueObject {
         {
           // TODO(fschneider): Improve suppression of speculative inlining.
           // Deopt-ids overlap between caller and callee.
-          if (FLAG_precompiled_mode) {
+          if (CompilerState::Current().is_aot()) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
             AotCallSpecializer call_specializer(inliner_->precompiler_,
                                                 callee_graph,
@@ -1292,8 +1295,8 @@ class CallSiteInliner : public ValueObject {
     // In background compilation we may abort compilation as the state
     // changes while compiling. Propagate that 'error' and retry compilation
     // later.
-    ASSERT(FLAG_precompiled_mode || Compiler::IsBackgroundCompilation() ||
-           error.IsUnhandledException());
+    ASSERT(CompilerState::Current().is_aot() ||
+           Compiler::IsBackgroundCompilation() || error.IsUnhandledException());
     Thread::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
     return false;
@@ -1439,7 +1442,7 @@ class CallSiteInliner : public ValueObject {
       // to a relatively high ratio. So, unless we are optimizing solely for
       // speed, such call sites are subject to subsequent stricter heuristic
       // to limit code size increase.
-      bool stricter_heuristic = FLAG_precompiled_mode &&
+      bool stricter_heuristic = CompilerState::Current().is_aot() &&
                                 FLAG_optimization_level <= 2 &&
                                 !inliner_->AlwaysInline(target) &&
                                 call_info[call_idx].nesting_depth == 0;
@@ -1748,7 +1751,7 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 }
 
 bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
-  if ((!FLAG_precompiled_mode ||
+  if ((!CompilerState::Current().is_aot() ||
        owner_->inliner_->speculative_policy()->AllowsSpeculativeInlining()) &&
       target_info.IsSingleCid() &&
       TryInlineRecognizedMethod(target_info.cid_start, *target_info.target)) {
@@ -3038,7 +3041,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
-      if (FLAG_precompiled_mode &&
+      if (CompilerState::Current().is_aot() &&
           flow_graph->isolate()->can_use_strong_mode_types()) {
         needs_null_check = true;
       } else {
@@ -3049,7 +3052,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      if (FLAG_precompiled_mode &&
+      if (CompilerState::Current().is_aot() &&
           flow_graph->isolate()->can_use_strong_mode_types()) {
         needs_null_check = true;
       } else {
@@ -3062,7 +3065,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
-      if (FLAG_precompiled_mode &&
+      if (CompilerState::Current().is_aot() &&
           flow_graph->isolate()->can_use_strong_mode_types()) {
         needs_null_check = true;
       } else {
@@ -3085,7 +3088,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       // StoreIndexedInstr takes unboxed int64, so value is
       // checked when unboxing. In AOT Dart2, we use an
       // explicit null check and non-speculative unboxing.
-      needs_null_check = FLAG_precompiled_mode &&
+      needs_null_check = CompilerState::Current().is_aot() &&
                          flow_graph->isolate()->can_use_strong_mode_types();
       break;
     default:
@@ -3561,7 +3564,7 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
     case MethodRecognizer::kFloat64x2Add:
     case MethodRecognizer::kFloat64x2Sub:
       *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
-      if (FLAG_precompiled_mode) {
+      if (CompilerState::Current().is_aot()) {
         // Add null-checks in case of the arguments are known to be compatible
         // but they are possibly nullable.
         // By inserting the null-check, we can allow the unbox instruction later

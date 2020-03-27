@@ -942,7 +942,7 @@ class _RefactoringManager {
           ?.sendEvent('refactor', params.kind.name.toLowerCase());
     }
 
-    runZoned(() async {
+    runZonedGuarded(() async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
       await _init(params.kind, file, params.offset, params.length);
@@ -990,7 +990,7 @@ class _RefactoringManager {
       _checkForReset_afterCreateChange();
       result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
       _sendResultResponse();
-    }, onError: (exception, stackTrace) {
+    }, (exception, stackTrace) {
       if (exception is _ResetError ||
           exception is InconsistentAnalysisException) {
         cancel();

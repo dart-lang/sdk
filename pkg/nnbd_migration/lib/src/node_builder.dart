@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -14,15 +13,15 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
-import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
+import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
+import 'package:nnbd_migration/src/variables.dart';
 
 import 'edge_origin.dart';
 
@@ -37,7 +36,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         PermissiveModeVisitor<DecoratedType>,
         CompletenessTracker<DecoratedType> {
   /// Constraint variables and decorated types are stored here.
-  final VariableRecorder _variables;
+  final Variables _variables;
 
   @override
   final Source source;
@@ -502,17 +501,16 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedType,
         PotentiallyAddQuestionSuffix(
             nullabilityNode, decoratedType.type, node.end));
-    var commentToken = node.endToken.next.precedingComments;
-    switch (_classifyComment(commentToken)) {
-      case _NullabilityComment.bang:
+    switch (getPostfixHint(node)) {
+      case NullabilityComment.bang:
         _graph.makeNonNullableUnion(
-            decoratedType.node, NullabilityCommentOrigin(source, node));
+            decoratedType.node, NullabilityCommentOrigin(source, node, false));
         break;
-      case _NullabilityComment.question:
+      case NullabilityComment.question:
         _graph.makeNullableUnion(
-            decoratedType.node, NullabilityCommentOrigin(source, node));
+            decoratedType.node, NullabilityCommentOrigin(source, node, true));
         break;
-      case _NullabilityComment.none:
+      case NullabilityComment.none:
         break;
     }
     return decoratedType;
@@ -536,7 +534,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           NullabilityNodeTarget.typeParameterBound(element));
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
       _graph.connect(_graph.always, nullabilityNode,
-          AlwaysNullableTypeOrigin.forElement(element));
+          AlwaysNullableTypeOrigin.forElement(element, false));
     }
     DecoratedTypeParameterBounds.current.put(element, decoratedBound);
     return null;
@@ -560,14 +558,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       variable.initializer?.accept(this);
     }
     return null;
-  }
-
-  _NullabilityComment _classifyComment(Token token) {
-    if (token is CommentToken) {
-      if (token.lexeme == '/*!*/') return _NullabilityComment.bang;
-      if (token.lexeme == '/*?*/') return _NullabilityComment.question;
-    }
-    return _NullabilityComment.none;
   }
 
   DecoratedType _createDecoratedTypeForClass(
@@ -762,95 +752,4 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     buffer.write('"');
     throw UnimplementedError(buffer.toString());
   }
-}
-
-/// Repository of constraint variables and decorated types corresponding to the
-/// code being migrated.
-///
-/// This data structure records the results of the first pass of migration
-/// ([NodeBuilder], which finds all the variables that need to be
-/// constrained).
-abstract class VariableRecorder {
-  /// Associates a [class_] with decorated type information for the superclasses
-  /// it directly implements/extends/etc.
-  void recordDecoratedDirectSupertypes(ClassElement class_,
-      Map<ClassElement, DecoratedType> decoratedDirectSupertypes);
-
-  /// Associates decorated type information with the given [element].
-  void recordDecoratedElementType(Element element, DecoratedType type);
-
-  /// Associates decorated type information with the given [type] node.
-  void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
-      DecoratedType type, PotentiallyAddQuestionSuffix potentialModification);
-
-  /// Records that [node] is associated with the question of whether the named
-  /// [parameter] should be optional (should not have a `required`
-  /// annotation added to it).
-  void recordPossiblyOptional(
-      Source source, DefaultFormalParameter parameter, NullabilityNode node);
-}
-
-/// Repository of constraint variables and decorated types corresponding to the
-/// code being migrated.
-///
-/// This data structure allows the second pass of migration
-/// ([ConstraintGatherer], which builds all the constraints) to access the
-/// results of the first ([NodeBuilder], which finds all the
-/// variables that need to be constrained).
-abstract class VariableRepository {
-  /// Given a [class_], gets the decorated type information for the superclasses
-  /// it directly implements/extends/etc.
-  Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
-      ClassElement class_);
-
-  /// Retrieves the [DecoratedType] associated with the static type of the given
-  /// [element].
-  ///
-  /// If no decorated type is found for the given element, and the element is in
-  /// a library that's not being migrated, a decorated type is synthesized using
-  /// [DecoratedType.forElement].
-  DecoratedType decoratedElementType(Element element);
-
-  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
-  DecoratedType decoratedTypeAnnotation(
-      Source source, TypeAnnotation typeAnnotation);
-
-  /// Retrieves the decorated bound of the given [typeParameter].
-  DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter);
-
-  /// Records conditional discard information for the given AST node (which is
-  /// an `if` statement or a conditional (`?:`) expression).
-  void recordConditionalDiscard(
-      Source source, AstNode node, ConditionalDiscard conditionalDiscard);
-
-  /// Associates decorated type information with the given [element].
-  ///
-  /// TODO(paulberry): why is this in both [VariableRecorder] and
-  /// [VariableRepository]?
-  void recordDecoratedElementType(Element element, DecoratedType type);
-
-  /// Associates decorated type information with the given expression [node].
-  void recordDecoratedExpressionType(Expression node, DecoratedType type);
-
-  /// Associates a set of nullability checks with the given expression [node].
-  void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecksOrigin origin);
-
-  /// Records the fact that prior to migration, an unnecessary cast existed at
-  /// [node].
-  void recordUnnecessaryCast(Source source, AsExpression node);
-}
-
-/// Types of comments that can influence nullability
-enum _NullabilityComment {
-  /// The comment `/*!*/`, which indicates that the type should not have a `?`
-  /// appended.
-  bang,
-
-  /// The comment `/*?*/`, which indicates that the type should have a `?`
-  /// appended.
-  question,
-
-  /// No special comment.
-  none,
 }

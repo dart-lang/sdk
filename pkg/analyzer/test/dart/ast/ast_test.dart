@@ -741,7 +741,6 @@ E f() => g;
       _unit = Parser(
         source,
         listener,
-        languageVersion: scanner.languageVersion,
         featureSet: featureSet,
         useFasta: true,
       ).parseCompilationUnit(tokens);

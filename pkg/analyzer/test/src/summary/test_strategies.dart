@@ -31,7 +31,6 @@ CompilationUnit parseText(
   Parser parser = Parser(
     NonExistingSource.unknown,
     AnalysisErrorListener.NULL_LISTENER,
-    languageVersion: scanner.languageVersion,
     featureSet: scanner.featureSet,
   );
   CompilationUnit unit = parser.parseCompilationUnit(token);

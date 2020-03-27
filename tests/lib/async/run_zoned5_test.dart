@@ -9,9 +9,9 @@ import 'dart:async';
 main() {
   asyncStart();
   // Ensure that `runZoned`'s onError handles synchronous errors.
-  runZoned(() {
+  runZonedGuarded(() {
     throw 0;
-  }, onError: (e) {
+  }, (e, s) {
     Expect.equals(0, e);
     asyncEnd();
   });

@@ -435,6 +435,61 @@ Message _withArgumentsCandidateFoundIsDefaultConstructor(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCannotAssignToConstVariable =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Can't assign to the const variable '#name'.""",
+        withArguments: _withArgumentsCannotAssignToConstVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeCannotAssignToConstVariable =
+    const Code<Message Function(String name)>(
+  "CannotAssignToConstVariable",
+  templateCannotAssignToConstVariable,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCannotAssignToConstVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCannotAssignToConstVariable,
+      message: """Can't assign to the const variable '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCannotAssignToExtensionThis =
+    messageCannotAssignToExtensionThis;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCannotAssignToExtensionThis = const MessageCode(
+    "CannotAssignToExtensionThis",
+    message: r"""Can't assign to 'this'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCannotAssignToFinalVariable =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Can't assign to the final variable '#name'.""",
+        withArguments: _withArgumentsCannotAssignToFinalVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeCannotAssignToFinalVariable =
+    const Code<Message Function(String name)>(
+  "CannotAssignToFinalVariable",
+  templateCannotAssignToFinalVariable,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCannotAssignToFinalVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCannotAssignToFinalVariable,
+      message: """Can't assign to the final variable '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCannotAssignToParenthesizedExpression =
     messageCannotAssignToParenthesizedExpression;
 
@@ -452,6 +507,15 @@ const MessageCode messageCannotAssignToSuper = const MessageCode(
     "CannotAssignToSuper",
     analyzerCodes: <String>["NOT_AN_LVALUE"],
     message: r"""Can't assign to super.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCannotAssignToTypeLiteral =
+    messageCannotAssignToTypeLiteral;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCannotAssignToTypeLiteral = const MessageCode(
+    "CannotAssignToTypeLiteral",
+    message: r"""Can't assign to a type literal.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>

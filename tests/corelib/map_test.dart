@@ -160,7 +160,7 @@ void testLinkedHashMap() {
 
 void testMap<K, V>(
     Map<K, V> typedMap, key1, key2, key3, key4, key5, key6, key7, key8) {
-  Map map = typedMap;
+  var map = typedMap;
   int value1 = 10;
   int value2 = 20;
   int value3 = 30;

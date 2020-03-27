@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Setter not found: 'Fisk'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Can't assign to a type literal.
 //     for (Fisk in x) {
 //          ^^^^
 //
@@ -14,7 +14,7 @@ library;
 //     for (collection in x) {
 //          ^^^^^^^^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Setter not found: 'VoidFunction'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Can't assign to a type literal.
 //     for (VoidFunction in x) {
 //          ^^^^^^^^^^^^
 //
@@ -52,7 +52,7 @@ library;
 //   for (key in arguments) {
 //        ^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Setter not found: 'Fisk'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Can't assign to a type literal.
 //   for (Fisk in arguments) {
 //        ^^^^
 //
@@ -64,7 +64,7 @@ library;
 //   for (collection in arguments) {
 //        ^^^^^^^^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Setter not found: 'VoidFunction'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Can't assign to a type literal.
 //   for (VoidFunction in arguments) {
 //        ^^^^^^^^^^^^
 //
@@ -104,7 +104,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
             ^^^");
     }
     for (final dynamic #t2 in x as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
-      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Setter not found: 'Fisk'.
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Can't assign to a type literal.
     for (Fisk in x) {
          ^^^^";
       core::print(self::Fisk*);
@@ -118,7 +118,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
             ^^^^^^^^^^");
     }
     for (final dynamic #t4 in x as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
-      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Setter not found: 'VoidFunction'.
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Can't assign to a type literal.
     for (VoidFunction in x) {
          ^^^^^^^^^^^^";
       core::print(() →* void);
@@ -152,7 +152,7 @@ static method main(dynamic arguments) → dynamic {
           ^^^");
   }
   for (final dynamic #t7 in arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
-    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Setter not found: 'Fisk'.
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Can't assign to a type literal.
   for (Fisk in arguments) {
        ^^^^";
     core::print(self::Fisk*);
@@ -166,7 +166,7 @@ static method main(dynamic arguments) → dynamic {
           ^^^^^^^^^^");
   }
   for (final dynamic #t9 in arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
-    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Setter not found: 'VoidFunction'.
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Can't assign to a type literal.
   for (VoidFunction in arguments) {
        ^^^^^^^^^^^^";
     core::print(() →* void);

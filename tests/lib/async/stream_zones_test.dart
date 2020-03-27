@@ -10,8 +10,8 @@ import 'dart:async';
 test1() {
   var events = [];
   var done = new Completer();
-  runZoned(() {
-    runZoned(() {
+  runZonedGuarded(() {
+    runZonedGuarded(() {
       var c = new StreamController();
       c.stream.listen((x) => events.add("stream: $x"),
           onError: (x) => events.add("stream: error $x"),
@@ -19,8 +19,8 @@ test1() {
       c.add(1);
       c.addError(2);
       c.close();
-    }, onError: (x) => events.add("rza: error $x"));
-  }, onError: (x) => events.add("rzb: error $x"));
+    }, (e, s) => events.add("rza: error $e"));
+  }, (e, s) => events.add("rzb: error $e"));
   return [
     done.future,
     () {
@@ -33,18 +33,18 @@ test1() {
 test2() {
   var events = [];
   var done = new Completer();
-  runZoned(() {
+  runZonedGuarded(() {
     var c;
-    runZoned(() {
+    runZonedGuarded(() {
       c = new StreamController();
       c.stream.listen((x) => events.add("stream: $x"),
           onError: (x) => events.add("stream: error $x"),
           onDone: done.complete);
-    }, onError: (x) => events.add("rza: error $x"));
+    }, (e, s) => events.add("rza: error $e"));
     c.add(1);
     c.addError(2);
     c.close();
-  }, onError: (x) => events.add("rzb: error $x"));
+  }, (e, s) => events.add("rzb: error $e"));
   return [
     done.future,
     () {
@@ -57,16 +57,16 @@ test2() {
 test3() {
   var events = [];
   var done = new Completer();
-  runZoned(() {
+  runZonedGuarded(() {
     var c = new StreamController();
     c.stream.listen((x) => events.add("stream: $x"),
         onError: (x) => events.add("stream: error $x"), onDone: done.complete);
-    runZoned(() {
+    runZonedGuarded(() {
       c.add(1);
       c.addError(2);
       c.close();
-    }, onError: (x) => events.add("rza: error $x"));
-  }, onError: (x) => events.add("rzb: error $x"));
+    }, (e, s) => events.add("rza: error $e"));
+  }, (e, s) => events.add("rzb: error $e"));
   return [
     done.future,
     () {
@@ -79,18 +79,18 @@ test3() {
 test4() {
   var events = [];
   var done = new Completer();
-  runZoned(() {
+  runZonedGuarded(() {
     var c = new StreamController();
     c.stream.listen((x) => events.add("stream: $x"),
         onError: (x) => events.add("stream: error $x"), onDone: done.complete);
-    runZoned(() {
+    runZonedGuarded(() {
       var c2 = new StreamController();
       c.addStream(c2.stream).whenComplete(c.close);
       c2.add(1);
       c2.addError(2);
       c2.close();
-    }, onError: (x) => events.add("rza: error $x"));
-  }, onError: (x) => events.add("rzb: error $x"));
+    }, (e, s) => events.add("rza: error $e"));
+  }, (e, s) => events.add("rzb: error $e"));
   return [
     done.future,
     () {
@@ -104,20 +104,20 @@ test4() {
 test5() {
   var events = [];
   var done = new Completer();
-  runZoned(() {
+  runZonedGuarded(() {
     var c;
-    runZoned(() {
+    runZonedGuarded(() {
       c = new StreamController();
       c.stream.listen((x) => events.add("stream: $x"),
           onError: (x) => events.add("stream: error $x"),
           onDone: done.complete);
-    }, onError: (x) => events.add("rza: error $x"));
+    }, (e, s) => events.add("rza: error $e"));
     var c2 = new StreamController();
     c.addStream(c2.stream).whenComplete(c.close);
     c2.add(1);
     c2.addError(2);
     c2.close();
-  }, onError: (x) => events.add("rzb: error $x"));
+  }, (e, s) => events.add("rzb: error $e"));
   return [
     done.future,
     () {
@@ -130,18 +130,18 @@ test6() {
   var events = [];
   var done = new Completer();
   var c;
-  runZoned(() {
+  runZonedGuarded(() {
     c = new StreamController();
     c.stream.listen((x) => events.add("stream: $x"),
         onError: (x) => events.add("stream: error $x"), onDone: done.complete);
-  }, onError: (x) => events.add("rza: error $x"));
-  runZoned(() {
+  }, (e, s) => events.add("rza: error $e"));
+  runZonedGuarded(() {
     var c2 = new StreamController();
     c.addStream(c2.stream).whenComplete(c.close);
     c2.add(1);
     c2.addError(2);
     c2.close();
-  }, onError: (x) => events.add("rzb: error $x"));
+  }, (e, s) => events.add("rzb: error $e, s"));
   return [
     done.future,
     () {
@@ -155,16 +155,16 @@ test7() {
   var events = [];
   var done = new Completer();
   var c;
-  runZoned(() {
+  runZonedGuarded(() {
     c = new StreamController();
     c.stream.listen((x) => events.add("stream: $x"),
         onError: (x) => events.add("stream: error $x"), onDone: done.complete);
-  }, onError: (x) => events.add("rza: error $x"));
-  runZoned(() {
+  }, (e, s) => events.add("rza: error $e"));
+  runZonedGuarded(() {
     c.add(1);
     c.addError(2);
     c.close();
-  }, onError: (x) => events.add("rzb: error $x"));
+  }, (e, s) => events.add("rzb: error $e"));
   return [
     done.future,
     () {

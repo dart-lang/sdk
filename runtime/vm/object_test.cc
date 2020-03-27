@@ -2309,7 +2309,7 @@ ISOLATE_UNIT_TEST_CASE(Context) {
 ISOLATE_UNIT_TEST_CASE(ContextScope) {
   // We need an active compiler context to manipulate scopes, since local
   // variables and slots can be canonicalized in the compiler state.
-  CompilerState compiler_state(Thread::Current());
+  CompilerState compiler_state(Thread::Current(), /*is_aot=*/false);
 
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =

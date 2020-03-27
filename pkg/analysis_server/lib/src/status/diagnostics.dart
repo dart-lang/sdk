@@ -16,6 +16,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/socket_server.dart';
@@ -1417,6 +1418,19 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     buf.writeln('</div>');
+
+    // SDK configuration overrides.
+    SdkConfiguration sdkConfig = server.options.configurationOverrides;
+    if (sdkConfig?.hasAnyOverrides == true) {
+      buf.writeln('<div class="columns">');
+
+      buf.writeln('<div class="column one-half">');
+      h3('Configuration Overrides');
+      buf.writeln('<pre><code>${sdkConfig.displayString}</code></pre><br>');
+      buf.writeln('</div>');
+
+      buf.writeln('</div>');
+    }
 
     List<String> lines = site.lastPrintedLines;
     if (lines.isNotEmpty) {

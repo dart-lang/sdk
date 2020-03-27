@@ -555,9 +555,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
   Future<ErrorsResult> getErrors(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _throwIfNotAbsolutePath(path);
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
 
     // Ask the analysis result without unit, so return cached errors.
     // If no cached analysis result, it will be computed.
@@ -905,8 +906,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// produced through the [results] stream (just because it is not a fully
   /// resolved unit).
   Future<ParsedUnitResult> parseFile(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return parseFileSync(path);
   }
 
@@ -930,8 +929,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   Future<void> performWork() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (_fileTracker.verifyChangedFilesIfNeeded()) {
       return;
     }

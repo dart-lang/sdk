@@ -482,7 +482,8 @@ COMPILER_PASS(OptimizeTypedDataAccesses,
               { TypedDataSpecializer::Optimize(flow_graph); });
 
 COMPILER_PASS(TryCatchOptimization, {
-  OptimizeCatchEntryStates(flow_graph, /*is_aot=*/FLAG_precompiled_mode);
+  OptimizeCatchEntryStates(flow_graph,
+                           /*is_aot=*/CompilerState::Current().is_aot());
 });
 
 COMPILER_PASS(EliminateEnvironments, { flow_graph->EliminateEnvironments(); });

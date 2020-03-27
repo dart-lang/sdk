@@ -3081,10 +3081,8 @@ void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
     Assembler* assembler) {
   Label done;
 
-  const Register kInstanceReg = R0;
-
   // Fast case for 'null'.
-  __ CompareObject(kInstanceReg, NullObject());
+  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
   __ BranchIf(EQUAL, &done);
 
   // Tail call the [SubtypeTestCache]-based implementation.
@@ -3138,10 +3136,9 @@ void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
 // Used instead of LazySpecializeTypeTestStub when null is assignable.
 void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
     Assembler* assembler) {
-  const Register kInstanceReg = R0;
   Label done;
 
-  __ CompareObject(kInstanceReg, NullObject());
+  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
   __ BranchIf(EQUAL, &done);
 
   __ ldr(CODE_REG,
@@ -3157,57 +3154,60 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
 void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
-  const Register kInstanceReg = R0;
-  const Register kSubtypeTestCacheReg = R3;
-  const Register kDstTypeReg = R8;
-
   __ EnterStubFrame();
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
-  __ CompareObject(kSubtypeTestCacheReg, NullObject());
+  __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
   __ BranchIf(EQUAL, &call_runtime);
 
   const Register kTmp = R9;
 
   // If this is not a [Type] object, we'll go to the runtime.
   Label is_simple_case, is_complex_case;
-  __ LoadClassId(kTmp, kDstTypeReg);
+  __ LoadClassId(kTmp, TypeTestABI::kDstTypeReg);
   __ cmp(kTmp, Operand(kTypeCid));
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is instantiated/uninstantiated.
-  __ ldr(kTmp, FieldAddress(kDstTypeReg, target::Type::type_state_offset()),
-         kByte);
+  __ ldr(
+      kTmp,
+      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::type_state_offset()),
+      kByte);
   __ cmp(kTmp,
          Operand(target::RawAbstractType::kTypeStateFinalizedInstantiated));
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is a function type.
-  __ ldr(kTmp, FieldAddress(kDstTypeReg, target::Type::signature_offset()));
+  __ ldr(kTmp, FieldAddress(TypeTestABI::kDstTypeReg,
+                            target::Type::signature_offset()));
   __ CompareObject(kTmp, NullObject());
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
-  __ BranchIfSmi(kInstanceReg, &is_complex_case);
+  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
 
   // Fall through to &is_simple_case
 
   __ Bind(&is_simple_case);
   {
-    __ PushPair(kFunctionTypeArgumentsReg, kSubtypeTestCacheReg);
+    __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
+                TypeTestABI::kSubtypeTestCacheReg);
     __ BranchLink(StubCodeSubtype2TestCache());
     __ CompareObject(R1, CastHandle<Object>(TrueObject()));
-    __ PopPair(kFunctionTypeArgumentsReg, kSubtypeTestCacheReg);
+    __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
+               TypeTestABI::kSubtypeTestCacheReg);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     __ Jump(&call_runtime);
   }
 
   __ Bind(&is_complex_case);
   {
-    __ PushPair(kFunctionTypeArgumentsReg, kSubtypeTestCacheReg);
+    __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
+                TypeTestABI::kSubtypeTestCacheReg);
     __ BranchLink(StubCodeSubtype6TestCache());
     __ CompareObject(R1, CastHandle<Object>(TrueObject()));
-    __ PopPair(kFunctionTypeArgumentsReg, kSubtypeTestCacheReg);
+    __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
+               TypeTestABI::kSubtypeTestCacheReg);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     // Fall through to runtime_call
   }
@@ -3685,7 +3685,7 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
     Assembler* assembler) {
   // Lookup cache before calling runtime.
-  __ LoadFieldFromOffset(R0, kUninstantiatedTypeArgumentsReg,
+  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
                          target::TypeArguments::instantiations_offset());
   __ AddImmediate(R0, Array::data_offset() - kHeapObjectTag);
   // The instantiations cache is initialized with Object::zero_array() and is
@@ -3695,12 +3695,12 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ LoadFromOffset(R5, R0,
                     TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
                         target::kWordSize);
-  __ CompareRegisters(R5, kInstantiatorTypeArgumentsReg);
+  __ CompareRegisters(R5, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ b(&next, NE);
   __ LoadFromOffset(
       R4, R0,
       TypeArguments::Instantiation::kFunctionTypeArgsIndex * target::kWordSize);
-  __ CompareRegisters(R4, kFunctionTypeArgumentsReg);
+  __ CompareRegisters(R4, InstantiationABI::kFunctionTypeArgumentsReg);
   __ b(&found, EQ);
   __ Bind(&next);
   __ AddImmediate(
@@ -3711,16 +3711,17 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
   __ EnterStubFrame();
-  __ PushPair(kUninstantiatedTypeArgumentsReg, NULL_REG);
-  __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
+  __ PushPair(InstantiationABI::kUninstantiatedTypeArgumentsReg, NULL_REG);
+  __ PushPair(InstantiationABI::kFunctionTypeArgumentsReg,
+              InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
   __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
-  __ Pop(kResultTypeArgumentsReg);  // Pop instantiated type arguments.
+  __ Pop(InstantiationABI::kResultTypeArgumentsReg);
   __ LeaveStubFrame();
   __ Ret();
 
   __ Bind(&found);
-  __ LoadFromOffset(kResultTypeArgumentsReg, R0,
+  __ LoadFromOffset(InstantiationABI::kResultTypeArgumentsReg, R0,
                     TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
                         target::kWordSize);
   __ Ret();
@@ -3732,14 +3733,15 @@ void StubCodeCompiler::
   // Return the instantiator type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ LoadFieldFromOffset(R0, kUninstantiatedTypeArgumentsReg,
+  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
                          target::TypeArguments::nullability_offset());
-  __ LoadFieldFromOffset(R4, kInstantiatorTypeArgumentsReg,
+  __ LoadFieldFromOffset(R4, InstantiationABI::kInstantiatorTypeArgumentsReg,
                          target::TypeArguments::nullability_offset());
   __ and_(R4, R4, Operand(R0));
   __ cmp(R4, Operand(R0));
   __ b(&cache_lookup, NE);
-  __ mov(kResultTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
+  __ mov(InstantiationABI::kResultTypeArgumentsReg,
+         InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ Ret();
 
   __ Bind(&cache_lookup);
@@ -3751,14 +3753,15 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
   // Return the function type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ LoadFieldFromOffset(R0, kUninstantiatedTypeArgumentsReg,
+  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
                          target::TypeArguments::nullability_offset());
-  __ LoadFieldFromOffset(R4, kFunctionTypeArgumentsReg,
+  __ LoadFieldFromOffset(R4, InstantiationABI::kFunctionTypeArgumentsReg,
                          target::TypeArguments::nullability_offset());
   __ and_(R4, R4, Operand(R0));
   __ cmp(R4, Operand(R0));
   __ b(&cache_lookup, NE);
-  __ mov(kResultTypeArgumentsReg, kFunctionTypeArgumentsReg);
+  __ mov(InstantiationABI::kResultTypeArgumentsReg,
+         InstantiationABI::kFunctionTypeArgumentsReg);
   __ Ret();
 
   __ Bind(&cache_lookup);

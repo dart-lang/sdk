@@ -632,7 +632,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (field.isExtensionMember) {
       flags |= FieldDeclaration.isExtensionMemberFlag;
     }
-    if (field.isLate) {
+    // In NNBD libraries, static fields act like late fields
+    // regardless of whether they're marked late.
+    if (field.isLate ||
+        (field.isStatic && field.enclosingLibrary.isNonNullableByDefault)) {
       flags |= FieldDeclaration.isLateFlag;
     }
     int position = TreeNode.noOffset;

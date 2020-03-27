@@ -54,7 +54,6 @@ dart/data_uri_import_test/badencodeddate: CompileTimeError
 
 [ $mode == debug ]
 cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informative in debug mode.
-cc/IRTest_TypedDataAOT_FunctionalGetSet: Skip # run_vm_tests contains JIT/AOT but FLAG_precompiled_mode is not always correct. This causes this test to fail in debug mode, hitting an assertion. See http://dartbug.com/36521
 cc/VerifyExplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100

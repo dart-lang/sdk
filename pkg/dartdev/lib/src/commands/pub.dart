@@ -15,11 +15,11 @@ class PubCommand extends DartdevCommand<int> {
 
   final ArgParser argParser = ArgParser.allowAnything();
 
-  /// Override [printUsage] for invocations of 'dart help pub' which won't
-  /// execute [run] below.  Without this, the 'dart help pub' reports the
-  /// command pub with no commands or flags.
   @override
   void printUsage() {
+    // Override [printUsage] for invocations of 'dart help pub' which won't
+    // execute [run] below.  Without this, the 'dart help pub' reports the
+    // command pub with no commands or flags.
     final command = sdk.pub;
     final args = ['help'];
 

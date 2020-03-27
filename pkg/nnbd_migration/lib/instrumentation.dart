@@ -133,6 +133,9 @@ abstract class DownstreamPropagationStepInfo implements PropagationStepInfo {
 /// migrated, suggesting that if one type (the source) is made nullable, it may
 /// be desirable to make the other type (the destination) nullable as well.
 abstract class EdgeInfo implements FixReasonInfo {
+  /// User-friendly description of the edge, or `null` if not known.
+  String get description;
+
   /// Information about the graph node that this edge "points to".
   NullabilityNodeInfo get destinationNode;
 
@@ -216,7 +219,6 @@ enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
   compoundAssignment,
-  defaultValue,
   dynamicAssignment,
   enumValue,
   expressionChecks,
@@ -229,7 +231,6 @@ enum EdgeOriginKind {
   implicitNullInitializer,
   implicitNullReturn,
   inferredTypeParameterInstantiation,
-  initializerInference,
   instanceCreation,
   instantiateToBounds,
   isCheckComponentType,
@@ -373,6 +374,10 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
 
 abstract class PropagationStepInfo {
   CodeReference get codeReference;
+
+  /// The nullability edge associated with this propagation step, if any.
+  /// Otherwise `null`.
+  EdgeInfo get edge;
 }
 
 /// Information exposed to the migration client about a node in the nullability

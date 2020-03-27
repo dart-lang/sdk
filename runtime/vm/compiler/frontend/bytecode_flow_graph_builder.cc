@@ -822,7 +822,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
       BuildFfiAsFunction();
       return;
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      if (FLAG_precompiled_mode) {
+      if (CompilerState::Current().is_aot()) {
         BuildFfiNativeCallbackFunction();
         return;
       }
@@ -1409,7 +1409,8 @@ void BytecodeFlowGraphBuilder::BuildNullCheck() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  const String& selector = String::Cast(ConstantAt(DecodeOperandD()).value());
+  const String& selector =
+      String::CheckedZoneHandle(Z, ConstantAt(DecodeOperandD()).value().raw());
 
   LocalVariable* receiver_temp = B->MakeTemporary();
   code_ +=

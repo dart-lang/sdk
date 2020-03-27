@@ -385,6 +385,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   @override
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
+        if (_fixBuilder._variables.hasNullCheckHint(_fixBuilder.source, node)) {
+          type = _addNullCheck(node, type);
+        }
         if (type.isDynamic) return type;
         var ancestor = _findNullabilityContextAncestor(node);
         var context =
@@ -580,6 +583,15 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
   }
 
   @override
+  void visitCompilationUnit(CompilationUnit node) {
+    if ((node as CompilationUnitImpl).languageVersionToken != null) {
+      (_fixBuilder._getChange(node) as NodeChangeForCompilationUnit)
+          .removeLanguageVersionComment = true;
+    }
+    super.visitCompilationUnit(node);
+  }
+
+  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.type == null) {
       var typeToAdd = _fixBuilder._addedParameterTypes[node.declaredElement];
@@ -651,6 +663,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
           _fixBuilder._addProblem(
               node, const NonNullableUnnamedOptionalParameter());
         }
+      } else if (element.metadata.any((m) => m.isRequired)) {
+        _addRequiredKeyword(node, nullabilityNode);
       }
     }
     super.visitDefaultFormalParameter(node);

@@ -97,7 +97,7 @@ void main() {
       final mockout = StreamController<List<int>>();
       process.stdout = mockout.stream;
       process.stderr = _noMessage();
-      process.exitCode = Future.delayed(const Duration(seconds: 1));
+      process.exitCode = Future.delayed(const Duration(seconds: 1), () => 0);
 
       server.listenToOutput();
       await server.stop(timeLimit: const Duration(milliseconds: 10));

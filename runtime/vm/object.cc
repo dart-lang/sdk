@@ -18,6 +18,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/bytecode_fingerprints.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
@@ -4852,13 +4853,13 @@ bool Class::IsFutureClass() const {
          (library() == Library::AsyncLibrary());
 }
 
-// Checks if type T0 is a subtype of type T1, assuming that T0 is non-nullable.
-// Type T0 is specified by class 'cls' parameterized with 'type_arguments', and
-// type T1 is specified by 'other' and must have a type class.
-// This class and class 'other' do not need to be finalized, however, they must
-// be resolved as well as their interfaces.
+// Checks if type T0 is a subtype of type T1.
+// Type T0 is specified by class 'cls' parameterized with 'type_arguments' and
+// by 'nullability', and type T1 is specified by 'other' and must have a type
+// class.
 bool Class::IsSubtypeOf(const Class& cls,
                         const TypeArguments& type_arguments,
+                        Nullability nullability,
                         const AbstractType& other,
                         Heap::Space space) {
   // This function does not support Null, Never, dynamic, or void as type T0.
@@ -4868,13 +4869,21 @@ bool Class::IsSubtypeOf(const Class& cls,
   // Type T1 must have a type class (e.g. not a type parameter).
   ASSERT(other.HasTypeClass());
   const classid_t other_cid = other.type_class_id();
-  // Since T0 is assumed non-nullable, the nullability of T1 is irrelevant.
-  if (other_cid == kDynamicCid || other_cid == kVoidCid ||
-      other_cid == kObjectCid) {
+  if (other_cid == kDynamicCid || other_cid == kVoidCid) {
     return true;
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  // Nullability of left and right hand sides is verified in strong mode only.
+  const bool verified_nullability = !isolate->null_safety() ||
+                                    nullability != Nullability::kNullable ||
+                                    !other.IsNonNullable();
+
+  // Right Object.
+  if (other_cid == kObjectCid) {
+    return verified_nullability;
+  }
   const Class& other_class = Class::Handle(zone, other.type_class());
   const TypeArguments& other_type_arguments =
       TypeArguments::Handle(zone, other.arguments());
@@ -4895,12 +4904,13 @@ bool Class::IsSubtypeOf(const Class& cls,
       ASSERT(!future_class.IsNull() && future_class.NumTypeParameters() == 1 &&
              this_class.NumTypeParameters() == 1);
       ASSERT(type_arguments.IsNull() || type_arguments.Length() >= 1);
-      if (Class::IsSubtypeOf(future_class, type_arguments, other, space)) {
+      if (Class::IsSubtypeOf(future_class, type_arguments,
+                             Nullability::kNonNullable, other, space)) {
         // Check S0 <: T1.
         const AbstractType& type_arg =
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
         if (type_arg.IsSubtypeOf(other, space)) {
-          return true;
+          return verified_nullability;
         }
       }
     }
@@ -4924,16 +4934,25 @@ bool Class::IsSubtypeOf(const Class& cls,
             AbstractType::Handle(zone, type_arguments.TypeAtNullSafe(0));
         // If T0 is Future<S0>, then T0 <: Future<S1>, iff S0 <: S1.
         if (type_arg.IsSubtypeOf(other_type_arg, space)) {
-          return true;
+          if (verified_nullability) {
+            return true;
+          }
         }
       }
       // Check T0 <: Future<S1> when T0 is FutureOr<S0> is already done.
       // Check T0 <: S1.
       if (other_type_arg.HasTypeClass() &&
-          Class::IsSubtypeOf(this_class, type_arguments, other_type_arg,
-                             space)) {
+          Class::IsSubtypeOf(this_class, type_arguments, nullability,
+                             other_type_arg, space)) {
         return true;
       }
+    }
+
+    // Left nullable:
+    //   if T0 is S0? then:
+    //     T0 <: T1 iff S0 <: T1 and Null <: T1
+    if (!verified_nullability) {
+      return false;
     }
 
     // Check for reflexivity.
@@ -4990,7 +5009,8 @@ bool Class::IsSubtypeOf(const Class& cls,
       if (interface_class.IsDartFunctionClass()) {
         continue;
       }
-      if (Class::IsSubtypeOf(interface_class, interface_args, other, space)) {
+      if (Class::IsSubtypeOf(interface_class, interface_args,
+                             Nullability::kNonNullable, other, space)) {
         return true;
       }
     }
@@ -7366,7 +7386,7 @@ bool Function::CanBeInlined() const {
   // functions cannot deoptimize to unoptimized frames we prevent them from
   // being inlined (for now).
   if (ForceOptimize()) {
-    return FLAG_precompiled_mode;
+    return CompilerState::Current().is_aot();
   }
 #if defined(PRODUCT)
   return is_inlinable() && !is_external() && !is_generated_body();
@@ -7949,6 +7969,7 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   // Check the result type.
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
@@ -7996,7 +8017,7 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
       return false;
     }
   }
-  if (FLAG_null_safety) {
+  if (isolate->null_safety()) {
     // Check that for each required named parameter in this function, there's a
     // corresponding required named parameter in the other function.
     String& param_name = other_param_name;
@@ -8443,6 +8464,7 @@ void Function::PrintSignature(NameVisibility name_visibility,
                               ZoneTextBuffer* printer) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   String& name = String::Handle(zone);
   const TypeArguments& type_params =
       TypeArguments::Handle(zone, type_parameters());
@@ -8458,8 +8480,9 @@ void Function::PrintSignature(NameVisibility name_visibility,
       printer->AddString(name.ToCString());
       bound = type_param.bound();
       // Do not print default bound or non-nullable Object bound in weak mode.
-      if (!bound.IsNull() && (!bound.IsObjectType() ||
-                              (FLAG_null_safety && bound.IsNonNullable()))) {
+      if (!bound.IsNull() &&
+          (!bound.IsObjectType() ||
+           (isolate->null_safety() && bound.IsNonNullable()))) {
         printer->AddString(" extends ");
         bound.PrintName(name_visibility, printer);
       }
@@ -17801,8 +17824,8 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   }
   // RuntimeType of non-null instance is non-nullable, so there is no need to
   // check nullability of other type.
-  return Class::IsSubtypeOf(cls, type_arguments, instantiated_other,
-                            Heap::kOld);
+  return Class::IsSubtypeOf(cls, type_arguments, Nullability::kNonNullable,
+                            instantiated_other, Heap::kOld);
 }
 
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
@@ -18637,15 +18660,15 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   if (other.IsTypeParameter()) {
     return false;
   }
-  if (isolate->null_safety() && IsNullable() && other.IsNonNullable()) {
-    return false;
-  }
   const Class& type_cls = Class::Handle(zone, type_class());
   const Class& other_type_cls = Class::Handle(zone, other.type_class());
   // Function types cannot be handled by Class::IsSubtypeOf().
   const bool other_is_dart_function_type = other.IsDartFunctionType();
   if (other_is_dart_function_type || other.IsFunctionType()) {
     if (IsFunctionType()) {
+      if (isolate->null_safety() && IsNullable() && other.IsNonNullable()) {
+        return false;
+      }
       if (other_is_dart_function_type) {
         return true;
       }
@@ -18677,7 +18700,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return false;
   }
   return Class::IsSubtypeOf(type_cls, TypeArguments::Handle(zone, arguments()),
-                            other, space);
+                            nullability(), other, space);
 }
 
 bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,

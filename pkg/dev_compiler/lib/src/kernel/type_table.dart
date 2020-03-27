@@ -63,16 +63,23 @@ class _CacheTable {
 
   bool isNamed(DartType type) => _names.containsKey(type);
 
+  /// A name for a type made of JS identifier safe characters.
+  ///
+  /// 'L' and 'N' are prepended to a type name to represent a legacy or nullable
+  /// flavor of a type.
   String _typeString(DartType type, {bool flat = false}) {
+    var nullability = type.nullability == Nullability.legacy
+        ? 'L'
+        : type.nullability == Nullability.nullable ? 'N' : '';
     if (type is InterfaceType) {
-      var name = type.classNode.name;
+      var name = '${type.classNode.name}$nullability';
       var typeArgs = type.typeArguments;
       if (typeArgs == null) return name;
       if (typeArgs.every((p) => p == const DynamicType())) return name;
       return "${name}Of${typeArgs.map(_typeString).join("\$")}";
     }
     if (type is TypedefType) {
-      var name = type.typedefNode.name;
+      var name = '${type.typedefNode.name}$nullability';
       var typeArgs = type.typeArguments;
       if (typeArgs == null) return name;
       if (typeArgs.every((p) => p == const DynamicType())) return name;
@@ -91,12 +98,13 @@ class _CacheTable {
       } else if (count == 0) {
         paramList = 'Void';
       }
-      return '${paramList}To${rType}';
+      return '${paramList}To$nullability$rType';
     }
-    if (type is TypeParameterType) return type.parameter.name;
-    if (type == const DynamicType()) return 'dynamic';
-    if (type == const VoidType()) return 'void';
-    if (type == const BottomType()) return 'bottom';
+    if (type is TypeParameterType) return '${type.parameter.name}$nullability';
+    if (type is DynamicType) return 'dynamic';
+    if (type is VoidType) return 'void';
+    if (type is NeverType) return 'Never$nullability';
+    if (type is BottomType) return 'bottom';
     return 'invalid';
   }
 

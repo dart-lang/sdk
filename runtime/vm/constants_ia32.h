@@ -92,13 +92,24 @@ const Register kWriteBarrierSlotReg = EDI;
 const Register kAllocationStubTypeArgumentsReg = EDX;
 
 // ABI for instantiation stubs.
-const Register kUninstantiatedTypeArgumentsReg = EBX;
-const Register kInstantiatorTypeArgumentsReg = EDX;
-const Register kFunctionTypeArgumentsReg = ECX;
-const Register kResultTypeArgumentsReg = EAX;
+struct InstantiationABI {
+  static const Register kUninstantiatedTypeArgumentsReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kResultTypeArgumentsReg = EAX;
+  static const Register kResultTypeReg = EAX;
+};
 
-// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
-// of reusing the constants of the instantiation stubs ABI.
+// Calling convention when calling SubtypeTestCacheStub.
+// Although ia32 uses a stack-based calling convention, we keep the same
+// 'TypeTestABI' name for symmetry with other architectures with a proper ABI.
+// Note that ia32 has no support for type testing stubs.
+struct TypeTestABI {
+  static const Register kInstanceReg = EAX;
+  static const Register kDstTypeReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+};
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;

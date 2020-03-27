@@ -868,7 +868,7 @@ void testWaitCleanUpError() {
   asyncStart();
   asyncStart();
   asyncStart();
-  runZoned(() {
+  runZonedGuarded(() {
     Future.wait([
       new Future.delayed(cms, () => 0),
       new Future.delayed(cms * 2, () => throw 1),
@@ -882,7 +882,7 @@ void testWaitCleanUpError() {
       Expect.equals(e, 1);
       asyncEnd();
     });
-  }, onError: (e, s) {
+  }, (e, s) {
     int index = e;
     Expect.isTrue(index == 0 || index == 2, "$index");
     Expect.isFalse(uncaughts[index]);

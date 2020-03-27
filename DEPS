@@ -39,7 +39,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "51ee35d0459ad329287254b79ed3918d78b5bbf3",
+  "co19_rev": "b9efaddfe0553b6937bf625157f6a13498951346",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -102,7 +102,7 @@ vars = {
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.113",
+  "linter_tag": "0.1.114",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
@@ -112,14 +112,14 @@ vars = {
   "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
-  "package_config_tag": "87a8b5184020ebcc13b34ee95dde58f851b68ca3", # should be 1.9.0
+  "package_config_tag": "v1.9.2",
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
   "pedantic_tag": "v1.8.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "11afdac99fe67373829f37acc75b625011d360ad",
+  "pub_rev": "ab109723d9eb782c2ea4cce68c044da40403a652",
   "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",

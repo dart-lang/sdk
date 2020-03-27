@@ -146,12 +146,16 @@ abstract class String implements Comparable<String>, Pattern {
    * [defaultValue].
    *
    * Example of getting a value:
-   *
-   *     const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
-   *
-   * Example of checking whether a declaration is there at all:
-   *
-   *     var isDeclared = const String.fromEnvironment("maybeDeclared") != null;
+   * ```
+   * const String.fromEnvironment("defaultFloo", defaultValue: "no floo")
+   * ```
+   * In order to check whether a declaration is there at all, use
+   * [bool.hasEnvironment]. Example:
+   * ```
+   * const maybeDeclared = bool.hasEnvironment("maybeDeclared")
+   *     ? String.fromEnvironment("maybeDeclared")
+   *     : null;
+   * ```
    */
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
@@ -160,7 +164,7 @@ abstract class String implements Comparable<String>, Pattern {
   //ignore: const_constructor_with_body
   //ignore: const_factory
   external const factory String.fromEnvironment(String name,
-      {String defaultValue});
+      {String defaultValue = ""});
 
   /**
    * Gets the character (as a single-code-unit [String]) at the given [index].

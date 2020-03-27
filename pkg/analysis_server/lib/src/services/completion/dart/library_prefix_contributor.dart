@@ -11,32 +11,39 @@ import 'package:analyzer/dart/element/element.dart';
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
-/// A contributor for calculating prefixed import library member suggestions
-/// `completion.getSuggestions` request results.
+/// A contributor that produces suggestions based on the prefixes defined on
+/// import directives.
 class LibraryPrefixContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }
 
-    List<ImportElement> imports = request.libraryElement.imports;
+    var imports = request.libraryElement.imports;
     if (imports == null) {
       return const <CompletionSuggestion>[];
     }
 
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+    // TODO(brianwilkerson) The code below will result in duplication if two or
+    //  more imports use the same prefix. Might not be worth fixing. The one
+    //  potential complication is if the library is displayed with the prefix,
+    //  in which case not having one per library could be confusing.
+    var useNewRelevance = request.useNewRelevance;
+    var suggestions = <CompletionSuggestion>[];
     for (ImportElement element in imports) {
-      String completion = element.prefix?.name;
+      var completion = element.prefix?.name;
       if (completion != null && completion.isNotEmpty) {
-        LibraryElement libElem = element.importedLibrary;
-        if (libElem != null) {
-          CompletionSuggestion suggestion = createSuggestion(libElem,
+        var libraryElement = element.importedLibrary;
+        if (libraryElement != null) {
+          var relevance =
+              useNewRelevance ? Relevance.prefix : DART_RELEVANCE_DEFAULT;
+          var suggestion = createSuggestion(libraryElement,
               completion: completion,
-              kind: CompletionSuggestionKind.IDENTIFIER);
+              kind: CompletionSuggestionKind.IDENTIFIER,
+              relevance: relevance,
+              useNewRelevance: useNewRelevance);
           if (suggestion != null) {
             suggestions.add(suggestion);
           }

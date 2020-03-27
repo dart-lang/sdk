@@ -14,9 +14,9 @@ main(args) async {
 
   {
     final caughtErrorCompleter = Completer<String>();
-    await runZoned(() {
+    await runZonedGuarded(() {
       Isolate.spawn(isolate, x);
-    }, onError: (e) {
+    }, (e, s) {
       caughtErrorCompleter.complete(e.toString());
     });
     Expect.equals(

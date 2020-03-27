@@ -60,8 +60,6 @@ class OverlayResourceProvider implements ResourceProvider {
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return sources.map((source) {
       String path = source.fullName;
       return _overlayModificationStamps[path] ??

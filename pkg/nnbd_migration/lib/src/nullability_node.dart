@@ -84,13 +84,16 @@ class NullabilityEdge implements EdgeInfo {
   /// The location in the source code that caused this edge to be built.
   final CodeReference codeReference;
 
+  final String description;
+
   NullabilityEdge.fromJson(
       dynamic json, NullabilityGraphDeserializer deserializer)
       : destinationNode = deserializer.nodeForId(json['dest'] as int),
         upstreamNodes = [],
         _kind = _deserializeKind(json['kind']),
         codeReference =
-            json['code'] == null ? null : CodeReference.fromJson(json['code']) {
+            json['code'] == null ? null : CodeReference.fromJson(json['code']),
+        description = json['description'] as String {
     deserializer.defer(() {
       for (var id in json['us'] as List<dynamic>) {
         upstreamNodes.add(deserializer.nodeForId(id as int));
@@ -98,7 +101,8 @@ class NullabilityEdge implements EdgeInfo {
     });
   }
 
-  NullabilityEdge._(this.destinationNode, this.upstreamNodes, this._kind,
+  NullabilityEdge._(
+      this.destinationNode, this.upstreamNodes, this._kind, this.description,
       {this.codeReference});
 
   @override
@@ -156,6 +160,7 @@ class NullabilityEdge implements EdgeInfo {
         break;
     }
     if (codeReference != null) json['code'] = codeReference.toJson();
+    if (description != null) json['description'] = description;
     serializer.defer(() {
       json['dest'] = serializer.idForNode(destinationNode);
       json['us'] = [for (var n in upstreamNodes) serializer.idForNode(n)];
@@ -424,7 +429,8 @@ class NullabilityGraph {
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
-    var edge = NullabilityEdge._(destinationNode, upstreamNodes, kind,
+    var edge = NullabilityEdge._(
+        destinationNode, upstreamNodes, kind, origin?.description,
         codeReference: origin?.codeReference);
     instrumentation?.graphEdge(edge, origin);
     for (var upstreamNode in upstreamNodes) {
@@ -1082,6 +1088,9 @@ class ResolveSubstitutionPropagationStep extends ExactNullablePropagationStep {
         super.fromJson(json, deserializer);
 
   @override
+  EdgeInfo get edge => null;
+
+  @override
   Map<String, Object> toJson(NullabilityGraphSerializer serializer) {
     var json = super.toJson(serializer);
     json['kind'] = 'resolveSubstitution';
@@ -1102,7 +1111,7 @@ class SimpleDownstreamPropagationStep extends DownstreamPropagationStep {
   @override
   final DownstreamPropagationStep principalCause;
 
-  /// The nullability edge whose sources are nullable.
+  @override
   final NullabilityEdge edge;
 
   SimpleDownstreamPropagationStep(this.principalCause, this.edge);
@@ -1138,6 +1147,7 @@ class SimpleExactNullablePropagationStep extends ExactNullablePropagationStep {
   @override
   final ExactNullablePropagationStep principalCause;
 
+  @override
   final NullabilityEdge edge;
 
   SimpleExactNullablePropagationStep(this.principalCause, this.edge);

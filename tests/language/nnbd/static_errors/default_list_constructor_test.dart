@@ -6,17 +6,18 @@
 
 import 'opted_out_library.dart';
 
-// Test that it is an error to call the default List constructor with a length
-// argument and a type argument which is potentially non-nullable.
+// Test that it is an error to call the default List constructor.
 main() {
   var a = new List<int>(3); //# 01: compile-time error
-  var b = new List<String?>(3);
-  List<C> c = List(5); //# 02: compile-time error
-  consumeListOfStringStar(new List(3)); //# 03: compile-time error
+  var b = new List<int?>(3); //# 02: compile-time-error
+  var c = new List<int>(); //# 03: compile-time error
+  var d = new List<int?>(); //# 04: compile-time error
+  List<C> c = new List(5); //# 05: compile-time error
+  consumeListOfStringStar(new List(3)); //# 06: compile-time error
 }
 
 class A<T> {
-  var l = new List<T>(3); //# 04: compile-time error
+  var l = new List<T>(3); //# 07: compile-time error
 }
 
 class C {}

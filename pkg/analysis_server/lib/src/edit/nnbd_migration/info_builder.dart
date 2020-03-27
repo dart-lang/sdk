@@ -468,6 +468,7 @@ class InfoBuilder {
       case NullabilityFixKind.discardThen:
       case NullabilityFixKind.removeAs:
       case NullabilityFixKind.removeNullAwareness:
+      case NullabilityFixKind.removeLanguageVersionComment:
         // There's no need for hints around code that is being removed.
         break;
       case NullabilityFixKind.makeTypeNullable:
@@ -516,11 +517,6 @@ class InfoBuilder {
     }
     assert(identical(step.node, node));
     while (step != null) {
-      if (step.node == info.never) {
-        // Assert that we are only ever trimming off the last step.
-        assert(step.principalCause == null);
-        break;
-      }
       entries.add(_nodeToTraceEntry(step.node));
       if (step.codeReference != null) {
         entries.add(_stepToTraceEntry(step));
@@ -541,12 +537,6 @@ class InfoBuilder {
     assert(identical(step.targetNode, node));
     while (step != null) {
       entries.add(_nodeToTraceEntry(step.targetNode));
-      if (step.targetNode.upstreamEdges.isNotEmpty &&
-          step.targetNode.upstreamEdges.first.sourceNode == info.always) {
-        // Assert that we are only ever trimming off the last step.
-        assert(step.principalCause == null);
-        break;
-      }
       if (step.codeReference != null) {
         entries.add(_stepToTraceEntry(step));
       }
@@ -743,7 +733,8 @@ class InfoBuilder {
   }
 
   TraceEntryInfo _stepToTraceEntry(PropagationStepInfo step) {
-    var description = step.toString(); // TODO(paulberry): improve this message.
+    String description = step.edge?.description;
+    description ??= step.toString(); // TODO(paulberry): improve this message.
     return _makeTraceEntry(description, step.codeReference);
   }
 

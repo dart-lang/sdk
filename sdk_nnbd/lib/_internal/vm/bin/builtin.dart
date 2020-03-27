@@ -467,8 +467,7 @@ _findPackagesFile(bool traceLoading, Uri base) {
         _log("$packagesFile exists: $exists");
       }
       if (exists) {
-        _loadPackagesFile(traceLoading, packagesFile);
-        return;
+        return _loadPackagesFile(traceLoading, packagesFile);
       }
       // Move up one level.
       prev = dir;
