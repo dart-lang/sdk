@@ -1748,6 +1748,10 @@ class _HttpClientConnection {
     _currentUri = uri;
     // Start with pausing the parser.
     _subscription.pause();
+    if (method == "CONNECT") {
+      // Parser will ignore Content-Length or Transfer-Encoding header
+      _httpParser.connectMethod = true;
+    }
     _ProxyCredentials proxyCreds; // Credentials used to authorize proxy.
     _SiteCredentials creds; // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
