@@ -539,7 +539,7 @@ dart_vm_extra_builder(
     "vm-dartkb-linux-release-x64-abi", category="vm|dartkb|abi")
 
 #vm|kernel
-dart_ci_sandbox_builder(
+dart_vm_extra_builder(
     "vm-canary-linux-debug", category="vm|kernel|c", goma_rbe=True, on_cq=True)
 dart_ci_sandbox_builder("vm-kernel-linux-debug-x64", category="vm|kernel|d")
 dart_vm_extra_builder(
@@ -630,7 +630,7 @@ dart_vm_extra_builder(
     "vm-kernel-optcounter-threshold-linux-release-x64", category="vm|misc|o64")
 
 # vm|product
-dart_ci_sandbox_builder(
+dart_vm_extra_builder(
     "vm-kernel-linux-product-x64", category="vm|product|l", on_cq=True)
 dart_ci_sandbox_builder(
     "vm-kernel-mac-product-x64", category="vm|product|m", dimensions=mac())
