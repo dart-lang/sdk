@@ -80,4 +80,7 @@ abstract class Relevance {
   /// The relevance used when suggesting a named argument corresponding to a
   /// named parameter that is required.
   static const int requiredNamedArgument = 950;
+
+  /// The relevance used when suggesting a type parameter.
+  static const int typeParameter = 900;
 }

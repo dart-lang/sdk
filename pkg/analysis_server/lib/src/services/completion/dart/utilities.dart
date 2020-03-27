@@ -168,42 +168,6 @@ protocol.Element createLocalElement(
       returnType: nameForType(id, returnType));
 }
 
-/// Create a new suggestion based upon the given information. Return the new
-/// suggestion or `null` if it could not be created.
-CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
-    bool isDeprecated, int defaultRelevance, TypeAnnotation returnType,
-    {ClassOrMixinDeclaration classDecl,
-    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-    protocol.Element element}) {
-  if (id == null) {
-    return null;
-  }
-  String completion = id.name;
-  if (completion == null || completion.isEmpty || completion == '_') {
-    return null;
-  }
-  CompletionSuggestion suggestion = CompletionSuggestion(
-      kind,
-      isDeprecated ? DART_RELEVANCE_LOW : defaultRelevance,
-      completion,
-      completion.length,
-      0,
-      isDeprecated,
-      false,
-      returnType: nameForType(id, returnType),
-      element: element);
-  if (classDecl != null) {
-    SimpleIdentifier classId = classDecl.name;
-    if (classId != null) {
-      String className = classId.name;
-      if (className != null && className.isNotEmpty) {
-        suggestion.declaringType = className;
-      }
-    }
-  }
-  return suggestion;
-}
-
 DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   if (param != null) {
     DartType type = param.type;
