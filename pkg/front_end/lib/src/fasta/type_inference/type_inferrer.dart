@@ -25,6 +25,8 @@ import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
 import 'package:kernel/src/future_or.dart';
 
+import 'package:kernel/src/legacy_erasure.dart';
+
 import '../../base/instrumentation.dart'
     show
         Instrumentation,
@@ -2162,7 +2164,9 @@ class TypeInferrerImpl implements TypeInferrer {
       inferredTypes = new List<DartType>.filled(
           calleeTypeParameters.length, const UnknownType());
       typeSchemaEnvironment.inferGenericFunctionOrType(
-          returnType ?? calleeType.returnType,
+          isNonNullableByDefault
+              ? returnType ?? calleeType.returnType
+              : legacyErasure(coreTypes, returnType ?? calleeType.returnType),
           calleeTypeParameters,
           null,
           null,
@@ -2198,7 +2202,9 @@ class TypeInferrerImpl implements TypeInferrer {
       } else {
         ExpressionInferenceResult result = inferExpression(
             arguments.positional[position],
-            inferredFormalType,
+            isNonNullableByDefault
+                ? inferredFormalType
+                : legacyErasure(coreTypes, inferredFormalType),
             inferenceNeeded ||
                 isOverloadedArithmeticOperator ||
                 typeChecksNeeded);
@@ -2224,7 +2230,9 @@ class TypeInferrerImpl implements TypeInferrer {
           : formalType;
       ExpressionInferenceResult result = inferExpression(
           namedArgument.value,
-          inferredFormalType,
+          isNonNullableByDefault
+              ? inferredFormalType
+              : legacyErasure(coreTypes, inferredFormalType),
           inferenceNeeded ||
               isOverloadedArithmeticOperator ||
               typeChecksNeeded);

@@ -156,6 +156,7 @@ inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 nnbd/inheritance_from_opt_in: TypeCheckError
+nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed strong mode.
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError
