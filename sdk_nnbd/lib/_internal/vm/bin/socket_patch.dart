@@ -802,6 +802,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       Uint8List? list;
       if (count != null) {
         list = nativeRead(count);
+        available = nativeAvailable();
       } else {
         // If count is null, read as many bytes as possible.
         // Loop here to ensure bytes that arrived while this read was
@@ -839,7 +840,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         _SocketProfile.collectStatistic(
             nativeGetSocketId(), _SocketProfileType.readBytes, list?.length);
       }
-      available = nativeAvailable();
       return list;
     } catch (e) {
       reportError(e, StackTrace.current, "Read failed");
