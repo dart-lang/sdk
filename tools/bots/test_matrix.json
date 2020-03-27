@@ -631,7 +631,8 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-null-safety"
+          "--no-null-safety",
+          "--libraries-spec=sdk_nnbd/lib/libraries.json"
         ],
         "host-checked": true
       }
