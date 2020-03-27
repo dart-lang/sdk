@@ -9,17 +9,23 @@ unexpected failures, note the breaking changes listed below.
 
 ### Language
 
-There are no language changes in this release.
+There are no new language features in this release. The only noteworthy change
+is a very minor breaking change in anticipation of the future support for null
+safety.
+
+*   **Breaking change** [#40675][]: Fixed an implementation bug where local
+    variable inference would incorrectly use the promoted type of a type
+    variable.
+
+[#40675]: https://github.com/dart-lang/sdk/issues/40675
 
 ### Core libraries
 
 #### `dart:async`
 
-*   Make stack traces non-null. Where methods like `completer.completeError()`
-    allow omitting a stack trace, the platform will now insert a default stack
-    trace rather than propagate a `null` value.
-
-    Error handling functions need no longer be prepared for `null` stack traces.
+*   **Breaking change** [#40676][]: Changed the return type of
+    `StreamSubscription.cancel()`  to `Future<void>`. Previously, it was
+    declared to return `Future` and was allowed to return `null` at runtime.
 
 *   **Breaking change** [#40681][]: The `runZoned()` function is split into two
     functions: `runZoned()` and `runZonedGuarded()`, where the latter has a
@@ -27,14 +33,38 @@ There are no language changes in this release.
     functions for Null Safety where the two functions will differ in the
     nullability of their return types.
 
+*   **Breaking change** [#40683][]: Errors passed to
+    `Completer.completeError()`, `Stream.addError()`, `Future.error()`, etc. can
+    no longer be `null`. These operations now *synchronously* throw an exception
+    if passed a `null` error.
+
+*   Make stack traces non-null [#40130][]. Where methods like
+    `completer.completeError()` allow omitting a stack trace, the platform will
+    now insert a default stack trace rather than propagate a `null` value.
+
+    Error handling functions need no longer be prepared for `null` stack traces.
+
+[#40676]: https://github.com/dart-lang/sdk/issues/40676
 [#40681]: https://github.com/dart-lang/sdk/issues/40681
+[#40683]: https://github.com/dart-lang/sdk/issues/40683
+[#40130]: https://github.com/dart-lang/sdk/issues/40130
 
 #### `dart:core`
 
-* The class `CastError` is deprecated, and all implementation specific
-    classes implementing `TypeError` or `CastError` now implement both.  In
-    a future release, `CastError` will be removed.  See issue [40763][] for
-    details.
+*   **Breaking change** [#40674][]: Three members on `RuneIterator` no longer
+    return `null` when accessed before the first call to `moveNext()`. Instead,
+    `current` and `rawIndex` return `-1` and `currentAsString` returns an empty
+    string.
+
+*   **Breaking change** [#40678][]: The `String.fromEnvironment()` default value
+    for `defaultValue` is now an empty string instead of `null`. Likewise, the
+    default value for `int.fromEnvironment()`'s `defaultValue` parameter is
+    zero. Under null safety, a constructor cannot return `null`, so this
+    prepares these APIs for that.
+
+*   The class `CastError` is deprecated, and all implementation specific classes
+    implementing `TypeError` or `CastError` now implement both.  In a future
+    release, `CastError` will be removed.  See issue [40763][] for details.
 
 *   Adds `StackTrace.empty` constant which is the stack trace used as default
     stack trace when no better alternative is available.
@@ -51,6 +81,8 @@ There are no language changes in this release.
     convenient to use in-line in, for example, `=>` function bodies or
     constructor initialization lists.
 
+[#40674]: https://github.com/dart-lang/sdk/issues/40674
+[#40678]: https://github.com/dart-lang/sdk/issues/40678
 [40763]: https://github.com/dart-lang/sdk/issues/40763
 
 #### `dart:developer`
