@@ -138,17 +138,6 @@ mixin M5 on M2 {}
       ..isAncestorOf('M5 on M2');
   }
 
-  test_isExtendedBy_ClassDeclaration() async {
-    await _indexTestUnit('''
-class A {} // 1
-class B extends A {} // 2
-''');
-    ClassElement elementA = findElement('A');
-    assertThat(elementA)
-      ..isExtendedAt('A {} // 2', false)
-      ..isReferencedAt('A {} // 2', false);
-  }
-
   test_isExtendedBy_ClassDeclaration_isQualified() async {
     newFile('$testProject/lib.dart', content: '''
 class A {}
@@ -926,6 +915,24 @@ main(F<int> f) {
   f.call(test: 0);
 }
 ''');
+    // No exceptions.
+  }
+
+  test_isReferencedBy_ParameterElement_multiplyDefined_generic() async {
+    newFile('/test/lib/a.dart', content: r'''
+void foo<T>({T a}) {}
+''');
+    newFile('/test/lib/b.dart', content: r'''
+void foo<T>({T a}) {}
+''');
+    await _indexTestUnit(r"""
+import 'a.dart';
+import 'b.dart';
+
+void main() {
+  foo(a: 0);
+}
+""");
     // No exceptions.
   }
 
