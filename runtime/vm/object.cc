@@ -11941,9 +11941,12 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 }
 
 void Library::InitResolvedNamesCache() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  StorePointer(&raw_ptr()->resolved_names_,
-               HashTables::New<ResolvedNamesMap>(64));
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& cache = thread->ArrayHandle();
+  cache = HashTables::New<ResolvedNamesMap>(64);
+  StorePointer(&raw_ptr()->resolved_names_, cache.raw());
 }
 
 void Library::ClearResolvedNamesCache() const {
@@ -11952,8 +11955,12 @@ void Library::ClearResolvedNamesCache() const {
 }
 
 void Library::InitExportedNamesCache() const {
-  StorePointer(&raw_ptr()->exported_names_,
-               HashTables::New<ResolvedNamesMap>(16));
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& cache = thread->ArrayHandle();
+  cache = HashTables::New<ResolvedNamesMap>(16);
+  StorePointer(&raw_ptr()->exported_names_, cache.raw());
 }
 
 void Library::ClearExportedNamesCache() const {
@@ -11961,9 +11968,14 @@ void Library::ClearExportedNamesCache() const {
 }
 
 void Library::InitClassDictionary() const {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& dictionary = thread->ArrayHandle();
   // TODO(iposva): Find reasonable initial size.
   const int kInitialElementCount = 16;
-  StorePointer(&raw_ptr()->dictionary_, NewDictionary(kInitialElementCount));
+  dictionary = NewDictionary(kInitialElementCount);
+  StorePointer(&raw_ptr()->dictionary_, dictionary.raw());
 }
 
 void Library::InitImportList() const {
@@ -11999,9 +12011,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.StorePointer(&result.raw_ptr()->metadata_,
                       GrowableObjectArray::New(4, Heap::kOld));
   result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
-  result.StorePointer(
-      &result.raw_ptr()->used_scripts_,
+  const GrowableObjectArray& scripts = GrowableObjectArray::Handle(zone,
       GrowableObjectArray::New(Object::empty_array(), Heap::kOld));
+  result.StorePointer(&result.raw_ptr()->used_scripts_, scripts.raw());
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
