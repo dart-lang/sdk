@@ -2025,6 +2025,12 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   LineInfo lineInfo;
 
+  /// The major component of the actual language version (not just override).
+  int languageVersionMajor;
+
+  /// The minor component of the actual language version (not just override).
+  int languageVersionMinor;
+
   @override
   LanguageVersion get languageVersion {
     final token = languageVersionToken;

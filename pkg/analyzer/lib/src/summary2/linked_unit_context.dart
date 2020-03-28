@@ -446,6 +446,14 @@ class LinkedUnitContext {
     }
   }
 
+  int getLanguageVersionMajor(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersionMajor(node);
+  }
+
+  int getLanguageVersionMinor(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersionMinor(node);
+  }
+
   Comment getLibraryDocumentationComment(CompilationUnit unit) {
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {

@@ -1012,6 +1012,27 @@ table AvailableFileExportCombinator {
   shows:[string] (id: 0);
 }
 
+/// Information about linked libraries, a group of libraries that form
+/// a library cycle.
+table CiderLinkedLibraryCycle {
+  bundle:LinkedNodeBundle (id: 1);
+
+  /// The hash signature for this linked cycle. It depends of API signatures
+  /// of all files in the cycle, and on the signatures of the transitive
+  /// closure of the cycle dependencies.
+  signature:[uint] (id: 0);
+}
+
+/// Information about a compilation unit, contains the content hash
+/// and unlinked summary.
+table CiderUnlinkedUnit {
+  /// The hash signature of the contents of the file.
+  contentDigest:[uint] (id: 0);
+
+  /// Unlinked summary of the compilation unit.
+  unlinkedUnit:UnlinkedUnit2 (id: 1);
+}
+
 table DiagnosticMessage {
   /// The absolute and normalized path of the file associated with this message.
   filePath:string (id: 0);
@@ -1075,6 +1096,9 @@ table LinkedNode {
 
   variantField_3:[LinkedNode] (id: 3);
 
+  /// The minor component of the actual language version (not just override).
+  variantField_16:uint (id: 16);
+
   variantField_10:LinkedNode (id: 10);
 
   variantField_26:LinkedNodeFormalParameterKind (id: 26);
@@ -1092,8 +1116,6 @@ table LinkedNode {
   variantField_1:string (id: 1);
 
   variantField_36:uint (id: 36);
-
-  variantField_16:uint (id: 16);
 
   variantField_30:string (id: 30);
 
@@ -1313,27 +1335,6 @@ table UnlinkedUnit2 {
 
   /// URIs of `part` directives.
   parts:[string] (id: 4);
-}
-
-/// Information about a compilation unit, contains the content hash
-/// and unlinked summary.
-table CiderUnlinkedUnit {
-  /// The hash signature of the contents of the file.
-  contentDigest:[uint] (id: 0);
-
-  /// Unlinked summary of the compilation unit.
-  unlinkedUnit:UnlinkedUnit2 (id: 1);
-}
-
-/// Information about linked libraries, a group of libraries that form
-/// a library cycle.
-table CiderLinkedLibraryCycle {
-  /// The hash signature for this linked cycle. It depends of API signatures
-  /// of all files in the cycle, and on the signatures of the transitive
-  /// closure of the cycle dependencies.
-  signature:[uint] (id: 0);
-
-  bundle:LinkedNodeBundle (id: 1);
 }
 
 root_type PackageBundle;

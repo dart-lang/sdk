@@ -7,6 +7,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSetProvider {
   /// This flag will be turned to `true` and inlined when we un-fork SDK,
@@ -47,6 +48,21 @@ class FeatureSetProvider {
     }
 
     return _nonPackageDefaultFeatureSet;
+  }
+
+  /// Return the language version configured for the file.
+  Version getLanguageVersion(String path, Uri uri) {
+    for (var package in _packages.packages) {
+      if (package.rootFolder.contains(path)) {
+        var languageVersion = package.languageVersion;
+        if (languageVersion != null) {
+          return languageVersion;
+        }
+        break;
+      }
+    }
+
+    return ExperimentStatus.currentVersion;
   }
 
   static FeatureSetProvider build({

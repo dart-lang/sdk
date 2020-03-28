@@ -1332,6 +1332,12 @@ abstract class LibraryElement implements Element {
 
   bool get isNonNullableByDefault;
 
+  /// The major component of the language version for this library.
+  int get languageVersionMajor;
+
+  /// The minor component of the language version for this library.
+  int get languageVersionMinor;
+
   /// Return the element representing the synthetic function `loadLibrary` that
   /// is implicitly defined for this library if the library is imported using a
   /// deferred import.

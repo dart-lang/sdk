@@ -758,6 +758,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(useFastaParser);
 
+      // Append the current language version.
+      buffer.addInt(ExperimentStatus.currentVersion.major);
+      buffer.addInt(ExperimentStatus.currentVersion.minor);
+
       // Append features.
       buffer.addInt(ExperimentStatus.knownFeatures.length);
       for (var feature in ExperimentStatus.knownFeatures.values) {
