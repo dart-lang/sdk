@@ -666,6 +666,8 @@ TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
 TypedefNotType/example: Fail # Feature not yet enabled by default.
 TypedefNullableType/analyzerCode: Fail
+TypedefTypeVariableNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
+TypedefTypeVariableNotConstructor/example: Fail # Feature not yet enabled by default.
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

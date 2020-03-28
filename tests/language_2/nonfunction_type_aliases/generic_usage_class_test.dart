@@ -34,7 +34,7 @@ abstract class C {
   List<T<T>> v6 = [];
   final T<Null> v7;
 
-  C(): v7 = T();
+  C(): v7 = T<Null>();
   C.name1(this.v5, this.v7);
   factory C.name2(T<C> arg1, T<Null> arg2) = C.name1;
 

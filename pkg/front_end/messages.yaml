@@ -2218,6 +2218,13 @@ TypedefNotType:
   template: "Can't create typedef from non-type."
   analyzerCode: INVALID_TYPE_IN_TYPEDEF
 
+TypedefTypeVariableNotConstructor:
+  template: "Can't use a typedef denoting a type variable as a constructor, nor for a static member access."
+
+TypedefTypeVariableNotConstructorCause:
+  template: "This is the type variable ultimately denoted."
+  severity: CONTEXT
+
 TypedefNullableType:
   template: "Can't create typedef from nullable type."
   configuration: nnbd-strong

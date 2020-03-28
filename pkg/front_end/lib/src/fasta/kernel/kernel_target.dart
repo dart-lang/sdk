@@ -527,7 +527,8 @@ class KernelTarget extends TargetImplementation {
     }
     if (supertype is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = supertype;
-      supertype = aliasBuilder.unaliasDeclaration;
+      NamedTypeBuilder namedBuilder = type;
+      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
     }
     if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);

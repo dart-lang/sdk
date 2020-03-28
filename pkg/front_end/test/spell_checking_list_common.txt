@@ -71,6 +71,8 @@ adds
 adjacent
 adjust
 adjusted
+admit
+admitted
 adopt
 advance
 advanced
@@ -1052,7 +1054,9 @@ exit
 exited
 exits
 expand
+expands
 expanding
+expansion
 expect
 expectation
 expectations
@@ -2402,6 +2406,7 @@ removing
 rename
 renamed
 renaming
+repeat
 repeated
 repeatedly
 repetitions
@@ -2921,6 +2926,7 @@ third
 this
 those
 though
+threaded
 three
 threshold
 threw
@@ -3024,9 +3030,12 @@ typedefs
 types
 typically
 typing
+ultimate
+ultimately
 unable
 unalias
 unaliased
+unaliasing
 unambiguous
 unary
 unassignable

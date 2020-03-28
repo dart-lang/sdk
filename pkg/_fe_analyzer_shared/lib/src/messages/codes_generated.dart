@@ -8459,6 +8459,26 @@ const MessageCode messageTypedefNullableType = const MessageCode(
     message: r"""Can't create typedef from nullable type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefTypeVariableNotConstructor =
+    messageTypedefTypeVariableNotConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefTypeVariableNotConstructor = const MessageCode(
+    "TypedefTypeVariableNotConstructor",
+    message:
+        r"""Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefTypeVariableNotConstructorCause =
+    messageTypedefTypeVariableNotConstructorCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefTypeVariableNotConstructorCause =
+    const MessageCode("TypedefTypeVariableNotConstructorCause",
+        severity: Severity.context,
+        message: r"""This is the type variable ultimately denoted.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

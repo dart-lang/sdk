@@ -4142,7 +4142,96 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (type is TypeAliasBuilder) {
       errorName = debugName(type.name, name);
       TypeAliasBuilder aliasBuilder = type;
-      type = aliasBuilder.unaliasDeclaration;
+      List<TypeBuilder> typeArgumentBuilders = null;
+      if (typeArguments != null) {
+        typeArgumentBuilders = <TypeBuilder>[];
+        for (UnresolvedType unresolvedType in typeArguments) {
+          typeArgumentBuilders.add(unresolvedType?.builder);
+        }
+      }
+      int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;
+      int numberOfTypeArguments = typeArgumentBuilders?.length ?? 0;
+      if (typeArgumentBuilders != null &&
+          numberOfTypeParameters != numberOfTypeArguments) {
+        // TODO(eernst): Use position of type arguments, not nameToken.
+        return evaluateArgumentsBefore(
+            arguments,
+            buildProblem(
+                fasta.templateTypeArgumentMismatch
+                    .withArguments(numberOfTypeParameters),
+                nameToken.charOffset,
+                nameToken.length));
+      }
+      if (typeArgumentBuilders == null) {
+        if (aliasBuilder.typeVariables?.isEmpty ?? true) {
+          typeArgumentBuilders = [];
+        } else {
+          // No type arguments provided to alias, but it is generic.
+          typeArgumentBuilders = new List<TypeBuilder>.filled(
+              aliasBuilder.typeVariables.length, null,
+              growable: true);
+          for (int i = 0; i < typeArgumentBuilders.length; ++i) {
+            // TODO(eernst): We must use inferred types, for now use defaults.
+            typeArgumentBuilders[i] = aliasBuilder.typeVariables[i].defaultType;
+          }
+        }
+      }
+      type = aliasBuilder.unaliasDeclaration(typeArgumentBuilders);
+      if (type is ClassBuilder) {
+        if (typeArguments != null) {
+          int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;
+          if (numberOfTypeParameters != typeArgumentBuilders.length) {
+            // TODO(eernst): Use position of type arguments, not nameToken.
+            return evaluateArgumentsBefore(
+                arguments,
+                buildProblem(
+                    fasta.templateTypeArgumentMismatch
+                        .withArguments(numberOfTypeParameters),
+                    nameToken.charOffset,
+                    nameToken.length));
+          }
+          List<TypeBuilder> unaliasedTypeArgumentBuilders =
+              aliasBuilder.unaliasTypeArguments(typeArgumentBuilders);
+          if (unaliasedTypeArgumentBuilders == null) {
+            // TODO(eernst): This is a wrong number of type arguments,
+            // occurring indirectly (in an alias of an alias, etc.).
+            return evaluateArgumentsBefore(
+                arguments,
+                buildProblem(
+                    fasta.templateTypeArgumentMismatch
+                        .withArguments(numberOfTypeParameters),
+                    nameToken.charOffset,
+                    nameToken.length,
+                    suppressMessage: true));
+          }
+          if (unaliasedTypeArgumentBuilders.isEmpty) {
+            forest.argumentsSetTypeArguments(arguments, []);
+          } else {
+            List<DartType> dartTypeArguments = [];
+            if (typeArguments != null) {
+              for (UnresolvedType unresolvedType in typeArguments) {
+                dartTypeArguments
+                    .add(unresolvedType.builder?.build(libraryBuilder));
+              }
+            }
+            forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
+          }
+        } else {
+          if (type.typeVariables?.isEmpty ?? true) {
+            forest.argumentsSetTypeArguments(arguments, []);
+          } else {
+            // No type arguments provided to unaliased class, use defaults.
+            List<DartType> result = new List<DartType>.filled(
+                type.typeVariables.length, null,
+                growable: true);
+            for (int i = 0; i < result.length; ++i) {
+              result[i] =
+                  type.typeVariables[i].defaultType?.build(type.library);
+            }
+            forest.argumentsSetTypeArguments(arguments, result);
+          }
+        }
+      }
     }
     if (type is ClassBuilder) {
       if (type is EnumBuilder) {

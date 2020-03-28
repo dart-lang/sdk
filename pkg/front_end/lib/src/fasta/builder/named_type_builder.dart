@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Class,
         DartType,
         Extension,
+        InterfaceType,
         InvalidType,
         Supertype,
         TreeNode,
@@ -269,10 +270,10 @@ class NamedTypeBuilder extends TypeBuilder {
       }
       return declaration.buildSupertype(library, arguments);
     } else if (declaration is TypeAliasBuilder) {
-      TypeDeclarationBuilder declarationBuilder =
-          declaration.unaliasDeclaration;
-      if (declarationBuilder is ClassBuilder) {
-        return declarationBuilder.buildSupertype(library, arguments);
+      DartType type =
+          declaration.buildType(library, library.nonNullableBuilder, arguments);
+      if (type is InterfaceType) {
+        return new Supertype(type.classNode, type.typeArguments);
       }
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
@@ -289,12 +290,14 @@ class NamedTypeBuilder extends TypeBuilder {
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
-    if (declaration is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = declaration;
-      declaration = aliasBuilder.unaliasDeclaration;
-    }
     if (declaration is ClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
+    } else if (declaration is TypeAliasBuilder) {
+      DartType type =
+          declaration.buildType(library, library.nonNullableBuilder, arguments);
+      if (type is InterfaceType) {
+        return new Supertype(type.classNode, type.typeArguments);
+      }
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
@@ -303,9 +306,8 @@ class NamedTypeBuilder extends TypeBuilder {
           declaration.message.uri,
           severity: Severity.error);
       return null;
-    } else {
-      return handleInvalidSupertype(library, charOffset, fileUri);
     }
+    return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {

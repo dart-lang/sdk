@@ -679,7 +679,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       TypeDeclarationBuilder decl = superClassType.declaration;
       if (decl is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = decl;
-        decl = aliasBuilder.unaliasDeclaration;
+        decl = aliasBuilder.unaliasDeclaration(superClassType.arguments);
       }
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
@@ -705,7 +705,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         int charOffset = -1; // TODO(ahe): Get offset from type.
         TypeDeclarationBuilder typeDeclaration = type.declaration;
         TypeDeclarationBuilder decl = typeDeclaration is TypeAliasBuilder
-            ? typeDeclaration.unaliasDeclaration
+            ? typeDeclaration.unaliasDeclaration(type.arguments)
             : typeDeclaration;
         if (decl is ClassBuilder) {
           ClassBuilder interface = decl;
@@ -1989,7 +1989,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           if (builder is ClassBuilder) return builder;
           if (builder is TypeAliasBuilder) {
             TypeDeclarationBuilder declarationBuilder =
-                builder.unaliasDeclaration;
+                builder.unaliasDeclaration(supertype.arguments);
             if (declarationBuilder is ClassBuilder) return declarationBuilder;
           }
         }
