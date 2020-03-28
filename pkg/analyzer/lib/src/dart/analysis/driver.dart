@@ -953,6 +953,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _fileTracker.fileWasAnalyzed(path);
         _resultController.add(result);
       } catch (exception, stackTrace) {
+        _reportException(path, exception, stackTrace);
         _fileTracker.fileWasAnalyzed(path);
         _requestedFiles.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
@@ -1112,6 +1113,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _partsToAnalyze.remove(path);
         _resultController.add(result);
       } catch (exception, stackTrace) {
+        _reportException(path, exception, stackTrace);
         _partsToAnalyze.remove(path);
         _requestedParts.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
