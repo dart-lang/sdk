@@ -16,14 +16,17 @@ const List<String> specialSuites = <String>[
   'incremental_load_from_dill',
 ];
 
-Future<void> runStandardSuites([String arg]) async {
+Future<void> runStandardSuites([List<String> args]) async {
   // Assert that 'strong' is the first suite - we use the assumption below.
-  assert(specialSuites.first == 'strong', "Suite 'strong' most be the first.");
+  assert(standardSuites.first == 'strong', "Suite 'strong' most be the first.");
   bool first = true;
   for (String suite in standardSuites) {
+    List<String> tests = args == null
+        ? [suite]
+        : args.map((String arg) => '${suite}/$arg').toList();
     await fasta.main([
       'testing',
-      arg != null ? '${suite}/$arg' : suite,
+      ...tests,
       // Only update comments in the first suite. Note that this only works
       // if the first compilation is a full compilation, i.e. not outline,
       // because comments are generated during body building and inference.
@@ -42,6 +45,7 @@ main(List<String> args) async {
       await fasta.main(['testing', suite, '-DupdateExpectations=true']);
     }
   } else {
+    List<String> standardTests = <String>[];
     for (String arg in args) {
       bool isSpecial = false;
       for (String suite in specialSuites) {
@@ -51,10 +55,12 @@ main(List<String> args) async {
           break;
         }
       }
-
       if (!isSpecial) {
-        runStandardSuites(arg);
+        standardTests.add(arg);
       }
+    }
+    if (standardTests.isNotEmpty) {
+      await runStandardSuites(args);
     }
   }
 }
