@@ -65,6 +65,25 @@ main() {
 ''');
   }
 
+  Future<void> test_onUri() async {
+    await resolveTestUnit('''
+import 'dart:math';
+main() {
+  PI;
+  E;
+  max(1, 2);
+}
+''');
+    await assertHasAssistAt('art:math', '''
+import 'dart:math' show E, PI, max;
+main() {
+  PI;
+  E;
+  max(1, 2);
+}
+''');
+  }
+
   Future<void> test_setterOnDirective() async {
     addSource('/home/test/lib/a.dart', r'''
 void set setter(int i) {}
@@ -81,25 +100,6 @@ import 'a.dart' show setter;
 
 main() {
   setter = 42;
-}
-''');
-  }
-
-  Future<void> test_onUri() async {
-    await resolveTestUnit('''
-import 'dart:math';
-main() {
-  PI;
-  E;
-  max(1, 2);
-}
-''');
-    await assertHasAssistAt('art:math', '''
-import 'dart:math' show E, PI, max;
-main() {
-  PI;
-  E;
-  max(1, 2);
 }
 ''');
   }

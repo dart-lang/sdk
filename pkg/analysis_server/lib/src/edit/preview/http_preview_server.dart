@@ -38,15 +38,15 @@ class HttpPreviewServer {
   /// Initialize a newly created HTTP server.
   HttpPreviewServer(this.migrationState, this.rerunFunction);
 
-  /// Return the port this server is bound to.
-  Future<int> get boundPort async {
-    return (await _serverFuture)?.port;
-  }
-
   Future<String> get authToken async {
     await _serverFuture;
     previewSite ??= PreviewSite(migrationState, rerunFunction);
     return previewSite.serviceAuthToken;
+  }
+
+  /// Return the port this server is bound to.
+  Future<int> get boundPort async {
+    return (await _serverFuture)?.port;
   }
 
   void close() {

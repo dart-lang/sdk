@@ -4,6 +4,21 @@
 
 import 'typescript_parser.dart';
 
+/// Removes types that are in the spec that we don't want in other signatures.
+bool allowTypeInSignatures(TypeBase type) {
+  // Don't allow arrays of MarkedStrings, but do allow simple MarkedStrings.
+  // The only place that uses these are Hovers and we only send one value
+  // (to match the MarkupString equiv) so the array just makes the types
+  // unnecessarily complicated.
+  if (type is ArrayType) {
+    final elementType = type.elementType;
+    if (elementType is Type && elementType.name == 'MarkedString') {
+      return false;
+    }
+  }
+  return true;
+}
+
 String cleanComment(String comment) {
   if (comment == null) {
     return null;
@@ -30,6 +45,21 @@ String cleanComment(String comment) {
   comment = comment.replaceAllMapped(
       _newLinesThatRequireReinserting, (m) => '\n\n${m.group(1)}');
   return comment.trim();
+}
+
+/// Improves comments in generated code to support where types may have been
+/// altered (for ex. with [getImprovedType] above).
+String getImprovedComment(String interfaceName, String fieldName) {
+  const Map<String, Map<String, String>> _improvedComments = {
+    'ResponseError': {
+      'data':
+          '// A string that contains additional information about the error. Can be omitted.',
+    },
+  };
+
+  final interface = _improvedComments[interfaceName];
+
+  return interface != null ? interface[fieldName] : null;
 }
 
 /// Improves types in generated code, including:
@@ -98,21 +128,6 @@ String getImprovedType(String interfaceName, String fieldName) {
   return interface != null ? interface[fieldName] : null;
 }
 
-/// Improves comments in generated code to support where types may have been
-/// altered (for ex. with [getImprovedType] above).
-String getImprovedComment(String interfaceName, String fieldName) {
-  const Map<String, Map<String, String>> _improvedComments = {
-    'ResponseError': {
-      'data':
-          '// A string that contains additional information about the error. Can be omitted.',
-    },
-  };
-
-  final interface = _improvedComments[interfaceName];
-
-  return interface != null ? interface[fieldName] : null;
-}
-
 List<String> getSpecialBaseTypes(Interface interface) {
   if (interface.name == 'RequestMessage' ||
       interface.name == 'NotificationMessage') {
@@ -132,19 +147,4 @@ bool includeTypeDefinitionInOutput(AstNode node) {
       // when getting the .dartType for it.
       // .startsWith() because there are inline types that will be generated.
       !node.name.startsWith('MarkedString');
-}
-
-/// Removes types that are in the spec that we don't want in other signatures.
-bool allowTypeInSignatures(TypeBase type) {
-  // Don't allow arrays of MarkedStrings, but do allow simple MarkedStrings.
-  // The only place that uses these are Hovers and we only send one value
-  // (to match the MarkupString equiv) so the array just makes the types
-  // unnecessarily complicated.
-  if (type is ArrayType) {
-    final elementType = type.elementType;
-    if (elementType is Type && elementType.name == 'MarkedString') {
-      return false;
-    }
-  }
-  return true;
 }

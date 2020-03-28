@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:io' show IOSink;
 import 'dart:isolate';
 
-import 'package:stream_channel/isolate_channel.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:stream_channel/isolate_channel.dart';
 
 /// This class translates messages sent across an [IsolateChannel] into
 /// a [ByteStreamServerChannel] for the analysis server.

@@ -9,6 +9,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion_resolve.dart';
@@ -29,7 +30,6 @@ import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_text_document_changes.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -133,6 +133,24 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   }
 }
 
+class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
+  ShuttingDownStateMessageHandler(LspAnalysisServer server) : super(server) {
+    registerHandler(ExitMessageHandler(server, clientDidCallShutdown: true));
+  }
+
+  @override
+  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+    // Silently drop non-requests.
+    if (message is! RequestMessage) {
+      server.instrumentationService
+          .logInfo('Ignoring ${message.method} message while shutting down');
+      return success();
+    }
+    return error(ErrorCodes.InvalidRequest,
+        'Unable to handle ${message.method} after shutdown request');
+  }
+}
+
 class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   UninitializedStateMessageHandler(LspAnalysisServer server) : super(server) {
     registerHandler(ShutdownMessageHandler(server));
@@ -150,23 +168,5 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
     }
     return error(ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before client has sent initialize request');
-  }
-}
-
-class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
-  ShuttingDownStateMessageHandler(LspAnalysisServer server) : super(server) {
-    registerHandler(ExitMessageHandler(server, clientDidCallShutdown: true));
-  }
-
-  @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
-    // Silently drop non-requests.
-    if (message is! RequestMessage) {
-      server.instrumentationService
-          .logInfo('Ignoring ${message.method} message while shutting down');
-      return success();
-    }
-    return error(ErrorCodes.InvalidRequest,
-        'Unable to handle ${message.method} after shutdown request');
   }
 }

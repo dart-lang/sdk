@@ -14,6 +14,25 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:path/path.dart' show dirname, join;
 
+/// Finds the nearest ancestor to [filePath] that contains a pubspec/.packages/build file.
+String _findProjectFolder(ResourceProvider resourceProvider, String filePath) {
+  // TODO(dantup): Is there something we can reuse for this?
+  var folder = dirname(filePath);
+  while (folder != dirname(folder)) {
+    final pubspec =
+        resourceProvider.getFile(join(folder, ContextManagerImpl.PUBSPEC_NAME));
+    final packages = resourceProvider
+        .getFile(join(folder, ContextManagerImpl.PACKAGE_SPEC_NAME));
+    final build = resourceProvider.getFile(join(folder, 'BUILD'));
+
+    if (pubspec.exists || packages.exists || build.exists) {
+      return folder;
+    }
+    folder = dirname(folder);
+  }
+  return null;
+}
+
 class TextDocumentChangeHandler
     extends MessageHandler<DidChangeTextDocumentParams, void> {
   TextDocumentChangeHandler(LspAnalysisServer server) : super(server);
@@ -108,6 +127,8 @@ class TextDocumentOpenHandler
   /// Whether analysis roots are based on open files and should be updated.
   bool updateAnalysisRoots;
 
+  DateTime lastSentAnalyzeOpenFilesWarnings;
+
   TextDocumentOpenHandler(LspAnalysisServer server, this.updateAnalysisRoots)
       : super(server);
 
@@ -171,25 +192,4 @@ class TextDocumentOpenHandler
       return success();
     });
   }
-
-  DateTime lastSentAnalyzeOpenFilesWarnings;
-}
-
-/// Finds the nearest ancestor to [filePath] that contains a pubspec/.packages/build file.
-String _findProjectFolder(ResourceProvider resourceProvider, String filePath) {
-  // TODO(dantup): Is there something we can reuse for this?
-  var folder = dirname(filePath);
-  while (folder != dirname(folder)) {
-    final pubspec =
-        resourceProvider.getFile(join(folder, ContextManagerImpl.PUBSPEC_NAME));
-    final packages = resourceProvider
-        .getFile(join(folder, ContextManagerImpl.PACKAGE_SPEC_NAME));
-    final build = resourceProvider.getFile(join(folder, 'BUILD'));
-
-    if (pubspec.exists || packages.exists || build.exists) {
-      return folder;
-    }
-    folder = dirname(folder);
-  }
-  return null;
 }

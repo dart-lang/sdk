@@ -380,6 +380,62 @@ class CompletionPage extends AbstractCompletionPage {
       completionDomain.performanceList.items.toList();
 }
 
+class ContentsPage extends DiagnosticPageWithNav {
+  String _description;
+
+  ContentsPage(DiagnosticsSite site)
+      : super(site, 'contents', 'Contents',
+            description: 'The Contents/Overlay of a file.');
+
+  @override
+  String get description => _description ?? super.description;
+
+  @override
+  bool get showInNav => false;
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    String filePath = params['file'];
+    if (filePath == null) {
+      p('No file path provided.');
+      return;
+    }
+    AnalysisDriver driver = server.getAnalysisDriver(filePath);
+    if (driver == null) {
+      p('The file <code>${escape(filePath)}</code> is not being analyzed.',
+          raw: true);
+      return;
+    }
+    File file = await server.resourceProvider.getFile(filePath);
+    if (!file.exists) {
+      p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
+      return;
+    }
+
+    if (server.resourceProvider.hasOverlay(filePath)) {
+      p('Showing overlay for file.');
+    } else {
+      p('Showing file system contents for file.');
+    }
+
+    pre(() {
+      buf.write('<code>');
+      buf.write(escape(file.readAsStringSync()));
+      buf.writeln('</code>');
+    });
+  }
+
+  @override
+  Future<void> generatePage(Map<String, String> params) async {
+    try {
+      _description = params['file'];
+      await super.generatePage(params);
+    } finally {
+      _description = null;
+    }
+  }
+}
+
 class ContextsPage extends DiagnosticPageWithNav {
   ContextsPage(DiagnosticsSite site)
       : super(site, 'contexts', 'Contexts',
@@ -592,62 +648,6 @@ class ContextsPage extends DiagnosticPageWithNav {
       buf.write(',');
     }
     buf.write('<br>}');
-  }
-}
-
-class ContentsPage extends DiagnosticPageWithNav {
-  String _description;
-
-  ContentsPage(DiagnosticsSite site)
-      : super(site, 'contents', 'Contents',
-            description: 'The Contents/Overlay of a file.');
-
-  @override
-  String get description => _description ?? super.description;
-
-  @override
-  bool get showInNav => false;
-
-  @override
-  Future<void> generateContent(Map<String, String> params) async {
-    String filePath = params['file'];
-    if (filePath == null) {
-      p('No file path provided.');
-      return;
-    }
-    AnalysisDriver driver = server.getAnalysisDriver(filePath);
-    if (driver == null) {
-      p('The file <code>${escape(filePath)}</code> is not being analyzed.',
-          raw: true);
-      return;
-    }
-    File file = await server.resourceProvider.getFile(filePath);
-    if (!file.exists) {
-      p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
-      return;
-    }
-
-    if (server.resourceProvider.hasOverlay(filePath)) {
-      p('Showing overlay for file.');
-    } else {
-      p('Showing file system contents for file.');
-    }
-
-    pre(() {
-      buf.write('<code>');
-      buf.write(escape(file.readAsStringSync()));
-      buf.writeln('</code>');
-    });
-  }
-
-  @override
-  Future<void> generatePage(Map<String, String> params) async {
-    try {
-      _description = params['file'];
-      await super.generatePage(params);
-    } finally {
-      _description = null;
-    }
   }
 }
 

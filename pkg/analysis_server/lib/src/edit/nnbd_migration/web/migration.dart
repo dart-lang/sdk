@@ -33,9 +33,9 @@ void main() {
     final applyMigrationButton = document.querySelector('.apply-migration');
     applyMigrationButton.onClick.listen((event) {
       if (window.confirm(
-          "This will apply the changes you've previewed to your working"
-          " directory. It is recommended you commit any changes you made before"
-          " doing this.")) {
+          "This will apply the changes you've previewed to your working "
+          'directory. It is recommended you commit any changes you made before '
+          'doing this.')) {
         doPost('/apply-migration').then((xhr) {
           document.body.classes
             ..remove('proposed')
@@ -77,6 +77,27 @@ void main() {
     }
   });
 }
+
+/// Returns the "authToken" query parameter value of the current location.
+// TODO(srawlins): This feels a little fragile, as the user can accidentally
+//  change/remove this text, and break their session. Normally auth tokens are
+//  stored in cookies, but there is no authentication step during which the
+//  server would attach such a token to cookies. We could do a little step where
+//  the first request to the server with the token is considered
+//  "authentication", and we subsequently store the token in cookies thereafter.
+final String authToken =
+    Uri.parse(window.location.href).queryParameters['authToken'];
+
+final Element editListElement =
+    document.querySelector('.edit-list .panel-content');
+
+final Element editPanel = document.querySelector('.edit-panel .panel-content');
+
+final Element footerPanel = document.querySelector('footer');
+
+final Element headerPanel = document.querySelector('header');
+
+final Element unitName = document.querySelector('#unit-name');
 
 String get rootPath => querySelector('.root').text.trim();
 
@@ -158,16 +179,6 @@ int getOffset(String location) {
   return str == null ? null : int.tryParse(str);
 }
 
-/// Returns the "authToken" query parameter value of the current location.
-// TODO(srawlins): This feels a little fragile, as the user can accidentally
-//  change/remove this text, and break their session. Normally auth tokens are
-//  stored in cookies, but there is no authentication step during which the
-//  server would attach such a token to cookies. We could do a little step where
-//  the first request to the server with the token is considered
-//  "authentication", and we subsequently store the token in cookies thereafter.
-final String authToken =
-    Uri.parse(window.location.href).queryParameters['authToken'];
-
 void handleNavLinkClick(
   MouseEvent event,
   bool clearEditDetails, {
@@ -226,22 +237,6 @@ void highlightAllCode() {
   document.querySelectorAll('.code').forEach((Element block) {
     hljs.highlightBlock(block);
   });
-}
-
-/// Returns [path], which may include query parameters, with a new path which
-/// adds (or replaces) parameters from [queryParameters].
-///
-/// Additionally, the "authToken" parameter will be added with the authToken
-/// found in the current location.
-String pathWithQueryParameters(
-    String path, Map<String, String> queryParameters) {
-  var uri = Uri.parse(path);
-  var mergedQueryParameters = {
-    ...uri.queryParameters,
-    ...queryParameters,
-    'authToken': authToken
-  };
-  return uri.replace(queryParameters: mergedQueryParameters).toString();
 }
 
 /// Loads the explanation for [region], into the ".panel-content" div.
@@ -333,9 +328,6 @@ void logError(e, st) {
   window.console.error('$st');
 }
 
-final Element headerPanel = document.querySelector('header');
-final Element footerPanel = document.querySelector('footer');
-
 /// Scroll an element into view if it is not visible.
 void maybeScrollIntoView(Element element) {
   Rectangle rect = element.getBoundingClientRect();
@@ -410,11 +402,25 @@ void navigate(
   }
 }
 
+/// Returns [path], which may include query parameters, with a new path which
+/// adds (or replaces) parameters from [queryParameters].
+///
+/// Additionally, the "authToken" parameter will be added with the authToken
+/// found in the current location.
+String pathWithQueryParameters(
+    String path, Map<String, String> queryParameters) {
+  var uri = Uri.parse(path);
+  var mergedQueryParameters = {
+    ...uri.queryParameters,
+    ...queryParameters,
+    'authToken': authToken
+  };
+  return uri.replace(queryParameters: mergedQueryParameters).toString();
+}
+
 String pluralize(int count, String single, {String multiple}) {
   return count == 1 ? single : (multiple ?? '${single}s');
 }
-
-final Element editPanel = document.querySelector('.edit-panel .panel-content');
 
 void populateEditDetails([EditDetails response]) {
   // Clear out any current edit details.
@@ -441,9 +447,6 @@ void populateEditDetails([EditDetails response]) {
   _populateEditLinks(response, editPanel);
   _populateEditRationale(response, editPanel, parentDirectory);
 }
-
-final Element editListElement =
-    document.querySelector('.edit-list .panel-content');
 
 /// Write the contents of the Edit List, from JSON data [editListData].
 void populateProposedEdits(
@@ -522,8 +525,6 @@ void removeHighlight(int offset, int lineNumber) {
     }
   }
 }
-
-final Element unitName = document.querySelector('#unit-name');
 
 /// Update the heading and navigation links.
 ///

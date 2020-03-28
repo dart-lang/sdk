@@ -15,9 +15,11 @@ import 'package:telemetry/telemetry.dart';
 class AnalyticsDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
+  AnalyticsDomainHandler(this.server);
+
   Analytics get analytics => server.analytics;
 
-  AnalyticsDomainHandler(this.server);
+  String get _clientId => server.options.clientId ?? 'client';
 
   Response handleEnable(Request request) {
     AnalyticsEnableParams params = AnalyticsEnableParams.fromRequest(request);
@@ -70,6 +72,4 @@ class AnalyticsDomainHandler implements RequestHandler {
     analytics.sendTiming(params.event, params.millis, category: _clientId);
     return AnalyticsSendTimingResult().toResponse(request.id);
   }
-
-  String get _clientId => server.options.clientId ?? 'client';
 }

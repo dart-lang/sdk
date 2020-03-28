@@ -15,9 +15,6 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 class MigrationState {
   bool _hasBeenApplied = false;
 
-  /// If the migration has been applied to disk.
-  bool get hasBeenApplied => _hasBeenApplied;
-
   /// The migration associated with the state.
   final NullabilityMigration migration;
 
@@ -43,6 +40,15 @@ class MigrationState {
   MigrationState(this.migration, this.includedRoot, this.listener,
       this.instrumentationListener, this.adapter);
 
+  /// If the migration has been applied to disk.
+  bool get hasBeenApplied => _hasBeenApplied;
+
+  /// Mark that the migration has been applied to disk.
+  void markApplied() {
+    assert(!hasBeenApplied);
+    _hasBeenApplied = true;
+  }
+
   /// Refresh the state of the migration after the migration has been updated.
   Future<void> refresh() async {
     assert(!hasBeenApplied);
@@ -54,11 +60,5 @@ class MigrationState {
     migrationInfo = MigrationInfo(
         unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
     pathMapper = PathMapper(provider);
-  }
-
-  /// Mark that the migration has been applied to disk.
-  void markApplied() {
-    assert(!hasBeenApplied);
-    _hasBeenApplied = true;
   }
 }

@@ -23,6 +23,12 @@ abstract class SimpleEditCommandHandler
 
   String get commandName;
 
+  bool hasScanParseErrors(List<engine.AnalysisError> errors) {
+    return errors.any((error) =>
+        error.errorCode is engine.ScannerErrorCode ||
+        error.errorCode is engine.ParserErrorCode);
+  }
+
   Future<ErrorOr<void>> sendSourceEditsToClient(
       VersionedTextDocumentIdentifier docIdentifier,
       CompilationUnit unit,
@@ -73,11 +79,5 @@ abstract class SimpleEditCommandHandler
         workspaceEdit.toString(),
       );
     }
-  }
-
-  bool hasScanParseErrors(List<engine.AnalysisError> errors) {
-    return errors.any((error) =>
-        error.errorCode is engine.ScannerErrorCode ||
-        error.errorCode is engine.ParserErrorCode);
   }
 }
