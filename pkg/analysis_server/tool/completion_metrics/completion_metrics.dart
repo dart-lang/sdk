@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as err;
@@ -20,7 +21,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:args/args.dart';
-import 'package:path/path.dart' as path;
 
 import 'metrics_util.dart';
 import 'utils.dart';
@@ -30,12 +30,14 @@ Future<void> main(List<String> args) async {
   ArgParser parser = createArgParser();
   ArgResults result = parser.parse(args);
 
-  var stopwatch = Stopwatch()..start();
   if (!validArguments(parser, result)) {
     return io.exit(1);
   }
-  var code = await CompletionMetricsComputer(result.rest[0])
-      .compute(corpus: result['corpus'], verbose: result['verbose']);
+  var root = result.rest[0];
+  print('Analyzing root: "$root"');
+  var stopwatch = Stopwatch()..start();
+  var code = await CompletionMetricsComputer(root, verbose: result['verbose'])
+      .compute();
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -47,11 +49,6 @@ Future<void> main(List<String> args) async {
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   ArgParser parser = ArgParser();
-  parser.addFlag(
-    'corpus',
-    help: 'Analyze each of the subdirectories separately',
-    negatable: false,
-  );
   parser.addOption(
     'help',
     abbr: 'h',
@@ -139,110 +136,36 @@ class CompletionMetrics {
 /// object is constructed, [computeCompletionMetrics] is executed to do analysis
 /// and print a summary of the metrics gathered from the completion tests.
 class CompletionMetricsComputer {
-  final String _rootPath;
+  final String rootPath;
+
+  final bool verbose;
 
   String _currentFilePath;
-
-  bool _verbose;
 
   ResolvedUnitResult _resolvedUnitResult;
 
   /// The int to be returned from the [compute] call.
   int resultCode;
 
-  CompletionMetrics metricsOldMode, metricsNewMode;
+  CompletionMetrics metricsOldMode;
 
-  CompletionMetricsComputer(this._rootPath);
+  CompletionMetrics metricsNewMode;
+
+  CompletionMetricsComputer(this.rootPath, {this.verbose});
 
   /// The path to the current file.
   String get currentFilePath => _currentFilePath;
 
-  /// The analysis root path that this CompletionMetrics class will be computed.
-  String get rootPath => _rootPath;
-
-  Future<int> compute({bool corpus = false, bool verbose = false}) async {
-    _verbose = verbose;
+  Future<int> compute() async {
     resultCode = 0;
     metricsOldMode = CompletionMetrics('useNewRelevance = false');
     metricsNewMode = CompletionMetrics('useNewRelevance = true');
-
-    var roots = _computeRootPaths(_rootPath, corpus);
-    for (var root in roots) {
-      print('Analyzing root: "$root"');
-      final collection = AnalysisContextCollection(
-        includedPaths: [root],
-        resourceProvider: PhysicalResourceProvider.INSTANCE,
-      );
-
-      for (var context in collection.contexts) {
-        // Set the DeclarationsTracker, only call doWork to build up the available
-        // suggestions if doComputeCompletionsFromAnalysisServer is true.
-        var declarationsTracker = DeclarationsTracker(
-            MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
-        declarationsTracker.addContext(context);
-        while (declarationsTracker.hasWork) {
-          declarationsTracker.doWork();
-        }
-
-        // Loop through each file, resolve the file and call
-        // forEachExpectedCompletion
-        for (var filePath in context.contextRoot.analyzedFiles()) {
-          if (AnalysisEngine.isDartFileName(filePath)) {
-            _currentFilePath = filePath;
-            try {
-              _resolvedUnitResult =
-                  await context.currentSession.getResolvedUnit(filePath);
-
-              var analysisError = getFirstErrorOrNull(_resolvedUnitResult);
-              if (analysisError != null) {
-                print('File $filePath skipped due to errors such as:');
-                print('  ${analysisError.toString()}');
-                print('');
-                resultCode = 1;
-                continue;
-              }
-
-              // Use the ExpectedCompletionsVisitor to compute the set of expected
-              // completions for this CompilationUnit.
-              final visitor = ExpectedCompletionsVisitor();
-              _resolvedUnitResult.unit.accept(visitor);
-
-              for (var expectedCompletion in visitor.expectedCompletions) {
-                // As this point the completion suggestions are computed,
-                // and results are collected with varying settings for
-                // comparison:
-
-                // First we compute the completions useNewRelevance set to
-                // false:
-                var suggestions = await _computeCompletionSuggestions(
-                    _resolvedUnitResult,
-                    expectedCompletion.offset,
-                    metricsOldMode,
-                    declarationsTracker,
-                    false);
-
-                forEachExpectedCompletion(
-                    expectedCompletion, suggestions, metricsOldMode);
-
-                // And again here with useNewRelevance set to true:
-                suggestions = await _computeCompletionSuggestions(
-                    _resolvedUnitResult,
-                    expectedCompletion.offset,
-                    metricsNewMode,
-                    declarationsTracker,
-                    true);
-
-                forEachExpectedCompletion(
-                    expectedCompletion, suggestions, metricsNewMode);
-              }
-            } catch (e) {
-              print('Exception caught analyzing: $filePath');
-              print(e.toString());
-              resultCode = 1;
-            }
-          }
-        }
-      }
+    final collection = AnalysisContextCollection(
+      includedPaths: [rootPath],
+      resourceProvider: PhysicalResourceProvider.INSTANCE,
+    );
+    for (var context in collection.contexts) {
+      await _computeInContext(context.contextRoot);
     }
     printMetrics(metricsOldMode);
     printMetrics(metricsNewMode);
@@ -277,7 +200,7 @@ class CompletionMetricsComputer {
       metrics.completionElementKindCounter
           .count(expectedCompletion.elementKind.toString());
 
-      if (_verbose) {
+      if (verbose) {
         // The format "/file/path/foo.dart:3:4" makes for easier input
         // with the Files dialog in IntelliJ.
         var lineNumber = expectedCompletion.lineNumber;
@@ -296,7 +219,7 @@ class CompletionMetricsComputer {
     print('');
     print('====================');
     print('Completion metrics for ${metrics.name}:');
-    if (_verbose) {
+    if (verbose) {
       metrics.completionMissedTokenCounter.printCounterValues();
       print('');
 
@@ -322,7 +245,7 @@ class CompletionMetricsComputer {
     metrics.nonTypeMemberMrrComputer.printMean();
     print('');
 
-    print('Summary for $_rootPath:');
+    print('Summary for $rootPath:');
     metrics.meanCompletionMS.printMean();
     metrics.completionCounter.printCounterValues();
     print('====================');
@@ -376,6 +299,90 @@ class CompletionMetricsComputer {
     return suggestions;
   }
 
+  /// Compute the metrics for the files in the context [root], creating a
+  /// separate context collection to prevent accumulating memory. The metrics
+  /// should be captured in the [collector].
+  Future<void> _computeInContext(ContextRoot root) async {
+    // Create a new collection to avoid consuming large quantities of memory.
+    // TODO(brianwilkerson) Create an OverlayResourceProvider to allow the
+    //  content of the files to be modified before computing suggestions.
+    final collection = AnalysisContextCollection(
+      includedPaths: root.includedPaths.toList(),
+      excludedPaths: root.excludedPaths.toList(),
+      resourceProvider: PhysicalResourceProvider.INSTANCE,
+    );
+    var context = collection.contexts[0];
+    // Set the DeclarationsTracker, only call doWork to build up the available
+    // suggestions if doComputeCompletionsFromAnalysisServer is true.
+    // TODO(brianwilkerson) Add a flag to control whether available suggestions
+    //  are to be used.
+    var declarationsTracker = DeclarationsTracker(
+        MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
+    declarationsTracker.addContext(context);
+    while (declarationsTracker.hasWork) {
+      declarationsTracker.doWork();
+    }
+
+    // Loop through each file, resolve the file and call
+    // forEachExpectedCompletion
+    for (var filePath in context.contextRoot.analyzedFiles()) {
+      if (AnalysisEngine.isDartFileName(filePath)) {
+        _currentFilePath = filePath;
+        try {
+          _resolvedUnitResult =
+              await context.currentSession.getResolvedUnit(filePath);
+
+          var analysisError = getFirstErrorOrNull(_resolvedUnitResult);
+          if (analysisError != null) {
+            print('File $filePath skipped due to errors such as:');
+            print('  ${analysisError.toString()}');
+            print('');
+            resultCode = 1;
+            continue;
+          }
+
+          // Use the ExpectedCompletionsVisitor to compute the set of expected
+          // completions for this CompilationUnit.
+          final visitor = ExpectedCompletionsVisitor();
+          _resolvedUnitResult.unit.accept(visitor);
+
+          for (var expectedCompletion in visitor.expectedCompletions) {
+            // As this point the completion suggestions are computed,
+            // and results are collected with varying settings for
+            // comparison:
+
+            // First we compute the completions useNewRelevance set to
+            // false:
+            var suggestions = await _computeCompletionSuggestions(
+                _resolvedUnitResult,
+                expectedCompletion.offset,
+                metricsOldMode,
+                declarationsTracker,
+                false);
+
+            forEachExpectedCompletion(
+                expectedCompletion, suggestions, metricsOldMode);
+
+            // And again here with useNewRelevance set to true:
+            suggestions = await _computeCompletionSuggestions(
+                _resolvedUnitResult,
+                expectedCompletion.offset,
+                metricsNewMode,
+                declarationsTracker,
+                true);
+
+            forEachExpectedCompletion(
+                expectedCompletion, suggestions, metricsNewMode);
+          }
+        } catch (e) {
+          print('Exception caught analyzing: $filePath');
+          print(e.toString());
+          resultCode = 1;
+        }
+      }
+    }
+  }
+
   /// Given some [ResolvedUnitResult] return the first error of high severity
   /// if such an error exists, `null` otherwise.
   static err.AnalysisError getFirstErrorOrNull(
@@ -398,19 +405,5 @@ class CompletionMetricsComputer {
       placeCounter++;
     }
     return Place.none();
-  }
-
-  static List<String> _computeRootPaths(String rootPath, bool corpus) {
-    var roots = <String>[];
-    if (!corpus) {
-      roots.add(rootPath);
-    } else {
-      for (var child in io.Directory(rootPath).listSync()) {
-        if (child is io.Directory) {
-          roots.add(path.join(rootPath, child.path));
-        }
-      }
-    }
-    return roots;
   }
 }
