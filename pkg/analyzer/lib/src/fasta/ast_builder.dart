@@ -667,7 +667,7 @@ class AstBuilder extends StackListener {
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     var name = pop();
-    TypeAnnotation returnType = pop();
+    pop(); // return type
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
