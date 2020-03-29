@@ -125,10 +125,7 @@ class PrefixExpressionResolver {
   /// TODO(scheglov) this is duplicate
   DartType _getStaticType(Expression expression, {bool read = false}) {
     if (read) {
-      var type = getReadType(
-        expression,
-      );
-      return _resolveTypeParameter(type);
+      return getReadType(expression);
     } else {
       if (expression is SimpleIdentifier && expression.inSetterContext()) {
         var element = expression.staticElement;
@@ -226,26 +223,33 @@ class PrefixExpressionResolver {
       _recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.
-      ExecutableElement staticMethodElement = node.staticElement;
-      DartType staticType = _computeStaticReturnType(staticMethodElement);
+      var operatorElement = node.staticElement;
+      var resultType = _computeStaticReturnType(operatorElement);
       Expression operand = node.operand;
       if (operand is ExtensionOverride) {
         // No special handling for incremental operators.
       } else if (operator.isIncrementOperator) {
-        var operandReadType = _getStaticType(operand, read: true);
-        if (operandReadType.isDartCoreInt) {
-          staticType = _nonNullable(_typeProvider.intType);
+        var receiverType = _getStaticType(operand, read: true);
+        if (receiverType.isDartCoreDouble ||
+            receiverType.isDartCoreInt ||
+            receiverType is TypeParameterType &&
+                receiverType.bound.isDartCoreNum) {
+          // int + int = int
+          // double + int = double
+          // (T extends num) + int = T
+          //   T can be only `int` or `double`, so see above.
+          resultType = receiverType;
         } else {
-          _checkForInvalidAssignmentIncDec(node, operand, staticType);
+          _checkForInvalidAssignmentIncDec(node, operand, resultType);
         }
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _flowAnalysis?.flow?.write(element, staticType);
+            _flowAnalysis?.flow?.write(element, resultType);
           }
         }
       }
-      _recordStaticType(node, staticType);
+      _recordStaticType(node, resultType);
     }
     _resolver.nullShortingTermination(node);
   }
@@ -263,13 +267,6 @@ class PrefixExpressionResolver {
 
     _flowAnalysis?.flow?.logicalNot_end(node, operand);
   }
-
-  /// If the given [type] is a type parameter, resolve it to the type that should
-  /// be used when looking up members. Otherwise, return the original type.
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _resolveTypeParameter(DartType type) =>
-      type?.resolveToBound(_typeProvider.objectType);
 
   /// Return `true` if we should report an error for the lookup [result] on
   /// the [type].

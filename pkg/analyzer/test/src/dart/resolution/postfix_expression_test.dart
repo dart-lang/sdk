@@ -54,6 +54,23 @@ f(int x) {
     );
   }
 
+  test_inc_localVariable_typeParameter_bound_num() async {
+    await assertNoErrorsInCode(r'''
+f<T extends num>(T x) {
+  x++;
+}
+''');
+
+    assertPostfixExpression(
+      findNode.postfix('x++'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'T',
+    );
+  }
+
   test_inc_property_differentTypes() async {
     await assertNoErrorsInCode(r'''
 int get x => 0;
