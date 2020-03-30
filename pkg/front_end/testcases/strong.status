@@ -41,6 +41,8 @@ general/issue37776: RuntimeError
 general/issue38938: RuntimeError # no main and compile time errors.
 general/issue38944: RuntimeError # no main and compile time errors.
 general/issue38961: RuntimeError # no main and compile time errors.
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: ExpectationFileMismatch # Too many errors.
 general/mixin_application_override: TypeCheckError
@@ -139,6 +141,8 @@ instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError #
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed strong mode.
+nnbd/issue41210a/issue41210: TypeCheckError
+nnbd/issue41210b: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError

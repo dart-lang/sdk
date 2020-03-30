@@ -1773,8 +1773,11 @@ class ClassHierarchyNodeBuilder {
 
             // [declaredMember] is a method declared in [cls]. This means it
             // defines the interface of this class regardless if its abstract.
-            registerOverrideDependency(declaredMember, extendedMember.abstract);
-            registerOverrideCheck(declaredMember, extendedMember.abstract);
+            if (!declaredMember.isSynthesized) {
+              registerOverrideDependency(
+                  declaredMember, extendedMember.abstract);
+              registerOverrideCheck(declaredMember, extendedMember.abstract);
+            }
 
             if (declaredMember.isAbstract) {
               if (extendedMember.isAbstract) {

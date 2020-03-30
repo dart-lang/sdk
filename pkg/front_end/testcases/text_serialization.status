@@ -250,6 +250,8 @@ general/issue40428: TextSerializationFailure
 general/issue40662: TextSerializationFailure
 general/issue40744: TextSerializationFailure
 general/issue41070: TextSerializationFailure
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
@@ -1296,6 +1298,8 @@ nnbd/issue41102: TextSerializationFailure
 nnbd/issue41103: TextSerializationFailure
 nnbd/issue41156: TextSerializationFailure
 nnbd/issue41180: TextSerializationFailure
+nnbd/issue41210a/issue41210: TypeCheckError
+nnbd/issue41210b: TypeCheckError
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
