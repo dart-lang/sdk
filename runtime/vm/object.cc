@@ -181,6 +181,8 @@ RawClass* Object::language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unhandled_exception_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::weak_serialization_reference_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 
 const double MegamorphicCache::kLoadFactor = 0.50;
 
@@ -856,6 +858,10 @@ void Object::Init(Isolate* isolate) {
 
   cls = Class::New<UnwindError, RTN::UnwindError>(isolate);
   unwind_error_class_ = cls.raw();
+
+  cls = Class::New<WeakSerializationReference, RTN::WeakSerializationReference>(
+      isolate);
+  weak_serialization_reference_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 
@@ -15161,7 +15167,11 @@ RawICData* ICData::NewDescriptor(Zone* zone,
                                  intptr_t num_args_tested,
                                  RebindRule rebind_rule,
                                  const AbstractType& receivers_static_type) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // We should only have null owners in the precompiled runtime, if the
+  // owning function for a Code object was optimized out.
   ASSERT(!owner.IsNull());
+#endif
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
   ASSERT(Object::icdata_class() != Class::null());
@@ -15276,6 +15286,40 @@ RawICData* ICData::Clone(const ICData& from) {
 }
 #endif
 
+const char* WeakSerializationReference::ToCString() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Symbols::OptimizedOut().ToCString();
+#else
+  return Object::Handle(target()).ToCString();
+#endif
+}
+
+#if defined(DART_PRECOMPILER)
+bool WeakSerializationReference::CanWrap(const Object& object) {
+  // Currently we do not wrap the null object (which cannot be dropped from
+  // snapshots), non-heap objects, and WSRs (as there is no point in deeply
+  // nesting them). We also only wrap objects in the precompiler.
+  return FLAG_precompiled_mode && !object.IsNull() &&
+         object.raw()->IsHeapObject() && !object.IsWeakSerializationReference();
+}
+
+RawObject* WeakSerializationReference::Wrap(Zone* zone, const Object& target) {
+  if (!CanWrap(target)) return target.raw();
+  ASSERT(Object::weak_serialization_reference_class() != Class::null());
+  WeakSerializationReference& result = WeakSerializationReference::Handle(zone);
+  {
+    RawObject* raw = Object::Allocate(
+        WeakSerializationReference::kClassId,
+        WeakSerializationReference::InstanceSize(), Heap::kOld);
+    NoSafepointScope no_safepoint;
+
+    result ^= raw;
+    result.StorePointer(&result.raw_ptr()->target_, target.raw());
+  }
+  return result.raw();
+}
+#endif
+
 Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
@@ -15362,6 +15406,16 @@ RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
     Compiler::ComputeLocalVarDescriptors(*this);
   }
   return var_descriptors();
+}
+
+void Code::set_owner(const Object& owner) const {
+#if defined(DEBUG)
+  const auto& unwrapped_owner =
+      Object::Handle(WeakSerializationReference::Unwrap(owner));
+  ASSERT(unwrapped_owner.IsFunction() || unwrapped_owner.IsClass() ||
+         unwrapped_owner.IsAbstractType());
+#endif
+  StorePointer(&raw_ptr()->owner_, owner.raw());
 }
 
 void Code::set_state_bits(intptr_t bits) const {
@@ -15829,12 +15883,13 @@ void Code::NotifyCodeObservers(const Code& code, bool optimized) {
 #if !defined(PRODUCT)
   ASSERT(!Thread::Current()->IsAtSafepoint());
   if (CodeObservers::AreActive()) {
-    const Object& owner = Object::Handle(code.owner());
-    if (owner.IsFunction()) {
-      NotifyCodeObservers(Function::Cast(owner), code, optimized);
-    } else {
-      NotifyCodeObservers(code.Name(), code, optimized);
+    if (code.IsFunctionCode()) {
+      const auto& function = Function::Handle(code.function());
+      if (!function.IsNull()) {
+        return NotifyCodeObservers(function, code, optimized);
+      }
     }
+    NotifyCodeObservers(code.Name(), code, optimized);
   }
 #endif
 }
@@ -15960,15 +16015,17 @@ const char* Code::ToCString() const {
 
 const char* Code::Name() const {
   Zone* zone = Thread::Current()->zone();
-  const Object& obj = Object::Handle(zone, owner());
-  if (obj.IsNull()) {
+  if (IsStubCode()) {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
     if (name == NULL) {
       return "[unknown stub]";  // Not yet recorded.
     }
     return zone->PrintToString("[Stub] %s", name);
-  } else if (obj.IsClass()) {
+  }
+  const auto& obj =
+      Object::Handle(zone, WeakSerializationReference::UnwrapIfTarget(owner()));
+  if (obj.IsClass()) {
     // Allocation stub.
     String& cls_name = String::Handle(zone, Class::Cast(obj).ScrubbedName());
     ASSERT(!cls_name.IsNull());
@@ -15978,11 +16035,14 @@ const char* Code::Name() const {
     return zone->PrintToString("[Stub] Type Test %s",
                                AbstractType::Cast(obj).ToCString());
   } else {
-    ASSERT(obj.IsFunction());
+    ASSERT(IsFunctionCode());
     // Dart function.
     const char* opt = is_optimized() ? "[Optimized]" : "[Unoptimized]";
     const char* function_name =
-        String::Handle(zone, Function::Cast(obj).UserVisibleName()).ToCString();
+        obj.IsFunction()
+            ? String::Handle(zone, Function::Cast(obj).UserVisibleName())
+                  .ToCString()
+            : WeakSerializationReference::Cast(obj).ToCString();
     return zone->PrintToString("%s %s", opt, function_name);
   }
 }
@@ -16000,22 +16060,23 @@ const char* Code::QualifiedName() const {
 }
 
 bool Code::IsStubCode() const {
+  // We should _not_ unwrap any possible WSRs here, as the null value is never
+  // wrapped by a WSR.
   return owner() == Object::null();
 }
 
 bool Code::IsAllocationStubCode() const {
-  const Object& obj = Object::Handle(owner());
-  return obj.IsClass();
+  return OwnerClassId() == kClassCid;
 }
 
 bool Code::IsTypeTestStubCode() const {
-  const Object& obj = Object::Handle(owner());
-  return obj.IsAbstractType();
+  auto const cid = OwnerClassId();
+  return cid == kAbstractTypeCid || cid == kTypeCid || cid == kTypeRefCid ||
+         cid == kTypeParameterCid;
 }
 
 bool Code::IsFunctionCode() const {
-  const Object& obj = Object::Handle(owner());
-  return obj.IsFunction();
+  return OwnerClassId() == kFunctionCid;
 }
 
 void Code::DisableDartCode() const {
@@ -23335,48 +23396,64 @@ static void PrintStackTraceFrame(Zone* zone,
                                  const Function& function,
                                  TokenPosition token_pos,
                                  intptr_t frame_index) {
-  const Script& script = Script::Handle(zone, function.script());
-  const String& function_name =
-      String::Handle(zone, function.QualifiedUserVisibleName());
-  const String& url = String::Handle(
-      zone, script.IsNull() ? String::New("Kernel") : script.url());
+  auto& script = Script::Handle(zone);
+  const char* function_name;
+  const char* url;
+
+  if (!function.IsNull()) {
+    script = function.script();
+    auto& handle = String::Handle(zone, function.QualifiedUserVisibleName());
+    function_name = handle.ToCString();
+    handle = script.IsNull() ? String::New("Kernel") : script.url();
+    url = handle.ToCString();
+  } else {
+    function_name = Symbols::OptimizedOut().ToCString();
+    url = function_name;
+  }
 
   // If the URI starts with "data:application/dart;" this is a URI encoded
   // script so we shouldn't print the entire URI because it could be very long.
-  const char* url_string = url.ToCString();
-  if (strstr(url_string, "data:application/dart;") == url_string) {
-    url_string = "<data:application/dart>";
+  if (strstr(url, "data:application/dart;") == url) {
+    url = "<data:application/dart>";
   }
 
   intptr_t line = -1;
   intptr_t column = -1;
   if (FLAG_precompiled_mode) {
     line = token_pos.value();
-  } else {
-    if (!script.IsNull() && token_pos.IsSourcePosition()) {
-      script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
-    }
+  } else if (!script.IsNull() && token_pos.IsSourcePosition()) {
+    script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
   }
 
-  if (column >= 0) {
-    buffer->Printf("#%-6" Pd " %s (%s:%" Pd ":%" Pd ")\n", frame_index,
-                   function_name.ToCString(), url_string, line, column);
-  } else if (line >= 0) {
-    buffer->Printf("#%-6" Pd " %s (%s:%" Pd ")\n", frame_index,
-                   function_name.ToCString(), url_string, line);
-  } else {
-    buffer->Printf("#%-6" Pd " %s (%s)\n", frame_index,
-                   function_name.ToCString(), url_string);
+  buffer->Printf("#%-6" Pd " %s (%s", frame_index, function_name, url);
+  if (line >= 0) {
+    buffer->Printf(":%" Pd "", line);
+    if (column >= 0) {
+      buffer->Printf(":%" Pd "", column);
+    }
   }
+  buffer->Printf(")\n");
+}
+
+static inline bool ShouldPrintFrame(const Function& function) {
+  // TODO(dartbug.com/41052): Currently, we print frames where the function
+  // object was optimized out in the precompiled runtime, even if the original
+  // function was not visible. We may want to either elide such frames, or
+  // instead store additional information in the WSR that allows us to determine
+  // the original visibility.
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (function.IsNull()) return true;
+#endif
+  return FLAG_show_invisible_frames || function.is_visible();
 }
 
 const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
-  Zone* zone = Thread::Current()->zone();
-  StackTrace& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
-  Function& function = Function::Handle(zone);
-  Object& code_object = Object::Handle(zone);
-  Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
+  auto const zone = Thread::Current()->zone();
+  auto& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
+  auto& function = Function::Handle(zone);
+  auto& code_object = Object::Handle(zone);
+  auto& code = Code::Handle(zone);
+  auto& bytecode = Bytecode::Handle(zone);
 
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> inlined_token_positions;
@@ -23411,20 +23488,19 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
                 pc_offset, &inlined_functions, &inlined_token_positions);
             ASSERT(inlined_functions.length() >= 1);
             for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
-              if (inlined_functions[j]->is_visible() ||
-                  FLAG_show_invisible_frames) {
-                PrintStackTraceFrame(zone, &buffer, *inlined_functions[j],
-                                     inlined_token_positions[j], frame_index);
+              const auto& inlined = *inlined_functions[j];
+              auto const pos = inlined_token_positions[j];
+              if (ShouldPrintFrame(inlined)) {
+                PrintStackTraceFrame(zone, &buffer, inlined, pos, frame_index);
                 frame_index++;
               }
             }
           } else {
             function = code.function();
-            if (function.is_visible() || FLAG_show_invisible_frames) {
+            if (ShouldPrintFrame(function)) {
               uword pc = code.PayloadStart() + pc_offset;
-              const TokenPosition token_pos = code.GetTokenIndexOfPC(pc);
-              PrintStackTraceFrame(zone, &buffer, function, token_pos,
-                                   frame_index);
+              auto const pos = code.GetTokenIndexOfPC(pc);
+              PrintStackTraceFrame(zone, &buffer, function, pos, frame_index);
               frame_index++;
             }
           }
@@ -23432,11 +23508,10 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           ASSERT(code_object.IsBytecode());
           bytecode ^= code_object.raw();
           function = bytecode.function();
-          if (function.is_visible() || FLAG_show_invisible_frames) {
+          if (ShouldPrintFrame(function)) {
             uword pc = bytecode.PayloadStart() + pc_offset;
-            const TokenPosition token_pos = bytecode.GetTokenIndexOfPC(pc);
-            PrintStackTraceFrame(zone, &buffer, function, token_pos,
-                                 frame_index);
+            auto const pos = bytecode.GetTokenIndexOfPC(pc);
+            PrintStackTraceFrame(zone, &buffer, function, pos, frame_index);
             frame_index++;
           }
         }

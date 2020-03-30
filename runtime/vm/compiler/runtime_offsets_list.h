@@ -338,6 +338,8 @@
   SIZEOF(UnlinkedCall, InstanceSize, RawUnlinkedCall)                          \
   SIZEOF(UnwindError, InstanceSize, RawUnwindError)                            \
   SIZEOF(UserTag, InstanceSize, RawUserTag)                                    \
-  SIZEOF(WeakProperty, InstanceSize, RawWeakProperty)
+  SIZEOF(WeakProperty, InstanceSize, RawWeakProperty)                          \
+  SIZEOF(WeakSerializationReference, InstanceSize,                             \
+         RawWeakSerializationReference)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

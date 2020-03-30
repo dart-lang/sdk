@@ -479,6 +479,8 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word
+    WeakSerializationReference_InstanceSize = 8;
 #endif  // defined(TARGET_ARCH_ARM)
 
 #if defined(TARGET_ARCH_X64)
@@ -950,6 +952,8 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word
+    WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_X64)
 
 #if defined(TARGET_ARCH_IA32)
@@ -1411,6 +1415,8 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word
+    WeakSerializationReference_InstanceSize = 8;
 #endif  // defined(TARGET_ARCH_IA32)
 
 #if defined(TARGET_ARCH_ARM64)
@@ -1883,6 +1889,8 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word
+    WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_ARM64)
 
 #else  // !defined(PRODUCT)
@@ -2343,6 +2351,8 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word
+    WeakSerializationReference_InstanceSize = 8;
 #endif  // defined(TARGET_ARCH_ARM)
 
 #if defined(TARGET_ARCH_X64)
@@ -2808,6 +2818,8 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word
+    WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_X64)
 
 #if defined(TARGET_ARCH_IA32)
@@ -3263,6 +3275,8 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 16;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 16;
+static constexpr dart::compiler::target::word
+    WeakSerializationReference_InstanceSize = 8;
 #endif  // defined(TARGET_ARCH_IA32)
 
 #if defined(TARGET_ARCH_ARM64)
@@ -3729,6 +3743,8 @@ static constexpr dart::compiler::target::word UnlinkedCall_InstanceSize = 32;
 static constexpr dart::compiler::target::word UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word WeakProperty_InstanceSize = 32;
+static constexpr dart::compiler::target::word
+    WeakSerializationReference_InstanceSize = 16;
 #endif  // defined(TARGET_ARCH_ARM64)
 
 #endif  // !defined(PRODUCT)
@@ -4243,6 +4259,8 @@ static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     16;
+static constexpr dart::compiler::target::word
+    AOT_WeakSerializationReference_InstanceSize = 8;
 #endif  // defined(TARGET_ARCH_ARM)
 
 #if defined(TARGET_ARCH_X64)
@@ -4756,6 +4774,8 @@ static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
+static constexpr dart::compiler::target::word
+    AOT_WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_X64)
 
 #if defined(TARGET_ARCH_IA32)
@@ -5273,6 +5293,8 @@ static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
+static constexpr dart::compiler::target::word
+    AOT_WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM64)
 
 #else  // !defined(PRODUCT)
@@ -5778,6 +5800,8 @@ static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     16;
+static constexpr dart::compiler::target::word
+    AOT_WeakSerializationReference_InstanceSize = 8;
 #endif  // defined(TARGET_ARCH_ARM)
 
 #if defined(TARGET_ARCH_X64)
@@ -6284,6 +6308,8 @@ static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
+static constexpr dart::compiler::target::word
+    AOT_WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_X64)
 
 #if defined(TARGET_ARCH_IA32)
@@ -6794,6 +6820,8 @@ static constexpr dart::compiler::target::word AOT_UnwindError_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_UserTag_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_WeakProperty_InstanceSize =
     32;
+static constexpr dart::compiler::target::word
+    AOT_WeakSerializationReference_InstanceSize = 12;
 #endif  // defined(TARGET_ARCH_ARM64)
 
 #endif  // !defined(PRODUCT)

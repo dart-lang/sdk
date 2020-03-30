@@ -90,10 +90,15 @@ class StackTraceUtils : public AllStatic {
   static bool CheckAndSkipAsync(int* skip_sync_async_frames_count,
                                 const String& function_name) {
     ASSERT(*skip_sync_async_frames_count > 0);
+    // Make sure any function objects for methods used here are marked for
+    // retention by the precompiler, even if otherwise not needed at runtime.
+    //
+    // _AsyncAwaitCompleter.start is marked with the vm:entry-point pragma.
     if (function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
       *skip_sync_async_frames_count = 0;
       return true;
     }
+    // _Closure.call is explicitly checked in Precompiler::MustRetainFunction.
     if (function_name.Equals(Symbols::_ClosureCall()) &&
         *skip_sync_async_frames_count == 2) {
       (*skip_sync_async_frames_count)--;

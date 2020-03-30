@@ -206,7 +206,7 @@ namespace dart {
   F(TypedDataView, offset_in_bytes_)                                           \
   F(FutureOr, type_arguments_)
 
-#define AOT_CLASSES_AND_FIELDS(F)
+#define AOT_CLASSES_AND_FIELDS(F) F(WeakSerializationReference, cid_)
 
 #define JIT_CLASSES_AND_FIELDS(F)                                              \
   F(Code, active_instructions_)                                                \
@@ -216,7 +216,8 @@ namespace dart {
   F(Function, bytecode_)                                                       \
   F(Function, unoptimized_code_)                                               \
   F(Field, saved_initial_value_)                                               \
-  F(Field, type_test_cache_)
+  F(Field, type_test_cache_)                                                   \
+  F(WeakSerializationReference, target_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {

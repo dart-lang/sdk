@@ -674,6 +674,10 @@ word Pointer::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Pointer::NextFieldOffset());
 }
 
+word WeakSerializationReference::NextFieldOffset() {
+  return -kWordSize;
+}
+
 word ObjectPool::NextFieldOffset() {
   return -kWordSize;
 }

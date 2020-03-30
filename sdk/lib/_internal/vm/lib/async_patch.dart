@@ -25,8 +25,10 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
   @pragma("vm:entry-point")
   bool isSync;
 
+  @pragma("vm:entry-point")
   _AsyncAwaitCompleter() : isSync = false;
 
+  @pragma("vm:entry-point")
   void complete([FutureOr<T> value]) {
     if (!isSync || value is Future<T>) {
       _future._asyncComplete(value);
@@ -44,6 +46,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     }
   }
 
+  @pragma("vm:entry-point")
   void start(f) {
     f();
     isSync = true;
