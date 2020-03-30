@@ -81,58 +81,14 @@ import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 import 'src/assumptions.dart';
+import 'src/text_util.dart';
 
-String _debugNullability(Nullability nullability) {
-  switch (nullability) {
-    case Nullability.legacy:
-      return '*';
-    case Nullability.nullable:
-      return '?';
-    case Nullability.undetermined:
-      return '%';
-    case Nullability.nonNullable:
-      return '';
-  }
-  throw "Unknown Nullability: $nullability";
-}
+/// Set this `true` to use fully qualified names in types for debugging.
+const bool _verboseTypeToString = false;
 
-String _debugLibraryName(Library node) {
-  return node == null ? 'null' : node.name ?? 'library ${node.importUri}';
-}
-
-String _debugQualifiedClassName(Class node) {
-  return _debugLibraryName(node.enclosingLibrary) +
-      '::' +
-      _debugClassName(node);
-}
-
-String _debugClassName(Class node) {
-  return node == null
-      ? 'null'
-      : node.name ?? 'null-named class ${node.runtimeType} ${node.hashCode}';
-}
-
-String _debugQualifiedMemberName(Member node) {
-  if (node.enclosingClass != null) {
-    return _debugQualifiedClassName(node.enclosingClass) +
-        '::' +
-        _debugMemberName(node);
-  } else {
-    return _debugLibraryName(node.enclosingLibrary) +
-        '::' +
-        _debugMemberName(node);
-  }
-}
-
-String _debugMemberName(Member node) {
-  return node.name?.name ??
-      "null-named member ${node.runtimeType} ${node.hashCode}";
-}
-
-String _debugTypeParameterName(TypeParameter node) {
-  return node.name ??
-      "null-named TypeParameter ${node.runtimeType} ${node.hashCode}";
-}
+/// Set this `true` to use fully qualified names in classes, extensions,
+/// typedefs and members for debugging.
+const bool _verboseMemberToString = false;
 
 /// Any type of node in the IR.
 abstract class Node {
@@ -681,8 +637,8 @@ class Library extends NamedNode
 
   /// Returns a possibly synthesized name for this library, consistent with
   /// the names across all [toString] calls.
-  String toString() => _debugLibraryName(this);
-  String toStringInternal() => _debugLibraryName(this);
+  String toString() => libraryNameToString(this);
+  String toStringInternal() => libraryNameToString(this);
 
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
@@ -922,7 +878,8 @@ class Typedef extends NamedNode implements FileUriNode {
 
   @override
   String toStringInternal() {
-    return "${name}";
+    return qualifiedTypedefNameToString(this,
+        includeLibraryName: _verboseMemberToString);
   }
 }
 
@@ -1435,8 +1392,14 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   /// Returns a possibly synthesized name for this class, consistent with
   /// the names used across all [toString] calls.
-  String toString() => _debugQualifiedClassName(this);
-  String toStringInternal() => _debugQualifiedClassName(this);
+  // TODO(johnniwinther): Remove test dependencies on Class.toString();
+  @override
+  String toString() =>
+      qualifiedClassNameToString(this, includeLibraryName: true);
+
+  @override
+  String toStringInternal() => qualifiedClassNameToString(this,
+      includeLibraryName: _verboseMemberToString);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -1542,7 +1505,8 @@ class Extension extends NamedNode implements FileUriNode {
 
   @override
   String toStringInternal() {
-    return "";
+    return qualifiedExtensionNameToString(this,
+        includeLibraryName: _verboseMemberToString);
   }
 }
 
@@ -1704,8 +1668,12 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
 
   /// Returns a possibly synthesized name for this member, consistent with
   /// the names used across all [toString] calls.
-  String toString() => _debugQualifiedMemberName(this);
-  String toStringInternal() => _debugQualifiedMemberName(this);
+  @override
+  String toString() => toStringInternal();
+
+  @override
+  String toStringInternal() => qualifiedMemberNameToString(this,
+      includeLibraryName: _verboseMemberToString);
 
   void addAnnotation(Expression node) {
     if (annotations.isEmpty) {
@@ -6995,7 +6963,11 @@ class InterfaceType extends DartType {
   @override
   String toStringInternal() {
     StringBuffer sb = new StringBuffer();
-    sb.write(className.toStringInternal());
+    if (_verboseTypeToString) {
+      sb.write(className.toStringInternal());
+    } else {
+      sb.write(classNode.name);
+    }
     if (typeArguments.isNotEmpty) {
       sb.write("<");
       String comma = "";
@@ -7006,7 +6978,7 @@ class InterfaceType extends DartType {
       }
       sb.write(">");
     }
-    sb.write(_debugNullability(nullability));
+    sb.write(nullabilityToString(nullability));
     return sb.toString();
   }
 }
@@ -7221,7 +7193,7 @@ class FunctionType extends DartType {
       sb.write("}");
     }
     sb.write(")");
-    sb.write(_debugNullability(nullability));
+    sb.write(nullabilityToString(nullability));
 
     return sb.toString();
   }
@@ -7665,21 +7637,22 @@ class TypeParameterType extends DartType {
   @override
   String toStringInternal() {
     StringBuffer sb = new StringBuffer();
-    sb.write(parameter.toStringInternal());
-    sb.write(_debugNullability(typeParameterTypeNullability));
+    sb.write(qualifiedTypeParameterNameToString(parameter,
+        includeLibraryName: _verboseTypeToString));
+    sb.write(nullabilityToString(typeParameterTypeNullability));
     if (promotedBound != null) {
       sb.write(" & ");
       sb.write(promotedBound.toStringInternal());
       sb.write(" /* '");
-      sb.write(_debugNullability(typeParameterTypeNullability));
+      sb.write(nullabilityToString(typeParameterTypeNullability));
       sb.write("' & '");
       if (promotedBound is InvalidType) {
-        sb.write(_debugNullability(Nullability.undetermined));
+        sb.write(nullabilityToString(Nullability.undetermined));
       } else {
-        sb.write(_debugNullability(promotedBound.nullability));
+        sb.write(nullabilityToString(promotedBound.nullability));
       }
       sb.write("' = '");
-      sb.write(_debugNullability(nullability));
+      sb.write(nullabilityToString(nullability));
       sb.write("' */");
     }
 
@@ -7891,17 +7864,8 @@ class TypeParameter extends TreeNode {
   }
 
   String toStringInternal() {
-    if (parent is Class) {
-      return _debugQualifiedClassName(parent) +
-          '::' +
-          _debugTypeParameterName(this);
-    }
-    if (parent is Member) {
-      return _debugQualifiedMemberName(parent) +
-          '::' +
-          _debugTypeParameterName(this);
-    }
-    return _debugTypeParameterName(this);
+    return qualifiedTypeParameterNameToString(this,
+        includeLibraryName: _verboseMemberToString);
   }
 
   bool get isFunctionTypeTypeParameter => parent == null;

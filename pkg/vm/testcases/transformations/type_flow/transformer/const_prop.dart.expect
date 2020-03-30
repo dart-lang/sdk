@@ -33,8 +33,8 @@ static get getD() → dynamic
   core::print([@vm.inferred-type.metadata=dart.core::_Double (value: 100.0)] self::getD);
 }
 static method testStrings([@vm.inferred-type.metadata=#lib::A] self::A* a0, [@vm.inferred-type.metadata=dart.core::_OneByteString (value: bazz)] core::String* a1) → void {
-  core::print([@vm.direct-call.metadata=#lib::A::foo] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: foo)] a0.{self::A::foo});
-  core::print([@vm.direct-call.metadata=#lib::A::getBar] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check) (value: bar)] a0.{self::A::getBar}());
+  core::print([@vm.direct-call.metadata=A::foo] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: foo)] a0.{self::A::foo});
+  core::print([@vm.direct-call.metadata=A::getBar] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check) (value: bar)] a0.{self::A::getBar}());
   core::print(a1);
 }
 static method testPassEnum([@vm.inferred-type.metadata=#lib::B (value: #lib::B {index: 1, #lib::_name: B.b2, })] self::B* arg) → void {
@@ -45,7 +45,7 @@ static method testPassEnum2([@vm.inferred-type.metadata=#lib::B (value: #lib::B 
 }
 static method getList() → dynamic
   return #C6;
-static method testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<dart:core::int*>([1, 2, 3]))] dynamic arg1, [[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<dart:core::int*>([4, 5]))] dynamic arg2 = #C9]) → void {
+static method testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<int*>([1, 2, 3]))] dynamic arg1, [[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<int*>([4, 5]))] dynamic arg2 = #C9]) → void {
   core::print(arg1);
   core::print(arg2);
 }
@@ -56,5 +56,5 @@ static method main() → dynamic {
   self::testDouble(3.14);
   self::testStrings(new self::A::•(), "bazz");
   self::testPassEnum(#C11);
-  self::testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<dart:core::int*>([1, 2, 3]))] self::getList());
+  self::testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: ListConstant<int*>([1, 2, 3]))] self::getList());
 }
