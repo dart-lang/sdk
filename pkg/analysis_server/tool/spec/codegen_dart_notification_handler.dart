@@ -76,8 +76,8 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
 /// Clients may mix-in this class, but may not implement it.
 mixin NotificationHandler {
   void handleEvent(Notification notification) {
-    Map<String, Object> params = notification.params;
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var params = notification.params;
+    var decoder = ResponseDecoder(null);
     switch (notification.event) {
 ''');
     for (var notification in notifications) {

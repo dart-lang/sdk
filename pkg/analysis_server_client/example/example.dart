@@ -14,15 +14,15 @@ import 'package:pub_semver/pub_semver.dart';
 
 /// A simple application that uses the analysis server to analyze a package.
 void main(List<String> args) async {
-  String target = await parseArgs(args);
+  var target = await parseArgs(args);
   print('Analyzing $target');
 
   // Launch the server
-  Server server = Server();
+  var server = Server();
   await server.start();
 
   // Connect to the server
-  _Handler handler = _Handler(server);
+  var handler = _Handler(server);
   server.listenToOutput(notificationProcessor: handler.handleEvent);
   if (!await handler.serverConnected(timeLimit: const Duration(seconds: 15))) {
     exit(1);
@@ -73,9 +73,9 @@ class _Handler with NotificationHandler, ConnectionHandler {
 
   @override
   void onAnalysisErrors(AnalysisErrorsParams params) {
-    List<AnalysisError> errors = params.errors;
-    bool first = true;
-    for (AnalysisError error in errors) {
+    var errors = params.errors;
+    var first = true;
+    for (var error in errors) {
       if (error.type.name == 'TODO') {
         // Ignore these types of "errors"
         continue;
@@ -84,7 +84,7 @@ class _Handler with NotificationHandler, ConnectionHandler {
         first = false;
         print('${params.file}:');
       }
-      Location loc = error.location;
+      var loc = error.location;
       print('  ${error.message} • ${loc.startLine}:${loc.startColumn}');
       ++errorCount;
     }

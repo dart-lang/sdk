@@ -101,7 +101,7 @@ class Server extends ServerBase {
     if (_process != null) {
       throw Exception('Process already started');
     }
-    String dartBinary = Platform.executable;
+    var dartBinary = Platform.executable;
 
     // The integration tests run 3x faster when run from snapshots
     // (you need to run test.py with --use-sdk).
@@ -117,7 +117,7 @@ class Server extends ServerBase {
       }
     }
 
-    List<String> arguments = [];
+    var arguments = <String>[];
     //
     // Add VM arguments.
     //

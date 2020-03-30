@@ -23,7 +23,7 @@ List<String> getServerArguments({
   bool suppressAnalytics,
   bool useAnalysisHighlight2 = false,
 }) {
-  List<String> arguments = [];
+  var arguments = <String>[];
 
   if (clientId != null) {
     arguments.add('--client-id');
@@ -91,7 +91,7 @@ abstract class ServerBase {
   void errorProcessor(
       String line, NotificationProcessor notificationProcessor) {
     if (_stdioPassthrough) stderr.writeln(line);
-    String trimmedLine = line.trim();
+    var trimmedLine = line.trim();
     listener?.errorMessage(trimmedLine);
   }
 
@@ -110,7 +110,7 @@ abstract class ServerBase {
   void outputProcessor(
       String line, NotificationProcessor notificationProcessor) {
     if (_stdioPassthrough) stdout.writeln(line);
-    String trimmedLine = line.trim();
+    var trimmedLine = line.trim();
 
     // Guard against lines like:
     //   {"event":"server.connected","params":{...}}Observatory listening on ...
@@ -173,17 +173,14 @@ abstract class ServerBase {
   /// string with [sendWith].
   Future<Map<String, dynamic>> sendCommandWith(
       String method, Map<String, dynamic> params, CommandSender sendWith) {
-    String id = '${_nextId++}';
-    Map<String, dynamic> command = <String, dynamic>{
-      Request.ID: id,
-      Request.METHOD: method
-    };
+    var id = '${_nextId++}';
+    var command = <String, dynamic>{Request.ID: id, Request.METHOD: method};
     if (params != null) {
       command[Request.PARAMS] = params;
     }
     final completer = Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
-    String line = json.encode(command);
+    var line = json.encode(command);
     listener?.requestSent(line);
     sendWith(utf8.encoder.convert('$line\n'));
     return completer.future;
