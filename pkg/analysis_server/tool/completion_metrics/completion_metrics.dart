@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -17,9 +16,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:args/args.dart';
 
 import 'metrics_util.dart';
@@ -255,8 +252,7 @@ class CompletionMetricsComputer {
       ResolvedUnitResult resolvedUnitResult,
       int offset,
       CompletionMetrics metrics,
-      [DeclarationsTracker declarationsTracker,
-      bool useNewRelevance = false]) async {
+      [bool useNewRelevance = false]) async {
     var completionRequestImpl = CompletionRequestImpl(
       resolvedUnitResult,
       offset,
@@ -270,28 +266,28 @@ class CompletionMetricsComputer {
     var suggestions =
         await DartCompletionManager().computeSuggestions(completionRequestImpl);
 
-    // If a non-null declarationsTracker was passed, use it to call
-    // computeIncludedSetList, this current implementation just adds the set of
-    // included element names with relevance 0, future implementations should
-    // compute out the relevance that clients will set to each value.
-    if (declarationsTracker != null) {
-      var includedSuggestionSets = <IncludedSuggestionSet>[];
-      var includedElementNames = <String>{};
-
-      computeIncludedSetList(declarationsTracker, resolvedUnitResult,
-          includedSuggestionSets, includedElementNames);
-
-      for (var eltName in includedElementNames) {
-        suggestions.add(CompletionSuggestion(
-            CompletionSuggestionKind.INVOCATION,
-            0,
-            eltName,
-            0,
-            eltName.length,
-            false,
-            false));
-      }
-    }
+//    // If a non-null declarationsTracker was passed, use it to call
+//    // computeIncludedSetList, this current implementation just adds the set of
+//    // included element names with relevance 0, future implementations should
+//    // compute out the relevance that clients will set to each value.
+//    if (declarationsTracker != null) {
+//      var includedSuggestionSets = <IncludedSuggestionSet>[];
+//      var includedElementNames = <String>{};
+//
+//      computeIncludedSetList(declarationsTracker, resolvedUnitResult,
+//          includedSuggestionSets, includedElementNames);
+//
+//      for (var eltName in includedElementNames) {
+//        suggestions.add(CompletionSuggestion(
+//            CompletionSuggestionKind.INVOCATION,
+//            0,
+//            eltName,
+//            0,
+//            eltName.length,
+//            false,
+//            false));
+//      }
+//    }
     stopwatch.stop();
     metrics.meanCompletionMS.addValue(stopwatch.elapsedMilliseconds);
 
@@ -312,16 +308,16 @@ class CompletionMetricsComputer {
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     var context = collection.contexts[0];
-    // Set the DeclarationsTracker, only call doWork to build up the available
-    // suggestions if doComputeCompletionsFromAnalysisServer is true.
-    // TODO(brianwilkerson) Add a flag to control whether available suggestions
-    //  are to be used.
-    var declarationsTracker = DeclarationsTracker(
-        MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
-    declarationsTracker.addContext(context);
-    while (declarationsTracker.hasWork) {
-      declarationsTracker.doWork();
-    }
+//    // Set the DeclarationsTracker, only call doWork to build up the available
+//    // suggestions if doComputeCompletionsFromAnalysisServer is true.
+//    // TODO(brianwilkerson) Add a flag to control whether available suggestions
+//    //  are to be used.
+//    var declarationsTracker = DeclarationsTracker(
+//        MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
+//    declarationsTracker.addContext(context);
+//    while (declarationsTracker.hasWork) {
+//      declarationsTracker.doWork();
+//    }
 
     // Loop through each file, resolve the file and call
     // forEachExpectedCompletion
@@ -357,7 +353,6 @@ class CompletionMetricsComputer {
                 _resolvedUnitResult,
                 expectedCompletion.offset,
                 metricsOldMode,
-                declarationsTracker,
                 false);
 
             forEachExpectedCompletion(
@@ -368,7 +363,6 @@ class CompletionMetricsComputer {
                 _resolvedUnitResult,
                 expectedCompletion.offset,
                 metricsNewMode,
-                declarationsTracker,
                 true);
 
             forEachExpectedCompletion(
