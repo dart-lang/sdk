@@ -61,6 +61,9 @@ abstract class DataComputer<T> {
   /// Called before testing to setup flags needed for data collection.
   void setup() {}
 
+  // Called to allow for (awaited) inspection of the compilation result.
+  Future<void> inspectComponent(Component component) async {}
+
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
@@ -388,6 +391,8 @@ Future<TestResult<T>> runTestForConfig<T>(
         (library.importUri.scheme == 'dart' ||
             library.importUri.scheme == 'package');
   }
+
+  await dataComputer.inspectComponent(component);
 
   for (Library library in component.libraries) {
     if (excludeLibrary(library) &&

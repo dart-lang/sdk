@@ -144,6 +144,7 @@ dills
 dinteractive
 dirname
 disagree
+disagreement
 disallowed
 disconnect
 discovering
@@ -455,6 +456,7 @@ splitting
 sqrt
 squared
 sssp
+stashed
 stat
 stats
 std
@@ -503,6 +505,7 @@ txt
 typeargs
 typeparam
 typeparambounds
+ugly
 unassignment
 unawaited
 unbreak
