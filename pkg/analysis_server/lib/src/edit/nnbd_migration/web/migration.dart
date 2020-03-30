@@ -139,7 +139,8 @@ void addClickHandlers(String selector, bool clearEditDetails) {
     regions.forEach((Element anchor) {
       anchor.onClick.listen((event) {
         var offset = int.parse(anchor.dataset['offset']);
-        loadAndPopulateEditDetails(path, offset);
+        var line = int.parse(anchor.dataset['line']);
+        loadAndPopulateEditDetails(path, offset, line);
       });
     });
   }
@@ -239,13 +240,14 @@ void highlightAllCode() {
 }
 
 /// Loads the explanation for [region], into the ".panel-content" div.
-void loadAndPopulateEditDetails(String path, int offset) {
+void loadAndPopulateEditDetails(String path, int offset, int line) {
   // Request the region, then do work with the response.
   doGet(path, queryParameters: {'region': 'region', 'offset': '$offset'})
       .then((HttpRequest xhr) {
     if (xhr.status == 200) {
       var response = EditDetails.fromJson(jsonDecode(xhr.responseText));
       populateEditDetails(response);
+      pushState(path, offset, line);
       addClickHandlers('.edit-panel .panel-content', false);
     } else {
       window.alert('Request failed; status of ${xhr.status}');
@@ -475,7 +477,7 @@ void populateProposedEdits(
       navigate(window.location.pathname, offset, line, true, callback: () {
         pushState(window.location.pathname, offset, line);
       });
-      loadAndPopulateEditDetails(path, offset);
+      loadAndPopulateEditDetails(path, offset, line);
     });
     item.append(Text(': ${edit.explanation}'));
   }
