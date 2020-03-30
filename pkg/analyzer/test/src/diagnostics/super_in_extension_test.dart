@@ -69,10 +69,10 @@ extension E on C {
   test_method_inGetter() async {
     await assertErrorsInCode('''
 extension E on int {
-  int get displayTest => super.toString();
+  String get displayText => super.toString();
 }
 ''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 46, 5),
+      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 49, 5),
     ]);
   }
 

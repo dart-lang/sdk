@@ -572,6 +572,7 @@ class MethodInvocationResolver {
       SimpleIdentifier nameNode, String name) {
     var enclosingClass = _resolver.enclosingClass;
     if (SuperContext.of(receiver) != SuperContext.valid) {
+      _setDynamicResolution(node);
       return;
     }
 
