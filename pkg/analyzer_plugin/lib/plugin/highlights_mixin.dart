@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/utilities/highlights/highlights.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/highlights/highlights.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] and
@@ -25,7 +23,7 @@ mixin DartHighlightsMixin implements HighlightsMixin {
   Future<HighlightsRequest> getHighlightsRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolvedUnitResult result = await getResolvedUnitResult(path);
+    var result = await getResolvedUnitResult(path);
     return DartHighlightsRequestImpl(resourceProvider, result);
   }
 }
@@ -51,11 +49,9 @@ mixin HighlightsMixin implements ServerPlugin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
-      HighlightsRequest request = await getHighlightsRequest(path);
-      HighlightsGenerator generator =
-          HighlightsGenerator(getHighlightsContributors(path));
-      GeneratorResult generatorResult =
-          generator.generateHighlightsNotification(request);
+      var request = await getHighlightsRequest(path);
+      var generator = HighlightsGenerator(getHighlightsContributors(path));
+      var generatorResult = generator.generateHighlightsNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

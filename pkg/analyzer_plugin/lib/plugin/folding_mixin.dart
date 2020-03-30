@@ -4,13 +4,11 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/utilities/folding/folding.dart';
 import 'package:analyzer_plugin/utilities/folding/folding.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] and
 /// mixing in [FoldingMixin]. This implements the creation of the folding
@@ -25,7 +23,7 @@ mixin DartFoldingMixin implements FoldingMixin {
   Future<FoldingRequest> getFoldingRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolvedUnitResult result = await getResolvedUnitResult(path);
+    var result = await getResolvedUnitResult(path);
     return DartFoldingRequestImpl(resourceProvider, result);
   }
 }
@@ -51,11 +49,9 @@ mixin FoldingMixin implements ServerPlugin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
-      FoldingRequest request = await getFoldingRequest(path);
-      FoldingGenerator generator =
-          FoldingGenerator(getFoldingContributors(path));
-      GeneratorResult generatorResult =
-          generator.generateFoldingNotification(request);
+      var request = await getFoldingRequest(path);
+      var generator = FoldingGenerator(getFoldingContributors(path));
+      var generatorResult = generator.generateFoldingNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

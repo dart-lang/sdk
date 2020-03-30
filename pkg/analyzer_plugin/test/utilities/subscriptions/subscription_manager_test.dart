@@ -48,8 +48,7 @@ class SubscriptionManagerTest {
     //
     // Set the initial set of subscriptions.
     //
-    Map<String, List<AnalysisService>> newSubscriptions =
-        manager.setSubscriptions({
+    var newSubscriptions = manager.setSubscriptions({
       AnalysisService.HIGHLIGHTS: [fooPath, barPath],
       AnalysisService.NAVIGATION: [fooPath]
     });

@@ -33,7 +33,7 @@ class OccurrencesCollectorImpl implements OccurrencesCollector {
 
   /// Return the list of occurrences that have been collected.
   List<Occurrences> get occurrences {
-    List<Occurrences> occurrences = <Occurrences>[];
+    var occurrences = <Occurrences>[];
     occurrenceLocations.forEach((Element element, List<int> offsets) {
       offsets.sort();
       occurrences.add(Occurrences(element, offsets, element.name.length));

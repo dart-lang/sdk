@@ -21,34 +21,33 @@ void main() {
 @reflectiveTest
 class ChangeBuilderImplTest {
   Future<void> test_createFileEditBuilder() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    String path = '/test.dart';
-    FileEditBuilderImpl fileEditBuilder =
-        await builder.createFileEditBuilder(path);
+    var builder = ChangeBuilderImpl();
+    var path = '/test.dart';
+    var fileEditBuilder = await builder.createFileEditBuilder(path);
     expect(fileEditBuilder, const TypeMatcher<FileEditBuilder>());
-    SourceFileEdit fileEdit = fileEditBuilder.fileEdit;
+    var fileEdit = fileEditBuilder.fileEdit;
     expect(fileEdit.file, path);
   }
 
   void test_getLinkedEditGroup() {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    LinkedEditGroup group = builder.getLinkedEditGroup('a');
+    var builder = ChangeBuilderImpl();
+    var group = builder.getLinkedEditGroup('a');
     expect(identical(builder.getLinkedEditGroup('b'), group), isFalse);
     expect(identical(builder.getLinkedEditGroup('a'), group), isTrue);
   }
 
   void test_setSelection() {
-    Position position = Position('test.dart', 3);
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var position = Position('test.dart', 3);
+    var builder = ChangeBuilderImpl();
     builder.setSelection(position);
     expect(builder.sourceChange.selection, position);
   }
 
   void test_sourceChange_emptyEdit() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    String path = '/test.dart';
+    var builder = ChangeBuilderImpl();
+    var path = '/test.dart';
     await builder.addFileEdit(path, (FileEditBuilder builder) {});
-    SourceChange sourceChange = builder.sourceChange;
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
     expect(sourceChange.edits, isEmpty);
     expect(sourceChange.linkedEditGroups, isEmpty);
@@ -57,8 +56,8 @@ class ChangeBuilderImplTest {
   }
 
   void test_sourceChange_noEdits() {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    SourceChange sourceChange = builder.sourceChange;
+    var builder = ChangeBuilderImpl();
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
     expect(sourceChange.edits, isEmpty);
     expect(sourceChange.linkedEditGroups, isEmpty);
@@ -67,13 +66,13 @@ class ChangeBuilderImplTest {
   }
 
   Future<void> test_sourceChange_oneChange() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    String path = '/test.dart';
+    var builder = ChangeBuilderImpl();
+    var path = '/test.dart';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addSimpleInsertion(0, '_');
     });
     builder.getLinkedEditGroup('a');
-    SourceChange sourceChange = builder.sourceChange;
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
     expect(sourceChange.edits, hasLength(1));
     expect(sourceChange.linkedEditGroups, hasLength(1));
@@ -87,58 +86,58 @@ class EditBuilderImplTest {
   String path = '/test.dart';
 
   Future<void> test_addLinkedEdit() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    int offset = 10;
-    String text = 'content';
+    var builder = ChangeBuilderImpl();
+    var offset = 10;
+    var text = 'content';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit('a', (LinkedEditBuilder builder) {
           builder.write(text);
         });
-        SourceEdit sourceEdit = (builder as EditBuilderImpl).sourceEdit;
+        var sourceEdit = (builder as EditBuilderImpl).sourceEdit;
         expect(sourceEdit.replacement, text);
       });
     });
-    SourceChange sourceChange = builder.sourceChange;
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
-    List<LinkedEditGroup> groups = sourceChange.linkedEditGroups;
+    var groups = sourceChange.linkedEditGroups;
     expect(groups, hasLength(1));
-    LinkedEditGroup group = groups[0];
+    var group = groups[0];
     expect(group, isNotNull);
     expect(group.length, text.length);
-    List<Position> positions = group.positions;
+    var positions = group.positions;
     expect(positions, hasLength(1));
     expect(positions[0].offset, offset);
   }
 
   Future<void> test_addSimpleLinkedEdit() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    int offset = 10;
-    String text = 'content';
+    var builder = ChangeBuilderImpl();
+    var offset = 10;
+    var text = 'content';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addSimpleLinkedEdit('a', text);
-        SourceEdit sourceEdit = (builder as EditBuilderImpl).sourceEdit;
+        var sourceEdit = (builder as EditBuilderImpl).sourceEdit;
         expect(sourceEdit.replacement, text);
       });
     });
-    SourceChange sourceChange = builder.sourceChange;
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
-    List<LinkedEditGroup> groups = sourceChange.linkedEditGroups;
+    var groups = sourceChange.linkedEditGroups;
     expect(groups, hasLength(1));
-    LinkedEditGroup group = groups[0];
+    var group = groups[0];
     expect(group, isNotNull);
     expect(group.length, text.length);
-    List<Position> positions = group.positions;
+    var positions = group.positions;
     expect(positions, hasLength(1));
     expect(positions[0].offset, offset);
   }
 
   Future<void> test_createLinkedEditBuilder() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
-        LinkedEditBuilderImpl linkBuilder =
+        var linkBuilder =
             (builder as EditBuilderImpl).createLinkedEditBuilder();
         expect(linkBuilder, const TypeMatcher<LinkedEditBuilder>());
       });
@@ -146,7 +145,7 @@ class EditBuilderImplTest {
   }
 
   Future<void> test_selectHere() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.selectHere();
@@ -156,27 +155,27 @@ class EditBuilderImplTest {
   }
 
   Future<void> test_write() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    int offset = 10;
-    String text = 'write';
+    var builder = ChangeBuilderImpl();
+    var offset = 10;
+    var text = 'write';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(offset, (EditBuilder builder) {
         builder.write(text);
       });
     });
 
-    SourceChange sourceChange = builder.sourceChange;
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
 
-    List<SourceFileEdit> fileEdits = sourceChange.edits;
+    var fileEdits = sourceChange.edits;
     expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = fileEdits[0];
+    var fileEdit = fileEdits[0];
     expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
 
-    List<SourceEdit> edits = fileEdit.edits;
+    var edits = fileEdit.edits;
     expect(edits, hasLength(1));
-    SourceEdit edit = edits[0];
+    var edit = edits[0];
     expect(edit, isNotNull);
     expect(edit.offset, offset);
     expect(edit.length, 0);
@@ -184,9 +183,9 @@ class EditBuilderImplTest {
   }
 
   Future<void> test_writeln_withoutText() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    int offset = 52;
-    int length = 12;
+    var builder = ChangeBuilderImpl();
+    var offset = 52;
+    var length = 12;
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addReplacement(SourceRange(offset, length),
           (EditBuilder builder) {
@@ -194,18 +193,18 @@ class EditBuilderImplTest {
       });
     });
 
-    SourceChange sourceChange = builder.sourceChange;
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
 
-    List<SourceFileEdit> fileEdits = sourceChange.edits;
+    var fileEdits = sourceChange.edits;
     expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = fileEdits[0];
+    var fileEdit = fileEdits[0];
     expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
 
-    List<SourceEdit> edits = fileEdit.edits;
+    var edits = fileEdit.edits;
     expect(edits, hasLength(1));
-    SourceEdit edit = edits[0];
+    var edit = edits[0];
     expect(edit, isNotNull);
     expect(edit.offset, offset);
     expect(edit.length, length);
@@ -213,10 +212,10 @@ class EditBuilderImplTest {
   }
 
   Future<void> test_writeln_withText() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    int offset = 52;
-    int length = 12;
-    String text = 'writeln';
+    var builder = ChangeBuilderImpl();
+    var offset = 52;
+    var length = 12;
+    var text = 'writeln';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addReplacement(SourceRange(offset, length),
           (EditBuilder builder) {
@@ -224,18 +223,18 @@ class EditBuilderImplTest {
       });
     });
 
-    SourceChange sourceChange = builder.sourceChange;
+    var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
 
-    List<SourceFileEdit> fileEdits = sourceChange.edits;
+    var fileEdits = sourceChange.edits;
     expect(fileEdits, hasLength(1));
-    SourceFileEdit fileEdit = fileEdits[0];
+    var fileEdit = fileEdits[0];
     expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
 
-    List<SourceEdit> edits = fileEdit.edits;
+    var edits = fileEdit.edits;
     expect(edits, hasLength(1));
-    SourceEdit edit = edits[0];
+    var edit = edits[0];
     expect(edit, isNotNull);
     expect(edit.offset, offset);
     expect(edit.length, length);
@@ -249,13 +248,13 @@ class FileEditBuilderImplTest {
   String path = '/test.dart';
 
   Future<void> test_addDeletion() async {
-    int offset = 23;
-    int length = 7;
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var offset = 23;
+    var length = 7;
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addDeletion(SourceRange(offset, length));
     });
-    List<SourceEdit> edits = builder.sourceChange.edits[0].edits;
+    var edits = builder.sourceChange.edits[0].edits;
     expect(edits, hasLength(1));
     expect(edits[0].offset, offset);
     expect(edits[0].length, length);
@@ -263,7 +262,7 @@ class FileEditBuilderImplTest {
   }
 
   Future<void> test_addInsertion() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         expect(builder, isNotNull);
@@ -272,23 +271,23 @@ class FileEditBuilderImplTest {
   }
 
   Future<void> test_addLinkedPosition() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
-    String groupName = 'a';
+    var builder = ChangeBuilderImpl();
+    var groupName = 'a';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addLinkedPosition(SourceRange(3, 6), groupName);
     });
 
-    LinkedEditGroup group = builder.getLinkedEditGroup(groupName);
-    List<Position> positions = group.positions;
+    var group = builder.getLinkedEditGroup(groupName);
+    var positions = group.positions;
     expect(positions, hasLength(1));
-    Position position = positions[0];
+    var position = positions[0];
     expect(position.file, path);
     expect(position.offset, 3);
     expect(group.length, 6);
   }
 
   Future<void> test_addReplacement() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addReplacement(SourceRange(4, 5), (EditBuilder builder) {
         expect(builder, isNotNull);
@@ -297,13 +296,13 @@ class FileEditBuilderImplTest {
   }
 
   Future<void> test_addSimpleInsertion() async {
-    int offset = 23;
-    String text = 'xyz';
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var offset = 23;
+    var text = 'xyz';
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addSimpleInsertion(offset, text);
     });
-    List<SourceEdit> edits = builder.sourceChange.edits[0].edits;
+    var edits = builder.sourceChange.edits[0].edits;
     expect(edits, hasLength(1));
     expect(edits[0].offset, offset);
     expect(edits[0].length, 0);
@@ -311,14 +310,14 @@ class FileEditBuilderImplTest {
   }
 
   Future<void> test_addSimpleReplacement() async {
-    int offset = 23;
-    int length = 7;
-    String text = 'xyz';
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var offset = 23;
+    var length = 7;
+    var text = 'xyz';
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), text);
     });
-    List<SourceEdit> edits = builder.sourceChange.edits[0].edits;
+    var edits = builder.sourceChange.edits[0].edits;
     expect(edits, hasLength(1));
     expect(edits[0].offset, offset);
     expect(edits[0].length, length);
@@ -326,14 +325,14 @@ class FileEditBuilderImplTest {
   }
 
   Future<void> test_createEditBuilder() async {
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
-      int offset = 4;
-      int length = 5;
-      EditBuilderImpl editBuilder =
+      var offset = 4;
+      var length = 5;
+      var editBuilder =
           (builder as FileEditBuilderImpl).createEditBuilder(offset, length);
       expect(editBuilder, const TypeMatcher<EditBuilder>());
-      SourceEdit sourceEdit = editBuilder.sourceEdit;
+      var sourceEdit = editBuilder.sourceEdit;
       expect(sourceEdit.length, length);
       expect(sourceEdit.offset, offset);
       expect(sourceEdit.replacement, isEmpty);
@@ -346,8 +345,8 @@ class LinkedEditBuilderImplTest {
   String path = '/test.dart';
 
   Future<void> test_addSuggestion() async {
-    String groupName = 'a';
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var groupName = 'a';
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
@@ -357,13 +356,13 @@ class LinkedEditBuilderImplTest {
       });
     });
 
-    LinkedEditGroup group = builder.getLinkedEditGroup(groupName);
+    var group = builder.getLinkedEditGroup(groupName);
     expect(group.suggestions, hasLength(1));
   }
 
   Future<void> test_addSuggestion_zeroLength() async {
-    String groupName = 'a';
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var groupName = 'a';
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
@@ -376,8 +375,8 @@ class LinkedEditBuilderImplTest {
   }
 
   Future<void> test_addSuggestions() async {
-    String groupName = 'a';
-    ChangeBuilderImpl builder = ChangeBuilderImpl();
+    var groupName = 'a';
+    var builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
@@ -387,7 +386,7 @@ class LinkedEditBuilderImplTest {
       });
     });
 
-    LinkedEditGroup group = builder.getLinkedEditGroup(groupName);
+    var group = builder.getLinkedEditGroup(groupName);
     expect(group.suggestions, hasLength(2));
   }
 }

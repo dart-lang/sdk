@@ -1445,7 +1445,7 @@ class Element implements HasToJson {
       bool isStatic = false,
       bool isPrivate = false,
       bool isDeprecated = false}) {
-    int flags = 0;
+    var flags = 0;
     if (isAbstract) flags |= FLAG_ABSTRACT;
     if (isConst) flags |= FLAG_CONST;
     if (isFinal) flags |= FLAG_FINAL;

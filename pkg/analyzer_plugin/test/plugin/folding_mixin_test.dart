@@ -45,13 +45,12 @@ class FoldingMixinTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = Completer<void>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisFoldingParams params =
-          AnalysisFoldingParams.fromNotification(notification);
+      var params = AnalysisFoldingParams.fromNotification(notification);
       expect(params.file, filePath1);
-      List<FoldingRegion> regions = params.regions;
+      var regions = params.regions;
       expect(regions, hasLength(7));
       notificationReceived.complete();
     });
@@ -67,7 +66,7 @@ class _TestFoldingContributor implements FoldingContributor {
 
   @override
   void computeFolding(FoldingRequest request, FoldingCollector collector) {
-    for (int i = 0; i < regionCount; i++) {
+    for (var i = 0; i < regionCount; i++) {
       collector.addRegion(i * 20, 10, FoldingKind.FILE_HEADER);
     }
   }

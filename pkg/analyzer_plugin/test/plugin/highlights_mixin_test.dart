@@ -45,11 +45,10 @@ class HighlightsMixinTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = Completer<void>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisHighlightsParams params =
-          AnalysisHighlightsParams.fromNotification(notification);
+      var params = AnalysisHighlightsParams.fromNotification(notification);
       expect(params.file, filePath1);
       expect(params.regions, hasLength(5));
       notificationReceived.complete();
@@ -67,7 +66,7 @@ class _TestHighlightsContributor implements HighlightsContributor {
   @override
   void computeHighlights(
       HighlightsRequest request, HighlightsCollector collector) {
-    for (int i = 0; i < elementCount; i++) {
+    for (var i = 0; i < elementCount; i++) {
       collector.addRegion(i, 20, HighlightRegionType.METHOD_DECLARATION);
     }
   }

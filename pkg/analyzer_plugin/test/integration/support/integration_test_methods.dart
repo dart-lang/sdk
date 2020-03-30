@@ -9,13 +9,13 @@
 /// Convenience methods for running integration tests.
 import 'dart:async';
 
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:test/test.dart';
 
 import 'integration_tests.dart';
 import 'protocol_matchers.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// Convenience methods for running integration tests.
 abstract class IntegrationTestMixin {
@@ -76,7 +76,7 @@ abstract class IntegrationTestMixin {
     var params =
         PluginVersionCheckParams(byteStorePath, sdkPath, version).toJson();
     var result = await server.send('plugin.versionCheck', params);
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var decoder = ResponseDecoder(null);
     return PluginVersionCheckResult.fromJson(decoder, 'result', result);
   }
 
@@ -168,7 +168,7 @@ abstract class IntegrationTestMixin {
       String file, int offset, int length) async {
     var params = AnalysisGetNavigationParams(file, offset, length).toJson();
     var result = await server.send('analysis.getNavigation', params);
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var decoder = ResponseDecoder(null);
     return AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
   }
 
@@ -465,7 +465,7 @@ abstract class IntegrationTestMixin {
       String file, int offset) async {
     var params = CompletionGetSuggestionsParams(file, offset).toJson();
     var result = await server.send('completion.getSuggestions', params);
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var decoder = ResponseDecoder(null);
     return CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
   }
 
@@ -497,7 +497,7 @@ abstract class IntegrationTestMixin {
       String file, int offset, int length) async {
     var params = EditGetAssistsParams(file, offset, length).toJson();
     var result = await server.send('edit.getAssists', params);
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var decoder = ResponseDecoder(null);
     return EditGetAssistsResult.fromJson(decoder, 'result', result);
   }
 
@@ -533,7 +533,7 @@ abstract class IntegrationTestMixin {
     var params =
         EditGetAvailableRefactoringsParams(file, offset, length).toJson();
     var result = await server.send('edit.getAvailableRefactorings', params);
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var decoder = ResponseDecoder(null);
     return EditGetAvailableRefactoringsResult.fromJson(
         decoder, 'result', result);
   }
@@ -559,7 +559,7 @@ abstract class IntegrationTestMixin {
   Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) async {
     var params = EditGetFixesParams(file, offset).toJson();
     var result = await server.send('edit.getFixes', params);
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var decoder = ResponseDecoder(null);
     return EditGetFixesResult.fromJson(decoder, 'result', result);
   }
 
@@ -648,7 +648,7 @@ abstract class IntegrationTestMixin {
             options: options)
         .toJson();
     var result = await server.send('edit.getRefactoring', params);
-    ResponseDecoder decoder = ResponseDecoder(kind);
+    var decoder = ResponseDecoder(kind);
     return EditGetRefactoringResult.fromJson(decoder, 'result', result);
   }
 
@@ -678,7 +678,7 @@ abstract class IntegrationTestMixin {
       String file) async {
     var params = KytheGetKytheEntriesParams(file).toJson();
     var result = await server.send('kythe.getKytheEntries', params);
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var decoder = ResponseDecoder(null);
     return KytheGetKytheEntriesResult.fromJson(decoder, 'result', result);
   }
 
@@ -707,7 +707,7 @@ abstract class IntegrationTestMixin {
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.
   void dispatchNotification(String event, params) {
-    ResponseDecoder decoder = ResponseDecoder(null);
+    var decoder = ResponseDecoder(null);
     switch (event) {
       case 'plugin.error':
         outOfTestExpect(params, isPluginErrorParams);

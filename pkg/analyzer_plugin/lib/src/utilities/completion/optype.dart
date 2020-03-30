@@ -87,7 +87,7 @@ class OpType {
   /// Determine the suggestions that should be made based upon the given
   /// [CompletionTarget] and [offset].
   factory OpType.forCompletion(CompletionTarget target, int offset) {
-    OpType optype = OpType._();
+    var optype = OpType._();
 
     // Don't suggest anything right after double or integer literals.
     if (target.isDoubleOrIntLiteral()) {
@@ -116,7 +116,7 @@ class OpType {
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
       // Careful: in angular plugin, `target.unit` may be null!
-      CompilationUnitElement unitElement = target.unit?.declaredElement;
+      var unitElement = target.unit?.declaredElement;
       if (unitElement != null) {
         optype.includeConstructorSuggestions = true;
       }
@@ -148,8 +148,8 @@ class OpType {
 
   /// Try to determine the required context type, and configure filters.
   void _computeRequiredTypeAndFilters(CompletionTarget target) {
-    Object entity = target.entity;
-    AstNode node = target.containingNode;
+    var entity = target.entity;
+    var node = target.containingNode;
 
     if (node is InstanceCreationExpression &&
         node.keyword != null &&
@@ -169,7 +169,7 @@ class OpType {
     } else if (node is NamedExpression && node.expression == entity) {
       _requiredType = node.staticParameterElement?.type;
     } else if (node is SwitchCase && node.expression == entity) {
-      AstNode parent = node.parent;
+      var parent = node.parent;
       if (parent is SwitchStatement) {
         _requiredType = parent.expression?.staticType;
       }
@@ -215,7 +215,7 @@ class OpType {
       return node.statements.isNotEmpty ? node.statements.last : null;
     }
     if (entity is Statement) {
-      int index = node.statements.indexOf(entity);
+      var index = node.statements.indexOf(entity);
       if (index > 0) {
         return node.statements[index - 1];
       }
@@ -252,11 +252,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    AstNode parent = node.parent;
+    var parent = node.parent;
     List<ParameterElement> parameters;
     if (parent is InstanceCreationExpression) {
       Element constructor;
-      SimpleIdentifier name = parent.constructorName?.name;
+      var name = parent.constructorName?.name;
       if (name != null) {
         constructor = name.staticElement;
       } else {
@@ -272,7 +272,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         optype.includeNamedArgumentSuggestions = true;
       }
     } else if (parent is InvocationExpression) {
-      Expression function = parent.function;
+      var function = parent.function;
       if (function is SimpleIdentifier) {
         var elem = function.staticElement;
         if (elem is FunctionTypedElement) {
@@ -291,7 +291,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         index = 0;
       } else if (entity == node.rightParenthesis) {
         // Parser ignores trailing commas
-        Token previous = node.findPrevious(node.rightParenthesis);
+        var previous = node.findPrevious(node.rightParenthesis);
         if (previous?.lexeme == ',') {
           index = node.arguments.length;
         } else {
@@ -301,7 +301,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         index = node.arguments.indexOf(entity as Expression);
       }
       if (0 <= index && index < parameters.length) {
-        ParameterElement param = parameters[index];
+        var param = parameters[index];
         if (param?.isNamed == true) {
           optype.includeNamedArgumentSuggestions = true;
           return;
@@ -317,7 +317,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.type)) {
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
-        DartType staticType = node.expression.staticType;
+        var staticType = node.expression.staticType;
         if (staticType != null &&
             (staticType.isDynamic ||
                 (optype._isSubtypeOf(dartType, staticType) &&
@@ -372,7 +372,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    Statement prevStmt = OpType.getPreviousStatement(node, entity);
+    var prevStmt = OpType.getPreviousStatement(node, entity);
     if (prevStmt is TryStatement) {
       if (prevStmt.catchClauses.isEmpty && prevStmt.finallyBlock == null) {
         return;
@@ -451,9 +451,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
     if (identical(entity, node.name)) {
-      TypeName type = node.type;
+      var type = node.type;
       if (type != null) {
-        Identifier prefix = type.name;
+        var prefix = type.name;
         if (prefix != null) {
           optype.includeConstructorSuggestions = true;
           optype.isPrefixed = true;
@@ -513,7 +513,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     // Given f[], the parser drops the [] from the expression statement
     // but the [] token is the CompletionTarget entity
     if (entity is Token) {
-      Token token = entity as Token;
+      var token = entity as Token;
       if (token.lexeme == '[]' && offset == token.offset + 1) {
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
@@ -600,9 +600,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList node) {
     dynamic entity = this.entity;
     if (entity is Token) {
-      Token previous = node.findPrevious(entity);
+      var previous = node.findPrevious(entity);
       if (previous != null) {
-        TokenType type = previous.type;
+        var type = previous.type;
         if (type == TokenType.OPEN_PAREN || type == TokenType.COMMA) {
           optype.includeTypeNameSuggestions = true;
         }
@@ -755,7 +755,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.type)) {
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
-        DartType staticType = node.expression.staticType;
+        var staticType = node.expression.staticType;
         if (staticType != null &&
             (staticType.isDynamic ||
                 (optype._isSubtypeOf(dartType, staticType) &&
@@ -786,7 +786,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    bool isThis = node.target is ThisExpression;
+    var isThis = node.target is ThisExpression;
     if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
@@ -822,12 +822,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeTypeNameSuggestions = true;
 
       // Check for named parameters in constructor calls.
-      AstNode grandparent = node.parent.parent;
+      var grandparent = node.parent.parent;
       if (grandparent is ConstructorReferenceNode) {
-        ConstructorElement element = grandparent.staticElement;
+        var element = grandparent.staticElement;
         if (element != null) {
-          List<ParameterElement> parameters = element.parameters;
-          ParameterElement parameterElement = parameters.firstWhere((e) {
+          var parameters = element.parameters;
+          var parameterElement = parameters.firstWhere((e) {
             if (e is DefaultFieldFormalParameterElementImpl) {
               return e.field?.name == node.name.label?.name;
             }
@@ -915,7 +915,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       // then don't suggest anything
       return;
     }
-    bool isThis = node.target is ThisExpression;
+    var isThis = node.target is ThisExpression;
     if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
@@ -1042,7 +1042,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     if (entity is SwitchMember && entity != node.members.first) {
-      SwitchMember member = entity as SwitchMember;
+      var member = entity as SwitchMember;
       if (offset <= member.offset) {
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
@@ -1060,7 +1060,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (entity is Token) {
-      Token token = entity as Token;
+      var token = entity as Token;
       if (token.isSynthetic || token.lexeme == ';') {
         optype.includeVarNameSuggestions = true;
       }
@@ -1069,8 +1069,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
-    NodeList<TypeAnnotation> arguments = node.arguments;
-    for (TypeAnnotation type in arguments) {
+    var arguments = node.arguments;
+    for (var type in arguments) {
       if (identical(entity, type)) {
         optype.includeTypeNameSuggestions = true;
         break;
@@ -1144,9 +1144,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   bool _isEntityPrevTokenSynthetic() {
-    Object entity = this.entity;
+    var entity = this.entity;
     if (entity is AstNode) {
-      Token previous = entity.findPrevious(entity.beginToken);
+      var previous = entity.findPrevious(entity.beginToken);
       if (previous?.isSynthetic ?? false) {
         return true;
       }

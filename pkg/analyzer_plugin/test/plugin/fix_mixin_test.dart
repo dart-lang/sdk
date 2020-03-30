@@ -48,10 +48,10 @@ class FixesMixinTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    EditGetFixesResult result =
+    var result =
         await plugin.handleEditGetFixes(EditGetFixesParams(filePath1, 13));
     expect(result, isNotNull);
-    List<AnalysisErrorFixes> fixes = result.fixes;
+    var fixes = result.fixes;
     expect(fixes, hasLength(1));
     expect(fixes[0].fixes, hasLength(3));
   }
@@ -64,7 +64,7 @@ class _TestFixContributor implements FixContributor {
 
   @override
   void computeFixes(FixesRequest request, FixCollector collector) {
-    for (PrioritizedSourceChange change in changes) {
+    for (var change in changes) {
       collector.addFix(request.errorsToFix[0], change);
     }
   }
@@ -89,8 +89,8 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
 
   @override
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
-    int offset = parameters.offset;
-    AnalysisError error = AnalysisError(
+    var offset = parameters.offset;
+    var error = AnalysisError(
         MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
     var result =
         MockResolvedUnitResult(lineInfo: LineInfo([0, 20]), errors: [error]);

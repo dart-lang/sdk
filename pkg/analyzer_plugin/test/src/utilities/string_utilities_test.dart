@@ -29,10 +29,10 @@ class StringUtilitiesTest {
   }
 
   void test_isLowerCase() {
-    for (int c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
       expect(isLowerCase(c), isTrue);
     }
-    for (int c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
       expect(isLowerCase(c), isFalse);
     }
     expect(isLowerCase(' '.codeUnitAt(0)), isFalse);
@@ -40,10 +40,10 @@ class StringUtilitiesTest {
   }
 
   void test_isUpperCase() {
-    for (int c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
       expect(isUpperCase(c), isFalse);
     }
-    for (int c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
       expect(isUpperCase(c), isTrue);
     }
     expect(isUpperCase(' '.codeUnitAt(0)), isFalse);

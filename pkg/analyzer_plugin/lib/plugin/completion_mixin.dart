@@ -4,14 +4,12 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] to
 /// provide most of the implementation for handling code completion requests.
@@ -35,12 +33,10 @@ mixin CompletionMixin implements ServerPlugin {
       CompletionGetSuggestionsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    CompletionRequest request = await getCompletionRequest(parameters);
-    CompletionGenerator generator =
-        CompletionGenerator(getCompletionContributors(path));
-    GeneratorResult<CompletionGetSuggestionsResult> result =
-        await generator.generateCompletionResponse(request);
+    var path = parameters.file;
+    var request = await getCompletionRequest(parameters);
+    var generator = CompletionGenerator(getCompletionContributors(path));
+    var result = await generator.generateCompletionResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
@@ -60,7 +56,7 @@ abstract class DartCompletionMixin implements CompletionMixin {
       CompletionGetSuggestionsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolvedUnitResult result = await getResolvedUnitResult(parameters.file);
+    var result = await getResolvedUnitResult(parameters.file);
     return DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);
   }

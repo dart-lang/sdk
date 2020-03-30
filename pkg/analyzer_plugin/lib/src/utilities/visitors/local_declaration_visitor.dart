@@ -78,7 +78,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitCatchClause(CatchClause node) {
-    SimpleIdentifier param = node.exceptionParameter;
+    var param = node.exceptionParameter;
     if (param != null) {
       declaredParam(param, node.exceptionType);
     }
@@ -149,10 +149,10 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   void visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
-      DeclaredIdentifier loopVariable = forLoopParts.loopVariable;
+      var loopVariable = forLoopParts.loopVariable;
       declaredLocalVar(loopVariable.identifier, loopVariable.type);
     } else if (forLoopParts is ForPartsWithDeclarations) {
-      VariableDeclarationList varList = forLoopParts.variables;
+      var varList = forLoopParts.variables;
       if (varList != null) {
         varList.variables.forEach((VariableDeclaration varDecl) {
           declaredLocalVar(varDecl.name, varList.type);
@@ -181,7 +181,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    for (Label label in node.labels) {
+    for (var label in node.labels) {
       declaredLabel(label, false);
     }
     visitNode(node);
@@ -219,8 +219,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    for (SwitchMember member in node.members) {
-      for (Label label in member.labels) {
+    for (var member in node.members) {
+      for (var label in member.labels) {
         declaredLabel(label, true);
       }
     }
@@ -228,7 +228,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   void _visitClassOrMixinMembers(ClassOrMixinDeclaration node) {
-    for (ClassMember member in node.members) {
+    for (var member in node.members) {
       if (member is FieldDeclaration) {
         member.fields.variables.forEach((VariableDeclaration varDecl) {
           declaredField(member, varDecl);
@@ -257,30 +257,30 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         } else if (normalParam is SimpleFormalParameter) {
           type = normalParam.type;
         }
-        SimpleIdentifier name = param.identifier;
+        var name = param.identifier;
         declaredParam(name, type);
       });
     }
   }
 
   void _visitStatements(NodeList<Statement> statements) {
-    for (Statement stmt in statements) {
+    for (var stmt in statements) {
       if (stmt.offset < offset) {
         if (stmt is VariableDeclarationStatement) {
-          VariableDeclarationList varList = stmt.variables;
+          var varList = stmt.variables;
           if (varList != null) {
-            for (VariableDeclaration varDecl in varList.variables) {
+            for (var varDecl in varList.variables) {
               if (varDecl.end < offset) {
                 declaredLocalVar(varDecl.name, varList.type);
               }
             }
           }
         } else if (stmt is FunctionDeclarationStatement) {
-          FunctionDeclaration declaration = stmt.functionDeclaration;
+          var declaration = stmt.functionDeclaration;
           if (declaration != null && declaration.offset < offset) {
-            SimpleIdentifier id = declaration.name;
+            var id = declaration.name;
             if (id != null) {
-              String name = id.name;
+              var name = id.name;
               if (name != null && name.isNotEmpty) {
                 declaredFunction(declaration);
                 _visitTypeParameters(

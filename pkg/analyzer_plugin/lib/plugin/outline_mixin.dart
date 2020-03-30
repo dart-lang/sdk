@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/utilities/outline/outline.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/outline/outline.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] and
@@ -25,7 +23,7 @@ mixin DartOutlineMixin implements OutlineMixin {
   Future<OutlineRequest> getOutlineRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolvedUnitResult result = await getResolvedUnitResult(path);
+    var result = await getResolvedUnitResult(path);
     return DartOutlineRequestImpl(resourceProvider, result);
   }
 }
@@ -51,11 +49,9 @@ mixin OutlineMixin implements ServerPlugin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
-      OutlineRequest request = await getOutlineRequest(path);
-      OutlineGenerator generator =
-          OutlineGenerator(getOutlineContributors(path));
-      GeneratorResult generatorResult =
-          generator.generateOutlineNotification(request);
+      var request = await getOutlineRequest(path);
+      var generator = OutlineGenerator(getOutlineContributors(path));
+      var generatorResult = generator.generateOutlineNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

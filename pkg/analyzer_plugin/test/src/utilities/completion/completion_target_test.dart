@@ -968,7 +968,7 @@ class _Base extends AbstractContextTest {
     offset = content.indexOf('^');
     expect(offset, isNot(equals(-1)), reason: 'missing ^');
 
-    int nextOffset = content.indexOf('^', offset + 1);
+    var nextOffset = content.indexOf('^', offset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
     content = content.substring(0, offset) + content.substring(offset + 1);

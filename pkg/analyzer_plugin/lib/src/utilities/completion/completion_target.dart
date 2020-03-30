@@ -139,14 +139,14 @@ class CompletionTarget {
     // step in the process we know exactly which child node we need to proceed
     // to.
     entryPoint ??= compilationUnit;
-    AstNode containingNode = entryPoint;
+    var containingNode = entryPoint;
     outerLoop:
     while (true) {
       if (containingNode is Comment) {
         // Comments are handled specially: we descend into any CommentReference
         // child node that contains the cursor offset.
-        Comment comment = containingNode as Comment;
-        for (CommentReference commentReference in comment.references) {
+        var comment = containingNode as Comment;
+        for (var commentReference in comment.references) {
           if (commentReference.offset <= offset &&
               offset <= commentReference.end) {
             containingNode = commentReference;
@@ -158,7 +158,7 @@ class CompletionTarget {
         if (entity is Token) {
           if (_isCandidateToken(containingNode, entity, offset)) {
             // Try to replace with a comment token.
-            Token commentToken = _getContainingCommentToken(entity, offset);
+            var commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
               return CompletionTarget._(
                   compilationUnit, offset, containingNode, commentToken, true);
@@ -182,13 +182,13 @@ class CompletionTarget {
           // If the node is a candidate target, then we are done.
           if (_isCandidateNode(entity, offset)) {
             // Check to see if the offset is in a preceding comment
-            Token commentToken =
+            var commentToken =
                 _getContainingCommentToken(entity.beginToken, offset);
             if (commentToken != null) {
               // If the preceding comment is dartdoc token, then update
               // the containing node to be the dartdoc comment.
               // Otherwise completion is not required.
-              Comment docComment =
+              var docComment =
                   _getContainingDocComment(containingNode, commentToken);
               if (docComment != null) {
                 return CompletionTarget._(
@@ -272,7 +272,7 @@ class CompletionTarget {
   /// For example, `..d^` and `..^d` are considered a cascade
   /// from a completion standpoint, but `.^.d` is not.
   bool get isCascade {
-    AstNode node = containingNode;
+    var node = containingNode;
     if (node is PropertyAccess) {
       return node.isCascaded && offset > node.operator.offset + 1;
     }
@@ -302,7 +302,7 @@ class CompletionTarget {
     bool isKeywordOrIdentifier(Token token) =>
         token.type.isKeyword || token.type == TokenType.IDENTIFIER;
 
-    Token token = droppedToken ??
+    var token = droppedToken ??
         (entity is AstNode ? (entity as AstNode).beginToken : entity as Token);
     if (token != null && requestOffset < token.offset) {
       token = containingNode.findPrevious(token);
@@ -321,14 +321,13 @@ class CompletionTarget {
         }
       }
       if (token is StringToken) {
-        SimpleStringLiteral uri =
-            astFactory.simpleStringLiteral(token, token.lexeme);
-        Keyword keyword = containingNode.findPrevious(token)?.keyword;
+        var uri = astFactory.simpleStringLiteral(token, token.lexeme);
+        var keyword = containingNode.findPrevious(token)?.keyword;
         if (keyword == Keyword.IMPORT ||
             keyword == Keyword.EXPORT ||
             keyword == Keyword.PART) {
-          int start = uri.contentsOffset;
-          int end = uri.contentsEnd;
+          var start = uri.contentsOffset;
+          var end = uri.contentsEnd;
           if (start <= requestOffset && requestOffset <= end) {
             // Replacement range for import URI
             return SourceRange(start, end - start);
@@ -343,7 +342,7 @@ class CompletionTarget {
   bool isDoubleOrIntLiteral() {
     var entity = this.entity;
     if (entity is Token) {
-      TokenType previousTokenType = containingNode.findPrevious(entity)?.type;
+      var previousTokenType = containingNode.findPrevious(entity)?.type;
       return previousTokenType == TokenType.DOUBLE ||
           previousTokenType == TokenType.INT;
     }
@@ -389,8 +388,8 @@ class CompletionTarget {
       argList = argList.parent;
     }
     if (argList is ArgumentList) {
-      NodeList<Expression> args = argList.arguments;
-      for (int index = 0; index < args.length; ++index) {
+      var args = argList.arguments;
+      for (var index = 0; index < args.length; ++index) {
         if (entity == args[index]) {
           return index;
         }
@@ -400,7 +399,7 @@ class CompletionTarget {
       }
       if (entity == argList.rightParenthesis) {
         // Parser ignores trailing commas
-        Token previous = containingNode.findPrevious(argList.rightParenthesis);
+        var previous = containingNode.findPrevious(argList.rightParenthesis);
         if (previous?.lexeme == ',') {
           return args.length;
         }
@@ -483,7 +482,7 @@ class CompletionTarget {
   /// Determine if the given token is part of the given node's dart doc.
   static Comment _getContainingDocComment(AstNode node, Token token) {
     if (node is AnnotatedNode) {
-      Comment docComment = node.documentationComment;
+      var docComment = node.documentationComment;
       if (docComment != null && docComment.tokens.contains(token)) {
         return docComment;
       }
@@ -520,7 +519,7 @@ class CompletionTarget {
   static bool _isCandidateNode(AstNode node, int offset) {
     // If the node's first token is a keyword or identifier, then the node is a
     // candidate entity if its first token is.
-    Token beginToken = node.beginToken;
+    var beginToken = node.beginToken;
     if (beginToken.type.isKeyword || beginToken.type == TokenType.IDENTIFIER) {
       return _isCandidateToken(node, beginToken, offset);
     }
@@ -553,7 +552,7 @@ class CompletionTarget {
     }
     // If the current token is synthetic, then check the previous token
     // because it may have been dropped from the parse tree
-    Token previous = node.findPrevious(token);
+    var previous = node.findPrevious(token);
     if (previous == null) {
       // support dangling expression completion, where previous may be null.
       return false;

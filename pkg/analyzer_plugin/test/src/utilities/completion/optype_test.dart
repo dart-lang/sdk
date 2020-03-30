@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -2139,7 +2138,7 @@ class OpTypeTestCommon extends AbstractContextTest {
   void addTestSource(String content) {
     completionOffset = content.indexOf('^');
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', completionOffset + 1);
+    var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
@@ -2159,9 +2158,9 @@ class OpTypeTestCommon extends AbstractContextTest {
       bool voidReturn = false,
       CompletionSuggestionKind kind =
           CompletionSuggestionKind.INVOCATION}) async {
-    ResolvedUnitResult resolvedUnit = await driver.getResult(testPath);
+    var resolvedUnit = await driver.getResult(testPath);
 
-    CompletionTarget completionTarget =
+    var completionTarget =
         CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
     visitor = OpType.forCompletion(completionTarget, completionOffset);
 

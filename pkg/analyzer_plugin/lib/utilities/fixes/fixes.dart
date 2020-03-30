@@ -66,9 +66,9 @@ class FixGenerator {
   /// also create a non-fatal 'plugin.error' notification.
   GeneratorResult<EditGetFixesResult> generateFixesResponse(
       FixesRequest request) {
-    List<Notification> notifications = <Notification>[];
-    FixCollectorImpl collector = FixCollectorImpl();
-    for (FixContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = FixCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeFixes(request, collector);
       } catch (exception, stackTrace) {
@@ -77,7 +77,7 @@ class FixGenerator {
             .toNotification());
       }
     }
-    EditGetFixesResult result = EditGetFixesResult(collector.fixes);
+    var result = EditGetFixesResult(collector.fixes);
     return GeneratorResult(result, notifications);
   }
 }

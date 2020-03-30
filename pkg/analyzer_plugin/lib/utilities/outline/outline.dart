@@ -58,9 +58,9 @@ class OutlineGenerator {
   /// Create an 'analysis.outline' notification. If any of the contributors
   /// throws an exception, also create a non-fatal 'plugin.error' notification.
   GeneratorResult generateOutlineNotification(OutlineRequest request) {
-    List<Notification> notifications = <Notification>[];
-    OutlineCollectorImpl collector = OutlineCollectorImpl();
-    for (OutlineContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = OutlineCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeOutline(request, collector);
       } catch (exception, stackTrace) {

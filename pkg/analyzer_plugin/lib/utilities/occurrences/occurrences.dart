@@ -52,9 +52,9 @@ class OccurrencesGenerator {
   /// Create an 'analysis.occurrences' notification. If any of the contributors
   /// throws an exception, also create a non-fatal 'plugin.error' notification.
   GeneratorResult generateOccurrencesNotification(OccurrencesRequest request) {
-    List<Notification> notifications = <Notification>[];
-    OccurrencesCollectorImpl collector = OccurrencesCollectorImpl();
-    for (OccurrencesContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = OccurrencesCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeOccurrences(request, collector);
       } catch (exception, stackTrace) {

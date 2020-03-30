@@ -27,13 +27,13 @@ class AnalyzerConverter {
   /// is provided, then it will override the severity defined by the error.
   plugin.AnalysisError convertAnalysisError(analyzer.AnalysisError error,
       {analyzer.LineInfo lineInfo, analyzer.ErrorSeverity severity}) {
-    analyzer.ErrorCode errorCode = error.errorCode;
+    var errorCode = error.errorCode;
     severity ??= errorCode.errorSeverity;
-    int offset = error.offset;
-    int startLine = -1;
-    int startColumn = -1;
+    var offset = error.offset;
+    var startLine = -1;
+    var startColumn = -1;
     if (lineInfo != null) {
-      analyzer.CharacterLocation lineLocation =
+      var lineLocation =
           lineInfo.getLocation(offset) as analyzer.CharacterLocation;
       if (lineLocation != null) {
         startLine = lineLocation.lineNumber;
@@ -68,12 +68,11 @@ class AnalyzerConverter {
       List<analyzer.AnalysisError> errors,
       {analyzer.LineInfo lineInfo,
       analyzer.AnalysisOptions options}) {
-    List<plugin.AnalysisError> serverErrors = <plugin.AnalysisError>[];
-    for (analyzer.AnalysisError error in errors) {
-      analyzer.ErrorProcessor processor =
-          analyzer.ErrorProcessor.getProcessor(options, error);
+    var serverErrors = <plugin.AnalysisError>[];
+    for (var error in errors) {
+      var processor = analyzer.ErrorProcessor.getProcessor(options, error);
       if (processor != null) {
-        analyzer.ErrorSeverity severity = processor.severity;
+        var severity = processor.severity;
         // Errors with null severity are filtered out.
         if (severity != null) {
           // Specified severities override.
@@ -93,13 +92,13 @@ class AnalyzerConverter {
   plugin.DiagnosticMessage convertDiagnosticMessage(
       analyzer.DiagnosticMessage message,
       {analyzer.LineInfo lineInfo}) {
-    String file = message.filePath;
-    int offset = message.offset;
-    int length = message.length;
-    int startLine = -1;
-    int startColumn = -1;
+    var file = message.filePath;
+    var offset = message.offset;
+    var length = message.length;
+    var startLine = -1;
+    var startColumn = -1;
     if (lineInfo != null) {
-      analyzer.CharacterLocation lineLocation =
+      var lineLocation =
           lineInfo.getLocation(offset) as analyzer.CharacterLocation;
       if (lineLocation != null) {
         startLine = lineLocation.lineNumber;
@@ -113,7 +112,7 @@ class AnalyzerConverter {
   /// Convert the given [element] from the 'analyzer' package to an element
   /// defined by the plugin API.
   plugin.Element convertElement(analyzer.Element element) {
-    plugin.ElementKind kind = _convertElementToElementKind(element);
+    var kind = _convertElementToElementKind(element);
     return plugin.Element(
         kind,
         element.displayName,
@@ -225,11 +224,11 @@ class AnalyzerConverter {
     } else {
       return null;
     }
-    StringBuffer buffer = StringBuffer();
-    String closeOptionalString = '';
+    var buffer = StringBuffer();
+    var closeOptionalString = '';
     buffer.write('(');
-    for (int i = 0; i < parameters.length; i++) {
-      analyzer.ParameterElement parameter = parameters[i];
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters[i];
       if (i > 0) {
         buffer.write(', ');
       }
@@ -258,7 +257,7 @@ class AnalyzerConverter {
       }
       return element.returnType?.getDisplayString(withNullability: false);
     } else if (element is analyzer.VariableElement) {
-      analyzer.DartType type = element.type;
+      var type = element.type;
       return type != null
           ? type.getDisplayString(withNullability: false)
           : 'dynamic';
@@ -273,8 +272,7 @@ class AnalyzerConverter {
   /// [element], or `null` if the element does not have type parameters.
   String _getTypeParametersString(analyzer.Element element) {
     if (element is analyzer.TypeParameterizedElement) {
-      List<analyzer.TypeParameterElement> typeParameters =
-          element.typeParameters;
+      var typeParameters = element.typeParameters;
       if (typeParameters == null || typeParameters.isEmpty) {
         return null;
       }
@@ -346,12 +344,12 @@ class AnalyzerConverter {
   /// [range].
   plugin.Location _locationForArgs(
       analyzer.CompilationUnitElement unitElement, analyzer.SourceRange range) {
-    int startLine = 0;
-    int startColumn = 0;
+    var startLine = 0;
+    var startColumn = 0;
     try {
-      analyzer.LineInfo lineInfo = unitElement.lineInfo;
+      var lineInfo = unitElement.lineInfo;
       if (lineInfo != null) {
-        analyzer.CharacterLocation offsetLocation =
+        var offsetLocation =
             lineInfo.getLocation(range.offset) as analyzer.CharacterLocation;
         startLine = offsetLocation.lineNumber;
         startColumn = offsetLocation.columnNumber;
@@ -368,15 +366,15 @@ class AnalyzerConverter {
     if (element == null || element.source == null) {
       return null;
     }
-    int offset = element.nameOffset;
-    int length = element.nameLength;
+    var offset = element.nameOffset;
+    var length = element.nameLength;
     if (element is analyzer.CompilationUnitElement ||
         (element is analyzer.LibraryElement && offset < 0)) {
       offset = 0;
       length = 0;
     }
-    analyzer.CompilationUnitElement unitElement = _getUnitElement(element);
-    analyzer.SourceRange range = analyzer.SourceRange(offset, length);
+    var unitElement = _getUnitElement(element);
+    var range = analyzer.SourceRange(offset, length);
     return _locationForArgs(unitElement, range);
   }
 }

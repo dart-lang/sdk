@@ -140,7 +140,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
     });
-    Completer serverConnected = Completer();
+    var serverConnected = Completer();
     // TODO(brianwilkerson) Implement this.
 //    onServerConnected.listen((_) {
 //      outOfTestExpect(serverConnected.isCompleted, isFalse);
@@ -184,7 +184,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// then also enable [SERVER_STATUS] notifications so that [analysisFinished]
   /// can be used.
   Future standardAnalysisSetup({bool subscribeStatus = true}) {
-    List<Future> futures = <Future>[];
+    var futures = <Future>[];
     // TODO(brianwilkerson) Implement this.
 //    if (subscribeStatus) {
 //      futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
@@ -218,7 +218,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// Return a normalized path to the file (with symbolic links resolved).
   String writeFile(String pathname, String contents) {
     Directory(dirname(pathname)).createSync(recursive: true);
-    File file = File(pathname);
+    var file = File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
   }
@@ -400,7 +400,7 @@ class Server {
       return;
     }
     _debuggingStdio = true;
-    for (String line in _recordedStdio) {
+    for (var line in _recordedStdio) {
       print(line);
     }
   }
@@ -409,7 +409,7 @@ class Server {
   /// upward to the 'test' dir, and then going up one more directory.
   String findRoot(String pathname) {
     while (!['benchmark', 'test'].contains(basename(pathname))) {
-      String parent = dirname(pathname);
+      var parent = dirname(pathname);
       if (parent.length >= pathname.length) {
         throw Exception("Can't find root directory");
       }
@@ -440,7 +440,7 @@ class Server {
         .transform(LineSplitter())
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
-      String trimmedLine = line.trim();
+      var trimmedLine = line.trim();
       if (trimmedLine.startsWith('Observatory listening on ')) {
         return;
       }
@@ -453,11 +453,11 @@ class Server {
         return;
       }
       outOfTestExpect(message, isMap);
-      Map messageAsMap = message as Map;
+      var messageAsMap = message as Map;
       if (messageAsMap.containsKey('id')) {
         outOfTestExpect(messageAsMap['id'], isString);
-        String id = message['id'] as String;
-        Completer completer = _pendingCommands[id];
+        var id = message['id'] as String;
+        var completer = _pendingCommands[id];
         if (completer == null) {
           fail('Unexpected response from server: id=$id');
         } else {
@@ -489,7 +489,7 @@ class Server {
         .transform((Utf8Codec()).decoder)
         .transform(LineSplitter())
         .listen((String line) {
-      String trimmedLine = line.trim();
+      var trimmedLine = line.trim();
       _recordStdio('ERR:  $trimmedLine');
       _badDataFromServer('Message received on stderr', silent: true);
     });
@@ -502,17 +502,14 @@ class Server {
   /// field from the response. If the server acknowledges the command with an
   /// error response, the future will be completed with an error.
   Future send(String method, Map<String, dynamic> params) {
-    String id = '${_nextId++}';
-    Map<String, dynamic> command = <String, dynamic>{
-      'id': id,
-      'method': method
-    };
+    var id = '${_nextId++}';
+    var command = <String, dynamic>{'id': id, 'method': method};
     if (params != null) {
       command['params'] = params;
     }
-    Completer completer = Completer();
+    var completer = Completer();
     _pendingCommands[id] = completer;
-    String line = json.encode(command);
+    var line = json.encode(command);
     _recordStdio('SEND: $line');
     _process.stdin.add(utf8.encoder.convert('$line\n'));
     return completer.future;
@@ -534,11 +531,11 @@ class Server {
       throw Exception('Process already started');
     }
     _time.start();
-    String dartBinary = Platform.executable;
-    String rootDir =
+    var dartBinary = Platform.executable;
+    var rootDir =
         findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-    String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
-    List<String> arguments = [];
+    var serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    var arguments = <String>[];
     //
     // Add VM arguments.
     //
@@ -614,7 +611,7 @@ class Server {
   /// Record a message that was exchanged with the server, and print it out if
   /// [debugStdio] has been called.
   void _recordStdio(String line) {
-    double elapsedTime = currentElapseTime;
+    var elapsedTime = currentElapseTime;
     line = '$elapsedTime: $line';
     if (_debuggingStdio) {
       print(line);
@@ -721,7 +718,7 @@ class _OneOf extends Matcher {
 
   @override
   Description describe(Description description) {
-    for (int i = 0; i < choiceMatchers.length; i++) {
+    for (var i = 0; i < choiceMatchers.length; i++) {
       if (i != 0) {
         if (choiceMatchers.length == 2) {
           description = description.add(' or ');
@@ -739,8 +736,8 @@ class _OneOf extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    for (Matcher choiceMatcher in choiceMatchers) {
-      Map subState = {};
+    for (var choiceMatcher in choiceMatchers) {
+      var subState = {};
       if (choiceMatcher.matches(item, subState)) {
         return true;
       }
@@ -763,14 +760,14 @@ abstract class _RecursiveMatcher extends Matcher {
       Matcher matcher,
       List<MismatchDescriber> mismatches,
       Description Function(Description description) describeSubstructure) {
-    Map subState = {};
+    var subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {
         mismatchDescription = mismatchDescription.add('contains malformed ');
         mismatchDescription = describeSubstructure(mismatchDescription);
         mismatchDescription =
             mismatchDescription.add(' (should be ').addDescriptionOf(matcher);
-        String subDescription = matcher
+        var subDescription = matcher
             .describeMismatch(item, StringDescription(), subState, false)
             .toString();
         if (subDescription.isNotEmpty) {
@@ -785,11 +782,10 @@ abstract class _RecursiveMatcher extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    List<MismatchDescriber> mismatches =
-        matchState['mismatches'] as List<MismatchDescriber>;
+    var mismatches = matchState['mismatches'] as List<MismatchDescriber>;
     if (mismatches != null) {
-      for (int i = 0; i < mismatches.length; i++) {
-        MismatchDescriber mismatch = mismatches[i];
+      for (var i = 0; i < mismatches.length; i++) {
+        var mismatch = mismatches[i];
         if (i > 0) {
           if (mismatches.length == 2) {
             mismatchDescription = mismatchDescription.add(' and ');
@@ -810,7 +806,7 @@ abstract class _RecursiveMatcher extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    List<MismatchDescriber> mismatches = <MismatchDescriber>[];
+    var mismatches = <MismatchDescriber>[];
     populateMismatches(item, mismatches);
     if (mismatches.isEmpty) {
       return true;

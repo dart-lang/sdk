@@ -36,9 +36,9 @@ class FixCollectorImpl implements FixCollector {
 
   /// Return the fixes that have been collected up to this point.
   List<AnalysisErrorFixes> get fixes {
-    List<AnalysisErrorFixes> fixes = <AnalysisErrorFixes>[];
-    AnalyzerConverter converter = AnalyzerConverter();
-    for (AnalysisError error in fixMap.keys) {
+    var fixes = <AnalysisErrorFixes>[];
+    var converter = AnalyzerConverter();
+    for (var error in fixMap.keys) {
       fixes.add(AnalysisErrorFixes(converter.convertAnalysisError(error),
           fixes: fixMap[error]));
     }
