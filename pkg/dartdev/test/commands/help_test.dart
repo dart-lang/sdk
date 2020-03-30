@@ -20,15 +20,14 @@ void help() {
   /// Commands not tested by the following loop.
   List<String> _commandsNotTested = <String>[
     'help', // `dart help help` is redundant
-    'test' // TODO(jwren) not yet implemented, dartbug.com/41041
   ];
   DartdevRunner([]).commands.forEach((String commandKey, Command command) {
     if (!_commandsNotTested.contains(commandKey)) {
       test('(help $commandKey == $commandKey --help)', () {
         p = project();
         var result = p.runSync('help', [commandKey]);
-
         var verbHelpResult = p.runSync(commandKey, ['--help']);
+
         expect(result.stdout, contains(verbHelpResult.stdout));
         expect(result.stderr, contains(verbHelpResult.stderr));
       });
