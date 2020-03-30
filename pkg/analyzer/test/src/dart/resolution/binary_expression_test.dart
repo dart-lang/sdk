@@ -146,7 +146,6 @@ f<T extends dynamic>(T a) {
     await assertNoErrorsInCode(r'''
 f<T extends num>(T a) {
   a + 0;
-  a + 1.2;
 }
 ''');
 
@@ -156,16 +155,7 @@ f<T extends num>(T a) {
         numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
-      type: 'T',
-    );
-
-    assertBinaryExpression(
-      findNode.binary('a + 1.2'),
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'double',
+      type: 'num',
     );
   }
 

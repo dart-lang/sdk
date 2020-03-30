@@ -169,25 +169,19 @@ class PostfixExpressionResolver {
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
     } else {
-      DartType resultType;
-      if (receiverType.isDartCoreDouble ||
-          receiverType.isDartCoreInt ||
-          receiverType is TypeParameterType &&
-              receiverType.bound.isDartCoreNum) {
-        // int + int = int
-        // double + int = double
-        // (T extends num) + int = T
-        //   T can be only `int` or `double`, so see above.
-        resultType = receiverType;
+      DartType operatorReturnType;
+      if (receiverType.isDartCoreInt) {
+        // No need to check for `intVar++`, the result is `int`.
+        operatorReturnType = receiverType;
       } else {
         var operatorElement = node.staticElement;
-        resultType = _computeStaticReturnType(operatorElement);
-        _checkForInvalidAssignmentIncDec(node, operand, resultType);
+        operatorReturnType = _computeStaticReturnType(operatorElement);
+        _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
       }
       if (operand is SimpleIdentifier) {
         var element = operand.staticElement;
         if (element is PromotableElement) {
-          _flowAnalysis?.flow?.write(element, resultType);
+          _flowAnalysis?.flow?.write(element, operatorReturnType);
         }
       }
     }

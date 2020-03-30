@@ -125,7 +125,8 @@ class BinaryExpressionResolver {
     if (expression is NullLiteral) {
       return _typeProvider.nullType;
     }
-    return read ? getReadType(expression) : expression.staticType;
+    DartType type = read ? getReadType(expression) : expression.staticType;
+    return _resolveTypeParameter(type);
   }
 
   void _resolve1(BinaryExpressionImpl node) {
@@ -174,7 +175,6 @@ class BinaryExpressionResolver {
     }
 
     var leftType = _getStaticType(leftOperand);
-    leftType = _resolveTypeParameter(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(

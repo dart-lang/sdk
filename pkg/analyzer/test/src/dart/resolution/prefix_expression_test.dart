@@ -155,23 +155,6 @@ class M1 {
     );
   }
 
-  test_plusPlus_typeParameter_bound_num() async {
-    await assertNoErrorsInCode(r'''
-f<T extends num>(T x) {
-  ++x;
-}
-''');
-
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      element: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'T',
-    );
-  }
-
   test_tilde_int_localVariable() async {
     await assertNoErrorsInCode(r'''
 f(int x) {
