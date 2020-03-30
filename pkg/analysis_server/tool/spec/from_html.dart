@@ -15,8 +15,7 @@ import 'api.dart';
 /// Read the API description from the file 'plugin_spec.html'.  [pkgPath] is the
 /// path to the current package.
 Api readApi(String pkgPath) {
-  ApiReader reader =
-      ApiReader(join(pkgPath, 'tool', 'spec', 'spec_input.html'));
+  var reader = ApiReader(join(pkgPath, 'tool', 'spec', 'spec_input.html'));
   return reader.readApi();
 }
 
@@ -74,8 +73,8 @@ class ApiReader {
   /// Child elements of <api> can occur in any order.
   Api apiFromHtml(dom.Element html) {
     Api api;
-    List<String> versions = <String>[];
-    List<Domain> domains = <Domain>[];
+    var versions = <String>[];
+    var domains = <Domain>[];
     Types types;
     Refactorings refactorings;
     recurse(html, 'api', {
@@ -108,7 +107,7 @@ class ApiReader {
   void checkAttributes(
       dom.Element element, List<String> requiredAttributes, String context,
       {List<String> optionalAttributes = const []}) {
-    Set<String> attributesFound = <String>{};
+    var attributesFound = <String>{};
     element.attributes.forEach((name, value) {
       if (!requiredAttributes.contains(name) &&
           !optionalAttributes.contains(name)) {
@@ -117,7 +116,7 @@ class ApiReader {
       }
       attributesFound.add(name);
     });
-    for (String expectedAttribute in requiredAttributes) {
+    for (var expectedAttribute in requiredAttributes) {
       if (!attributesFound.contains(expectedAttribute)) {
         throw Exception(
             '$context: ${element.localName} must contain attribute $expectedAttribute');
@@ -144,13 +143,13 @@ class ApiReader {
   /// Child elements can occur in any order.
   Domain domainFromHtml(dom.Element html) {
     checkName(html, 'domain');
-    String name = html.attributes['name'];
-    String context = name ?? 'domain';
-    bool experimental = html.attributes['experimental'] == 'true';
+    var name = html.attributes['name'];
+    var context = name ?? 'domain';
+    var experimental = html.attributes['experimental'] == 'true';
     checkAttributes(html, ['name'], context,
         optionalAttributes: ['experimental']);
-    List<Request> requests = <Request>[];
-    List<Notification> notifications = <Notification>[];
+    var requests = <Request>[];
+    var notifications = <Notification>[];
     recurse(html, context, {
       'request': (dom.Element child) {
         requests.add(requestFromHtml(child, context));
@@ -164,7 +163,7 @@ class ApiReader {
   }
 
   dom.Element getAncestor(dom.Element html, String name, String context) {
-    dom.Element ancestor = html.parent;
+    var ancestor = html.parent;
     while (ancestor != null) {
       if (ancestor.localName == name) {
         return ancestor;
@@ -188,13 +187,13 @@ class ApiReader {
   ///
   /// Child elements can occur in any order.
   Notification notificationFromHtml(dom.Element html, String context) {
-    String domainName = getAncestor(html, 'domain', context).attributes['name'];
+    var domainName = getAncestor(html, 'domain', context).attributes['name'];
     checkName(html, 'notification', context);
-    String event = html.attributes['event'];
+    var event = html.attributes['event'];
     context = '$context.${event ?? 'event'}';
     checkAttributes(html, ['event'], context,
         optionalAttributes: ['experimental']);
-    bool experimental = html.attributes['experimental'] == 'true';
+    var experimental = html.attributes['experimental'] == 'true';
     TypeObject params;
     recurse(html, context, {
       'params': (dom.Element child) {
@@ -208,7 +207,7 @@ class ApiReader {
   /// Create a single of [TypeDecl] corresponding to the type defined inside the
   /// given HTML element.
   TypeDecl processContentsAsType(dom.Element html, String context) {
-    List<TypeDecl> types = processContentsAsTypes(html, context);
+    var types = processContentsAsTypes(html, context);
     if (types.length != 1) {
       throw Exception('$context: Exactly one type must be specified');
     }
@@ -243,7 +242,7 @@ class ApiReader {
   ///     TYPE <!-- zero or more -->
   ///   </union>
   List<TypeDecl> processContentsAsTypes(dom.Element html, String context) {
-    List<TypeDecl> types = <TypeDecl>[];
+    var types = <TypeDecl>[];
     recurse(html, context, {
       'object': (dom.Element child) {
         types.add(typeObjectFromHtml(child, context));
@@ -287,7 +286,7 @@ class ApiReader {
       },
       'union': (dom.Element child) {
         checkAttributes(child, ['field'], context);
-        String field = child.attributes['field'];
+        var field = child.attributes['field'];
         types.add(
             TypeUnion(processContentsAsTypes(child, context), field, child));
       }
@@ -297,21 +296,21 @@ class ApiReader {
 
   /// Read the API description from file with the given [filePath].
   Api readApi() {
-    String htmlContents = File(filePath).readAsStringSync();
-    dom.Document document = parser.parse(htmlContents);
-    dom.Element htmlElement = document.children
+    var htmlContents = File(filePath).readAsStringSync();
+    var document = parser.parse(htmlContents);
+    var htmlElement = document.children
         .singleWhere((element) => element.localName.toLowerCase() == 'html');
     return apiFromHtml(htmlElement);
   }
 
   void recurse(dom.Element parent, String context,
       Map<String, ElementProcessor> elementProcessors) {
-    for (String key in elementProcessors.keys) {
+    for (var key in elementProcessors.keys) {
       if (!specialElements.contains(key)) {
         throw Exception('$context: $key is not a special element');
       }
     }
-    for (dom.Node node in parent.nodes) {
+    for (var node in parent.nodes) {
       if (node is dom.Element) {
         if (elementProcessors.containsKey(node.localName)) {
           elementProcessors[node.localName](node);
@@ -337,8 +336,8 @@ class ApiReader {
   /// Child elements can occur in any order.
   Refactoring refactoringFromHtml(dom.Element html) {
     checkName(html, 'refactoring');
-    String kind = html.attributes['kind'];
-    String context = kind ?? 'refactoring';
+    var kind = html.attributes['kind'];
+    var context = kind ?? 'refactoring';
     checkAttributes(html, ['kind'], context);
     TypeObject feedback;
     TypeObject options;
@@ -360,9 +359,9 @@ class ApiReader {
   /// </refactorings>
   Refactorings refactoringsFromHtml(dom.Element html) {
     checkName(html, 'refactorings');
-    String context = 'refactorings';
+    var context = 'refactorings';
     checkAttributes(html, [], context);
-    List<Refactoring> refactorings = <Refactoring>[];
+    var refactorings = <Refactoring>[];
     recurse(html, context, {
       'refactoring': (dom.Element child) {
         refactorings.add(refactoringFromHtml(child));
@@ -385,14 +384,14 @@ class ApiReader {
   ///
   /// Child elements can occur in any order.
   Request requestFromHtml(dom.Element html, String context) {
-    String domainName = getAncestor(html, 'domain', context).attributes['name'];
+    var domainName = getAncestor(html, 'domain', context).attributes['name'];
     checkName(html, 'request', context);
-    String method = html.attributes['method'];
+    var method = html.attributes['method'];
     context = '$context.${method ?? 'method'}';
     checkAttributes(html, ['method'], context,
         optionalAttributes: ['experimental', 'deprecated']);
-    bool experimental = html.attributes['experimental'] == 'true';
-    bool deprecated = html.attributes['deprecated'] == 'true';
+    var experimental = html.attributes['experimental'] == 'true';
+    var deprecated = html.attributes['deprecated'] == 'true';
     TypeObject params;
     TypeObject result;
     recurse(html, context, {
@@ -418,13 +417,13 @@ class ApiReader {
   /// Child elements can occur in any order.
   TypeDefinition typeDefinitionFromHtml(dom.Element html) {
     checkName(html, 'type');
-    String name = html.attributes['name'];
-    String context = name ?? 'type';
+    var name = html.attributes['name'];
+    var context = name ?? 'type';
     checkAttributes(html, ['name'], context,
         optionalAttributes: ['experimental', 'deprecated']);
-    TypeDecl type = processContentsAsType(html, context);
-    bool experimental = html.attributes['experimental'] == 'true';
-    bool deprecated = html.attributes['deprecated'] == 'true';
+    var type = processContentsAsType(html, context);
+    var experimental = html.attributes['experimental'] == 'true';
+    var deprecated = html.attributes['deprecated'] == 'true';
     return TypeDefinition(name, type, html,
         experimental: experimental, deprecated: deprecated);
   }
@@ -433,7 +432,7 @@ class ApiReader {
   TypeEnum typeEnumFromHtml(dom.Element html, String context) {
     checkName(html, 'enum', context);
     checkAttributes(html, [], context);
-    List<TypeEnumValue> values = <TypeEnumValue>[];
+    var values = <TypeEnumValue>[];
     recurse(html, context, {
       'value': (dom.Element child) {
         values.add(typeEnumValueFromHtml(child, context));
@@ -454,11 +453,11 @@ class ApiReader {
   TypeEnumValue typeEnumValueFromHtml(dom.Element html, String context) {
     checkName(html, 'value', context);
     checkAttributes(html, [], context, optionalAttributes: ['deprecated']);
-    bool deprecated = html.attributes['deprecated'] == 'true';
-    List<String> values = <String>[];
+    var deprecated = html.attributes['deprecated'] == 'true';
+    var values = <String>[];
     recurse(html, context, {
       'code': (dom.Element child) {
-        String text = innerText(child).trim();
+        var text = innerText(child).trim();
         values.add(text);
       }
     });
@@ -483,7 +482,7 @@ class ApiReader {
   /// Child elements can occur in any order.
   TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
     checkName(html, 'field', context);
-    String name = html.attributes['name'];
+    var name = html.attributes['name'];
     context = '$context.${name ?? 'field'}';
     checkAttributes(html, ['name'], context,
         optionalAttributes: [
@@ -492,10 +491,10 @@ class ApiReader {
           'deprecated',
           'experimental'
         ]);
-    bool deprecated = html.attributes['deprecated'] == 'true';
-    bool experimental = html.attributes['experimental'] == 'true';
-    bool optional = false;
-    String optionalString = html.attributes['optional'];
+    var deprecated = html.attributes['deprecated'] == 'true';
+    var experimental = html.attributes['experimental'] == 'true';
+    var optional = false;
+    var optionalString = html.attributes['optional'];
     if (optionalString != null) {
       switch (optionalString) {
         case 'true':
@@ -509,8 +508,8 @@ class ApiReader {
               '$context: field contains invalid "optional" attribute: "$optionalString"');
       }
     }
-    String value = html.attributes['value'];
-    TypeDecl type = processContentsAsType(html, context);
+    var value = html.attributes['value'];
+    var type = processContentsAsType(html, context);
     return TypeObjectField(name, type, html,
         optional: optional,
         value: value,
@@ -521,13 +520,13 @@ class ApiReader {
   /// Create a [TypeObject] from an HTML description.
   TypeObject typeObjectFromHtml(dom.Element html, String context) {
     checkAttributes(html, [], context, optionalAttributes: ['experimental']);
-    List<TypeObjectField> fields = <TypeObjectField>[];
+    var fields = <TypeObjectField>[];
     recurse(html, context, {
       'field': (dom.Element child) {
         fields.add(typeObjectFieldFromHtml(child, context));
       }
     });
-    bool experimental = html.attributes['experimental'] == 'true';
+    var experimental = html.attributes['experimental'] == 'true';
     return TypeObject(fields, html, experimental: experimental);
   }
 
@@ -538,36 +537,36 @@ class ApiReader {
   /// </types>
   Types typesFromHtml(dom.Element html) {
     checkName(html, 'types');
-    String context = 'types';
+    var context = 'types';
     checkAttributes(html, [], context);
-    List<String> importUris = <String>[];
-    Map<String, TypeDefinition> typeMap = <String, TypeDefinition>{};
-    List<dom.Element> childElements = <dom.Element>[];
+    var importUris = <String>[];
+    var typeMap = <String, TypeDefinition>{};
+    var childElements = <dom.Element>[];
     recurse(html, context, {
       'include': (dom.Element child) {
-        String importUri = child.attributes['import'];
+        var importUri = child.attributes['import'];
         if (importUri != null) {
           importUris.add(importUri);
         }
-        String relativePath = child.attributes['path'];
-        String path = normalize(join(dirname(filePath), relativePath));
-        ApiReader reader = ApiReader(path);
-        Api api = reader.readApi();
-        for (TypeDefinition typeDefinition in api.types) {
+        var relativePath = child.attributes['path'];
+        var path = normalize(join(dirname(filePath), relativePath));
+        var reader = ApiReader(path);
+        var api = reader.readApi();
+        for (var typeDefinition in api.types) {
           typeDefinition.isExternal = true;
           childElements.add(typeDefinition.html);
           typeMap[typeDefinition.name] = typeDefinition;
         }
       },
       'type': (dom.Element child) {
-        TypeDefinition typeDefinition = typeDefinitionFromHtml(child);
+        var typeDefinition = typeDefinitionFromHtml(child);
         typeMap[typeDefinition.name] = typeDefinition;
       }
     });
-    for (dom.Element element in childElements) {
+    for (var element in childElements) {
       html.append(element);
     }
-    Types types = Types(typeMap, html);
+    var types = Types(typeMap, html);
     types.importUris.addAll(importUris);
     return types;
   }

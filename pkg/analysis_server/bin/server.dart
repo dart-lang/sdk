@@ -6,6 +6,6 @@ import 'package:analysis_server/starter.dart';
 
 /// Create and run an analysis server.
 void main(List<String> args) async {
-  ServerStarter starter = ServerStarter();
+  var starter = ServerStarter();
   starter.start(args);
 }

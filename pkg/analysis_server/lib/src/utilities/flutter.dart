@@ -107,31 +107,31 @@ class Flutter {
       Function _addRemoveEdit,
       Function _addReplaceEdit,
       Function rangeNode) {
-    int childLoc = namedExp.offset + 'child'.length;
+    var childLoc = namedExp.offset + 'child'.length;
     _addInsertEdit(childLoc, 'ren');
-    int listLoc = childArg.offset;
+    var listLoc = childArg.offset;
     String childArgSrc = getNodeText(childArg);
     if (!childArgSrc.contains(eol)) {
       _addInsertEdit(listLoc, '[');
       _addInsertEdit(listLoc + childArg.length, ']');
     } else {
-      int newlineLoc = childArgSrc.lastIndexOf(eol);
+      var newlineLoc = childArgSrc.lastIndexOf(eol);
       if (newlineLoc == childArgSrc.length) {
         newlineLoc -= 1;
       }
       String indentOld = getLinePrefix(childArg.offset + 1 + newlineLoc);
-      String indentNew = '$indentOld${getIndent(1)}';
+      var indentNew = '$indentOld${getIndent(1)}';
       // The separator includes 'child:' but that has no newlines.
       String separator =
           getText(namedExp.offset, childArg.offset - namedExp.offset);
-      String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
+      var prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
         _addInsertEdit(namedExp.offset + 'child:'.length, ' [');
         _addRemoveEdit(SourceRange(childArg.offset - 2, 2));
       } else {
         _addInsertEdit(listLoc, '[');
       }
-      String newChildArgSrc = childArgSrc.replaceAll(
+      var newChildArgSrc = childArgSrc.replaceAll(
           RegExp('^$indentOld', multiLine: true), '$indentNew');
       newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       _addReplaceEdit(rangeNode(childArg), newChildArgSrc);
@@ -148,31 +148,31 @@ class Flutter {
       Function getIndent,
       Function getText,
       Function rangeNode) {
-    int childLoc = namedExp.offset + 'child'.length;
+    var childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');
-    int listLoc = childArg.offset;
+    var listLoc = childArg.offset;
     String childArgSrc = getNodeText(childArg);
     if (!childArgSrc.contains(eol)) {
       builder.addSimpleInsertion(listLoc, '[');
       builder.addSimpleInsertion(listLoc + childArg.length, ']');
     } else {
-      int newlineLoc = childArgSrc.lastIndexOf(eol);
+      var newlineLoc = childArgSrc.lastIndexOf(eol);
       if (newlineLoc == childArgSrc.length) {
         newlineLoc -= 1;
       }
       String indentOld = getLinePrefix(childArg.offset + 1 + newlineLoc);
-      String indentNew = '$indentOld${getIndent(1)}';
+      var indentNew = '$indentOld${getIndent(1)}';
       // The separator includes 'child:' but that has no newlines.
       String separator =
           getText(namedExp.offset, childArg.offset - namedExp.offset);
-      String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
+      var prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
         builder.addSimpleInsertion(namedExp.offset + 'child:'.length, ' [');
         builder.addDeletion(SourceRange(childArg.offset - 2, 2));
       } else {
         builder.addSimpleInsertion(listLoc, '[');
       }
-      String newChildArgSrc = childArgSrc.replaceAll(
+      var newChildArgSrc = childArgSrc.replaceAll(
           RegExp('^$indentOld', multiLine: true), '$indentNew');
       newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(rangeNode(childArg), newChildArgSrc);
@@ -195,7 +195,7 @@ class Flutter {
   /// 'child' argument of the given [newExpr], or null if none.
   InstanceCreationExpression findChildWidget(
       InstanceCreationExpression newExpr) {
-    NamedExpression child = findChildArgument(newExpr);
+    var child = findChildArgument(newExpr);
     return getChildWidget(child);
   }
 
@@ -238,7 +238,7 @@ class Flutter {
   /// Return the expression that is a Flutter Widget that is the value of the
   /// given [child], or null if none.
   Expression getChildWidget(NamedExpression child) {
-    Expression expression = child?.expression;
+    var expression = child?.expression;
     if (isWidgetExpression(expression)) {
       return expression;
     }
@@ -247,15 +247,15 @@ class Flutter {
 
   /// Return the presentation for the given Flutter `Widget` creation [node].
   String getWidgetPresentationText(InstanceCreationExpression node) {
-    ClassElement element = node.staticElement?.enclosingElement;
+    var element = node.staticElement?.enclosingElement;
     if (!isWidget(element)) {
       return null;
     }
     List<Expression> arguments = node.argumentList.arguments;
     if (_isExactWidget(element, 'Icon', _uriWidgetsIcon)) {
       if (arguments.isNotEmpty) {
-        String text = arguments[0].toString();
-        String arg = shorten(text, 32);
+        var text = arguments[0].toString();
+        var arg = shorten(text, 32);
         return 'Icon($arg)';
       } else {
         return 'Icon';
@@ -263,8 +263,8 @@ class Flutter {
     }
     if (_isExactWidget(element, 'Text', _uriWidgetsText)) {
       if (arguments.isNotEmpty) {
-        String text = arguments[0].toString();
-        String arg = shorten(text, 32);
+        var text = arguments[0].toString();
+        var arg = shorten(text, 32);
         return 'Text($arg)';
       } else {
         return 'Text';
@@ -513,7 +513,7 @@ class Flutter {
     if (_isExactWidget(element, _nameWidget, _uriFramework)) {
       return true;
     }
-    for (InterfaceType type in element.allSupertypes) {
+    for (var type in element.allSupertypes) {
       if (_isExactWidget(type.element, _nameWidget, _uriFramework)) {
         return true;
       }
@@ -524,7 +524,7 @@ class Flutter {
   /// Return `true` if the given [expr] is a constructor invocation for a
   /// class that has the Flutter class `Widget` as a superclass.
   bool isWidgetCreation(InstanceCreationExpression expr) {
-    ClassElement element = expr?.staticElement?.enclosingElement;
+    var element = expr?.staticElement?.enclosingElement;
     return isWidget(element);
   }
 
@@ -562,9 +562,9 @@ class Flutter {
     if (element == null) {
       return false;
     }
-    for (InterfaceType type in element.allSupertypes) {
+    for (var type in element.allSupertypes) {
       if (type.element.name == requiredName) {
-        Uri uri = type.element.source.uri;
+        var uri = type.element.source.uri;
         if (uri == requiredUri) {
           return true;
         }

@@ -61,9 +61,9 @@ class MigrationInfo {
       pathContext.relative(unit.path, from: includedRoot);
 
   List<UnitLink> unitLinks() {
-    List<UnitLink> links = [];
-    for (UnitInfo unit in units) {
-      int count = unit.fixRegions.length;
+    var links = <UnitLink>[];
+    for (var unit in units) {
+      var count = unit.fixRegions.length;
       links.add(UnitLink(
           _pathTo(target: unit), pathContext.split(computeName(unit)), count));
     }

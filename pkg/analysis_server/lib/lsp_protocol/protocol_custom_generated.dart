@@ -42,7 +42,7 @@ class AnalyzerStatusParams implements ToJsonable {
   final bool isAnalyzing;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['isAnalyzing'] =
         isAnalyzing ?? (throw 'isAnalyzing is required but was not set');
     return __result;
@@ -84,7 +84,7 @@ class AnalyzerStatusParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -115,7 +115,7 @@ class ClosingLabel implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['label'] = label ?? (throw 'label is required but was not set');
     return __result;
@@ -174,7 +174,7 @@ class ClosingLabel implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -229,7 +229,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
   final num rOffset;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['file'] = file ?? (throw 'file is required but was not set');
     __result['offset'] = offset ?? (throw 'offset is required but was not set');
     __result['libId'] = libId ?? (throw 'libId is required but was not set');
@@ -369,7 +369,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, libId.hashCode);
@@ -400,7 +400,7 @@ class DartDiagnosticServer implements ToJsonable {
   final num port;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['port'] = port ?? (throw 'port is required but was not set');
     return __result;
   }
@@ -441,7 +441,7 @@ class DartDiagnosticServer implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, port.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -480,7 +480,7 @@ class Element implements ToJsonable {
   final String typeParameters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (range != null) {
       __result['range'] = range;
     }
@@ -594,7 +594,7 @@ class Element implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
@@ -667,7 +667,7 @@ class FlutterOutline implements ToJsonable {
   final String variableName;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     if (label != null) {
       __result['label'] = label;
@@ -838,7 +838,7 @@ class FlutterOutline implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
@@ -880,7 +880,7 @@ class FlutterOutlineAttribute implements ToJsonable {
   final Range valueRange;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['name'] = name ?? (throw 'name is required but was not set');
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (valueRange != null) {
@@ -955,7 +955,7 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, valueRange.hashCode);
@@ -999,7 +999,7 @@ class Outline implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['element'] =
         element ?? (throw 'element is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -1098,7 +1098,7 @@ class Outline implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
@@ -1135,7 +1135,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['labels'] = labels ?? (throw 'labels is required but was not set');
     return __result;
@@ -1199,7 +1199,7 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, labels.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1234,7 +1234,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['outline'] =
         outline ?? (throw 'outline is required but was not set');
@@ -1294,7 +1294,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1327,7 +1327,7 @@ class PublishOutlineParams implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['outline'] =
         outline ?? (throw 'outline is required but was not set');
@@ -1387,7 +1387,7 @@ class PublishOutlineParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
     return JenkinsSmiHash.finish(hash);

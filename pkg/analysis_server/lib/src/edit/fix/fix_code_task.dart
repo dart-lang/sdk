@@ -17,7 +17,7 @@ mixin FixCodeProcessor {
 
   /// Return the task used to migrate to NNBD.
   NonNullableFix get nonNullableFixTask {
-    for (FixCodeTask task in _codeTasks) {
+    for (var task in _codeTasks) {
       if (task is NonNullableFix) {
         return task;
       }
@@ -28,19 +28,19 @@ mixin FixCodeProcessor {
   int get numPhases => _numPhases;
 
   Future<void> finishCodeTasks() async {
-    for (FixCodeTask task in _codeTasks) {
+    for (var task in _codeTasks) {
       await task.finish();
     }
   }
 
   Future<void> processCodeTasks(int phase, ResolvedUnitResult result) async {
-    for (FixCodeTask task in _codeTasks) {
+    for (var task in _codeTasks) {
       await task.processUnit(phase, result);
     }
   }
 
   void processPackage(Folder pkgFolder) async {
-    for (FixCodeTask task in _codeTasks) {
+    for (var task in _codeTasks) {
       await task.processPackage(pkgFolder);
     }
   }

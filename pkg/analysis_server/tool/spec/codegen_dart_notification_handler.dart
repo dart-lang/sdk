@@ -14,8 +14,7 @@ GeneratedFile clientTarget() {
   return GeneratedFile(
       '../analysis_server_client/lib/handler/notification_handler.dart',
       (String pkgPath) async {
-    CodegenNotificationHandlerVisitor visitor =
-        CodegenNotificationHandlerVisitor(readApi(pkgPath));
+    var visitor = CodegenNotificationHandlerVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
   });
 }
@@ -46,14 +45,14 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
   }
 
   void emitDartdoc(List<String> dartdoc) {
-    bool first = true;
-    for (String paragraph in dartdoc) {
+    var first = true;
+    for (var paragraph in dartdoc) {
       if (first) {
         first = false;
       } else {
         writeln('  ///');
       }
-      for (String line in paragraph.split(RegExp('\r?\n'))) {
+      for (var line in paragraph.split(RegExp('\r?\n'))) {
         writeln('  /// ${line.trim()}');
       }
     }
@@ -64,7 +63,7 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
   }
 
   void emitNotificationHandler() {
-    _NotificationVisitor visitor = _NotificationVisitor(api)..visitApi();
+    var visitor = _NotificationVisitor(api)..visitApi();
     final notifications = visitor.notificationConstants;
     notifications.sort((n1, n2) => n1.constName.compareTo(n2.constName));
 
@@ -81,7 +80,7 @@ mixin NotificationHandler {
     ResponseDecoder decoder = ResponseDecoder(null);
     switch (notification.event) {
 ''');
-    for (_Notification notification in notifications) {
+    for (var notification in notifications) {
       writeln('      case ${notification.constName}:');
       writeln('        ${notification.methodName}(');
       writeln('          ${notification.paramsTypeName}');
@@ -93,7 +92,7 @@ mixin NotificationHandler {
     writeln('        break;');
     writeln('    }');
     writeln('  }');
-    for (_Notification notification in notifications) {
+    for (var notification in notifications) {
       writeln();
       emitDartdoc(notification.dartdoc);
       writeln('  void ${notification.methodName}(');

@@ -53,7 +53,7 @@ class RuntimeCompletionComputer {
 
     // Insert the code being completed at the context offset.
     var changeBuilder = DartChangeBuilder(session);
-    int nextImportPrefixIndex = 0;
+    var nextImportPrefixIndex = 0;
     await changeBuilder.addFileEdit(contextPath, (builder) {
       builder.addInsertion(contextOffset, (builder) {
         builder.writeln('{');
@@ -68,13 +68,13 @@ class RuntimeCompletionComputer {
     }, importPrefixGenerator: (uri) => '__prefix${nextImportPrefixIndex++}');
 
     // Compute the patched context file content.
-    String targetCode = SourceEdit.applySequence(
+    var targetCode = SourceEdit.applySequence(
       contextResult.content,
       changeBuilder.sourceChange.edits[0].edits,
     );
 
     // Insert the code being completed.
-    int targetOffset = targetCode.indexOf(codeMarker) + offset;
+    var targetOffset = targetCode.indexOf(codeMarker) + offset;
     targetCode = targetCode.replaceAll(codeMarker, code);
 
     // Update the context file content to include the code being completed.
@@ -85,7 +85,7 @@ class RuntimeCompletionComputer {
     });
 
     CompletionContributor contributor = DartCompletionManager();
-    CompletionRequestImpl request = CompletionRequestImpl(
+    var request = CompletionRequestImpl(
       targetResult,
       targetOffset,
       false,

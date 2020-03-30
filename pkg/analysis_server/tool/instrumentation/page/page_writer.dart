@@ -20,14 +20,14 @@ abstract class PageWriter {
   /// Return the length of the common prefix for time stamps associated with the
   /// given log [entries].
   int computePrefixLength(List<LogEntry> entries) {
-    int length = entries.length;
+    var length = entries.length;
     if (length < 2) {
       return 0;
     }
-    String firstTime = entries[0].timeStamp.toString();
-    String lastTime = entries[length - 1].timeStamp.toString();
-    int prefixLength = 0;
-    int timeLength = firstTime.length;
+    var firstTime = entries[0].timeStamp.toString();
+    var lastTime = entries[length - 1].timeStamp.toString();
+    var prefixLength = 0;
+    var timeLength = firstTime.length;
     while (prefixLength < timeLength &&
         firstTime.codeUnitAt(prefixLength) ==
             lastTime.codeUnitAt(prefixLength)) {
@@ -50,10 +50,10 @@ abstract class PageWriter {
 
   /// Write the given [date] to the given [sink].
   void writeDate(StringSink sink, DateTime date) {
-    String isoString = date.toIso8601String();
-    int index = isoString.indexOf('T');
-    String dateString = isoString.substring(0, index);
-    String timeString = isoString.substring(index + 1);
+    var isoString = date.toIso8601String();
+    var index = isoString.indexOf('T');
+    var dateString = isoString.substring(0, index);
+    var timeString = isoString.substring(index + 1);
     sink.write(dateString);
     sink.write(' at ');
     sink.write(timeString);

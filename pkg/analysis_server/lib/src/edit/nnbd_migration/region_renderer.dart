@@ -36,8 +36,8 @@ class RegionRenderer {
     var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
 
     TargetLink linkForTarget(NavigationTarget target) {
-      String relativePath = _relativePathToTarget(target, unitDir);
-      String targetUri = _uriForRelativePath(relativePath, target);
+      var relativePath = _relativePathToTarget(target, unitDir);
+      var targetUri = _uriForRelativePath(relativePath, target);
       return TargetLink(
         path: relativePath,
         href: targetUri,

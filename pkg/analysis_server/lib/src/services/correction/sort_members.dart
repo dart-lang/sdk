@@ -58,24 +58,24 @@ class MemberSorter {
     // would confuse the offsets used by the other sort functions.
     _sortUnitDirectives();
     // prepare edits
-    List<SourceEdit> edits = <SourceEdit>[];
+    var edits = <SourceEdit>[];
     if (code != initialCode) {
-      SimpleDiff diff = computeSimpleDiff(initialCode, code);
-      SourceEdit edit = SourceEdit(diff.offset, diff.length, diff.replacement);
+      var diff = computeSimpleDiff(initialCode, code);
+      var edit = SourceEdit(diff.offset, diff.length, diff.replacement);
       edits.add(edit);
     }
     return edits;
   }
 
   void _sortAndReorderMembers(List<_MemberInfo> members) {
-    List<_MemberInfo> membersSorted = _getSortedMembers(members);
-    int size = membersSorted.length;
-    for (int i = 0; i < size; i++) {
-      _MemberInfo newInfo = membersSorted[size - 1 - i];
-      _MemberInfo oldInfo = members[size - 1 - i];
+    var membersSorted = _getSortedMembers(members);
+    var size = membersSorted.length;
+    for (var i = 0; i < size; i++) {
+      var newInfo = membersSorted[size - 1 - i];
+      var oldInfo = members[size - 1 - i];
       if (newInfo != oldInfo) {
-        String beforeCode = code.substring(0, oldInfo.offset);
-        String afterCode = code.substring(oldInfo.end);
+        var beforeCode = code.substring(0, oldInfo.offset);
+        var afterCode = code.substring(oldInfo.end);
         code = beforeCode + newInfo.text + afterCode;
       }
     }
@@ -83,7 +83,7 @@ class MemberSorter {
 
   /// Sorts all members of all [ClassOrMixinDeclaration]s.
   void _sortClassesMembers() {
-    for (CompilationUnitMember unitMember in unit.declarations) {
+    for (var unitMember in unit.declarations) {
       if (unitMember is ClassOrMixinDeclaration) {
         _sortClassMembers(unitMember);
       }
@@ -92,14 +92,14 @@ class MemberSorter {
 
   /// Sorts all members of the given [classDeclaration].
   void _sortClassMembers(ClassOrMixinDeclaration classDeclaration) {
-    List<_MemberInfo> members = <_MemberInfo>[];
-    for (ClassMember member in classDeclaration.members) {
+    var members = <_MemberInfo>[];
+    for (var member in classDeclaration.members) {
       _MemberKind kind;
-      bool isStatic = false;
+      var isStatic = false;
       String name;
       if (member is ConstructorDeclaration) {
         kind = _MemberKind.CLASS_CONSTRUCTOR;
-        SimpleIdentifier nameNode = member.name;
+        var nameNode = member.name;
         if (nameNode == null) {
           name = '';
         } else {
@@ -107,7 +107,7 @@ class MemberSorter {
         }
       }
       if (member is FieldDeclaration) {
-        FieldDeclaration fieldDeclaration = member;
+        var fieldDeclaration = member;
         List<VariableDeclaration> fields = fieldDeclaration.fields.variables;
         if (fields.isNotEmpty) {
           kind = _MemberKind.CLASS_FIELD;
@@ -116,7 +116,7 @@ class MemberSorter {
         }
       }
       if (member is MethodDeclaration) {
-        MethodDeclaration method = member;
+        var method = member;
         isStatic = method.isStatic;
         name = method.name.name;
         if (method.isGetter) {
@@ -130,10 +130,10 @@ class MemberSorter {
         }
       }
       if (name != null) {
-        _PriorityItem item = _PriorityItem.forName(isStatic, name, kind);
-        int offset = member.offset;
-        int length = member.length;
-        String text = code.substring(offset, offset + length);
+        var item = _PriorityItem.forName(isStatic, name, kind);
+        var offset = member.offset;
+        var length = member.length;
+        var text = code.substring(offset, offset + length);
         members.add(_MemberInfo(item, name, offset, length, text));
       }
     }
@@ -143,17 +143,17 @@ class MemberSorter {
 
   /// Sorts all [Directive]s.
   void _sortUnitDirectives() {
-    bool hasLibraryDirective = false;
-    List<_DirectiveInfo> directives = [];
-    for (Directive directive in unit.directives) {
+    var hasLibraryDirective = false;
+    var directives = <_DirectiveInfo>[];
+    for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         hasLibraryDirective = true;
       }
       if (directive is! UriBasedDirective) {
         continue;
       }
-      UriBasedDirective uriDirective = directive as UriBasedDirective;
-      String uriContent = uriDirective.uri.stringValue;
+      var uriDirective = directive as UriBasedDirective;
+      var uriContent = uriDirective.uri.stringValue;
       _DirectivePriority kind;
       if (directive is ImportDirective) {
         if (uriContent.startsWith('dart:')) {
@@ -192,9 +192,9 @@ class MemberSorter {
           annotationText = code.substring(directive.metadata.beginToken.offset,
               directive.metadata.endToken.end);
         }
-        int offset = directive.firstTokenAfterCommentAndMetadata.offset;
-        int length = directive.end - offset;
-        String text = code.substring(offset, offset + length);
+        var offset = directive.firstTokenAfterCommentAndMetadata.offset;
+        var length = directive.end - offset;
+        var text = code.substring(offset, offset + length);
         directives.add(_DirectiveInfo(directive, kind, uriContent,
             documentationText, annotationText, text));
       }
@@ -203,8 +203,8 @@ class MemberSorter {
     if (directives.isEmpty) {
       return;
     }
-    int firstDirectiveOffset = directives[0].directive.offset;
-    int lastDirectiveEnd = directives[directives.length - 1].directive.end;
+    var firstDirectiveOffset = directives[0].directive.offset;
+    var lastDirectiveEnd = directives[directives.length - 1].directive.end;
     // Without a library directive, the library comment is the comment of the
     // first directive.
     _DirectiveInfo libraryDocumentationDirective;
@@ -216,11 +216,11 @@ class MemberSorter {
     // append directives with grouping
     String directivesCode;
     {
-      StringBuffer sb = StringBuffer();
-      String endOfLine = this.endOfLine;
+      var sb = StringBuffer();
+      var endOfLine = this.endOfLine;
       _DirectivePriority currentPriority;
-      bool firstOutputDirective = true;
-      for (_DirectiveInfo directive in directives) {
+      var firstOutputDirective = true;
+      for (var directive in directives) {
         if (currentPriority != directive.priority) {
           if (sb.length != 0) {
             sb.write(endOfLine);
@@ -251,15 +251,15 @@ class MemberSorter {
       directivesCode = directivesCode.trimRight();
     }
     // prepare code
-    String beforeDirectives = code.substring(0, firstDirectiveOffset);
-    String afterDirectives = code.substring(lastDirectiveEnd);
+    var beforeDirectives = code.substring(0, firstDirectiveOffset);
+    var afterDirectives = code.substring(lastDirectiveEnd);
     code = beforeDirectives + directivesCode + afterDirectives;
   }
 
   /// Sorts all [CompilationUnitMember]s.
   void _sortUnitMembers() {
-    List<_MemberInfo> members = [];
-    for (CompilationUnitMember member in unit.declarations) {
+    var members = <_MemberInfo>[];
+    for (var member in unit.declarations) {
       _MemberKind kind;
       String name;
       if (member is ClassOrMixinDeclaration) {
@@ -275,7 +275,7 @@ class MemberSorter {
         kind = _MemberKind.UNIT_EXTENSION;
         name = member.name?.name ?? '';
       } else if (member is FunctionDeclaration) {
-        FunctionDeclaration function = member;
+        var function = member;
         name = function.name.name;
         if (function.isGetter) {
           kind = _MemberKind.UNIT_ACCESSOR;
@@ -297,7 +297,7 @@ class MemberSorter {
         kind = _MemberKind.UNIT_GENERIC_TYPE_ALIAS;
         name = member.name.name;
       } else if (member is TopLevelVariableDeclaration) {
-        TopLevelVariableDeclaration variableDeclaration = member;
+        var variableDeclaration = member;
         List<VariableDeclaration> variables =
             variableDeclaration.variables.variables;
         if (variables.isNotEmpty) {
@@ -310,10 +310,10 @@ class MemberSorter {
         }
       }
       if (name != null) {
-        _PriorityItem item = _PriorityItem.forName(false, name, kind);
-        int offset = member.offset;
-        int length = member.length;
-        String text = code.substring(offset, offset + length);
+        var item = _PriorityItem.forName(false, name, kind);
+        var offset = member.offset;
+        var length = member.length;
+        var text = code.substring(offset, offset + length);
         members.add(_MemberInfo(item, name, offset, length, text));
       }
     }
@@ -331,7 +331,7 @@ class MemberSorter {
   }
 
   static int _getPriority(_PriorityItem item) {
-    for (int i = 0; i < _PRIORITY_ITEMS.length; i++) {
+    for (var i = 0; i < _PRIORITY_ITEMS.length; i++) {
       if (_PRIORITY_ITEMS[i] == item) {
         return i;
       }
@@ -340,18 +340,18 @@ class MemberSorter {
   }
 
   static List<_MemberInfo> _getSortedMembers(List<_MemberInfo> members) {
-    List<_MemberInfo> membersSorted = List<_MemberInfo>.from(members);
+    var membersSorted = List<_MemberInfo>.from(members);
     membersSorted.sort((_MemberInfo o1, _MemberInfo o2) {
-      int priority1 = _getPriority(o1.item);
-      int priority2 = _getPriority(o2.item);
+      var priority1 = _getPriority(o1.item);
+      var priority2 = _getPriority(o2.item);
       if (priority1 == priority2) {
         // don't reorder class fields
         if (o1.item.kind == _MemberKind.CLASS_FIELD) {
           return o1.offset - o2.offset;
         }
         // sort all other members by name
-        String name1 = o1.name.toLowerCase();
-        String name2 = o2.name.toLowerCase();
+        var name1 = o1.name.toLowerCase();
+        var name2 = o2.name.toLowerCase();
         return name1.compareTo(name2);
       }
       return priority1 - priority2;
@@ -383,8 +383,8 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   String toString() => '(priority=$priority; text=$text)';
 
   static int _compareUri(String a, String b) {
-    List<String> aList = _splitUri(a);
-    List<String> bList = _splitUri(b);
+    var aList = _splitUri(a);
+    var bList = _splitUri(b);
     int result;
     if ((result = aList[0].compareTo(bList[0])) != 0) return result;
     if ((result = aList[1].compareTo(bList[1])) != 0) return result;
@@ -394,7 +394,7 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   /// Split the given [uri] like `package:some.name/and/path.dart` into a list
   /// like `[package:some.name, and/path.dart]`.
   static List<String> _splitUri(String uri) {
-    int index = uri.indexOf('/');
+    var index = uri.indexOf('/');
     if (index == -1) {
       return <String>[uri, ''];
     }
@@ -472,13 +472,13 @@ class _PriorityItem {
   _PriorityItem(this.isStatic, this.kind, this.isPrivate);
 
   factory _PriorityItem.forName(bool isStatic, String name, _MemberKind kind) {
-    bool isPrivate = Identifier.isPrivateName(name);
+    var isPrivate = Identifier.isPrivateName(name);
     return _PriorityItem(isStatic, kind, isPrivate);
   }
 
   @override
   bool operator ==(Object obj) {
-    _PriorityItem other = obj as _PriorityItem;
+    var other = obj as _PriorityItem;
     if (kind == _MemberKind.CLASS_FIELD) {
       return other.kind == kind && other.isStatic == isStatic;
     }

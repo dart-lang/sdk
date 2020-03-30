@@ -22,7 +22,7 @@ class FlutterCorrectionTest extends AbstractSingleUnitTest {
 
   @override
   int findOffset(String search) {
-    int offset = testCode.indexOf(search);
+    var offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
     return offset;
   }

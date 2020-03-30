@@ -30,7 +30,7 @@ void entrypoint(SendPort sendPort) {
   final port = ReceivePort();
   sendPort.send(port.sendPort);
   port.listen((message) {
-    Map<String, Map<String, double>> response = {};
+    var response = <String, Map<String, double>>{};
     switch (message['method']) {
       case 'load':
         model = LanguageModel.load(message['args'][0]);
@@ -109,11 +109,11 @@ class CompletionRanking {
 
     performanceMetrics._incrementPredictionRequestCount();
 
-    final Stopwatch timer = Stopwatch()..start();
-    final response = await makePredictRequest(query);
+    var timer = Stopwatch()..start();
+    var response = await makePredictRequest(query);
     timer.stop();
 
-    final Map<String, double> result = response['data'];
+    var result = response['data'];
 
     performanceMetrics._addPredictionResult(PredictionResult(
       result,
@@ -179,7 +179,7 @@ class CompletionRanking {
 
     var allowModelOnlySuggestions =
         !testNamedArgument(suggestions) && !testFollowingDot(request);
-    for (MapEntry entry in entries) {
+    for (var entry in entries) {
       // There may be multiple like
       // CompletionSuggestion and CompletionSuggestion().
       final completionSuggestions = suggestions.where((suggestion) =>
@@ -252,7 +252,7 @@ class CompletionRanking {
     await _startIsolate();
 
     // Start the 2nd and later isolates.
-    for (int i = 1; i < _ISOLATE_COUNT; i++) {
+    for (var i = 1; i < _ISOLATE_COUNT; i++) {
       initializations.add(_startIsolate());
     }
 
@@ -260,8 +260,8 @@ class CompletionRanking {
   }
 
   Future<void> _startIsolate() async {
-    final Stopwatch timer = Stopwatch()..start();
-    final port = ReceivePort();
+    var timer = Stopwatch()..start();
+    var port = ReceivePort();
     await Isolate.spawn(entrypoint, port.sendPort);
     SendPort sendPort = await port.first;
     return makeLoadRequest(sendPort, [_directory]).whenComplete(() {

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
 /// The state of an NNBD migration.
@@ -52,10 +51,10 @@ class MigrationState {
   /// Refresh the state of the migration after the migration has been updated.
   Future<void> refresh() async {
     assert(!hasBeenApplied);
-    OverlayResourceProvider provider = listener.server.resourceProvider;
-    InfoBuilder infoBuilder = InfoBuilder(provider, includedRoot,
+    var provider = listener.server.resourceProvider;
+    var infoBuilder = InfoBuilder(provider, includedRoot,
         instrumentationListener.data, listener, adapter, migration);
-    Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
+    var unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     migrationInfo = MigrationInfo(
         unitInfos, infoBuilder.unitMap, pathContext, includedRoot);

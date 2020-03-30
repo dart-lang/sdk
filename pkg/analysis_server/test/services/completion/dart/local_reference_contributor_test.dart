@@ -31,10 +31,10 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
       relevance += DART_RELEVANCE_BOOST_SUBTYPE;
     }
     // Local variables should only be suggested by LocalReferenceContributor
-    CompletionSuggestion cs = assertSuggest(name,
+    var cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType ?? 'dynamic');
-    Element element = cs.element;
+    var element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
     expect(element.name, equals(name));
@@ -46,10 +46,10 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
 
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
       {int relevance = DART_RELEVANCE_PARAMETER}) {
-    CompletionSuggestion cs = assertSuggest(name,
+    var cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType ?? 'dynamic');
-    Element element = cs.element;
+    var element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.PARAMETER));
     expect(element.name, equals(name));
@@ -60,10 +60,10 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
 
   CompletionSuggestion assertSuggestTypeParameter(String name,
       {int relevance = DART_RELEVANCE_TYPE_PARAMETER}) {
-    CompletionSuggestion cs = assertSuggest(name,
+    var cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance);
     expect(cs.returnType, isNull);
-    Element element = cs.element;
+    var element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.TYPE_PARAMETER));
     expect(element.name, equals(name));
@@ -1590,13 +1590,13 @@ A T;''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    CompletionSuggestion suggestionA = assertSuggestClass('A',
+    var suggestionA = assertSuggestClass('A',
         relevance: DART_RELEVANCE_LOW, isDeprecated: true);
     if (suggestionA != null) {
       expect(suggestionA.element.isDeprecated, isTrue);
       expect(suggestionA.element.isPrivate, isFalse);
     }
-    CompletionSuggestion suggestionB = assertSuggestClass('_B');
+    var suggestionB = assertSuggestClass('_B');
     if (suggestionB != null) {
       expect(suggestionB.element.isDeprecated, isFalse);
       expect(suggestionB.element.isPrivate, isTrue);
@@ -2107,7 +2107,7 @@ class A {a(blat: ^) { }}''');
   }
 
   Future<void> test_doc_classMember() async {
-    String docLines = r'''
+    var docLines = r'''
   /// My documentation.
   /// Short description.
   ///
@@ -2134,25 +2134,24 @@ $docLines
 }''');
     await computeSuggestions();
     {
-      CompletionSuggestion suggestion = assertSuggestField('myField', 'int',
+      var suggestion = assertSuggestField('myField', 'int',
           relevance: DART_RELEVANCE_LOCAL_FIELD);
       assertDoc(suggestion);
     }
     {
-      CompletionSuggestion suggestion = assertSuggestMethod(
-          'myMethod', 'C', null,
+      var suggestion = assertSuggestMethod('myMethod', 'C', null,
           relevance: DART_RELEVANCE_LOCAL_METHOD);
       assertDoc(suggestion);
     }
     {
-      CompletionSuggestion suggestion = assertSuggestGetter('myGetter', 'int',
+      var suggestion = assertSuggestGetter('myGetter', 'int',
           relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
       assertDoc(suggestion);
     }
   }
 
   Future<void> test_doc_topLevel() async {
-    String docLines = r'''
+    var docLines = r'''
 /// My documentation.
 /// Short description.
 ///
@@ -2184,27 +2183,24 @@ main() {^}
 ''');
     await computeSuggestions();
     {
-      CompletionSuggestion suggestion = assertSuggestClass('MyClass');
+      var suggestion = assertSuggestClass('MyClass');
       assertDoc(suggestion);
     }
     {
-      CompletionSuggestion suggestion =
-          assertSuggestClassTypeAlias('MyClassTypeAlias');
+      var suggestion = assertSuggestClassTypeAlias('MyClassTypeAlias');
       assertDoc(suggestion);
     }
     {
-      CompletionSuggestion suggestion = assertSuggestEnum('MyEnum');
+      var suggestion = assertSuggestEnum('MyEnum');
       assertDoc(suggestion);
     }
     {
-      CompletionSuggestion suggestion = assertSuggestFunction(
-          'myFunction', 'void',
+      var suggestion = assertSuggestFunction('myFunction', 'void',
           relevance: DART_RELEVANCE_LOCAL_FUNCTION);
       assertDoc(suggestion);
     }
     {
-      CompletionSuggestion suggestion = assertSuggestTopLevelVar(
-          'myVariable', 'int',
+      var suggestion = assertSuggestTopLevelVar('myVariable', 'int',
           relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
       assertDoc(suggestion);
     }
@@ -2770,7 +2766,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+    var suggestion = assertSuggestFunction('m', 'void',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
@@ -2789,7 +2785,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+    var suggestion = assertSuggestFunction('m', 'void',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
@@ -2808,7 +2804,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+    var suggestion = assertSuggestFunction('m', 'void',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
@@ -2827,7 +2823,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+    var suggestion = assertSuggestFunction('m', 'void',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
@@ -2843,7 +2839,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+    var suggestion = assertSuggestFunction('m', 'void',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
@@ -2862,7 +2858,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestFunction('m', 'void',
+    var suggestion = assertSuggestFunction('m', 'void',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
@@ -3695,19 +3691,19 @@ class B extends A {
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    CompletionSuggestion methodA = assertSuggestMethod('a', 'A', 'Z',
+    var methodA = assertSuggestMethod('a', 'A', 'Z',
         relevance: DART_RELEVANCE_LOCAL_METHOD);
     if (methodA != null) {
       expect(methodA.element.isDeprecated, isFalse);
       expect(methodA.element.isPrivate, isFalse);
     }
-    CompletionSuggestion getterF = assertSuggestGetter('f', 'X',
+    var getterF = assertSuggestGetter('f', 'X',
         relevance: DART_RELEVANCE_LOW, isDeprecated: true);
     if (getterF != null) {
       expect(getterF.element.isDeprecated, isTrue);
       expect(getterF.element.isPrivate, isFalse);
     }
-    CompletionSuggestion getterG =
+    var getterG =
         assertSuggestGetter('_g', null, relevance: DART_RELEVANCE_DEFAULT);
     if (getterG != null) {
       expect(getterG.element.isDeprecated, isFalse);
@@ -3760,13 +3756,13 @@ class A extends B {
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    CompletionSuggestion methodA =
+    var methodA =
         assertSuggestMethod('_a', 'A', 'Z', relevance: DART_RELEVANCE_DEFAULT);
     if (methodA != null) {
       expect(methodA.element.isDeprecated, isFalse);
       expect(methodA.element.isPrivate, isTrue);
     }
-    CompletionSuggestion getterF = assertSuggestField('f', 'X',
+    var getterF = assertSuggestField('f', 'X',
         relevance: DART_RELEVANCE_LOW, isDeprecated: true);
     if (getterF != null) {
       expect(getterF.element.isDeprecated, isTrue);
@@ -3774,7 +3770,7 @@ class A extends B {
       expect(getterF.element.parameters, isNull);
     }
     // If user did not type '_' then relevance of private members is not raised
-    CompletionSuggestion getterG =
+    var getterG =
         assertSuggestField('_g', null, relevance: DART_RELEVANCE_DEFAULT);
     if (getterG != null) {
       expect(getterG.element.isDeprecated, isFalse);
@@ -3791,13 +3787,13 @@ class A extends B {
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    CompletionSuggestion methodA = assertSuggestMethod('_a', 'A', 'Z',
+    var methodA = assertSuggestMethod('_a', 'A', 'Z',
         relevance: DART_RELEVANCE_LOCAL_METHOD);
     if (methodA != null) {
       expect(methodA.element.isDeprecated, isFalse);
       expect(methodA.element.isPrivate, isTrue);
     }
-    CompletionSuggestion getterF = assertSuggestField('f', 'X',
+    var getterF = assertSuggestField('f', 'X',
         relevance: DART_RELEVANCE_LOW, isDeprecated: true);
     if (getterF != null) {
       expect(getterF.element.isDeprecated, isTrue);
@@ -3806,7 +3802,7 @@ class A extends B {
     }
     // If user prefixed completion with '_' then suggestion of private members
     // should be the same as public members
-    CompletionSuggestion getterG =
+    var getterG =
         assertSuggestField('_g', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
     if (getterG != null) {
       expect(getterG.element.isDeprecated, isFalse);
@@ -3823,7 +3819,7 @@ class A extends B {
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    CompletionSuggestion methodA = assertSuggestMethod('a', 'A', 'Z',
+    var methodA = assertSuggestMethod('a', 'A', 'Z',
         relevance: DART_RELEVANCE_LOW, isDeprecated: true);
     if (methodA != null) {
       expect(methodA.element.isDeprecated, isTrue);
@@ -4035,12 +4031,12 @@ A T;''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    CompletionSuggestion suggestionM = assertSuggestMixin('M');
+    var suggestionM = assertSuggestMixin('M');
     if (suggestionM != null) {
       expect(suggestionM.element.isDeprecated, isFalse);
       expect(suggestionM.element.isPrivate, isFalse);
     }
-    CompletionSuggestion suggestionB = assertSuggestClass('_B');
+    var suggestionB = assertSuggestClass('_B');
     if (suggestionB != null) {
       expect(suggestionB.element.isDeprecated, isFalse);
       expect(suggestionB.element.isPrivate, isTrue);
@@ -5091,7 +5087,7 @@ A T;''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    CompletionSuggestion suggestionB = assertSuggestClass('_B');
+    var suggestionB = assertSuggestClass('_B');
     if (suggestionB != null) {
       expect(suggestionB.element.isDeprecated, isFalse);
       expect(suggestionB.element.isPrivate, isTrue);

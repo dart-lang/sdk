@@ -83,14 +83,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     result.addStatus(checkName());
     return Future.value(result);
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     // selection
     result.addStatus(_checkSelection());
     if (result.hasFatalError) {
@@ -109,7 +109,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   @override
   RefactoringStatus checkName() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     result.addStatus(validateVariableName(name));
     if (excludedVariableNames.contains(name)) {
       result.addError(
@@ -120,7 +120,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() {
-    SourceChange change = SourceChange(refactoringName);
+    var change = SourceChange(refactoringName);
     // prepare occurrences
     List<SourceRange> occurrences;
     if (extractAll) {
@@ -133,16 +133,15 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     // then convert it into a variable declaration statement.
     if (singleExpression?.parent is ExpressionStatement &&
         occurrences.length == 1) {
-      String keyword = _declarationKeyword;
-      String declarationSource = '$keyword $name = ';
-      SourceEdit edit =
-          SourceEdit(singleExpression.offset, 0, declarationSource);
+      var keyword = _declarationKeyword;
+      var declarationSource = '$keyword $name = ';
+      var edit = SourceEdit(singleExpression.offset, 0, declarationSource);
       doSourceChange_addElementEdit(change, unitElement, edit);
       return Future.value(change);
     }
     // prepare positions
-    List<Position> positions = <Position>[];
-    int occurrencesShift = 0;
+    var positions = <Position>[];
+    var occurrencesShift = 0;
     void addPosition(int offset) {
       positions.add(Position(file, offset));
     }
@@ -156,34 +155,33 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         nameOffsetInDeclarationCode = declarationCode.length;
         declarationCode += "$name = '$stringLiteralPart';";
       } else {
-        String keyword = _declarationKeyword;
-        String initializerCode = utils.getRangeText(selectionRange);
+        var keyword = _declarationKeyword;
+        var initializerCode = utils.getRangeText(selectionRange);
         declarationCode = '$keyword ';
         nameOffsetInDeclarationCode = declarationCode.length;
         declarationCode += '$name = $initializerCode;';
       }
       // prepare location for declaration
-      AstNode target = _findDeclarationTarget(occurrences);
-      String eol = utils.endOfLine;
+      var target = _findDeclarationTarget(occurrences);
+      var eol = utils.endOfLine;
       // insert variable declaration
       if (target is Statement) {
-        String prefix = utils.getNodePrefix(target);
-        SourceEdit edit =
-            SourceEdit(target.offset, 0, declarationCode + eol + prefix);
+        var prefix = utils.getNodePrefix(target);
+        var edit = SourceEdit(target.offset, 0, declarationCode + eol + prefix);
         doSourceChange_addElementEdit(change, unitElement, edit);
         addPosition(edit.offset + nameOffsetInDeclarationCode);
         occurrencesShift = edit.replacement.length;
       } else if (target is ExpressionFunctionBody) {
-        String prefix = utils.getNodePrefix(target.parent);
-        String indent = utils.getIndent(1);
-        Expression expr = target.expression;
+        var prefix = utils.getNodePrefix(target.parent);
+        var indent = utils.getIndent(1);
+        var expr = target.expression;
         {
-          String code = '{' + eol + prefix + indent;
+          var code = '{' + eol + prefix + indent;
           addPosition(
               target.offset + code.length + nameOffsetInDeclarationCode);
           code += declarationCode + eol;
           code += prefix + indent + 'return ';
-          SourceEdit edit =
+          var edit =
               SourceEdit(target.offset, expr.offset - target.offset, code);
           occurrencesShift = target.offset + code.length - expr.offset;
           doSourceChange_addElementEdit(change, unitElement, edit);
@@ -196,14 +194,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       }
     }
     // prepare replacement
-    String occurrenceReplacement = name;
+    var occurrenceReplacement = name;
     if (stringLiteralPart != null) {
       occurrenceReplacement = '\${$name}';
       occurrencesShift += 2;
     }
     // replace occurrences with variable reference
-    for (SourceRange range in occurrences) {
-      SourceEdit edit = newSourceEdit_range(range, occurrenceReplacement);
+    for (var range in occurrences) {
+      var edit = newSourceEdit_range(range, occurrenceReplacement);
       addPosition(range.offset + occurrencesShift);
       occurrencesShift += name.length - range.length;
       doSourceChange_addElementEdit(change, unitElement, edit);
@@ -241,17 +239,16 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
     // exclude whitespaces
     {
-      int numLeading = countLeadingWhitespaces(selectionStr);
-      int numTrailing = countTrailingWhitespaces(selectionStr);
-      int offset = selectionRange.offset + numLeading;
-      int end = selectionRange.end - numTrailing;
+      var numLeading = countLeadingWhitespaces(selectionStr);
+      var numTrailing = countTrailingWhitespaces(selectionStr);
+      var offset = selectionRange.offset + numLeading;
+      var end = selectionRange.end - numTrailing;
       selectionRange = SourceRange(offset, end - offset);
     }
 
     // get covering node
-    AstNode coveringNode =
-        NodeLocator(selectionRange.offset, selectionRange.end)
-            .searchWithin(unit);
+    var coveringNode = NodeLocator(selectionRange.offset, selectionRange.end)
+        .searchWithin(unit);
 
     // We need an enclosing function.
     // If it has a block body, we can add a new variable declaration statement
@@ -274,8 +271,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       }
     }
     // compute covering expressions
-    for (AstNode node = coveringNode; node != null; node = node.parent) {
-      AstNode parent = node.parent;
+    for (var node = coveringNode; node != null; node = node.parent) {
+      var parent = node.parent;
       // skip some nodes
       if (node is ArgumentList ||
           node is AssignmentExpression ||
@@ -300,8 +297,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       }
       // stop at void method invocations
       if (node is MethodInvocation) {
-        MethodInvocation invocation = node;
-        Element element = invocation.methodName.staticElement;
+        var invocation = node;
+        var element = invocation.methodName.staticElement;
         if (element is ExecutableElement &&
             element.returnType != null &&
             element.returnType.isVoid) {
@@ -321,7 +318,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
                 'Cannot extract the name part of a declaration.',
                 newLocation_fromNode(node));
           }
-          Element element = node.staticElement;
+          var element = node.staticElement;
           if (element is FunctionElement || element is MethodElement) {
             continue;
           }
@@ -354,7 +351,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     if (element == null) {
       return null;
     }
-    int id = elementIds[element];
+    var id = elementIds[element];
     if (id == null) {
       id = elementIds.length;
       elementIds[element] = id;
@@ -380,11 +377,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     expr.accept(_TokenLocalElementVisitor(map));
     // map and join tokens
     var result = tokens.map((Token token) {
-      String tokenString = token.lexeme;
+      var tokenString = token.lexeme;
       // append token's Element id
-      Element element = map[token];
+      var element = map[token];
       if (element != null) {
-        int elementId = _encodeElement(element);
+        var elementId = _encodeElement(element);
         if (elementId != null) {
           tokenString += '-$elementId';
         }
@@ -398,12 +395,12 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   /// Return the [AstNode] to defined the variable before.
   /// It should be accessible by all the given [occurrences].
   AstNode _findDeclarationTarget(List<SourceRange> occurrences) {
-    List<AstNode> nodes = _findNodes(occurrences);
-    AstNode commonParent = getNearestCommonAncestor(nodes);
+    var nodes = _findNodes(occurrences);
+    var commonParent = getNearestCommonAncestor(nodes);
     // Block
     if (commonParent is Block) {
-      List<AstNode> firstParents = getParents(nodes[0]);
-      int commonIndex = firstParents.indexOf(commonParent);
+      var firstParents = getParents(nodes[0]);
+      var commonIndex = firstParents.indexOf(commonParent);
       return firstParents[commonIndex + 1];
     }
     // ExpressionFunctionBody
@@ -421,9 +418,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   /// Returns [AstNode]s at the offsets of the given [SourceRange]s.
   List<AstNode> _findNodes(List<SourceRange> ranges) {
-    List<AstNode> nodes = <AstNode>[];
-    for (SourceRange range in ranges) {
-      AstNode node = NodeLocator(range.offset).searchWithin(unit);
+    var nodes = <AstNode>[];
+    for (var range in ranges) {
+      var node = NodeLocator(range.offset).searchWithin(unit);
       nodes.add(node);
     }
     return nodes;
@@ -501,7 +498,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   void _prepareOffsetsLengths() {
     offsets.clear();
     lengths.clear();
-    for (SourceRange occurrence in occurrences) {
+    for (var occurrence in occurrences) {
       offsets.add(occurrence.offset);
       lengths.add(occurrence.length);
     }
@@ -536,17 +533,17 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitStringLiteral(StringLiteral node) {
     if (ref.stringLiteralPart != null) {
-      int length = ref.stringLiteralPart.length;
-      String value = ref.utils.getNodeText(node);
-      int lastIndex = 0;
+      var length = ref.stringLiteralPart.length;
+      var value = ref.utils.getNodeText(node);
+      var lastIndex = 0;
       while (true) {
-        int index = value.indexOf(ref.stringLiteralPart, lastIndex);
+        var index = value.indexOf(ref.stringLiteralPart, lastIndex);
         if (index == -1) {
           break;
         }
         lastIndex = index + length;
-        int start = node.offset + index;
-        SourceRange range = SourceRange(start, length);
+        var start = node.offset + index;
+        var range = SourceRange(start, length);
         occurrences.add(range);
       }
       return;
@@ -578,7 +575,7 @@ class _TokenLocalElementVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is LocalVariableElement) {
       map[node.token] = element;
     }

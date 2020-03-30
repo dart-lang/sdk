@@ -96,7 +96,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> checkFinalConditions() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
     result.addStatus(validateClassName(name));
     return result;
   }
@@ -105,14 +105,14 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> checkInitialConditions() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
 
     result.addStatus(_checkSelection());
     if (result.hasFatalError) {
       return result;
     }
 
-    AstNode astNode = _expression ?? _method ?? _statements.first;
+    var astNode = _expression ?? _method ?? _statements.first;
     _enclosingUnitMember = astNode.thisOrAncestorMatching((n) {
       return n is CompilationUnitMember && n.parent is CompilationUnit;
     });
@@ -125,7 +125,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   RefactoringStatus checkName() {
-    RefactoringStatus result = RefactoringStatus();
+    var result = RefactoringStatus();
 
     // Validate the name.
     result.addStatus(validateClassName(name));
@@ -134,10 +134,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     if (!result.hasFatalError) {
       visitLibraryTopLevelElements(resolveResult.libraryElement, (element) {
         if (hasDisplayName(element, name)) {
-          String message = format(
-              "Library already declares {0} with name '{1}'.",
-              getElementKindName(element),
-              name);
+          var message = format("Library already declares {0} with name '{1}'.",
+              getElementKindName(element), name);
           result.addError(message, newLocation_fromElement(element));
         }
       });
@@ -179,7 +177,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a widget creation expression that can be extracted.
   RefactoringStatus _checkSelection() {
-    AstNode node =
+    var node =
         NodeLocator(offset, offset + length).searchWithin(resolveResult.unit);
 
     // Treat single ReturnStatement as its expression.
@@ -228,7 +226,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
         break;
       }
       if (node is MethodDeclaration) {
-        DartType returnType = node.returnType?.type;
+        var returnType = node.returnType?.type;
         if (flutter.isWidgetType(returnType) && node.body != null) {
           _method = node;
           return RefactoringStatus();
@@ -286,7 +284,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     await null;
     _ParametersCollector collector;
     if (_expression != null) {
-      SourceRange localRange = range.node(_expression);
+      var localRange = range.node(_expression);
       collector = _ParametersCollector(_enclosingClassElement, localRange);
       _expression.accept(collector);
     }
@@ -298,7 +296,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
     }
     if (_method != null) {
-      SourceRange localRange = range.node(_method);
+      var localRange = range.node(_method);
       collector = _ParametersCollector(_enclosingClassElement, localRange);
       _method.body.accept(collector);
     }
@@ -322,7 +320,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
     }
 
-    RefactoringStatus status = collector.status;
+    var status = collector.status;
 
     // If there is an existing parameter "key" warn the user.
     // We could rename it, but that would require renaming references to it.
@@ -362,8 +360,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Remove the [_method] declaration.
   void _removeMethodDeclaration(DartFileEditBuilder builder) {
-    SourceRange methodRange = range.node(_method);
-    SourceRange linesRange =
+    var methodRange = range.node(_method);
+    var linesRange =
         utils.getLinesRange(methodRange, skipLeadingEmptyLines: true);
     builder.addDeletion(linesRange);
   }
@@ -385,7 +383,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
         // Insert field references (as named arguments).
         // Ensure that invocation arguments are named.
-        int argumentIndex = 0;
+        var argumentIndex = 0;
         for (var parameter in _parameters) {
           if (parameter != _parameters.first) {
             builder.write(', ');
@@ -393,7 +391,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           builder.write(parameter.name);
           builder.write(': ');
           if (parameter.isMethodParameter) {
-            Expression argument = arguments[argumentIndex++];
+            var argument = arguments[argumentIndex++];
             if (argument is NamedExpression) {
               argument = (argument as NamedExpression).expression;
             }
@@ -505,10 +503,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
             },
             bodyWriter: () {
               if (_expression != null) {
-                String indentOld = utils.getLinePrefix(_expression.offset);
-                String indentNew = '    ';
+                var indentOld = utils.getLinePrefix(_expression.offset);
+                var indentNew = '    ';
 
-                String code = utils.getNodeText(_expression);
+                var code = utils.getNodeText(_expression);
                 code = _replaceIndent(code, indentOld, indentNew);
 
                 builder.writeln('{');
@@ -519,10 +517,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
                 builder.writeln('  }');
               } else if (_statements != null) {
-                String indentOld = utils.getLinePrefix(_statementsRange.offset);
-                String indentNew = '    ';
+                var indentOld = utils.getLinePrefix(_statementsRange.offset);
+                var indentNew = '    ';
 
-                String code = utils.getRangeText(_statementsRange);
+                var code = utils.getRangeText(_statementsRange);
                 code = _replaceIndent(code, indentOld, indentNew);
 
                 builder.writeln('{');
@@ -533,7 +531,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
                 builder.writeln('  }');
               } else {
-                String code = utils.getNodeText(_method.body);
+                var code = utils.getNodeText(_method.body);
                 builder.writeln(code);
               }
             },
@@ -607,11 +605,11 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element == null) {
       return;
     }
-    String elementName = element.displayName;
+    var elementName = element.displayName;
 
     DartType type;
     if (element is MethodElement) {
@@ -628,7 +626,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         }
       }
     } else if (element is PropertyAccessorElement) {
-      PropertyInducingElement field = element.variable;
+      var field = element.variable;
       if (_isMemberOfEnclosingClass(field)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");

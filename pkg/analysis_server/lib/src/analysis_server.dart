@@ -184,8 +184,7 @@ class AnalysisServer extends AbstractAnalysisServer {
         sdkManager.defaultSdkDirectory,
         notificationManager,
         instrumentationService);
-    PluginWatcher pluginWatcher =
-        PluginWatcher(resourceProvider, pluginManager);
+    var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
     defaultContextOptions.contextFeatures =
         analyzer_features.FeatureSet.fromEnableFlags(
@@ -194,13 +193,13 @@ class AnalysisServer extends AbstractAnalysisServer {
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
     {
-      String name = options.newAnalysisDriverLog;
+      var name = options.newAnalysisDriverLog;
       StringSink sink = NullStringSink();
       if (name != null) {
         if (name == 'stdout') {
           sink = io.stdout;
         } else if (name.startsWith('file:')) {
-          String path = name.substring('file:'.length);
+          var path = name.substring('file:'.length);
           sink = FileStringSink(path);
         }
       }
@@ -227,7 +226,7 @@ class AnalysisServer extends AbstractAnalysisServer {
 
     contextManager = ContextManagerImpl(resourceProvider, sdkManager,
         analyzedFilesGlobs, instrumentationService, defaultContextOptions);
-    ServerContextManagerCallbacks contextManagerCallbacks =
+    var contextManagerCallbacks =
         ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
     _onAnalysisStartedController = StreamController.broadcast();
@@ -238,7 +237,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       });
     });
     searchEngine = SearchEngineImpl(driverMap.values);
-    Notification notification =
+    var notification =
         ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
@@ -290,7 +289,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Return one of the SDKs that has been created, or `null` if no SDKs have
   /// been created yet.
   DartSdk findSdk() {
-    DartSdk sdk = sdkManager.anySdk;
+    var sdk = sdkManager.anySdk;
     if (sdk != null) {
       return sdk;
     }
@@ -305,7 +304,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       return null;
     }
 
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    var driver = getAnalysisDriver(path);
     return driver?.getCachedResult(path);
   }
 
@@ -314,10 +313,10 @@ class AnalysisServer extends AbstractAnalysisServer {
     performance.logRequestTiming(request.clientRequestTime);
     runZonedGuarded(() {
       ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
-        int count = handlers.length;
-        for (int i = 0; i < count; i++) {
+        var count = handlers.length;
+        for (var i = 0; i < count; i++) {
           try {
-            Response response = handlers[i].handleRequest(request);
+            var response = handlers[i].handleRequest(request);
             if (response == Response.DELAYED_RESPONSE) {
               return;
             }
@@ -329,12 +328,12 @@ class AnalysisServer extends AbstractAnalysisServer {
             channel.sendResponse(exception.response);
             return;
           } catch (exception, stackTrace) {
-            RequestError error = RequestError(
+            var error = RequestError(
                 RequestErrorCode.SERVER_ERROR, exception.toString());
             if (stackTrace != null) {
               error.stackTrace = stackTrace.toString();
             }
-            Response response = Response(request.id, error: error);
+            var response = Response(request.id, error: error);
             channel.sendResponse(response);
             return;
           }
@@ -408,7 +407,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     /*StackTrace*/ stackTrace, {
     bool fatal = false,
   }) {
-    String msg = exception == null ? message : '$message: $exception';
+    var msg = exception == null ? message : '$message: $exception';
     if (stackTrace != null && exception is! CaughtException) {
       stackTrace = StackTrace.current;
     }
@@ -457,7 +456,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       return;
     }
     statusAnalyzing = status.isAnalyzing;
-    AnalysisStatus analysis = AnalysisStatus(status.isAnalyzing);
+    var analysis = AnalysisStatus(status.isAnalyzing);
     channel.sendNotification(
         ServerStatusParams(analysis: analysis).toNotification());
   }
@@ -494,9 +493,8 @@ class AnalysisServer extends AbstractAnalysisServer {
       notificationManager.setSubscriptions(subscriptions);
     }
     analysisServices = subscriptions;
-    Set<String> allNewFiles =
-        subscriptions.values.expand((files) => files).toSet();
-    for (String file in allNewFiles) {
+    var allNewFiles = subscriptions.values.expand((files) => files).toSet();
+    for (var file in allNewFiles) {
       // The result will be produced by the "results" stream with
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
@@ -509,9 +507,8 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Implementation for `flutter.setSubscriptions`.
   void setFlutterSubscriptions(Map<FlutterService, Set<String>> subscriptions) {
     flutterServices = subscriptions;
-    Set<String> allNewFiles =
-        subscriptions.values.expand((files) => files).toSet();
-    for (String file in allNewFiles) {
+    var allNewFiles = subscriptions.values.expand((files) => files).toSet();
+    for (var file in allNewFiles) {
       // The result will be produced by the "results" stream with
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
@@ -524,7 +521,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Implementation for `analysis.setGeneralSubscriptions`.
   void setGeneralAnalysisSubscriptions(
       List<GeneralAnalysisService> subscriptions) {
-    Set<GeneralAnalysisService> newServices = subscriptions.toSet();
+    var newServices = subscriptions.toSet();
     if (newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
         !generalAnalysisServices
             .contains(GeneralAnalysisService.ANALYZED_FILES) &&
@@ -675,7 +672,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       provider = (provider as OverlayResourceProvider).baseProvider;
     }
     if (provider is PhysicalResourceProvider) {
-      Folder stateLocation = provider.getStateLocation('.analysis-driver');
+      var stateLocation = provider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         return stateLocation.path;
       }
@@ -696,7 +693,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   Future<void> _scheduleAnalysisImplementedNotification() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    Set<String> files = analysisServices[AnalysisService.IMPLEMENTED];
+    var files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
       scheduleImplementedNotification(this, files);
     }
@@ -768,12 +765,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   nd.AnalysisDriver addAnalysisDriver(
       Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
-    ContextBuilder builder = createContextBuilder(folder, options);
-    nd.AnalysisDriver analysisDriver = builder.buildDriver(contextRoot);
+    var builder = createContextBuilder(folder, options);
+    var analysisDriver = builder.buildDriver(contextRoot);
     analysisDriver.results.listen((result) {
-      NotificationManager notificationManager =
-          analysisServer.notificationManager;
-      String path = result.path;
+      var notificationManager = analysisServer.notificationManager;
+      var path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         if (notificationManager != null) {
           notificationManager.recordAnalysisErrors(NotificationManager.serverId,
@@ -782,7 +778,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           new_sendErrorNotification(analysisServer, result);
         }
       }
-      CompilationUnit unit = result.unit;
+      var unit = result.unit;
       if (unit != null) {
         if (notificationManager != null) {
           if (analysisServer._hasAnalysisServiceSubscription(
@@ -893,7 +889,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    nd.AnalysisDriver analysisDriver = analysisServer.driverMap[contextFolder];
+    var analysisDriver = analysisServer.driverMap[contextFolder];
     if (analysisDriver != null) {
       changeSet.addedFiles.forEach((path) {
         analysisDriver.addFile(path);
@@ -924,10 +920,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
     String defaultPackageFilePath;
     String defaultPackagesDirectoryPath;
-    String path = (analysisServer.contextManager as ContextManagerImpl)
+    var path = (analysisServer.contextManager as ContextManagerImpl)
         .normalizedPackageRoots[folder.path];
     if (path != null) {
-      Resource resource = resourceProvider.getResource(path);
+      var resource = resourceProvider.getResource(path);
       if (resource.exists) {
         if (resource is File) {
           defaultPackageFilePath = path;
@@ -937,11 +933,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
     }
 
-    ContextBuilderOptions builderOptions = ContextBuilderOptions();
+    var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    ContextBuilder builder = ContextBuilder(
+    var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
@@ -954,7 +950,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
-    nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
+    var driver = analysisServer.driverMap.remove(folder);
     driver.dispose();
   }
 
@@ -968,7 +964,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   server.AnalysisNavigationParams _computeNavigationParams(
       String path, CompilationUnit unit) {
-    NavigationCollectorImpl collector = NavigationCollectorImpl();
+    var collector = NavigationCollectorImpl();
     computeDartNavigation(resourceProvider, collector, unit, null, null);
     collector.createRegions();
     return server.AnalysisNavigationParams(
@@ -976,7 +972,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   List<Occurrences> _computeOccurrences(CompilationUnit unit) {
-    OccurrencesCollectorImpl collector = OccurrencesCollectorImpl();
+    var collector = OccurrencesCollectorImpl();
     addDartOccurrences(collector, unit);
     return collector.allOccurrences;
   }
@@ -1038,7 +1034,7 @@ class ServerPerformance {
   void logRequestTiming(int clientRequestTime) {
     ++requestCount;
     if (clientRequestTime != null) {
-      int latency = DateTime.now().millisecondsSinceEpoch - clientRequestTime;
+      var latency = DateTime.now().millisecondsSinceEpoch - clientRequestTime;
       ++latencyCount;
       requestLatency += latency;
       maxLatency = max(maxLatency, latency);

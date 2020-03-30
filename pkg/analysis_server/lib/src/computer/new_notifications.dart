@@ -15,7 +15,7 @@ void new_sendDartNotificationNavigation(
     AnalysisServer analysisServer, ResolvedUnitResult result) {
   var unit = result.unit;
   if (unit != null) {
-    NavigationCollectorImpl collector = NavigationCollectorImpl();
+    var collector = NavigationCollectorImpl();
     computeDartNavigation(
         analysisServer.resourceProvider, collector, unit, null, null);
     collector.createRegions();
@@ -29,7 +29,7 @@ void new_sendDartNotificationOccurrences(
     AnalysisServer analysisServer, ResolvedUnitResult result) {
   var unit = result.unit;
   if (unit != null) {
-    OccurrencesCollectorImpl collector = OccurrencesCollectorImpl();
+    var collector = OccurrencesCollectorImpl();
     addDartOccurrences(collector, unit);
     var params = protocol.AnalysisOccurrencesParams(
         result.path, collector.allOccurrences);

@@ -81,7 +81,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     }
     if (optype.includeReturnValueSuggestions) {
       if (element.isEnum) {
-        String enumName = element.displayName;
+        var enumName = element.displayName;
         var useNewRelevance = request.useNewRelevance;
         int relevance;
         if (useNewRelevance) {
@@ -140,7 +140,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     if (element.enclosingElement is! CompilationUnitElement) {
       return;
     }
-    DartType returnType = element.returnType;
+    var returnType = element.returnType;
     var useNewRelevance = request.useNewRelevance;
     int relevance;
     if (useNewRelevance) {
@@ -242,8 +242,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   /// Add constructor suggestions for the given class.
   void _addConstructorSuggestions(
       ClassElement classElem, int relevance, bool useNewRelevance) {
-    String className = classElem.name;
-    for (ConstructorElement constructor in classElem.constructors) {
+    var className = classElem.name;
+    for (var constructor in classElem.constructors) {
       if (constructor.isPrivate) {
         continue;
       }
@@ -251,10 +251,10 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         continue;
       }
 
-      CompletionSuggestion suggestion = createSuggestion(constructor,
+      var suggestion = createSuggestion(constructor,
           relevance: relevance, useNewRelevance: useNewRelevance);
       if (suggestion != null) {
-        String name = suggestion.completion;
+        var name = suggestion.completion;
         name = name.isNotEmpty ? '$className.$name' : className;
         if (prefix != null && prefix.isNotEmpty) {
           name = '$prefix.$name';

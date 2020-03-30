@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -128,7 +127,7 @@ class ContextInfo {
 
   /// Iterate through all [children] and their children, recursively.
   Iterable<ContextInfo> get descendants sync* {
-    for (ContextInfo child in children) {
+    for (var child in children) {
       yield child;
       yield* child.descendants;
     }
@@ -152,7 +151,7 @@ class ContextInfo {
   /// Return the first [ContextInfo] in [children] whose associated folder is or
   /// contains [path].  If there is no such [ContextInfo], return `null`.
   ContextInfo findChildInfoFor(String path) {
-    for (ContextInfo info in children) {
+    for (var info in children) {
       if (info.folder.isOrContains(path)) {
         return info;
       }
@@ -181,7 +180,7 @@ class ContextInfo {
   /// any of its children.
   bool _managesOrHasChildThatManages(String path) {
     if (parent == null) {
-      for (ContextInfo child in children) {
+      for (var child in children) {
         if (child._managesOrHasChildThatManages(path)) {
           return true;
         }
@@ -191,7 +190,7 @@ class ContextInfo {
       if (!folder.isOrContains(path)) {
         return false;
       }
-      for (ContextInfo child in children) {
+      for (var child in children) {
         if (child._managesOrHasChildThatManages(path)) {
           return true;
         }
@@ -426,7 +425,7 @@ class ContextManagerImpl implements ContextManager {
 
   /// For testing: get the [ContextInfo] object for the given [folder], if any.
   ContextInfo getContextInfoFor(Folder folder) {
-    ContextInfo info = _getInnermostContextInfoFor(folder.path);
+    var info = _getInnermostContextInfoFor(folder.path);
     if (info != null && folder == info.folder) {
       return info;
     }
@@ -440,19 +439,19 @@ class ContextManagerImpl implements ContextManager {
 
   @override
   List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot) {
-    List<AnalysisDriver> drivers = <AnalysisDriver>[];
+    var drivers = <AnalysisDriver>[];
     void addContextAndDescendants(ContextInfo info) {
       drivers.add(info.analysisDriver);
       info.children.forEach(addContextAndDescendants);
     }
 
-    ContextInfo innermostContainingInfo =
+    var innermostContainingInfo =
         _getInnermostContextInfoFor(analysisRoot.path);
     if (innermostContainingInfo != null) {
       if (analysisRoot == innermostContainingInfo.folder) {
         addContextAndDescendants(innermostContainingInfo);
       } else {
-        for (ContextInfo info in innermostContainingInfo.children) {
+        for (var info in innermostContainingInfo.children) {
           if (analysisRoot.isOrContains(info.folder.path)) {
             addContextAndDescendants(info);
           }
@@ -466,13 +465,13 @@ class ContextManagerImpl implements ContextManager {
   /// context root, contains a folder whose name starts with '.'.
   @override
   bool isContainedInDotFolder(String path) {
-    ContextInfo info = _getInnermostContextInfoFor(path);
+    var info = _getInnermostContextInfoFor(path);
     return info != null && _isContainedInDotFolder(info.folder.path, path);
   }
 
   @override
   bool isIgnored(String path) {
-    ContextInfo info = rootInfo;
+    var info = rootInfo;
     do {
       info = info.findChildInfoFor(path);
       if (info == null) {
@@ -491,7 +490,7 @@ class ContextManagerImpl implements ContextManager {
       return false;
     }
     // check if in one of the roots
-    for (ContextInfo info in rootInfo.children) {
+    for (var info in rootInfo.children) {
       if (info.folder.contains(path)) {
         return true;
       }
@@ -502,19 +501,19 @@ class ContextManagerImpl implements ContextManager {
 
   @override
   int numberOfContextsInAnalysisRoot(Folder analysisRoot) {
-    int count = 0;
+    var count = 0;
     void addContextAndDescendants(ContextInfo info) {
       count++;
       info.children.forEach(addContextAndDescendants);
     }
 
-    ContextInfo innermostContainingInfo =
+    var innermostContainingInfo =
         _getInnermostContextInfoFor(analysisRoot.path);
     if (innermostContainingInfo != null) {
       if (analysisRoot == innermostContainingInfo.folder) {
         addContextAndDescendants(innermostContainingInfo);
       } else {
-        for (ContextInfo info in innermostContainingInfo.children) {
+        for (var info in innermostContainingInfo.children) {
           if (analysisRoot.isOrContains(info.folder.path)) {
             addContextAndDescendants(info);
           }
@@ -532,7 +531,7 @@ class ContextManagerImpl implements ContextManager {
     }
 
     // Check for embedded options.
-    YamlMap embeddedOptions = _getEmbeddedOptions(info);
+    var embeddedOptions = _getEmbeddedOptions(info);
     if (embeddedOptions != null) {
       options = Merger().merge(embeddedOptions, options);
     }
@@ -548,7 +547,7 @@ class ContextManagerImpl implements ContextManager {
   @override
   void refresh(List<Resource> roots) {
     // Destroy old contexts
-    List<ContextInfo> contextInfos = rootInfo.descendants.toList();
+    var contextInfos = rootInfo.descendants.toList();
     if (roots == null) {
       contextInfos.forEach(_destroyContext);
     } else {
@@ -581,26 +580,25 @@ class ContextManagerImpl implements ContextManager {
     // filesystem.  Ignore any package root sources that aren't folders.
     normalizedPackageRoots = <String, String>{};
     packageRoots.forEach((String sourcePath, String targetPath) {
-      Resource resource = resourceProvider.getResource(sourcePath);
+      var resource = resourceProvider.getResource(sourcePath);
       if (resource is Folder) {
         normalizedPackageRoots[resource.path] = targetPath;
       }
     });
 
-    List<ContextInfo> contextInfos = rootInfo.descendants.toList();
+    var contextInfos = rootInfo.descendants.toList();
     // included
-    List<Folder> includedFolders = <Folder>[];
+    var includedFolders = <Folder>[];
     {
       // Sort paths to ensure that outer roots are handled before inner roots,
       // so we can correctly ignore inner roots, which are already managed
       // by outer roots.
-      LinkedHashSet<String> uniqueIncludedPaths =
-          LinkedHashSet<String>.from(includedPaths);
-      List<String> sortedIncludedPaths = uniqueIncludedPaths.toList();
+      var uniqueIncludedPaths = LinkedHashSet<String>.from(includedPaths);
+      var sortedIncludedPaths = uniqueIncludedPaths.toList();
       sortedIncludedPaths.sort((a, b) => a.length - b.length);
       // Convert paths to folders.
-      for (String path in sortedIncludedPaths) {
-        Resource resource = resourceProvider.getResource(path);
+      for (var path in sortedIncludedPaths) {
+        var resource = resourceProvider.getResource(path);
         if (resource is Folder) {
           includedFolders.add(resource);
         } else if (!resource.exists) {
@@ -616,11 +614,11 @@ class ContextManagerImpl implements ContextManager {
     }
     this.includedPaths = includedPaths;
     // excluded
-    List<String> oldExcludedPaths = this.excludedPaths;
+    var oldExcludedPaths = this.excludedPaths;
     this.excludedPaths = excludedPaths;
     // destroy old contexts
-    for (ContextInfo contextInfo in contextInfos) {
-      bool isIncluded = includedFolders.any((folder) {
+    for (var contextInfo in contextInfos) {
+      var isIncluded = includedFolders.any((folder) {
         return folder.isOrContains(contextInfo.folder.path);
       });
       if (!isIncluded) {
@@ -628,26 +626,26 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     // Update package roots for existing contexts
-    for (ContextInfo info in rootInfo.descendants) {
-      String newPackageRoot = normalizedPackageRoots[info.folder.path];
+    for (var info in rootInfo.descendants) {
+      var newPackageRoot = normalizedPackageRoots[info.folder.path];
       if (info.packageRoot != newPackageRoot) {
         info.packageRoot = newPackageRoot;
         _recomputeFolderDisposition(info);
       }
     }
     // create new contexts
-    for (Folder includedFolder in includedFolders) {
-      String includedPath = includedFolder.path;
-      bool isManaged = rootInfo._managesOrHasChildThatManages(includedPath);
+    for (var includedFolder in includedFolders) {
+      var includedPath = includedFolder.path;
+      var isManaged = rootInfo._managesOrHasChildThatManages(includedPath);
       if (!isManaged) {
-        ContextInfo parent = _getParentForNewContext(includedPath);
+        var parent = _getParentForNewContext(includedPath);
         changeSubscriptions[includedFolder] = includedFolder.changes
             .listen(_handleWatchEvent, onError: _handleWatchInterruption);
         _createContexts(parent, includedFolder, excludedPaths, false);
       }
     }
     // remove newly excluded sources
-    for (ContextInfo info in rootInfo.descendants) {
+    for (var info in rootInfo.descendants) {
       // prepare excluded sources
       Map<String, Source> excludedSources = HashMap<String, Source>();
       info.sources.forEach((String path, Source source) {
@@ -657,7 +655,7 @@ class ContextManagerImpl implements ContextManager {
         }
       });
       // apply exclusion
-      ChangeSet changeSet = ChangeSet();
+      var changeSet = ChangeSet();
       excludedSources.forEach((String path, Source source) {
         info.sources.remove(path);
         changeSet.removedSource(path);
@@ -665,8 +663,8 @@ class ContextManagerImpl implements ContextManager {
       callbacks.applyChangesToContext(info.folder, changeSet);
     }
     // add previously excluded sources
-    for (ContextInfo info in rootInfo.descendants) {
-      ChangeSet changeSet = ChangeSet();
+    for (var info in rootInfo.descendants) {
+      var changeSet = ChangeSet();
       _addPreviouslyExcludedSources(
           info, changeSet, info.folder, oldExcludedPaths);
       callbacks.applyChangesToContext(info.folder, changeSet);
@@ -687,8 +685,8 @@ class ContextManagerImpl implements ContextManager {
       // do.
       return;
     }
-    for (Resource child in children) {
-      String path = child.path;
+    for (var child in children) {
+      var path = child.path;
       // Path is being ignored.
       if (info.ignored(path)) {
         continue;
@@ -700,13 +698,13 @@ class ContextManagerImpl implements ContextManager {
           continue;
         }
         // ignore if was not excluded
-        bool wasExcluded = _isExcludedBy(oldExcludedPaths, path) &&
+        var wasExcluded = _isExcludedBy(oldExcludedPaths, path) &&
             !_isExcludedBy(excludedPaths, path);
         if (!wasExcluded) {
           continue;
         }
         // do add the file
-        Source source = createSourceInContext(info.analysisDriver, child);
+        var source = createSourceInContext(info.analysisDriver, child);
         changeSet.addedSource(child.path);
         info.sources[path] = source;
       } else if (child is Folder) {
@@ -730,8 +728,8 @@ class ContextManagerImpl implements ContextManager {
       // are no children that need to be added.
       return;
     }
-    for (Resource child in children) {
-      String path = child.path;
+    for (var child in children) {
+      var path = child.path;
       // ignore excluded files or folders
       if (_isExcluded(path) || info.excludes(path) || info.ignored(path)) {
         continue;
@@ -739,7 +737,7 @@ class ContextManagerImpl implements ContextManager {
       // add files, recurse into folders
       if (child is File) {
         if (_shouldFileBeAnalyzed(child)) {
-          Source source = createSourceInContext(info.analysisDriver, child);
+          var source = createSourceInContext(info.analysisDriver, child);
           changeSet.addedSource(child.path);
           info.sources[path] = source;
         }
@@ -754,13 +752,13 @@ class ContextManagerImpl implements ContextManager {
   void _analyzeAnalysisOptionsFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
     try {
-      String content = _readFile(path);
-      LineInfo lineInfo = _computeLineInfo(content);
-      List<AnalysisError> errors = analyzeAnalysisOptions(
+      var content = _readFile(path);
+      var lineInfo = _computeLineInfo(content);
+      var errors = analyzeAnalysisOptions(
           resourceProvider.getFile(path).createSource(),
           content,
           driver.sourceFactory);
-      AnalyzerConverter converter = AnalyzerConverter();
+      var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
           lineInfo: lineInfo, options: driver.analysisOptions);
     } catch (exception) {
@@ -778,13 +776,13 @@ class ContextManagerImpl implements ContextManager {
   void _analyzeManifestFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
     try {
-      String content = _readFile(path);
-      ManifestValidator validator =
+      var content = _readFile(path);
+      var validator =
           ManifestValidator(resourceProvider.getFile(path).createSource());
-      LineInfo lineInfo = _computeLineInfo(content);
-      List<AnalysisError> errors = validator.validate(
+      var lineInfo = _computeLineInfo(content);
+      var errors = validator.validate(
           content, driver.analysisOptions.chromeOsManifestChecks);
-      AnalyzerConverter converter = AnalyzerConverter();
+      var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
           lineInfo: lineInfo, options: driver.analysisOptions);
     } catch (exception) {
@@ -802,14 +800,14 @@ class ContextManagerImpl implements ContextManager {
   void _analyzePubspecFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
     try {
-      String content = _readFile(path);
-      YamlNode node = loadYamlNode(content);
+      var content = _readFile(path);
+      var node = loadYamlNode(content);
       if (node is YamlMap) {
-        PubspecValidator validator = PubspecValidator(
+        var validator = PubspecValidator(
             resourceProvider, resourceProvider.getFile(path).createSource());
-        LineInfo lineInfo = _computeLineInfo(content);
-        List<AnalysisError> errors = validator.validate(node.nodes);
-        AnalyzerConverter converter = AnalyzerConverter();
+        var lineInfo = _computeLineInfo(content);
+        var errors = validator.validate(node.nodes);
+        var converter = AnalyzerConverter();
         convertedErrors = converter.convertAnalysisErrors(errors,
             lineInfo: lineInfo, options: driver.analysisOptions);
       }
@@ -825,7 +823,7 @@ class ContextManagerImpl implements ContextManager {
 
   void _checkForAnalysisOptionsUpdate(String path, ContextInfo info) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
-      AnalysisDriver driver = info.analysisDriver;
+      var driver = info.analysisDriver;
       if (driver == null) {
         // I suspect that this happens as a result of a race condition: server
         // has determined that the file (at [path]) is in a context, but hasn't
@@ -840,7 +838,7 @@ class ContextManagerImpl implements ContextManager {
 
   void _checkForManifestUpdate(String path, ContextInfo info) {
     if (_isManifest(path)) {
-      AnalysisDriver driver = info.analysisDriver;
+      var driver = info.analysisDriver;
       if (driver == null) {
         // I suspect that this happens as a result of a race condition: server
         // has determined that the file (at [path]) is in a context, but hasn't
@@ -855,7 +853,7 @@ class ContextManagerImpl implements ContextManager {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
     if (pathContext.basename(path) == PACKAGE_SPEC_NAME) {
-      AnalysisDriver driver = info.analysisDriver;
+      var driver = info.analysisDriver;
       if (driver == null) {
         // I suspect that this happens as a result of a race condition: server
         // has determined that the file (at [path]) is in a context, but hasn't
@@ -869,7 +867,7 @@ class ContextManagerImpl implements ContextManager {
 
   void _checkForPubspecUpdate(String path, ContextInfo info) {
     if (_isPubspec(path)) {
-      AnalysisDriver driver = info.analysisDriver;
+      var driver = info.analysisDriver;
       if (driver == null) {
         // I suspect that this happens as a result of a race condition: server
         // has determined that the file (at [path]) is in a context, but hasn't
@@ -886,9 +884,9 @@ class ContextManagerImpl implements ContextManager {
   /// orphaned by this context being removed (no other context includes this
   /// file.)
   List<String> _computeFlushedFiles(ContextInfo info) {
-    Set<String> flushedFiles = info.analysisDriver.addedFiles.toSet();
-    for (ContextInfo contextInfo in rootInfo.descendants) {
-      AnalysisDriver other = contextInfo.analysisDriver;
+    var flushedFiles = info.analysisDriver.addedFiles.toSet();
+    for (var contextInfo in rootInfo.descendants) {
+      var other = contextInfo.analysisDriver;
       if (other != info.analysisDriver) {
         flushedFiles.removeAll(other.addedFiles);
       }
@@ -905,14 +903,14 @@ class ContextManagerImpl implements ContextManager {
   /// dependencies (currently we only use it to track "pub list" dependencies).
   FolderDisposition _computeFolderDisposition(Folder folder,
       void Function(String path) addDependency, File packagespecFile) {
-    String packageRoot = normalizedPackageRoots[folder.path];
+    var packageRoot = normalizedPackageRoots[folder.path];
     if (packageRoot != null) {
       // TODO(paulberry): We shouldn't be using JavaFile here because it
       // makes the code untestable (see dartbug.com/23909).
-      JavaFile packagesDirOrFile = JavaFile(packageRoot);
-      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
+      var packagesDirOrFile = JavaFile(packageRoot);
+      var packageMap = <String, List<Folder>>{};
       if (packagesDirOrFile.isDirectory()) {
-        for (JavaFile file in packagesDirOrFile.listFiles()) {
+        for (var file in packagesDirOrFile.listFiles()) {
           // Ensure symlinks in packages directory are canonicalized
           // to prevent 'type X cannot be assigned to type X' warnings
           String path;
@@ -923,15 +921,15 @@ class ContextManagerImpl implements ContextManager {
             _instrumentationService.logException(e, s);
             continue;
           }
-          Resource res = resourceProvider.getResource(path);
+          var res = resourceProvider.getResource(path);
           if (res is Folder) {
             packageMap[file.getName()] = <Folder>[res];
           }
         }
         return PackageMapDisposition(packageMap, packageRoot: packageRoot);
       } else if (packagesDirOrFile.isFile()) {
-        File packageSpecFile = resourceProvider.getFile(packageRoot);
-        Packages packages = parsePackagesFile(
+        var packageSpecFile = resourceProvider.getFile(packageRoot);
+        var packages = parsePackagesFile(
           resourceProvider,
           packageSpecFile,
         );
@@ -948,7 +946,7 @@ class ContextManagerImpl implements ContextManager {
     } else {
       // Try .packages first.
       if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-        Packages packages = parsePackagesFile(
+        var packages = parsePackagesFile(
           resourceProvider,
           packagespecFile,
         );
@@ -961,7 +959,7 @@ class ContextManagerImpl implements ContextManager {
 
   /// Compute line information for the given [content].
   LineInfo _computeLineInfo(String content) {
-    List<int> lineStarts = StringUtilities.computeLineStarts(content);
+    var lineStarts = StringUtilities.computeLineStarts(content);
     return LineInfo(lineStarts);
   }
 
@@ -975,11 +973,11 @@ class ContextManagerImpl implements ContextManager {
       }
     }
 
-    List<UriResolver> resolvers = <UriResolver>[
+    var resolvers = <UriResolver>[
       ResourceUriResolver(resourceProvider),
       PackageMapUriResolver(resourceProvider, packageMap),
     ];
-    SourceFactory sourceFactory = SourceFactory(resolvers);
+    var sourceFactory = SourceFactory(resolvers);
     return AnalysisOptionsProvider(sourceFactory);
   }
 
@@ -987,17 +985,16 @@ class ContextManagerImpl implements ContextManager {
   /// [parent] and using [packagesFile] to resolve package URI's.
   ContextInfo _createContext(ContextInfo parent, Folder folder,
       List<String> excludedPaths, File packagesFile) {
-    List<String> dependencies = <String>[];
-    FolderDisposition disposition =
+    var dependencies = <String>[];
+    var disposition =
         _computeFolderDisposition(folder, dependencies.add, packagesFile);
-    ContextInfo info = ContextInfo(this, parent, folder, packagesFile,
+    var info = ContextInfo(this, parent, folder, packagesFile,
         normalizedPackageRoots[folder.path], disposition);
 
     File optionsFile;
     YamlMap optionMap;
     try {
-      AnalysisOptionsProvider provider =
-          _createAnalysisOptionsProvider(disposition.packages);
+      var provider = _createAnalysisOptionsProvider(disposition.packages);
       optionsFile = provider.getOptionsFile(info.folder, crawlUp: true);
       if (optionsFile != null) {
         optionMap = provider.getOptionsFromFile(optionsFile);
@@ -1009,13 +1006,13 @@ class ContextManagerImpl implements ContextManager {
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);
-    String includedPath = folder.path;
-    List<String> containedExcludedPaths = excludedPaths
+    var includedPath = folder.path;
+    var containedExcludedPaths = excludedPaths
         .where((String excludedPath) =>
             pathContext.isWithin(includedPath, excludedPath))
         .toList();
     processOptionsForDriver(info, options, optionMap);
-    ContextRoot contextRoot = ContextRoot(folder.path, containedExcludedPaths,
+    var contextRoot = ContextRoot(folder.path, containedExcludedPaths,
         pathContext: pathContext);
     if (optionsFile != null) {
       contextRoot.optionsFilePath = optionsFile.path;
@@ -1025,7 +1022,7 @@ class ContextManagerImpl implements ContextManager {
     if (optionsFile != null) {
       _analyzeAnalysisOptionsFile(info.analysisDriver, optionsFile.path);
     }
-    File pubspecFile = folder.getChildAssumingFile(PUBSPEC_NAME);
+    var pubspecFile = folder.getChildAssumingFile(PUBSPEC_NAME);
     if (pubspecFile.exists) {
       _analyzePubspecFile(info.analysisDriver, pubspecFile.path);
     }
@@ -1071,8 +1068,8 @@ class ContextManagerImpl implements ContextManager {
     }
     // Decide whether a context needs to be created for [folder] here, and if
     // so, create it.
-    File packageSpec = _findPackageSpecFile(folder);
-    bool createContext = packageSpec.exists || !withPackageSpecOnly;
+    var packageSpec = _findPackageSpecFile(folder);
+    var createContext = packageSpec.exists || !withPackageSpecOnly;
     if (withPackageSpecOnly &&
         packageSpec.exists &&
         parent != null &&
@@ -1086,7 +1083,7 @@ class ContextManagerImpl implements ContextManager {
 
     // Try to find subfolders with pubspecs or .packages files.
     try {
-      for (Resource child in folder.getChildren()) {
+      for (var child in folder.getChildren()) {
         if (child is Folder) {
           if (!parent.ignored(child.path)) {
             _createContexts(parent, child, excludedPaths, true);
@@ -1101,7 +1098,7 @@ class ContextManagerImpl implements ContextManager {
     if (createContext) {
       // Now that the child contexts have been created, add the sources that
       // don't belong to the children.
-      ChangeSet changeSet = ChangeSet();
+      var changeSet = ChangeSet();
       _addSourceFiles(changeSet, folder, parent);
       callbacks.applyChangesToContext(folder, changeSet);
     }
@@ -1110,7 +1107,7 @@ class ContextManagerImpl implements ContextManager {
   /// Set up a [SourceFactory] that resolves packages as appropriate for the
   /// given [folder].
   SourceFactory _createSourceFactory(AnalysisOptions options, Folder folder) {
-    ContextBuilder builder = callbacks.createContextBuilder(folder, options);
+    var builder = callbacks.createContextBuilder(folder, options);
     return builder.createSourceFactory(folder.path, options);
   }
 
@@ -1118,14 +1115,14 @@ class ContextManagerImpl implements ContextManager {
   void _destroyContext(ContextInfo info) {
     changeSubscriptions.remove(info.folder)?.cancel();
     callbacks.removeContext(info.folder, _computeFlushedFiles(info));
-    bool wasRemoved = info.parent.children.remove(info);
+    var wasRemoved = info.parent.children.remove(info);
     assert(wasRemoved);
   }
 
   /// Extract a new [packagespecFile]-based context from [oldInfo].
   void _extractContext(ContextInfo oldInfo, File packagespecFile) {
-    Folder newFolder = packagespecFile.parent;
-    ContextInfo newInfo =
+    var newFolder = packagespecFile.parent;
+    var newInfo =
         _createContext(oldInfo, newFolder, excludedPaths, packagespecFile);
     // prepare sources to extract
     Map<String, Source> extractedSources = HashMap<String, Source>();
@@ -1136,7 +1133,7 @@ class ContextManagerImpl implements ContextManager {
     });
     // update new context
     {
-      ChangeSet changeSet = ChangeSet();
+      var changeSet = ChangeSet();
       extractedSources.forEach((path, source) {
         newInfo.sources[path] = source;
         changeSet.addedSource(path);
@@ -1145,7 +1142,7 @@ class ContextManagerImpl implements ContextManager {
     }
     // update old context
     {
-      ChangeSet changeSet = ChangeSet();
+      var changeSet = ChangeSet();
       extractedSources.forEach((path, source) {
         oldInfo.sources.remove(path);
         changeSet.removedSource(path);
@@ -1183,9 +1180,8 @@ class ContextManagerImpl implements ContextManager {
   /// Returns null if there are no embedded/configured options.
   YamlMap _getEmbeddedOptions(ContextInfo info) {
     Map embeddedOptions;
-    EmbedderYamlLocator locator =
-        info.disposition.getEmbedderLocator(resourceProvider);
-    Iterable<YamlMap> maps = locator.embedderYamls.values;
+    var locator = info.disposition.getEmbedderLocator(resourceProvider);
+    var maps = locator.embedderYamls.values;
     if (maps.length == 1) {
       embeddedOptions = maps.first;
     }
@@ -1200,12 +1196,12 @@ class ContextManagerImpl implements ContextManager {
   ///
   /// If no context contains the given path, `null` is returned.
   ContextInfo _getInnermostContextInfoFor(String path) {
-    ContextInfo info = rootInfo.findChildInfoFor(path);
+    var info = rootInfo.findChildInfoFor(path);
     if (info == null) {
       return null;
     }
     while (true) {
-      ContextInfo childInfo = info.findChildInfoFor(path);
+      var childInfo = info.findChildInfoFor(path);
       if (childInfo == null) {
         return info;
       }
@@ -1215,7 +1211,7 @@ class ContextManagerImpl implements ContextManager {
 
   /// Return the parent for a new [ContextInfo] with the given [path] folder.
   ContextInfo _getParentForNewContext(String path) {
-    ContextInfo parent = _getInnermostContextInfoFor(path);
+    var parent = _getInnermostContextInfoFor(path);
     if (parent != null) {
       return parent;
     }
@@ -1234,9 +1230,9 @@ class ContextManagerImpl implements ContextManager {
     // but implicitly referenced in another context, we will only send a
     // changeSet to the context that explicitly includes the file (because
     // that's the only context that's watching the file).
-    String path = event.path;
-    ChangeType type = event.type;
-    ContextInfo info = _getInnermostContextInfoFor(path);
+    var path = event.path;
+    var type = event.type;
+    var info = _getInnermostContextInfoFor(path);
     if (info == null) {
       // This event doesn't apply to any context.  This could happen due to a
       // race condition (e.g. a context was removed while one of its events was
@@ -1267,9 +1263,9 @@ class ContextManagerImpl implements ContextManager {
     // handle the change
     switch (type) {
       case ChangeType.ADD:
-        Resource resource = resourceProvider.getResource(path);
+        var resource = resourceProvider.getResource(path);
 
-        String directoryPath = pathContext.dirname(path);
+        var directoryPath = pathContext.dirname(path);
 
         // Check to see if we need to create a new context.
         if (info.isTopLevel) {
@@ -1311,7 +1307,7 @@ class ContextManagerImpl implements ContextManager {
         // contexts. Note that it's important to verify that there is NEITHER a
         // .packages nor a lingering pubspec.yaml before merging.
         if (!info.isTopLevel) {
-          String directoryPath = pathContext.dirname(path);
+          var directoryPath = pathContext.dirname(path);
 
           // Only merge if this is the same directory described by our info
           // object.
@@ -1337,17 +1333,17 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
-        Resource resource = resourceProvider.getResource(path);
+        var resource = resourceProvider.getResource(path);
         if (resource is File &&
             _shouldFileBeAnalyzed(resource, mustExist: false)) {
           callbacks.applyFileRemoved(info.analysisDriver, path);
         }
         break;
       case ChangeType.MODIFY:
-        Resource resource = resourceProvider.getResource(path);
+        var resource = resourceProvider.getResource(path);
         if (resource is File) {
           if (_shouldFileBeAnalyzed(resource)) {
-            for (AnalysisDriver driver in driverMap.values) {
+            for (var driver in driverMap.values) {
               driver.changeFile(path);
             }
             break;
@@ -1372,11 +1368,11 @@ class ContextManagerImpl implements ContextManager {
   /// Determine whether the given [path], when interpreted relative to the
   /// context root [root], contains a folder whose name starts with '.'.
   bool _isContainedInDotFolder(String root, String path) {
-    String pathDir = pathContext.dirname(path);
-    String rootPrefix = root + pathContext.separator;
+    var pathDir = pathContext.dirname(path);
+    var rootPrefix = root + pathContext.separator;
     if (pathDir.startsWith(rootPrefix)) {
-      String suffixPath = pathDir.substring(rootPrefix.length);
-      for (String pathComponent in pathContext.split(suffixPath)) {
+      var suffixPath = pathDir.substring(rootPrefix.length);
+      for (var pathComponent in pathContext.split(suffixPath)) {
         if (pathComponent.startsWith('.')) {
           return true;
         }
@@ -1401,9 +1397,9 @@ class ContextManagerImpl implements ContextManager {
   /// Determine whether the given [path] is in the direct 'doc' folder of the
   /// context root [root].
   bool _isInTopLevelDocDir(String root, String path) {
-    String rootPrefix = root + pathContext.separator;
+    var rootPrefix = root + pathContext.separator;
     if (path.startsWith(rootPrefix)) {
-      String suffix = path.substring(rootPrefix.length);
+      var suffix = path.substring(rootPrefix.length);
       return suffix == DOC_DIR_NAME ||
           suffix.startsWith(DOC_DIR_NAME + pathContext.separator);
     }
@@ -1422,10 +1418,10 @@ class ContextManagerImpl implements ContextManager {
     // destroy the context
     _destroyContext(info);
     // add files to the parent context
-    ContextInfo parentInfo = info.parent;
+    var parentInfo = info.parent;
     if (parentInfo != null) {
       parentInfo.children.remove(info);
-      ChangeSet changeSet = ChangeSet();
+      var changeSet = ChangeSet();
       info.sources.forEach((path, source) {
         parentInfo.sources[path] = source;
         changeSet.addedSource(path);
@@ -1447,14 +1443,14 @@ class ContextManagerImpl implements ContextManager {
     // asynchronous API call, we'll want to suspend analysis for this context
     // while we're rerunning "pub list", since any analysis we complete while
     // "pub list" is in progress is just going to get thrown away anyhow.
-    List<String> dependencies = <String>[];
+    var dependencies = <String>[];
     info.setDependencies(dependencies);
     _updateContextPackageUriResolver(info.folder);
   }
 
   /// Return `true` if the given [file] should be analyzed.
   bool _shouldFileBeAnalyzed(File file, {bool mustExist = true}) {
-    for (Glob glob in analyzedFilesGlobs) {
+    for (var glob in analyzedFilesGlobs) {
       if (glob.matches(file.path)) {
         // Emacs creates dummy links to track the fact that a file is open for
         // editing and has unsaved changes (e.g. having unsaved changes to
@@ -1469,21 +1465,21 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _updateAnalysisOptions(ContextInfo info) {
-    AnalysisDriver driver = info.analysisDriver;
-    String contextRoot = info.folder.path;
-    ContextBuilder builder =
+    var driver = info.analysisDriver;
+    var contextRoot = info.folder.path;
+    var builder =
         callbacks.createContextBuilder(info.folder, defaultContextOptions);
-    AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
+    var options = builder.getAnalysisOptions(contextRoot,
         contextRoot: driver.contextRoot);
-    SourceFactory factory = builder.createSourceFactory(contextRoot, options);
+    var factory = builder.createSourceFactory(contextRoot, options);
     driver.configure(analysisOptions: options, sourceFactory: factory);
     callbacks.analysisOptionsUpdated(driver);
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {
-    ContextInfo info = getContextInfoFor(contextFolder);
-    AnalysisDriver driver = info.analysisDriver;
-    SourceFactory sourceFactory =
+    var info = getContextInfoFor(contextFolder);
+    var driver = info.analysisDriver;
+    var sourceFactory =
         _createSourceFactory(driver.analysisOptions, contextFolder);
     driver.configure(sourceFactory: sourceFactory);
   }
@@ -1493,11 +1489,11 @@ class ContextManagerImpl implements ContextManager {
   static Source createSourceInContext(AnalysisDriver driver, File file) {
     // TODO(brianwilkerson) Optimize this, by allowing support for source
     // factories to restore URI's from a file path rather than a source.
-    Source source = file.createSource();
+    var source = file.createSource();
     if (driver == null) {
       return source;
     }
-    Uri uri = driver.sourceFactory.restoreUri(source);
+    var uri = driver.sourceFactory.restoreUri(source);
     return file.createSource(uri);
   }
 }
@@ -1621,7 +1617,7 @@ class PackagesFileDisposition extends FolderDisposition {
   Iterable<UriResolver> createPackageUriResolvers(
       ResourceProvider resourceProvider) {
     if (packages != null) {
-      Map<String, List<Folder>> packageMap = buildPackageMap(resourceProvider);
+      var packageMap = buildPackageMap(resourceProvider);
       return <UriResolver>[
         PackageMapUriResolver(resourceProvider, packageMap),
       ];

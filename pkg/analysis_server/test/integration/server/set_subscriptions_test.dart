@@ -36,8 +36,8 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
         'This test times out on the bots and has been disabled to keep them green.'
         'We need to discover the cause and re-enable it.');
 
-    bool statusReceived = false;
-    Completer analysisBegun = Completer();
+    var statusReceived = false;
+    var analysisBegun = Completer();
     onServerStatus.listen((_) {
       statusReceived = true;
     });
@@ -47,7 +47,7 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
       }
     });
     return sendServerSetSubscriptions([]).then((_) {
-      String pathname = sourcePath('test.dart');
+      var pathname = sourcePath('test.dart');
       writeFile(pathname, '''
 main() {
   var x;

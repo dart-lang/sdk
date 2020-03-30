@@ -238,7 +238,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         opType.includeVoidReturnSuggestions) {
       var typeName = declaration.returnType;
       protocol.ElementKind elemKind;
-      int relevance = DART_RELEVANCE_DEFAULT;
+      var relevance = DART_RELEVANCE_DEFAULT;
       if (declaration.isGetter) {
         elemKind = protocol.ElementKind.GETTER;
         relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
@@ -340,7 +340,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       protocol.ElementKind elemKind;
       FormalParameterList param;
       var typeName = declaration.returnType;
-      int relevance = DART_RELEVANCE_DEFAULT;
+      var relevance = DART_RELEVANCE_DEFAULT;
       if (declaration.isGetter) {
         elemKind = protocol.ElementKind.GETTER;
         param = null;

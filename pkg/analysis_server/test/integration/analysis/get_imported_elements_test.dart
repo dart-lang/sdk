@@ -36,10 +36,10 @@ class AnalysisGetImportedElementsIntegrationTest
         ImportedElements actualElements, ImportedElements expectedElements) {
       if (actualElements.path.endsWith(expectedElements.path) &&
           actualElements.prefix == expectedElements.prefix) {
-        List<String> actual = actualElements.elements;
-        List<String> expected = expectedElements.elements;
+        var actual = actualElements.elements;
+        var expected = expectedElements.elements;
         if (actual.length == expected.length) {
-          for (int i = 0; i < actual.length; i++) {
+          for (var i = 0; i < actual.length; i++) {
             if (!expected.contains(actual[i])) {
               return false;
             }
@@ -51,8 +51,8 @@ class AnalysisGetImportedElementsIntegrationTest
     }
 
     int find(List<ImportedElements> actual, ImportedElements expectedElements) {
-      for (int i = 0; i < actual.length; i++) {
-        ImportedElements actualElements = actual[i];
+      for (var i = 0; i < actual.length; i++) {
+        var actualElements = actual[i];
         if (equals(actualElements, expectedElements)) {
           return i;
         }
@@ -60,14 +60,14 @@ class AnalysisGetImportedElementsIntegrationTest
       return -1;
     }
 
-    int offset = text.indexOf(target);
-    AnalysisGetImportedElementsResult result =
+    var offset = text.indexOf(target);
+    var result =
         await sendAnalysisGetImportedElements(pathname, offset, target.length);
 
-    List<ImportedElements> actual = result.elements;
+    var actual = result.elements;
     expect(actual, hasLength(expected.length));
-    for (ImportedElements elements in expected) {
-      int index = find(actual, elements);
+    for (var elements in expected) {
+      var index = find(actual, elements);
       if (index < 0) {
         fail('Expected $elements; not found');
       }
@@ -78,8 +78,8 @@ class AnalysisGetImportedElementsIntegrationTest
   /// Check that an analysis.getImportedElements request on the region matching
   /// [target] produces an empty list of elements.
   Future<void> checkNoElements(String target) async {
-    int offset = text.indexOf(target);
-    AnalysisGetImportedElementsResult result =
+    var offset = text.indexOf(target);
+    var result =
         await sendAnalysisGetImportedElements(pathname, offset, target.length);
 
     expect(result.elements, hasLength(0));
@@ -104,7 +104,7 @@ main() {}
   }
 
   Future<void> test_getImportedElements_some() async {
-    String selection = r'''
+    var selection = r'''
 main() {
   Random r = new Random();
   String s = r.nextBool().toString();

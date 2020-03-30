@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -42,7 +41,7 @@ class RemoveDeadIfNull extends CorrectionProducer {
     //
     // Extract the information needed to build the edit.
     //
-    SourceRange sourceRange =
+    var sourceRange =
         range.endEnd(expression.leftOperand, expression.rightOperand);
     //
     // Build the edit.

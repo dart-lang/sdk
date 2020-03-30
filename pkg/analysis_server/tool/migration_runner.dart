@@ -69,8 +69,8 @@ class MigrationBase {
     //
     // Create server
     //
-    AnalysisServerOptions options = AnalysisServerOptions();
-    String sdkPath = FolderBasedDartSdk.defaultSdkDirectory(
+    var options = AnalysisServerOptions();
+    var sdkPath = FolderBasedDartSdk.defaultSdkDirectory(
       PhysicalResourceProvider.INSTANCE,
     ).path;
     return AnalysisServer(
@@ -106,8 +106,7 @@ class MigrationBase {
     server = createAnalysisServer();
     server.pluginManager = TestPluginManager();
     // listen for notifications
-    Stream<Notification> notificationStream =
-        serverChannel.notificationController.stream;
+    var notificationStream = serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       processNotification(notification);
     });
@@ -133,7 +132,7 @@ class MigrationBase {
 
 class MigrationTest extends MigrationBase {
   Future<void> run(String packageRoot, int port) async {
-    List<String> packageRoots = [packageRoot];
+    var packageRoots = <String>[packageRoot];
     await sendAnalysisSetAnalysisRoots(packageRoots);
     await sendEditDartfix(packageRoots, port);
   }

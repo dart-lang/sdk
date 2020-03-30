@@ -111,7 +111,7 @@ class InheritedReferenceContributor extends DartCompletionContributor {
   /// Return the class member containing the target or `null` if the target is
   /// in a static method or static field or not in a class member.
   ClassMember _enclosingMember(CompletionTarget target) {
-    AstNode node = target.containingNode;
+    var node = target.containingNode;
     while (node != null) {
       if (node is MethodDeclaration) {
         if (!node.isStatic) {

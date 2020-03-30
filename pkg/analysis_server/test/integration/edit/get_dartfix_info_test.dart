@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +17,7 @@ void main() {
 class GetDartfixInfoTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_getDartfixInfo() async {
     standardAnalysisSetup();
-    EditGetDartfixInfoResult info = await sendEditGetDartfixInfo();
+    var info = await sendEditGetDartfixInfo();
     expect(info.fixes.length, greaterThanOrEqualTo(3));
   }
 }

@@ -13,7 +13,7 @@ ErrorOr<String> applyEdits(
   List<TextDocumentContentChangeEvent> changes, {
   failureIsCritical = false,
 }) {
-  String newContent = oldContent;
+  var newContent = oldContent;
   for (var change in changes) {
     if (change.range == null && change.rangeLength == null) {
       newContent = change.text;

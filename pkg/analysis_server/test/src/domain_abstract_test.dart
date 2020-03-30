@@ -25,18 +25,15 @@ void main() {
 class AbstractRequestHandlerTest extends AbstractAnalysisTest {
   Future<void> test_waitForResponses_empty_noTimeout() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
-    Map<PluginInfo, Future<plugin.Response>> futures =
-        <PluginInfo, Future<plugin.Response>>{};
-    List<plugin.Response> responses = await handler.waitForResponses(futures);
+    var futures = <PluginInfo, Future<plugin.Response>>{};
+    var responses = await handler.waitForResponses(futures);
     expect(responses, isEmpty);
   }
 
   Future<void> test_waitForResponses_empty_timeout() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
-    Map<PluginInfo, Future<plugin.Response>> futures =
-        <PluginInfo, Future<plugin.Response>>{};
-    List<plugin.Response> responses =
-        await handler.waitForResponses(futures, timeout: 250);
+    var futures = <PluginInfo, Future<plugin.Response>>{};
+    var responses = await handler.waitForResponses(futures, timeout: 250);
     expect(responses, isEmpty);
   }
 
@@ -44,14 +41,13 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
     PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);
-    plugin.Response response1 = plugin.Response('1', 1);
-    plugin.Response response2 = plugin.Response('2', 2);
-    Map<PluginInfo, Future<plugin.Response>> futures =
-        <PluginInfo, Future<plugin.Response>>{
+    var response1 = plugin.Response('1', 1);
+    var response2 = plugin.Response('2', 2);
+    var futures = <PluginInfo, Future<plugin.Response>>{
       plugin1: Future.value(response1),
       plugin2: Future.value(response2),
     };
-    List<plugin.Response> responses = await handler.waitForResponses(futures);
+    var responses = await handler.waitForResponses(futures);
     expect(responses, unorderedEquals([response1, response2]));
   }
 
@@ -59,16 +55,15 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
     PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);
-    plugin.Response response1 = plugin.Response('1', 1);
-    plugin.Response response2 = plugin.Response('2', 2,
+    var response1 = plugin.Response('1', 1);
+    var response2 = plugin.Response('2', 2,
         error: plugin.RequestError(
             plugin.RequestErrorCode.PLUGIN_ERROR, 'message'));
-    Map<PluginInfo, Future<plugin.Response>> futures =
-        <PluginInfo, Future<plugin.Response>>{
+    var futures = <PluginInfo, Future<plugin.Response>>{
       plugin1: Future.value(response1),
       plugin2: Future.value(response2),
     };
-    List<plugin.Response> responses = await handler.waitForResponses(futures);
+    var responses = await handler.waitForResponses(futures);
     expect(responses, unorderedEquals([response1]));
   }
 
@@ -77,17 +72,15 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
     PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
     PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);
     PluginInfo plugin3 = DiscoveredPluginInfo('p3', '', '', null, null);
-    plugin.Response response1 = plugin.Response('1', 1);
-    plugin.Response response2 = plugin.Response('2', 2);
-    plugin.Response response3 = plugin.Response('3', 3);
-    Map<PluginInfo, Future<plugin.Response>> futures =
-        <PluginInfo, Future<plugin.Response>>{
+    var response1 = plugin.Response('1', 1);
+    var response2 = plugin.Response('2', 2);
+    var response3 = plugin.Response('3', 3);
+    var futures = <PluginInfo, Future<plugin.Response>>{
       plugin1: Future.delayed(Duration(milliseconds: 500), () => response1),
       plugin2: Future.value(response2),
       plugin3: Future.delayed(Duration(milliseconds: 500), () => response3)
     };
-    List<plugin.Response> responses =
-        await handler.waitForResponses(futures, timeout: 50);
+    var responses = await handler.waitForResponses(futures, timeout: 50);
     expect(responses, unorderedEquals([response2]));
   }
 }

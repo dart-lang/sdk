@@ -19,10 +19,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /// tokens or some exception happens.
 List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
-    List<Token> tokens = <Token>[];
-    Scanner scanner = Scanner(null, CharSequenceReader(text), null)
+    var tokens = <Token>[];
+    var scanner = Scanner(null, CharSequenceReader(text), null)
       ..configureFeatures(featureSet);
-    Token token = scanner.tokenize();
+    var token = scanner.tokenize();
     while (token.type != TokenType.EOF) {
       tokens.add(token);
       token = token.next;
@@ -66,10 +66,10 @@ class StatementAnalyzer extends SelectionAnalyzer {
     }
     // check that selection does not begin/end in comment
     {
-      int selectionStart = selection.offset;
-      int selectionEnd = selection.end;
-      List<SourceRange> commentRanges = getCommentRanges(resolveResult.unit);
-      for (SourceRange commentRange in commentRanges) {
+      var selectionStart = selection.offset;
+      var selectionEnd = selection.end;
+      var commentRanges = getCommentRanges(resolveResult.unit);
+      for (var commentRange in commentRanges) {
         if (commentRange.contains(selectionStart)) {
           invalidSelection('Selection begins inside a comment.');
         }
@@ -88,7 +88,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   Object visitDoStatement(DoStatement node) {
     super.visitDoStatement(node);
-    List<AstNode> selectedNodes = this.selectedNodes;
+    var selectedNodes = this.selectedNodes;
     if (_contains(selectedNodes, node.body)) {
       invalidSelection(
           "Operation not applicable to a 'do' statement's body and expression.");
@@ -101,7 +101,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
     super.visitForStatement(node);
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
-      List<AstNode> selectedNodes = this.selectedNodes;
+      var selectedNodes = this.selectedNodes;
       bool containsInit;
       if (forLoopParts is ForPartsWithExpression) {
         containsInit = _contains(selectedNodes, forLoopParts.initialization);
@@ -110,10 +110,9 @@ class StatementAnalyzer extends SelectionAnalyzer {
       } else {
         throw StateError('Unrecognized for loop parts');
       }
-      bool containsCondition = _contains(selectedNodes, forLoopParts.condition);
-      bool containsUpdaters =
-          _containsAny(selectedNodes, forLoopParts.updaters);
-      bool containsBody = _contains(selectedNodes, node.body);
+      var containsCondition = _contains(selectedNodes, forLoopParts.condition);
+      var containsUpdaters = _containsAny(selectedNodes, forLoopParts.updaters);
+      var containsBody = _contains(selectedNodes, node.body);
       if (containsInit && containsCondition) {
         invalidSelection(
             "Operation not applicable to a 'for' statement's initializer and condition.");
@@ -131,9 +130,9 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   Object visitSwitchStatement(SwitchStatement node) {
     super.visitSwitchStatement(node);
-    List<AstNode> selectedNodes = this.selectedNodes;
+    var selectedNodes = this.selectedNodes;
     List<SwitchMember> switchMembers = node.members;
-    for (AstNode selectedNode in selectedNodes) {
+    for (var selectedNode in selectedNodes) {
       if (switchMembers.contains(selectedNode)) {
         invalidSelection(
             'Selection must either cover whole switch statement or parts of a single case block.');
@@ -146,7 +145,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   Object visitTryStatement(TryStatement node) {
     super.visitTryStatement(node);
-    AstNode firstSelectedNode = this.firstSelectedNode;
+    var firstSelectedNode = this.firstSelectedNode;
     if (firstSelectedNode != null) {
       if (firstSelectedNode == node.body ||
           firstSelectedNode == node.finallyBlock) {
@@ -154,7 +153,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
             'Selection must either cover whole try statement or parts of try, catch, or finally block.');
       } else {
         List<CatchClause> catchClauses = node.catchClauses;
-        for (CatchClause catchClause in catchClauses) {
+        for (var catchClause in catchClauses) {
           if (firstSelectedNode == catchClause ||
               firstSelectedNode == catchClause.body ||
               firstSelectedNode == catchClause.exceptionParameter) {
@@ -170,7 +169,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   Object visitWhileStatement(WhileStatement node) {
     super.visitWhileStatement(node);
-    List<AstNode> selectedNodes = this.selectedNodes;
+    var selectedNodes = this.selectedNodes;
     if (_contains(selectedNodes, node.condition) &&
         _contains(selectedNodes, node.body)) {
       invalidSelection(
@@ -181,11 +180,11 @@ class StatementAnalyzer extends SelectionAnalyzer {
 
   /// Checks final selected [AstNode]s after processing [CompilationUnit].
   void _checkSelectedNodes(CompilationUnit unit) {
-    List<AstNode> nodes = selectedNodes;
+    var nodes = selectedNodes;
     // some tokens before first selected node
     {
-      AstNode firstNode = nodes[0];
-      SourceRange rangeBeforeFirstNode =
+      var firstNode = nodes[0];
+      var rangeBeforeFirstNode =
           range.startOffsetEndOffset(selection.offset, firstNode.offset);
       if (_hasTokens(rangeBeforeFirstNode)) {
         invalidSelection(
@@ -196,8 +195,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
     }
     // some tokens after last selected node
     {
-      AstNode lastNode = nodes.last;
-      SourceRange rangeAfterLastNode =
+      var lastNode = nodes.last;
+      var rangeAfterLastNode =
           range.startOffsetEndOffset(lastNode.end, selection.end);
       if (_hasTokens(rangeAfterLastNode)) {
         invalidSelection(
@@ -210,8 +209,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
 
   /// Returns `true` if there are [Token]s in the given [SourceRange].
   bool _hasTokens(SourceRange range) {
-    String fullText = resolveResult.content;
-    String rangeText = fullText.substring(range.offset, range.end);
+    var fullText = resolveResult.content;
+    var rangeText = fullText.substring(range.offset, range.end);
     return _getTokens(rangeText, resolveResult.unit.featureSet).isNotEmpty;
   }
 
@@ -221,7 +220,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
 
   /// Returns `true` if [nodes] contains one of the [otherNodes].
   static bool _containsAny(List<AstNode> nodes, List<AstNode> otherNodes) {
-    for (AstNode otherNode in otherNodes) {
+    for (var otherNode in otherNodes) {
       if (nodes.contains(otherNode)) {
         return true;
       }

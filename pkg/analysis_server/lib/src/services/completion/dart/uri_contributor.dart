@@ -11,7 +11,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' show posix;
 
 /// A contributor that produces suggestions based on the content of the file
@@ -120,7 +119,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
   void _addDartSuggestions() {
     _addSuggestion('dart:');
     var factory = request.sourceFactory;
-    for (SdkLibrary lib in factory.dartSdk.sdkLibraries) {
+    for (var lib in factory.dartSdk.sdkLibraries) {
       if (!lib.isInternal && !lib.isImplementation) {
         if (!lib.shortName.startsWith('dart:_')) {
           int relevance;

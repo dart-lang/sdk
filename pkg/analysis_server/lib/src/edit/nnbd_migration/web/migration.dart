@@ -19,9 +19,9 @@ import 'highlight_js.dart';
 
 void main() {
   document.addEventListener('DOMContentLoaded', (event) {
-    String path = window.location.pathname;
-    int offset = getOffset(window.location.href);
-    int lineNumber = getLine(window.location.href);
+    var path = window.location.pathname;
+    var offset = getOffset(window.location.href);
+    var lineNumber = getLine(window.location.href);
     loadNavigationTree();
     if (path != '/' && path != rootPath) {
       // TODO(srawlins): replaceState?
@@ -65,9 +65,9 @@ void main() {
   });
 
   window.addEventListener('popstate', (event) {
-    String path = window.location.pathname;
-    int offset = getOffset(window.location.href);
-    int lineNumber = getLine(window.location.href);
+    var path = window.location.pathname;
+    var offset = getOffset(window.location.href);
+    var lineNumber = getLine(window.location.href);
     if (path.length > 1) {
       loadFile(path, offset, lineNumber, false);
     } else {
@@ -102,8 +102,7 @@ final Element unitName = document.querySelector('#unit-name');
 String get rootPath => querySelector('.root').text.trim();
 
 void addArrowClickHandler(Element arrow) {
-  Element childList =
-      (arrow.parentNode as Element).querySelector(':scope > ul');
+  var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
   // Animating height from "auto" to "0" is not supported by CSS [1], so all we
   // have are hacks. The `* 2` allows for events in which the list grows in
   // height when resized, with additional text wrapping.
@@ -121,25 +120,25 @@ void addArrowClickHandler(Element arrow) {
 }
 
 void addClickHandlers(String selector, bool clearEditDetails) {
-  Element parentElement = document.querySelector(selector);
+  var parentElement = document.querySelector(selector);
 
   // Add navigation handlers for navigation links in the source code.
   List<Element> navLinks = parentElement.querySelectorAll('.nav-link');
   navLinks.forEach((link) {
     link.onClick.listen((event) {
-      Element tableElement = document.querySelector('table[data-path]');
-      String parentPath = tableElement.dataset['path'];
+      var tableElement = document.querySelector('table[data-path]');
+      var parentPath = tableElement.dataset['path'];
       handleNavLinkClick(event, clearEditDetails, relativeTo: parentPath);
     });
   });
 
   List<Element> regions = parentElement.querySelectorAll('.region');
   if (regions.isNotEmpty) {
-    Element table = parentElement.querySelector('table[data-path]');
-    String path = table.dataset['path'];
+    var table = parentElement.querySelector('table[data-path]');
+    var path = table.dataset['path'];
     regions.forEach((Element anchor) {
       anchor.onClick.listen((event) {
-        int offset = int.parse(anchor.dataset['offset']);
+        var offset = int.parse(anchor.dataset['offset']);
         loadAndPopulateEditDetails(path, offset);
       });
     });
@@ -170,12 +169,12 @@ Future<HttpRequest> doPost(String path) => HttpRequest.request(
     });
 
 int getLine(String location) {
-  String str = Uri.parse(location).queryParameters['line'];
+  var str = Uri.parse(location).queryParameters['line'];
   return str == null ? null : int.tryParse(str);
 }
 
 int getOffset(String location) {
-  String str = Uri.parse(location).queryParameters['offset'];
+  var str = Uri.parse(location).queryParameters['offset'];
   return str == null ? null : int.tryParse(str);
 }
 
@@ -187,8 +186,8 @@ void handleNavLinkClick(
   Element target = event.currentTarget;
   event.preventDefault();
 
-  String location = target.getAttribute('href');
-  String path = location;
+  var location = target.getAttribute('href');
+  var path = location;
   if (path.contains('?')) {
     path = path.substring(0, path.indexOf('?'));
   }
@@ -197,8 +196,8 @@ void handleNavLinkClick(
     path = _p.normalize(_p.join(_p.dirname(relativeTo), path));
   }
 
-  int offset = getOffset(location);
-  int lineNumber = getLine(location);
+  var offset = getOffset(location);
+  var lineNumber = getLine(location);
 
   if (offset != null) {
     navigate(path, offset, lineNumber, clearEditDetails, callback: () {
@@ -212,7 +211,7 @@ void handleNavLinkClick(
 }
 
 void handlePostLinkClick(MouseEvent event) async {
-  String path = (event.currentTarget as Element).getAttribute('href');
+  var path = (event.currentTarget as Element).getAttribute('href');
 
   // Don't navigate on link click.
   event.preventDefault();
@@ -285,7 +284,7 @@ void loadFile(
       writeCodeAndRegions(
           path, FileDetails.fromJson(response), clearEditDetails);
       maybeScrollToAndHighlight(offset, line);
-      String filePathPart =
+      var filePathPart =
           path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
       updatePage(filePathPart, offset);
       if (callback != null) {
@@ -303,7 +302,7 @@ void loadFile(
 
 /// Load the navigation tree into the ".nav-tree" div.
 void loadNavigationTree() {
-  String path = '/_preview/navigationTree.json';
+  var path = '/_preview/navigationTree.json';
 
   // Request the navigation tree, then do work with the response.
   doGet(path).then((HttpRequest xhr) {
@@ -330,7 +329,7 @@ void logError(e, st) {
 
 /// Scroll an element into view if it is not visible.
 void maybeScrollIntoView(Element element) {
-  Rectangle rect = element.getBoundingClientRect();
+  var rect = element.getBoundingClientRect();
   // A line of text in the code view is 14px high. Including it here means we
   // only choose to _not_ scroll a line of code into view if the entire line is
   // visible.
@@ -388,8 +387,8 @@ void navigate(
   bool clearEditDetails, {
   VoidCallback callback,
 }) {
-  int currentOffset = getOffset(window.location.href);
-  int currentLineNumber = getLine(window.location.href);
+  var currentOffset = getOffset(window.location.href);
+  var currentLineNumber = getLine(window.location.href);
   removeHighlight(currentOffset, currentLineNumber);
   if (path == window.location.pathname) {
     // Navigating to same file; just scroll into view.
@@ -433,13 +432,13 @@ void populateEditDetails([EditDetails response]) {
     return;
   }
 
-  String filePath = response.path;
-  String parentDirectory = _p.dirname(filePath);
+  var filePath = response.path;
+  var parentDirectory = _p.dirname(filePath);
 
   // 'Changed ... at foo.dart:12.'
-  String explanationMessage = response.explanation;
-  String relPath = _p.relative(filePath, from: rootPath);
-  int line = response.line;
+  var explanationMessage = response.explanation;
+  var relPath = _p.relative(filePath, from: rootPath);
+  var line = response.line;
   Element explanation = editPanel.append(document.createElement('p'));
   explanation.append(Text('$explanationMessage at $relPath:$line.'));
   explanation.scrollIntoView();
@@ -454,7 +453,7 @@ void populateProposedEdits(
   editListElement.innerHtml = '';
 
   Element p = editListElement.append(document.createElement('p'));
-  int editCount = edits.length;
+  var editCount = edits.length;
   if (editCount == 0) {
     p.append(Text('No proposed edits'));
   } else {
@@ -467,9 +466,9 @@ void populateProposedEdits(
     item.classes.add('edit');
     AnchorElement anchor = item.append(document.createElement('a'));
     anchor.classes.add('edit-link');
-    int offset = edit.offset;
+    var offset = edit.offset;
     anchor.dataset['offset'] = '$offset';
-    int line = edit.line;
+    var line = edit.line;
     anchor.dataset['line'] = '$line';
     anchor.append(Text('line $line'));
     anchor.onClick.listen((MouseEvent event) {
@@ -487,7 +486,7 @@ void populateProposedEdits(
 }
 
 void pushState(String path, int offset, int line) {
-  Uri uri = Uri.parse('${window.location.origin}$path');
+  var uri = Uri.parse('${window.location.origin}$path');
 
   var params = {
     if (offset != null) 'offset': '$offset',
@@ -546,8 +545,8 @@ void updatePage(String path, [int offset]) {
 
 /// Load data from [data] into the .code and the .regions divs.
 void writeCodeAndRegions(String path, FileDetails data, bool clearEditDetails) {
-  Element regionsElement = document.querySelector('.regions');
-  Element codeElement = document.querySelector('.code');
+  var regionsElement = document.querySelector('.regions');
+  var codeElement = document.querySelector('.code');
 
   _PermissiveNodeValidator.setInnerHtml(regionsElement, data.regions);
   _PermissiveNodeValidator.setInnerHtml(codeElement, data.navigationContent);
@@ -581,7 +580,7 @@ void writeNavigationSubtree(
       a.setAttribute('href', entity.href);
       a.append(Text(entity.name));
       a.onClick.listen((MouseEvent event) => handleNavLinkClick(event, true));
-      int editCount = entity.editCount;
+      var editCount = entity.editCount;
       if (editCount > 0) {
         Element editsBadge = li.append(document.createElement('span'));
         editsBadge.classes.add('edit-count');
@@ -594,12 +593,12 @@ void writeNavigationSubtree(
 }
 
 AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
-  int targetLine = link.line;
+  var targetLine = link.line;
   AnchorElement a = document.createElement('a');
   a.append(Text('${link.path}:$targetLine'));
 
-  String relLink = link.href;
-  String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
+  var relLink = link.href;
+  var fullPath = _p.normalize(_p.join(parentDirectory, relLink));
 
   a.setAttribute('href', fullPath);
   a.classes.add('nav-link');
@@ -620,7 +619,7 @@ void _populateEditLinks(EditDetails response, Element editPanel) {
 
 void _populateEditRationale(
     EditDetails response, Element editPanel, String parentDirectory) {
-  int detailCount = response.details.length;
+  var detailCount = response.details.length;
   if (detailCount == 0) {
     // Having 0 details is not necessarily an expected possibility, but handling
     // the possibility prevents awkward text, "for 0 reasons:".

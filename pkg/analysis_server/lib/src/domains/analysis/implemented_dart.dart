@@ -27,14 +27,14 @@ class ImplementedComputer {
   }
 
   void _addImplementedClass(ClassElement type) {
-    int offset = type.nameOffset;
-    int length = type.nameLength;
+    var offset = type.nameOffset;
+    var length = type.nameLength;
     classes.add(protocol.ImplementedClass(offset, length));
   }
 
   void _addImplementedMember(Element member) {
-    int offset = member.nameOffset;
-    int length = member.nameLength;
+    var offset = member.nameOffset;
+    var length = member.nameLength;
     members.add(protocol.ImplementedMember(offset, length));
   }
 
@@ -68,7 +68,7 @@ class ImplementedComputer {
   }
 
   bool _hasOverride(Element element) {
-    String name = element.displayName;
+    var name = element.displayName;
     return subtypeMembers.contains(name);
   }
 

@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +28,7 @@ class FoldingComputerTest extends AbstractContextTest {
   }
 
   Future<void> test_annotations() async {
-    String content = '''
+    var content = '''
 @myMultilineAnnotation/*1:INC*/(
   "this",
   "is a test"
@@ -80,7 +79,7 @@ class MyClass2 {/*4:INC*/
   }
 
   Future<void> test_assertInitializer() async {
-    String content = '''
+    var content = '''
 class C {/*1:INC*/
   C() : assert(/*2:INC*/
     true,
@@ -93,7 +92,7 @@ class C {/*1:INC*/
   }
 
   Future<void> test_assertStatement() async {
-    String content = '''
+    var content = '''
 main() {/*1:INC*/
   assert(/*2:INC*/
     true,
@@ -106,7 +105,7 @@ main() {/*1:INC*/
   }
 
   Future<void> test_class() async {
-    String content = '''
+    var content = '''
 // Content before
 
 class Person {/*1:INC*/
@@ -127,7 +126,7 @@ class Person {/*1:INC*/
   }
 
   Future<void> test_comment_is_not_considered_file_header() async {
-    String content = """
+    var content = """
 // This is not the file header
 // It's just a comment
 main() {}
@@ -140,7 +139,7 @@ main() {}
   }
 
   Future<void> test_constructor_invocations() async {
-    String content = '''
+    var content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -157,7 +156,7 @@ main() {/*1:INC*/
   }
 
   Future<void> test_file_header() async {
-    String content = """
+    var content = """
 // Copyright some year by some people/*1:EXC*/
 // See LICENCE etc./*1:INC:FILE_HEADER*/
 
@@ -171,7 +170,7 @@ main() {}
   }
 
   Future<void> test_file_header_does_not_include_block_comments() async {
-    String content = """
+    var content = """
 /*
  * Copyright some year by some people
  * See LICENCE etc.
@@ -186,7 +185,7 @@ main() {}
   }
 
   Future<void> test_file_header_with_no_function_comment() async {
-    String content = '''
+    var content = '''
 // Copyright some year by some people/*1:EXC*/
 // See LICENCE etc./*1:INC:FILE_HEADER*/
 
@@ -198,7 +197,7 @@ main() {}
   }
 
   Future<void> test_file_header_with_non_end_of_line_comment() async {
-    String content = """
+    var content = """
 // Copyright some year by some people/*1:EXC*/
 // See LICENCE etc./*1:INC:FILE_HEADER*/
 /* This shouldn't be part of the file header */
@@ -211,7 +210,7 @@ main() {}
   }
 
   Future<void> test_file_header_with_script_prefix() async {
-    String content = """
+    var content = """
 #! /usr/bin/dart
 // Copyright some year by some people/*1:EXC*/
 // See LICENCE etc./*1:INC:FILE_HEADER*/
@@ -226,7 +225,7 @@ main() {}
   }
 
   Future<void> test_function() async {
-    String content = '''
+    var content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -241,7 +240,7 @@ main() {/*1:INC*/
   }
 
   Future<void> test_function_expression_invocation() async {
-    String content = '''
+    var content = '''
 // Content before
 
 getFunc() => (String a, String b) {/*1:INC*/
@@ -263,7 +262,7 @@ main2() {/*2:INC*/
   }
 
   Future<void> test_function_with_dart_doc() async {
-    String content = '''
+    var content = '''
 // Content before
 
 /*1:EXC*//// This is a doc comment
@@ -280,7 +279,7 @@ main() {/*2:INC*/
   }
 
   Future<void> test_invocations() async {
-    String content = '''
+    var content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -297,7 +296,7 @@ main() {/*1:INC*/
   }
 
   Future<void> test_literal_list() async {
-    String content = '''
+    var content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -315,7 +314,7 @@ main() {/*1:INC*/
   }
 
   Future<void> test_literal_map() async {
-    String content = '''
+    var content = '''
 // Content before
 
 main2() {/*1:INC*/
@@ -333,7 +332,7 @@ main2() {/*1:INC*/
   }
 
   Future<void> test_mixin() async {
-    String content = '''
+    var content = '''
 // Content before
 
 mixin M {/*1:INC*/
@@ -350,7 +349,7 @@ mixin M {/*1:INC*/
   }
 
   Future<void> test_multiple_directive_types() async {
-    String content = """
+    var content = """
 import/*1:INC*/ 'dart:async';
 
 // We can have comments
@@ -367,7 +366,7 @@ main() {}
   }
 
   Future<void> test_multiple_import_directives() async {
-    String content = """
+    var content = """
 import/*1:INC*/ 'dart:async';
 
 // We can have comments
@@ -384,7 +383,7 @@ main() {}
   }
 
   Future<void> test_nested_function() async {
-    String content = '''
+    var content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -402,7 +401,7 @@ main() {/*1:INC*/
   }
 
   Future<void> test_nested_invocations() async {
-    String content = '''
+    var content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -423,7 +422,7 @@ main() {/*1:INC*/
   }
 
   Future<void> test_single_import_directives() async {
-    String content = """
+    var content = """
 import 'dart:async';
 
 main() {}
@@ -473,9 +472,8 @@ main() {}
 
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
-    DartUnitFoldingComputer computer =
-        DartUnitFoldingComputer(result.lineInfo, result.unit);
+    var result = await session.getResolvedUnit(sourcePath);
+    var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
 }

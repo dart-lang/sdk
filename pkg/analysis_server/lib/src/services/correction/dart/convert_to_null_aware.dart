@@ -22,7 +22,7 @@ class ConvertToNullAware extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    AstNode node = this.node;
+    var node = this.node;
     if (node.parent is BinaryExpression &&
         node.parent.parent is ConditionalExpression) {
       node = node.parent.parent;
@@ -31,7 +31,7 @@ class ConvertToNullAware extends CorrectionProducer {
       return;
     }
     ConditionalExpression conditional = node;
-    Expression condition = conditional.condition.unParenthesized;
+    var condition = conditional.condition.unParenthesized;
     SimpleIdentifier identifier;
     Expression nullExpression;
     Expression nonNullExpression;
@@ -42,8 +42,8 @@ class ConvertToNullAware extends CorrectionProducer {
       // Identify the variable being compared to `null`, or return if the
       // condition isn't a simple comparison of `null` to a variable's value.
       //
-      Expression leftOperand = condition.leftOperand;
-      Expression rightOperand = condition.rightOperand;
+      var leftOperand = condition.leftOperand;
+      var rightOperand = condition.rightOperand;
       if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
         identifier = rightOperand;
       } else if (rightOperand is NullLiteral &&
@@ -74,7 +74,7 @@ class ConvertToNullAware extends CorrectionProducer {
       if (nullExpression.unParenthesized is! NullLiteral) {
         return;
       }
-      Expression unwrappedExpression = nonNullExpression.unParenthesized;
+      var unwrappedExpression = nonNullExpression.unParenthesized;
       Expression target;
       Token operator;
       if (unwrappedExpression is MethodInvocation) {

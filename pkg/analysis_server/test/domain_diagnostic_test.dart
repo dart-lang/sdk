@@ -39,7 +39,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
     expect(result.contexts, hasLength(1));
 
-    ContextData context = result.contexts[0];
+    var context = result.contexts[0];
     expect(context.name, convertPath('/project'));
     expect(context.explicitFileCount, 1); /* test.dart */
 

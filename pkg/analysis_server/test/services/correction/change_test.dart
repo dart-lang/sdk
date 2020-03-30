@@ -23,35 +23,35 @@ void main() {
 @reflectiveTest
 class ChangeTest {
   void test_addEdit() {
-    SourceChange change = SourceChange('msg');
-    SourceEdit edit1 = SourceEdit(1, 2, 'a');
-    SourceEdit edit2 = SourceEdit(1, 2, 'b');
+    var change = SourceChange('msg');
+    var edit1 = SourceEdit(1, 2, 'a');
+    var edit2 = SourceEdit(1, 2, 'b');
     expect(change.edits, hasLength(0));
     change.addEdit('/a.dart', 0, edit1);
     expect(change.edits, hasLength(1));
     change.addEdit('/a.dart', 0, edit2);
     expect(change.edits, hasLength(1));
     {
-      SourceFileEdit fileEdit = change.getFileEdit('/a.dart');
+      var fileEdit = change.getFileEdit('/a.dart');
       expect(fileEdit, isNotNull);
       expect(fileEdit.edits, unorderedEquals([edit1, edit2]));
     }
   }
 
   void test_getFileEdit() {
-    SourceChange change = SourceChange('msg');
-    SourceFileEdit fileEdit = SourceFileEdit('/a.dart', 0);
+    var change = SourceChange('msg');
+    var fileEdit = SourceFileEdit('/a.dart', 0);
     change.addFileEdit(fileEdit);
     expect(change.getFileEdit('/a.dart'), fileEdit);
   }
 
   void test_getFileEdit_empty() {
-    SourceChange change = SourceChange('msg');
+    var change = SourceChange('msg');
     expect(change.getFileEdit('/some.dart'), isNull);
   }
 
   void test_toJson() {
-    SourceChange change = SourceChange('msg');
+    var change = SourceChange('msg');
     change.addFileEdit(SourceFileEdit('/a.dart', 1)
       ..add(SourceEdit(1, 2, 'aaa'))
       ..add(SourceEdit(10, 20, 'bbb')));
@@ -124,22 +124,22 @@ class ChangeTest {
 @reflectiveTest
 class EditTest {
   void test_applySequence() {
-    SourceEdit edit1 = SourceEdit(5, 2, 'abc');
-    SourceEdit edit2 = SourceEdit(1, 0, '!');
+    var edit1 = SourceEdit(5, 2, 'abc');
+    var edit2 = SourceEdit(1, 0, '!');
     expect(
         SourceEdit.applySequence('0123456789', [edit1, edit2]), '0!1234abc789');
   }
 
   void test_editFromRange() {
-    SourceRange range = SourceRange(1, 2);
-    SourceEdit edit = newSourceEdit_range(range, 'foo');
+    var range = SourceRange(1, 2);
+    var edit = newSourceEdit_range(range, 'foo');
     expect(edit.offset, 1);
     expect(edit.length, 2);
     expect(edit.replacement, 'foo');
   }
 
   void test_eqEq() {
-    SourceEdit a = SourceEdit(1, 2, 'aaa');
+    var a = SourceEdit(1, 2, 'aaa');
     expect(a == a, isTrue);
     expect(a == SourceEdit(1, 2, 'aaa'), isTrue);
     // ignore: unrelated_type_equality_checks
@@ -149,7 +149,7 @@ class EditTest {
   }
 
   void test_new() {
-    SourceEdit edit = SourceEdit(1, 2, 'foo', id: 'my-id');
+    var edit = SourceEdit(1, 2, 'foo', id: 'my-id');
     expect(edit.offset, 1);
     expect(edit.length, 2);
     expect(edit.replacement, 'foo');
@@ -158,7 +158,7 @@ class EditTest {
   }
 
   void test_toJson() {
-    SourceEdit edit = SourceEdit(1, 2, 'foo');
+    var edit = SourceEdit(1, 2, 'foo');
     var expectedJson = {OFFSET: 1, LENGTH: 2, REPLACEMENT: 'foo'};
     expect(edit.toJson(), expectedJson);
   }
@@ -167,11 +167,11 @@ class EditTest {
 @reflectiveTest
 class FileEditTest {
   void test_add_sorts() {
-    SourceEdit edit1a = SourceEdit(1, 0, 'a1');
-    SourceEdit edit1b = SourceEdit(1, 0, 'a2');
-    SourceEdit edit10 = SourceEdit(10, 1, 'b');
-    SourceEdit edit100 = SourceEdit(100, 2, 'c');
-    SourceFileEdit fileEdit = SourceFileEdit('/test.dart', 0);
+    var edit1a = SourceEdit(1, 0, 'a1');
+    var edit1b = SourceEdit(1, 0, 'a2');
+    var edit10 = SourceEdit(10, 1, 'b');
+    var edit100 = SourceEdit(100, 2, 'c');
+    var fileEdit = SourceFileEdit('/test.dart', 0);
     fileEdit.add(edit100);
     fileEdit.add(edit1a);
     fileEdit.add(edit1b);
@@ -180,17 +180,17 @@ class FileEditTest {
   }
 
   void test_addAll() {
-    SourceEdit edit1a = SourceEdit(1, 0, 'a1');
-    SourceEdit edit1b = SourceEdit(1, 0, 'a2');
-    SourceEdit edit10 = SourceEdit(10, 1, 'b');
-    SourceEdit edit100 = SourceEdit(100, 2, 'c');
-    SourceFileEdit fileEdit = SourceFileEdit('/test.dart', 0);
+    var edit1a = SourceEdit(1, 0, 'a1');
+    var edit1b = SourceEdit(1, 0, 'a2');
+    var edit10 = SourceEdit(10, 1, 'b');
+    var edit100 = SourceEdit(100, 2, 'c');
+    var fileEdit = SourceFileEdit('/test.dart', 0);
     fileEdit.addAll([edit100, edit1a, edit10, edit1b]);
     expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
   }
 
   void test_new() {
-    SourceFileEdit fileEdit = SourceFileEdit('/test.dart', 100);
+    var fileEdit = SourceFileEdit('/test.dart', 100);
     fileEdit.add(SourceEdit(1, 2, 'aaa'));
     fileEdit.add(SourceEdit(10, 20, 'bbb'));
     expect(
@@ -201,7 +201,7 @@ class FileEditTest {
   }
 
   void test_toJson() {
-    SourceFileEdit fileEdit = SourceFileEdit('/test.dart', 100);
+    var fileEdit = SourceFileEdit('/test.dart', 100);
     fileEdit.add(SourceEdit(1, 2, 'aaa'));
     fileEdit.add(SourceEdit(10, 20, 'bbb'));
     var expectedJson = {
@@ -219,7 +219,7 @@ class FileEditTest {
 @reflectiveTest
 class LinkedEditGroupTest {
   void test_new() {
-    LinkedEditGroup group = LinkedEditGroup.empty();
+    var group = LinkedEditGroup.empty();
     group.addPosition(Position('/a.dart', 1), 2);
     group.addPosition(Position('/b.dart', 10), 2);
     expect(
@@ -230,7 +230,7 @@ class LinkedEditGroupTest {
   }
 
   void test_toJson() {
-    LinkedEditGroup group = LinkedEditGroup.empty();
+    var group = LinkedEditGroup.empty();
     group.addPosition(Position('/a.dart', 1), 2);
     group.addPosition(Position('/b.dart', 10), 2);
     group.addSuggestion(
@@ -270,9 +270,9 @@ class LinkedEditSuggestionTest {
 @reflectiveTest
 class PositionTest {
   void test_eqEq() {
-    Position a = Position('/a.dart', 1);
-    Position a2 = Position('/a.dart', 1);
-    Position b = Position('/b.dart', 1);
+    var a = Position('/a.dart', 1);
+    var a2 = Position('/a.dart', 1);
+    var b = Position('/b.dart', 1);
     expect(a == a, isTrue);
     expect(a == a2, isTrue);
     expect(a == b, isFalse);
@@ -281,19 +281,19 @@ class PositionTest {
   }
 
   void test_hashCode() {
-    Position position = Position('/test.dart', 1);
+    var position = Position('/test.dart', 1);
     position.hashCode;
   }
 
   void test_new() {
-    Position position = Position('/test.dart', 1);
+    var position = Position('/test.dart', 1);
     expect(position.file, '/test.dart');
     expect(position.offset, 1);
     expect(position.toString(), '{"file":"/test.dart","offset":1}');
   }
 
   void test_toJson() {
-    Position position = Position('/test.dart', 1);
+    var position = Position('/test.dart', 1);
     var expectedJson = {FILE: '/test.dart', OFFSET: 1};
     expect(position.toJson(), expectedJson);
   }

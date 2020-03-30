@@ -18,8 +18,8 @@ void main() {
 @reflectiveTest
 class OutlineTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_outline() {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 class Class1 {
   int field;
 
@@ -54,12 +54,12 @@ class Class2 {
       expect(outline.element.kind, equals(ElementKind.COMPILATION_UNIT));
       expect(outline.offset, equals(0));
       expect(outline.length, equals(text.length));
-      List<Outline> classes = outline.children;
+      var classes = outline.children;
       expect(classes, hasLength(2));
       expect(classes[0].element.name, equals('Class1'));
       expect(classes[1].element.name, equals('Class2'));
 
-      List<Outline> members = classes[0].children;
+      var members = classes[0].children;
       expect(members, hasLength(5));
       expect(members[0].element.name, equals('field'));
       expect(members[1].element.name, equals('method'));

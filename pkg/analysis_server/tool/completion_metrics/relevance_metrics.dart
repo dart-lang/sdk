@@ -41,8 +41,8 @@ import 'package:meta/meta.dart';
 /// Compute metrics to determine whether they should be used to compute a
 /// relevance score for completion suggestions.
 Future<void> main(List<String> args) async {
-  ArgParser parser = createArgParser();
-  ArgResults result = parser.parse(args);
+  var parser = createArgParser();
+  var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
     var out = io.stdout;
@@ -65,7 +65,7 @@ Future<void> main(List<String> args) async {
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  ArgParser parser = ArgParser();
+  var parser = ArgParser();
   parser.addOption(
     'help',
     abbr: 'h',
@@ -1464,7 +1464,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// annotation.
   SyntacticEntity _firstChild(AstNode node) {
     var children = node.childEntities.toList();
-    for (int i = 0; i < children.length; i++) {
+    for (var i = 0; i < children.length; i++) {
       var child = children[i];
       if (child is! Comment && child is! Annotation) {
         return child;
@@ -1576,7 +1576,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           statements = parent.statements;
         }
         var index = statements.indexOf(node);
-        for (int i = 0; i < index; i++) {
+        for (var i = 0; i < index; i++) {
           var statement = statements[i];
           if (statement is VariableDeclarationStatement) {
             for (var declaredVariable
@@ -1641,7 +1641,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var contextType = featureComputer.computeContextType(node);
       _recordContextType(contextType);
       if (contextType != null) {
-        DartType elementType = _returnType(_leftMostElement(node));
+        var elementType = _returnType(_leftMostElement(node));
         if (elementType != null) {
           _recordTypeRelationships(
               'matches context type', contextType, elementType);
@@ -1723,8 +1723,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           return depth;
         }
 
-        int superclassDepth = getSuperclassDepth();
-        int interfaceDepth =
+        var superclassDepth = getSuperclassDepth();
+        var interfaceDepth =
             featureComputer.inheritanceDistance(targetClass, memberClass);
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
@@ -1778,9 +1778,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           'parameter override', overriddenType, overrideType);
     }
 
-    int count =
+    var count =
         math.min(positionalInOverride.length, positionalInOverridden.length);
-    for (int i = 0; i < count; i++) {
+    for (var i = 0; i < count; i++) {
       recordParameterOverride(
           positionalInOverride[i], positionalInOverridden[i]);
     }
@@ -2054,7 +2054,7 @@ class RelevanceMetricsComputer {
           throw ArgumentError(
               'non-empty rows must contain the same number of columns');
         }
-        for (int i = 0; i < rowLength; i++) {
+        for (var i = 0; i < rowLength; i++) {
           var cellWidth = row[i].length;
           columnWidths[i] = math.max(columnWidths[i], cellWidth);
         }
@@ -2079,7 +2079,7 @@ class RelevanceMetricsComputer {
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (AnalysisEngine.isDartFileName(filePath)) {
         try {
-          ResolvedUnitResult resolvedUnitResult =
+          var resolvedUnitResult =
               await context.currentSession.getResolvedUnit(filePath);
           //
           // Check for errors that cause the file to be skipped.
@@ -2237,15 +2237,15 @@ class RelevanceMetricsComputer {
 
     var maxRowHeaderWidth = maxTargetDepth.toString().length;
     var headerRow = [''];
-    for (int depth = maxTargetDepth; depth > 0; depth--) {
+    for (var depth = maxTargetDepth; depth > 0; depth--) {
       headerRow.add(intToString(depth, maxValueWidth));
     }
     var zero = intToString(0, maxValueWidth);
     var table = [headerRow];
-    for (int distance = maxTargetDepth - 1; distance >= 0; distance--) {
+    for (var distance = maxTargetDepth - 1; distance >= 0; distance--) {
       var innerMap = matrix[distance] ?? {};
       var row = [intToString(distance, maxRowHeaderWidth)];
-      for (int depth = maxTargetDepth; depth > 0; depth--) {
+      for (var depth = maxTargetDepth; depth > 0; depth--) {
         var value = innerMap[depth];
         row.add(value == null
             ? (distance < depth ? zero : '')
@@ -2274,14 +2274,14 @@ class RelevanceMetricsComputer {
   void _writeTable(StringSink sink, List<List<String>> table) {
     var columnWidths = _computeColumnWidths(table);
     for (var row in table) {
-      int lastNonEmpty = row.length - 1;
+      var lastNonEmpty = row.length - 1;
       while (lastNonEmpty > 0) {
         if (row[lastNonEmpty].isNotEmpty) {
           break;
         }
         lastNonEmpty--;
       }
-      for (int i = 0; i <= lastNonEmpty; i++) {
+      for (var i = 0; i <= lastNonEmpty; i++) {
         var cellContent = row[i];
         var columnWidth = columnWidths[i];
         var padding = columnWidth - cellContent.length;
@@ -2304,7 +2304,7 @@ class RelevanceMetricsComputer {
         .fold<int>(0, (previous, current) => previous + current);
     secondColumn.add('matching tokens within a given distance ($total)');
     var cumulative = 0;
-    for (int i = 1; i <= 100; i++) {
+    for (var i = 1; i <= 100; i++) {
       cumulative += distances[i] ?? 0;
       var percent = _formatPercent(cumulative, total);
       secondColumn.add('  $percent%: $i');

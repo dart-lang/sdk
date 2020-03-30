@@ -40,12 +40,12 @@ void addDefaultArgDetails(
     Element element,
     Iterable<ParameterElement> requiredParams,
     Iterable<ParameterElement> namedParams) {
-  StringBuffer sb = StringBuffer();
-  List<int> ranges = <int>[];
+  var sb = StringBuffer();
+  var ranges = <int>[];
 
   int offset;
 
-  for (ParameterElement param in requiredParams) {
+  for (var param in requiredParams) {
     if (sb.isNotEmpty) {
       sb.write(', ');
     }
@@ -84,21 +84,21 @@ void addDefaultArgDetails(
       sb.write(blockBuffer);
       ranges.addAll([rangeStart, rangeLength]);
     } else {
-      String name = param.name;
+      var name = param.name;
       sb.write(name);
       ranges.addAll([offset, name.length]);
     }
   }
 
-  for (ParameterElement param in namedParams) {
+  for (var param in namedParams) {
     if (param.hasRequired) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }
-      String name = param.name;
+      var name = param.name;
       sb.write('$name: ');
       offset = sb.length;
-      String defaultValue = _getDefaultValue(param);
+      var defaultValue = _getDefaultValue(param);
       sb.write(defaultValue);
       ranges.addAll([offset, defaultValue.length]);
     }
@@ -158,7 +158,7 @@ protocol.Element createLocalElement(
     name = '';
     location = Location(source.fullName, -1, 0, 1, 0);
   }
-  int flags = protocol.Element.makeFlags(
+  var flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,
       isDeprecated: isDeprecated,
       isPrivate: Identifier.isPrivateName(name));
@@ -170,7 +170,7 @@ protocol.Element createLocalElement(
 
 DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   if (param != null) {
-    DartType type = param.type;
+    var type = param.type;
     if (type is InterfaceType && type.isDartCoreList) {
       String getTypeArgumentsStr() {
         var elementType = type.typeArguments.single;
@@ -184,15 +184,15 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
         }
       }
 
-      String typeArgumentStr = getTypeArgumentsStr();
-      String text = '$typeArgumentStr[]';
+      var typeArgumentStr = getTypeArgumentsStr();
+      var text = '$typeArgumentStr[]';
       return DefaultArgument(text, cursorPosition: text.length - 1);
     } else if (type is FunctionType) {
-      String params = type.parameters
+      var params = type.parameters
           .map((p) => '${getTypeString(p.type)}${p.name}')
           .join(', ');
       // TODO(devoncarew): Support having this method return text with newlines.
-      String text = '($params) {  }';
+      var text = '($params) {  }';
       return DefaultArgument(text, cursorPosition: text.length - 2);
     }
 
@@ -230,7 +230,7 @@ String getTypeString(DartType type) {
 /// Return `true` if the @deprecated annotation is present on the given [node].
 bool isDeprecated(AnnotatedNode node) {
   if (node != null) {
-    NodeList<Annotation> metadata = node.metadata;
+    var metadata = node.metadata;
     if (metadata != null) {
       return metadata.any((Annotation a) {
         return a.name is SimpleIdentifier && a.name.name == 'deprecated';
@@ -249,7 +249,7 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
 
   // Get the type from the identifier element.
   DartType type;
-  Element element = identifier.staticElement;
+  var element = identifier.staticElement;
   if (element == null) {
     return DYNAMIC;
   } else if (element is FunctionTypedElement) {
@@ -268,7 +268,7 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   // If the type is unresolved, use the declared type.
   if (type != null && type.isDynamic) {
     if (declaredType is TypeName) {
-      Identifier id = declaredType.name;
+      var id = declaredType.name;
       if (id != null) {
         return id.name;
       }

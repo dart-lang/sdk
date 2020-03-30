@@ -50,7 +50,7 @@ String cleanComment(String comment) {
 /// Improves comments in generated code to support where types may have been
 /// altered (for ex. with [getImprovedType] above).
 String getImprovedComment(String interfaceName, String fieldName) {
-  const Map<String, Map<String, String>> _improvedComments = {
+  const _improvedComments = <String, Map<String, String>>{
     'ResponseError': {
       'data':
           '// A string that contains additional information about the error. Can be omitted.',
@@ -72,7 +72,7 @@ String getImprovedComment(String interfaceName, String fieldName) {
 ///   and we know we always use a specific type. This avoids wrapping a lot
 ///   of code in `EitherX<Y,Z>.tX()` and simplifies the testing of them.
 String getImprovedType(String interfaceName, String fieldName) {
-  const Map<String, Map<String, String>> _improvedTypeMappings = {
+  const _improvedTypeMappings = <String, Map<String, String>>{
     'Diagnostic': {
       'severity': 'DiagnosticSeverity',
       'code': 'String',

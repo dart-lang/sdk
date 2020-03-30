@@ -36,7 +36,7 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
     StreamSubscription<int> input;
     StreamController<String> _output;
     final buffer = <int>[];
-    bool isParsingHeaders = true;
+    var isParsingHeaders = true;
     LspHeaders headers;
     _output = StreamController<String>(
       onListen: () {

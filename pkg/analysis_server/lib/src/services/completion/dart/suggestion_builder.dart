@@ -13,7 +13,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:meta/meta.dart';
@@ -34,20 +33,20 @@ CompletionSuggestion createSuggestion(Element element,
   }
   completion ??= element.displayName;
   kind ??= CompletionSuggestionKind.INVOCATION;
-  bool isDeprecated = element.hasDeprecated;
+  var isDeprecated = element.hasDeprecated;
   if (!useNewRelevance && isDeprecated) {
     relevance = DART_RELEVANCE_LOW;
   }
-  CompletionSuggestion suggestion = CompletionSuggestion(
+  var suggestion = CompletionSuggestion(
       kind, relevance, completion, completion.length, 0, isDeprecated, false);
 
   // Attach docs.
-  String doc = getDartDocPlainText(element.documentationComment);
+  var doc = getDartDocPlainText(element.documentationComment);
   suggestion.docComplete = doc;
   suggestion.docSummary = getDartDocSummary(doc);
 
   suggestion.element = protocol.convertElement(element);
-  Element enclosingElement = element.enclosingElement;
+  var enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {
     suggestion.declaringType = enclosingElement.displayName;
   }
@@ -58,18 +57,18 @@ CompletionSuggestion createSuggestion(Element element,
         .toList();
     suggestion.parameterTypes =
         element.parameters.map((ParameterElement parameter) {
-      DartType paramType = parameter.type;
+      var paramType = parameter.type;
       // Gracefully degrade if type not resolved yet
       return paramType != null
           ? paramType.getDisplayString(withNullability: false)
           : 'var';
     }).toList();
 
-    Iterable<ParameterElement> requiredParameters = element.parameters
+    var requiredParameters = element.parameters
         .where((ParameterElement param) => param.isRequiredPositional);
     suggestion.requiredParameterCount = requiredParameters.length;
 
-    Iterable<ParameterElement> namedParameters =
+    var namedParameters =
         element.parameters.where((ParameterElement param) => param.isNamed);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
@@ -108,7 +107,7 @@ mixin ElementSuggestionBuilder {
         return null;
       }
     }
-    String completion = elementCompletion ?? element.displayName;
+    var completion = elementCompletion ?? element.displayName;
     if (prefix != null && prefix.isNotEmpty) {
       if (completion == null || completion.isEmpty) {
         completion = prefix;
@@ -119,7 +118,7 @@ mixin ElementSuggestionBuilder {
     if (completion == null || completion.isEmpty) {
       return null;
     }
-    CompletionSuggestion suggestion = createSuggestion(element,
+    var suggestion = createSuggestion(element,
         completion: completion,
         kind: kind,
         relevance: relevance,
@@ -135,16 +134,14 @@ mixin ElementSuggestionBuilder {
           cacheKey = cacheKey.substring(0, cacheKey.length - 1);
         }
         if (cacheKey != null) {
-          CompletionSuggestion existingSuggestion = _syntheticMap[cacheKey];
+          var existingSuggestion = _syntheticMap[cacheKey];
 
           // Pair getter/setter by updating the existing suggestion
           if (existingSuggestion != null) {
-            CompletionSuggestion getter =
-                element.isGetter ? suggestion : existingSuggestion;
-            protocol.ElementKind elemKind =
-                element.enclosingElement is ClassElement
-                    ? protocol.ElementKind.FIELD
-                    : protocol.ElementKind.TOP_LEVEL_VARIABLE;
+            var getter = element.isGetter ? suggestion : existingSuggestion;
+            var elemKind = element.enclosingElement is ClassElement
+                ? protocol.ElementKind.FIELD
+                : protocol.ElementKind.TOP_LEVEL_VARIABLE;
             existingSuggestion.element = protocol.Element(
                 elemKind,
                 existingSuggestion.element.name,
@@ -336,7 +333,7 @@ class MemberSuggestionBuilder {
       if (accessor.hasDeprecated) {
         return DART_RELEVANCE_LOW;
       }
-      String identifier = accessor.displayName;
+      var identifier = accessor.displayName;
       if (identifier != null && identifier.startsWith(r'$')) {
         // Decrease relevance of suggestions starting with $
         // https://github.com/dart-lang/sdk/issues/27303
@@ -419,7 +416,7 @@ class MemberSuggestionBuilder {
         // same name as the containing method.
         return DART_RELEVANCE_HIGH;
       }
-      String identifier = method.displayName;
+      var identifier = method.displayName;
       if (identifier != null && identifier.startsWith(r'$')) {
         // Decrease relevance of suggestions starting with $
         // https://github.com/dart-lang/sdk/issues/27303
@@ -460,9 +457,9 @@ class MemberSuggestionBuilder {
   CompletionSuggestion _addSuggestion(
       Element element, int relevance, bool useNewRelevance,
       {CompletionSuggestionKind kind}) {
-    String identifier = element.displayName;
+    var identifier = element.displayName;
 
-    int alreadyGenerated = _completionTypesGenerated.putIfAbsent(
+    var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
         identifier, () => _COMPLETION_TYPE_NONE);
     if (element is MethodElement) {
       // Anything shadows a method.
@@ -498,7 +495,7 @@ class MemberSuggestionBuilder {
       assert(false);
       return null;
     }
-    CompletionSuggestion suggestion = createSuggestion(element,
+    var suggestion = createSuggestion(element,
         kind: kind, relevance: relevance, useNewRelevance: useNewRelevance);
     if (suggestion != null) {
       addCompletionSuggestion(suggestion);

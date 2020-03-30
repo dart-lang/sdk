@@ -55,7 +55,7 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
     // requirements too. For example, the Angular plugin might wish to add HTML
     // `DocumentFilter('html', 'file', null)` to many of these requests.
 
-    int _lastRegistrationId = 1;
+    var _lastRegistrationId = 1;
     final registrations = <Registration>[];
 
     /// Helper for creating registrations with IDs.

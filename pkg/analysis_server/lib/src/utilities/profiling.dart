@@ -50,7 +50,7 @@ class _PosixProcessProfiler extends ProcessProfiler {
   Future<UsageInfo> getProcessUsage(int processId) {
     try {
       // Execution time is typically 2-4ms.
-      Future<ProcessResult> future =
+      var future =
           Process.run('ps', ['-o', '%cpu=,rss=', processId.toString()]);
       return future.then((ProcessResult result) {
         if (result.exitCode != 0) {
@@ -67,8 +67,8 @@ class _PosixProcessProfiler extends ProcessProfiler {
   UsageInfo _parse(String psResults) {
     try {
       // "  0.0 378940"
-      String line = psResults.split('\n').first.trim();
-      List<String> values = line.split(stringSplitRegExp);
+      var line = psResults.split('\n').first.trim();
+      var values = line.split(stringSplitRegExp);
       return UsageInfo(double.parse(values[0]), int.parse(values[1]));
     } catch (e) {
       return null;

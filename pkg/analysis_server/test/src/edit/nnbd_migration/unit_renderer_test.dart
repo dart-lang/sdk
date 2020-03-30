@@ -22,12 +22,12 @@ class UnitRendererTest extends NnbdMigrationTestBase {
   /// Render [libraryInfo], using a [MigrationInfo] which knows only about this
   /// library.
   List<FileDetails> renderUnits() {
-    String packageRoot = convertPath('/package');
-    MigrationInfo migrationInfo =
+    var packageRoot = convertPath('/package');
+    var migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
 
-    List<FileDetails> contents = [];
-    for (UnitInfo unitInfo in infos) {
+    var contents = <FileDetails>[];
+    for (var unitInfo in infos) {
       contents.add(
           UnitRenderer(unitInfo, migrationInfo, PathMapper(resourceProvider))
               .render());

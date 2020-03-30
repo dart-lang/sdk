@@ -127,7 +127,7 @@ class LspServerClient {
   /// upward to the 'test' dir, and then going up one more directory.
   String findRoot(String pathname) {
     while (!['benchmark', 'test'].contains(basename(pathname))) {
-      String parent = dirname(pathname);
+      var parent = dirname(pathname);
       if (parent.length >= pathname.length) {
         throw Exception("Can't find root directory");
       }
@@ -141,9 +141,9 @@ class LspServerClient {
       throw Exception('Process already started');
     }
 
-    String dartBinary = Platform.executable;
+    var dartBinary = Platform.executable;
 
-    final bool useSnapshot = true;
+    var useSnapshot = true;
     String serverPath;
 
     if (useSnapshot) {

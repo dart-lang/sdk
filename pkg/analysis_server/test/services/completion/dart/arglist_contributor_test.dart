@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ArgListContributorTest extends DartCompletionContributorTest {
   void assertNoOtherSuggestions(Iterable<CompletionSuggestion> expected) {
-    for (CompletionSuggestion suggestion in suggestions) {
+    for (var suggestion in suggestions) {
       if (!expected.contains(suggestion)) {
         failedCompletion('did not expect completion: '
             '${suggestion.completion}\n  $suggestion');
@@ -31,8 +31,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
   /// the given [completion], [selectionOffset] and [selectionLength].
   void assertSuggestArgumentAndCompletion(String name,
       {String completion, int selectionOffset, int selectionLength = 0}) {
-    CompletionSuggestion suggestion =
-        suggestions.firstWhere((s) => s.parameterName == name);
+    var suggestion = suggestions.firstWhere((s) => s.parameterName == name);
     expect(suggestion, isNotNull);
     expect(suggestion.completion, completion);
     expect(suggestion.selectionOffset, selectionOffset);
@@ -48,7 +47,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
         actualNames.length == expectedNames.length &&
         actualTypes != null &&
         actualTypes.length == expectedTypes.length) {
-      int index = 0;
+      var index = 0;
       while (index < expectedNames.length) {
         if (actualNames[index] != expectedNames[index] ||
             actualTypes[index] != expectedTypes[index]) {
@@ -60,7 +59,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
         return;
       }
     }
-    StringBuffer msg = StringBuffer();
+    var msg = StringBuffer();
     msg.writeln('Argument list not the same');
     msg.writeln('  Expected names: $expectedNames');
     msg.writeln('           found: $actualNames');
@@ -76,16 +75,16 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       List<int> requiredParamIndices = const <int>[],
       bool includeColon = true,
       bool includeComma = false}) {
-    List<CompletionSuggestion> expected = <CompletionSuggestion>[];
-    int paramIndex = 0;
+    var expected = <CompletionSuggestion>[];
+    var paramIndex = 0;
     namedArgumentsWithTypes.forEach((String name, String type) {
-      String completion = includeColon ? '$name: ' : name;
+      var completion = includeColon ? '$name: ' : name;
       // Selection should be before any trailing commas.
-      int selectionOffset = completion.length;
+      var selectionOffset = completion.length;
       if (includeComma) {
         completion = '$completion,';
       }
-      int relevance = requiredParamIndices.contains(paramIndex++)
+      var relevance = requiredParamIndices.contains(paramIndex++)
           ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
           : DART_RELEVANCE_NAMED_PARAMETER;
       expected.add(assertSuggest(completion,
@@ -100,10 +99,10 @@ class ArgListContributorTest extends DartCompletionContributorTest {
 
   /// Assert that the specified suggestions are the only suggestions.
   void assertSuggestions(List<String> suggestions) {
-    List<CompletionSuggestion> expected = <CompletionSuggestion>[];
-    for (String suggestion in suggestions) {
+    var expected = <CompletionSuggestion>[];
+    for (var suggestion in suggestions) {
       // Selection offset should be before any trailing commas.
-      int selectionOffset =
+      var selectionOffset =
           suggestion.endsWith(',') ? suggestion.length - 1 : suggestion.length;
       expected.add(assertSuggest('$suggestion',
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
@@ -786,7 +785,7 @@ foo({String children}) {}
 
   Future<void>
       test_ArgumentList_local_constructor_named_fieldFormal_documentation() async {
-    String content = '''
+    var content = '''
 class A {
   /// aaa
   ///
@@ -803,11 +802,11 @@ main() {
     await computeSuggestions();
     expect(suggestions, hasLength(1));
 
-    CompletionSuggestion suggestion = suggestions[0];
+    var suggestion = suggestions[0];
     expect(suggestion.docSummary, 'aaa');
     expect(suggestion.docComplete, 'aaa\n\nbbb\nccc');
 
-    Element element = suggestion.element;
+    var element = suggestion.element;
     expect(element, isNotNull);
     expect(element.kind, ElementKind.PARAMETER);
     expect(element.name, 'fff');
@@ -816,7 +815,7 @@ main() {
 
   Future<void>
       test_ArgumentList_local_constructor_named_fieldFormal_noDocumentation() async {
-    String content = '''
+    var content = '''
 class A {
   int fff;
   A({this.fff});
@@ -829,11 +828,11 @@ main() {
     await computeSuggestions();
     expect(suggestions, hasLength(1));
 
-    CompletionSuggestion suggestion = suggestions[0];
+    var suggestion = suggestions[0];
     expect(suggestion.docSummary, isNull);
     expect(suggestion.docComplete, isNull);
 
-    Element element = suggestion.element;
+    var element = suggestion.element;
     expect(element, isNotNull);
     expect(element.kind, ElementKind.PARAMETER);
     expect(element.name, 'fff');

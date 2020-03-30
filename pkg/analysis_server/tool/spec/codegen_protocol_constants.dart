@@ -11,19 +11,19 @@ import 'from_html.dart';
 final GeneratedFile clientTarget = GeneratedFile(
     '../analysis_server_client/lib/src/protocol/protocol_constants.dart',
     (String pkgPath) async {
-  CodegenVisitor visitor = CodegenVisitor(readApi(pkgPath));
+  var visitor = CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
 final GeneratedFile serverTarget = GeneratedFile(
     'lib/protocol/protocol_constants.dart', (String pkgPath) async {
-  CodegenVisitor visitor = CodegenVisitor(readApi(pkgPath));
+  var visitor = CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
 /// Generate a name from the [domainName], [kind] and [name] components.
 String generateConstName(String domainName, String kind, String name) {
-  List<String> components = <String>[];
+  var components = <String>[];
   components.addAll(_split(domainName));
   components.add(kind);
   components.addAll(_split(name));
@@ -38,10 +38,10 @@ String _fromComponents(List<String> components) =>
 /// Return the components of the given [string] that are indicated by an upper
 /// case letter.
 Iterable<String> _split(String first) {
-  RegExp regExp = RegExp('[A-Z]');
-  List<String> components = <String>[];
-  int start = 1;
-  int index = first.indexOf(regExp, start);
+  var regExp = RegExp('[A-Z]');
+  var components = <String>[];
+  var start = 1;
+  var index = first.indexOf(regExp, start);
   while (index >= 0) {
     components.add(first.substring(start - 1, index));
     start = index + 1;
@@ -66,11 +66,11 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
   void generateConstants() {
     writeln("const String PROTOCOL_VERSION = '${api.version}';");
     writeln();
-    _ConstantVisitor visitor = _ConstantVisitor(api);
+    var visitor = _ConstantVisitor(api);
     visitor.visitApi();
-    List<_Constant> constants = visitor.constants;
+    var constants = visitor.constants;
     constants.sort((first, second) => first.name.compareTo(second.name));
-    for (_Constant constant in constants) {
+    for (var constant in constants) {
       generateContant(constant);
     }
   }
@@ -114,25 +114,24 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
 
   @override
   void visitNotification(Notification notification) {
-    String domainName = notification.domainName;
-    String event = notification.event;
+    var domainName = notification.domainName;
+    var event = notification.event;
 
-    String constantName = generateConstName(domainName, 'notification', event);
+    var constantName = generateConstName(domainName, 'notification', event);
     constants.add(_Constant(constantName, "'$domainName.$event'"));
     _addFieldConstants(constantName, notification.params);
   }
 
   @override
   void visitRequest(Request request) {
-    String domainName = request.domainName;
-    String method = request.method;
+    var domainName = request.domainName;
+    var method = request.method;
 
-    String requestConstantName =
-        generateConstName(domainName, 'request', method);
+    var requestConstantName = generateConstName(domainName, 'request', method);
     constants.add(_Constant(requestConstantName, "'$domainName.$method'"));
     _addFieldConstants(requestConstantName, request.params);
 
-    String responseConstantName =
+    var responseConstantName =
         generateConstName(domainName, 'response', method);
     _addFieldConstants(responseConstantName, request.result);
   }
@@ -145,11 +144,11 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
       return;
     }
     type.fields.forEach((TypeObjectField field) {
-      String name = field.name;
-      List<String> components = <String>[];
+      var name = field.name;
+      var components = <String>[];
       components.add(parentName);
       components.addAll(_split(name));
-      String fieldConstantName = _fromComponents(components);
+      var fieldConstantName = _fromComponents(components);
       constants.add(_Constant(fieldConstantName, "'$name'"));
     });
   }

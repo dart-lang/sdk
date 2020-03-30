@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,8 +17,8 @@ void main() {
 class GetKytheEntriesTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_getKytheEntries() async {
     writeFile(sourcePath('WORKSPACE'), '');
-    String pathname = sourcePath('pkg/test.dart');
-    String text = r'''
+    var pathname = sourcePath('pkg/test.dart');
+    var text = r'''
 class Foo {}
 
 class Bar {
@@ -31,8 +30,7 @@ class Bar {
 
     await analysisFinished;
 
-    KytheGetKytheEntriesResult result =
-        await sendKytheGetKytheEntries(pathname);
+    var result = await sendKytheGetKytheEntries(pathname);
     expect(result.entries, isNotEmpty);
     expect(result.files, isEmpty);
   }

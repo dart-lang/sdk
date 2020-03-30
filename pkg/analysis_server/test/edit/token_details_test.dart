@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:test/test.dart';
@@ -21,10 +20,9 @@ class CompletionListTokenDetailsTest extends AbstractAnalysisTest {
   CompletionDomainHandler completionHandler;
 
   Future<CompletionListTokenDetailsResult> getTokenDetails() async {
-    CompletionListTokenDetailsParams params =
-        CompletionListTokenDetailsParams(testFile);
+    var params = CompletionListTokenDetailsParams(testFile);
     await completionHandler.listTokenDetails(params.toRequest('0'));
-    Response response = await serverChannel.responseController.stream.first;
+    var response = await serverChannel.responseController.stream.first;
     return CompletionListTokenDetailsResult.fromResponse(response);
   }
 
@@ -47,8 +45,8 @@ import 'package:project/c.dart';
 C c;
 ''');
     createProject();
-    CompletionListTokenDetailsResult result = await getTokenDetails();
-    List<TokenDetails> tokens = result.tokens;
+    var result = await getTokenDetails();
+    var tokens = result.tokens;
     expect(tokens, hasLength(6));
   }
 }

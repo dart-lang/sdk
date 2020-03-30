@@ -46,7 +46,7 @@ class EditDartFix
       }
     }
     if (params.includedFixes != null) {
-      for (String key in params.includedFixes) {
+      for (var key in params.includedFixes) {
         var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
         if (info != null) {
           fixInfo.add(info);
@@ -57,7 +57,7 @@ class EditDartFix
       }
     }
     if (params.excludedFixes != null) {
-      for (String key in params.excludedFixes) {
+      for (var key in params.excludedFixes) {
         var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
         if (info != null) {
           fixInfo.remove(info);
@@ -67,7 +67,7 @@ class EditDartFix
         }
       }
     }
-    for (DartFixInfo info in fixInfo) {
+    for (var info in fixInfo) {
       info.setup(this, listener, params);
     }
 
@@ -81,11 +81,11 @@ class EditDartFix
     // will be used from within the IDE.
     contextManager.refresh(null);
 
-    for (String filePath in params.included) {
+    for (var filePath in params.included) {
       if (!server.isValidFilePath(filePath)) {
         return Response.invalidFilePathFormat(request, filePath);
       }
-      Resource res = resourceProvider.getResource(filePath);
+      var res = resourceProvider.getResource(filePath);
       if (!res.exists ||
           !(contextManager.includedPaths.contains(filePath) ||
               contextManager.isInAnalysisRoot(filePath))) {
@@ -167,15 +167,15 @@ class EditDartFix
     final contextManager = server.contextManager;
     final resourceProvider = server.resourceProvider;
     final resources = <Resource>[];
-    for (String rootPath in contextManager.includedPaths) {
+    for (var rootPath in contextManager.includedPaths) {
       resources.add(resourceProvider.getResource(rootPath));
     }
 
     var pathsToProcess = <String>{};
     while (resources.isNotEmpty) {
-      Resource res = resources.removeLast();
+      var res = resources.removeLast();
       if (res is Folder) {
-        for (Resource child in res.getChildren()) {
+        for (var child in res.getChildren()) {
           if (!child.shortName.startsWith('.') &&
               contextManager.isInAnalysisRoot(child.path) &&
               !contextManager.isIgnored(child.path)) {
@@ -196,12 +196,12 @@ class EditDartFix
   /// or is within an `included` directory.
   bool isIncluded(String filePath) {
     if (filePath != null) {
-      for (File file in fixFiles) {
+      for (var file in fixFiles) {
         if (file.path == filePath) {
           return true;
         }
       }
-      for (Folder folder in fixFolders) {
+      for (var folder in fixFolders) {
         if (folder.contains(filePath)) {
           return true;
         }
@@ -215,7 +215,7 @@ class EditDartFix
       Future<void> Function(ResolvedUnitResult result) process) async {
     final pathsToProcess = getPathsToProcess();
     var pathsProcessed = <String>{};
-    for (String path in pathsToProcess) {
+    for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
       var driver = server.getAnalysisDriver(path);
       switch (await driver.getSourceKind(path)) {
@@ -225,7 +225,7 @@ class EditDartFix
           continue;
           break;
         case SourceKind.LIBRARY:
-          ResolvedLibraryResult result = await driver.getResolvedLibrary(path);
+          var result = await driver.getResolvedLibrary(path);
           if (result != null) {
             for (var unit in result.units) {
               if (pathsToProcess.contains(unit.path) &&
@@ -241,8 +241,8 @@ class EditDartFix
       }
     }
 
-    for (String path in pathsToProcess.difference(pathsProcessed)) {
-      ResolvedUnitResult result = await server.getResolvedUnit(path);
+    for (var path in pathsToProcess.difference(pathsProcessed)) {
+      var result = await server.getResolvedUnit(path);
       if (result == null || result.unit == null) {
         continue;
       }
@@ -253,14 +253,14 @@ class EditDartFix
   Future<bool> rerunTasks([List<String> changedPaths]) async {
     if (changedPaths == null) {
       final drivers = <AnalysisDriver>{};
-      for (String path in getPathsToProcess()) {
+      for (var path in getPathsToProcess()) {
         drivers.add(server.getAnalysisDriver(path));
       }
       for (final driver in drivers) {
         driver.knownFiles.forEach(driver.changeFile);
       }
     } else {
-      for (String path in changedPaths) {
+      for (var path in changedPaths) {
         var driver = server.getAnalysisDriver(path);
         driver.changeFile(path);
       }
@@ -271,11 +271,11 @@ class EditDartFix
 
   Future<bool> runAllTasks() async {
     // Process each package
-    for (Folder pkgFolder in pkgFolders) {
+    for (var pkgFolder in pkgFolders) {
       await processPackage(pkgFolder);
     }
 
-    bool hasErrors = false;
+    var hasErrors = false;
 
     // Process each source file.
     try {
@@ -287,7 +287,7 @@ class EditDartFix
           await processCodeTasks(0, result);
         }
       });
-      for (int phase = 1; phase < numPhases; phase++) {
+      for (var phase = 1; phase < numPhases; phase++) {
         await processResources((ResolvedUnitResult result) async {
           await processCodeTasks(phase, result);
         });

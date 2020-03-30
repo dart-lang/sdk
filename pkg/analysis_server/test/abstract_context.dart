@@ -74,7 +74,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void addMetaPackage() {
-    Folder libFolder = MockPackages.instance.addMeta(resourceProvider);
+    var libFolder = MockPackages.instance.addMeta(resourceProvider);
     addTestPackageDependency('meta', libFolder.parent.path);
   }
 
@@ -88,8 +88,8 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
-    File file = newFile(path, content: content);
-    Source source = file.createSource(uri);
+    var file = newFile(path, content: content);
+    var source = file.createSource(uri);
     driver.addFile(file.path);
     driver.changeFile(file.path);
     return source;
@@ -114,7 +114,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void addVectorMathPackage() {
-    Folder libFolder = MockPackages.instance.addVectorMath(resourceProvider);
+    var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
     addTestPackageDependency('vector_math', libFolder.parent.path);
   }
 
@@ -134,12 +134,12 @@ class AbstractContextTest with ResourceProviderMixin {
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile(
       {List<String> experiments, List<String> lints}) {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
 
     if (experiments != null) {
       buffer.writeln('analyzer:');
       buffer.writeln('  enable-experiment:');
-      for (String experiment in experiments) {
+      for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
     }
@@ -147,7 +147,7 @@ class AbstractContextTest with ResourceProviderMixin {
     if (lints != null) {
       buffer.writeln('linter:');
       buffer.writeln('  rules:');
-      for (String lint in lints) {
+      for (var lint in lints) {
         buffer.writeln('    - $lint');
       }
     }

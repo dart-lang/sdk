@@ -27,8 +27,8 @@ import 'utils.dart';
 import 'visitors.dart';
 
 Future<void> main(List<String> args) async {
-  ArgParser parser = createArgParser();
-  ArgResults result = parser.parse(args);
+  var parser = createArgParser();
+  var result = parser.parse(args);
 
   if (!validArguments(parser, result)) {
     return io.exit(1);
@@ -48,7 +48,7 @@ Future<void> main(List<String> args) async {
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  ArgParser parser = ArgParser();
+  var parser = ArgParser();
   parser.addOption(
     'help',
     abbr: 'h',

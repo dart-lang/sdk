@@ -22,8 +22,8 @@ class RegionRendererTest extends NnbdMigrationTestBase {
   /// Render the region at [offset], using a [MigrationInfo] which knows only
   /// about the library at `infos.single`.
   EditDetails renderRegion(int offset) {
-    String packageRoot = convertPath('/package');
-    MigrationInfo migrationInfo =
+    var packageRoot = convertPath('/package');
+    var migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
     var unitInfo = infos.single;
     var region = unitInfo.regionAt(offset);

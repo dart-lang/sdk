@@ -436,7 +436,7 @@ ZTsKfQo=
 ''';
 
 String _migration_js;
-// migration_dart md5 is '78d2fb77314079e6c623cb3e4537abbf'
+// migration_dart md5 is '67cb9003ac550e77fb2a7554eea93da3'
 String _migration_js_base64 = '''
 KGZ1bmN0aW9uIGRhcnRQcm9ncmFtKCl7ZnVuY3Rpb24gY29weVByb3BlcnRpZXMoYSxiKXt2YXIgdD1P
 YmplY3Qua2V5cyhhKQpmb3IodmFyIHM9MDtzPHQubGVuZ3RoO3MrKyl7dmFyIHI9dFtzXQpiW3JdPWFb

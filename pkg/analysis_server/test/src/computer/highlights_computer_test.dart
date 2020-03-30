@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -54,9 +53,9 @@ main() {
   void _check(HighlightRegionType expectedType, String expectedText) {
     for (var region in highlights) {
       if (region.type == expectedType) {
-        int startIndex = region.offset;
-        int endIndex = startIndex + region.length;
-        String highlightedText = content.substring(startIndex, endIndex);
+        var startIndex = region.offset;
+        var endIndex = startIndex + region.length;
+        var highlightedText = content.substring(startIndex, endIndex);
         if (highlightedText == expectedText) {
           return;
         }
@@ -71,7 +70,7 @@ main() {
   }) async {
     this.content = content;
     newFile(sourcePath, content: content);
-    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
+    var result = await session.getResolvedUnit(sourcePath);
 
     if (hasErrors) {
       expect(result.errors, isNotEmpty);
@@ -79,8 +78,7 @@ main() {
       expect(result.errors, isEmpty);
     }
 
-    DartUnitHighlightsComputer computer =
-        DartUnitHighlightsComputer(result.unit);
+    var computer = DartUnitHighlightsComputer(result.unit);
     highlights = computer.compute();
   }
 }

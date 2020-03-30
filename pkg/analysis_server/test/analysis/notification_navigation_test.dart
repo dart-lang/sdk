@@ -32,7 +32,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   /// Validates that there is a target in [testTargetIndexes] with [file],
   /// at [offset] and with the given [length].
   void assertHasFileTarget(String file, int offset, int length) {
-    for (NavigationTarget target in testTargets) {
+    for (var target in testTargets) {
       if (targetFiles[target.fileIndex] == file &&
           target.offset == offset &&
           target.length == length) {
@@ -56,7 +56,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   /// If [length] is not specified explicitly, then length of an identifier
   /// from [search] is used.
   void assertHasRegion(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
@@ -66,7 +66,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   /// Validates that there is a region at the offset of [search] in [testFile]
   /// with the given [length] or the length of [search].
   void assertHasRegionString(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = search.length;
     }
@@ -84,7 +84,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   /// offset of [search] in [testFile], and with the given [length] or the
   /// length of an leading identifier in [search].
   void assertHasTarget(String search, [int length = -1]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
     }
@@ -100,27 +100,27 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   /// Validates that there is no a region at [search] and with the given
   /// [length].
   void assertNoRegion(String search, int length) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     findRegion(offset, length, false);
   }
 
   /// Validates that there is no a region at [search] with any length.
   void assertNoRegionAt(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     findRegion(offset, -1, false);
   }
 
   /// Validates that there is no a region for [search] string.
   void assertNoRegionString(String search) {
-    int offset = findOffset(search);
-    int length = search.length;
+    var offset = findOffset(search);
+    var length = search.length;
     findRegion(offset, length, false);
   }
 
   void assertRegionsSorted() {
-    int lastEnd = -1;
-    for (NavigationRegion region in regions) {
-      int offset = region.offset;
+    var lastEnd = -1;
+    for (var region in regions) {
+      var offset = region.offset;
       if (offset < lastEnd) {
         fail('$lastEnd was expected to be > $offset in\n' + regions.join('\n'));
       }
@@ -137,7 +137,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   ///
   /// If [exists] is `false`, then fails if such region exists.
   void findRegion(int offset, int length, bool exists) {
-    for (NavigationRegion region in regions) {
+    for (var region in regions) {
       if (region.offset == offset &&
           (length == -1 || region.length == length)) {
         if (exists == false) {
@@ -305,8 +305,8 @@ int V = 42;
 ''');
     await prepareNavigation();
     assertHasRegion('int V');
-    int targetIndex = testTargetIndexes[0];
-    NavigationTarget target = targets[targetIndex];
+    var targetIndex = testTargetIndexes[0];
+    var target = targets[targetIndex];
     expect(target.startLine, greaterThan(0));
     expect(target.startColumn, greaterThan(0));
   }

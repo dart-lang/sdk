@@ -27,7 +27,7 @@ class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
 
   @override
   Future standardAnalysisSetup({bool subscribeStatus = true}) {
-    List<Future> futures = <Future>[];
+    var futures = <Future>[];
     if (subscribeStatus) {
       futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
     }
@@ -36,8 +36,8 @@ class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   Future<void> test_getSuggestions() async {
-    String aPath = path.join(sourceDirectory.path, 'a');
-    String aLibPath = path.join(aPath, 'lib');
+    var aPath = path.join(sourceDirectory.path, 'a');
+    var aLibPath = path.join(aPath, 'lib');
     writeFile(path.join(aLibPath, 'a.dart'), '''
 class A {}
 ''');
@@ -45,7 +45,7 @@ class A {}
 a:file://${path.toUri(aLibPath)}
 test_package:lib/
 ''');
-    String testFilePath = path.join(testPackagePath, 'lib', 'test.dart');
+    var testFilePath = path.join(testPackagePath, 'lib', 'test.dart');
     writeFile(testFilePath, '''
 import 'package:a/a.dart';
 class B {}
@@ -54,8 +54,7 @@ String f(A a, B b) => a.toString() + b.toString();
     await standardAnalysisSetup();
     await analysisFinished;
 
-    CompletionListTokenDetailsResult result =
-        await sendCompletionListTokenDetails(testFilePath);
+    var result = await sendCompletionListTokenDetails(testFilePath);
     expect(result, isNotNull);
   }
 }

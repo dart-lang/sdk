@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:source_span/src/span.dart';
 import 'package:yaml/yaml.dart';
 
 /// An object used to locate the [YamlNode] associated with a source range.
@@ -30,18 +29,18 @@ class YamlNodeLocator {
   /// node was found. The path is represented by all of the elements from the
   /// starting [node] to the most deeply nested node, in reverse order.
   List<YamlNode> searchWithin(YamlNode node) {
-    List<YamlNode> path = [];
+    var path = <YamlNode>[];
     _searchWithin(path, node);
     return path;
   }
 
   void _searchWithin(List<YamlNode> path, YamlNode node) {
-    SourceSpan span = node.span;
+    var span = node.span;
     if (span.start.offset > _endOffset || span.end.offset < _startOffset) {
       return;
     }
     if (node is YamlList) {
-      for (YamlNode element in node.nodes) {
+      for (var element in node.nodes) {
         _searchWithin(path, element);
         if (path.isNotEmpty) {
           path.add(node);
@@ -49,7 +48,7 @@ class YamlNodeLocator {
         }
       }
     } else if (node is YamlMap) {
-      Map<dynamic, YamlNode> nodeMap = node.nodes;
+      var nodeMap = node.nodes;
       for (YamlNode key in nodeMap.keys) {
         _searchWithin(path, key);
         if (path.isNotEmpty) {

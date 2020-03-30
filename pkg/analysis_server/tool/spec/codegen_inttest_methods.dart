@@ -14,7 +14,7 @@ import 'to_html.dart';
 final GeneratedFile target =
     GeneratedFile('test/integration/support/integration_test_methods.dart',
         (String pkgPath) async {
-  CodegenInttestMethodsVisitor visitor =
+  var visitor =
       CodegenInttestMethodsVisitor(path.basename(pkgPath), readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
@@ -94,7 +94,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln("import 'protocol_matchers.dart';");
-    for (String uri in api.types.importUris) {
+    for (var uri in api.types.importUris) {
       write("import '");
       write(uri);
       writeln("';");
@@ -123,7 +123,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       }));
       writeln('void dispatchNotification(String event, params) {');
       indent(() {
-        writeln('ResponseDecoder decoder = ResponseDecoder(null);');
+        writeln('var decoder = ResponseDecoder(null);');
         writeln('switch (event) {');
         indent(() {
           write(notificationSwitchContents.join());
@@ -142,9 +142,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
 
   @override
   void visitNotification(Notification notification) {
-    String streamName =
+    var streamName =
         camelJoin(['on', notification.domainName, notification.event]);
-    String className = camelJoin(
+    var className = camelJoin(
         [notification.domainName, notification.event, 'params'],
         doCapitalize: true);
     writeln();
@@ -165,7 +165,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     notificationSwitchContents.add(collectCode(() {
       writeln("case '${notification.longEvent}':");
       indent(() {
-        String paramsValidator = camelJoin(
+        var paramsValidator = camelJoin(
             ['is', notification.domainName, notification.event, 'params']);
         writeln('outOfTestExpect(params, $paramsValidator);');
         String constructorCall;
@@ -182,11 +182,11 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
 
   @override
   void visitRequest(Request request) {
-    String methodName = camelJoin(['send', request.domainName, request.method]);
-    List<String> args = <String>[];
-    List<String> optionalArgs = <String>[];
+    var methodName = camelJoin(['send', request.domainName, request.method]);
+    var args = <String>[];
+    var optionalArgs = <String>[];
     if (request.params != null) {
-      for (TypeObjectField field in request.params.fields) {
+      for (var field in request.params.fields) {
         if (field.optional) {
           optionalArgs.add(formatArgument(field));
         } else {
@@ -217,15 +217,15 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     }
     writeln('$futureClass $methodName(${args.join(', ')}) async {');
     indent(() {
-      String requestClass = camelJoin(
+      var requestClass = camelJoin(
           [request.domainName, request.method, 'params'],
           doCapitalize: true);
-      String paramsVar = 'null';
+      var paramsVar = 'null';
       if (request.params != null) {
         paramsVar = 'params';
-        List<String> args = <String>[];
-        List<String> optionalArgs = <String>[];
-        for (TypeObjectField field in request.params.fields) {
+        var args = <String>[];
+        var optionalArgs = <String>[];
+        for (var field in request.params.fields) {
           if (field.optional) {
             optionalArgs.add('${field.name}: ${field.name}');
           } else {
@@ -235,14 +235,14 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         args.addAll(optionalArgs);
         writeln('var params = $requestClass(${args.join(', ')}).toJson();');
       }
-      String methodJson = "'${request.longMethod}'";
+      var methodJson = "'${request.longMethod}'";
       writeln('var result = await server.send($methodJson, $paramsVar);');
       if (request.result != null) {
-        String kind = 'null';
+        var kind = 'null';
         if (requestClass == 'EditGetRefactoringParams') {
           kind = 'kind';
         }
-        writeln('ResponseDecoder decoder = ResponseDecoder($kind);');
+        writeln('var decoder = ResponseDecoder($kind);');
         writeln("return $resultClass.fromJson(decoder, 'result', result);");
       } else {
         writeln('outOfTestExpect(result, isNull);');

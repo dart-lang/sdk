@@ -34,14 +34,14 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
   }
 
   void assertNotSuggested(String completion) {
-    CompletionSuggestion suggestion = getSuggest(completion);
+    var suggestion = getSuggest(completion);
     if (suggestion != null) {
       failedCompletion('unexpected $completion');
     }
   }
 
   void assertSuggested(String completion, {String returnType}) {
-    CompletionSuggestion suggestion = getSuggest(completion);
+    var suggestion = getSuggest(completion);
     if (suggestion == null) {
       failedCompletion('expected $completion');
     }
@@ -55,7 +55,7 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     List<RuntimeCompletionVariable> variables,
     List<RuntimeCompletionExpression> expressions,
   }) async {
-    int codeOffset = code.indexOf('^');
+    var codeOffset = code.indexOf('^');
     expect(codeOffset, isNonNegative);
     code = code.replaceAll('^', '');
 

@@ -34,10 +34,10 @@ class DirectiveOrganizer {
   List<SourceEdit> organize() {
     _organizeDirectives();
     // prepare edits
-    List<SourceEdit> edits = <SourceEdit>[];
+    var edits = <SourceEdit>[];
     if (code != initialCode) {
-      int suffixLength = findCommonSuffix(initialCode, code);
-      SourceEdit edit = SourceEdit(0, initialCode.length - suffixLength,
+      var suffixLength = findCommonSuffix(initialCode, code);
+      var edit = SourceEdit(0, initialCode.length - suffixLength,
           code.substring(0, code.length - suffixLength));
       edits.add(edit);
     }
@@ -45,7 +45,7 @@ class DirectiveOrganizer {
   }
 
   bool _isUnusedImport(UriBasedDirective directive) {
-    for (AnalysisError error in errors) {
+    for (var error in errors) {
       if ((error.errorCode == HintCode.DUPLICATE_IMPORT ||
               error.errorCode == HintCode.UNUSED_IMPORT) &&
           directive.uri.offset == error.offset) {
@@ -58,15 +58,15 @@ class DirectiveOrganizer {
   /// Organize all [Directive]s.
   void _organizeDirectives() {
     var lineInfo = unit.lineInfo;
-    List<_DirectiveInfo> directives = [];
-    for (Directive directive in unit.directives) {
+    var directives = <_DirectiveInfo>[];
+    for (var directive in unit.directives) {
       if (directive is UriBasedDirective) {
-        _DirectivePriority priority = getDirectivePriority(directive);
+        var priority = getDirectivePriority(directive);
         if (priority != null) {
-          int offset = directive.offset;
+          var offset = directive.offset;
 
-          int end = directive.end;
-          int line = lineInfo.getLocation(end).lineNumber;
+          var end = directive.end;
+          var line = lineInfo.getLocation(end).lineNumber;
           Token comment = directive.endToken.next.precedingComments;
           while (comment != null) {
             if (lineInfo.getLocation(comment.offset).lineNumber == line) {
@@ -75,8 +75,8 @@ class DirectiveOrganizer {
             comment = comment.next;
           }
 
-          String text = code.substring(offset, end);
-          String uriContent = directive.uri.stringValue;
+          var text = code.substring(offset, end);
+          var uriContent = directive.uri.stringValue;
           directives.add(
             _DirectiveInfo(
               directive,
@@ -94,18 +94,18 @@ class DirectiveOrganizer {
     if (directives.isEmpty) {
       return;
     }
-    int firstDirectiveOffset = directives.first.offset;
-    int lastDirectiveEnd = directives.last.end;
+    var firstDirectiveOffset = directives.first.offset;
+    var lastDirectiveEnd = directives.last.end;
     // sort
     directives.sort();
     // append directives with grouping
     String directivesCode;
     {
-      StringBuffer sb = StringBuffer();
+      var sb = StringBuffer();
       _DirectivePriority currentPriority;
-      for (_DirectiveInfo directiveInfo in directives) {
+      for (var directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
-          UriBasedDirective directive = directiveInfo.directive;
+          var directive = directiveInfo.directive;
           if (removeUnused && _isUnusedImport(directive)) {
             continue;
           }
@@ -123,13 +123,13 @@ class DirectiveOrganizer {
       directivesCode = directivesCode.trimRight();
     }
     // prepare code
-    String beforeDirectives = code.substring(0, firstDirectiveOffset);
-    String afterDirectives = code.substring(lastDirectiveEnd);
+    var beforeDirectives = code.substring(0, firstDirectiveOffset);
+    var afterDirectives = code.substring(lastDirectiveEnd);
     code = beforeDirectives + directivesCode + afterDirectives;
   }
 
   static _DirectivePriority getDirectivePriority(UriBasedDirective directive) {
-    String uriContent = directive.uri.stringValue;
+    var uriContent = directive.uri.stringValue;
     if (directive is ImportDirective) {
       if (uriContent.startsWith('dart:')) {
         return _DirectivePriority.IMPORT_SDK;
@@ -203,8 +203,8 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   String toString() => '(priority=$priority; text=$text)';
 
   static int _compareUri(String a, String b) {
-    List<String> aList = _splitUri(a);
-    List<String> bList = _splitUri(b);
+    var aList = _splitUri(a);
+    var bList = _splitUri(b);
     int result;
     if ((result = aList[0].compareTo(bList[0])) != 0) return result;
     if ((result = aList[1].compareTo(bList[1])) != 0) return result;
@@ -214,7 +214,7 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   /// Split the given [uri] like `package:some.name/and/path.dart` into a list
   /// like `[package:some.name, and/path.dart]`.
   static List<String> _splitUri(String uri) {
-    int index = uri.indexOf('/');
+    var index = uri.indexOf('/');
     if (index == -1) {
       return <String>[uri, ''];
     }

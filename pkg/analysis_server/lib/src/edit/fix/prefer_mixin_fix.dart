@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
@@ -28,25 +27,24 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
   int get numPhases => 0;
 
   Future<void> convertClassToMixin(Element elem) async {
-    ResolvedUnitResult result =
-        await listener.server.getResolvedUnit(elem.source?.fullName);
+    var result = await listener.server.getResolvedUnit(elem.source?.fullName);
 
-    for (CompilationUnitMember declaration in result.unit.declarations) {
+    for (var declaration in result.unit.declarations) {
       if (declaration is ClassOrMixinDeclaration &&
           declaration.name.name == elem.name) {
-        AssistProcessor processor = AssistProcessor(
+        var processor = AssistProcessor(
           DartAssistContextImpl(
               DartChangeWorkspace(listener.server.currentSessions),
               result,
               declaration.name.offset,
               0),
         );
-        List<Assist> assists = await processor
+        var assists = await processor
             .computeAssist(DartAssistKind.CONVERT_CLASS_TO_MIXIN);
         final location =
             listener.locationFor(result, elem.nameOffset, elem.nameLength);
         if (assists.isNotEmpty) {
-          for (Assist assist in assists) {
+          for (var assist in assists) {
             listener.addSourceChange('Convert ${elem.displayName} to a mixin',
                 location, assist.change);
           }
@@ -64,7 +62,7 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
 
   @override
   Future<void> finish() async {
-    for (Element elem in classesToConvert) {
+    for (var elem in classesToConvert) {
       await convertClassToMixin(elem);
     }
   }
@@ -72,9 +70,9 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
   @override
   Future<void> fixError(ResolvedUnitResult result, AnalysisError error) async {
     var node = NodeLocator(error.offset).searchWithin(result.unit);
-    TypeName type = node.thisOrAncestorOfType<TypeName>();
+    var type = node.thisOrAncestorOfType<TypeName>();
     if (type != null) {
-      Element element = type.name.staticElement;
+      var element = type.name.staticElement;
       if (element.source?.fullName != null) {
         classesToConvert.add(element);
       }

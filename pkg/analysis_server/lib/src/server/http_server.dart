@@ -73,7 +73,7 @@ class HttpAnalysisServer {
       _serverFuture =
           HttpServer.bind(InternetAddress.loopbackIPv4, initialPort ?? 0);
 
-      HttpServer server = await _serverFuture;
+      var server = await _serverFuture;
       _handleServer(server);
       return server.port;
     } catch (ignore) {
@@ -100,13 +100,13 @@ class HttpAnalysisServer {
     httpServer.listen((HttpRequest request) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
-      List<String> updateValues = request.headers[HttpHeaders.upgradeHeader];
+      var updateValues = request.headers[HttpHeaders.upgradeHeader];
       if (request.method == 'GET') {
         await _handleGetRequest(request);
       } else if (updateValues != null && updateValues.contains('websocket')) {
         // We no longer support serving analysis server communications over
         // WebSocket connections.
-        HttpResponse response = request.response;
+        var response = request.response;
         response.statusCode = HttpStatus.notFound;
         response.headers.contentType = ContentType.text;
         response.write(
@@ -121,7 +121,7 @@ class HttpAnalysisServer {
   /// Return an error in response to an unrecognized request received by the
   /// HTTP server.
   void _returnUnknownRequest(HttpRequest request) {
-    HttpResponse response = request.response;
+    var response = request.response;
     response.statusCode = HttpStatus.notFound;
     response.headers.contentType = ContentType.text;
     response.write('Not found');

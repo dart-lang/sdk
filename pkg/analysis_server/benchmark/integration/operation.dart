@@ -32,7 +32,7 @@ class CompletionRequestOperation extends RequestOperation {
 
   void processNotification(CompletionResultsParams event) {
     if (event.id == notificationId) {
-      Duration elapsed = stopwatch.elapsed;
+      var elapsed = stopwatch.elapsed;
       if (firstNotification) {
         firstNotification = false;
         driver.results.record('completion notification first', elapsed,
@@ -69,7 +69,7 @@ class RequestOperation extends Operation {
 
   @override
   Future perform(Driver driver) {
-    Stopwatch stopwatch = Stopwatch();
+    var stopwatch = Stopwatch();
     String originalId = json['id'];
     String method = json['method'];
     json['clientRequestTime'] = DateTime.now().millisecondsSinceEpoch;
@@ -77,7 +77,7 @@ class RequestOperation extends Operation {
     stopwatch.start();
 
     void recordResult(bool success, result) {
-      Duration elapsed = stopwatch.elapsed;
+      var elapsed = stopwatch.elapsed;
       driver.results.record(method, elapsed, success: success);
       driver.logger
           .log(Level.FINE, 'Response received: $method : $elapsed\n  $result');
@@ -131,7 +131,7 @@ class ResponseOperation extends Operation {
       }
     } else if (expectedResult is List && actualResult is List) {
       if (expectedResult.length == actualResult.length) {
-        for (int i = 0; i < expectedResult.length; ++i) {
+        for (var i = 0; i < expectedResult.length; ++i) {
           if (!_equal(expectedResult[i], actualResult[i])) {
             return false;
           }
@@ -148,14 +148,14 @@ class ResponseOperation extends Operation {
     if (!_equal(expectedResult, actualResult)) {
       var expectedError = responseJson['error'];
       String format(value) {
-        String text = '\n$value';
+        var text = '\n$value';
         if (text.endsWith('\n')) {
           text = text.substring(0, text.length - 1);
         }
         return text.replaceAll('\n', '\n  ');
       }
 
-      String message = 'Request:${format(requestJson)}\n'
+      var message = 'Request:${format(requestJson)}\n'
           'expected result:${format(expectedResult)}\n'
           'expected error:${format(expectedError)}\n'
           'but received:${format(actualResult)}';
@@ -180,12 +180,12 @@ class StartServerOperation extends Operation {
 class WaitForAnalysisCompleteOperation extends Operation {
   @override
   Future perform(Driver driver) {
-    DateTime start = DateTime.now();
+    var start = DateTime.now();
     driver.logger.log(Level.FINE, 'waiting for analysis to complete');
     StreamSubscription<ServerStatusParams> subscription;
     Timer timer;
-    Completer completer = Completer();
-    bool isAnalyzing = false;
+    var completer = Completer();
+    var isAnalyzing = false;
     subscription = driver.onServerStatus.listen((ServerStatusParams params) {
       if (params.analysis != null) {
         if (params.analysis.isAnalyzing) {
@@ -193,8 +193,8 @@ class WaitForAnalysisCompleteOperation extends Operation {
         } else {
           subscription.cancel();
           timer.cancel();
-          DateTime end = DateTime.now();
-          Duration delta = end.difference(start);
+          var end = DateTime.now();
+          var delta = end.difference(start);
           driver.logger.log(Level.FINE, 'analysis complete after $delta');
           completer.complete();
           driver.results.record('analysis complete', delta, notification: true);
@@ -211,12 +211,12 @@ class WaitForAnalysisCompleteOperation extends Operation {
         return;
       }
       // Timeout if no communication received within the last 60 seconds.
-      double currentTime = driver.server.currentElapseTime;
-      double lastTime = driver.server.lastCommunicationTime;
+      var currentTime = driver.server.currentElapseTime;
+      var lastTime = driver.server.lastCommunicationTime;
       if (currentTime - lastTime > 60) {
         subscription.cancel();
         timer.cancel();
-        String message = 'gave up waiting for analysis to complete';
+        var message = 'gave up waiting for analysis to complete';
         driver.logger.log(Level.WARNING, message);
         completer.completeError(message);
       }

@@ -51,7 +51,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   ];
 
   List<Keyword> get classBodyKeywords {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.CONST,
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
@@ -71,7 +71,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get constructorParameter {
-    List<Keyword> keywords = [Keyword.COVARIANT, Keyword.DYNAMIC, Keyword.THIS];
+    var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC, Keyword.THIS];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.REQUIRED);
     }
@@ -79,7 +79,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get declarationKeywords {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ABSTRACT,
       Keyword.CLASS,
       Keyword.CONST,
@@ -100,7 +100,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get directiveAndDeclarationKeywords {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ABSTRACT,
       Keyword.CLASS,
       Keyword.CONST,
@@ -124,7 +124,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get directiveDeclarationAndLibraryKeywords {
-    List<Keyword> keywords = directiveDeclarationKeywords..add(Keyword.LIBRARY);
+    var keywords = directiveDeclarationKeywords..add(Keyword.LIBRARY);
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.LATE);
     }
@@ -132,7 +132,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get directiveDeclarationKeywords {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ABSTRACT,
       Keyword.CLASS,
       Keyword.CONST,
@@ -156,7 +156,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get methodParameter {
-    List<Keyword> keywords = [Keyword.COVARIANT, Keyword.DYNAMIC];
+    var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.REQUIRED);
     }
@@ -164,7 +164,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get statementStartInClass {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ASSERT,
       Keyword.CONST,
       Keyword.DO,
@@ -189,7 +189,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get statementStartInLoopInClass {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ASSERT,
       Keyword.BREAK,
       Keyword.CONST,
@@ -216,7 +216,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get statementStartInLoopOutsideClass {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ASSERT,
       Keyword.BREAK,
       Keyword.CONST,
@@ -241,7 +241,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get statementStartInSwitchCaseInClass {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ASSERT,
       Keyword.BREAK,
       Keyword.CONST,
@@ -267,7 +267,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get statementStartInSwitchCaseOutsideClass {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ASSERT,
       Keyword.BREAK,
       Keyword.CONST,
@@ -291,7 +291,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get statementStartInSwitchInClass {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ASSERT,
       Keyword.BREAK,
       Keyword.CASE,
@@ -319,7 +319,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get statementStartInSwitchOutsideClass {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ASSERT,
       Keyword.BREAK,
       Keyword.CASE,
@@ -345,7 +345,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get statementStartOutsideClass {
-    List<Keyword> keywords = [
+    var keywords = <Keyword>[
       Keyword.ASSERT,
       Keyword.CONST,
       Keyword.DO,
@@ -368,7 +368,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get staticMember {
-    List<Keyword> keywords = [Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL];
+    var keywords = <Keyword>[Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.LATE);
     }
@@ -378,11 +378,11 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       {List<String> pseudoKeywords = NO_PSEUDO_KEYWORDS,
       int relevance = DART_RELEVANCE_KEYWORD}) {
-    Set<String> expectedCompletions = <String>{};
-    Map<String, int> expectedOffsets = <String, int>{};
-    Set<String> actualCompletions = <String>{};
+    var expectedCompletions = <String>{};
+    var expectedOffsets = <String, int>{};
+    var actualCompletions = <String>{};
     expectedCompletions.addAll(expectedKeywords.map((keyword) {
-      String text = keyword.lexeme;
+      var text = keyword.lexeme;
       if (['import', 'export', 'part'].contains(text)) {
         return '$text \'\';';
       } else if (text == 'default') {
@@ -392,9 +392,9 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     }));
 
     expectedCompletions.addAll(pseudoKeywords);
-    for (CompletionSuggestion s in suggestions) {
+    for (var s in suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
-        Keyword k = Keyword.keywords[s.completion];
+        var k = Keyword.keywords[s.completion];
         if (k == null && !expectedCompletions.contains(s.completion)) {
           fail('Invalid keyword suggested: ${s.completion}');
         } else {
@@ -405,17 +405,17 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       }
     }
     if (!_equalSets(expectedCompletions, actualCompletions)) {
-      StringBuffer msg = StringBuffer();
+      var msg = StringBuffer();
       msg.writeln('Expected:');
       _appendCompletions(msg, expectedCompletions, actualCompletions);
       msg.writeln('but found:');
       _appendCompletions(msg, actualCompletions, expectedCompletions);
       fail(msg.toString());
     }
-    for (CompletionSuggestion s in suggestions) {
+    for (var s in suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
         if (s.completion.startsWith(Keyword.IMPORT.lexeme)) {
-          int importRelevance = relevance;
+          var importRelevance = relevance;
           expect(s.relevance, equals(importRelevance), reason: s.completion);
         } else {
           if (s.completion == Keyword.RETHROW.lexeme) {
@@ -424,7 +424,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
             expect(s.relevance, equals(relevance), reason: s.completion);
           }
         }
-        int expectedOffset = expectedOffsets[s.completion];
+        var expectedOffset = expectedOffsets[s.completion];
         expectedOffset ??= s.completion.length;
         expect(
             s.selectionOffset,
@@ -1319,7 +1319,7 @@ class A {
   Future<void> test_if_afterThen_nextCloseCurlyBrace0() async {
     addTestSource('main() { if (true) {} ^ }');
     await computeSuggestions();
-    List<Keyword> keywords = [];
+    var keywords = <Keyword>[];
     keywords.addAll(statementStartOutsideClass);
     keywords.add(Keyword.ELSE);
     assertSuggestKeywords(keywords, relevance: DART_RELEVANCE_KEYWORD);
@@ -1328,7 +1328,7 @@ class A {
   Future<void> test_if_afterThen_nextCloseCurlyBrace1() async {
     addTestSource('main() { if (true) {} e^ }');
     await computeSuggestions();
-    List<Keyword> keywords = [];
+    var keywords = <Keyword>[];
     keywords.addAll(statementStartOutsideClass);
     keywords.add(Keyword.ELSE);
     assertSuggestKeywords(keywords, relevance: DART_RELEVANCE_KEYWORD);
@@ -1337,7 +1337,7 @@ class A {
   Future<void> test_if_afterThen_nextStatement0() async {
     addTestSource('main() { if (true) {} ^ print(0); }');
     await computeSuggestions();
-    List<Keyword> keywords = [];
+    var keywords = <Keyword>[];
     keywords.addAll(statementStartOutsideClass);
     keywords.add(Keyword.ELSE);
     assertSuggestKeywords(keywords, relevance: DART_RELEVANCE_KEYWORD);
@@ -2219,7 +2219,7 @@ f() => [...^];
 
   void _appendCompletions(
       StringBuffer msg, Iterable<String> completions, Iterable<String> other) {
-    List<String> sorted = completions.toList();
+    var sorted = completions.toList();
     sorted.sort((c1, c2) => c1.compareTo(c2));
     sorted.forEach(
         (c) => msg.writeln('  $c, ${other.contains(c) ? '' : '<<<<<<<<<<<'}'));

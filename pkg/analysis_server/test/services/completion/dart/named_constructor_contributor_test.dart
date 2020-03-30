@@ -22,13 +22,12 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
       String name, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    CompletionSuggestion cs =
-        assertSuggest(name, csKind: kind, relevance: relevance);
-    Element element = cs.element;
+    var cs = assertSuggest(name, csKind: kind, relevance: relevance);
+    var element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
     expect(element.name, equals(name));
-    String param = element.parameters;
+    var param = element.parameters;
     expect(param, isNotNull);
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));

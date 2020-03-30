@@ -52,12 +52,12 @@ String _getPath(ResourceProvider provider, Element e) {
     // "dynamic"
     return '';
   }
-  String path = e.source.fullName;
-  BazelWorkspace bazelWorkspace = BazelWorkspace.find(provider, path);
+  var path = e.source.fullName;
+  var bazelWorkspace = BazelWorkspace.find(provider, path);
   if (bazelWorkspace != null) {
     return provider.pathContext.relative(path, from: bazelWorkspace.root);
   }
-  GnWorkspace gnWorkspace = GnWorkspace.find(provider, path);
+  var gnWorkspace = GnWorkspace.find(provider, path);
   if (gnWorkspace != null) {
     return provider.pathContext.relative(path, from: gnWorkspace.root);
   }
@@ -129,7 +129,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     if (refVName != null) {
       var parentNode = node.parent;
       if (parentNode is Declaration) {
-        Element parentElement = parentNode.declaredElement;
+        var parentElement = parentNode.declaredElement;
         if (parentNode is TopLevelVariableDeclaration) {
           _handleVariableDeclarationListAnnotations(
               parentNode.variables, refVName);
@@ -164,8 +164,8 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     // NOTE: usage node only written out if assignment is not the '=' operator,
     // we are looking for an operator such as +=, -=, *=, /=
     //
-    Token operator = node.operator;
-    MethodElement element = node.staticElement;
+    var operator = node.operator;
+    var element = node.staticElement;
     if (operator.type != TokenType.EQ && element != null) {
       // method
       _vNameFromElement(element, schema.FUNCTION_KIND);
@@ -186,7 +186,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     //
     // operators such as +, -, *, /
     //
-    MethodElement element = node.staticElement;
+    var element = node.staticElement;
     if (element != null) {
       // method
       _vNameFromElement(element, schema.FUNCTION_KIND);
@@ -700,7 +700,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
           node.declaredElement.name,
         ),
       );
-      for (ExecutableElement overridden in overriddenList) {
+      for (var overridden in overriddenList) {
         addEdge(
           methodVName,
           schema.OVERRIDES_EDGE,
@@ -961,7 +961,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
   }
 
   void _handleThisOrSuper(Expression thisOrSuperNode) {
-    DartType type = thisOrSuperNode.staticType;
+    var type = thisOrSuperNode.staticType;
     if (type != null && type.element != null) {
       // Expected SuperExpression.staticType to return the type of the
       // supertype, but it returns the type of the enclosing class (same as
@@ -1070,7 +1070,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
   }
 
   void _withEnclosingElement(Element element, Function() f) {
-    Element outerEnclosingElement = _enclosingElement;
+    var outerEnclosingElement = _enclosingElement;
     Element outerEnclosingClassElement = _enclosingClassElement;
     var outerEnclosingVName = _enclosingVName;
     var outerEnclosingClassVName = _enclosingClassVName;
@@ -1170,7 +1170,7 @@ mixin OutputUtils {
     addFact(anchorVName, schema.ANCHOR_START_FACT, _encodeInt(start));
     addFact(anchorVName, schema.ANCHOR_END_FACT, _encodeInt(end));
     if (target != null) {
-      for (String edge in edges) {
+      for (var edge in edges) {
         addEdge(anchorVName, edge, target);
       }
       if (enclosingTarget != null) {
@@ -1268,7 +1268,7 @@ mixin OutputUtils {
     }
 
     if (paramNodes != null) {
-      for (FormalParameter paramNode in paramNodes.parameters) {
+      for (var paramNode in paramNodes.parameters) {
         var paramTypeVName = dynamicBuiltin;
         if (!paramNode.declaredElement.type.isDynamic) {
           paramTypeVName = _vNameFromElement(

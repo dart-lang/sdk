@@ -145,7 +145,7 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
         yield line;
         break;
       } else {
-        int lastSpace = line.lastIndexOf(' ', maxLength);
+        var lastSpace = line.lastIndexOf(' ', maxLength);
         // If there was no valid place to wrap, yield the whole string.
         if (lastSpace == -1) {
           yield line;
@@ -501,7 +501,7 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('@override')
     ..writeIndentedln('int get hashCode {')
     ..indent()
-    ..writeIndentedln('int hash = 0;');
+    ..writeIndentedln('var hash = 0;');
   for (var field in _getAllFields(interface)) {
     buffer.writeIndentedln(
         'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
@@ -628,7 +628,7 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('Map<String, dynamic> toJson() {')
     ..indent()
-    ..writeIndentedln('Map<String, dynamic> __result = {};');
+    ..writeIndentedln('var __result = <String, dynamic>{};');
   // ResponseMessage must confirm to JSON-RPC which says only one of
   // result/error can be included. Since this isn't encoded in the types we
   // need to special-case it's toJson generation.

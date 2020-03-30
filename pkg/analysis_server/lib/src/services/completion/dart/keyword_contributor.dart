@@ -557,7 +557,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addClassBodyKeywords();
     } else if (entity is ClassMember) {
       _addClassBodyKeywords();
-      int index = node.members.indexOf(entity);
+      var index = node.members.indexOf(entity);
       var previous = index > 0 ? node.members[index - 1] : null;
       if (previous is MethodDeclaration && isEmptyBody(previous.body)) {
         _addSuggestion(Keyword.ASYNC);
@@ -794,8 +794,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addImportDirectiveKeywords(ImportDirective node) {
-    bool hasDeferredKeyword = node.deferredKeyword != null;
-    bool hasAsKeyword = node.asKeyword != null;
+    var hasDeferredKeyword = node.deferredKeyword != null;
+    var hasAsKeyword = node.asKeyword != null;
     if (!hasAsKeyword) {
       _addSuggestion(Keyword.AS, relevance: highKeyword);
     }

@@ -32,9 +32,9 @@ class TimingResult {
   /// The maximum amount of time spent executing a single iteration, in
   /// milliseconds.
   int get maxTime {
-    int maxTime = 0;
-    int count = times.length;
-    for (int i = 0; i < count; i++) {
+    var maxTime = 0;
+    var count = times.length;
+    for (var i = 0; i < count; i++) {
       maxTime = max(maxTime, times[i]);
     }
     return maxTime ~/ NANOSECONDS_PER_MILLISECOND;
@@ -43,9 +43,9 @@ class TimingResult {
   /// The minimum amount of time spent executing a single iteration, in
   /// milliseconds.
   int get minTime {
-    int minTime = times[0];
-    int count = times.length;
-    for (int i = 1; i < count; i++) {
+    var minTime = times[0];
+    var count = times.length;
+    for (var i = 1; i < count; i++) {
       minTime = min(minTime, times[i]);
     }
     return minTime ~/ NANOSECONDS_PER_MILLISECOND;
@@ -58,9 +58,9 @@ class TimingResult {
 
   /// The total amount of time spent executing the test, in milliseconds.
   int get totalTime {
-    int totalTime = 0;
-    int count = times.length;
-    for (int i = 0; i < count; i++) {
+    var totalTime = 0;
+    var count = times.length;
+    for (var i = 0; i < count; i++) {
       totalTime += times[i];
     }
     return totalTime ~/ NANOSECONDS_PER_MILLISECOND;
@@ -68,15 +68,15 @@ class TimingResult {
 
   /// Compute the standard deviation of the given set of [values].
   double computeStandardDeviation(List<int> values) {
-    int count = values.length;
-    double sumOfValues = 0;
-    for (int i = 0; i < count; i++) {
+    var count = values.length;
+    var sumOfValues = 0;
+    for (var i = 0; i < count; i++) {
       sumOfValues += values[i];
     }
-    double average = sumOfValues / count;
-    double sumOfDiffSquared = 0;
-    for (int i = 0; i < count; i++) {
-      double diff = values[i] - average;
+    var average = sumOfValues / count;
+    var sumOfDiffSquared = 0.0;
+    for (var i = 0; i < count; i++) {
+      var diff = values[i] - average;
       sumOfDiffSquared += diff * diff;
     }
     return sqrt((sumOfDiffSquared / (count - 1)));
@@ -85,9 +85,9 @@ class TimingResult {
   /// Convert the given [times], expressed in nanoseconds, to times expressed in
   /// milliseconds.
   List<int> toMilliseconds(List<int> times) {
-    int count = times.length;
-    List<int> convertedValues = <int>[];
-    for (int i = 0; i < count; i++) {
+    var count = times.length;
+    var convertedValues = <int>[];
+    for (var i = 0; i < count; i++) {
       convertedValues.add(times[i] ~/ NANOSECONDS_PER_MILLISECOND);
     }
     return convertedValues;
@@ -142,7 +142,7 @@ abstract class TimingTest extends IntegrationTestMixin {
     initializeInttestMixin();
     server = Server();
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
-    Completer serverConnected = Completer();
+    var serverConnected = Completer();
     onServerConnected.listen((_) {
       serverConnected.complete();
     });
@@ -172,7 +172,7 @@ abstract class TimingTest extends IntegrationTestMixin {
   /// number of milliseconds required to perform the operation the specified
   /// number of times.
   Future<TimingResult> run() async {
-    List<int> times = <int>[];
+    var times = <int>[];
     await oneTimeSetUp();
     await _repeat(warmupCount, null);
     await _repeat(timingCount, times);
@@ -213,7 +213,7 @@ abstract class TimingTest extends IntegrationTestMixin {
   /// Repeatedly execute this test [count] times, adding timing information to
   /// the given list of [times] if it is non-`null`.
   Future _repeat(int count, List<int> times) {
-    Stopwatch stopwatch = Stopwatch();
+    var stopwatch = Stopwatch();
     return setUp().then((_) {
       stopwatch.start();
       return perform().then((_) {

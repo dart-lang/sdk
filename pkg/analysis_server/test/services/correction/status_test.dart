@@ -6,8 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:test/test.dart';
@@ -26,9 +24,9 @@ void main() {
 class RefactoringLocationTest extends AbstractSingleUnitTest {
   Future<void> test_createLocation_forElement() async {
     await resolveTestUnit('class MyClass {}');
-    Element element = findElement('MyClass');
+    var element = findElement('MyClass');
     // check
-    Location location = newLocation_fromElement(element);
+    var location = newLocation_fromElement(element);
     expect(location.file, testFile);
     expect(location.offset, 6);
     expect(location.length, 7);
@@ -38,8 +36,8 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
 
   Future<void> test_createLocation_forMatch() async {
     await resolveTestUnit('class MyClass {}');
-    Element element = findElement('MyClass');
-    SourceRange sourceRange = range.elementName(element);
+    var element = findElement('MyClass');
+    var sourceRange = range.elementName(element);
     SearchMatch match = SearchMatchImpl(
         element.source.fullName,
         element.library.source,
@@ -51,7 +49,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
         MatchKind.DECLARATION,
         sourceRange);
     // check
-    Location location = newLocation_fromMatch(match);
+    var location = newLocation_fromMatch(match);
     expect(location.file, testFile);
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
@@ -62,9 +60,9 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
 main() {
 }
 ''');
-    AstNode node = findNodeAtString('main');
+    var node = findNodeAtString('main');
     // check
-    Location location = newLocation_fromNode(node);
+    var location = newLocation_fromNode(node);
     expect(location.file, testFile);
     expect(location.offset, node.offset);
     expect(location.length, node.length);
@@ -72,9 +70,9 @@ main() {
 
   Future<void> test_createLocation_forUnit() async {
     await resolveTestUnit('');
-    SourceRange sourceRange = SourceRange(10, 20);
+    var sourceRange = SourceRange(10, 20);
     // check
-    Location location = newLocation_fromUnit(testUnit, sourceRange);
+    var location = newLocation_fromUnit(testUnit, sourceRange);
     expect(location.file, testFile);
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
@@ -84,7 +82,7 @@ main() {
 @reflectiveTest
 class RefactoringStatusTest {
   void test_addError() {
-    RefactoringStatus refactoringStatus = RefactoringStatus();
+    var refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
     // add ERROR
@@ -94,14 +92,14 @@ class RefactoringStatusTest {
     expect(refactoringStatus.hasFatalError, isFalse);
     expect(refactoringStatus.hasError, isTrue);
     // problems
-    List<RefactoringProblem> problems = refactoringStatus.problems;
+    var problems = refactoringStatus.problems;
     expect(problems, hasLength(1));
     expect(problems[0].message, 'msg');
   }
 
   void test_addFatalError_withLocation() {
-    Location location = Location('/test.dart', 1, 2, 3, 4);
-    RefactoringStatus refactoringStatus = RefactoringStatus();
+    var location = Location('/test.dart', 1, 2, 3, 4);
+    var refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
     // add FATAL
@@ -111,7 +109,7 @@ class RefactoringStatusTest {
     expect(refactoringStatus.hasFatalError, isTrue);
     expect(refactoringStatus.hasError, isTrue);
     // problems
-    List<RefactoringProblem> problems = refactoringStatus.problems;
+    var problems = refactoringStatus.problems;
     expect(problems, hasLength(1));
     expect(problems[0].message, 'msg');
     expect(problems[0].location.file, '/test.dart');
@@ -123,7 +121,7 @@ class RefactoringStatusTest {
   }
 
   void test_addFatalError_withoutContext() {
-    RefactoringStatus refactoringStatus = RefactoringStatus();
+    var refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
     // add FATAL
@@ -133,19 +131,19 @@ class RefactoringStatusTest {
     expect(refactoringStatus.hasFatalError, isTrue);
     expect(refactoringStatus.hasError, isTrue);
     // problems
-    List<RefactoringProblem> problems = refactoringStatus.problems;
+    var problems = refactoringStatus.problems;
     expect(problems, hasLength(1));
     expect(problems[0].message, 'msg');
     expect(problems[0].location, isNull);
   }
 
   void test_addStatus_Error_withWarning() {
-    RefactoringStatus refactoringStatus = RefactoringStatus();
+    var refactoringStatus = RefactoringStatus();
     refactoringStatus.addError('err');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     // merge with OK
     {
-      RefactoringStatus other = RefactoringStatus();
+      var other = RefactoringStatus();
       other.addWarning('warn');
       refactoringStatus.addStatus(other);
     }
@@ -154,7 +152,7 @@ class RefactoringStatusTest {
   }
 
   void test_addStatus_Warning_null() {
-    RefactoringStatus refactoringStatus = RefactoringStatus();
+    var refactoringStatus = RefactoringStatus();
     refactoringStatus.addWarning('warn');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     // merge with "null"
@@ -163,12 +161,12 @@ class RefactoringStatusTest {
   }
 
   void test_addStatus_Warning_withError() {
-    RefactoringStatus refactoringStatus = RefactoringStatus();
+    var refactoringStatus = RefactoringStatus();
     refactoringStatus.addWarning('warn');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     // merge with OK
     {
-      RefactoringStatus other = RefactoringStatus();
+      var other = RefactoringStatus();
       other.addError('err');
       refactoringStatus.addStatus(other);
     }
@@ -177,7 +175,7 @@ class RefactoringStatusTest {
   }
 
   void test_addWarning() {
-    RefactoringStatus refactoringStatus = RefactoringStatus();
+    var refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
     // add WARNING
@@ -188,13 +186,13 @@ class RefactoringStatusTest {
     expect(refactoringStatus.hasError, isFalse);
     expect(refactoringStatus.hasWarning, isTrue);
     // problems
-    List<RefactoringProblem> problems = refactoringStatus.problems;
+    var problems = refactoringStatus.problems;
     expect(problems, hasLength(1));
     expect(problems[0].message, 'msg');
   }
 
   void test_get_problem() {
-    RefactoringStatus refactoringStatus = RefactoringStatus();
+    var refactoringStatus = RefactoringStatus();
     // no entries
     expect(refactoringStatus.problem, isNull);
     expect(refactoringStatus.message, isNull);
@@ -204,7 +202,7 @@ class RefactoringStatusTest {
     refactoringStatus.addFatalError('msgFatalError');
     // get entry
     {
-      RefactoringProblem problem = refactoringStatus.problem;
+      var problem = refactoringStatus.problem;
       expect(problem.severity, RefactoringProblemSeverity.FATAL);
       expect(problem.message, 'msgFatalError');
     }
@@ -213,22 +211,21 @@ class RefactoringStatusTest {
   }
 
   void test_newError() {
-    Location location = Location('/test.dart', 1, 2, 3, 4);
-    RefactoringStatus refactoringStatus =
-        RefactoringStatus.error('msg', location);
+    var location = Location('/test.dart', 1, 2, 3, 4);
+    var refactoringStatus = RefactoringStatus.error('msg', location);
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     expect(refactoringStatus.problem.message, 'msg');
     expect(refactoringStatus.problem.location.file, '/test.dart');
   }
 
   void test_newFatalError() {
-    RefactoringStatus refactoringStatus = RefactoringStatus.fatal('msg');
+    var refactoringStatus = RefactoringStatus.fatal('msg');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.FATAL);
     expect(refactoringStatus.message, 'msg');
   }
 
   void test_newWarning() {
-    RefactoringStatus refactoringStatus = RefactoringStatus.warning('msg');
+    var refactoringStatus = RefactoringStatus.warning('msg');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     expect(refactoringStatus.message, 'msg');
   }

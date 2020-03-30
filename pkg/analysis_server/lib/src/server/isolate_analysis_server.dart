@@ -25,7 +25,7 @@ class IsolateAnalysisServer {
   Future<void> serveIsolate(SendPort clientSendPort) async {
     var serverIsolateChannel =
         IsolateChannel<List<int>>.connectSend(clientSendPort);
-    ByteStreamServerChannel serverChannel = ByteStreamServerChannel(
+    var serverChannel = ByteStreamServerChannel(
       serverIsolateChannel.stream,
       IOSink(serverIsolateChannel.sink),
       socketServer.instrumentationService,

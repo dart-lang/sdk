@@ -52,7 +52,7 @@ class EntryGroup {
   /// Return the entry group with the given [id], or `null` if there is no group
   /// with the given id.
   static EntryGroup withId(String id) {
-    for (EntryGroup group in groups) {
+    for (var group in groups) {
       if (group.id == id) {
         return group;
       }
@@ -110,7 +110,7 @@ class GenericEntry extends LogEntry {
   @override
   void _appendDetails(StringBuffer buffer) {
     super._appendDetails(buffer);
-    for (String component in components) {
+    for (var component in components) {
       buffer.write(component);
       buffer.write('<br>');
     }
@@ -210,12 +210,12 @@ class InstrumentationLog {
   /// analysis notification (or the end of the log if the log does not contain a
   /// corresponding end notification.
   List<TaskEntry> taskEntriesFor(int startIndex) {
-    List<TaskEntry> taskEntries = <TaskEntry>[];
+    var taskEntries = <TaskEntry>[];
     NotificationEntry startEntry = logEntries[startIndex];
-    LogEntry endEntry = pairedEntry(startEntry);
-    int lastIndex = endEntry == null ? logEntries.length : endEntry.index;
-    for (int i = startEntry.index + 1; i < lastIndex; i++) {
-      LogEntry entry = logEntries[i];
+    var endEntry = pairedEntry(startEntry);
+    var lastIndex = endEntry == null ? logEntries.length : endEntry.index;
+    for (var i = startEntry.index + 1; i < lastIndex; i++) {
+      var entry = logEntries[i];
       if (entry is TaskEntry) {
         taskEntries.add(entry);
       }
@@ -228,7 +228,7 @@ class InstrumentationLog {
     if (logContent.length < 2) {
       return false;
     }
-    String firstLine = logContent[0];
+    var firstLine = logContent[0];
     return firstLine.startsWith('-----') && logContent[1].startsWith('~') ||
         firstLine.startsWith('~');
   }
@@ -241,17 +241,17 @@ class InstrumentationLog {
     }
 
     String merge(String line, List<String> extraLines) {
-      StringBuffer buffer = StringBuffer();
+      var buffer = StringBuffer();
       buffer.writeln(line);
-      for (String extraLine in extraLines) {
+      for (var extraLine in extraLines) {
         buffer.writeln(extraLine);
       }
       return buffer.toString();
     }
 
-    List<String> extraLines = <String>[];
-    for (int i = logContent.length - 1; i >= 0; i--) {
-      String line = logContent[i];
+    var extraLines = <String>[];
+    for (var i = logContent.length - 1; i >= 0; i--) {
+      var line = logContent[i];
       if (isStartOfEntry(line)) {
         if (extraLines.isNotEmpty) {
           logContent[i] = merge(line, extraLines);
@@ -263,11 +263,11 @@ class InstrumentationLog {
       }
     }
     if (extraLines.isNotEmpty) {
-      int count = math.min(extraLines.length, 10);
-      StringBuffer buffer = StringBuffer();
+      var count = math.min(extraLines.length, 10);
+      var buffer = StringBuffer();
       buffer.writeln('${extraLines.length} non-entry lines before any entry');
       buffer.writeln('First $count lines:');
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         buffer.writeln(extraLines[i]);
       }
       throw StateError(buffer.toString());
@@ -280,7 +280,7 @@ class InstrumentationLog {
       if (logContent[0].startsWith('-----')) {
         logContent.removeAt(0);
       }
-      int lastIndex = logContent.length - 1;
+      var lastIndex = logContent.length - 1;
       if (logContent[lastIndex].startsWith('extraction complete')) {
         logContent.removeAt(lastIndex);
       }
@@ -290,17 +290,17 @@ class InstrumentationLog {
     logEntries = <LogEntry>[];
     analysisRanges = <EntryRange>[];
     NotificationEntry analysisStartEntry;
-    int analysisStartIndex = -1;
+    var analysisStartIndex = -1;
     NotificationEntry pubStartEntry;
-    for (String line in logContent) {
-      LogEntry entry = LogEntry.from(logEntries.length, line);
+    for (var line in logContent) {
+      var entry = LogEntry.from(logEntries.length, line);
       if (entry != null) {
         logEntries.add(entry);
         if (entry is RequestEntry) {
           _requestMap[entry.id] = entry;
         } else if (entry is ResponseEntry) {
           _responseMap[entry.id] = entry;
-          RequestEntry request = _requestMap[entry.id];
+          var request = _requestMap[entry.id];
           _pairedEntries[entry] = request;
           _pairedEntries[request] = entry;
         } else if (entry is NotificationEntry) {
@@ -319,7 +319,7 @@ class InstrumentationLog {
                   entry.recordProblem(
                       'Analysis terminated without being started.');
                 } else {
-                  int analysisEnd = logEntries.length - 1;
+                  var analysisEnd = logEntries.length - 1;
                   analysisRanges
                       .add(EntryRange(analysisStartIndex, analysisEnd));
                   _pairedEntries[entry] = analysisStartEntry;
@@ -359,7 +359,7 @@ class InstrumentationLog {
           _pluginRequestMap[entry.id] = entry;
         } else if (entry is PluginResponseEntry) {
           _pluginResponseMap[entry.id] = entry;
-          PluginRequestEntry request = _pluginRequestMap[entry.id];
+          var request = _pluginRequestMap[entry.id];
           _pairedEntries[entry] = request;
           _pairedEntries[request] = entry;
         }
@@ -402,11 +402,11 @@ abstract class JsonBasedEntry extends LogEntry {
     // code produces an error of
     // "log?start=3175:261 Uncaught SyntaxError: missing ) after argument list"
     // in the sample log I was using.
-    StringBuffer buffer = StringBuffer();
-    int length = string.length;
-    int index = 0;
+    var buffer = StringBuffer();
+    var length = string.length;
+    var index = 0;
     while (index < length) {
-      int char = string.codeUnitAt(index);
+      var char = string.codeUnitAt(index);
       index++;
       // TODO(brianwilkerson) Handle tabs and other special characters.
       if (char == '\r'.codeUnitAt(0)) {
@@ -439,7 +439,7 @@ abstract class JsonBasedEntry extends LogEntry {
     } else if (object is Map) {
       buffer.write('{<br>');
       object.forEach((Object key, Object value) {
-        String newIndent = indent + singleIndent;
+        var newIndent = indent + singleIndent;
         buffer.write(newIndent);
         _format(buffer, newIndent, key);
         buffer.write(' : ');
@@ -451,7 +451,7 @@ abstract class JsonBasedEntry extends LogEntry {
     } else if (object is List) {
       buffer.write('[<br>');
       object.forEach((Object element) {
-        String newIndent = indent + singleIndent;
+        var newIndent = indent + singleIndent;
         buffer.write(newIndent);
         _format(buffer, newIndent, element);
         buffer.write('<br>');
@@ -522,14 +522,14 @@ abstract class LogEntry {
       return null;
     }
     try {
-      List<String> components = _parseComponents(entry);
+      var components = _parseComponents(entry);
       int timeStamp;
-      String component = components[0];
+      var component = components[0];
       if (component.startsWith('~')) {
         component = component.substring(1);
       }
       timeStamp = int.parse(component);
-      String entryKind = components[1];
+      var entryKind = components[1];
       if (entryKind == InstrumentationLogAdapter.TAG_ERROR) {
         return ErrorEntry(index, timeStamp, entryKind, components.sublist(2));
       } else if (entryKind == InstrumentationLogAdapter.TAG_EXCEPTION) {
@@ -600,7 +600,7 @@ abstract class LogEntry {
 
   /// Return an HTML representation of the details of the entry.
   String details() {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     _appendDetails(buffer);
     return buffer.toString();
   }
@@ -614,7 +614,7 @@ abstract class LogEntry {
   /// Append details related to this entry to the given [buffer].
   void _appendDetails(StringBuffer buffer) {
     if (_problems != null) {
-      for (String problem in _problems) {
+      for (var problem in _problems) {
         buffer.write('<p><span class="error">$problem</span></p>');
       }
     }
@@ -626,11 +626,11 @@ abstract class LogEntry {
   /// components depend on the kind of the entry. Return the components that
   /// were parsed.
   static List<String> _parseComponents(String entry) {
-    List<String> components = <String>[];
-    StringBuffer component = StringBuffer();
-    int length = entry.length;
-    for (int i = 0; i < length; i++) {
-      int char = entry.codeUnitAt(i);
+    var components = <String>[];
+    var component = StringBuffer();
+    var length = entry.length;
+    for (var i = 0; i < length; i++) {
+      var char = entry.codeUnitAt(i);
       if (char == fieldSeparator) {
         if (entry.codeUnitAt(i + 1) == fieldSeparator) {
           component.write(':');
@@ -712,7 +712,7 @@ mixin PluginEntryMixin {
 
   /// Return a shortened version of the plugin id.
   String get shortPluginId {
-    int index = pluginId.lastIndexOf(path.separator);
+    var index = pluginId.lastIndexOf(path.separator);
     if (index > 0) {
       return pluginId.substring(index + 1);
     }
@@ -923,7 +923,7 @@ class TaskEntry extends LogEntry {
 
   /// Split the description to get the task name and target description.
   void _splitDescription() {
-    int index = description.indexOf(' ');
+    var index = description.indexOf(' ');
     if (index < 0) {
       _taskName = '';
     } else {
@@ -931,12 +931,12 @@ class TaskEntry extends LogEntry {
     }
     index = description.lastIndexOf(' ');
     _target = description.substring(index + 1);
-    int slash = context.lastIndexOf('/');
+    var slash = context.lastIndexOf('/');
     if (slash < 0) {
       slash = context.lastIndexOf('\\');
     }
     if (slash >= 0) {
-      String prefix = context.substring(0, slash);
+      var prefix = context.substring(0, slash);
       _target = _target.replaceAll(prefix, '...');
     }
   }

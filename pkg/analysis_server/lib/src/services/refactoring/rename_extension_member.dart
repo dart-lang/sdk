@@ -53,7 +53,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    RefactoringStatus result = await super.checkInitialConditions();
+    var result = await super.checkInitialConditions();
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
@@ -62,7 +62,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = super.checkNewName();
+    var result = super.checkNewName();
     if (element is FieldElement) {
       result.addStatus(validateFieldName(newName));
     }
@@ -115,7 +115,7 @@ class _ExtensionMemberValidator {
 
   Future<RefactoringStatus> validate() async {
     // Check if there is a member with "newName" in the extension.
-    for (Element newNameMember in getChildren(elementExtension, name)) {
+    for (var newNameMember in getChildren(elementExtension, name)) {
       result.addError(
         format(
           "Extension '{0}' already declares {1} with name '{2}'.",
@@ -131,9 +131,9 @@ class _ExtensionMemberValidator {
 
     // usage of the renamed Element is shadowed by a local element
     {
-      _MatchShadowedByLocal conflict = await _getShadowingLocalElement();
+      var conflict = await _getShadowingLocalElement();
       if (conflict != null) {
-        LocalElement localElement = conflict.localElement;
+        var localElement = conflict.localElement;
         result.addError(
           format(
             "Usage of renamed {0} will be shadowed by {1} '{2}'.",
@@ -172,15 +172,15 @@ class _ExtensionMemberValidator {
       return localElements;
     }
 
-    for (SearchMatch match in references) {
+    for (var match in references) {
       // Qualified reference cannot be shadowed by local elements.
       if (match.isQualified) {
         continue;
       }
       // Check local elements that might shadow the reference.
       var localElements = await getLocalElements(match.element);
-      for (LocalElement localElement in localElements) {
-        SourceRange elementRange = visibleRangeMap[localElement];
+      for (var localElement in localElements) {
+        var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
           return _MatchShadowedByLocal(match, localElement);
@@ -208,7 +208,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (element is LocalElement && element.name == name) {
       elements.add(element);
     }

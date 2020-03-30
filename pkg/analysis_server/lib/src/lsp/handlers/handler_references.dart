@@ -56,7 +56,7 @@ class ReferencesHandler
 
   Future<ErrorOr<List<Location>>> _getRefererences(String path, int offset,
       ReferenceParams params, ResolvedUnitResult unit) async {
-    Element element = await server.getElementAtOffset(path, offset);
+    var element = await server.getElementAtOffset(path, offset);
     if (element is ImportElement) {
       element = (element as ImportElement).prefix;
     }

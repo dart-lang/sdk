@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,10 +25,10 @@ class ImportedElementsComputerTest extends AbstractContextTest {
 
   void assertElements(List<ImportedElements> expectedElementsList) {
     expect(importedElements, hasLength(expectedElementsList.length));
-    for (ImportedElements expectedElements in expectedElementsList) {
-      String expectedPath = convertPath(expectedElements.path);
-      bool found = false;
-      for (ImportedElements actualElements in importedElements) {
+    for (var expectedElements in expectedElementsList) {
+      var expectedPath = convertPath(expectedElements.path);
+      var found = false;
+      for (var actualElements in importedElements) {
         if (expectedPath == actualElements.path &&
             actualElements.prefix == expectedElements.prefix) {
           expect(actualElements.elements,
@@ -51,8 +50,8 @@ class ImportedElementsComputerTest extends AbstractContextTest {
   }
 
   Future<void> test_dartAsync_noPrefix() async {
-    String selection = 'Future<String> f = null;';
-    String content = '''
+    var selection = 'Future<String> f = null;';
+    var content = '''
 import 'dart:async';
 printer() {
   $selection
@@ -67,8 +66,8 @@ printer() {
   }
 
   Future<void> test_dartAsync_prefix() async {
-    String selection = 'a.Future<String> f = null;';
-    String content = '''
+    var selection = 'a.Future<String> f = null;';
+    var content = '''
 import 'dart:async' as a;
 printer() {
   $selection
@@ -83,8 +82,8 @@ printer() {
   }
 
   Future<void> test_dartCore_noPrefix() async {
-    String selection = "String s = '';";
-    String content = '''
+    var selection = "String s = '';";
+    var content = '''
 blankLine() {
   $selection
   print(s);
@@ -97,8 +96,8 @@ blankLine() {
   }
 
   Future<void> test_dartCore_prefix() async {
-    String selection = "core.String s = '';";
-    String content = '''
+    var selection = "core.String s = '';";
+    var content = '''
 import 'dart:core' as core;
 blankLine() {
   $selection
@@ -112,8 +111,8 @@ blankLine() {
   }
 
   Future<void> test_dartMath_noPrefix() async {
-    String selection = 'new Random();';
-    String content = '''
+    var selection = 'new Random();';
+    var content = '''
 import 'dart:math';
 bool randomBool() {
   Random r = $selection
@@ -127,8 +126,8 @@ bool randomBool() {
   }
 
   Future<void> test_import_simple() async {
-    String selection = "import 'dart:math';";
-    String content = '''
+    var selection = "import 'dart:math';";
+    var content = '''
 $selection
 bool randomBool() {
   Random r = new Random();
@@ -140,8 +139,8 @@ bool randomBool() {
   }
 
   Future<void> test_import_simple_show() async {
-    String selection = "import 'dart:math' show Random;";
-    String content = '''
+    var selection = "import 'dart:math' show Random;";
+    var content = '''
 $selection
 bool randomBool() {
   Random r = new Random();
@@ -153,14 +152,14 @@ bool randomBool() {
   }
 
   Future<void> test_multiple() async {
-    String selection = r'''
+    var selection = r'''
 main() {
   Random r = new Random();
   String s = r.nextBool().toString();
   print(s);
 }
 ''';
-    String content = '''
+    var content = '''
 import 'dart:math';
 
 $selection
@@ -173,8 +172,8 @@ $selection
   }
 
   Future<void> test_none_comment() async {
-    String selection = 'comment';
-    String content = '''
+    var selection = 'comment';
+    var content = '''
 // Method $selection.
 blankLine() {
   print('');
@@ -185,13 +184,13 @@ blankLine() {
   }
 
   Future<void> test_none_constructorDeclarationReturnType() async {
-    String selection = r'''
+    var selection = r'''
 class A {
   A();
   A.named();
 }
 ''';
-    String content = '''
+    var content = '''
 $selection
 ''';
     await _computeElements(content, selection);
@@ -199,8 +198,8 @@ $selection
   }
 
   Future<void> test_none_partialNames() async {
-    String selection = 'x + y';
-    String content = '''
+    var selection = 'x + y';
+    var content = '''
 plusThree(int xx) {
   int yy = 2;
   print(x${selection}y);
@@ -211,8 +210,8 @@ plusThree(int xx) {
   }
 
   Future<void> test_none_wholeNames() async {
-    String selection = 'x + y + 1';
-    String content = '''
+    var selection = 'x + y + 1';
+    var content = '''
 plusThree(int x) {
   int y = 2;
   print($selection);
@@ -231,8 +230,8 @@ class B {
   static String b = '';
 }
 ''');
-    String selection = 'A.a + B.b';
-    String content = '''
+    var selection = 'A.a + B.b';
+    var content = '''
 import 'package:foo/foo.dart';
 blankLine() {
   print($selection);
@@ -250,8 +249,8 @@ class Foo {
   static String first = '';
 }
 ''');
-    String selection = 'Foo.first';
-    String content = '''
+    var selection = 'Foo.first';
+    var content = '''
 import 'package:foo/foo.dart';
 blankLine() {
   print($selection);
@@ -269,8 +268,8 @@ class Foo {
   static String first = '';
 }
 ''');
-    String selection = 'f.Foo.first';
-    String content = '''
+    var selection = 'f.Foo.first';
+    var content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
   print($selection);
@@ -286,8 +285,8 @@ blankLine() {
     addPackageFile('foo', 'foo.dart', '''
 String foo() => '';
 ''');
-    String selection = 'f.foo()';
-    String content = '''
+    var selection = 'f.foo()';
+    var content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
   print($selection);
@@ -303,8 +302,8 @@ blankLine() {
     addPackageFile('foo', 'foo.dart', '''
 String foo = '';
 ''');
-    String selection = 'f.foo';
-    String content = '''
+    var selection = 'f.foo';
+    var content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
   print($selection);
@@ -320,8 +319,8 @@ blankLine() {
     addPackageFile('foo', 'foo.dart', '''
 String foo = '';
 ''');
-    String selection = 'f.foo';
-    String content = '''
+    var selection = 'f.foo';
+    var content = '''
 import 'package:foo/foo.dart' as f;
 main() {
   $selection = '';
@@ -339,8 +338,8 @@ class Foo {
   static String first = '';
 }
 ''');
-    String selection = 'Foo.first';
-    String content = '''
+    var selection = 'Foo.first';
+    var content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
   print(f.$selection);
@@ -359,8 +358,8 @@ class Foo {
   static String second = '';
 }
 ''');
-    String selection = 'f.Foo.first + Foo.second';
-    String content = '''
+    var selection = 'f.Foo.first + Foo.second';
+    var content = '''
 import 'package:foo/foo.dart';
 import 'package:foo/foo.dart' as f;
 blankLine() {
@@ -375,8 +374,8 @@ blankLine() {
   }
 
   Future<void> test_self() async {
-    String selection = 'A parent;';
-    String content = '''
+    var selection = 'A parent;';
+    var content = '''
 class A {
   $selection
 }
@@ -388,7 +387,7 @@ class A {
   }
 
   Future<void> test_wholeFile_noImports() async {
-    String content = '''
+    var content = '''
 blankLine() {
   String s = '';
   print(s);
@@ -401,7 +400,7 @@ blankLine() {
   }
 
   Future<void> test_wholeFile_withImports() async {
-    String content = '''
+    var content = '''
 import 'dart:math';
 bool randomBool() {
   Random r = new Random();
@@ -415,8 +414,8 @@ bool randomBool() {
   Future<void> _computeElements(String content, String selection) async {
     // TODO(brianwilkerson) Automatically extract the selection from the content.
     newFile(sourcePath, content: content);
-    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
-    ImportedElementsComputer computer = ImportedElementsComputer(
+    var result = await session.getResolvedUnit(sourcePath);
+    var computer = ImportedElementsComputer(
         result.unit, content.indexOf(selection), selection.length);
     importedElements = computer.compute();
   }

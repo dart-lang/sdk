@@ -79,18 +79,18 @@ abstract class BaseProcessor {
 
     // Getter.
     if (parent is MethodDeclaration) {
-      MethodDeclaration methodDeclaration = parent;
+      var methodDeclaration = parent;
       var element = methodDeclaration.declaredElement;
       if (element is PropertyAccessorElement) {
-        PropertyAccessorElement propertyAccessor = element;
+        var propertyAccessor = element;
         type = propertyAccessor.returnType;
       }
       // Field.
     } else if (parent is VariableDeclaration) {
-      VariableDeclaration variableDeclaration = parent;
+      var variableDeclaration = parent;
       final element = variableDeclaration.declaredElement;
       if (element is FieldElement) {
-        FieldElement fieldElement = element;
+        var fieldElement = element;
         type = fieldElement.type;
       }
     }
@@ -191,7 +191,7 @@ abstract class BaseProcessor {
 
     final body = debugFillProperties.body;
     if (body is BlockFunctionBody) {
-      BlockFunctionBody functionBody = body;
+      var functionBody = body;
 
       var offset;
       var prefix;
@@ -236,13 +236,13 @@ abstract class BaseProcessor {
 
   Future<ChangeBuilder>
       createBuilder_addTypeAnnotation_DeclaredIdentifier() async {
-    DeclaredIdentifier declaredIdentifier =
-        node.thisOrAncestorOfType<DeclaredIdentifier>();
+    var declaredIdentifier = node.thisOrAncestorOfType<DeclaredIdentifier>();
     if (declaredIdentifier == null) {
-      ForStatement forEach = node.thisOrAncestorMatching(
-          (node) => node is ForStatement && node.forLoopParts is ForEachParts);
+      var forEach = node.thisOrAncestorMatching((node) =>
+              node is ForStatement && node.forLoopParts is ForEachParts)
+          as ForStatement;
       ForEachParts forEachParts = forEach?.forLoopParts;
-      int offset = node.offset;
+      var offset = node.offset;
       if (forEach != null &&
           forEachParts.iterable != null &&
           offset < forEachParts.iterable.offset) {
@@ -260,7 +260,7 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    DartType type = declaredIdentifier.declaredElement.type;
+    var type = declaredIdentifier.declaredElement.type;
     if (type is! InterfaceType && type is! FunctionType) {
       _coverageMarker();
       return null;
@@ -268,9 +268,9 @@ abstract class BaseProcessor {
     _configureTargetLocation(node);
 
     var changeBuilder = _newDartChangeBuilder();
-    bool validChange = true;
+    var validChange = true;
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      Token keyword = declaredIdentifier.keyword;
+      var keyword = declaredIdentifier.keyword;
       if (keyword.keyword == Keyword.VAR) {
         builder.addReplacement(range.token(keyword), (DartEditBuilder builder) {
           validChange = builder.writeType(type);
@@ -288,7 +288,7 @@ abstract class BaseProcessor {
 
   Future<ChangeBuilder>
       createBuilder_addTypeAnnotation_SimpleFormalParameter() async {
-    AstNode node = this.node;
+    var node = this.node;
     // should be the name of a simple parameter
     if (node is! SimpleIdentifier || node.parent is! SimpleFormalParameter) {
       _coverageMarker();
@@ -302,7 +302,7 @@ abstract class BaseProcessor {
       return null;
     }
     // prepare the type
-    DartType type = parameter.declaredElement.type;
+    var type = parameter.declaredElement.type;
     // TODO(scheglov) If the parameter is in a method declaration, and if the
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
@@ -315,7 +315,7 @@ abstract class BaseProcessor {
     _configureTargetLocation(node);
 
     var changeBuilder = _newDartChangeBuilder();
-    bool validChange = true;
+    var validChange = true;
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(name.offset, (DartEditBuilder builder) {
         validChange = builder.writeType(type);
@@ -327,10 +327,9 @@ abstract class BaseProcessor {
 
   Future<ChangeBuilder>
       createBuilder_addTypeAnnotation_VariableDeclaration() async {
-    AstNode node = this.node;
+    var node = this.node;
     // prepare VariableDeclarationList
-    VariableDeclarationList declarationList =
-        node.thisOrAncestorOfType<VariableDeclarationList>();
+    var declarationList = node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declarationList == null) {
       _coverageMarker();
       return null;
@@ -346,19 +345,19 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    VariableDeclaration variable = variables[0];
+    var variable = variables[0];
     // must be not after the name of the variable
     if (selectionOffset > variable.name.end) {
       _coverageMarker();
       return null;
     }
     // we need an initializer to get the type from
-    Expression initializer = variable.initializer;
+    var initializer = variable.initializer;
     if (initializer == null) {
       _coverageMarker();
       return null;
     }
-    DartType type = initializer.staticType;
+    var type = initializer.staticType;
     // prepare type source
     if ((type is! InterfaceType || type.isDartCoreNull) &&
         type is! FunctionType) {
@@ -368,9 +367,9 @@ abstract class BaseProcessor {
     _configureTargetLocation(node);
 
     var changeBuilder = _newDartChangeBuilder();
-    bool validChange = true;
+    var validChange = true;
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      Token keyword = declarationList.keyword;
+      var keyword = declarationList.keyword;
       if (keyword?.keyword == Keyword.VAR) {
         builder.addReplacement(range.token(keyword), (DartEditBuilder builder) {
           validChange = builder.writeType(type);
@@ -387,7 +386,7 @@ abstract class BaseProcessor {
 
   Future<ConvertToSpreadCollectionsChange>
       createBuilder_convertAddAllToSpread() async {
-    AstNode node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
       _coverageMarker();
       return null;
@@ -401,9 +400,9 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
+    var cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    var sections = cascade.cascadeSections;
+    var target = cascade.target;
     if (target is! ListLiteral || sections[0] != invocation) {
       // TODO(brianwilkerson) Consider extending this to handle set literals.
       _coverageMarker();
@@ -414,14 +413,13 @@ abstract class BaseProcessor {
         expression is ListLiteral && expression.elements.isEmpty;
 
     ListLiteral list = target;
-    Expression argument = invocation.argumentList.arguments[0];
+    var argument = invocation.argumentList.arguments[0];
     String elementText;
-    ConvertToSpreadCollectionsChange change =
-        ConvertToSpreadCollectionsChange();
+    var change = ConvertToSpreadCollectionsChange();
     List<String> args;
     if (argument is BinaryExpression &&
         argument.operator.type == TokenType.QUESTION_QUESTION) {
-      Expression right = argument.rightOperand;
+      var right = argument.rightOperand;
       if (isEmptyListLiteral(right)) {
         // ..addAll(things ?? const [])
         // ..addAll(things ?? [])
@@ -429,31 +427,31 @@ abstract class BaseProcessor {
       }
     } else if (experimentStatus.control_flow_collections &&
         argument is ConditionalExpression) {
-      Expression elseExpression = argument.elseExpression;
+      var elseExpression = argument.elseExpression;
       if (isEmptyListLiteral(elseExpression)) {
         // ..addAll(condition ? things : const [])
         // ..addAll(condition ? things : [])
-        String conditionText = utils.getNodeText(argument.condition);
-        String thenText = utils.getNodeText(argument.thenExpression);
+        var conditionText = utils.getNodeText(argument.condition);
+        var thenText = utils.getNodeText(argument.thenExpression);
         elementText = 'if ($conditionText) ...$thenText';
       }
     } else if (argument is ListLiteral) {
       // ..addAll([ ... ])
-      NodeList<CollectionElement> elements = argument.elements;
+      var elements = argument.elements;
       if (elements.isEmpty) {
         // TODO(brianwilkerson) Consider adding a cleanup for the empty list
         //  case. We can essentially remove the whole invocation because it does
         //  nothing.
         return null;
       }
-      int startOffset = elements.first.offset;
-      int endOffset = elements.last.end;
+      var startOffset = elements.first.offset;
+      var endOffset = elements.last.end;
       elementText = utils.getText(startOffset, endOffset - startOffset);
       change.isLineInvocation = true;
       args = ['addAll'];
     }
     elementText ??= '...${utils.getNodeText(argument)}';
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       if (list.elements.isNotEmpty) {
         // ['a']..addAll(['b', 'c']);
@@ -476,19 +474,19 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    AstNode nodeToReplace = node;
-    AstNode parent = node.parent;
+    var nodeToReplace = node;
+    var parent = node.parent;
     while (parent is ParenthesizedExpression) {
       nodeToReplace = parent;
       parent = parent.parent;
     }
     if (parent is ListLiteral || (parent is SetOrMapLiteral && parent.isSet)) {
       ConditionalExpression conditional = node;
-      Expression condition = conditional.condition.unParenthesized;
-      Expression thenExpression = conditional.thenExpression.unParenthesized;
-      Expression elseExpression = conditional.elseExpression.unParenthesized;
+      var condition = conditional.condition.unParenthesized;
+      var thenExpression = conditional.thenExpression.unParenthesized;
+      var elseExpression = conditional.elseExpression.unParenthesized;
 
-      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+      var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addReplacement(range.node(nodeToReplace),
             (DartEditBuilder builder) {
@@ -507,28 +505,28 @@ abstract class BaseProcessor {
   }
 
   Future<ChangeBuilder> createBuilder_convertDocumentationIntoLine() async {
-    Comment comment = node.thisOrAncestorOfType<Comment>();
+    var comment = node.thisOrAncestorOfType<Comment>();
     if (comment == null ||
         !comment.isDocumentation ||
         comment.tokens.length != 1) {
       _coverageMarker();
       return null;
     }
-    Token token = comment.tokens.first;
+    var token = comment.tokens.first;
     if (token.type != TokenType.MULTI_LINE_COMMENT) {
       _coverageMarker();
       return null;
     }
-    String text = token.lexeme;
-    List<String> lines = text.split('\n');
-    String prefix = utils.getNodePrefix(comment);
-    List<String> newLines = <String>[];
-    bool firstLine = true;
-    String linePrefix = '';
-    for (String line in lines) {
+    var text = token.lexeme;
+    var lines = text.split('\n');
+    var prefix = utils.getNodePrefix(comment);
+    var newLines = <String>[];
+    var firstLine = true;
+    var linePrefix = '';
+    for (var line in lines) {
       if (firstLine) {
         firstLine = false;
-        String expectedPrefix = '/**';
+        var expectedPrefix = '/**';
         if (!line.startsWith(expectedPrefix)) {
           _coverageMarker();
           return null;
@@ -542,7 +540,7 @@ abstract class BaseProcessor {
         if (line.startsWith(prefix + ' */')) {
           break;
         }
-        String expectedPrefix = prefix + ' *';
+        var expectedPrefix = prefix + ' *';
         if (!line.startsWith(expectedPrefix)) {
           _coverageMarker();
           return null;
@@ -560,7 +558,7 @@ abstract class BaseProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(comment), (DartEditBuilder builder) {
-        for (String newLine in newLines) {
+        for (var newLine in newLines) {
           builder.write(newLine);
         }
       });
@@ -573,13 +571,12 @@ abstract class BaseProcessor {
     //
     // Ensure that the selection is inside an invocation of Map.fromIterable.
     //
-    InstanceCreationExpression creation =
-        node.thisOrAncestorOfType<InstanceCreationExpression>();
+    var creation = node.thisOrAncestorOfType<InstanceCreationExpression>();
     if (creation == null) {
       _coverageMarker();
       return null;
     }
-    ConstructorElement element = creation.staticElement;
+    var element = creation.staticElement;
     if (element == null ||
         element.name != 'fromIterable' ||
         element.enclosingElement != typeProvider.mapElement) {
@@ -589,23 +586,23 @@ abstract class BaseProcessor {
     //
     // Ensure that the arguments have the right form.
     //
-    NodeList<Expression> arguments = creation.argumentList.arguments;
+    var arguments = creation.argumentList.arguments;
     if (arguments.length != 3) {
       _coverageMarker();
       return null;
     }
-    Expression iterator = arguments[0].unParenthesized;
-    Expression secondArg = arguments[1];
-    Expression thirdArg = arguments[2];
+    var iterator = arguments[0].unParenthesized;
+    var secondArg = arguments[1];
+    var thirdArg = arguments[2];
 
     Expression extractBody(FunctionExpression expression) {
-      FunctionBody body = expression.body;
+      var body = expression.body;
       if (body is ExpressionFunctionBody) {
         return body.expression;
       } else if (body is BlockFunctionBody) {
-        NodeList<Statement> statements = body.block.statements;
+        var statements = body.block.statements;
         if (statements.length == 1) {
-          Statement statement = statements[0];
+          var statement = statements[0];
           if (statement is ReturnStatement) {
             return statement.expression;
           }
@@ -616,10 +613,9 @@ abstract class BaseProcessor {
 
     FunctionExpression extractClosure(String name, Expression argument) {
       if (argument is NamedExpression && argument.name.label.name == name) {
-        Expression expression = argument.expression.unParenthesized;
+        var expression = argument.expression.unParenthesized;
         if (expression is FunctionExpression) {
-          NodeList<FormalParameter> parameters =
-              expression.parameters.parameters;
+          var parameters = expression.parameters.parameters;
           if (parameters.length == 1 && parameters[0].isRequiredPositional) {
             if (extractBody(expression) != null) {
               return expression;
@@ -630,9 +626,9 @@ abstract class BaseProcessor {
       return null;
     }
 
-    FunctionExpression keyClosure =
+    var keyClosure =
         extractClosure('key', secondArg) ?? extractClosure('key', thirdArg);
-    FunctionExpression valueClosure =
+    var valueClosure =
         extractClosure('value', thirdArg) ?? extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
       _coverageMarker();
@@ -643,29 +639,28 @@ abstract class BaseProcessor {
     // necessary.
     //
     SimpleFormalParameter keyParameter = keyClosure.parameters.parameters[0];
-    String keyParameterName = keyParameter.identifier.name;
+    var keyParameterName = keyParameter.identifier.name;
     SimpleFormalParameter valueParameter =
         valueClosure.parameters.parameters[0];
-    String valueParameterName = valueParameter.identifier.name;
-    Expression keyBody = extractBody(keyClosure);
-    String keyExpressionText = utils.getNodeText(keyBody);
-    Expression valueBody = extractBody(valueClosure);
-    String valueExpressionText = utils.getNodeText(valueBody);
+    var valueParameterName = valueParameter.identifier.name;
+    var keyBody = extractBody(keyClosure);
+    var keyExpressionText = utils.getNodeText(keyBody);
+    var valueBody = extractBody(valueClosure);
+    var valueExpressionText = utils.getNodeText(valueBody);
 
     String loopVariableName;
     if (keyParameterName == valueParameterName) {
       loopVariableName = keyParameterName;
     } else {
-      _ParameterReferenceFinder keyFinder =
-          _ParameterReferenceFinder(keyParameter.declaredElement);
+      var keyFinder = _ParameterReferenceFinder(keyParameter.declaredElement);
       keyBody.accept(keyFinder);
 
-      _ParameterReferenceFinder valueFinder =
+      var valueFinder =
           _ParameterReferenceFinder(valueParameter.declaredElement);
       valueBody.accept(valueFinder);
 
       String computeUnusedVariableName() {
-        String candidate = 'e';
+        var candidate = 'e';
         var index = 1;
         while (keyFinder.referencesName(candidate) ||
             valueFinder.referencesName(candidate)) {
@@ -710,7 +705,7 @@ abstract class BaseProcessor {
     //
     // Construct the edit.
     //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
         builder.write('{ for (var ');
@@ -731,11 +726,11 @@ abstract class BaseProcessor {
     if (node is SimpleStringLiteral) {
       SimpleStringLiteral literal = node;
       if (fromDouble ? !literal.isSingleQuoted : literal.isSingleQuoted) {
-        String newQuote = literal.isMultiline
+        var newQuote = literal.isMultiline
             ? (fromDouble ? "'''" : '"""')
             : (fromDouble ? "'" : '"');
-        int quoteLength = literal.isMultiline ? 3 : 1;
-        String lexeme = literal.literal.lexeme;
+        var quoteLength = literal.isMultiline ? 3 : 1;
+        var lexeme = literal.literal.lexeme;
         if (!lexeme.contains(newQuote)) {
           var changeBuilder = _newDartChangeBuilder();
           await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -752,15 +747,15 @@ abstract class BaseProcessor {
     } else if (node is InterpolationString) {
       StringInterpolation parent = node.parent;
       if (fromDouble ? !parent.isSingleQuoted : parent.isSingleQuoted) {
-        String newQuote = parent.isMultiline
+        var newQuote = parent.isMultiline
             ? (fromDouble ? "'''" : '"""')
             : (fromDouble ? "'" : '"');
-        int quoteLength = parent.isMultiline ? 3 : 1;
-        NodeList<InterpolationElement> elements = parent.elements;
-        for (int i = 0; i < elements.length; i++) {
-          InterpolationElement element = elements[i];
+        var quoteLength = parent.isMultiline ? 3 : 1;
+        var elements = parent.elements;
+        for (var i = 0; i < elements.length; i++) {
+          var element = elements[i];
           if (element is InterpolationString) {
-            String lexeme = element.contents.lexeme;
+            var lexeme = element.contents.lexeme;
             if (lexeme.contains(newQuote)) {
               return null;
             }
@@ -782,7 +777,7 @@ abstract class BaseProcessor {
 
   Future<ChangeBuilder> createBuilder_convertToExpressionFunctionBody() async {
     // prepare current body
-    FunctionBody body = getEnclosingFunctionBody();
+    var body = getEnclosingFunctionBody();
     if (body is! BlockFunctionBody || body.isGenerator) {
       _coverageMarker();
       return null;
@@ -793,7 +788,7 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    Statement onlyStatement = statements.first;
+    var onlyStatement = statements.first;
     // prepare returned expression
     Expression returnExpression;
     if (onlyStatement is ReturnStatement) {
@@ -831,7 +826,7 @@ abstract class BaseProcessor {
   }
 
   Future<ChangeBuilder> createBuilder_convertToGenericFunctionSyntax() async {
-    AstNode node = this.node;
+    var node = this.node;
     while (node != null) {
       if (node is FunctionTypeAlias) {
         return _createBuilder_convertFunctionTypeAliasToGenericTypeAlias(node);
@@ -881,7 +876,7 @@ abstract class BaseProcessor {
       node = node.parent;
     }
     if (node is ImportDirective) {
-      ImportDirective importDirective = node;
+      var importDirective = node;
       var uriSource = importDirective.uriSource;
 
       // Ignore if invalid URI.
@@ -932,7 +927,7 @@ abstract class BaseProcessor {
     }
 
     // Ignore if the uri is not a package: uri.
-    Uri sourceUri = resolvedResult.uri;
+    var sourceUri = resolvedResult.uri;
     if (sourceUri.scheme != 'package') {
       return null;
     }
@@ -951,8 +946,8 @@ abstract class BaseProcessor {
 
     // Verify that the source's uri and the import uri have the same package
     // name.
-    List<String> sourceSegments = sourceUri.pathSegments;
-    List<String> importSegments = importUri.pathSegments;
+    var sourceSegments = sourceUri.pathSegments;
+    var importSegments = importUri.pathSegments;
     if (sourceSegments.isEmpty ||
         importSegments.isEmpty ||
         sourceSegments.first != importSegments.first) {
@@ -960,12 +955,12 @@ abstract class BaseProcessor {
     }
 
     // We only write posix style paths in import directives.
-    final String relativePath = path.posix.relative(
+    var relativePath = path.posix.relative(
       importUri.path,
       from: path.dirname(sourceUri.path),
     );
 
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (builder) {
       builder.addSimpleReplacement(
         range.node(importDirective.uri).getExpanded(-1),
@@ -976,7 +971,7 @@ abstract class BaseProcessor {
   }
 
   Future<ChangeBuilder> createBuilder_inlineAdd() async {
-    AstNode node = this.node;
+    var node = this.node;
     if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
       _coverageMarker();
       return null;
@@ -990,19 +985,19 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
+    var cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    var sections = cascade.cascadeSections;
+    var target = cascade.target;
     if (target is! ListLiteral || sections[0] != invocation) {
       // TODO(brianwilkerson) Consider extending this to handle set literals.
       _coverageMarker();
       return null;
     }
     ListLiteral list = target;
-    Expression argument = invocation.argumentList.arguments[0];
-    String elementText = utils.getNodeText(argument);
+    var argument = invocation.argumentList.arguments[0];
+    var elementText = utils.getNodeText(argument);
 
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       if (list.elements.isNotEmpty) {
         // ['a']..add(e);
@@ -1018,24 +1013,23 @@ abstract class BaseProcessor {
 
   /// todo (pq): unify with similar behavior in fix.
   Future<ChangeBuilder> createBuilder_removeTypeAnnotation() async {
-    VariableDeclarationList declarationList =
-        node.thisOrAncestorOfType<VariableDeclarationList>();
+    var declarationList = node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declarationList == null) {
-      DeclaredIdentifier declaration = node.thisOrAncestorOfType();
+      var declaration = node.thisOrAncestorOfType<DeclaredIdentifier>();
       if (declaration == null) {
         _coverageMarker();
         return null;
       }
-      TypeAnnotation typeNode = declaration.type;
+      var typeNode = declaration.type;
       if (typeNode == null) {
         _coverageMarker();
         return null;
       }
-      Token keyword = declaration.keyword;
+      var keyword = declaration.keyword;
       var variableName = declaration.identifier;
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        SourceRange typeRange = range.startStart(typeNode, variableName);
+        var typeRange = range.startStart(typeNode, variableName);
         if (keyword != null && keyword.lexeme != 'var') {
           builder.addSimpleReplacement(typeRange, '');
         } else {
@@ -1045,7 +1039,7 @@ abstract class BaseProcessor {
       return changeBuilder;
     }
     // we need a type
-    TypeAnnotation typeNode = declarationList.type;
+    var typeNode = declarationList.type;
     if (typeNode == null) {
       _coverageMarker();
       return null;
@@ -1057,7 +1051,7 @@ abstract class BaseProcessor {
       return null;
     }
     // must be not after the name of the variable
-    VariableDeclaration firstVariable = declarationList.variables[0];
+    var firstVariable = declarationList.variables[0];
     if (selectionOffset > firstVariable.name.end) {
       _coverageMarker();
       return null;
@@ -1068,10 +1062,10 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    Token keyword = declarationList.keyword;
+    var keyword = declarationList.keyword;
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      SourceRange typeRange = range.startStart(typeNode, firstVariable);
+      var typeRange = range.startStart(typeNode, firstVariable);
       if (keyword != null && keyword.lexeme != 'var') {
         builder.addSimpleReplacement(typeRange, '');
       } else {
@@ -1082,7 +1076,7 @@ abstract class BaseProcessor {
   }
 
   Future<ChangeBuilder> createBuilder_replaceWithVar() async {
-    final TypeAnnotation type = node.thisOrAncestorOfType<TypeAnnotation>();
+    var type = node.thisOrAncestorOfType<TypeAnnotation>();
     if (type == null) {
       return null;
     }
@@ -1151,7 +1145,7 @@ abstract class BaseProcessor {
   }
 
   Future<ChangeBuilder> createBuilder_sortChildPropertyLast() async {
-    NamedExpression childProp = flutter.findNamedExpression(node, 'child');
+    var childProp = flutter.findNamedExpression(node, 'child');
     childProp ??= flutter.findNamedExpression(node, 'children');
     if (childProp == null) {
       return null;
@@ -1319,28 +1313,25 @@ abstract class BaseProcessor {
     // TODO(brianwilkerson) Determine whether there is a reason why this method
     // isn't just "return node.getAncestor((node) => node is FunctionBody);"
     {
-      FunctionExpression function =
-          node.thisOrAncestorOfType<FunctionExpression>();
+      var function = node.thisOrAncestorOfType<FunctionExpression>();
       if (function != null) {
         return function.body;
       }
     }
     {
-      FunctionDeclaration function =
-          node.thisOrAncestorOfType<FunctionDeclaration>();
+      var function = node.thisOrAncestorOfType<FunctionDeclaration>();
       if (function != null) {
         return function.functionExpression.body;
       }
     }
     {
-      ConstructorDeclaration constructor =
-          node.thisOrAncestorOfType<ConstructorDeclaration>();
+      var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
       if (constructor != null) {
         return constructor.body;
       }
     }
     {
-      MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
+      var method = node.thisOrAncestorOfType<MethodDeclaration>();
       if (method != null) {
         return method.body;
       }
@@ -1367,7 +1358,7 @@ abstract class BaseProcessor {
     if (isExactIterable(element)) {
       return true;
     }
-    for (InterfaceType type in element.allSupertypes) {
+    for (var type in element.allSupertypes) {
       if (isExactIterable(type.element)) {
         return true;
       }
@@ -1385,7 +1376,7 @@ abstract class BaseProcessor {
   /// Return `true` if all of the parameters in the given list of [parameters]
   /// have an explicit type annotation.
   bool _allParametersHaveTypes(FormalParameterList parameters) {
-    for (FormalParameter parameter in parameters.parameters) {
+    for (var parameter in parameters.parameters) {
       if (parameter is DefaultFormalParameter) {
         parameter = (parameter as DefaultFormalParameter).parameter;
       }
@@ -1404,7 +1395,7 @@ abstract class BaseProcessor {
   void _configureTargetLocation(Object target) {
     utils.targetClassElement = null;
     if (target is AstNode) {
-      ClassDeclaration targetClassDeclaration =
+      var targetClassDeclaration =
           target.thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassDeclaration != null) {
         utils.targetClassElement = targetClassDeclaration.declaredElement;
@@ -1422,9 +1413,9 @@ abstract class BaseProcessor {
     if (node.returnType != null) {
       returnType = utils.getNodeText(node.returnType);
     }
-    String functionName = utils.getRangeText(
+    var functionName = utils.getRangeText(
         range.startEnd(node.name, node.typeParameters ?? node.name));
-    String parameters = utils.getNodeText(node.parameters);
+    var parameters = utils.getNodeText(node.parameters);
     String replacement;
     if (returnType == null) {
       replacement = '$functionName = Function$parameters';
@@ -1451,9 +1442,9 @@ abstract class BaseProcessor {
     if (node.returnType != null) {
       returnType = utils.getNodeText(node.returnType);
     }
-    String functionName = utils.getRangeText(range.startEnd(
+    var functionName = utils.getRangeText(range.startEnd(
         node.identifier, node.typeParameters ?? node.identifier));
-    String parameters = utils.getNodeText(node.parameters);
+    var parameters = utils.getNodeText(node.parameters);
     String replacement;
     if (returnType == null) {
       replacement = 'Function$parameters $functionName';
@@ -1518,9 +1509,9 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   /// the [newName]. The [offset] is the offset of the first character of the
   /// [source] relative to the start of the file.
   String replaceName(String source, String newName, int offset) {
-    int oldLength = parameter.name.length;
-    for (int i = references.length - 1; i >= 0; i--) {
-      int oldOffset = references[i].offset - offset;
+    var oldLength = parameter.name.length;
+    for (var i = references.length - 1; i >= 0; i--) {
+      var oldOffset = references[i].offset - offset;
       source = source.replaceRange(oldOffset, oldOffset + oldLength, newName);
     }
     return source;

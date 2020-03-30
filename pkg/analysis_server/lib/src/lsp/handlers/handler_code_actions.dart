@@ -194,7 +194,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     try {
       for (final error in unit.errors) {
         // Server lineNumber is one-based so subtract one.
-        int errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
+        var errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
         if (errorLine >= range.start.line && errorLine <= range.end.line) {
           var workspace = DartChangeWorkspace(server.currentSessions);
           var context = DartFixContextImpl(workspace, unit, error, (name) {

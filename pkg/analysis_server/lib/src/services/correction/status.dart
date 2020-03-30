@@ -18,21 +18,21 @@ class RefactoringStatus {
 
   /// Creates a new [RefactoringStatus] with the ERROR severity.
   factory RefactoringStatus.error(String msg, [Location location]) {
-    RefactoringStatus status = RefactoringStatus();
+    var status = RefactoringStatus();
     status.addError(msg, location);
     return status;
   }
 
   /// Creates a new [RefactoringStatus] with the FATAL severity.
   factory RefactoringStatus.fatal(String msg, [Location location]) {
-    RefactoringStatus status = RefactoringStatus();
+    var status = RefactoringStatus();
     status.addFatalError(msg, location);
     return status;
   }
 
   /// Creates a new [RefactoringStatus] with the WARNING severity.
   factory RefactoringStatus.warning(String msg, [Location location]) {
-    RefactoringStatus status = RefactoringStatus();
+    var status = RefactoringStatus();
     status.addWarning(msg, location);
     return status;
   }
@@ -55,7 +55,7 @@ class RefactoringStatus {
   /// Returns the message of the [RefactoringProblem] with highest severity;
   /// may be `null` if no problems.
   String get message {
-    RefactoringProblem problem = this.problem;
+    var problem = this.problem;
     if (problem == null) {
       return null;
     }
@@ -66,7 +66,7 @@ class RefactoringStatus {
   ///
   /// Returns `null` if no entries.
   RefactoringProblem get problem {
-    for (RefactoringProblem problem in problems) {
+    for (var problem in problems) {
       if (problem.severity == _severity) {
         return problem;
       }
@@ -112,7 +112,7 @@ class RefactoringStatus {
 
   @override
   String toString() {
-    StringBuffer sb = StringBuffer();
+    var sb = StringBuffer();
     sb.write('<');
     if (_severity == null) {
       sb.write('OK');
@@ -121,7 +121,7 @@ class RefactoringStatus {
     }
     if (!isOK) {
       sb.write('\n');
-      for (RefactoringProblem problem in problems) {
+      for (var problem in problems) {
         sb.write('\t');
         sb.write(problem);
         sb.write('\n');
@@ -135,7 +135,7 @@ class RefactoringStatus {
   void _addProblem(RefactoringProblem problem) {
     problems.add(problem);
     // update maximum severity
-    RefactoringProblemSeverity severity = problem.severity;
+    var severity = problem.severity;
     _severity = RefactoringProblemSeverity.max(_severity, severity);
   }
 }

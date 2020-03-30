@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'completion_test_support.dart';
 
 void main() {
-  CompletionTestBuilder builder = CompletionTestBuilder();
+  var builder = CompletionTestBuilder();
   builder.buildAll();
 }
 
@@ -28,7 +28,7 @@ class CompletionTestBuilder {
     buildCompletionTests();
     buildOtherTests();
     buildLibraryTests();
-    int testCount = expectedPassCount + expectedFailCount;
+    var testCount = expectedPassCount + expectedFailCount;
     print(
         'Total $testCount tests, of which $expectedFailCount are expected to fail.');
   }
@@ -2415,8 +2415,7 @@ class A<Z extends X> {
   /// have not yet been fixed.
   void buildTests(String baseName, String originalSource, List<String> results,
       {Map<String, String> extraFiles, String failingTests = ''}) {
-    List<LocationSpec> completionTests =
-        LocationSpec.from(originalSource, results);
+    var completionTests = LocationSpec.from(originalSource, results);
     completionTests.sort((LocationSpec first, LocationSpec second) {
       return first.id.compareTo(second.id);
     });
@@ -2426,9 +2425,9 @@ class A<Z extends X> {
             'position at which code completion should occur');
       });
     }
-    Set<String> allSpecIds =
+    var allSpecIds =
         completionTests.map((LocationSpec spec) => spec.id).toSet();
-    for (String id in failingTests.split('')) {
+    for (var id in failingTests.split('')) {
       if (!allSpecIds.contains(id)) {
         test('$baseName-$id', () {
           fail(
@@ -2436,12 +2435,12 @@ class A<Z extends X> {
         });
       }
     }
-    for (LocationSpec spec in completionTests) {
-      String testName = '$baseName-${spec.id}';
+    for (var spec in completionTests) {
+      var testName = '$baseName-${spec.id}';
       if (failingTests.contains(spec.id)) {
         ++expectedFailCount;
         test('$testName (expected failure $expectedFailCount)', () {
-          CompletionTestCase test = CompletionTestCase();
+          var test = CompletionTestCase();
           return Future(() => test.runTest(spec, extraFiles)).then((_) {
             fail('Test passed - expected to fail.');
           }, onError: (_) {});
@@ -2449,7 +2448,7 @@ class A<Z extends X> {
       } else {
         ++expectedPassCount;
         test(testName, () {
-          CompletionTestCase test = CompletionTestCase();
+          var test = CompletionTestCase();
           return test.runTest(spec, extraFiles);
         });
       }

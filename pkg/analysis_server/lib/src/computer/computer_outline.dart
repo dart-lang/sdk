@@ -23,8 +23,8 @@ class DartUnitOutlineComputer {
 
   /// Returns the computed outline, not `null`.
   Outline compute() {
-    List<Outline> unitContents = <Outline>[];
-    for (CompilationUnitMember unitMember in resolvedUnit.unit.declarations) {
+    var unitContents = <Outline>[];
+    for (var unitMember in resolvedUnit.unit.declarations) {
       if (unitMember is ClassDeclaration) {
         unitContents.add(_newClassOutline(
             unitMember, _outlinesForMembers(unitMember.members)));
@@ -32,9 +32,9 @@ class DartUnitOutlineComputer {
         unitContents.add(_newMixinOutline(
             unitMember, _outlinesForMembers(unitMember.members)));
       } else if (unitMember is EnumDeclaration) {
-        EnumDeclaration enumDeclaration = unitMember;
-        List<Outline> constantOutlines = <Outline>[];
-        for (EnumConstantDeclaration constant in enumDeclaration.constants) {
+        var enumDeclaration = unitMember;
+        var constantOutlines = <Outline>[];
+        for (var constant in enumDeclaration.constants) {
           constantOutlines.add(_newEnumConstant(constant));
         }
         unitContents.add(_newEnumOutline(enumDeclaration, constantOutlines));
@@ -42,57 +42,57 @@ class DartUnitOutlineComputer {
         unitContents.add(_newExtensionOutline(
             unitMember, _outlinesForMembers(unitMember.members)));
       } else if (unitMember is TopLevelVariableDeclaration) {
-        TopLevelVariableDeclaration fieldDeclaration = unitMember;
-        VariableDeclarationList fields = fieldDeclaration.variables;
+        var fieldDeclaration = unitMember;
+        var fields = fieldDeclaration.variables;
         if (fields != null) {
-          TypeAnnotation fieldType = fields.type;
-          String fieldTypeName = _safeToSource(fieldType);
-          for (VariableDeclaration field in fields.variables) {
+          var fieldType = fields.type;
+          var fieldTypeName = _safeToSource(fieldType);
+          for (var field in fields.variables) {
             unitContents.add(_newVariableOutline(
                 fieldTypeName, ElementKind.TOP_LEVEL_VARIABLE, field, false));
           }
         }
       } else if (unitMember is FunctionDeclaration) {
-        FunctionDeclaration functionDeclaration = unitMember;
+        var functionDeclaration = unitMember;
         unitContents.add(_newFunctionOutline(functionDeclaration, true));
       } else if (unitMember is ClassTypeAlias) {
-        ClassTypeAlias alias = unitMember;
+        var alias = unitMember;
         unitContents.add(_newClassTypeAlias(alias));
       } else if (unitMember is FunctionTypeAlias) {
-        FunctionTypeAlias alias = unitMember;
+        var alias = unitMember;
         unitContents.add(_newFunctionTypeAliasOutline(alias));
       } else if (unitMember is GenericTypeAlias) {
-        GenericTypeAlias alias = unitMember;
+        var alias = unitMember;
         unitContents.add(_newGenericTypeAliasOutline(alias));
       }
     }
-    Outline unitOutline = _newUnitOutline(unitContents);
+    var unitOutline = _newUnitOutline(unitContents);
     return unitOutline;
   }
 
   List<Outline> _addFunctionBodyOutlines(FunctionBody body) {
-    List<Outline> contents = <Outline>[];
+    var contents = <Outline>[];
     body.accept(_FunctionBodyOutlinesVisitor(this, contents));
     return contents;
   }
 
   Location _getLocationNode(AstNode node) {
-    int offset = node.offset;
-    int length = node.length;
+    var offset = node.offset;
+    var length = node.length;
     return _getLocationOffsetLength(offset, length);
   }
 
   Location _getLocationOffsetLength(int offset, int length) {
     CharacterLocation lineLocation = resolvedUnit.lineInfo.getLocation(offset);
-    int startLine = lineLocation.lineNumber;
-    int startColumn = lineLocation.columnNumber;
+    var startLine = lineLocation.lineNumber;
+    var startColumn = lineLocation.columnNumber;
     return Location(resolvedUnit.path, offset, length, startLine, startColumn);
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {
-    SimpleIdentifier nameNode = node.name;
-    String name = nameNode.name;
-    Element element = Element(
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var element = Element(
         ElementKind.CLASS,
         name,
         Element.makeFlags(
@@ -105,9 +105,9 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newClassTypeAlias(ClassTypeAlias node) {
-    SimpleIdentifier nameNode = node.name;
-    String name = nameNode.name;
-    Element element = Element(
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var element = Element(
         ElementKind.CLASS_TYPE_ALIAS,
         name,
         Element.makeFlags(
@@ -120,36 +120,36 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newConstructorOutline(ConstructorDeclaration constructor) {
-    Identifier returnType = constructor.returnType;
-    String name = returnType.name;
-    int offset = returnType.offset;
-    int length = returnType.length;
-    SimpleIdentifier constructorNameNode = constructor.name;
-    bool isPrivate = false;
+    var returnType = constructor.returnType;
+    var name = returnType.name;
+    var offset = returnType.offset;
+    var length = returnType.length;
+    var constructorNameNode = constructor.name;
+    var isPrivate = false;
     if (constructorNameNode != null) {
-      String constructorName = constructorNameNode.name;
+      var constructorName = constructorNameNode.name;
       isPrivate = Identifier.isPrivateName(constructorName);
       name += '.$constructorName';
       offset = constructorNameNode.offset;
       length = constructorNameNode.length;
     }
-    FormalParameterList parameters = constructor.parameters;
-    String parametersStr = _safeToSource(parameters);
-    Element element = Element(
+    var parameters = constructor.parameters;
+    var parametersStr = _safeToSource(parameters);
+    var element = Element(
         ElementKind.CONSTRUCTOR,
         name,
         Element.makeFlags(
             isPrivate: isPrivate, isDeprecated: _isDeprecated(constructor)),
         location: _getLocationOffsetLength(offset, length),
         parameters: parametersStr);
-    List<Outline> contents = _addFunctionBodyOutlines(constructor.body);
+    var contents = _addFunctionBodyOutlines(constructor.body);
     return _nodeOutline(constructor, element, contents);
   }
 
   Outline _newEnumConstant(EnumConstantDeclaration node) {
-    SimpleIdentifier nameNode = node.name;
-    String name = nameNode.name;
-    Element element = Element(
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var element = Element(
         ElementKind.ENUM_CONSTANT,
         name,
         Element.makeFlags(
@@ -160,9 +160,9 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newEnumOutline(EnumDeclaration node, List<Outline> children) {
-    SimpleIdentifier nameNode = node.name;
-    String name = nameNode.name;
-    Element element = Element(
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var element = Element(
         ElementKind.ENUM,
         name,
         Element.makeFlags(
@@ -174,9 +174,9 @@ class DartUnitOutlineComputer {
 
   Outline _newExtensionOutline(
       ExtensionDeclaration node, List<Outline> extensionContents) {
-    SimpleIdentifier nameNode = node.name;
-    String name = nameNode?.name ?? '';
-    Element element = Element(
+    var nameNode = node.name;
+    var name = nameNode?.name ?? '';
+    var element = Element(
         ElementKind.EXTENSION,
         name,
         Element.makeFlags(
@@ -188,11 +188,11 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newFunctionOutline(FunctionDeclaration function, bool isStatic) {
-    TypeAnnotation returnType = function.returnType;
-    SimpleIdentifier nameNode = function.name;
-    String name = nameNode.name;
-    FunctionExpression functionExpression = function.functionExpression;
-    FormalParameterList parameters = functionExpression.parameters;
+    var returnType = function.returnType;
+    var nameNode = function.name;
+    var name = nameNode.name;
+    var functionExpression = function.functionExpression;
+    var parameters = functionExpression.parameters;
     ElementKind kind;
     if (function.isGetter) {
       kind = ElementKind.GETTER;
@@ -201,9 +201,9 @@ class DartUnitOutlineComputer {
     } else {
       kind = ElementKind.FUNCTION;
     }
-    String parametersStr = _safeToSource(parameters);
-    String returnTypeStr = _safeToSource(returnType);
-    Element element = Element(
+    var parametersStr = _safeToSource(parameters);
+    var returnTypeStr = _safeToSource(returnType);
+    var element = Element(
         kind,
         name,
         Element.makeFlags(
@@ -215,18 +215,18 @@ class DartUnitOutlineComputer {
         returnType: returnTypeStr,
         typeParameters:
             _getTypeParametersStr(functionExpression.typeParameters));
-    List<Outline> contents = _addFunctionBodyOutlines(functionExpression.body);
+    var contents = _addFunctionBodyOutlines(functionExpression.body);
     return _nodeOutline(function, element, contents);
   }
 
   Outline _newFunctionTypeAliasOutline(FunctionTypeAlias node) {
-    TypeAnnotation returnType = node.returnType;
-    SimpleIdentifier nameNode = node.name;
-    String name = nameNode.name;
-    FormalParameterList parameters = node.parameters;
-    String parametersStr = _safeToSource(parameters);
-    String returnTypeStr = _safeToSource(returnType);
-    Element element = Element(
+    var returnType = node.returnType;
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var parameters = node.parameters;
+    var parametersStr = _safeToSource(parameters);
+    var returnTypeStr = _safeToSource(returnType);
+    var element = Element(
         ElementKind.FUNCTION_TYPE_ALIAS,
         name,
         Element.makeFlags(
@@ -241,13 +241,13 @@ class DartUnitOutlineComputer {
 
   Outline _newGenericTypeAliasOutline(GenericTypeAlias node) {
     var functionType = node.functionType;
-    TypeAnnotation returnType = functionType?.returnType;
-    SimpleIdentifier nameNode = node.name;
-    String name = nameNode.name;
-    FormalParameterList parameters = functionType?.parameters;
-    String parametersStr = _safeToSource(parameters);
-    String returnTypeStr = _safeToSource(returnType);
-    Element element = Element(
+    var returnType = functionType?.returnType;
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var parameters = functionType?.parameters;
+    var parametersStr = _safeToSource(parameters);
+    var returnTypeStr = _safeToSource(returnType);
+    var element = Element(
         ElementKind.FUNCTION_TYPE_ALIAS,
         name,
         Element.makeFlags(
@@ -261,10 +261,10 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newMethodOutline(MethodDeclaration method) {
-    TypeAnnotation returnType = method.returnType;
-    SimpleIdentifier nameNode = method.name;
-    String name = nameNode.name;
-    FormalParameterList parameters = method.parameters;
+    var returnType = method.returnType;
+    var nameNode = method.name;
+    var name = nameNode.name;
+    var parameters = method.parameters;
     ElementKind kind;
     if (method.isGetter) {
       kind = ElementKind.GETTER;
@@ -273,9 +273,9 @@ class DartUnitOutlineComputer {
     } else {
       kind = ElementKind.METHOD;
     }
-    String parametersStr = parameters?.toSource();
-    String returnTypeStr = _safeToSource(returnType);
-    Element element = Element(
+    var parametersStr = parameters?.toSource();
+    var returnTypeStr = _safeToSource(returnType);
+    var element = Element(
         kind,
         name,
         Element.makeFlags(
@@ -287,15 +287,15 @@ class DartUnitOutlineComputer {
         parameters: parametersStr,
         returnType: returnTypeStr,
         typeParameters: _getTypeParametersStr(method.typeParameters));
-    List<Outline> contents = _addFunctionBodyOutlines(method.body);
+    var contents = _addFunctionBodyOutlines(method.body);
     return _nodeOutline(method, element, contents);
   }
 
   Outline _newMixinOutline(MixinDeclaration node, List<Outline> mixinContents) {
     node.firstTokenAfterCommentAndMetadata;
-    SimpleIdentifier nameNode = node.name;
-    String name = nameNode.name;
-    Element element = Element(
+    var nameNode = node.name;
+    var name = nameNode.name;
+    var element = Element(
         ElementKind.MIXIN,
         name,
         Element.makeFlags(
@@ -307,7 +307,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newUnitOutline(List<Outline> unitContents) {
-    Element element = Element(
+    var element = Element(
         ElementKind.COMPILATION_UNIT, '<unit>', Element.makeFlags(),
         location: _getLocationNode(resolvedUnit.unit));
     return _nodeOutline(resolvedUnit.unit, element, unitContents);
@@ -315,9 +315,9 @@ class DartUnitOutlineComputer {
 
   Outline _newVariableOutline(String typeName, ElementKind kind,
       VariableDeclaration variable, bool isStatic) {
-    SimpleIdentifier nameNode = variable.name;
-    String name = nameNode.name;
-    Element element = Element(
+    var nameNode = variable.name;
+    var name = nameNode.name;
+    var element = Element(
         kind,
         name,
         Element.makeFlags(
@@ -333,10 +333,10 @@ class DartUnitOutlineComputer {
 
   Outline _nodeOutline(AstNode node, Element element,
       [List<Outline> children]) {
-    int offset = node.offset;
-    int end = node.end;
+    var offset = node.offset;
+    var end = node.end;
     if (node is VariableDeclaration) {
-      AstNode parent = node.parent;
+      var parent = node.parent;
       if (parent is VariableDeclarationList && parent.variables.isNotEmpty) {
         if (parent.variables[0] == node) {
           offset = parent.parent.offset;
@@ -347,38 +347,38 @@ class DartUnitOutlineComputer {
       }
     }
 
-    int codeOffset = node.offset;
+    var codeOffset = node.offset;
     if (node is AnnotatedNode) {
       codeOffset = node.firstTokenAfterCommentAndMetadata.offset;
     }
 
-    int length = end - offset;
-    int codeLength = node.end - codeOffset;
+    var length = end - offset;
+    var codeLength = node.end - codeOffset;
     return Outline(element, offset, length, codeOffset, codeLength,
         children: nullIfEmpty(children));
   }
 
   List<Outline> _outlinesForMembers(List<ClassMember> members) {
-    List<Outline> memberOutlines = <Outline>[];
-    for (ClassMember classMember in members) {
+    var memberOutlines = <Outline>[];
+    for (var classMember in members) {
       if (classMember is ConstructorDeclaration) {
-        ConstructorDeclaration constructorDeclaration = classMember;
+        var constructorDeclaration = classMember;
         memberOutlines.add(_newConstructorOutline(constructorDeclaration));
       }
       if (classMember is FieldDeclaration) {
-        FieldDeclaration fieldDeclaration = classMember;
-        VariableDeclarationList fields = fieldDeclaration.fields;
+        var fieldDeclaration = classMember;
+        var fields = fieldDeclaration.fields;
         if (fields != null) {
-          TypeAnnotation fieldType = fields.type;
-          String fieldTypeName = _safeToSource(fieldType);
-          for (VariableDeclaration field in fields.variables) {
+          var fieldType = fields.type;
+          var fieldTypeName = _safeToSource(fieldType);
+          for (var field in fields.variables) {
             memberOutlines.add(_newVariableOutline(fieldTypeName,
                 ElementKind.FIELD, field, fieldDeclaration.isStatic));
           }
         }
       }
       if (classMember is MethodDeclaration) {
-        MethodDeclaration methodDeclaration = classMember;
+        var methodDeclaration = classMember;
         memberOutlines.add(_newMethodOutline(methodDeclaration));
       }
     }
@@ -394,7 +394,7 @@ class DartUnitOutlineComputer {
 
   /// Returns `true` if the given [element] is not `null` and deprecated.
   static bool _isDeprecated(Declaration declaration) {
-    engine.Element element = declaration.declaredElement;
+    var element = declaration.declaredElement;
     return element != null && element.hasDeprecated;
   }
 
@@ -440,12 +440,12 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (outlineComputer.withBasicFlutter &&
         outlineComputer.flutter.isWidgetCreation(node)) {
-      List<Outline> children = <Outline>[];
+      var children = <Outline>[];
       node.argumentList
           .accept(_FunctionBodyOutlinesVisitor(outlineComputer, children));
 
-      String text = outlineComputer.flutter.getWidgetPresentationText(node);
-      Element element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
+      var text = outlineComputer.flutter.getWidgetPresentationText(node);
+      var element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
           location: outlineComputer._getLocationOffsetLength(node.offset, 0));
 
       contents.add(Outline(
@@ -458,9 +458,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    SimpleIdentifier nameNode = node.methodName;
+    var nameNode = node.methodName;
 
-    engine.Element nameElement = nameNode.staticElement;
+    var nameElement = nameNode.staticElement;
     if (nameElement is! engine.ExecutableElement) {
       return;
     }
@@ -468,9 +468,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
     String extractString(NodeList<Expression> arguments) {
       if (arguments != null && arguments.isNotEmpty) {
-        Expression argument = arguments[0];
+        var argument = arguments[0];
         if (argument is StringLiteral) {
-          String value = argument.stringValue;
+          var value = argument.stringValue;
           if (value != null) {
             return value;
           }
@@ -481,10 +481,10 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
     }
 
     void addOutlineNode(ElementKind kind, [List<Outline> children]) {
-      String executableName = nameNode.name;
-      String description = extractString(node.argumentList?.arguments);
-      String name = '$executableName("$description")';
-      Element element = Element(kind, name, 0,
+      var executableName = nameNode.name;
+      var description = extractString(node.argumentList?.arguments);
+      var name = '$executableName("$description")';
+      var element = Element(kind, name, 0,
           location: outlineComputer._getLocationNode(nameNode));
       contents.add(Outline(
           element, node.offset, node.length, node.offset, node.length,
@@ -492,7 +492,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
     }
 
     if (isGroup(executableElement)) {
-      List<Outline> groupContents = <Outline>[];
+      var groupContents = <Outline>[];
       node.argumentList
           .accept(_FunctionBodyOutlinesVisitor(outlineComputer, groupContents));
       addOutlineNode(ElementKind.UNIT_TEST_GROUP, groupContents);
@@ -506,7 +506,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] is a top-level member of the test
   /// package.
   bool _isInsideTestPackage(engine.FunctionElement element) {
-    engine.Element parent = element.enclosingElement;
+    var parent = element.enclosingElement;
     return parent is engine.CompilationUnitElement &&
         parent.source.fullName.endsWith('test.dart');
   }

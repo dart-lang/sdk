@@ -33,7 +33,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
   void _assertHasChange(String message, String expectedCode, [Function cmp]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
-        String resultCode =
+        var resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
@@ -54,26 +54,26 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
   Future<void> _assertNotApplicable(String key, String code) async {
     await _prepareProcessor(key, code);
 
-    bool isApplicable = await processor.isApplicable();
+    var isApplicable = await processor.isApplicable();
     expect(isApplicable, isFalse);
   }
 
   Future<void> _prepareCompletion(String key, String code) async {
     await _prepareProcessor(key, code);
 
-    bool isApplicable = await processor.isApplicable();
+    var isApplicable = await processor.isApplicable();
     if (!isApplicable) {
       fail('Postfix completion not applicable at given location');
     }
 
     if (isApplicable) {
-      PostfixCompletion completion = await processor.compute();
+      var completion = await processor.compute();
       change = completion.change;
     }
   }
 
   Future<void> _prepareProcessor(String key, String code) async {
-    int offset = code.indexOf(key);
+    var offset = code.indexOf(key);
     code = code.replaceFirst(key, '', offset);
 
     verifyNoTestUnitErrors = false;

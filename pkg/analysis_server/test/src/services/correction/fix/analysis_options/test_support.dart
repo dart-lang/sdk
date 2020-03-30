@@ -5,13 +5,9 @@
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show SourceFileEdit;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
@@ -22,31 +18,30 @@ import 'package:yaml/yaml.dart';
 class AnalysisOptionsFixTest with ResourceProviderMixin {
   Future<void> assertHasFix(
       String initialContent, String expectedContent) async {
-    List<Fix> fixes = await _getFixes(initialContent);
+    var fixes = await _getFixes(initialContent);
     expect(fixes, hasLength(1));
-    List<SourceFileEdit> fileEdits = fixes[0].change.edits;
+    var fileEdits = fixes[0].change.edits;
     expect(fileEdits, hasLength(1));
 
-    String actualContent =
+    var actualContent =
         SourceEdit.applySequence(initialContent, fileEdits[0].edits);
     expect(actualContent, expectedContent);
   }
 
   Future<void> assertHasNoFix(String initialContent) async {
-    List<Fix> fixes = await _getFixes(initialContent);
+    var fixes = await _getFixes(initialContent);
     expect(fixes, hasLength(0));
   }
 
   Future<List<Fix>> _getFixes(String content) {
-    File optionsFile = getFile('/analysis_options.yaml');
-    SourceFactory sourceFactory = SourceFactory([]);
-    List<engine.AnalysisError> errors = analyzeAnalysisOptions(
+    var optionsFile = getFile('/analysis_options.yaml');
+    var sourceFactory = SourceFactory([]);
+    var errors = analyzeAnalysisOptions(
         optionsFile.createSource(), content, sourceFactory);
     expect(errors, hasLength(1));
-    engine.AnalysisError error = errors[0];
-    YamlMap options = _parseYaml(content);
-    AnalysisOptionsFixGenerator generator =
-        AnalysisOptionsFixGenerator(error, content, options);
+    var error = errors[0];
+    var options = _parseYaml(content);
+    var generator = AnalysisOptionsFixGenerator(error, content, options);
     return generator.computeFixes();
   }
 
@@ -55,7 +50,7 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
       return YamlMap();
     }
     try {
-      YamlNode doc = loadYamlNode(content);
+      var doc = loadYamlNode(content);
       if (doc is YamlMap) {
         return doc;
       }

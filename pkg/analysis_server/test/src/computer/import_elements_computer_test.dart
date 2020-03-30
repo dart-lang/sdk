@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,7 +26,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   SourceFileEdit sourceFileEdit;
 
   void assertChanges(String expectedContent) {
-    String resultCode =
+    var resultCode =
         SourceEdit.applySequence(originalContent, sourceFileEdit.edits);
     expect(resultCode, expectedContent);
   }
@@ -37,9 +36,9 @@ class ImportElementsComputerTest extends AbstractContextTest {
   }
 
   Future<void> computeChanges(List<ImportedElements> importedElements) async {
-    SourceChange change = await computer.createEdits(importedElements);
+    var change = await computer.createEdits(importedElements);
     expect(change, isNotNull);
-    List<SourceFileEdit> edits = change.edits;
+    var edits = change.edits;
     if (edits.length == 1) {
       sourceFileEdit = edits[0];
       expect(sourceFileEdit, isNotNull);
@@ -51,7 +50,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   Future<void> createBuilder(String content) async {
     originalContent = content;
     newFile(path, content: content);
-    ResolvedUnitResult result = await session.getResolvedUnit(path);
+    var result = await session.getResolvedUnit(path);
     computer = ImportElementsComputer(resourceProvider, result);
   }
 

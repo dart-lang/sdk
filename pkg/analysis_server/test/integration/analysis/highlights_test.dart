@@ -34,11 +34,11 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
     onAnalysisHighlights.listen((AnalysisHighlightsParams params) {
       expect(params.file, equals(pathname));
       highlights = <HighlightRegionType, Set<String>>{};
-      for (HighlightRegion region in params.regions) {
-        int startIndex = region.offset;
-        int endIndex = startIndex + region.length;
-        String highlightedText = text.substring(startIndex, endIndex);
-        HighlightRegionType type = region.type;
+      for (var region in params.regions) {
+        var startIndex = region.offset;
+        var endIndex = startIndex + region.length;
+        var highlightedText = text.substring(startIndex, endIndex);
+        var type = region.type;
         if (!highlights.containsKey(type)) {
           highlights[type] = <String>{};
         }
@@ -49,8 +49,8 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   Future<void> test_highlights() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 import 'dart:async' as async;
 
 /**
@@ -149,8 +149,8 @@ int topLevelVariable;
   }
 
   Future<void> test_highlights_mixin() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 mixin M on A implements B {}
 class A {}
 class B {}

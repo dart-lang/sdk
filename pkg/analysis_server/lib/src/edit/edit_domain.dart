@@ -34,7 +34,6 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
@@ -42,7 +41,6 @@ import 'package:analyzer/file_system/file_system.dart';
 // ignore: deprecated_member_use
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
@@ -59,9 +57,7 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
-import 'package:html/dom.dart';
 import 'package:html/parser.dart';
-import 'package:path/src/context.dart';
 import 'package:yaml/yaml.dart';
 
 int test_resetCount = 0;
@@ -103,7 +99,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     try {
       var dartFix = EditDartFix(server, request);
-      Response response = await dartFix.compute();
+      var response = await dartFix.compute();
 
       server.sendResponse(response);
     } catch (exception, stackTrace) {
@@ -115,8 +111,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   Response format(Request request) {
     server.options.analytics?.sendEvent('edit', 'format');
 
-    EditFormatParams params = EditFormatParams.fromRequest(request);
-    String file = params.file;
+    var params = EditFormatParams.fromRequest(request);
+    var file = params.file;
 
     String unformattedCode;
     try {
@@ -126,8 +122,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       return Response.formatInvalidFile(request);
     }
 
-    int start = params.selectionOffset;
-    int length = params.selectionLength;
+    var start = params.selectionOffset;
+    var length = params.selectionLength;
 
     // No need to preserve 0,0 selection
     if (start == 0 && length == 0) {
@@ -135,30 +131,30 @@ class EditDomainHandler extends AbstractRequestHandler {
       length = null;
     }
 
-    SourceCode code = SourceCode(unformattedCode,
+    var code = SourceCode(unformattedCode,
         uri: null,
         isCompilationUnit: true,
         selectionStart: start,
         selectionLength: length);
-    DartFormatter formatter = DartFormatter(pageWidth: params.lineLength);
+    var formatter = DartFormatter(pageWidth: params.lineLength);
     SourceCode formattedResult;
     try {
       formattedResult = formatter.formatSource(code);
     } on FormatterException {
       return Response.formatWithErrors(request);
     }
-    String formattedSource = formattedResult.text;
+    var formattedSource = formattedResult.text;
 
-    List<SourceEdit> edits = <SourceEdit>[];
+    var edits = <SourceEdit>[];
 
     if (formattedSource != unformattedCode) {
       //TODO: replace full replacements with smaller, more targeted edits
-      SourceEdit edit = SourceEdit(0, unformattedCode.length, formattedSource);
+      var edit = SourceEdit(0, unformattedCode.length, formattedSource);
       edits.add(edit);
     }
 
-    int newStart = formattedResult.selectionStart;
-    int newLength = formattedResult.selectionLength;
+    var newStart = formattedResult.selectionStart;
+    var newLength = formattedResult.selectionLength;
 
     // Sending null start/length values would violate protocol, so convert back
     // to 0.
@@ -171,22 +167,21 @@ class EditDomainHandler extends AbstractRequestHandler {
   Future getAssists(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    EditGetAssistsParams params = EditGetAssistsParams.fromRequest(request);
-    String file = params.file;
-    int offset = params.offset;
-    int length = params.length;
+    var params = EditGetAssistsParams.fromRequest(request);
+    var file = params.file;
+    var offset = params.offset;
+    var length = params.length;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
 
-    List<SourceChange> changes = <SourceChange>[];
+    var changes = <SourceChange>[];
     //
     // Allow plugins to start computing assists.
     //
     Map<PluginInfo, Future<plugin.Response>> pluginFutures;
-    plugin.EditGetAssistsParams requestParams =
-        plugin.EditGetAssistsParams(file, offset, length);
+    var requestParams = plugin.EditGetAssistsParams(file, offset, length);
     var driver = server.getAnalysisDriver(file);
     if (driver == null) {
       pluginFutures = <PluginInfo, Future<plugin.Response>>{};
@@ -197,7 +192,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute fixes associated with server-generated errors.
     //
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
     server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (result != null) {
       var context = DartAssistContextImpl(
@@ -207,10 +202,10 @@ class EditDomainHandler extends AbstractRequestHandler {
         length,
       );
       try {
-        AssistProcessor processor = AssistProcessor(context);
-        List<Assist> assists = await processor.compute();
+        var processor = AssistProcessor(context);
+        var assists = await processor.compute();
         assists.sort(Assist.SORT_BY_RELEVANCE);
-        for (Assist assist in assists) {
+        for (var assist in assists) {
           changes.add(assist.change);
         }
         server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
@@ -219,15 +214,13 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Add the fixes produced by plugins to the server-generated fixes.
     //
-    List<plugin.Response> responses =
+    var responses =
         await waitForResponses(pluginFutures, requestParameters: requestParams);
     server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
-    ResultConverter converter = ResultConverter();
-    List<plugin.PrioritizedSourceChange> pluginChanges =
-        <plugin.PrioritizedSourceChange>[];
-    for (plugin.Response response in responses) {
-      plugin.EditGetAssistsResult result =
-          plugin.EditGetAssistsResult.fromResponse(response);
+    var converter = ResultConverter();
+    var pluginChanges = <plugin.PrioritizedSourceChange>[];
+    for (var response in responses) {
+      var result = plugin.EditGetAssistsResult.fromResponse(response);
       pluginChanges.addAll(result.assists);
     }
     pluginChanges
@@ -244,9 +237,9 @@ class EditDomainHandler extends AbstractRequestHandler {
           .toResponse(request.id);
 
   Future<void> getFixes(Request request) async {
-    EditGetFixesParams params = EditGetFixesParams.fromRequest(request);
-    String file = params.file;
-    int offset = params.offset;
+    var params = EditGetFixesParams.fromRequest(request);
+    var file = params.file;
+    var offset = params.offset;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
@@ -255,8 +248,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     // Allow plugins to start computing fixes.
     //
     Map<PluginInfo, Future<plugin.Response>> pluginFutures;
-    plugin.EditGetFixesParams requestParams =
-        plugin.EditGetFixesParams(file, offset);
+    var requestParams = plugin.EditGetFixesParams(file, offset);
     var driver = server.getAnalysisDriver(file);
     if (driver == null) {
       pluginFutures = <PluginInfo, Future<plugin.Response>>{};
@@ -278,13 +270,12 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Add the fixes produced by plugins to the server-generated fixes.
     //
-    List<plugin.Response> responses =
+    var responses =
         await waitForResponses(pluginFutures, requestParameters: requestParams);
     server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
-    ResultConverter converter = ResultConverter();
-    for (plugin.Response response in responses) {
-      plugin.EditGetFixesResult result =
-          plugin.EditGetFixesResult.fromResponse(response);
+    var converter = ResultConverter();
+    for (var response in responses) {
+      var result = plugin.EditGetFixesResult.fromResponse(response);
       errorFixesList
           .addAll(result.fixes.map(converter.convertAnalysisErrorFixes));
     }
@@ -309,21 +300,20 @@ class EditDomainHandler extends AbstractRequestHandler {
 
     SourceChange change;
 
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
     if (result != null) {
-      PostfixCompletionContext context = PostfixCompletionContext(
+      var context = PostfixCompletionContext(
         result,
         params.offset,
         params.key,
       );
-      PostfixCompletionProcessor processor =
-          PostfixCompletionProcessor(context);
-      PostfixCompletion completion = await processor.compute();
+      var processor = PostfixCompletionProcessor(context);
+      var completion = await processor.compute();
       change = completion?.change;
     }
     change ??= SourceChange('', edits: []);
 
-    Response response =
+    var response =
         EditGetPostfixCompletionResult(change).toResponse(request.id);
     server.sendResponse(response);
   }
@@ -341,17 +331,16 @@ class EditDomainHandler extends AbstractRequestHandler {
 
     SourceChange change;
 
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
     if (result != null) {
       var context = StatementCompletionContext(result, params.offset);
-      StatementCompletionProcessor processor =
-          StatementCompletionProcessor(context);
-      StatementCompletion completion = await processor.compute();
+      var processor = StatementCompletionProcessor(context);
+      var completion = await processor.compute();
       change = completion.change;
     }
     change ??= SourceChange('', edits: []);
 
-    Response response =
+    var response =
         EditGetStatementCompletionResult(change, false).toResponse(request.id);
     server.sendResponse(response);
   }
@@ -359,7 +348,7 @@ class EditDomainHandler extends AbstractRequestHandler {
   @override
   Response handleRequest(Request request) {
     try {
-      String requestName = request.method;
+      var requestName = request.method;
       if (requestName == EDIT_REQUEST_FORMAT) {
         return format(request);
       } else if (requestName == EDIT_REQUEST_GET_ASSISTS) {
@@ -420,12 +409,11 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Prepare the resolved unit.
     //
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
     if (result == null) {
       server.sendResponse(Response.importElementsInvalidFile(request));
     }
-    CompilationUnitElement libraryUnit =
-        result.libraryElement.definingCompilationUnit;
+    var libraryUnit = result.libraryElement.definingCompilationUnit;
     if (libraryUnit != result.unit.declaredElement) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.
@@ -437,11 +425,10 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute the edits required to import the required elements.
     //
-    ImportElementsComputer computer =
-        ImportElementsComputer(server.resourceProvider, result);
-    SourceChange change = await computer.createEdits(params.elements);
-    List<SourceFileEdit> edits = change.edits;
-    SourceFileEdit edit = edits.isEmpty ? null : edits[0];
+    var computer = ImportElementsComputer(server.resourceProvider, result);
+    var change = await computer.createEdits(params.elements);
+    var edits = change.edits;
+    var edit = edits.isEmpty ? null : edits[0];
     //
     // Send the response.
     //
@@ -459,9 +446,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    bool value = false;
+    var value = false;
 
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
     if (result != null) {
       var context = PostfixCompletionContext(
         result,
@@ -472,14 +459,13 @@ class EditDomainHandler extends AbstractRequestHandler {
       value = await processor.isApplicable();
     }
 
-    Response response =
+    var response =
         EditIsPostfixCompletionApplicableResult(value).toResponse(request.id);
     server.sendResponse(response);
   }
 
   Response listPostfixCompletionTemplates(Request request) {
-    List<PostfixTemplateDescriptor> templates = DartPostfixCompletion
-        .ALL_TEMPLATES
+    var templates = DartPostfixCompletion.ALL_TEMPLATES
         .map((PostfixCompletionKind kind) =>
             PostfixTemplateDescriptor(kind.name, kind.key, kind.example))
         .toList();
@@ -505,26 +491,26 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
 
     // Prepare the file information.
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
+    var result = await server.getResolvedUnit(file);
     if (result == null) {
       server.sendResponse(Response.fileNotAnalyzed(request, file));
       return;
     }
-    int fileStamp = -1;
-    String code = result.content;
-    CompilationUnit unit = result.unit;
-    List<engine.AnalysisError> errors = result.errors;
+    var fileStamp = -1;
+    var code = result.content;
+    var unit = result.unit;
+    var errors = result.errors;
     // check if there are scan/parse errors in the file
-    int numScanParseErrors = _getNumberOfScanParseErrors(errors);
+    var numScanParseErrors = _getNumberOfScanParseErrors(errors);
     if (numScanParseErrors != 0) {
       server.sendResponse(Response.organizeDirectivesError(
           request, 'File has $numScanParseErrors scan/parse errors.'));
       return;
     }
     // do organize
-    DirectiveOrganizer sorter = DirectiveOrganizer(code, unit, errors);
-    List<SourceEdit> edits = sorter.organize();
-    SourceFileEdit fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
+    var sorter = DirectiveOrganizer(code, unit, errors);
+    var edits = sorter.organize();
+    var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     server.sendResponse(
         EditOrganizeDirectivesResult(fileEdit).toResponse(request.id));
   }
@@ -544,27 +530,27 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
 
     // Prepare the file information.
-    ParsedUnitResult result = await server.getParsedUnit(file);
+    var result = await server.getParsedUnit(file);
     if (result == null) {
       server.sendResponse(Response.fileNotAnalyzed(request, file));
       return;
     }
 
-    int fileStamp = -1;
-    String code = result.content;
-    CompilationUnit unit = result.unit;
-    List<engine.AnalysisError> errors = result.errors;
+    var fileStamp = -1;
+    var code = result.content;
+    var unit = result.unit;
+    var errors = result.errors;
     // Check if there are scan/parse errors in the file.
-    int numScanParseErrors = _getNumberOfScanParseErrors(errors);
+    var numScanParseErrors = _getNumberOfScanParseErrors(errors);
     if (numScanParseErrors != 0) {
       server.sendResponse(
           Response.sortMembersParseErrors(request, numScanParseErrors));
       return;
     }
     // Do sort.
-    MemberSorter sorter = MemberSorter(code, unit);
-    List<SourceEdit> edits = sorter.sort();
-    SourceFileEdit fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
+    var sorter = MemberSorter(code, unit);
+    var edits = sorter.sort();
+    var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     server.sendResponse(EditSortMembersResult(fileEdit).toResponse(request.id));
   }
 
@@ -572,32 +558,31 @@ class EditDomainHandler extends AbstractRequestHandler {
   /// analysis options files.
   Future<List<AnalysisErrorFixes>> _computeAnalysisOptionsFixes(
       String file, int offset) async {
-    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
-    File optionsFile = server.resourceProvider.getFile(file);
-    String content = _safelyRead(optionsFile);
+    var errorFixesList = <AnalysisErrorFixes>[];
+    var optionsFile = server.resourceProvider.getFile(file);
+    var content = _safelyRead(optionsFile);
     if (content == null) {
       return errorFixesList;
     }
-    AnalysisDriver driver = server.getAnalysisDriver(file);
+    var driver = server.getAnalysisDriver(file);
     var session = driver.currentSession;
-    SourceFactory sourceFactory = driver.sourceFactory;
-    List<engine.AnalysisError> errors = analyzeAnalysisOptions(
+    var sourceFactory = driver.sourceFactory;
+    var errors = analyzeAnalysisOptions(
         optionsFile.createSource(), content, sourceFactory);
-    YamlMap options = _getOptions(sourceFactory, content);
+    var options = _getOptions(sourceFactory, content);
     if (options == null) {
       return errorFixesList;
     }
-    for (engine.AnalysisError error in errors) {
-      AnalysisOptionsFixGenerator generator =
-          AnalysisOptionsFixGenerator(error, content, options);
-      List<Fix> fixes = await generator.computeFixes();
+    for (var error in errors) {
+      var generator = AnalysisOptionsFixGenerator(error, content, options);
+      var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
-        LineInfo lineInfo = LineInfo.fromContent(content);
+        var lineInfo = LineInfo.fromContent(content);
         ResolvedUnitResult result = engine.ResolvedUnitResultImpl(
             session, file, null, true, content, lineInfo, false, null, errors);
-        AnalysisError serverError = newAnalysisError_fromEngine(result, error);
-        AnalysisErrorFixes errorFixes = AnalysisErrorFixes(serverError);
+        var serverError = newAnalysisError_fromEngine(result, error);
+        var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
         fixes.forEach((fix) {
           errorFixes.fixes.add(fix.change);
@@ -611,14 +596,14 @@ class EditDomainHandler extends AbstractRequestHandler {
   /// Dart files.
   Future<List<AnalysisErrorFixes>> _computeDartFixes(
       Request request, String file, int offset) async {
-    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
+    var errorFixesList = <AnalysisErrorFixes>[];
     var result = await server.getResolvedUnit(file);
     server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (result != null) {
-      LineInfo lineInfo = result.lineInfo;
-      int requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (engine.AnalysisError error in result.errors) {
-        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      var lineInfo = result.lineInfo;
+      var requestLine = lineInfo.getLocation(offset).lineNumber;
+      for (var error in result.errors) {
+        var errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(server.currentSessions);
           var context = DartFixContextImpl(workspace, result, error, (name) {
@@ -630,12 +615,11 @@ class EditDomainHandler extends AbstractRequestHandler {
               name,
             );
           });
-          List<Fix> fixes = await DartFixContributor().computeFixes(context);
+          var fixes = await DartFixContributor().computeFixes(context);
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
-            AnalysisError serverError =
-                newAnalysisError_fromEngine(result, error);
-            AnalysisErrorFixes errorFixes = AnalysisErrorFixes(serverError);
+            var serverError = newAnalysisError_fromEngine(result, error);
+            var errorFixes = AnalysisErrorFixes(serverError);
             errorFixesList.add(errorFixes);
             fixes.forEach((fix) {
               errorFixes.fixes.add(fix.change);
@@ -652,32 +636,30 @@ class EditDomainHandler extends AbstractRequestHandler {
   /// Android manifest files.
   Future<List<AnalysisErrorFixes>> _computeManifestFixes(
       String file, int offset) async {
-    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
-    File manifestFile = server.resourceProvider.getFile(file);
-    String content = _safelyRead(manifestFile);
+    var errorFixesList = <AnalysisErrorFixes>[];
+    var manifestFile = server.resourceProvider.getFile(file);
+    var content = _safelyRead(manifestFile);
     if (content == null) {
       return errorFixesList;
     }
-    DocumentFragment document =
+    var document =
         parseFragment(content, container: MANIFEST_TAG, generateSpans: true);
     if (document == null) {
       return errorFixesList;
     }
-    ManifestValidator validator =
-        ManifestValidator(manifestFile.createSource());
-    AnalysisSession session = server.getAnalysisDriver(file).currentSession;
-    List<engine.AnalysisError> errors = validator.validate(content, true);
-    for (engine.AnalysisError error in errors) {
-      ManifestFixGenerator generator =
-          ManifestFixGenerator(error, content, document);
-      List<Fix> fixes = await generator.computeFixes();
+    var validator = ManifestValidator(manifestFile.createSource());
+    var session = server.getAnalysisDriver(file).currentSession;
+    var errors = validator.validate(content, true);
+    for (var error in errors) {
+      var generator = ManifestFixGenerator(error, content, document);
+      var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
-        LineInfo lineInfo = LineInfo.fromContent(content);
+        var lineInfo = LineInfo.fromContent(content);
         ResolvedUnitResult result = engine.ResolvedUnitResultImpl(
             session, file, null, true, content, lineInfo, false, null, errors);
-        AnalysisError serverError = newAnalysisError_fromEngine(result, error);
-        AnalysisErrorFixes errorFixes = AnalysisErrorFixes(serverError);
+        var serverError = newAnalysisError_fromEngine(result, error);
+        var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
         fixes.forEach((fix) {
           errorFixes.fixes.add(fix.change);
@@ -691,32 +673,31 @@ class EditDomainHandler extends AbstractRequestHandler {
   /// pubspec.yaml files.
   Future<List<AnalysisErrorFixes>> _computePubspecFixes(
       String file, int offset) async {
-    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
-    File pubspecFile = server.resourceProvider.getFile(file);
-    String content = _safelyRead(pubspecFile);
+    var errorFixesList = <AnalysisErrorFixes>[];
+    var pubspecFile = server.resourceProvider.getFile(file);
+    var content = _safelyRead(pubspecFile);
     if (content == null) {
       return errorFixesList;
     }
-    SourceFactory sourceFactory = server.getAnalysisDriver(file).sourceFactory;
-    YamlMap pubspec = _getOptions(sourceFactory, content);
+    var sourceFactory = server.getAnalysisDriver(file).sourceFactory;
+    var pubspec = _getOptions(sourceFactory, content);
     if (pubspec == null) {
       return errorFixesList;
     }
-    PubspecValidator validator =
+    var validator =
         PubspecValidator(server.resourceProvider, pubspecFile.createSource());
-    AnalysisSession session = server.getAnalysisDriver(file).currentSession;
-    List<engine.AnalysisError> errors = validator.validate(pubspec.nodes);
-    for (engine.AnalysisError error in errors) {
-      PubspecFixGenerator generator =
-          PubspecFixGenerator(error, content, pubspec);
-      List<Fix> fixes = await generator.computeFixes();
+    var session = server.getAnalysisDriver(file).currentSession;
+    var errors = validator.validate(pubspec.nodes);
+    for (var error in errors) {
+      var generator = PubspecFixGenerator(error, content, pubspec);
+      var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
-        LineInfo lineInfo = LineInfo.fromContent(content);
+        var lineInfo = LineInfo.fromContent(content);
         ResolvedUnitResult result = engine.ResolvedUnitResultImpl(
             session, file, null, true, content, lineInfo, false, null, errors);
-        AnalysisError serverError = newAnalysisError_fromEngine(result, error);
-        AnalysisErrorFixes errorFixes = AnalysisErrorFixes(serverError);
+        var serverError = newAnalysisError_fromEngine(result, error);
+        var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
         fixes.forEach((fix) {
           errorFixes.fixes.add(fix.change);
@@ -729,7 +710,7 @@ class EditDomainHandler extends AbstractRequestHandler {
   /// Compute and return the fixes associated with server-generated errors.
   Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
       Request request, String file, int offset) async {
-    Context context = server.resourceProvider.pathContext;
+    var context = server.resourceProvider.pathContext;
     if (AnalysisEngine.isDartFileName(file)) {
       return _computeDartFixes(request, file, offset);
     } else if (AnalysisEngine.isAnalysisOptionsFileName(file, context)) {
@@ -750,16 +731,16 @@ class EditDomainHandler extends AbstractRequestHandler {
 
   Future _getAvailableRefactoringsImpl(Request request) async {
     var params = EditGetAvailableRefactoringsParams.fromRequest(request);
-    String file = params.file;
-    int offset = params.offset;
-    int length = params.length;
+    var file = params.file;
+    var offset = params.offset;
+    var length = params.length;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
 
     // add refactoring kinds
-    List<RefactoringKind> kinds = <RefactoringKind>[];
+    var kinds = <RefactoringKind>[];
     // Check nodes.
     {
       var resolvedUnit = await server.getResolvedUnit(file);
@@ -792,15 +773,14 @@ class EditDomainHandler extends AbstractRequestHandler {
           if (element is ExecutableElement) {
             Refactoring refactoring = ConvertMethodToGetterRefactoring(
                 searchEngine, resolvedUnit.session, element);
-            RefactoringStatus status =
-                await refactoring.checkInitialConditions();
+            var status = await refactoring.checkInitialConditions();
             if (!status.hasFatalError) {
               kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
             }
           }
           // try RENAME
           {
-            RenameRefactoring renameRefactoring =
+            var renameRefactoring =
                 RenameRefactoring(refactoringWorkspace, resolvedUnit, element);
             if (renameRefactoring != null) {
               kinds.add(RefactoringKind.RENAME);
@@ -815,8 +795,7 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   YamlMap _getOptions(SourceFactory sourceFactory, String content) {
-    AnalysisOptionsProvider optionsProvider =
-        AnalysisOptionsProvider(sourceFactory);
+    var optionsProvider = AnalysisOptionsProvider(sourceFactory);
     try {
       return optionsProvider.getOptionsFromString(content);
     } on OptionsFormatException {
@@ -849,8 +828,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   static int _getNumberOfScanParseErrors(List<engine.AnalysisError> errors) {
-    int numScanParseErrors = 0;
-    for (engine.AnalysisError error in errors) {
+    var numScanParseErrors = 0;
+    for (var error in errors) {
       if (error.errorCode is engine.ScannerErrorCode ||
           error.errorCode is engine.ParserErrorCode) {
         numScanParseErrors++;

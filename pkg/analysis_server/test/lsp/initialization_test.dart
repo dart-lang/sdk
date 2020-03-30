@@ -85,7 +85,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // should be no `client/registerCapability` calls.
 
     // Set a flag if any registerCapability request comes through.
-    bool didGetRegisterCapabilityRequest = false;
+    var didGetRegisterCapabilityRequest = false;
     requestsFromServer
         .firstWhere((n) => n.method == Method.client_registerCapability)
         .then((params) {

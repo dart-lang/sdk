@@ -26,7 +26,7 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
       Map<String, String> files) async {
     var packageRoot = convertPath('/project');
     await buildInfoForTestFiles(files, includedRoot: packageRoot);
-    MigrationInfo migrationInfo =
+    var migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, packageRoot);
     return NavigationTreeRenderer(migrationInfo, PathMapper(resourceProvider))
         .render();

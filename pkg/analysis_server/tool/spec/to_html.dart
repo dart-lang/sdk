@@ -125,10 +125,10 @@ a:focus, a:hover {
 
 final GeneratedFile target =
     GeneratedFile('doc/api.html', (String pkgPath) async {
-  ToHtmlVisitor visitor = ToHtmlVisitor(readApi(pkgPath));
-  dom.Document document = dom.Document();
+  var visitor = ToHtmlVisitor(readApi(pkgPath));
+  var document = dom.Document();
   document.append(dom.DocumentType('html', null, null));
-  for (dom.Node node in visitor.collectHtml(visitor.visitApi)) {
+  for (var node in visitor.collectHtml(visitor.visitApi)) {
     document.append(node);
   }
   return document.outerHtml;
@@ -349,7 +349,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       });
 
       ul(() {
-        for (Request request in domain.requests) {
+        for (var request in domain.requests) {
           if (request.experimental) continue;
 
           li(() {
@@ -372,7 +372,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       link('types', () => write('\u2191'));
       write(')');
     });
-    List<String> sortedTypes = types.toList();
+    var sortedTypes = types.toList();
     sortedTypes.sort();
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
@@ -385,7 +385,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   void javadocParams(TypeObject typeObject) {
     if (typeObject != null) {
-      for (TypeObjectField field in typeObject.fields) {
+      for (var field in typeObject.fields) {
         hangingIndent(() {
           write('@param ${field.name} ');
           translateHtml(field.html, squashParagraphs: true);
@@ -402,9 +402,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   /// If [typeForBolding] is supplied, then fields in this type are shown in
   /// boldface.
   void showType(String shortDesc, TypeDecl type, [TypeObject typeForBolding]) {
-    Set<String> fieldsToBold = <String>{};
+    var fieldsToBold = <String>{};
     if (typeForBolding != null) {
-      for (TypeObjectField field in typeForBolding.fields) {
+      for (var field in typeForBolding.fields) {
         fieldsToBold.add(field.name);
       }
     }
@@ -412,7 +412,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       if (shortDesc != null) {
         write('$shortDesc: ');
       }
-      TypeVisitor typeVisitor = TypeVisitor(api, fieldsToBold: fieldsToBold);
+      var typeVisitor = TypeVisitor(api, fieldsToBold: fieldsToBold);
       addAll(typeVisitor.collectHtml(() {
         typeVisitor.visitTypeDecl(type);
       }));
@@ -422,7 +422,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   /// Copy the contents of the given HTML element, translating the special
   /// elements that define the API appropriately.
   void translateHtml(dom.Element html, {bool squashParagraphs = false}) {
-    for (dom.Node node in html.nodes) {
+    for (var node in html.nodes) {
       if (node is dom.Element) {
         if (squashParagraphs && node.localName == 'p') {
           translateHtml(node, squashParagraphs: squashParagraphs);
@@ -472,7 +472,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             }
         }
       } else if (node is dom.Text) {
-        String text = node.text;
+        var text = node.text;
         write(text);
       }
     }
@@ -480,8 +480,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitApi() {
-    Iterable<TypeDefinition> apiTypes =
-        api.types.where((TypeDefinition td) => !td.experimental);
+    var apiTypes = api.types.where((TypeDefinition td) => !td.experimental);
     definedTypes = apiTypes.map((TypeDefinition td) => td.name).toSet();
 
     html(() {
@@ -591,7 +590,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             : 'typeDefinition', () {
       anchor('type_${typeDefinition.name}', () {
         write('${typeDefinition.name}: ');
-        TypeVisitor typeVisitor = TypeVisitor(api, short: true);
+        var typeVisitor = TypeVisitor(api, short: true);
         addAll(typeVisitor.collectHtml(() {
           typeVisitor.visitTypeDecl(typeDefinition.type);
         }));
@@ -612,8 +611,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitTypeEnumValue(TypeEnumValue typeEnumValue) {
-    bool isDocumented = false;
-    for (dom.Node node in typeEnumValue.html.nodes) {
+    var isDocumented = false;
+    for (var node in typeEnumValue.html.nodes) {
       if ((node is dom.Element && node.localName != 'code') ||
           (node is dom.Text && node.text.trim().isNotEmpty)) {
         isDocumented = true;
@@ -665,7 +664,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           write(' = ${json.encode(typeObjectField.value)}');
         } else {
           write(': ');
-          TypeVisitor typeVisitor = TypeVisitor(api, short: true);
+          var typeVisitor = TypeVisitor(api, short: true);
           addAll(typeVisitor.collectHtml(() {
             typeVisitor.visitTypeDecl(typeObjectField.type);
           }));
@@ -687,7 +686,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   void visitTypes(Types types) {
     translateHtml(types.html);
     dl(() {
-      List<TypeDefinition> sortedTypes = types.toList();
+      var sortedTypes = types.toList();
       sortedTypes.sort((TypeDefinition first, TypeDefinition second) =>
           first.name.compareTo(second.name));
       sortedTypes.forEach(visitTypeDefinition);
@@ -724,7 +723,7 @@ class TypeVisitor extends HierarchicalApiVisitor
     }
     writeln('enum {');
     indent(() {
-      for (TypeEnumValue value in typeEnum.values) {
+      for (var value in typeEnum.values) {
         writeln(value.value);
       }
     });
@@ -755,7 +754,7 @@ class TypeVisitor extends HierarchicalApiVisitor
     }
     writeln('{');
     indent(() {
-      for (TypeObjectField field in typeObject.fields) {
+      for (var field in typeObject.fields) {
         write('"');
         if (fieldsToBold != null && fieldsToBold.contains(field.name)) {
           b(() {
@@ -784,7 +783,7 @@ class TypeVisitor extends HierarchicalApiVisitor
 
   @override
   void visitTypeReference(TypeReference typeReference) {
-    String displayName = typeReference.typeName;
+    var displayName = typeReference.typeName;
     if (api.types.containsKey(typeReference.typeName)) {
       link('type_${typeReference.typeName}', () {
         write(displayName);
@@ -796,8 +795,8 @@ class TypeVisitor extends HierarchicalApiVisitor
 
   @override
   void visitTypeUnion(TypeUnion typeUnion) {
-    bool verticalBarNeeded = false;
-    for (TypeDecl choice in typeUnion.choices) {
+    var verticalBarNeeded = false;
+    for (var choice in typeUnion.choices) {
       if (verticalBarNeeded) {
         write(' | ');
       }

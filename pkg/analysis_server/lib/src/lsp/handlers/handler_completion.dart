@@ -171,7 +171,7 @@ class CompletionHandler
           .toList();
 
       // Now compute items in suggestion sets.
-      List<IncludedSuggestionSet> includedSuggestionSets = [];
+      var includedSuggestionSets = <IncludedSuggestionSet>[];
       if (includedElementKinds != null && unit != null) {
         computeIncludedSetList(
           server.declarationsTracker,

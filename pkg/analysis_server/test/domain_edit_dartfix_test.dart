@@ -32,7 +32,7 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
 
   void expectFileEdits(
       String originalSource, SourceFileEdit fileEdit, String expectedSource) {
-    String source = SourceEdit.applySequence(originalSource, fileEdit.edits);
+    var source = SourceEdit.applySequence(originalSource, fileEdit.edits);
     expect(source, expectedSource);
   }
 
@@ -87,7 +87,7 @@ f(bool b) {
 }
 ''');
     createProject();
-    EditDartfixResult result = await performFix(
+    var result = await performFix(
         includedFixes: ['prefer_if_elements_to_conditional_expressions']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
@@ -137,7 +137,7 @@ main() {
 }
     ''');
     createProject();
-    EditDartfixResult result = await performFix(
+    var result = await performFix(
         includedFixes: ['wrong_number_of_type_arguments_constructor']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'type arguments', 60, 8);
@@ -181,8 +181,7 @@ void test() {
 name: testnnbd
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['non-nullable']);
+    var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
@@ -195,7 +194,7 @@ analyzer:
   }
 
   Future<void> test_nonNullable_analysisOptions_experimentsAdded() async {
-    String originalOptions = '''
+    var originalOptions = '''
 analyzer:
   something:
     - other
@@ -205,8 +204,7 @@ linter:
 ''';
     newFile('/project/analysis_options.yaml', content: originalOptions);
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['non-nullable']);
+    var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
@@ -223,7 +221,7 @@ linter:
   }
 
   Future<void> test_nonNullable_analysisOptions_nnbdAdded() async {
-    String originalOptions = '''
+    var originalOptions = '''
 analyzer:
   enable-experiment:
     - other
@@ -232,8 +230,7 @@ linter:
 ''';
     newFile('/project/analysis_options.yaml', content: originalOptions);
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['non-nullable']);
+    var result = await performFix(includedFixes: ['non-nullable']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expect(result.edits, hasLength(1));
@@ -259,8 +256,7 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert dartfix suggestions
-    EditDartfixResult result =
-        await performFix(includedFixes: ['prefer_int_literals']);
+    var result = await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -277,8 +273,7 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert dartfix suggestions
-    EditDartfixResult result =
-        await performFix(includedFixes: ['prefer_int_literals']);
+    var result = await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -290,7 +285,7 @@ const double myDouble = 42;
   Future<void> test_pedantic() async {
     addTestFile('main(List args) { if (args.length == 0) { } }');
     createProject();
-    EditDartfixResult result = await performFix(pedantic: true);
+    var result = await performFix(pedantic: true);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 22, 16);
     expect(result.hasErrors, isFalse);
@@ -301,7 +296,7 @@ const double myDouble = 42;
     // Add analysis options to enable ui as code
     addTestFile('f({a: 1}) { }');
     createProject();
-    EditDartfixResult result =
+    var result =
         await performFix(includedFixes: ['prefer_equal_for_default_values']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace ':' with '='", 4, 1);
@@ -315,7 +310,7 @@ var m =
   Map<int, int>.fromIterable([1, 2, 3], key: (i) => i, value: (i) => i * 2);
     ''');
     createProject();
-    EditDartfixResult result = await performFix(
+    var result = await performFix(
         includedFixes: ['prefer_for_elements_to_map_fromIterable']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
@@ -331,7 +326,7 @@ var m =
 f(bool b) => ['a', b ? 'c' : 'd', 'e'];
     ''');
     createProject();
-    EditDartfixResult result = await performFix(
+    var result = await performFix(
         includedFixes: ['prefer_if_elements_to_conditional_expressions']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
@@ -346,8 +341,7 @@ f(bool b) => ['a', if (b) 'c' else 'd', 'e'];
 const double myDouble = 42.0;
     ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['prefer_int_literals']);
+    var result = await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
     expectEdits(result.edits, '''
@@ -358,8 +352,7 @@ const double myDouble = 42;
   Future<void> test_preferIsEmpty() async {
     addTestFile('main(List<String> args) { if (args.length == 0) { } }');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['prefer_is_empty']);
+    var result = await performFix(includedFixes: ['prefer_is_empty']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 30, 16);
     expect(result.hasErrors, isFalse);
@@ -374,8 +367,7 @@ class B extends A {}
 class C with B {}
     ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['convert_class_to_mixin']);
+    var result = await performFix(includedFixes: ['convert_class_to_mixin']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
     expectEdits(result.edits, '''
@@ -396,8 +388,7 @@ var l = [
 ];
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['prefer_single_quotes']);
+    var result = await performFix(includedFixes: ['prefer_single_quotes']);
     expect(result.suggestions, hasLength(2));
     expectSuggestion(
         result.suggestions[0], 'Convert to single quoted string', 12, 5);
@@ -421,8 +412,7 @@ var l1 = ['b'];
 var l2 = ['a']..addAll(l1);
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['prefer_spread_collections']);
+    var result = await performFix(includedFixes: ['prefer_spread_collections']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''

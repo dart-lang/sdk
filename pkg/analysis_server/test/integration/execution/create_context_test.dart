@@ -17,8 +17,7 @@ void main() {
 class CreateContextTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_create() async {
     standardAnalysisSetup();
-    String contextId =
-        (await sendExecutionCreateContext(sourceDirectory.path)).id;
+    var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;
     expect(contextId, isNotNull);
   }
 }

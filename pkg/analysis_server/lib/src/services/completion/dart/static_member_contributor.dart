@@ -23,16 +23,16 @@ class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    Expression targetId = request.dotTarget;
+    var targetId = request.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
-      Element elem = targetId.staticElement;
+      var elem = targetId.staticElement;
       if (elem is ClassElement || elem is ExtensionElement) {
         if (request.libraryElement == null) {
           // Gracefully degrade if the library could not be determined, such as
           // a detached part file or source change.
           return const <CompletionSuggestion>[];
         }
-        _SuggestionBuilder builder = _SuggestionBuilder(request);
+        var builder = _SuggestionBuilder(request);
         elem.accept(builder);
         return builder.suggestions;
       }
@@ -103,7 +103,7 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
         return;
       }
     }
-    String completion = element.displayName;
+    var completion = element.displayName;
     if (completion == null || completion.isEmpty) {
       return;
     }
@@ -116,7 +116,7 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
       relevance = _computeRelevance(
           contextType: contextType, hasDeprecated: hasDeprecated);
     }
-    CompletionSuggestion suggestion = createSuggestion(element,
+    var suggestion = createSuggestion(element,
         completion: completion,
         relevance: relevance,
         useNewRelevance: useNewRelevance);
@@ -144,7 +144,7 @@ class _SuggestionBuilder extends SimpleElementVisitor<void> {
   /// Determine whether the [element] is one of the synthetic enum accessors
   /// for which we should generate a suggestion.
   bool _isSpecialEnumField(FieldElement element) {
-    Element parent = element.enclosingElement;
+    var parent = element.enclosingElement;
     if (parent is ClassElement && parent.isEnum) {
       return element.name == 'values';
     }

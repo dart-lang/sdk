@@ -26,7 +26,7 @@ class ChannelChunkSink<S, T> extends ChunkedConversionSink<S> {
   @override
   void add(S chunk) {
     if (!closed) {
-      T convertedChunk = converter.convert(chunk);
+      var convertedChunk = converter.convert(chunk);
       if (convertedChunk != null) {
         sink.add(convertedChunk);
       }

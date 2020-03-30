@@ -15,7 +15,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -26,7 +25,7 @@ class OverrideContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    SimpleIdentifier targetId = _getTargetId(request.target);
+    var targetId = _getTargetId(request.target);
     if (targetId == null) {
       return const <CompletionSuggestion>[];
     }
@@ -46,9 +45,9 @@ class OverrideContributor implements DartCompletionContributor {
         _namesToOverride(classElem.librarySource.uri, interface);
 
     // Build suggestions
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (Name name in namesToOverride) {
-      ExecutableElement element = interfaceMap[name];
+    var suggestions = <CompletionSuggestion>[];
+    for (var name in namesToOverride) {
+      var element = interfaceMap[name];
       // Gracefully degrade if the overridden element has not been resolved.
       if (element.returnType != null) {
         var invokeSuper = interface.isSuperImplemented(name);
@@ -87,9 +86,9 @@ class OverrideContributor implements DartCompletionContributor {
     var sourceEdits = fileEdits[0].edits;
     if (sourceEdits.length != 1) return null;
 
-    String replacement = sourceEdits[0].replacement;
-    String completion = replacement.trim();
-    String overrideAnnotation = '@override';
+    var replacement = sourceEdits[0].replacement;
+    var completion = replacement.trim();
+    var overrideAnnotation = '@override';
     if (_hasOverride(request.target.containingNode) &&
         completion.startsWith(overrideAnnotation)) {
       completion = completion.substring(overrideAnnotation.length).trim();
@@ -98,14 +97,14 @@ class OverrideContributor implements DartCompletionContributor {
       return null;
     }
 
-    SourceRange selectionRange = builder.selectionRange;
+    var selectionRange = builder.selectionRange;
     if (selectionRange == null) {
       return null;
     }
-    int offsetDelta = targetId.offset + replacement.indexOf(completion);
-    String displayText =
+    var offsetDelta = targetId.offset + replacement.indexOf(completion);
+    var displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
-    CompletionSuggestion suggestion = CompletionSuggestion(
+    var suggestion = CompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         request.useNewRelevance ? Relevance.override : DART_RELEVANCE_HIGH,
         completion,
@@ -121,14 +120,14 @@ class OverrideContributor implements DartCompletionContributor {
   /// If the target looks like a partial identifier inside a class declaration
   /// then return that identifier, otherwise return `null`.
   SimpleIdentifier _getTargetId(CompletionTarget target) {
-    AstNode node = target.containingNode;
+    var node = target.containingNode;
     if (node is ClassOrMixinDeclaration) {
-      Object entity = target.entity;
+      var entity = target.entity;
       if (entity is FieldDeclaration) {
         return _getTargetIdFromVarList(entity.fields);
       }
     } else if (node is FieldDeclaration) {
-      Object entity = target.entity;
+      var entity = target.entity;
       if (entity is VariableDeclarationList) {
         return _getTargetIdFromVarList(entity);
       }
@@ -137,10 +136,10 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   SimpleIdentifier _getTargetIdFromVarList(VariableDeclarationList fields) {
-    NodeList<VariableDeclaration> variables = fields.variables;
+    var variables = fields.variables;
     if (variables.length == 1) {
-      VariableDeclaration variable = variables[0];
-      SimpleIdentifier targetId = variable.name;
+      var variable = variables[0];
+      var targetId = variable.name;
       if (targetId.name.isEmpty) {
         // analyzer parser
         // Actual: class C { foo^ }
@@ -160,8 +159,8 @@ class OverrideContributor implements DartCompletionContributor {
   /// Return `true` if the given [node] has an `override` annotation.
   bool _hasOverride(AstNode node) {
     if (node is AnnotatedNode) {
-      NodeList<Annotation> metadata = node.metadata;
-      for (Annotation annotation in metadata) {
+      var metadata = node.metadata;
+      for (var annotation in metadata) {
         if (annotation.name.name == 'override' &&
             annotation.arguments == null) {
           return true;

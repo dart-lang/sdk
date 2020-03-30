@@ -101,7 +101,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       return super.addTestFile(content);
     }
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', completionOffset + 1);
+    var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
     return super.addTestFile(content.substring(0, completionOffset) +
         content.substring(completionOffset + 1));

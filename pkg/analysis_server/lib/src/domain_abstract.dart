@@ -37,13 +37,13 @@ abstract class AbstractRequestHandler implements RequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // TODO(brianwilkerson) requestParameters might need to be required.
-    int endTime = DateTime.now().millisecondsSinceEpoch + timeout;
-    List<plugin.Response> responses = <plugin.Response>[];
-    for (PluginInfo pluginInfo in futures.keys) {
-      Future<plugin.Response> future = futures[pluginInfo];
+    var endTime = DateTime.now().millisecondsSinceEpoch + timeout;
+    var responses = <plugin.Response>[];
+    for (var pluginInfo in futures.keys) {
+      var future = futures[pluginInfo];
       try {
-        int startTime = DateTime.now().millisecondsSinceEpoch;
-        plugin.Response response = await future
+        var startTime = DateTime.now().millisecondsSinceEpoch;
+        var response = await future
             .timeout(Duration(milliseconds: math.max(endTime - startTime, 0)));
         if (response.error != null) {
           // TODO(brianwilkerson) Report the error to the plugin manager.

@@ -305,7 +305,7 @@ class Parser {
     // marked with number.
     final commentText = leadingComment?.text;
     if (commentText != null) {
-      final RegExp _linkTypePattern = RegExp(r'See \{@link (\w+)\}\.?');
+      final _linkTypePattern = RegExp(r'See \{@link (\w+)\}\.?');
       final linkTypeMatch = _linkTypePattern.firstMatch(commentText);
       if (linkTypeMatch != null) {
         type = Type.identifier(linkTypeMatch.group(1));

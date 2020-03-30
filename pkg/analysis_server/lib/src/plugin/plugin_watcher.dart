@@ -10,8 +10,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:path/src/context.dart';
 
 /// An object that watches the results produced by analysis drivers to identify
 /// references to previously unseen packages and, if those packages have plugins
@@ -42,20 +40,20 @@ class PluginWatcher implements DriverWatcher {
   void addedDriver(AnalysisDriver driver, ContextRoot contextRoot) {
     _driverInfo[driver] = _DriverInfo(
         contextRoot, <String>[contextRoot.root, _getSdkPath(driver)]);
-    List<String> enabledPlugins = driver.analysisOptions.enabledPluginNames;
-    for (String hostPackageName in enabledPlugins) {
+    var enabledPlugins = driver.analysisOptions.enabledPluginNames;
+    for (var hostPackageName in enabledPlugins) {
       //
       // Determine whether the package exists and defines a plugin.
       //
-      String uri = 'package:$hostPackageName/$hostPackageName.dart';
-      Source source = driver.sourceFactory.forUri(uri);
+      var uri = 'package:$hostPackageName/$hostPackageName.dart';
+      var source = driver.sourceFactory.forUri(uri);
       if (source == null) {
         manager.recordPluginFailure(hostPackageName,
             'Could not resolve "$uri" in ${contextRoot.root}.');
       } else {
-        Context context = resourceProvider.pathContext;
-        String packageRoot = context.dirname(context.dirname(source.fullName));
-        String pluginPath = _locator.findPlugin(packageRoot);
+        var context = resourceProvider.pathContext;
+        var packageRoot = context.dirname(context.dirname(source.fullName));
+        var pluginPath = _locator.findPlugin(packageRoot);
         if (pluginPath == null) {
           manager.recordPluginFailure(
               hostPackageName, 'Could not find plugin in "$packageRoot".');
@@ -75,7 +73,7 @@ class PluginWatcher implements DriverWatcher {
   /// The context manager has just removed the given analysis [driver].
   @override
   void removedDriver(AnalysisDriver driver) {
-    _DriverInfo info = _driverInfo[driver];
+    var info = _driverInfo[driver];
     if (info == null) {
       throw StateError('Cannot remove a driver that was not added');
     }
@@ -97,9 +95,9 @@ class PluginWatcher implements DriverWatcher {
       }
     }
 
-    String sdkRoot = coreSource.fullName;
+    var sdkRoot = coreSource.fullName;
     while (resourceProvider.pathContext.basename(sdkRoot) != 'lib') {
-      String parent = resourceProvider.pathContext.dirname(sdkRoot);
+      var parent = resourceProvider.pathContext.dirname(sdkRoot);
       if (parent == sdkRoot) {
         break;
       }

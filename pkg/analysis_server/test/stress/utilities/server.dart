@@ -174,7 +174,7 @@ class Server {
     bool isAnalyzed(String filePath) {
       // TODO(brianwilkerson) This should use the path package to determine
       // inclusion, and needs to take exclusions into account.
-      for (String includedRoot in _analysisRootIncludes) {
+      for (var includedRoot in _analysisRootIncludes) {
         if (filePath.startsWith(includedRoot)) {
           return true;
         }
@@ -182,8 +182,8 @@ class Server {
       return false;
     }
 
-    List<String> analyzedFiles = <String>[];
-    for (String filePath in _analyzedFiles) {
+    var analyzedFiles = <String>[];
+    for (var filePath in _analyzedFiles) {
       if (filePath.endsWith('.dart') && isAnalyzed(filePath)) {
         analyzedFiles.add(filePath);
       }
@@ -199,14 +199,13 @@ class Server {
   /// Compute a mapping from each of the file paths in the given list of
   /// [filePaths] to the list of errors in the file at that path.
   Future<ErrorMap> computeErrorMap(List<String> filePaths) async {
-    ErrorMap errorMap = ErrorMap();
-    List<Future> futures = <Future>[];
-    for (String filePath in filePaths) {
-      RequestData requestData = sendAnalysisGetErrors(filePath);
+    var errorMap = ErrorMap();
+    var futures = <Future>[];
+    for (var filePath in filePaths) {
+      var requestData = sendAnalysisGetErrors(filePath);
       futures.add(requestData.respondedTo.then((Response response) {
         if (response.result != null) {
-          AnalysisGetErrorsResult result =
-              AnalysisGetErrorsResult.fromResponse(response);
+          var result = AnalysisGetErrorsResult.fromResponse(response);
           errorMap[filePath] = result.errors;
         }
       }));
@@ -218,7 +217,7 @@ class Server {
   /// Print information about the communications with the server.
   void printStatistics() {
     void writeSpaces(int count) {
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         stdout.write(' ');
       }
     }
@@ -230,37 +229,36 @@ class Server {
     if (_requestDataMap.isEmpty) {
       stdout.writeln('  none');
     } else {
-      Map<String, List<RequestData>> requestsByMethod =
-          <String, List<RequestData>>{};
+      var requestsByMethod = <String, List<RequestData>>{};
       _requestDataMap.values.forEach((RequestData requestData) {
         requestsByMethod
             .putIfAbsent(requestData.method, () => <RequestData>[])
             .add(requestData);
       });
-      List<String> keys = requestsByMethod.keys.toList();
+      var keys = requestsByMethod.keys.toList();
       keys.sort();
-      int maxCount = requestsByMethod.values
+      var maxCount = requestsByMethod.values
           .fold(0, (int count, List<RequestData> list) => count + list.length);
-      int countWidth = maxCount.toString().length;
-      for (String key in keys) {
-        List<RequestData> requests = requestsByMethod[key];
-        int noResponseCount = 0;
-        int responseCount = 0;
-        int minTime = -1;
-        int maxTime = -1;
-        int totalTime = 0;
+      var countWidth = maxCount.toString().length;
+      for (var key in keys) {
+        var requests = requestsByMethod[key];
+        var noResponseCount = 0;
+        var responseCount = 0;
+        var minTime = -1;
+        var maxTime = -1;
+        var totalTime = 0;
         requests.forEach((RequestData data) {
           if (data.responseTime == null) {
             noResponseCount++;
           } else {
             responseCount++;
-            int time = data.elapsedTime;
+            var time = data.elapsedTime;
             minTime = minTime < 0 ? time : math.min(minTime, time);
             maxTime = math.max(maxTime, time);
             totalTime += time;
           }
         });
-        String count = requests.length.toString();
+        var count = requests.length.toString();
         writeSpaces(countWidth - count.length);
         stdout.write('  ');
         stdout.write(count);
@@ -291,12 +289,12 @@ class Server {
     if (_notificationCountMap.isEmpty) {
       stdout.writeln('  none');
     } else {
-      List<String> keys = _notificationCountMap.keys.toList();
+      var keys = _notificationCountMap.keys.toList();
       keys.sort();
-      int maxCount = _notificationCountMap.values.fold(0, math.max);
-      int countWidth = maxCount.toString().length;
-      for (String key in keys) {
-        String count = _notificationCountMap[key].toString();
+      var maxCount = _notificationCountMap.values.fold(0, math.max);
+      var countWidth = maxCount.toString().length;
+      for (var key in keys) {
+        var count = _notificationCountMap[key].toString();
         writeSpaces(countWidth - count.length);
         stdout.write('  ');
         stdout.write(count);
@@ -309,7 +307,7 @@ class Server {
   /// Remove any existing overlays.
   void removeAllOverlays() {
     Map<String, dynamic> files = HashMap<String, dynamic>();
-    for (String path in filesWithOverlays) {
+    for (var path in filesWithOverlays) {
       files[path] = RemoveContentOverlay();
     }
     sendAnalysisUpdateContent(files);
@@ -529,12 +527,11 @@ class Server {
     if (_process != null) {
       throw Exception('Process already started');
     }
-    String dartBinary = Platform.executable;
-    String rootDir =
+    var dartBinary = Platform.executable;
+    var rootDir =
         _findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-    String serverPath =
-        path.normalize(path.join(rootDir, 'bin', 'server.dart'));
-    List<String> arguments = [];
+    var serverPath = path.normalize(path.join(rootDir, 'bin', 'server.dart'));
+    var arguments = <String>[];
     //
     // Add VM arguments.
     //
@@ -588,7 +585,7 @@ class Server {
   /// upward to the 'test' dir, and then going up one more directory.
   String _findRoot(String pathname) {
     while (!['benchmark', 'test'].contains(path.basename(pathname))) {
-      String parent = path.dirname(pathname);
+      var parent = path.dirname(pathname);
       if (parent.length >= pathname.length) {
         throw Exception("Can't find root directory");
       }
@@ -610,8 +607,7 @@ class Server {
         break;
       case 'server.status':
         if (_analysisFinishedCompleter != null) {
-          ServerStatusParams params =
-              ServerStatusParams.fromNotification(notification);
+          var params = ServerStatusParams.fromNotification(notification);
           var analysis = params.analysis;
           if (analysis != null && !analysis.isAnalyzing) {
             _analysisFinishedCompleter.complete(null);
@@ -619,13 +615,11 @@ class Server {
         }
         break;
       case 'analysis.analyzedFiles':
-        AnalysisAnalyzedFilesParams params =
-            AnalysisAnalyzedFilesParams.fromNotification(notification);
+        var params = AnalysisAnalyzedFilesParams.fromNotification(notification);
         _analyzedFiles = params.directories;
         break;
       case 'analysis.errors':
-        AnalysisErrorsParams params =
-            AnalysisErrorsParams.fromNotification(notification);
+        var params = AnalysisErrorsParams.fromNotification(notification);
         _errorMap.pathMap[params.file] = params.errors;
         break;
       case 'analysis.flushResults':
@@ -672,8 +666,8 @@ class Server {
 
   /// Handle a [response] received from the server.
   void _handleResponse(Response response) {
-    String id = response.id.toString();
-    RequestData requestData = _requestDataMap[id];
+    var id = response.id.toString();
+    var requestData = _requestDataMap[id];
     requestData.recordResponse(response);
 //    switch (requestData.method) {
 //      case "analysis.getErrors":
@@ -749,7 +743,7 @@ class Server {
 
   /// Handle a [line] of input read from stderr.
   void _handleStdErr(String line) {
-    String trimmedLine = line.trim();
+    var trimmedLine = line.trim();
     logger?.log(fromStderr, '$trimmedLine');
     throw StateError('Message received on stderr: "$trimmedLine"');
   }
@@ -765,21 +759,21 @@ class Server {
       throw ArgumentError('Expected a Map, found a ${value.runtimeType}');
     }
 
-    String trimmedLine = line.trim();
+    var trimmedLine = line.trim();
     if (trimmedLine.isEmpty ||
         trimmedLine.startsWith('Observatory listening on ')) {
       return;
     }
     logger?.log(fromServer, '$trimmedLine');
-    Map message = asMap(json.decoder.convert(trimmedLine));
+    var message = asMap(json.decoder.convert(trimmedLine));
     if (message.containsKey('id')) {
       // The message is a response.
-      Response response = Response.fromJson(message);
+      var response = Response.fromJson(message);
       _handleResponse(response);
     } else {
       // The message is a notification.
-      Notification notification = Notification.fromJson(message);
-      String event = notification.event;
+      var notification = Notification.fromJson(message);
+      var event = notification.event;
       _notificationCountMap[event] = (_notificationCountMap[event] ?? 0) + 1;
       _handleNotification(notification);
     }
@@ -804,17 +798,14 @@ class Server {
   /// Send a command to the server. An 'id' will be automatically assigned.
   RequestData _send(String method, Map<String, dynamic> params,
       {void Function(Response) onResponse}) {
-    String id = '${_nextId++}';
-    RequestData requestData = RequestData(id, method, params, currentTime);
+    var id = '${_nextId++}';
+    var requestData = RequestData(id, method, params, currentTime);
     _requestDataMap[id] = requestData;
-    Map<String, dynamic> command = <String, dynamic>{
-      'id': id,
-      'method': method
-    };
+    var command = <String, dynamic>{'id': id, 'method': method};
     if (params != null) {
       command['params'] = params;
     }
-    String line = json.encode(command);
+    var line = json.encode(command);
     _process.stdin.add(utf8.encoder.convert('$line\n'));
     logger?.log(fromClient, '$line');
     return requestData;

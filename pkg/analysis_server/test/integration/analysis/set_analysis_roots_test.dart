@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_options() async {
-    String pathname = sourcePath('test.dart');
+    var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 class Foo {
   void bar() {}

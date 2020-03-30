@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class LintIntegrationTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_no_lints_when_not_specified() async {
-    String source = sourcePath('test.dart');
+    var source = sourcePath('test.dart');
     writeFile(source, '''
 class abc { // lint: not CamelCase (should get ignored though)
 }''');
@@ -27,7 +27,7 @@ class abc { // lint: not CamelCase (should get ignored though)
     await analysisFinished;
     expect(currentAnalysisErrors[source], isList);
     // Should be empty without an analysis options file.
-    List<AnalysisError> errors = currentAnalysisErrors[source];
+    var errors = currentAnalysisErrors[source];
     expect(errors, hasLength(0));
   }
 
@@ -38,7 +38,7 @@ linter:
     - camel_case_types
 ''');
 
-    String source = sourcePath('test.dart');
+    var source = sourcePath('test.dart');
     writeFile(source, '''
 class a { // lint: not CamelCase
 }''');
@@ -48,9 +48,9 @@ class a { // lint: not CamelCase
     await analysisFinished;
 
     expect(currentAnalysisErrors[source], isList);
-    List<AnalysisError> errors = currentAnalysisErrors[source];
+    var errors = currentAnalysisErrors[source];
     expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
+    var error = errors[0];
     expect(error.location.file, source);
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);

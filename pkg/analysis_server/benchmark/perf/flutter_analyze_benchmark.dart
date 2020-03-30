@@ -18,7 +18,7 @@ Future<int> _runProcess(
 }) async {
   print('\n$command ${args.join(' ')}');
 
-  Process process = await Process.start(command, args, workingDirectory: cwd);
+  var process = await Process.start(command, args, workingDirectory: cwd);
 
   process.stdout
       .transform(utf8.decoder)
@@ -31,7 +31,7 @@ Future<int> _runProcess(
       .transform(LineSplitter())
       .listen((line) => print('  $line'));
 
-  int exitCode = await process.exitCode;
+  var exitCode = await process.exitCode;
   if (exitCode != 0 && failOnError) {
     throw '$command exited with $exitCode';
   }
@@ -81,7 +81,7 @@ class FlutterAnalyzeBenchmark extends Benchmark {
       path.canonicalize(flutterDir.path)
     ]);
 
-    String flutterTool = path.join(flutterDir.path, 'bin', 'flutter');
+    var flutterTool = path.join(flutterDir.path, 'bin', 'flutter');
 
     // flutter --version
     await _runProcess(flutterTool, ['--version'], cwd: flutterDir.path);
@@ -102,10 +102,9 @@ class FlutterAnalyzeBenchmark extends Benchmark {
       deleteServerCache();
     }
 
-    final String dartSdkPath =
-        path.dirname(path.dirname(Platform.resolvedExecutable));
+    var dartSdkPath = path.dirname(path.dirname(Platform.resolvedExecutable));
 
-    final Stopwatch stopwatch = Stopwatch()..start();
+    var stopwatch = Stopwatch()..start();
 
     await _runProcess(
       Platform.resolvedExecutable,

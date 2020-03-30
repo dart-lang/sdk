@@ -30,9 +30,9 @@ void main() {
 
 class SocketServerTest {
   static void createAnalysisServer_alreadyStarted() {
-    MockServerChannel channel1 = MockServerChannel();
-    MockServerChannel channel2 = MockServerChannel();
-    SocketServer server = _createSocketServer(channel1);
+    var channel1 = MockServerChannel();
+    var channel2 = MockServerChannel();
+    var server = _createSocketServer(channel1);
     expect(
         channel1.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
     server.createAnalysisServer(channel2);
@@ -54,7 +54,7 @@ class SocketServerTest {
   }
 
   static Future createAnalysisServer_successful() {
-    MockServerChannel channel = MockServerChannel();
+    var channel = MockServerChannel();
     _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
@@ -69,12 +69,12 @@ class SocketServerTest {
   }
 
   static Future requestHandler_exception() {
-    MockServerChannel channel = MockServerChannel();
-    SocketServer server = _createSocketServer(channel);
+    var channel = MockServerChannel();
+    var server = _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
-    _MockRequestHandler handler = _MockRequestHandler(false);
+    var handler = _MockRequestHandler(false);
     server.analysisServer.handlers = [handler];
     var request = ServerGetVersionParams().toRequest('0');
     return channel.sendRequest(request).then((Response response) {
@@ -89,12 +89,12 @@ class SocketServerTest {
   }
 
   static Future requestHandler_futureException() async {
-    MockServerChannel channel = MockServerChannel();
-    SocketServer server = _createSocketServer(channel);
-    _MockRequestHandler handler = _MockRequestHandler(true);
+    var channel = MockServerChannel();
+    var server = _createSocketServer(channel);
+    var handler = _MockRequestHandler(true);
     server.analysisServer.handlers = [handler];
     var request = ServerGetVersionParams().toRequest('0');
-    Response response = await channel.sendRequest(request, throwOnError: false);
+    var response = await channel.sendRequest(request, throwOnError: false);
     expect(response.id, equals('0'));
     expect(response.error, isNull);
     channel.expectMsgCount(responseCount: 1, notificationCount: 2);
