@@ -4107,7 +4107,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endImplicitCreationExpression(Token token) {
     debugEvent("ImplicitCreationExpression");
     _buildConstructorReferenceInvocation(
-        token, token.offset, Constness.implicit);
+        token.next, token.offset, Constness.implicit);
   }
 
   @override
