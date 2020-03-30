@@ -119,9 +119,15 @@ abstract class ClassElement
 
   /// Return `true` if this class [isProxy], or if it inherits the proxy
   /// annotation from a supertype.
+  @Deprecated(
+    'The @proxy annotation is deprecated in the langauge, and will be removed',
+  )
   bool get isOrInheritsProxy;
 
   /// Return `true` if this element has an annotation of the form '@proxy'.
+  @Deprecated(
+    'The @proxy annotation is deprecated in the langauge, and will be removed',
+  )
   bool get isProxy;
 
   /// Return `true` if this class can validly be used as a mixin when defining

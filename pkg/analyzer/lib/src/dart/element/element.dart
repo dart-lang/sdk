@@ -759,18 +759,10 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  bool get isOrInheritsProxy =>
-      _safeIsOrInheritsProxy(this, HashSet<ClassElement>());
+  bool get isOrInheritsProxy => false;
 
   @override
-  bool get isProxy {
-    for (ElementAnnotation annotation in metadata) {
-      if (annotation.isProxy) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool get isProxy => false;
 
   @override
   bool get isSimplyBounded {
@@ -1182,33 +1174,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     return type is InterfaceType &&
         !type.element.isEnum &&
         !type.isDartCoreFunction;
-  }
-
-  bool _safeIsOrInheritsProxy(
-      ClassElement element, HashSet<ClassElement> visited) {
-    if (visited.contains(element)) {
-      return false;
-    }
-    visited.add(element);
-    if (element.isProxy) {
-      return true;
-    } else if (element.supertype != null &&
-        _safeIsOrInheritsProxy(element.supertype.element, visited)) {
-      return true;
-    }
-    List<InterfaceType> supertypes = element.interfaces;
-    for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visited)) {
-        return true;
-      }
-    }
-    supertypes = element.mixins;
-    for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visited)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
