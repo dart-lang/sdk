@@ -53,6 +53,11 @@ abstract class F {}
 
 /*class: E:D,E,F,Object*/
 class E implements D, F {
+  /// TODO: Solve CFE / analyzer difference.
+  /// Analyzer uses MockSdk that is migrated. So, `Object.==(Object)`.
+  /// So, `D.==(Object)` matches to the `Object`, and inference does not fail
+  /// and does not cause `dynamic`. I expect that the difference will be solved
+  /// after SDK unfork.
   /*cfe|cfe:builder.member: E.==:bool* Function(dynamic)**/
   /*analyzer.member: E.==:bool* Function(Object*)**/
   bool operator ==(other) => true;

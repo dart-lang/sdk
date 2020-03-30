@@ -12,7 +12,7 @@ class A<T> {}
 /*class: Foo:A<FutureOr<T?>>,Foo<T, S>,Object*/
 class Foo<T extends S, S extends Never> implements A<FutureOr<T?>> {}
 
-/// TODO: Solve CFE / analyzer disagreement.
+/// TODO: Solve CFE / analyzer difference.
 /// It looks to me that is should be `A<FutureOr<Never?>>`, because this is
 /// what is written in the code. We don't do normalization because there is
 /// only one implementation of `A` in `Bar`.

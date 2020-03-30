@@ -17,6 +17,12 @@ class SubClass2 extends LegacyClass2 implements Interface {
   /*member: SubClass2.method:int? Function(int)*/
 }
 
+// TODO: Solve CFE / analyzer difference.
+// This an following examples end up with implementing `GenericInterface`
+// with `int` and `int?` type arguments, and their NNBD_TOP_MERGE does not
+// exist. it does not matter that some of these interfaces come through a
+// legacy library.
+
 /*class: GenericSubClass1a:GenericClass1,GenericInterface<int?>,GenericLegacyClass1a,GenericSubClass1a,Object*/
 /*analyzer.error: CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES*/ abstract class GenericSubClass1a
     extends GenericLegacyClass1a implements GenericInterface<int?> {

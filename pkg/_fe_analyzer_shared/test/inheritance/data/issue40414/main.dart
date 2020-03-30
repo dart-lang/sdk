@@ -12,6 +12,9 @@ class B extends A {
   /*member: B.i=:int**/
 }
 
+/// TODO: Solve CFE / analyzer difference.
+/// I suspect that this is a bug in analyzer.
+/// We check `i` against separate signatures from `NULLABLE` and `NONNULLABLE`.
 /*class: C:A,C,NONNULLABLE,NULLABLE,Object*/
 class C extends A {
   /*member: C.i:int?*/

@@ -41,6 +41,9 @@ abstract class D3 implements B, C {
 
 /*class: D4:B,C,D4,Object*/
 abstract class D4 implements C, B {
+  /// TODO: Solve CFE / analyzer difference.
+  /// In opt-out library we can choose any valid override, so the analyzer
+  /// takes the first one.
   /*cfe|cfe:builder.member: D4.method:void Function(num*)**/
   /*analyzer.member: D4.method:void Function(int*)**/
 }
@@ -69,6 +72,9 @@ abstract class G1 implements E, F {
 
 /*class: G2:E,F,G2,Object*/
 abstract class G2 implements F, E {
+  /// TODO: Solve CFE / analyzer difference.
+  /// In opt-out library we can choose any valid override, so the analyzer
+  /// takes the first one.
   /*cfe|cfe:builder.member: G2.method:void Function(num*)**/
   /*analyzer.member: G2.method:void Function(int*)**/
 }
