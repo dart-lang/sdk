@@ -8,7 +8,7 @@ main() {
   List list = [1, 2];
   list.add(list);
 
-  List list2 = new List(4);
+  List list2 = new List.filled(4, null);
   list2[0] = 1;
   list2[1] = 2;
   list2[2] = list2;
