@@ -15,15 +15,20 @@ const String _analyzeDescriptionText = "Analyze the project's Dart code.";
 const String _analyzeUsageText =
     'Usage: dart analyze [arguments] [<directory>]';
 
-const String _warningDartCodeSnippet = '''
-  enum E { e1, e2 }
-  void f(E e) {
-    switch (e) {
-    case E.e1:
-      break;
-    }
-  }
-  ''';
+const String _unusedImportCodeSnippet = '''
+import 'dart:convert';
+
+void main() {
+  print('hello world');
+}
+''';
+
+const String _unusedImportAnalysisOptions = '''
+analyzer:
+  errors:
+    # Increase the severity of several hints.
+    unused_import: warning
+''';
 
 void defineAnalyze() {
   TestProject p;
@@ -103,34 +108,34 @@ void defineAnalyze() {
   });
 
   test('warning --fatal-warnings', () {
-    p = project(mainSrc: _warningDartCodeSnippet);
+    p = project(
+        mainSrc: _unusedImportCodeSnippet,
+        analysisOptions: _unusedImportAnalysisOptions);
     var result = p.runSync('analyze', ['--fatal-warnings', p.dirPath]);
 
-    //TODO(jwren) Once http://dartbug.com/40768 is resolved, this assertion
-    //  should be exitCode == 2, not greater than 0:
-    expect(result.exitCode, greaterThan(0));
+    expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
 
   test('warning implicit --fatal-warnings', () {
-    p = project(mainSrc: _warningDartCodeSnippet);
+    p = project(
+        mainSrc: _unusedImportCodeSnippet,
+        analysisOptions: _unusedImportAnalysisOptions);
     var result = p.runSync('analyze', [p.dirPath]);
 
-    //TODO(jwren) Once http://dartbug.com/40768 is resolved, this assertion
-    //  should be exitCode == 2, not greater than 0:
-    expect(result.exitCode, greaterThan(0));
+    expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
 
   test('warning --no-fatal-warnings', () {
-    p = project(mainSrc: _warningDartCodeSnippet);
+    p = project(
+        mainSrc: _unusedImportCodeSnippet,
+        analysisOptions: _unusedImportAnalysisOptions);
     var result = p.runSync('analyze', ['--no-fatal-warnings', p.dirPath]);
 
-    //TODO(jwren) Once http://dartbug.com/40768 is resolved, this assertion
-    //  should be exitCode == 0:
-    // expect(result.exitCode, 0);
+    expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
