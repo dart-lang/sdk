@@ -81,10 +81,17 @@ class ParserTestListener implements Listener {
   }
 
   void doPrint(String s) {
-    String traceString = "";
-    if (trace) traceString = " (${createTrace()})";
-    sb.writeln(("  " * indent) + s + traceString);
+    String outString = s;
+    if (trace) outString += " (${createTrace()})";
+    if (outString != "") {
+      sb.writeln(("  " * indent) + outString);
+    } else {
+      sb.writeln("");
+    }
   }
+
+  void seen(Token token) {}
+
 """);
 
   ParserCreatorListener listener = new ParserCreatorListener();
@@ -106,7 +113,9 @@ class ParserTestListener implements Listener {
 class ParserCreatorListener extends Listener {
   bool insideListenerClass = false;
   String currentMethodName;
+  String latestSeenParameterTypeToken;
   List<String> parameters = <String>[];
+  List<String> parameterTypes = <String>[];
 
   void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
@@ -152,6 +161,11 @@ class ParserCreatorListener extends Listener {
             currentMethodName.startsWith("end")) {
           out.write("indent--;\n    ");
         }
+        for (int i = 0; i < parameterTypes.length; i++) {
+          if (parameterTypes[i] == "Token") {
+            out.write("seen(${parameters[i]});");
+          }
+        }
         out.write("doPrint('$currentMethodName(");
         String separator = "";
         for (int i = 0; i < parameters.length; i++) {
@@ -172,7 +186,17 @@ class ParserCreatorListener extends Listener {
       out.write("\n\n");
     }
     parameters.clear();
+    parameterTypes.clear();
     currentMethodName = null;
+  }
+
+  @override
+  void handleNoType(Token lastConsumed) {
+    latestSeenParameterTypeToken = null;
+  }
+
+  void handleType(Token beginToken, Token questionMark) {
+    latestSeenParameterTypeToken = beginToken.lexeme;
   }
 
   void endFormalParameter(
@@ -184,5 +208,6 @@ class ParserCreatorListener extends Listener {
       FormalParameterKind kind,
       MemberKind memberKind) {
     parameters.add(nameToken.lexeme);
+    parameterTypes.add(latestSeenParameterTypeToken);
   }
 }
