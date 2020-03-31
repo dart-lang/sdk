@@ -106,7 +106,6 @@ class InheritanceManager3 {
     Map<Name, ExecutableElement> declared;
     Interface superInterface;
     Map<Name, ExecutableElement> implemented;
-    Map<Name, ExecutableElement> implementedForMixing;
     try {
       // If a class declaration has a member declaration, the signature of that
       // member declaration becomes the signature in the interface.
@@ -163,7 +162,6 @@ class InheritanceManager3 {
           implemented = {};
         }
 
-        implementedForMixing = {};
         for (var mixin in type.mixins) {
           var interfaceObj = getInterface(mixin);
           _addCandidates(
@@ -172,24 +170,23 @@ class InheritanceManager3 {
             isNonNullableByDefault: isNonNullableByDefault,
           );
 
-          implemented = <Name, ExecutableElement>{}
-            ..addAll(implemented)
-            ..addAll(interfaceObj._implementedForMixing);
+          implemented = <Name, ExecutableElement>{}..addAll(implemented);
+          implemented.addEntries(
+            interfaceObj.implemented.entries.where((entry) {
+              var executable = entry.value;
+              if (executable.isAbstract) {
+                return false;
+              }
+              var class_ = executable.enclosingElement;
+              return class_ is ClassElement && !class_.isDartCoreObject;
+            }),
+          );
+
           superImplemented.add(implemented);
-          implementedForMixing.addAll(interfaceObj._implementedForMixing);
         }
       }
     } finally {
       _processingClasses.remove(classElement);
-    }
-
-    var thisImplemented = <Name, ExecutableElement>{};
-    _addImplemented(thisImplemented, type);
-
-    if (classElement.isMixin) {
-      implementedForMixing = thisImplemented;
-    } else {
-      implementedForMixing.addAll(thisImplemented);
     }
 
     implemented = <Name, ExecutableElement>{}..addAll(implemented);
@@ -232,7 +229,6 @@ class InheritanceManager3 {
       declared,
       implemented,
       noSuchMethodForwarders,
-      implementedForMixing,
       namedCandidates,
       superImplemented,
       conflicts ?? const [],
@@ -554,7 +550,6 @@ class Interface {
     const {},
     <Name>{},
     const {},
-    const {},
     const [{}],
     const [],
   );
@@ -570,10 +565,6 @@ class Interface {
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
   final Set<Name> _noSuchMethodForwarders;
-
-  /// The map of names to their concrete implementations that can be mixed
-  /// when this type is used as a mixin.
-  final Map<Name, ExecutableElement> _implementedForMixing;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
@@ -599,7 +590,6 @@ class Interface {
     this.declared,
     this.implemented,
     this._noSuchMethodForwarders,
-    this._implementedForMixing,
     this._overridden,
     this._superImplemented,
     this.conflicts,
