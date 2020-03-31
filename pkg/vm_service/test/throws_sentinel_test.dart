@@ -12,7 +12,7 @@ var tests = <VMTest>[
     try {
       final res = await vm.getIsolate('isolates/12321');
       fail('Expected SentinelException, got $res');
-    } on SentinelException catch (e) {
+    } on SentinelException {
       // Expected.
     } catch (e) {
       fail('Expected SentinelException, got $e');
