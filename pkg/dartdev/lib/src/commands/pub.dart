@@ -30,8 +30,12 @@ class PubCommand extends DartdevCommand<int> {
     // and we want to guarantee that the result (the help text for the console)
     // is printed before command exits.
     final result = Process.runSync(command, args);
-    stderr.write(result.stderr);
-    stdout.write(result.stdout);
+    if (result.stderr.isNotEmpty) {
+      stderr.write(result.stderr);
+    }
+    if (result.stdout.isNotEmpty) {
+      stdout.write(result.stdout);
+    }
   }
 
   @override
