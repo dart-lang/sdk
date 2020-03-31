@@ -824,6 +824,7 @@ class _HeaderValue implements HeaderValue {
     _value = parseValue();
     skipWS();
     if (done()) return;
+    if (s[index] == valueSeparator) return;
     maybeExpect(parameterSeparator);
     parseParameters();
   }
