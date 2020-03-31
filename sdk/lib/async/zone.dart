@@ -70,6 +70,42 @@ class _ZoneFunction<T extends Function> {
   const _ZoneFunction(this.zone, this.function);
 }
 
+class _RunNullaryZoneFunction {
+  final _Zone zone;
+  final RunHandler function;
+  const _RunNullaryZoneFunction(this.zone, this.function);
+}
+
+class _RunUnaryZoneFunction {
+  final _Zone zone;
+  final RunUnaryHandler function;
+  const _RunUnaryZoneFunction(this.zone, this.function);
+}
+
+class _RunBinaryZoneFunction {
+  final _Zone zone;
+  final RunBinaryHandler function;
+  const _RunBinaryZoneFunction(this.zone, this.function);
+}
+
+class _RegisterNullaryZoneFunction {
+  final _Zone zone;
+  final RegisterCallbackHandler function;
+  const _RegisterNullaryZoneFunction(this.zone, this.function);
+}
+
+class _RegisterUnaryZoneFunction {
+  final _Zone zone;
+  final RegisterUnaryCallbackHandler function;
+  const _RegisterUnaryZoneFunction(this.zone, this.function);
+}
+
+class _RegisterBinaryZoneFunction {
+  final _Zone zone;
+  final RegisterBinaryCallbackHandler function;
+  const _RegisterBinaryZoneFunction(this.zone, this.function);
+}
+
 /**
  * This class provides the specification for a forked zone.
  *
@@ -820,12 +856,12 @@ abstract class _Zone implements Zone {
 
   // TODO(floitsch): the types of the `_ZoneFunction`s should have a type for
   // all fields.
-  _ZoneFunction<Function> get _run;
-  _ZoneFunction<Function> get _runUnary;
-  _ZoneFunction<Function> get _runBinary;
-  _ZoneFunction<Function> get _registerCallback;
-  _ZoneFunction<Function> get _registerUnaryCallback;
-  _ZoneFunction<Function> get _registerBinaryCallback;
+  _RunNullaryZoneFunction get _run;
+  _RunUnaryZoneFunction get _runUnary;
+  _RunBinaryZoneFunction get _runBinary;
+  _RegisterNullaryZoneFunction get _registerCallback;
+  _RegisterUnaryZoneFunction get _registerUnaryCallback;
+  _RegisterBinaryZoneFunction get _registerBinaryCallback;
   _ZoneFunction<ErrorCallbackHandler> get _errorCallback;
   _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask;
   _ZoneFunction<CreateTimerHandler> get _createTimer;
@@ -848,12 +884,12 @@ class _CustomZone extends _Zone {
   // inheritable zone functions.
   // TODO(floitsch): the types of the `_ZoneFunction`s should have a type for
   // all fields.
-  _ZoneFunction<Function> _run;
-  _ZoneFunction<Function> _runUnary;
-  _ZoneFunction<Function> _runBinary;
-  _ZoneFunction<Function> _registerCallback;
-  _ZoneFunction<Function> _registerUnaryCallback;
-  _ZoneFunction<Function> _registerBinaryCallback;
+  _RunNullaryZoneFunction _run;
+  _RunUnaryZoneFunction _runUnary;
+  _RunBinaryZoneFunction _runBinary;
+  _RegisterNullaryZoneFunction _registerCallback;
+  _RegisterUnaryZoneFunction _registerUnaryCallback;
+  _RegisterBinaryZoneFunction _registerBinaryCallback;
   _ZoneFunction<ErrorCallbackHandler> _errorCallback;
   _ZoneFunction<ScheduleMicrotaskHandler> _scheduleMicrotask;
   _ZoneFunction<CreateTimerHandler> _createTimer;
@@ -884,22 +920,23 @@ class _CustomZone extends _Zone {
     // specification, so it will never try to access the (null) parent.
     // All other zones have a non-null parent.
     _run = (specification.run != null)
-        ? new _ZoneFunction<Function>(this, specification.run)
+        ? new _RunNullaryZoneFunction(this, specification.run)
         : parent._run;
     _runUnary = (specification.runUnary != null)
-        ? new _ZoneFunction<Function>(this, specification.runUnary)
+        ? new _RunUnaryZoneFunction(this, specification.runUnary)
         : parent._runUnary;
     _runBinary = (specification.runBinary != null)
-        ? new _ZoneFunction<Function>(this, specification.runBinary)
+        ? new _RunBinaryZoneFunction(this, specification.runBinary)
         : parent._runBinary;
     _registerCallback = (specification.registerCallback != null)
-        ? new _ZoneFunction<Function>(this, specification.registerCallback)
+        ? new _RegisterNullaryZoneFunction(this, specification.registerCallback)
         : parent._registerCallback;
     _registerUnaryCallback = (specification.registerUnaryCallback != null)
-        ? new _ZoneFunction<Function>(this, specification.registerUnaryCallback)
+        ? new _RegisterUnaryZoneFunction(
+            this, specification.registerUnaryCallback)
         : parent._registerUnaryCallback;
     _registerBinaryCallback = (specification.registerBinaryCallback != null)
-        ? new _ZoneFunction<Function>(
+        ? new _RegisterBinaryZoneFunction(
             this, specification.registerBinaryCallback)
         : parent._registerBinaryCallback;
     _errorCallback = (specification.errorCallback != null)
@@ -1262,18 +1299,18 @@ Zone _rootFork(Zone self, ZoneDelegate parent, Zone zone,
 class _RootZone extends _Zone {
   const _RootZone();
 
-  _ZoneFunction<Function> get _run =>
-      const _ZoneFunction<Function>(_rootZone, _rootRun);
-  _ZoneFunction<Function> get _runUnary =>
-      const _ZoneFunction<Function>(_rootZone, _rootRunUnary);
-  _ZoneFunction<Function> get _runBinary =>
-      const _ZoneFunction<Function>(_rootZone, _rootRunBinary);
-  _ZoneFunction<Function> get _registerCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterCallback);
-  _ZoneFunction<Function> get _registerUnaryCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterUnaryCallback);
-  _ZoneFunction<Function> get _registerBinaryCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterBinaryCallback);
+  _RunNullaryZoneFunction get _run =>
+      const _RunNullaryZoneFunction(_rootZone, _rootRun);
+  _RunUnaryZoneFunction get _runUnary =>
+      const _RunUnaryZoneFunction(_rootZone, _rootRunUnary);
+  _RunBinaryZoneFunction get _runBinary =>
+      const _RunBinaryZoneFunction(_rootZone, _rootRunBinary);
+  _RegisterNullaryZoneFunction get _registerCallback =>
+      const _RegisterNullaryZoneFunction(_rootZone, _rootRegisterCallback);
+  _RegisterUnaryZoneFunction get _registerUnaryCallback =>
+      const _RegisterUnaryZoneFunction(_rootZone, _rootRegisterUnaryCallback);
+  _RegisterBinaryZoneFunction get _registerBinaryCallback =>
+      const _RegisterBinaryZoneFunction(_rootZone, _rootRegisterBinaryCallback);
   _ZoneFunction<ErrorCallbackHandler> get _errorCallback =>
       const _ZoneFunction<ErrorCallbackHandler>(_rootZone, _rootErrorCallback);
   _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask =>
