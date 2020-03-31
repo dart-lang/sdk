@@ -101,10 +101,24 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
   Function& function = Function::Handle(zone);
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       zone, isolate->object_store()->closure_functions());
+  ASSERT(!closures.IsNull());
   for (intptr_t i = 0; i < closures.Length(); i++) {
     function ^= closures.At(i);
     visitor->Visit(function);
     ASSERT(!function.HasImplicitClosureFunction());
+  }
+
+  const auto& global_object_pool = ObjectPool::Handle(
+      zone, isolate->object_store()->global_object_pool());
+  if (!global_object_pool.IsNull()) {
+    auto& object = Object::Handle(zone);
+    for (intptr_t i = 0; i < global_object_pool.Length(); i++) {
+      auto const type = global_object_pool.TypeAt(i);
+      if (type != ObjectPool::EntryType::kTaggedObject) continue;
+      object = global_object_pool.ObjectAt(i);
+      if (!object.IsFunction()) continue;
+      visitor->Visit(Function::Cast(object));
+    }
   }
 }
 
@@ -134,13 +148,13 @@ void ProgramVisitor::VisitCode(CodeVisitor* visitor) {
 
   const auto& dispatch_table_entries = Array::Handle(
       zone, isolate->object_store()->dispatch_table_code_entries());
-  if (dispatch_table_entries.IsNull()) return;
-
-  auto& code = Code::Handle(zone);
-  for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-    code = Code::RawCast(dispatch_table_entries.At(i));
-    if (code.IsNull()) continue;
-    visitor->Visit(code);
+  if (!dispatch_table_entries.IsNull()) {
+    auto& code = Code::Handle(zone);
+    for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
+      code = Code::RawCast(dispatch_table_entries.At(i));
+      if (code.IsNull()) continue;
+      visitor->Visit(code);
+    }
   }
 }
 
@@ -918,7 +932,7 @@ void ProgramVisitor::DedupLists() {
       // VM objects for de-duplication.
       if (FLAG_precompiled_mode && !list_.IsNull() &&
           !list_.InVMIsolateHeap() && !function.IsSignatureFunction() &&
-          !function.IsClosureFunction() &&
+          !function.IsClosureFunction() && !function.IsFfiTrampoline() &&
           function.name() != Symbols::Call().raw()) {
         // Parameter types not needed for function type tests.
         for (intptr_t i = 0; i < list_.Length(); i++) {
