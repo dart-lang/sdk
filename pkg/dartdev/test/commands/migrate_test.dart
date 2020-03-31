@@ -7,13 +7,13 @@ import 'package:test/test.dart';
 
 import '../utils.dart';
 
-// TODO(jcollins-g): Set to true and/or remove when when NNBD is enabled in the
-//  SDK running this test.
-bool _nnbdIsEnabled = false;
-
 void main() {
   group('migrate', defineMigrateTests);
 }
+
+// TODO(jcollins-g): Set to true and/or remove when when NNBD is enabled in the
+//  SDK running this test.
+bool _nnbdIsEnabled = false;
 
 void defineMigrateTests() {
   TestProject p;
