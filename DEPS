@@ -39,7 +39,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "b9efaddfe0553b6937bf625157f6a13498951346",
+  "co19_rev": "9934d8540d097366287267519413e888a7f6a482",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
