@@ -849,12 +849,12 @@
         "hot-reload-rollback": true
       }
     },
-    "dartk-linux-(debug|product|release)-arm-qemu": {
+    "dartk-linux-(debug|product|release)-(arm|arm64)-qemu": {
       "options": {
         "use-qemu": true
       }
     },
-    "dartkp-linux-(debug|product|release)-arm-qemu": {
+    "dartkp-linux-(debug|product|release)-(arm|arm64)-qemu": {
       "options": {
         "use-qemu": true
       }
