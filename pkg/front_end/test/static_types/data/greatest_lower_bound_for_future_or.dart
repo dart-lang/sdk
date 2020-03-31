@@ -28,9 +28,9 @@ void func1<T extends Foo>(T t) {
 
   // Type of the expression is GLB(FutureOr<T>, Foo) = T.
   /*invoke: void*/ context(
-      /*cfe.invoke: T*/ /*cfe:nnbd.invoke: Never*/ expr
+      /*cfe.invoke: T*/ /*cfe:nnbd.invoke: T!*/ expr
           /*cfe.<T>*/
-          /*cfe:nnbd.<Never>*/ ());
+          /*cfe:nnbd.<T!>*/ ());
 }
 
 // -----------------------------------------------------------------------------
@@ -45,9 +45,9 @@ void func2<T extends Foo>() {
   // Type of the expression is GLB(FutureOr<T>, Future<Foo>) = Future<T>.
   /*invoke: void*/ context(
       /*cfe.invoke: Future<T>*/
-      /*cfe:nnbd.invoke: Never*/ expr
+      /*cfe:nnbd.invoke: Future<T!>!*/ expr
           /*cfe.<Future<T>>*/
-          /*cfe:nnbd.<Never>*/ ());
+          /*cfe:nnbd.<Future<T!>!>*/ ());
 }
 
 // -----------------------------------------------------------------------------
@@ -97,9 +97,9 @@ void func5<T extends Foo>() {
   // = FutureOr<Future<T>>.
   /*invoke: void*/ context(
       /*cfe.invoke: FutureOr<Future<T>>*/
-      /*cfe:nnbd.invoke: Never*/ expr
+      /*cfe:nnbd.invoke: FutureOr<Future<T!>!>!*/ expr
           /*cfe.<FutureOr<Future<T>>>*/
-          /*cfe:nnbd.<Never>*/ ());
+          /*cfe:nnbd.<FutureOr<Future<T!>!>!>*/ ());
 }
 
 // -----------------------------------------------------------------------------
