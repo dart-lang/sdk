@@ -2602,6 +2602,32 @@ int get g => 0;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_hint_contradicts_exact_nullability() async {
+    var content = '''
+void f(List<int> x) {
+  x.add(null);
+}
+void g() {
+  f(<int/*!*/>[]);
+}
+''';
+    // `f.x` needs to change to List<int?> to allow `null` to be added to the
+    // list.  Ordinarily this would be propagated back to the explicit list in
+    // `g`, but we don't override the hint `/*!*/`.
+    //
+    // TODO(paulberry): we should probably issue some sort of warning to the
+    // user instead.
+    var expected = '''
+void f(List<int?> x) {
+  x.add(null);
+}
+void g() {
+  f(<int/*!*/>[]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_ifStatement_nullCheck_noElse() async {
     var content = '''
 int f(int x) {
