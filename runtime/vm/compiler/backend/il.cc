@@ -4044,6 +4044,41 @@ void IndirectEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   JoinEntryInstr::EmitNativeCode(compiler);
 }
 
+LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Zone* zone,
+                                                           bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  return locs;
+}
+
+void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Note: static fields ids won't be changed by hot-reload.
+  const intptr_t field_table_offset =
+      compiler::target::Thread::field_table_values_offset();
+  const intptr_t field_offset = compiler::target::FieldTable::OffsetOf(field());
+
+  const Register temp = InitStaticFieldABI::kFieldReg;
+  __ LoadMemoryValue(temp, THR, static_cast<int32_t>(field_table_offset));
+  __ LoadMemoryValue(temp, temp, static_cast<int32_t>(field_offset));
+
+  compiler::Label call_runtime, no_call;
+  __ CompareObject(temp, Object::sentinel());
+  __ BranchIf(EQUAL, &call_runtime);
+
+  __ CompareObject(temp, Object::transition_sentinel());
+  __ BranchIf(NOT_EQUAL, &no_call);
+
+  __ Bind(&call_runtime);
+  __ LoadObject(InitStaticFieldABI::kFieldReg,
+                Field::ZoneHandle(field().Original()));
+  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
+                                  StubCode::InitStaticField(),
+                                  /*kind=*/RawPcDescriptors::kOther, locs());
+  __ Bind(&no_call);
+}
+
 LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,
                                                bool optimizing) const {
   UNREACHABLE();

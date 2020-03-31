@@ -161,6 +161,7 @@ compiler_sources = [
   "relocation.h",
   "runtime_api.cc",
   "runtime_api.h",
+  "stub_code_compiler.cc",
   "stub_code_compiler.h",
   "stub_code_compiler_arm.cc",
   "stub_code_compiler_arm64.cc",

@@ -476,6 +476,9 @@ class Assembler : public AssemblerBase {
   void Jump(Label* label) { b(label); }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadMemoryValue(Register dst, Register base, int32_t offset) {
+    LoadFromOffset(dst, base, offset, kDoubleWord);
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
