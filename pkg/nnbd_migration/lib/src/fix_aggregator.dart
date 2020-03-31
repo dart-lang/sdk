@@ -422,6 +422,9 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
 
   NodeChangeForExpression() : super._();
 
+  /// Gets the info for any added null check.
+  AtomicEditInfo get addNullCheckInfo => _addNullCheckInfo;
+
   /// Indicates whether [addNullCheck] has been called.
   bool get addsNullCheck => _addsNullCheck;
 

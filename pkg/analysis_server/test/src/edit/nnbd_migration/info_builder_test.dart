@@ -1927,6 +1927,23 @@ void h(int?/*?*/ i) {
     expect(entries[4].target, null);
   }
 
+  Future<void> test_trace_nullCheckHint() async {
+    UnitInfo unit = await buildInfoForSingleTestFile(
+        'int f(int/*?*/ i) => i/*!*/;',
+        migratedContent: 'int  f(int?/*?*/ i) => i!/*!*/;');
+    var region = unit.regions
+        .where(
+            (regionInfo) => regionInfo.offset == unit.content.indexOf('!/*!*/'))
+        .single;
+    expect(region.traces, hasLength(1));
+    var trace = region.traces.single;
+    expect(trace.description, 'Reason');
+    expect(trace.entries, hasLength(1));
+    // TODO(paulberry): -2 is a bug.
+    assertTraceEntry(unit, trace.entries.single, 'f',
+        unit.content.indexOf('i!/*!*/') - 2, 'Null check hint');
+  }
+
   Future<void> test_trace_substitutionNode() async {
     var unit = await buildInfoForSingleTestFile('''
 class C<T extends Object/*!*/> {}

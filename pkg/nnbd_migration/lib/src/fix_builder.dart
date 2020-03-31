@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -255,6 +256,17 @@ class FixBuilder {
   }
 }
 
+/// Fix reason object when adding a null check because of an explicit hint.
+class FixReason_NullCheckHint implements SimpleFixReasonInfo {
+  @override
+  final CodeReference codeReference;
+
+  FixReason_NullCheckHint(this.codeReference);
+
+  @override
+  String get description => 'Null check hint';
+}
+
 /// Implementation of [MigrationResolutionHooks] that interfaces with
 /// [FixBuilder].
 class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
@@ -386,7 +398,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
         if (_fixBuilder._variables.hasNullCheckHint(_fixBuilder.source, node)) {
-          type = _addNullCheck(node, type);
+          type = _addNullCheck(node, type,
+              info: AtomicEditInfo(NullabilityFixDescription.checkExpression,
+                  [FixReason_NullCheckHint(CodeReference.fromAstNode(node))]));
         }
         if (type.isDynamic) return type;
         var ancestor = _findNullabilityContextAncestor(node);
@@ -441,10 +455,11 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     return contextType;
   }
 
-  DartType _addNullCheck(Expression node, DartType type) {
+  DartType _addNullCheck(Expression node, DartType type,
+      {AtomicEditInfo info}) {
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    var info = checks != null
+    info ??= checks != null
         ? AtomicEditInfo(
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;

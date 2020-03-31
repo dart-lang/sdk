@@ -10,6 +10,8 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:test/test.dart';
@@ -49,8 +51,11 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   static final isExplainNonNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
       .having((c) => c.makeNullable, 'makeNullable', false);
 
-  static final isNullCheck = TypeMatcher<NodeChangeForExpression>()
-      .having((c) => c.addsNullCheck, 'addsNullCheck', true);
+  static final isNodeChangeForExpression =
+      TypeMatcher<NodeChangeForExpression>();
+
+  static final isNullCheck =
+      isNodeChangeForExpression.havingNullCheckWithInfo(anything);
 
   static final isRemoveLanguageVersion =
       TypeMatcher<NodeChangeForCompilationUnit>().having(
@@ -82,6 +87,11 @@ class FixBuilderTest extends EdgeBuilderTestBase {
     graph.propagate(null);
     return unit;
   }
+
+  TypeMatcher<AtomicEditInfo> isInfo(description, fixReasons) =>
+      TypeMatcher<AtomicEditInfo>()
+          .having((i) => i.description, 'description', description)
+          .having((i) => i.fixReasons, 'fixReasons', fixReasons);
 
   Map<AstNode, NodeChange> scopedChanges(
           FixBuilder fixBuilder, AstNode scope) =>
@@ -2554,7 +2564,11 @@ _f(int/*?*/ x) {
   Future<void> test_simpleIdentifier_null_check_hint() async {
     await analyze('int/*?*/ _f(int/*?*/ x) => x/*!*/;');
     var xRef = findNode.simple('x/*!*/');
-    visitSubexpression(xRef, 'int', changes: {xRef: isNullCheck});
+    visitSubexpression(xRef, 'int', changes: {
+      xRef: isNodeChangeForExpression.havingNullCheckWithInfo(isInfo(
+          NullabilityFixDescription.checkExpression,
+          [TypeMatcher<FixReason_NullCheckHint>()]))
+    });
   }
 
   Future<void> test_stringLiteral() async {
@@ -2842,4 +2856,10 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
   static Matcher isEliminateDeadIf(bool knownValue) =>
       TypeMatcher<NodeChangeForConditional>()
           .having((c) => c.conditionValue, 'conditionValue', knownValue);
+}
+
+extension on TypeMatcher<NodeChangeForExpression> {
+  TypeMatcher<NodeChangeForExpression> havingNullCheckWithInfo(matcher) =>
+      having((c) => c.addsNullCheck, 'addsNullCheck', true)
+          .having((c) => c.addNullCheckInfo, 'addNullCheckInfo', matcher);
 }

@@ -380,6 +380,16 @@ abstract class PropagationStepInfo {
   EdgeInfo get edge;
 }
 
+/// Reason information for a simple fix that isn't associated with any edges or
+/// nodes.
+abstract class SimpleFixReasonInfo implements FixReasonInfo {
+  /// Code location of the fix.
+  CodeReference get codeReference;
+
+  /// Description of the fix.
+  String get description;
+}
+
 /// Information exposed to the migration client about a node in the nullability
 /// graph resulting from a type substitution.
 abstract class SubstitutionNodeInfo extends NullabilityNodeInfo {
