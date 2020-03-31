@@ -1325,8 +1325,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
-    typeInferrer?.inferFunctionBody(
+    Statement inferredStatement = typeInferrer?.inferFunctionBody(
         this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+    assert(
+        fakeReturn == inferredStatement,
+        "Previously implicit assumption about inferFunctionBody "
+        "not returning anything different.");
+    libraryBuilder.loader.transformPostInference(fakeReturn,
+        transformSetLiterals, transformCollections, libraryBuilder.library);
 
     return fakeReturn.expression;
   }
