@@ -44,7 +44,20 @@ Widget center(int i) => Center(child: i);
     await assertNoFix();
   }
 
-  Future<void> test_notWidget() async {
+  Future<void> test_parameterType_notClass() async {
+    await resolveTestUnit('''
+typedef F = void Function();
+
+void foo({F a}) {}
+
+void bar() {
+  foo(a: '');
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_parameterType_notWidget() async {
     await resolveTestUnit('''
 void f(int i) {
   f('a');
