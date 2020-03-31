@@ -3061,6 +3061,130 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_late_hint_instance_field_with_constructor() async {
+    var content = '''
+class C {
+  C();
+  /*late*/ int x;
+  f() {
+    x = 1;
+  }
+  int g() => x;
+}
+''';
+    // TODO(paulberry): it would be better to just replace the comment with the
+    // word `late`.
+    var expected = '''
+class C {
+  C();
+  /*late*/ late int x;
+  f() {
+    x = 1;
+  }
+  int g() => x;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_late_hint_instance_field_without_constructor() async {
+    var content = '''
+class C {
+  /*late*/ int x;
+  f() {
+    x = 1;
+  }
+  int g() => x;
+}
+''';
+    // TODO(paulberry): it would be better to just replace the comment with the
+    // word `late`.
+    var expected = '''
+class C {
+  /*late*/ late int x;
+  f() {
+    x = 1;
+  }
+  int g() => x;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_late_hint_local_variable() async {
+    var content = '''
+int f(bool b1, bool b2) {
+  /*late*/ int x;
+  if (b1) {
+    x = 1;
+  }
+  if (b2) {
+    return x;
+  }
+  return 0;
+}
+''';
+    // TODO(paulberry): it would be better to just replace the comment with the
+    // word `late`.
+    var expected = '''
+int f(bool b1, bool b2) {
+  /*late*/ late int x;
+  if (b1) {
+    x = 1;
+  }
+  if (b2) {
+    return x;
+  }
+  return 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_late_hint_static_field() async {
+    var content = '''
+class C {
+  static /*late*/ int x;
+  f() {
+    x = 1;
+  }
+  int g() => x;
+}
+''';
+    // TODO(paulberry): it would be better to just replace the comment with the
+    // word `late`.
+    var expected = '''
+class C {
+  static /*late*/ late int x;
+  f() {
+    x = 1;
+  }
+  int g() => x;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_late_hint_top_level_var() async {
+    var content = '''
+/*late*/ int x;
+f() {
+  x = 1;
+}
+int g() => x;
+''';
+    // TODO(paulberry): it would be better to just replace the comment with the
+    // word `late`.
+    var expected = '''
+/*late*/ late int x;
+f() {
+  x = 1;
+}
+int g() => x;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_leave_downcast_from_dynamic_implicit() async {
     var content = 'int f(dynamic n) => n;';
     var expected = 'int f(dynamic n) => n;';

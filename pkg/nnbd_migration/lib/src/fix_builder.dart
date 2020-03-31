@@ -646,6 +646,10 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
         }
       }
     }
+    if (_fixBuilder._variables.isLateHinted(source, node)) {
+      (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
+          .addLate = true;
+    }
     super.visitVariableDeclarationList(node);
   }
 }

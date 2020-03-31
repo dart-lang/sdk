@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -630,11 +630,21 @@ class NodeChangeForVariableDeclarationList
   /// that should be added.  Otherwise `null`.
   DartType addExplicitType;
 
+  /// Indicates whether a "late" annotation should be added to this variable
+  /// declaration.
+  bool addLate = false;
+
   NodeChangeForVariableDeclarationList() : super._();
 
   @override
   EditPlan _apply(VariableDeclarationList node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
+    if (addLate) {
+      innerPlans.add(aggregator.planner.insertText(
+          node,
+          node.firstTokenAfterCommentAndMetadata.offset,
+          [AtomicEdit.insert('late'), AtomicEdit.insert(' ')]));
+    }
     if (addExplicitType != null) {
       var typeText = addExplicitType.getDisplayString(withNullability: true);
       if (node.keyword?.keyword == Keyword.VAR) {

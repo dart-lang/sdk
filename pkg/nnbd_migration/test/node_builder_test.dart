@@ -1713,6 +1713,30 @@ typedef F = void Function();
     expect(decorated.node, same(never));
   }
 
+  Future<void> test_variableDeclaration_late_hint_after_metadata() async {
+    await analyze('@deprecated /*late*/ int i;');
+    expect(
+        variables.isLateHinted(
+            testSource, findNode.variableDeclarationList('int i')),
+        true);
+  }
+
+  Future<void> test_variableDeclaration_late_hint_multiple_comments() async {
+    await analyze('/*other*/ /*late*/ int i;');
+    expect(
+        variables.isLateHinted(
+            testSource, findNode.variableDeclarationList('int i')),
+        true);
+  }
+
+  Future<void> test_variableDeclaration_late_hint_simple() async {
+    await analyze('/*late*/ int i;');
+    expect(
+        variables.isLateHinted(
+            testSource, findNode.variableDeclarationList('int i')),
+        true);
+  }
+
   Future<void> test_variableDeclaration_type_simple() async {
     await analyze('''
 main() {
