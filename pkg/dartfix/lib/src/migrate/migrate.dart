@@ -158,12 +158,14 @@ class MigrateCommand extends Command {
           fileErrors.values.map((list) => list.length).reduce((a, b) => a + b);
       logger.stdout(
           '$issueCount analysis ${pluralize('issue', issueCount)} found:');
+      List<AnalysisError> allErrors = fileErrors.values
+          .fold(<AnalysisError>[], (list, element) => list..addAll(element));
       _displayIssues(
         logger,
         options.directory,
-        fileErrors.values
-            .fold(<AnalysisError>[], (list, element) => list..addAll(element)),
+        allErrors,
       );
+      var importErrorCount = allErrors.where(_isUriError).length;
 
       logger.stdout('');
       logger.stdout(
@@ -172,9 +174,14 @@ class MigrateCommand extends Command {
       if (options.ignoreErrors) {
         logger.stdout('Continuing with migration suggestions due to the use of '
             '--${MigrateOptions.ignoreErrorsOption}.');
-      } else if (!options.ignoreErrors) {
+      } else {
         // Fail with how to continue.
         logger.stdout('');
+        if (importErrorCount != 0) {
+          logger.stdout(
+              'Unresolved URIs found.  Did you forget to run "pub get"?');
+          logger.stdout('');
+        }
         logger.stdout(
             'Please fix the analysis issues (or, force generation of migration '
             'suggestions by re-running with '
@@ -370,6 +377,8 @@ the tool with --${MigrateOptions.applyChangesOption}).
       renderer.render(issue);
     }
   }
+
+  bool _isUriError(AnalysisError error) => error.code == 'uri_does_not_exist';
 
   /// Parse and validate the user's options; throw a UsageException if there are
   /// issues, and return an [MigrateOptions] result otherwise.
