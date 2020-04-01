@@ -31,26 +31,23 @@ List getVariances(Type typeWrapped) {
   return dart.getGenericArgVariances(type);
 }
 
-void checkVariances(List v1, List v2) {
-  Expect.equals(v1.length, v2.length);
-  for (int i = 0; i < v1.length; i++) {
-    Expect.equals(v1[i], v2[i]);
-  }
-}
-
 main() {
-  checkVariances(getVariances(A), [dart.Variance.contravariant]);
+  Expect.listEquals([dart.Variance.contravariant], getVariances(A));
 
-  checkVariances(getVariances(B), [dart.Variance.covariant]);
+  Expect.listEquals([dart.Variance.covariant], getVariances(B));
 
-  checkVariances(getVariances(C), [dart.Variance.invariant]);
+  Expect.listEquals([dart.Variance.invariant], getVariances(C));
 
   // Implicit variance is not emitted into the generated code.
   Expect.isNull(getVariances(D));
 
-  checkVariances(getVariances(E), [dart.Variance.invariant, dart.Variance.covariant, dart.Variance.contravariant]);
+  Expect.listEquals([
+    dart.Variance.invariant,
+    dart.Variance.covariant,
+    dart.Variance.contravariant
+  ], getVariances(E));
 
-  checkVariances(getVariances(F), [dart.Variance.contravariant]);
+  Expect.listEquals([dart.Variance.contravariant], getVariances(F));
 
-  checkVariances(getVariances(G), [dart.Variance.invariant]);
+  Expect.listEquals([dart.Variance.invariant], getVariances(G));
 }
