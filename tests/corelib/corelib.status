@@ -31,8 +31,9 @@ regexp/pcre_test: Slow, Pass # Issue 21593
 *: SkipByDesign
 
 [ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
-int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+int_parse_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
+iterable_return_type_int64_test: SkipByDesign # Requires int64 support.
+typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
 
 [ $arch == simarm || $arch == simarm64 ]
 bigint_parse_radix_test: Skip # Issue 31659
@@ -41,8 +42,6 @@ bigint_test: Skip # Issue 31659
 [ $compiler == dartdevc || $compiler == dartdevk ]
 bigint_test/03: SkipSlow # modPow is very slow
 bigint_test/15: SkipSlow # modPow is very slow
-int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 uri_parse_test: Slow, Pass
 uri_test: Slow, Pass
 
