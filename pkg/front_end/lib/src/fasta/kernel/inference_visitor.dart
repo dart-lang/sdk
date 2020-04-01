@@ -5600,7 +5600,8 @@ class InferenceVisitor
     if (!inferrer.isTopLevel) {
       bool isUnassigned = !inferrer.flowAnalysis.isAssigned(variable);
       if (isUnassigned) {
-        inferrer.dataForTesting?.flowAnalysisResult?.unassignedNodes?.add(node);
+        inferrer.dataForTesting?.flowAnalysisResult?.potentiallyUnassignedNodes
+            ?.add(node);
       }
       bool isDefinitelyUnassigned =
           inferrer.flowAnalysis.isUnassigned(variable);
