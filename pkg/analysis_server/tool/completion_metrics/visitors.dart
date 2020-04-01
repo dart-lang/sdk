@@ -644,6 +644,12 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     if (node == null || node.isSynthetic || node.inDeclarationContext()) {
       return false;
     }
+
+    // If the type of the SimpleIdentifier is dynamic, don't include.
+    if (node.staticType != null && node.staticType.isDynamic) {
+      return false;
+    }
+
     // If we are in a comment reference context, return if we should include
     // such identifiers.
     if (node.thisOrAncestorOfType<CommentReference>() != null) {
@@ -661,16 +667,17 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     // Named arguments, i.e. the 'foo' in 'method_call(foo: 1)' should not be
     // included, by design, the completion engine won't suggest named arguments
     // already it the source.
-    if (node.staticElement?.kind == element.ElementKind.PARAMETER &&
+    //
+    // The null check, node.staticElement == null, handles the cases where the
+    // invocation is unknown, i.e. the 'arg' in 'foo.bar(arg: 1)', where foo is
+    // dynamic.
+    if ((node.staticElement == null ||
+            node.staticElement?.kind == element.ElementKind.PARAMETER) &&
         node.parent is Label &&
         node.thisOrAncestorOfType<ArgumentList>() != null) {
       return false;
     }
 
-    // If the type of the SimpleIdentifier is dynamic, don't include.
-    if (node.staticType != null && node.staticType.isDynamic) {
-      return false;
-    }
     return true;
   }
 }
