@@ -179,6 +179,12 @@ struct InitStaticFieldABI {
   static const Register kFieldReg = R0;
 };
 
+// ABI for InitInstanceField.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = R0;
+  static const Register kFieldReg = R1;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 

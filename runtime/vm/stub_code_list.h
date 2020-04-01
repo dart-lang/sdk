@@ -87,6 +87,7 @@ namespace dart {
   V(ExitSafepoint)                                                             \
   V(CallNativeThroughSafepoint)                                                \
   V(InitStaticField)                                                           \
+  V(InitInstanceField)                                                         \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)

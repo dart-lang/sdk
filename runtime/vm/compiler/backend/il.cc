@@ -4079,6 +4079,35 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&no_call);
 }
 
+LocationSummary* InitInstanceFieldInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  auto const locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0,
+               Location::RegisterLocation(InitInstanceFieldABI::kInstanceReg));
+  return locs;
+}
+
+void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register temp = InitInstanceFieldABI::kFieldReg;
+
+  __ LoadField(temp, compiler::FieldAddress(InitInstanceFieldABI::kInstanceReg,
+                                            field().TargetOffset()));
+
+  compiler::Label no_call;
+  __ CompareObject(temp, Object::sentinel());
+  __ BranchIf(NOT_EQUAL, &no_call);
+
+  __ LoadObject(InitInstanceFieldABI::kFieldReg,
+                Field::ZoneHandle(field().Original()));
+  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
+                                  StubCode::InitInstanceField(),
+                                  /*kind=*/RawPcDescriptors::kOther, locs());
+  __ Bind(&no_call);
+}
+
 LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,
                                                bool optimizing) const {
   UNREACHABLE();

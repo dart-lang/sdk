@@ -116,6 +116,12 @@ struct InitStaticFieldABI {
   static const Register kFieldReg = EAX;
 };
 
+// ABI for InitInstanceField.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = EAX;
+  static const Register kFieldReg = EBX;
+};
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
 

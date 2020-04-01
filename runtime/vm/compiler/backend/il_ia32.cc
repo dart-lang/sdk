@@ -2653,36 +2653,6 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          RawPcDescriptors::kOther, locs());
 }
 
-LocationSummary* InitInstanceFieldInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(EAX));
-  locs->set_temp(0, Location::RegisterLocation(ECX));
-  return locs;
-}
-
-void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
-
-  compiler::Label no_call;
-
-  __ movl(temp, compiler::FieldAddress(instance, field().TargetOffset()));
-  __ CompareObject(temp, Object::sentinel());
-  __ j(NOT_EQUAL, &no_call, compiler::Assembler::kNearJump);
-
-  __ pushl(compiler::Immediate(0));  // Make room for (unused) result.
-  __ pushl(instance);
-  __ PushObject(Field::ZoneHandle(field().Original()));
-  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInitInstanceFieldRuntimeEntry, 2, locs());
-  __ Drop(3);  // Remove arguments and unused result.
-  __ Bind(&no_call);
-}
-
 LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;

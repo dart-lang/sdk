@@ -160,6 +160,12 @@ struct InitStaticFieldABI {
   static const Register kFieldReg = RAX;
 };
 
+// ABI for InitInstanceField.
+struct InitInstanceFieldABI {
+  static const Register kInstanceReg = RAX;
+  static const Register kFieldReg = RBX;
+};
+
 // Registers used inside the implementation of type testing stubs.
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = RSI;

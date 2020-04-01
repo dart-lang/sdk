@@ -29,6 +29,17 @@ void StubCodeCompiler::GenerateInitStaticFieldStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateInitInstanceFieldStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make room for (unused) result.
+  __ PushRegister(InitInstanceFieldABI::kInstanceReg);
+  __ PushRegister(InitInstanceFieldABI::kFieldReg);
+  __ CallRuntime(kInitInstanceFieldRuntimeEntry, /*argument_count=*/2);
+  __ Drop(3);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 }  // namespace compiler
 
 }  // namespace dart
