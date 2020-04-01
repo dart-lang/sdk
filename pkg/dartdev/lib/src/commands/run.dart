@@ -14,10 +14,7 @@ class RunCommand extends DartdevCommand<int> {
   final ArgParser argParser = ArgParser.allowAnything();
 
   RunCommand({bool verbose = false}) : super('run', '''
-Run a Dart app or package.
-
-dart run <file path>   run the specified Dart file
-dart run package:foo   run the Dart file specified by some <package>:<executable>''');
+Run a Dart file.''');
 
   @override
   String get invocation => '${super.invocation} <dart file | package target>';
@@ -37,17 +34,18 @@ dart run package:foo   run the Dart file specified by some <package>:<executable
     // and we want to guarantee that the result (the help text for the console)
     // is printed before command exits.
     final result = Process.runSync(command, args);
-    stderr.write(result.stderr);
-    stdout.write(result.stdout);
+    if (result.stderr.isNotEmpty) {
+      stderr.write(result.stderr);
+    }
+    if (result.stdout.isNotEmpty) {
+      stdout.write(result.stdout);
+    }
   }
 
   @override
   FutureOr<int> run() async {
     // the command line arguments after 'run'
     final args = argResults.arguments;
-
-    // TODO(jwren) Implement support for pubspec executables, see
-    //  https://dart.dev/tools/pub/pubspec#executables
 
     // Starting in ProcessStartMode.inheritStdio mode means the child process
     // can detect support for ansi chars.
