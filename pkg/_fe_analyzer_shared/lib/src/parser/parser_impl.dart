@@ -4439,6 +4439,7 @@ class Parser {
       // postfix operator to assert the expression has a non-null value.
       TokenType nextType = token.next.type;
       if (identical(nextType, TokenType.PERIOD) ||
+          identical(nextType, TokenType.QUESTION) ||
           identical(nextType, TokenType.OPEN_PAREN) ||
           identical(nextType, TokenType.OPEN_SQUARE_BRACKET) ||
           identical(nextType, TokenType.QUESTION_PERIOD) ||
