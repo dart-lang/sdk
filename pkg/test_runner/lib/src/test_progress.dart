@@ -104,8 +104,8 @@ class IgnoredTestMonitor extends EventListener {
     if (test.lastCommandOutput.result(test) == Expectation.ignore) {
       countIgnored++;
       if (countIgnored > maxIgnored) {
-        print("/nMore than $maxIgnored tests were ignored due to flakes in");
-        print("the test infrastructure. Notify whesse@google.com.");
+        print("\nMore than $maxIgnored tests were ignored due to flakes in");
+        print("the test infrastructure. Notify dart-engprod@.");
         print("Output of the last ignored test was:");
         print(_buildFailureOutput(test));
         exit(1);
