@@ -1708,6 +1708,172 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-asan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm builders with AddressSanitizer (asan)."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--sanitizer=asan"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--sanitizer=asan",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-asan-linux-release-${arch}"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-lsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm builders with LeakSanitizer (lsan)."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--sanitizer=lsan"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--sanitizer=lsan",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-lsan-linux-release-${arch}"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-msan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm builders with MemorySanitizer (msan)."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--sanitizer=msan"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--sanitizer=msan",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-msan-linux-release-${arch}"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-tsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm builders with ThreadSanitizer (tsan)."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--sanitizer=tsan"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--sanitizer=tsan",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-tsan-linux-release-${arch}",
+            "vm"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-ubsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm builders with UndefinedBehaviorSanitizer (ubsan)."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--sanitizer=ubsan"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--sanitizer=ubsan",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-ubsan-linux-release-${arch}"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
         "vm-kernel-linux-release-ia32",
