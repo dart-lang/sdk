@@ -94,6 +94,9 @@ bool validArguments(ArgParser parser, ArgResults result) {
 /// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
 /// objects for a run of [CompletionMetricsComputer].
 class CompletionMetrics {
+  /// The maximum number of worst results to collect.
+  static const maxWorstResults = 10;
+
   /// The name associated with this set of metrics.
   final String name;
 
@@ -126,7 +129,23 @@ class CompletionMetrics {
   MeanReciprocalRankComputer nonTypeMemberMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
+  /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks.
+  List<CompletionResult> worstResults = [];
+
   CompletionMetrics(this.name);
+
+  /// If the [result] is worse than any previously recorded results, record it.
+  void recordCompletionResult(CompletionResult result) {
+    if (worstResults.length >= maxWorstResults) {
+      if (result.place.rank <= worstResults.last.place.rank) {
+        return;
+      }
+      worstResults.removeLast();
+    }
+    worstResults.add(result);
+    worstResults.sort((first, second) => second.place.rank - first.place.rank);
+  }
 }
 
 /// This is the main metrics computer class for code completions. After the
@@ -166,6 +185,9 @@ class CompletionMetricsComputer {
     }
     printMetrics(metricsOldMode);
     printMetrics(metricsNewMode);
+    if (verbose) {
+      printWorstResults(metricsNewMode);
+    }
     return resultCode;
   }
 
@@ -180,6 +202,8 @@ class CompletionMetricsComputer {
     if (place.denominator != 0) {
       metrics.successfulMrrComputer.addRank(place.rank);
       metrics.completionCounter.count('successful');
+      metrics.recordCompletionResult(
+          CompletionResult(place, suggestions, expectedCompletion));
 
       var element = getElement(expectedCompletion.syntacticEntity);
       if (isInstanceMember(element)) {
@@ -246,6 +270,32 @@ class CompletionMetricsComputer {
     metrics.meanCompletionMS.printMean();
     metrics.completionCounter.printCounterValues();
     print('====================');
+  }
+
+  void printWorstResults(CompletionMetrics metrics) {
+    print('');
+    print('====================');
+    print('The worst completion results:');
+    for (var result in metrics.worstResults) {
+      var rank = result.place.rank;
+      var expected = result.expectedCompletion;
+      var suggestions = result.suggestions;
+      var preceeding = StringBuffer();
+      for (var i = 0; i < rank - 1; i++) {
+        if (i > 0) {
+          preceeding.write(', ');
+        }
+        preceeding.write(suggestions[i].relevance);
+      }
+      print('');
+      print('Rank: $rank');
+      print('Completion: ${expected.completion}');
+      print('Completion kind: ${expected.kind}');
+      print('Element kind: ${expected.elementKind}');
+      print('Offset: ${expected.offset}');
+      print('Preceeding: $preceeding');
+      print('Suggestion: ${suggestions[rank - 1]}');
+    }
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
@@ -400,4 +450,15 @@ class CompletionMetricsComputer {
     }
     return Place.none();
   }
+}
+
+/// The result of a single completion.
+class CompletionResult {
+  final Place place;
+
+  final List<CompletionSuggestion> suggestions;
+
+  final ExpectedCompletion expectedCompletion;
+
+  CompletionResult(this.place, this.suggestions, this.expectedCompletion);
 }
