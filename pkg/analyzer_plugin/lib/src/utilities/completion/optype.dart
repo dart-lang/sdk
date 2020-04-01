@@ -439,6 +439,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (identical(entity, node.returnType) && node.name == null) {
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;

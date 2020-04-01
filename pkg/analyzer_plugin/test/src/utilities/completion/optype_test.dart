@@ -491,6 +491,30 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
+  Future<void> test_ConstructorDeclaration() async {
+    // ClassDeclaration
+    // This ConstructorDeclaration case is handled by the ClassDeclaration
+    // visitor.
+    addTestSource('''
+      class ABC {
+        int i;
+        A^(this.i) : assert(i != 0);
+      }''');
+    await assertOpType(typeNames: true);
+  }
+
+  Future<void> test_ConstructorDeclaration_const() async {
+    // ConstructorDeclaration
+    // The additional syntax with assert is to ensure that the target node is
+    // a ConstructorDeclaration, instead of a MethodDeclaration.
+    addTestSource('''
+      class ABC {
+        int i;
+        const A^(this.i) : assert(i != 0);
+      }''');
+    await assertOpType(typeNames: true);
+  }
+
   Future<void> test_ConstructorFieldInitializer_name() async {
     addTestSource(r'''
 class C {
