@@ -36,11 +36,12 @@ return Scaffold(
       ],
       mainAxisAlignment: MainAxisAlignment.center,
     ),
-    floatingActionButton: FloatingActionButton(
-      child: Icon(Icons.add),
-      onPressed: _incrementCounter,
-      tooltip: 'Increment',
-    ),
+    widthFactor: 0.5,
+  ),
+  floatingActionButton: FloatingActionButton(
+    child: Icon(Icons.add),
+    onPressed: _incrementCounter,
+    tooltip: 'Increment',
   ),
 );
 ```
@@ -52,8 +53,9 @@ return Scaffold(
     title: Text(widget.title),
   ),
   body: Center(
-    mainAxisAlignment: MainAxisAlignment.center,
+    widthFactor: 0.5,
     child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Text(
           'You have pushed the button this many times:',
@@ -64,11 +66,11 @@ return Scaffold(
          ),
       ],
     ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: _incrementCounter,
-      tooltip: 'Increment',
-      child: Icon(Icons.add),
-    ),
+  ),
+  floatingActionButton: FloatingActionButton(
+    onPressed: _incrementCounter,
+    tooltip: 'Increment',
+    child: Icon(Icons.add),
   ),
 );
 ```
