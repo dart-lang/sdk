@@ -12014,12 +12014,12 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.StorePointer(&result.raw_ptr()->exported_names_, Array::null());
   result.StorePointer(&result.raw_ptr()->dictionary_,
                       Object::empty_array().raw());
-  result.StorePointer(&result.raw_ptr()->metadata_,
-                      GrowableObjectArray::New(4, Heap::kOld));
+  GrowableObjectArray& list = GrowableObjectArray::Handle(zone);
+  list = GrowableObjectArray::New(4, Heap::kOld);
+  result.StorePointer(&result.raw_ptr()->metadata_, list.raw());
   result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
-  const GrowableObjectArray& scripts = GrowableObjectArray::Handle(zone,
-      GrowableObjectArray::New(Object::empty_array(), Heap::kOld));
-  result.StorePointer(&result.raw_ptr()->used_scripts_, scripts.raw());
+  list = GrowableObjectArray::New(Object::empty_array(), Heap::kOld);
+  result.StorePointer(&result.raw_ptr()->used_scripts_, list.raw());
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
