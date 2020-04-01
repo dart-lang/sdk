@@ -28,24 +28,24 @@ main() {
 }
 
 @reflectiveTest
-class ConstraintMatchingTest extends AbstractTypeSystemTest {
+class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
   TypeParameterType T;
 
   @override
   void setUp() {
     super.setUp();
-    T = typeParameterTypeStar(
+    T = typeParameterTypeNone(
       typeParameter('T'),
     );
   }
 
   void test_function_coreFunction() {
     _checkOrdinarySubtypeMatch(
-      functionTypeStar(
+      functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
-        returnType: stringStar,
+        returnType: stringNone,
       ),
       typeProvider.functionType,
       [T],
@@ -55,17 +55,17 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
   void test_function_parameter_types() {
     _checkIsSubtypeMatchOf(
-      functionTypeStar(
+      functionTypeNone(
         parameters: [
           requiredParameter(type: T),
         ],
-        returnType: intStar,
+        returnType: intNone,
       ),
-      functionTypeStar(
+      functionTypeNone(
         parameters: [
-          requiredParameter(type: stringStar),
+          requiredParameter(type: stringNone),
         ],
-        returnType: intStar,
+        returnType: intNone,
       ),
       [T],
       ['String <: T'],
@@ -75,17 +75,17 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
   void test_function_return_types() {
     _checkIsSubtypeMatchOf(
-      functionTypeStar(
+      functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
         returnType: T,
       ),
-      functionTypeStar(
+      functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
-        returnType: stringStar,
+        returnType: stringNone,
       ),
       [T],
       ['T <: String'],
@@ -95,7 +95,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
   void test_futureOr_futureOr() {
     _checkIsSubtypeMatchOf(
-        futureOrStar(T), futureOrStar(stringStar), [T], ['T <: String'],
+        futureOrNone(T), futureOrNone(stringNone), [T], ['T <: String'],
         covariant: true);
   }
 
@@ -103,7 +103,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // FutureOr<List<T>> <: List<String> can't be satisfied because
     // Future<List<T>> <: List<String> can't be satisfied
     _checkIsNotSubtypeMatchOf(
-        futureOrStar(listStar(T)), listStar(stringStar), [T],
+        futureOrNone(listNone(T)), listNone(stringNone), [T],
         covariant: true);
   }
 
@@ -111,7 +111,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // FutureOr<List<T>> <: Future<List<String>> can't be satisfied because
     // List<T> <: Future<List<String>> can't be satisfied
     _checkIsNotSubtypeMatchOf(
-        futureOrStar(listStar(T)), futureStar(listStar(stringStar)), [T],
+        futureOrNone(listNone(T)), futureNone(listNone(stringNone)), [T],
         covariant: true);
   }
 
@@ -119,29 +119,29 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // FutureOr<T> <: Future<T> can be satisfied by T=Null.  At this point in
     // the type inference algorithm all we figure out is that T must be a
     // subtype of both String and Future<String>.
-    _checkIsSubtypeMatchOf(futureOrStar(T), futureStar(stringStar), [T],
+    _checkIsSubtypeMatchOf(futureOrNone(T), futureNone(stringNone), [T],
         ['T <: String', 'T <: Future<String>'],
         covariant: true);
   }
 
   void test_lhs_null() {
     // Null <: T is trivially satisfied by the constraint Null <: T.
-    _checkIsSubtypeMatchOf(nullStar, T, [T], ['Null <: T'], covariant: false);
+    _checkIsSubtypeMatchOf(nullNone, T, [T], ['Null <: T'], covariant: false);
     // For any other type X, Null <: X is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(nullStar, listStar(T), [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullStar, stringStar, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullStar, voidNone, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullStar, dynamicType, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullStar, objectStar, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullStar, nullStar, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, listNone(T), [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, stringNone, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, voidNone, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, dynamicType, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, objectNone, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, nullNone, [T], covariant: false);
     _checkOrdinarySubtypeMatch(
-      nullStar,
-      functionTypeStar(
+      nullNone,
+      functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
-        returnType: stringStar,
+        returnType: stringNone,
       ),
       [T],
       covariant: false,
@@ -158,8 +158,8 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     //
     // In other words, List<S> <: List<T> is satisfied provided that
     // S <: T.
-    var S = typeParameterTypeStar(typeParameter('S'));
-    _checkIsSubtypeMatchOf(listStar(S), listStar(T), [T], ['S <: T'],
+    var S = typeParameterTypeNone(typeParameter('S'));
+    _checkIsSubtypeMatchOf(listNone(S), listNone(T), [T], ['S <: T'],
         covariant: false);
   }
 
@@ -171,25 +171,25 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     //
     // In other words, S <: List<T> is satisfied provided that
     // bound(S) <: List<T>.
-    var S = typeParameterTypeStar(typeParameter(
+    var S = typeParameterTypeNone(typeParameter(
       'S',
-      bound: listStar(stringStar),
+      bound: listNone(stringNone),
     ));
-    _checkIsSubtypeMatchOf(S, listStar(T), [T], ['String <: T'],
+    _checkIsSubtypeMatchOf(S, listNone(T), [T], ['String <: T'],
         covariant: false);
   }
 
   void test_param_on_lhs_covariant() {
     // When doing a covariant match, the type parameters we're trying to find
     // types for are on the left hand side.
-    _checkIsSubtypeMatchOf(T, stringStar, [T], ['T <: String'],
+    _checkIsSubtypeMatchOf(T, stringNone, [T], ['T <: String'],
         covariant: true);
   }
 
   void test_param_on_rhs_contravariant() {
     // When doing a contravariant match, the type parameters we're trying to
     // find types for are on the right hand side.
-    _checkIsSubtypeMatchOf(stringStar, T, [T], ['String <: T'],
+    _checkIsSubtypeMatchOf(stringNone, T, [T], ['String <: T'],
         covariant: false);
   }
 
@@ -202,7 +202,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     //
     // In other words, T <: S can be satisfied trivially by the constraint
     // T <: S.
-    var S = typeParameterTypeStar(typeParameter('S'));
+    var S = typeParameterTypeNone(typeParameter('S'));
     _checkIsSubtypeMatchOf(T, S, [T], ['T <: S'], covariant: true);
   }
 
@@ -216,18 +216,18 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     //
     // In other words, no match can be found for List<T> <: S because regardless
     // of T, we can't guarantee that List<T> <: S for all S.
-    var S = typeParameterTypeStar(typeParameter('S'));
-    _checkIsNotSubtypeMatchOf(listStar(T), S, [T], covariant: true);
+    var S = typeParameterTypeNone(typeParameter('S'));
+    _checkIsNotSubtypeMatchOf(listNone(T), S, [T], covariant: true);
   }
 
   void test_related_interface_types_failure() {
-    _checkIsNotSubtypeMatchOf(iterableStar(T), listStar(stringStar), [T],
+    _checkIsNotSubtypeMatchOf(iterableNone(T), listNone(stringNone), [T],
         covariant: true);
   }
 
   void test_related_interface_types_success() {
     _checkIsSubtypeMatchOf(
-        listStar(T), iterableStar(stringStar), [T], ['T <: String'],
+        listNone(T), iterableNone(stringNone), [T], ['T <: String'],
         covariant: true);
   }
 
@@ -237,18 +237,18 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
         covariant: true);
     // For any other type X, X <: dynamic is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(listStar(T), dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(stringStar, dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(listNone(T), dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(stringNone, dynamicType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(voidNone, dynamicType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(dynamicType, dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(objectStar, dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(nullStar, dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(objectNone, dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(nullNone, dynamicType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(
-      functionTypeStar(
+      functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
-        returnType: stringStar,
+        returnType: stringNone,
       ),
       dynamicType,
       [T],
@@ -258,24 +258,24 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
   void test_rhs_object() {
     // T <: Object is trivially satisfied by the constraint T <: Object.
-    _checkIsSubtypeMatchOf(T, objectStar, [T], ['T <: Object'],
+    _checkIsSubtypeMatchOf(T, objectNone, [T], ['T <: Object'],
         covariant: true);
     // For any other type X, X <: Object is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(listStar(T), objectStar, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(stringStar, objectStar, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(voidNone, objectStar, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(dynamicType, objectStar, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(objectStar, objectStar, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(nullStar, objectStar, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(listNone(T), objectNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(stringNone, objectNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(voidNone, objectNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(dynamicType, objectNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(objectNone, objectNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(nullNone, objectNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(
-      functionTypeStar(
+      functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
-        returnType: stringStar,
+        returnType: stringNone,
       ),
-      objectStar,
+      objectNone,
       [T],
       covariant: true,
     );
@@ -286,18 +286,18 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     _checkIsSubtypeMatchOf(T, voidNone, [T], ['T <: void'], covariant: true);
     // For any other type X, X <: void is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(listStar(T), voidNone, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(stringStar, voidNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(listNone(T), voidNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(stringNone, voidNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(voidNone, voidNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(dynamicType, voidNone, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(objectStar, voidNone, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(nullStar, voidNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(objectNone, voidNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(nullNone, voidNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(
-      functionTypeStar(
+      functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
-        returnType: stringStar,
+        returnType: stringNone,
       ),
       voidNone,
       [T],
@@ -307,7 +307,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
   void test_same_interface_types() {
     _checkIsSubtypeMatchOf(
-        listStar(T), listStar(stringStar), [T], ['T <: String'],
+        listNone(T), listNone(stringNone), [T], ['T <: String'],
         covariant: true);
   }
 
@@ -320,7 +320,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // A<num>
     // A<T>
     var aNum = interfaceType(A,
-        typeArguments: [numStar], nullabilitySuffix: NullabilitySuffix.none);
+        typeArguments: [numNone], nullabilitySuffix: NullabilitySuffix.none);
     var aT = interfaceType(A,
         typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
 
@@ -336,7 +336,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // A<num>
     // A<T>
     var aNum = interfaceType(A,
-        typeArguments: [numStar], nullabilitySuffix: NullabilitySuffix.none);
+        typeArguments: [numNone], nullabilitySuffix: NullabilitySuffix.none);
     var aT = interfaceType(A,
         typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
 
@@ -353,7 +353,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // A<num>
     // A<T>
     var aNum = interfaceType(A,
-        typeArguments: [numStar], nullabilitySuffix: NullabilitySuffix.none);
+        typeArguments: [numNone], nullabilitySuffix: NullabilitySuffix.none);
     var aT = interfaceType(A,
         typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
 
@@ -365,7 +365,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
   void test_x_futureOr_fail_both_branches() {
     // List<T> <: FutureOr<String> can't be satisfied because neither
     // List<T> <: Future<String> nor List<T> <: int can be satisfied
-    _checkIsNotSubtypeMatchOf(listStar(T), futureOrStar(stringStar), [T],
+    _checkIsNotSubtypeMatchOf(listNone(T), futureOrNone(stringNone), [T],
         covariant: true);
   }
 
@@ -377,7 +377,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // constraint Future<String> <: T.  We keep the constraint based on trying
     // to match Future<String> <: Future<T>, so String <: T.
     _checkIsSubtypeMatchOf(
-        futureStar(stringStar), futureOrStar(T), [T], ['String <: T'],
+        futureNone(stringNone), futureOrNone(T), [T], ['String <: T'],
         covariant: false);
   }
 
@@ -388,7 +388,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // T <: Object, whereas trying to match Future<T> <: Object generates no
     // constraints, so we keep the constraint T <: Object.
     _checkIsSubtypeMatchOf(
-        futureStar(T), futureOrStar(objectStar), [T], ['T <: Object'],
+        futureNone(T), futureOrNone(objectNone), [T], ['T <: Object'],
         covariant: true);
   }
 
@@ -398,7 +398,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // Trying to match Null <: FutureOr<T> generates no constraints, whereas
     // trying to match Null <: T generates the constraint Null <: T,
     // so we keep the constraint Null <: T.
-    _checkIsSubtypeMatchOf(nullStar, futureOrStar(T), [T], ['Null <: T'],
+    _checkIsSubtypeMatchOf(nullNone, futureOrNone(T), [T], ['Null <: T'],
         covariant: false);
   }
 
@@ -407,7 +407,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // Future<String> <: Future<Object> and Future<String> <: Object.
     // No constraints are recorded.
     _checkIsSubtypeMatchOf(
-        futureStar(stringStar), futureOrStar(objectStar), [T], [],
+        futureNone(stringNone), futureOrNone(objectNone), [T], [],
         covariant: true);
   }
 
@@ -415,7 +415,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // Future<T> <: FutureOr<String> can be satisfied because
     // Future<T> <: Future<String> can be satisfied
     _checkIsSubtypeMatchOf(
-        futureStar(T), futureOrStar(stringStar), [T], ['T <: String'],
+        futureNone(T), futureOrNone(stringNone), [T], ['T <: String'],
         covariant: true);
   }
 
@@ -423,7 +423,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // List<T> <: FutureOr<List<String>> can be satisfied because
     // List<T> <: List<String> can be satisfied
     _checkIsSubtypeMatchOf(
-        listStar(T), futureOrStar(listStar(stringStar)), [T], ['T <: String'],
+        listNone(T), futureOrNone(listNone(stringNone)), [T], ['T <: String'],
         covariant: true);
   }
 
@@ -460,10 +460,8 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
       for (var constraint in constraintsForTypeParameter) {
         formattedConstraints.add(
           constraint.format(
-            typeParameter.getDisplayString(
-              withNullability: typeSystem.isNonNullableByDefault,
-            ),
-            withNullability: false,
+            typeParameter.getDisplayString(withNullability: true),
+            withNullability: true,
           ),
         );
       }
@@ -484,53 +482,53 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
+class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');
     var tTo =
-        typeParameter('TTo', bound: iterableStar(typeParameterTypeStar(tFrom)));
-    var cast = functionTypeStar(
+        typeParameter('TTo', bound: iterableNone(typeParameterTypeNone(tFrom)));
+    var cast = functionTypeNone(
       typeFormals: [tFrom, tTo],
       parameters: [
         requiredParameter(
-          type: typeParameterTypeStar(tFrom),
+          type: typeParameterTypeNone(tFrom),
         ),
       ],
-      returnType: typeParameterTypeStar(tTo),
+      returnType: typeParameterTypeNone(tTo),
     );
-    expect(_inferCall(cast, [stringStar]),
-        [stringStar, (iterableStar(stringStar))]);
+    expect(_inferCall(cast, [stringNone]),
+        [stringNone, (iterableNone(stringNone))]);
   }
 
   void test_boundedByOuterClass() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
     // class A {}
-    var A = class_(name: 'A', superType: objectStar);
-    var typeA = interfaceTypeStar(A);
+    var A = class_(name: 'A', superType: objectNone);
+    var typeA = interfaceTypeNone(A);
 
     // class B extends A {}
     var B = class_(name: 'B', superType: typeA);
-    var typeB = interfaceTypeStar(B);
+    var typeB = interfaceTypeNone(B);
 
     // class C<T extends A> {
     var CT = typeParameter('T', bound: typeA);
     var C = class_(
       name: 'C',
-      superType: objectStar,
+      superType: objectNone,
       typeParameters: [CT],
     );
     //   S m<S extends T>(S);
-    var S = typeParameter('S', bound: typeParameterTypeStar(CT));
+    var S = typeParameter('S', bound: typeParameterTypeNone(CT));
     var m = method(
       'm',
-      typeParameterTypeStar(S),
+      typeParameterTypeNone(S),
       typeFormals: [S],
       parameters: [
         requiredParameter(
           name: '_',
-          type: typeParameterTypeStar(S),
+          type: typeParameterTypeNone(S),
         ),
       ],
     );
@@ -538,11 +536,11 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // }
 
     // C<Object> cOfObject;
-    var cOfObject = interfaceTypeStar(C, typeArguments: [objectStar]);
+    var cOfObject = interfaceTypeNone(C, typeArguments: [objectNone]);
     // C<A> cOfA;
-    var cOfA = interfaceTypeStar(C, typeArguments: [typeA]);
+    var cOfA = interfaceTypeNone(C, typeArguments: [typeA]);
     // C<B> cOfB;
-    var cOfB = interfaceTypeStar(C, typeArguments: [typeB]);
+    var cOfB = interfaceTypeNone(C, typeArguments: [typeB]);
     // B b;
     // cOfB.m(b); // infer <B>
     _assertType(
@@ -559,31 +557,31 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
     // class A {}
-    var A = class_(name: 'A', superType: objectStar);
-    var typeA = interfaceTypeStar(A);
+    var A = class_(name: 'A', superType: objectNone);
+    var typeA = interfaceTypeNone(A);
 
     // class B extends A {}
     var B = class_(name: 'B', superType: typeA);
-    var typeB = interfaceTypeStar(B);
+    var typeB = interfaceTypeNone(B);
 
     // class C<T extends A> {
     var CT = typeParameter('T', bound: typeA);
     var C = class_(
       name: 'C',
-      superType: objectStar,
+      superType: objectNone,
       typeParameters: [CT],
     );
     //   S m<S extends Iterable<T>>(S);
-    var iterableOfT = iterableStar(typeParameterTypeStar(CT));
+    var iterableOfT = iterableNone(typeParameterTypeNone(CT));
     var S = typeParameter('S', bound: iterableOfT);
     var m = method(
       'm',
-      typeParameterTypeStar(S),
+      typeParameterTypeNone(S),
       typeFormals: [S],
       parameters: [
         requiredParameter(
           name: '_',
-          type: typeParameterTypeStar(S),
+          type: typeParameterTypeNone(S),
         ),
       ],
     );
@@ -591,13 +589,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // }
 
     // C<Object> cOfObject;
-    var cOfObject = interfaceTypeStar(C, typeArguments: [objectStar]);
+    var cOfObject = interfaceTypeNone(C, typeArguments: [objectNone]);
     // C<A> cOfA;
-    var cOfA = interfaceTypeStar(C, typeArguments: [typeA]);
+    var cOfA = interfaceTypeNone(C, typeArguments: [typeA]);
     // C<B> cOfB;
-    var cOfB = interfaceTypeStar(C, typeArguments: [typeB]);
+    var cOfB = interfaceTypeNone(C, typeArguments: [typeB]);
     // List<B> b;
-    var listOfB = listStar(typeB);
+    var listOfB = listNone(typeB);
     // cOfB.m(b); // infer <B>
     _assertType(_inferCall2(cOfB.getMethod('m').type, [listOfB]),
         'List<B> Function(List<B>)');
@@ -614,26 +612,26 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     var A = class_(
       name: 'Cloneable',
-      superType: objectStar,
+      superType: objectNone,
       typeParameters: [T],
     );
-    T.bound = interfaceTypeStar(
+    T.bound = interfaceTypeNone(
       A,
-      typeArguments: [typeParameterTypeStar(T)],
+      typeArguments: [typeParameterTypeNone(T)],
     );
 
     // class B extends A<B> {}
     var B = class_(name: 'B', superType: null);
-    B.supertype = interfaceTypeStar(A, typeArguments: [interfaceTypeStar(B)]);
-    var typeB = interfaceTypeStar(B);
+    B.supertype = interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
+    var typeB = interfaceTypeNone(B);
 
     // <S extends A<S>>
     var S = typeParameter('S');
-    var typeS = typeParameterTypeStar(S);
-    S.bound = interfaceTypeStar(A, typeArguments: [typeS]);
+    var typeS = typeParameterTypeNone(S);
+    S.bound = interfaceTypeNone(A, typeArguments: [typeS]);
 
     // (S, S) -> S
-    var clone = functionTypeStar(
+    var clone = functionTypeNone(
       typeFormals: [S],
       parameters: [
         requiredParameter(type: typeS),
@@ -645,8 +643,8 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     // Something invalid...
     expect(
-      _inferCall(clone, [stringStar, numStar], expectError: true),
-      [objectStar],
+      _inferCall(clone, [stringNone, numNone], expectError: true),
+      [objectNone],
     );
   }
 
@@ -654,16 +652,16 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // <TFrom, TTo>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');
     var tTo = typeParameter('TTo');
-    var cast = functionTypeStar(
+    var cast = functionTypeNone(
       typeFormals: [tFrom, tTo],
       parameters: [
         requiredParameter(
-          type: typeParameterTypeStar(tFrom),
+          type: typeParameterTypeNone(tFrom),
         ),
       ],
-      returnType: typeParameterTypeStar(tTo),
+      returnType: typeParameterTypeNone(tTo),
     );
-    expect(_inferCall(cast, [intStar]), [intStar, dynamicType]);
+    expect(_inferCall(cast, [intNone]), [intNone, dynamicType]);
   }
 
   void test_genericCastFunctionWithUpperBound() {
@@ -671,18 +669,18 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var tFrom = typeParameter('TFrom');
     var tTo = typeParameter(
       'TTo',
-      bound: typeParameterTypeStar(tFrom),
+      bound: typeParameterTypeNone(tFrom),
     );
-    var cast = functionTypeStar(
+    var cast = functionTypeNone(
       typeFormals: [tFrom, tTo],
       parameters: [
         requiredParameter(
-          type: typeParameterTypeStar(tFrom),
+          type: typeParameterTypeNone(tFrom),
         ),
       ],
-      returnType: typeParameterTypeStar(tTo),
+      returnType: typeParameterTypeNone(tTo),
     );
-    expect(_inferCall(cast, [intStar]), [intStar, intStar]);
+    expect(_inferCall(cast, [intNone]), [intNone, intNone]);
   }
 
   void test_parameter_contravariantUseUpperBound() {
@@ -690,21 +688,21 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Generates constraints int <: T <: num.
     // Since T is contravariant, choose num.
     var T = typeParameter('T', variance: Variance.contravariant);
-    var tFunction = functionTypeStar(
-        parameters: [requiredParameter(type: typeParameterTypeStar(T))],
+    var tFunction = functionTypeNone(
+        parameters: [requiredParameter(type: typeParameterTypeNone(T))],
         returnType: voidNone);
-    var numFunction = functionTypeStar(
-        parameters: [requiredParameter(type: numStar)], returnType: voidNone);
-    var function = functionTypeStar(
+    var numFunction = functionTypeNone(
+        parameters: [requiredParameter(type: numNone)], returnType: voidNone);
+    var function = functionTypeNone(
       typeFormals: [T],
       parameters: [
-        requiredParameter(type: typeParameterTypeStar(T)),
+        requiredParameter(type: typeParameterTypeNone(T)),
         requiredParameter(type: tFunction)
       ],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
 
-    expect(_inferCall(function, [intStar, numFunction]), [numStar]);
+    expect(_inferCall(function, [intNone, numFunction]), [numNone]);
   }
 
   void test_parameter_covariantUseLowerBound() {
@@ -712,317 +710,317 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Generates constraints int <: T <: num.
     // Since T is covariant, choose int.
     var T = typeParameter('T', variance: Variance.covariant);
-    var tFunction = functionTypeStar(
-        parameters: [requiredParameter(type: typeParameterTypeStar(T))],
+    var tFunction = functionTypeNone(
+        parameters: [requiredParameter(type: typeParameterTypeNone(T))],
         returnType: voidNone);
-    var numFunction = functionTypeStar(
-        parameters: [requiredParameter(type: numStar)], returnType: voidNone);
-    var function = functionTypeStar(
+    var numFunction = functionTypeNone(
+        parameters: [requiredParameter(type: numNone)], returnType: voidNone);
+    var function = functionTypeNone(
       typeFormals: [T],
       parameters: [
-        requiredParameter(type: typeParameterTypeStar(T)),
+        requiredParameter(type: typeParameterTypeNone(T)),
         requiredParameter(type: tFunction)
       ],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
 
-    expect(_inferCall(function, [intStar, numFunction]), [intStar]);
+    expect(_inferCall(function, [intNone, numFunction]), [intNone]);
   }
 
   void test_parametersToFunctionParam() {
     // <T>(f(T t)) -> T
     var T = typeParameter('T');
-    var cast = functionTypeStar(
+    var cast = functionTypeNone(
       typeFormals: [T],
       parameters: [
         requiredParameter(
-          type: functionTypeStar(
+          type: functionTypeNone(
             parameters: [
               requiredParameter(
-                type: typeParameterTypeStar(T),
+                type: typeParameterTypeNone(T),
               ),
             ],
             returnType: dynamicType,
           ),
         ),
       ],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
     expect(
       _inferCall(cast, [
-        functionTypeStar(
+        functionTypeNone(
           parameters: [
-            requiredParameter(type: numStar),
+            requiredParameter(type: numNone),
           ],
           returnType: dynamicType,
         )
       ]),
-      [numStar],
+      [numNone],
     );
   }
 
   void test_parametersUseLeastUpperBound() {
     // <T>(T x, T y) -> T
     var T = typeParameter('T');
-    var cast = functionTypeStar(
+    var cast = functionTypeNone(
       typeFormals: [T],
       parameters: [
-        requiredParameter(type: typeParameterTypeStar(T)),
-        requiredParameter(type: typeParameterTypeStar(T)),
+        requiredParameter(type: typeParameterTypeNone(T)),
+        requiredParameter(type: typeParameterTypeNone(T)),
       ],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(cast, [intStar, doubleStar]), [numStar]);
+    expect(_inferCall(cast, [intNone, doubleNone]), [numNone]);
   }
 
   void test_parameterTypeUsesUpperBound() {
     // <T extends num>(T) -> dynamic
-    var T = typeParameter('T', bound: numStar);
-    var f = functionTypeStar(
+    var T = typeParameter('T', bound: numNone);
+    var f = functionTypeNone(
       typeFormals: [T],
       parameters: [
-        requiredParameter(type: typeParameterTypeStar(T)),
+        requiredParameter(type: typeParameterTypeNone(T)),
       ],
       returnType: dynamicType,
     );
-    expect(_inferCall(f, [intStar]), [intStar]);
+    expect(_inferCall(f, [intNone]), [intNone]);
   }
 
   void test_returnFunctionWithGenericParameter() {
     // <T>(T -> T) -> (T -> void)
     var T = typeParameter('T');
-    var f = functionTypeStar(
+    var f = functionTypeNone(
       typeFormals: [T],
       parameters: [
         requiredParameter(
-          type: functionTypeStar(
+          type: functionTypeNone(
             parameters: [
-              requiredParameter(type: typeParameterTypeStar(T)),
+              requiredParameter(type: typeParameterTypeNone(T)),
             ],
-            returnType: typeParameterTypeStar(T),
+            returnType: typeParameterTypeNone(T),
           ),
         ),
       ],
-      returnType: functionTypeStar(
+      returnType: functionTypeNone(
         parameters: [
-          requiredParameter(type: typeParameterTypeStar(T)),
+          requiredParameter(type: typeParameterTypeNone(T)),
         ],
         returnType: voidNone,
       ),
     );
     expect(
       _inferCall(f, [
-        functionTypeStar(
+        functionTypeNone(
           parameters: [
-            requiredParameter(type: numStar),
+            requiredParameter(type: numNone),
           ],
-          returnType: intStar,
+          returnType: intNone,
         ),
       ]),
-      [intStar],
+      [intNone],
     );
   }
 
   void test_returnFunctionWithGenericParameterAndContext() {
     // <T>(T -> T) -> (T -> Null)
     var T = typeParameter('T');
-    var f = functionTypeStar(
+    var f = functionTypeNone(
       typeFormals: [T],
       parameters: [
         requiredParameter(
-          type: functionTypeStar(
+          type: functionTypeNone(
             parameters: [
-              requiredParameter(type: typeParameterTypeStar(T)),
+              requiredParameter(type: typeParameterTypeNone(T)),
             ],
-            returnType: typeParameterTypeStar(T),
+            returnType: typeParameterTypeNone(T),
           ),
         ),
       ],
-      returnType: functionTypeStar(
+      returnType: functionTypeNone(
         parameters: [
-          requiredParameter(type: typeParameterTypeStar(T)),
+          requiredParameter(type: typeParameterTypeNone(T)),
         ],
-        returnType: nullStar,
+        returnType: nullNone,
       ),
     );
     expect(
       _inferCall(
         f,
         [],
-        returnType: functionTypeStar(
+        returnType: functionTypeNone(
           parameters: [
-            requiredParameter(type: numStar),
+            requiredParameter(type: numNone),
           ],
-          returnType: intStar,
+          returnType: intNone,
         ),
       ),
-      [numStar],
+      [numNone],
     );
   }
 
   void test_returnFunctionWithGenericParameterAndReturn() {
     // <T>(T -> T) -> (T -> T)
     var T = typeParameter('T');
-    var f = functionTypeStar(
+    var f = functionTypeNone(
       typeFormals: [T],
       parameters: [
         requiredParameter(
-          type: functionTypeStar(
+          type: functionTypeNone(
             parameters: [
-              requiredParameter(type: typeParameterTypeStar(T)),
+              requiredParameter(type: typeParameterTypeNone(T)),
             ],
-            returnType: typeParameterTypeStar(T),
+            returnType: typeParameterTypeNone(T),
           ),
         ),
       ],
-      returnType: functionTypeStar(
+      returnType: functionTypeNone(
         parameters: [
-          requiredParameter(type: typeParameterTypeStar(T)),
+          requiredParameter(type: typeParameterTypeNone(T)),
         ],
-        returnType: typeParameterTypeStar(T),
+        returnType: typeParameterTypeNone(T),
       ),
     );
     expect(
       _inferCall(f, [
-        functionTypeStar(
+        functionTypeNone(
           parameters: [
-            requiredParameter(type: numStar),
+            requiredParameter(type: numNone),
           ],
-          returnType: intStar,
+          returnType: intNone,
         )
       ]),
-      [intStar],
+      [intNone],
     );
   }
 
   void test_returnFunctionWithGenericReturn() {
     // <T>(T -> T) -> (() -> T)
     var T = typeParameter('T');
-    var f = functionTypeStar(
+    var f = functionTypeNone(
       typeFormals: [T],
       parameters: [
         requiredParameter(
-          type: functionTypeStar(
+          type: functionTypeNone(
             parameters: [
-              requiredParameter(type: typeParameterTypeStar(T)),
+              requiredParameter(type: typeParameterTypeNone(T)),
             ],
-            returnType: typeParameterTypeStar(T),
+            returnType: typeParameterTypeNone(T),
           ),
         ),
       ],
-      returnType: functionTypeStar(
-        returnType: typeParameterTypeStar(T),
+      returnType: functionTypeNone(
+        returnType: typeParameterTypeNone(T),
       ),
     );
     expect(
       _inferCall(f, [
-        functionTypeStar(
+        functionTypeNone(
           parameters: [
-            requiredParameter(type: numStar),
+            requiredParameter(type: numNone),
           ],
-          returnType: intStar,
+          returnType: intNone,
         )
       ]),
-      [intStar],
+      [intNone],
     );
   }
 
   void test_returnTypeFromContext() {
     // <T>() -> T
     var T = typeParameter('T');
-    var f = functionTypeStar(
+    var f = functionTypeNone(
       typeFormals: [T],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, [], returnType: stringStar), [stringStar]);
+    expect(_inferCall(f, [], returnType: stringNone), [stringNone]);
   }
 
   void test_returnTypeWithBoundFromContext() {
     // <T extends num>() -> T
-    var T = typeParameter('T', bound: numStar);
-    var f = functionTypeStar(
+    var T = typeParameter('T', bound: numNone);
+    var f = functionTypeNone(
       typeFormals: [T],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, [], returnType: doubleStar), [doubleStar]);
+    expect(_inferCall(f, [], returnType: doubleNone), [doubleNone]);
   }
 
   void test_returnTypeWithBoundFromInvalidContext() {
     // <T extends num>() -> T
-    var T = typeParameter('T', bound: numStar);
-    var f = functionTypeStar(
+    var T = typeParameter('T', bound: numNone);
+    var f = functionTypeNone(
       typeFormals: [T],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, [], returnType: stringStar), [nullStar]);
+    expect(_inferCall(f, [], returnType: stringNone), [neverNone]);
   }
 
   void test_unifyParametersToFunctionParam() {
     // <T>(f(T t), g(T t)) -> T
     var T = typeParameter('T');
-    var cast = functionTypeStar(
+    var cast = functionTypeNone(
       typeFormals: [T],
       parameters: [
         requiredParameter(
-          type: functionTypeStar(
+          type: functionTypeNone(
             parameters: [
               requiredParameter(
-                type: typeParameterTypeStar(T),
+                type: typeParameterTypeNone(T),
               ),
             ],
             returnType: dynamicType,
           ),
         ),
         requiredParameter(
-          type: functionTypeStar(
+          type: functionTypeNone(
             parameters: [
               requiredParameter(
-                type: typeParameterTypeStar(T),
+                type: typeParameterTypeNone(T),
               ),
             ],
             returnType: dynamicType,
           ),
         ),
       ],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
     expect(
       _inferCall(cast, [
-        functionTypeStar(
+        functionTypeNone(
           parameters: [
-            requiredParameter(type: intStar),
+            requiredParameter(type: intNone),
           ],
           returnType: dynamicType,
         ),
-        functionTypeStar(
+        functionTypeNone(
           parameters: [
-            requiredParameter(type: doubleStar),
+            requiredParameter(type: doubleNone),
           ],
           returnType: dynamicType,
         )
       ]),
-      [nullStar],
+      [neverNone],
     );
   }
 
   void test_unusedReturnTypeIsDynamic() {
     // <T>() -> T
     var T = typeParameter('T');
-    var f = functionTypeStar(
+    var f = functionTypeNone(
       typeFormals: [T],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
     expect(_inferCall(f, []), [dynamicType]);
   }
 
   void test_unusedReturnTypeWithUpperBound() {
     // <T extends num>() -> T
-    var T = typeParameter('T', bound: numStar);
-    var f = functionTypeStar(
+    var T = typeParameter('T', bound: numNone);
+    var f = functionTypeNone(
       typeFormals: [T],
-      returnType: typeParameterTypeStar(T),
+      returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, []), [numStar]);
+    expect(_inferCall(f, []), [numNone]);
   }
 
   void _assertType(DartType type, String expected) {

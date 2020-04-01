@@ -30,6 +30,29 @@ main() {
   });
 }
 
+abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
+  TestAnalysisContext analysisContext;
+
+  @override
+  TypeProvider typeProvider;
+
+  TypeSystemImpl typeSystem;
+
+  FeatureSet get testFeatureSet {
+    return FeatureSet.forTesting(
+      additionalFeatures: [Feature.non_nullable],
+    );
+  }
+
+  void setUp() {
+    var analysisContext = TestAnalysisContext(
+      featureSet: testFeatureSet,
+    );
+    typeProvider = analysisContext.typeProviderNonNullableByDefault;
+    typeSystem = analysisContext.typeSystemNonNullableByDefault;
+  }
+}
+
 abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   TestAnalysisContext analysisContext;
 
