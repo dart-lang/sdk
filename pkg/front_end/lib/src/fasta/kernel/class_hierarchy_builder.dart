@@ -340,6 +340,9 @@ class ClassHierarchyBuilder {
 
   Types types;
 
+  Map<ClassMember, Map<ClassMember, ClassMember>> inheritanceConflictCache =
+      new Map.identity();
+
   ClassHierarchyBuilder(this.objectClassBuilder, this.loader, this.coreTypes)
       : objectClass = objectClassBuilder.cls,
         futureClass = coreTypes.futureClass,
@@ -354,6 +357,7 @@ class ClassHierarchyBuilder {
     substitutions.clear();
     _overrideChecks.clear();
     _delayedTypeComputations.clear();
+    inheritanceConflictCache.clear();
   }
 
   void registerDelayedTypeComputation(DelayedTypeComputation computation) {
@@ -640,12 +644,18 @@ class ClassHierarchyNodeBuilder {
       classBuilder.library.loader == hierarchy.loader;
 
   ClassMember checkInheritanceConflict(ClassMember a, ClassMember b) {
+    hierarchy.inheritanceConflictCache[a] ??= new Map.identity();
+    if (hierarchy.inheritanceConflictCache[a].containsKey(b)) {
+      return hierarchy.inheritanceConflictCache[a][b];
+    }
+
     if (a.hasDeclarations) {
       ClassMember result;
       for (int i = 0; i < a.declarations.length; i++) {
         ClassMember d = checkInheritanceConflict(a.declarations[i], b);
         result ??= d;
       }
+      hierarchy.inheritanceConflictCache[a][b] = result;
       return result;
     }
     if (b.hasDeclarations) {
@@ -654,12 +664,15 @@ class ClassHierarchyNodeBuilder {
         ClassMember d = checkInheritanceConflict(a, b.declarations[i]);
         result ??= d;
       }
+      hierarchy.inheritanceConflictCache[a][b] = result;
       return result;
     }
     if (isInheritanceConflict(a, b)) {
       reportInheritanceConflict(a, b);
+      hierarchy.inheritanceConflictCache[a][b] = a;
       return a;
     }
+    hierarchy.inheritanceConflictCache[a][b] = null;
     return null;
   }
 
