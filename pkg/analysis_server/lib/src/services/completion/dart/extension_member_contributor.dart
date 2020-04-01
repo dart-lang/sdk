@@ -12,11 +12,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/generic_inferrer.dart'
+    show GenericInferrer;
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/generated/resolver.dart'
-    show GenericInferrer, LibraryScope;
-import 'package:analyzer/src/generated/type_system.dart' show GenericInferrer;
 
 /// A contributor that produces suggestions based on the members of an
 /// extension.
