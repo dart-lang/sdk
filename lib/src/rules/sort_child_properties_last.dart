@@ -36,6 +36,7 @@ return Scaffold(
       ],
       mainAxisAlignment: MainAxisAlignment.center,
     ),
+    widthFactor: 0.5,
   ),
   floatingActionButton: FloatingActionButton(
     child: Icon(Icons.add),
@@ -52,6 +53,7 @@ return Scaffold(
     title: Text(widget.title),
   ),
   body: Center(
+    widthFactor: 0.5,
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
