@@ -105,6 +105,13 @@ void checkProperSubtype(Type sWrapped, Type tWrapped) {
   checkSubtypeFailure(tWrapped, sWrapped);
 }
 
+void checkMutualSubtype(Type sWrapped, Type tWrapped) {
+  var s = unwrap(sWrapped);
+  var t = unwrap(tWrapped);
+  Expect.isTrue(dart.isSubtypeOf(s, t), '$s should be subtype of $t.');
+  Expect.isTrue(dart.isSubtypeOf(t, s), '$t should be subtype of $s.');
+}
+
 void checkSubtypeFailure(Type sWrapped, Type tWrapped) {
   var s = unwrap(sWrapped);
   var t = unwrap(tWrapped);

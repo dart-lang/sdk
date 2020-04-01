@@ -23,43 +23,37 @@ class F extends E<B, B> {}
 
 void main() {
   // Top type symmetry.
-  // Object? <: dynamic
-  checkSubtype(nullable(Object), dynamic);
-  // dynamic <: Object?
-  checkSubtype(dynamic, nullable(Object));
-  // Object? <: void
-  checkSubtype(nullable(Object), voidType);
-  // void <: Object?
-  checkSubtype(voidType, nullable(Object));
-  // void <: dynamic
-  checkSubtype(voidType, dynamic);
-  // dynamic <: void
-  checkSubtype(dynamic, voidType);
+  // Object? <:> dynamic
+  checkMutualSubtype(nullable(Object), dynamic);
+  // Object? <:> void
+  checkMutualSubtype(nullable(Object), voidType);
+  // void <:> dynamic
+  checkMutualSubtype(voidType, dynamic);
 
   // Bottom is subtype of top.
-  // never <: dynamic
+  // Never <: dynamic
   checkProperSubtype(Never, dynamic);
-  // never <: void
+  // Never <: void
   checkProperSubtype(Never, voidType);
-  // never <: Object?
+  // Never <: Object?
   checkProperSubtype(Never, nullable(Object));
 
   // Object is between top and bottom.
   // Object <: Object?
-  checkProperSubtype(Object, nullable(Object));
-  // never <: Object
+  checkSubtype(Object, nullable(Object));
+  // Never <: Object
   checkProperSubtype(Never, Object);
 
   // Null is between top and bottom.
   // Null <: Object?
   checkProperSubtype(Null, nullable(Object));
-  // never <: Null
+  // Never <: Null
   checkProperSubtype(Never, Null);
 
   // Class is between Object and bottom.
   // A <: Object
   checkProperSubtype(A, dynamic);
-  // never <: A
+  // Never <: A
   checkProperSubtype(Never, A);
 
   // Nullable types are a union of T and Null.
@@ -72,33 +66,27 @@ void main() {
 
   // Legacy types will eventually be migrated to T or T? but until then are
   // symmetric with both.
-  // Object* <: Object
-  checkSubtype(legacy(Object), Object);
-  // Object <: Object*
-  checkSubtype(Object, legacy(Object));
-  // Object* <: Object?
-  checkSubtype(legacy(Object), nullable(Object));
-  // Object? <: Object*
-  checkSubtype(nullable(Object), legacy(Object));
+  // Object* <:> Object
+  checkMutualSubtype(legacy(Object), Object);
+  // Object* <:> Object?
+  checkMutualSubtype(legacy(Object), nullable(Object));
+
+  // Bottom Types
   // Null <: Object*
   checkSubtype(Null, legacy(Object));
-  // never <: Object*
+  // Never <: Object*
   checkSubtype(Never, legacy(Object));
-  // A* <: A
-  checkSubtype(legacy(A), A);
-  // A <: A*
-  checkSubtype(A, legacy(A));
-  // A* <: A?
-  checkSubtype(legacy(A), nullable(A));
-  // A? <: A*
-  checkSubtype(nullable(A), legacy(A));
+  // A* <:> A
+  checkMutualSubtype(legacy(A), A);
+  // A* <:> A?
+  checkMutualSubtype(legacy(A), nullable(A));
   // A* <: Object
   checkProperSubtype(legacy(A), Object);
   // A* <: Object?
   checkProperSubtype(legacy(A), nullable(Object));
   // Null <: A*
   checkProperSubtype(Null, legacy(A));
-  // never <: A*
+  // Never <: A*
   checkProperSubtype(Never, legacy(A));
 
   // Futures.
@@ -106,12 +94,10 @@ void main() {
   checkProperSubtype(Null, futureOrOf(nullable(Object)));
   // Object <: FutureOr<Object?>
   checkProperSubtype(Object, futureOrOf(nullable(Object)));
-  // Object? <: FutureOr<Object?>
-  checkSubtype(nullable(Object), futureOrOf(nullable(Object)));
-  // Object <: FutureOr<Object>
-  checkSubtype(Object, futureOrOf(Object));
-  // FutureOr<Object> <: Object
-  checkSubtype(futureOrOf(Object), Object);
+  // Object? <:> FutureOr<Object?>
+  checkMutualSubtype(nullable(Object), futureOrOf(nullable(Object)));
+  // Object <:> FutureOr<Object>
+  checkMutualSubtype(Object, futureOrOf(Object));
   // Object <: FutureOr<dynamic>
   checkProperSubtype(Object, futureOrOf(dynamic));
   // Object <: FutureOr<void>
@@ -149,10 +135,9 @@ void main() {
 
   // A -> B <: B -> B
   checkProperSubtype(function1(B, A), function1(B, B));
-  // TODO(nshahan) Subtype check with covariant keyword?
 
   // A -> B <: A -> A
-  checkSubtype(function1(B, A), function1(A, A));
+  checkProperSubtype(function1(B, A), function1(A, A));
 
   // Generic Function Subtypes.
   // Bound is a built in type.
@@ -217,10 +202,8 @@ void main() {
       functionGenericArg(futureOrOf(B), A));
 
   // Generics.
-  // D <: D<B>
-  checkSubtype(D, generic1(D, B));
-  // D<B> <: D
-  checkSubtype(generic1(D, B), D);
+  // D <:> D<B>
+  checkMutualSubtype(D, generic1(D, B));
   // D<C> <: D<B>
   checkProperSubtype(generic1(D, C), generic1(D, B));
 
@@ -270,7 +253,7 @@ void main() {
   checkSubtypeFailure(nullable(A), Object);
   // A? <\: A
   checkSubtypeFailure(nullable(A), A);
-  // Null <\: never
+  // Null <\: Never
   checkSubtypeFailure(Null, Never);
   // Null <\: Object
   checkSubtypeFailure(Null, Object);
