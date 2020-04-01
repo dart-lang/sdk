@@ -52,8 +52,13 @@ return Scaffold(
     title: Text(widget.title),
   ),
   body: Center(
-    mainAxisAlignment: MainAxisAlignment.center,
+    floatingActionButton: FloatingActionButton(
+      onPressed: _incrementCounter,
+      tooltip: 'Increment',
+      child: Icon(Icons.add),
+    ),
     child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Text(
           'You have pushed the button this many times:',
@@ -63,11 +68,6 @@ return Scaffold(
           style: Theme.of(context).textTheme.display1,
          ),
       ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: _incrementCounter,
-      tooltip: 'Increment',
-      child: Icon(Icons.add),
     ),
   ),
 );
