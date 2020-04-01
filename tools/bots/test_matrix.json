@@ -624,7 +624,7 @@
         "host-checked": true
       }
     },
-    "dart2js-hostasserts-weak-(linux|mac|win)-x64-(d8|chrome)": {
+    "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
         "enable-experiment": [
@@ -632,7 +632,22 @@
         ],
         "dart2js-options": [
           "--no-null-safety",
-          "--libraries-spec=sdk_nnbd/lib/libraries.json"
+          "--libraries-spec=sdk_nnbd/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64NNBD/"
+        ],
+        "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-weak-mac-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-weak",
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "dart2js-options": [
+          "--no-null-safety",
+          "--libraries-spec=sdk_nnbd/lib/libraries.json",
+          "--platform-binaries=xcodebuild/ReleaseX64NNBD/"
         ],
         "host-checked": true
       }
