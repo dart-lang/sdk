@@ -36,11 +36,11 @@ return Scaffold(
       ],
       mainAxisAlignment: MainAxisAlignment.center,
     ),
-    floatingActionButton: FloatingActionButton(
-      child: Icon(Icons.add),
-      onPressed: _incrementCounter,
-      tooltip: 'Increment',
-    ),
+  ),
+  floatingActionButton: FloatingActionButton(
+    child: Icon(Icons.add),
+    onPressed: _incrementCounter,
+    tooltip: 'Increment',
   ),
 );
 ```
@@ -52,11 +52,6 @@ return Scaffold(
     title: Text(widget.title),
   ),
   body: Center(
-    floatingActionButton: FloatingActionButton(
-      onPressed: _incrementCounter,
-      tooltip: 'Increment',
-      child: Icon(Icons.add),
-    ),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -69,6 +64,11 @@ return Scaffold(
          ),
       ],
     ),
+  ),
+  floatingActionButton: FloatingActionButton(
+    onPressed: _incrementCounter,
+    tooltip: 'Increment',
+    child: Icon(Icons.add),
   ),
 );
 ```
