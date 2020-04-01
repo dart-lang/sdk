@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart'
     show NonExistingSource, Source, UriKind;
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -870,7 +871,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
   void _checkIsNotSubtypeMatchOf(
       DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
-      {bool covariant}) {
+      {@required bool covariant}) {
     var inferrer = GenericInferrer(
       typeSystem,
       typeFormals.map((t) => t.element),
@@ -888,7 +889,7 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
       DartType t2,
       Iterable<TypeParameterType> typeFormals,
       Iterable<String> expectedConstraints,
-      {bool covariant}) {
+      {@required bool covariant}) {
     var inferrer = GenericInferrer(
       typeSystem,
       typeFormals.map((t) => t.element),
@@ -914,12 +915,12 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
   void _checkOrdinarySubtypeMatch(
       DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
-      {bool covariant}) {
+      {@required bool covariant}) {
     bool expectSuccess = typeSystem.isSubtypeOf(t1, t2);
     if (expectSuccess) {
       _checkIsSubtypeMatchOf(t1, t2, typeFormals, [], covariant: covariant);
     } else {
-      _checkIsNotSubtypeMatchOf(t1, t2, typeFormals);
+      _checkIsNotSubtypeMatchOf(t1, t2, typeFormals, covariant: covariant);
     }
   }
 }

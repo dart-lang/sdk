@@ -312,7 +312,7 @@ class GenericInferrer {
   /// unsuccessful, any constraints that were accumulated during the match
   /// attempt have been rewound (see [_rewindConstraints]).
   bool tryMatchSubtypeOf(DartType t1, DartType t2, _TypeConstraintOrigin origin,
-      {bool covariant}) {
+      {@required bool covariant}) {
     int previousRewindBufferLength = _undoBuffer.length;
     bool success = _matchSubtypeOf(t1, t2, null, origin, covariant: covariant);
     if (!success) {
@@ -538,7 +538,7 @@ class GenericInferrer {
   /// were accumulated (see [_rewindConstraints]).
   bool _matchInterfaceSubtypeOf(InterfaceType i1, InterfaceType i2,
       Set<Element> visited, _TypeConstraintOrigin origin,
-      {bool covariant}) {
+      {@required bool covariant}) {
     if (identical(i1, i2)) {
       return true;
     }
@@ -633,7 +633,7 @@ class GenericInferrer {
   /// or return type.
   bool _matchSubtypeOf(DartType t1, DartType t2, Set<Element> visited,
       _TypeConstraintOrigin origin,
-      {bool covariant}) {
+      {@required bool covariant}) {
     if (covariant && t1 is TypeParameterType) {
       var constraints = this.constraints[t1.element];
       if (constraints != null) {
