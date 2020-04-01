@@ -200,6 +200,7 @@ class MigrateCommand extends Command {
       final EditDartfixParams params =
           EditDartfixParams([options.directoryAbsolute]);
       params.includedFixes = ['non-nullable'];
+      params.port = options.previewPort;
       json = await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
       progress.finish(showTiming: true);
     } finally {
@@ -242,6 +243,8 @@ class MigrateCommand extends Command {
 
     if (options.webPreview) {
       String url = migrationResults.urls.first;
+      assert(migrationResults.urls.length <= 1,
+          'Got unexpected extra preview URLs from server');
 
       logger.stdout(ansi.emphasized('View migration results:'));
 

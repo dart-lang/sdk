@@ -35,8 +35,13 @@ class HttpPreviewServer {
   // A function which allows the migration to be rerun, taking changed paths.
   final Future<MigrationState> Function([List<String>]) rerunFunction;
 
+  /// Integer for a port to run the preview server on.  If null or zero, allow
+  /// [HttpServer.bind] to pick one.
+  final int preferredPort;
+
   /// Initialize a newly created HTTP server.
-  HttpPreviewServer(this.migrationState, this.rerunFunction);
+  HttpPreviewServer(
+      this.migrationState, this.rerunFunction, this.preferredPort);
 
   Future<String> get authToken async {
     await _serverFuture;
@@ -56,14 +61,14 @@ class HttpPreviewServer {
   }
 
   /// Begin serving HTTP requests over the given port.
-  Future<int> serveHttp([int initialPort]) async {
+  Future<int> serveHttp() async {
     if (_serverFuture != null) {
       return boundPort;
     }
 
     try {
       _serverFuture =
-          HttpServer.bind(InternetAddress.loopbackIPv4, initialPort ?? 0);
+          HttpServer.bind(InternetAddress.loopbackIPv4, preferredPort ?? 0);
 
       var server = await _serverFuture;
       _handleServer(server);
@@ -72,8 +77,8 @@ class HttpPreviewServer {
       // If we can't bind to the specified port, don't remember the broken
       // server.
       _serverFuture = null;
-
-      return null;
+      // TODO(jcollins-g): Display a better error message?
+      rethrow;
     }
   }
 
