@@ -810,6 +810,7 @@ template("dart_executable") {
                 "vmservice_impl.h",
                 "$target_gen_dir/abi_version.cc",
               ] + extra_sources
+    inputs = []
 
     if (is_win) {
       ldflags = [ "/EXPORT:Dart_True" ]
@@ -818,6 +819,15 @@ template("dart_executable") {
       # This is needed to make native extensions work. It is also needed to get
       # symbols in VM-generated backtraces and profiles.
       ldflags = [ "-rdynamic" ]
+    }
+
+    using_sanitizer =
+        (defined(is_asan) && is_asan) || (defined(is_msan) && is_msan) ||
+        (defined(is_lsan) && is_lsan) || (defined(is_tsan) && is_tsan)
+    if (!using_sanitizer && !is_win) {
+      dart_symbols = rebase_path("dart_symbols.lds")
+      ldflags += [ "-Wl,-version-script,$dart_symbols" ]
+      inputs += [ "dart_symbols.lds" ]
     }
 
     ldflags += extra_ldflags
