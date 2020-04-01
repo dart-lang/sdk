@@ -13,9 +13,9 @@ typedef T<X> = X;
 // Use the aliased type.
 
 abstract class C {
-  final T<Null> v7;
+  final T<Map> v7;
 
-  C(): v7 = T<D>();
+  C(): v7 = T<Map>();
   //        ^
   // [analyzer] unspecified
   // [cfe] unspecified
@@ -45,7 +45,7 @@ X foo<X>(X x) => x;
 
 main() {
   var v9 = <Set<T<T>>, Set<T<T>>>{{}: {}};
-  v9[{}] = {T<D>()};
+  v9[{}] = {T<C>()};
   //        ^
   // [analyzer] unspecified
   // [cfe] unspecified
@@ -75,7 +75,7 @@ main() {
 // [analyzer] unspecified
 // [cfe] unspecified
 
-  T<C>.name1(D(), null);
+  T<C>.name1(C(), null);
 //^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] unspecified
 // [cfe] unspecified

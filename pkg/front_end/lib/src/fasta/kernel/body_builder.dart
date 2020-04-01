@@ -1526,31 +1526,46 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Arguments arguments = pop();
     List<UnresolvedType> typeArguments = pop();
     Object receiver = pop();
-    if (arguments != null && typeArguments != null) {
+    // Delay adding [typeArguments] to [forest] for type aliases: They
+    // must be unaliased to the type arguments of the denoted type.
+    bool isInForest = arguments != null &&
+        typeArguments != null &&
+        (receiver is! TypeUseGenerator ||
+            (receiver is TypeUseGenerator &&
+                receiver.declaration is! TypeAliasBuilder));
+    if (isInForest) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(
           arguments, buildDartTypeArguments(typeArguments));
     } else {
-      assert(typeArguments == null);
+      assert(typeArguments == null ||
+          (receiver is TypeUseGenerator &&
+              receiver.declaration is TypeAliasBuilder));
     }
     if (receiver is Identifier) {
       Name name = new Name(receiver.name, libraryBuilder.nameOrigin);
       if (arguments == null) {
         push(new IncompletePropertyAccessGenerator(this, beginToken, name));
       } else {
-        push(new SendAccessGenerator(this, beginToken, name, arguments));
+        push(new SendAccessGenerator(
+            this, beginToken, name, typeArguments, arguments,
+            isTypeArgumentsInForest: isInForest));
       }
     } else if (arguments == null) {
       push(receiver);
     } else {
-      push(finishSend(receiver, arguments, beginToken.charOffset));
+      push(finishSend(receiver, typeArguments, arguments, beginToken.charOffset,
+          isTypeArgumentsInForest: isInForest));
     }
   }
 
   @override
-  finishSend(Object receiver, Arguments arguments, int charOffset) {
+  finishSend(Object receiver, List<UnresolvedType> typeArguments,
+      Arguments arguments, int charOffset,
+      {bool isTypeArgumentsInForest = false}) {
     if (receiver is Generator) {
-      return receiver.doInvocation(charOffset, arguments);
+      return receiver.doInvocation(charOffset, typeArguments, arguments,
+          isTypeArgumentsInForest: isTypeArgumentsInForest);
     } else if (receiver is ParserRecovery) {
       return new ParserErrorGenerator(this, null, fasta.messageSyntheticToken);
     } else {
@@ -4125,7 +4140,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       String name,
       List<UnresolvedType> typeArguments,
       int charOffset,
-      Constness constness) {
+      Constness constness,
+      {bool isTypeArgumentsInForest = false}) {
     if (arguments == null) {
       return buildProblem(fasta.messageMissingArgumentList,
           nameToken.charOffset, nameToken.length);
@@ -4136,28 +4152,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           nameToken.charOffset, nameToken.length);
     }
 
-    if (typeArguments != null) {
-      assert(forest.argumentsTypeArguments(arguments).isEmpty);
-      forest.argumentsSetTypeArguments(
-          arguments, buildDartTypeArguments(typeArguments));
-    }
-
     String errorName;
     LocatedMessage message;
 
     if (type is TypeAliasBuilder) {
       errorName = debugName(type.name, name);
       TypeAliasBuilder aliasBuilder = type;
-      List<TypeBuilder> typeArgumentBuilders = null;
-      if (typeArguments != null) {
-        typeArgumentBuilders = <TypeBuilder>[];
-        for (UnresolvedType unresolvedType in typeArguments) {
-          typeArgumentBuilders.add(unresolvedType?.builder);
-        }
-      }
       int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;
-      int numberOfTypeArguments = typeArgumentBuilders?.length ?? 0;
-      if (typeArgumentBuilders != null &&
+      int numberOfTypeArguments = typeArguments?.length ?? 0;
+      if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
         // TODO(eernst): Use position of type arguments, not nameToken.
         return evaluateArgumentsBefore(
@@ -4165,13 +4168,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             buildProblem(
                 fasta.templateTypeArgumentMismatch
                     .withArguments(numberOfTypeParameters),
-                nameToken.charOffset,
-                nameToken.length));
+                charOffset,
+                noLength));
       }
-      if (typeArgumentBuilders == null) {
-        if (aliasBuilder.typeVariables?.isEmpty ?? true) {
-          typeArgumentBuilders = [];
-        } else {
+      type = aliasBuilder.unaliasDeclaration(null,
+          isInvocation: true,
+          invocationCharOffset: nameToken.charOffset,
+          invocationFileUri: uri);
+      List<TypeBuilder> typeArgumentBuilders = [];
+      if (typeArguments != null) {
+        for (UnresolvedType unresolvedType in typeArguments) {
+          typeArgumentBuilders.add(unresolvedType?.builder);
+        }
+      } else {
+        if (aliasBuilder.typeVariables?.isNotEmpty ?? false) {
           // No type arguments provided to alias, but it is generic.
           typeArgumentBuilders = new List<TypeBuilder>.filled(
               aliasBuilder.typeVariables.length, null,
@@ -4182,7 +4192,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           }
         }
       }
-      type = aliasBuilder.unaliasDeclaration(typeArgumentBuilders);
       if (type is ClassBuilder) {
         if (typeArguments != null) {
           int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;
@@ -4210,20 +4219,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                     nameToken.length,
                     suppressMessage: true));
           }
-          if (unaliasedTypeArgumentBuilders.isEmpty) {
-            forest.argumentsSetTypeArguments(arguments, []);
-          } else {
-            List<DartType> dartTypeArguments = [];
-            if (typeArguments != null) {
-              for (UnresolvedType unresolvedType in typeArguments) {
-                dartTypeArguments
-                    .add(unresolvedType.builder?.build(libraryBuilder));
-              }
-            }
-            forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
+          List<DartType> dartTypeArguments = [];
+          for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
+            dartTypeArguments.add(typeBuilder.build(libraryBuilder));
           }
+          assert(forest.argumentsTypeArguments(arguments).isEmpty);
+          forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
         } else {
           if (type.typeVariables?.isEmpty ?? true) {
+            assert(forest.argumentsTypeArguments(arguments).isEmpty);
             forest.argumentsSetTypeArguments(arguments, []);
           } else {
             // No type arguments provided to unaliased class, use defaults.
@@ -4234,9 +4238,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               result[i] =
                   type.typeVariables[i].defaultType?.build(type.library);
             }
+            assert(forest.argumentsTypeArguments(arguments).isEmpty);
             forest.argumentsSetTypeArguments(arguments, result);
           }
         }
+      }
+    } else {
+      if (typeArguments != null && !isTypeArgumentsInForest) {
+        assert(forest.argumentsTypeArguments(arguments).isEmpty);
+        forest.argumentsSetTypeArguments(
+            arguments, buildDartTypeArguments(typeArguments));
       }
     }
     if (type is ClassBuilder) {

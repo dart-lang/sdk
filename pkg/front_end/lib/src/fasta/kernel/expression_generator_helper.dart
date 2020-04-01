@@ -60,7 +60,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 
-  finishSend(Object receiver, Arguments arguments, int offset);
+  finishSend(Object receiver, List<UnresolvedType> typeArguments,
+      Arguments arguments, int offset,
+      {bool isTypeArgumentsInForest = false});
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
@@ -114,7 +116,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       String name,
       List<UnresolvedType> typeArguments,
       int charOffset,
-      Constness constness);
+      Constness constness,
+      {bool isTypeArgumentsInForest = false});
 
   UnresolvedType validateTypeUse(
       UnresolvedType unresolved, bool nonInstanceAccessIsError);
