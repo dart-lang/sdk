@@ -2643,6 +2643,64 @@ int f(int x) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_implicit_parameter_type_override_does_not_union() async {
+    var content = '''
+abstract class A {
+  void f(int/*?*/ i);
+}
+abstract class B {
+  void f(int i);
+}
+class C implements A, B {
+  void f(i) {}
+}
+''';
+    // Even though the parameter type of C.f is implicit, its nullability
+    // shouldn't be unioned with that of A and B, because that would
+    // unnecessarily force B.f's parameter type to be nullable.
+    var expected = '''
+abstract class A {
+  void f(int?/*?*/ i);
+}
+abstract class B {
+  void f(int i);
+}
+class C implements A, B {
+  void f(i) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_implicit_return_type_override_does_not_union() async {
+    var content = '''
+abstract class A {
+  int/*?*/ f();
+}
+abstract class B {
+  int f();
+}
+class C implements A, B {
+  f() => 0;
+}
+''';
+    // Even though the return type of C.f is implicit, its nullability shouldn't
+    // be unioned with that of A and B, because that would unnecessarily force
+    // B.f's return type to be nullable.
+    var expected = '''
+abstract class A {
+  int?/*?*/ f();
+}
+abstract class B {
+  int f();
+}
+class C implements A, B {
+  f() => 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_implicit_type_parameter_bound_nullable() async {
     var content = '''
 class C<T> {
@@ -2686,78 +2744,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_inferred_method_parameter_type_non_nullable() async {
-    var content = '''
-class B {
-  void f(int i) {
-    assert(i != null);
-  }
-}
-class C extends B {
-  void f(i) {}
-}
-void g(C c, int i, bool b) {
-  if (b) {
-    c.f(i);
-  }
-}
-void h(C c) {
-  g(c, null, false);
-}
-''';
-    // B.f's parameter type is `int`.  Since C.f's parameter type is inferred
-    // from B.f's, it has a parameter type of `int` too.  Therefore there must
-    // be a null check in g().
-    var expected = '''
-class B {
-  void f(int i) {
-    assert(i != null);
-  }
-}
-class C extends B {
-  void f(i) {}
-}
-void g(C c, int? i, bool b) {
-  if (b) {
-    c.f(i!);
-  }
-}
-void h(C c) {
-  g(c, null, false);
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
-  Future<void> test_inferred_method_parameter_type_nullable() async {
-    var content = '''
-class B {
-  void f(int i) {}
-}
-class C extends B {
-  void f(i) {}
-}
-void g(C c) {
-  c.f(null);
-}
-''';
-    // The call to C.f from g forces C.f's parameter to be nullable.  Since
-    // C.f's parameter type is inferred from B.f's parameter type, B.f's
-    // parameter must be nullable too.
-    var expected = '''
-class B {
-  void f(int? i) {}
-}
-class C extends B {
-  void f(i) {}
-}
-void g(C c) {
-  c.f(null);
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   Future<void> test_inferred_method_return_type_non_nullable() async {
     var content = '''
 class B {
@@ -2779,31 +2765,6 @@ class C extends B {
   f() => 1;
 }
 int g(C c) => c.f();
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
-  Future<void> test_inferred_method_return_type_nullable() async {
-    var content = '''
-class B {
-  int f() => null;
-}
-class C extends B {
-  f() => 1;
-}
-int g(C c) => c.f();
-''';
-    // B.f's return type is `int?`.  Since C.f's return type is inferred from
-    // B.f's, it has a return type of `int?` too.  Therefore g's return type
-    // must be `int?`.
-    var expected = '''
-class B {
-  int? f() => null;
-}
-class C extends B {
-  f() => 1;
-}
-int? g(C c) => c.f();
 ''';
     await _checkSingleFileChanges(content, expected);
   }

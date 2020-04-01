@@ -991,8 +991,8 @@ abstract class Derived extends Base {
             .node;
     expect(
         edges.where((e) =>
-            e.sourceNode == derivedParamArgNode &&
-            e.destinationNode == baseParamArgNode),
+            e.sourceNode == baseParamArgNode &&
+            e.destinationNode == derivedParamArgNode),
         hasLength(1));
   }
 

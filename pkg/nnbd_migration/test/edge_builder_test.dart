@@ -4279,7 +4279,7 @@ class C extends B {
 ''');
     var bReturnType = decoratedMethodType('f/*B*/').positionalParameters[0];
     var cReturnType = decoratedMethodType('f/*C*/').positionalParameters[0];
-    assertUnion(bReturnType.node, cReturnType.node);
+    assertEdge(bReturnType.node, cReturnType.node, hard: true);
   }
 
   Future<void> test_method_parameterType_inferred_named() async {
@@ -4293,7 +4293,7 @@ class C extends B {
 ''');
     var bReturnType = decoratedMethodType('f/*B*/').namedParameters['x'];
     var cReturnType = decoratedMethodType('f/*C*/').namedParameters['x'];
-    assertUnion(bReturnType.node, cReturnType.node);
+    assertEdge(bReturnType.node, cReturnType.node, hard: true);
   }
 
   Future<void> test_method_returnType_inferred() async {
@@ -4307,7 +4307,7 @@ class C extends B {
 ''');
     var bReturnType = decoratedMethodType('f/*B*/').returnType;
     var cReturnType = decoratedMethodType('f/*C*/').returnType;
-    assertUnion(bReturnType.node, cReturnType.node);
+    assertEdge(cReturnType.node, bReturnType.node, hard: true);
   }
 
   Future<void>

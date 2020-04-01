@@ -2209,7 +2209,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             _currentFunctionType.returnType,
             overriddenFunctionType.returnType,
             ReturnTypeInheritanceOrigin(source, node),
-            isUnion: true);
+            isUnion: false);
       } else {
         _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
             source: _currentFunctionType.returnType,
@@ -2250,7 +2250,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             if (_isUntypedParameter(normalParameter)) {
               _linkDecoratedTypes(
                   overriddenParameterType, currentParameterType, origin,
-                  isUnion: true);
+                  isUnion: false);
             } else {
               _checkAssignment(origin,
                   source: overriddenParameterType,
