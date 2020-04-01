@@ -13,6 +13,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart';
