@@ -176,6 +176,7 @@ class DartScopeBuilder extends Visitor<void> {
   bool _scopeContainsLine(int startOffset, int endOffset, int line) {
     if (line < 0) return false;
     if (startOffset < 0) return false;
+    if (endOffset < 0) return false;
 
     var startLine = _getLine(startOffset);
     var endLine = _getLine(endOffset);
