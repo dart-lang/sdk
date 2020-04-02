@@ -1860,7 +1860,8 @@ class _HttpClientConnection {
       // Resume the parser now we have a handler.
       _subscription!.resume();
       return s;
-    }, onError: (e) {
+    });
+    Future<Socket?>.value(_streamFuture).catchError((e) {
       destroy();
     });
     return request;
