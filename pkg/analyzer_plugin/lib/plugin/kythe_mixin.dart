@@ -4,13 +4,11 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/kythe/entries.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/kythe/entries.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] and
@@ -27,8 +25,8 @@ mixin DartEntryMixin implements EntryMixin {
       KytheGetKytheEntriesParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    ResolvedUnitResult result = await getResolvedUnitResult(path);
+    var path = parameters.file;
+    var result = await getResolvedUnitResult(path);
     return DartEntryRequestImpl(resourceProvider, result);
   }
 }
@@ -54,11 +52,10 @@ mixin EntryMixin implements ServerPlugin {
       KytheGetKytheEntriesParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    EntryRequest request = await getEntryRequest(parameters);
-    EntryGenerator generator = EntryGenerator(getEntryContributors(path));
-    GeneratorResult<KytheGetKytheEntriesResult> result =
-        generator.generateGetEntriesResponse(request);
+    var path = parameters.file;
+    var request = await getEntryRequest(parameters);
+    var generator = EntryGenerator(getEntryContributors(path));
+    var result = generator.generateGetEntriesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

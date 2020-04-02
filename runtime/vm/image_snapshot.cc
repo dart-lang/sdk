@@ -591,7 +591,13 @@ const char* SnapshotTextObjectNamer::SnapshotNameFor(intptr_t code_index,
     name = NameOfStubIsolateSpecificStub(store_, code);
     ASSERT(name != nullptr);
     return OS::SCreate(zone_, "%s_%s", prefix, name);
-  } else if (owner_.IsClass()) {
+  }
+  // The weak reference to the Code's owner should never have been removed via
+  // an intermediate serialization, since WSRs are only introduced during
+  // precompilation.
+  owner_ = WeakSerializationReference::Unwrap(owner_);
+  ASSERT(!owner_.IsNull());
+  if (owner_.IsClass()) {
     string_ = Class::Cast(owner_).Name();
     const char* name = string_.ToCString();
     EnsureAssemblerIdentifier(const_cast<char*>(name));

@@ -10,7 +10,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerOptions,
         DiagnosticMessage,
         computePlatformBinariesLocation,
-        kernelForProgram;
+        kernelForProgram,
+        parseExperimentalArguments,
+        parseExperimentalFlags;
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
@@ -35,6 +37,7 @@ class TestingVmTarget extends VmTarget {
 Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {Target target,
     bool enableSuperMixins = false,
+    List<String> experimentalFlags,
     Map<String, String> environmentDefines}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
@@ -45,6 +48,11 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     ..target = target
     ..additionalDills = <Uri>[platformKernel]
     ..environmentDefines = environmentDefines
+    ..experimentalFlags =
+        parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
+            onError: (String message) {
+      throw message;
+    })
     ..onDiagnostic = (DiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };

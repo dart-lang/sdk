@@ -4,13 +4,11 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] and
@@ -27,10 +25,10 @@ mixin DartNavigationMixin implements NavigationMixin {
       AnalysisGetNavigationParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    ResolvedUnitResult result = await getResolvedUnitResult(path);
-    int offset = parameters.offset;
-    int length = parameters.length;
+    var path = parameters.file;
+    var result = await getResolvedUnitResult(path);
+    var offset = parameters.offset;
+    var length = parameters.length;
     if (offset < 0 && length < 0) {
       offset = 0;
       length = result.content.length;
@@ -61,12 +59,10 @@ mixin NavigationMixin implements ServerPlugin {
       AnalysisGetNavigationParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String path = parameters.file;
-    NavigationRequest request = await getNavigationRequest(parameters);
-    NavigationGenerator generator =
-        NavigationGenerator(getNavigationContributors(path));
-    GeneratorResult<AnalysisGetNavigationResult> result =
-        generator.generateNavigationResponse(request);
+    var path = parameters.file;
+    var request = await getNavigationRequest(parameters);
+    var generator = NavigationGenerator(getNavigationContributors(path));
+    var result = generator.generateNavigationResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
@@ -78,12 +74,10 @@ mixin NavigationMixin implements ServerPlugin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
-      NavigationRequest request =
+      var request =
           await getNavigationRequest(AnalysisGetNavigationParams(path, -1, -1));
-      NavigationGenerator generator =
-          NavigationGenerator(getNavigationContributors(path));
-      GeneratorResult generatorResult =
-          generator.generateNavigationNotification(request);
+      var generator = NavigationGenerator(getNavigationContributors(path));
+      var generatorResult = generator.generateNavigationNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

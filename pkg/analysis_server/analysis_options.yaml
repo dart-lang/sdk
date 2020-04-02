@@ -25,7 +25,7 @@ linter:
     - annotate_overrides
     - avoid_null_checks_in_equality_operators
     - camel_case_extensions
-    #- omit_local_variable_types # 8650
+    - omit_local_variable_types
     - prefer_adjacent_string_concatenation
     - prefer_collection_literals
     - prefer_conditional_assignment

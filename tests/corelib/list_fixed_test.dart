@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 main() {
   var a;
 
-  a = new List(42);
+  a = new List<int?>.filled(42, null);
   Expect.equals(42, a.length);
   Expect.throwsUnsupportedError(() => a.add(499));
   Expect.equals(42, a.length);

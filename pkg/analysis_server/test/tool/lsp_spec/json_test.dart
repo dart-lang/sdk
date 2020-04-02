@@ -21,7 +21,7 @@ void main() {
     test('returns correct output for union types', () {
       final message = RequestMessage(
           Either2<num, String>.t1(1), Method.shutdown, null, 'test');
-      String output = json.encode(message.toJson());
+      final output = json.encode(message.toJson());
       expect(output, equals('{"id":1,"method":"shutdown","jsonrpc":"test"}'));
     });
 
@@ -29,7 +29,7 @@ void main() {
         () {
       final params = Either2<String, TextDocumentItem>.t2(
           TextDocumentItem('!uri', '!language', 1, '!text'));
-      String output = json.encode(params);
+      final output = json.encode(params);
       expect(
           output,
           equals(
@@ -320,7 +320,7 @@ void main() {
       WorkspaceFolder('!uri1', '!name1'),
       WorkspaceFolder('!uri2', '!name2'),
     ]);
-    final String json = jsonEncode(obj);
+    final json = jsonEncode(obj);
     final restoredObj = InitializeParams.fromJson(jsonDecode(json));
 
     expect(
@@ -335,7 +335,7 @@ void main() {
 
   test('objects with enums can round-trip through to json and back', () {
     final obj = FoldingRange(1, 2, 3, 4, FoldingRangeKind.Comment);
-    final String json = jsonEncode(obj);
+    final json = jsonEncode(obj);
     final restoredObj = FoldingRange.fromJson(jsonDecode(json));
 
     expect(restoredObj.startLine, equals(obj.startLine));
@@ -353,7 +353,7 @@ void main() {
       'fileA': [TextEdit(range, 'text A')],
       'fileB': [TextEdit(range, 'text B')]
     }, null);
-    final String json = jsonEncode(obj);
+    final json = jsonEncode(obj);
     final restoredObj = WorkspaceEdit.fromJson(jsonDecode(json));
 
     expect(restoredObj.documentChanges, equals(obj.documentChanges));

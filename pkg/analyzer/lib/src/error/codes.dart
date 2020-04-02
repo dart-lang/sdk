@@ -3502,6 +3502,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
    * with the same name as <i>C</i>.
    */
+  @Deprecated('Superseded by ParserErrorCode.MEMBER_WITH_CLASS_NAME')
   static const CompileTimeErrorCode MEMBER_WITH_CLASS_NAME =
       CompileTimeErrorCode('MEMBER_WITH_CLASS_NAME',
           "Class members can't have the same name as the enclosing class.");

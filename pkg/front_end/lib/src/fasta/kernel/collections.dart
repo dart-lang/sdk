@@ -102,7 +102,12 @@ class SpreadElement extends Expression with ControlFlowElement {
 
   @override
   String toString() {
-    return "SpreadElement()";
+    return "SpreadElement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -163,7 +168,12 @@ class IfElement extends Expression with ControlFlowElement {
 
   @override
   String toString() {
-    return "IfElement()";
+    return "IfElement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -220,7 +230,12 @@ class ForElement extends Expression with ControlFlowElement {
 
   @override
   String toString() {
-    return "ForElement()";
+    return "ForElement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -304,7 +319,12 @@ class ForInElement extends Expression with ControlFlowElement {
 
   @override
   String toString() {
-    return "ForInElement()";
+    return "ForInElement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -363,7 +383,12 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   String toString() {
-    return "SpreadMapEntry()";
+    return "SpreadMapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -404,7 +429,12 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   String toString() {
-    return "IfMapEntry()";
+    return "IfMapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -446,7 +476,12 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   String toString() {
-    return "ForMapEntry()";
+    return "ForMapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -515,7 +550,12 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   String toString() {
-    return "ForInMapEntry()";
+    return "ForInMapEntry(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 

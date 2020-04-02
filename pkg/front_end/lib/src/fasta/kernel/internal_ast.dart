@@ -275,7 +275,12 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
 
   @override
   String toString() {
-    return "ForInStatementWithSynthesizedVariable()";
+    return "ForInStatementWithSynthesizedVariable(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -317,7 +322,12 @@ class TryStatement extends InternalStatement {
 
   @override
   String toString() {
-    return "TryStatement()";
+    return "TryStatement(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -332,7 +342,12 @@ class SwitchCaseImpl extends SwitchCase {
 
   @override
   String toString() {
-    return "SwitchCaseImpl()";
+    return "SwitchCaseImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -346,7 +361,12 @@ class BreakStatementImpl extends BreakStatement {
 
   @override
   String toString() {
-    return "BreakStatementImpl()";
+    return "BreakStatementImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -478,7 +498,13 @@ class ArgumentsImpl extends Arguments {
 
   @override
   String toString() {
-    return "ArgumentsImpl()";
+    return "ArgumentsImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    // TODO(jensj): Make (much) better.
+    return "";
   }
 }
 
@@ -545,7 +571,12 @@ class Cascade extends InternalExpression {
 
   @override
   String toString() {
-    return "Cascade()";
+    return "Cascade(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -589,7 +620,12 @@ class DeferredCheck extends InternalExpression {
 
   @override
   String toString() {
-    return "DeferredCheck()";
+    return "DeferredCheck(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -621,7 +657,12 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
 
   @override
   String toString() {
-    return "FactoryConstructorInvocationJudgment()";
+    return "FactoryConstructorInvocationJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -640,7 +681,12 @@ class FunctionDeclarationImpl extends FunctionDeclaration {
 
   @override
   String toString() {
-    return "FunctionDeclarationImpl()";
+    return "FunctionDeclarationImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -661,7 +707,12 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
 
   @override
   String toString() {
-    return "InvalidSuperInitializerJudgment()";
+    return "InvalidSuperInitializerJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -709,7 +760,12 @@ class IfNullExpression extends InternalExpression {
 
   @override
   String toString() {
-    return "IfNullExpression()";
+    return "IfNullExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -762,7 +818,12 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   @override
   String toString() {
-    return "IntJudgment()";
+    return "IntJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -796,7 +857,12 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 
   @override
   String toString() {
-    return "ShadowLargeIntLiteral()";
+    return "ShadowLargeIntLiteral(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -812,7 +878,12 @@ class ShadowInvalidInitializer extends LocalInitializer
 
   @override
   String toString() {
-    return "ShadowInvalidInitializer()";
+    return "ShadowInvalidInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -835,7 +906,12 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
 
   @override
   String toString() {
-    return "ShadowInvalidFieldInitializer()";
+    return "ShadowInvalidFieldInitializer(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -878,7 +954,12 @@ class ExpressionInvocation extends InternalExpression {
 
   @override
   String toString() {
-    return "ExpressionInvocation()";
+    return "ExpressionInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -904,7 +985,12 @@ class NamedFunctionExpressionJudgment extends Let
 
   @override
   String toString() {
-    return "NamedFunctionExpressionJudgment()";
+    return "NamedFunctionExpressionJudgment(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -956,7 +1042,12 @@ class NullAwareMethodInvocation extends InternalExpression {
 
   @override
   String toString() {
-    return "NullAwareMethodInvocation()";
+    return "NullAwareMethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1008,7 +1099,12 @@ class NullAwarePropertyGet extends InternalExpression {
 
   @override
   String toString() {
-    return "NullAwarePropertyGet()";
+    return "NullAwarePropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1060,7 +1156,12 @@ class NullAwarePropertySet extends InternalExpression {
 
   @override
   String toString() {
-    return "NullAwarePropertySet()";
+    return "NullAwarePropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1073,7 +1174,12 @@ class ReturnStatementImpl extends ReturnStatement {
 
   @override
   String toString() {
-    return "ReturnStatementImpl()";
+    return "ReturnStatementImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1264,7 +1370,12 @@ class VariableGetImpl extends VariableGet {
 
   @override
   String toString() {
-    return "VariableGetImpl()";
+    return "VariableGetImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1276,7 +1387,12 @@ class LoadLibraryImpl extends LoadLibrary {
 
   @override
   String toString() {
-    return "LoadLibraryImpl()";
+    return "LoadLibraryImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1314,7 +1430,12 @@ class LoadLibraryTearOff extends InternalExpression {
 
   @override
   String toString() {
-    return "LoadLibraryTearOff()";
+    return "LoadLibraryTearOff(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1383,7 +1504,12 @@ class IfNullPropertySet extends InternalExpression {
 
   @override
   String toString() {
-    return "IfNullPropertySet()";
+    return "IfNullPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1443,7 +1569,12 @@ class IfNullSet extends InternalExpression {
 
   @override
   String toString() {
-    return "IfNullSet()";
+    return "IfNullSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1565,7 +1696,12 @@ class CompoundExtensionSet extends InternalExpression {
 
   @override
   String toString() {
-    return "CompoundExtensionSet()";
+    return "CompoundExtensionSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1654,7 +1790,12 @@ class CompoundPropertySet extends InternalExpression {
 
   @override
   String toString() {
-    return "CompoundPropertySet()";
+    return "CompoundPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1719,7 +1860,12 @@ class PropertyPostIncDec extends InternalExpression {
 
   @override
   String toString() {
-    return "PropertyPostIncDec()";
+    return "PropertyPostIncDec(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1772,7 +1918,12 @@ class LocalPostIncDec extends InternalExpression {
 
   @override
   String toString() {
-    return "LocalPostIncDec()";
+    return "LocalPostIncDec(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1825,7 +1976,12 @@ class StaticPostIncDec extends InternalExpression {
 
   @override
   String toString() {
-    return "StaticPostIncDec()";
+    return "StaticPostIncDec(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1878,7 +2034,12 @@ class SuperPostIncDec extends InternalExpression {
 
   @override
   String toString() {
-    return "SuperPostIncDec()";
+    return "SuperPostIncDec(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1924,7 +2085,12 @@ class IndexGet extends InternalExpression {
 
   @override
   String toString() {
-    return "IndexGet()";
+    return "IndexGet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -1998,7 +2164,12 @@ class IndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "IndexSet()";
+    return "IndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2059,7 +2230,12 @@ class SuperIndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "SuperIndexSet()";
+    return "SuperIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2144,7 +2320,12 @@ class ExtensionIndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "ExtensionIndexSet()";
+    return "ExtensionIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2246,7 +2427,12 @@ class IfNullIndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "IfNullIndexSet()";
+    return "IfNullIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2333,7 +2519,12 @@ class IfNullSuperIndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "IfNullSuperIndexSet()";
+    return "IfNullSuperIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2446,7 +2637,12 @@ class IfNullExtensionIndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "IfNullExtensionIndexSet()";
+    return "IfNullExtensionIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2544,7 +2740,12 @@ class CompoundIndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "CompoundIndexSet()";
+    return "CompoundIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2656,7 +2857,12 @@ class NullAwareCompoundSet extends InternalExpression {
 
   @override
   String toString() {
-    return "NullAwareCompoundSet()";
+    return "NullAwareCompoundSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2743,7 +2949,12 @@ class NullAwareIfNullSet extends InternalExpression {
 
   @override
   String toString() {
-    return "NullAwareIfNullSet()";
+    return "NullAwareIfNullSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2834,7 +3045,12 @@ class CompoundSuperIndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "CompoundSuperIndexSet()";
+    return "CompoundSuperIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -2962,7 +3178,12 @@ class CompoundExtensionIndexSet extends InternalExpression {
 
   @override
   String toString() {
-    return "CompoundExtensionIndexSet()";
+    return "CompoundExtensionIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3049,7 +3270,12 @@ class ExtensionSet extends InternalExpression {
 
   @override
   String toString() {
-    return "ExtensionSet()";
+    return "ExtensionSet(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3100,7 +3326,12 @@ class NullAwareExtension extends InternalExpression {
 
   @override
   String toString() {
-    return "NullAwareExtension()";
+    return "NullAwareExtension(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3120,7 +3351,12 @@ class PropertySetImpl extends PropertySet {
 
   @override
   String toString() {
-    return "PropertySetImpl()";
+    return "PropertySetImpl(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3171,7 +3407,12 @@ class ExtensionTearOff extends InternalExpression {
 
   @override
   String toString() {
-    return "ExtensionTearOff()";
+    return "ExtensionTearOff(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3216,7 +3457,12 @@ class EqualsExpression extends InternalExpression {
 
   @override
   String toString() {
-    return "EqualsExpression()";
+    return "EqualsExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3260,7 +3506,12 @@ class BinaryExpression extends InternalExpression {
 
   @override
   String toString() {
-    return "BinaryExpression()";
+    return "BinaryExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3297,7 +3548,12 @@ class UnaryExpression extends InternalExpression {
 
   @override
   String toString() {
-    return "UnaryExpression()";
+    return "UnaryExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 
@@ -3333,7 +3589,12 @@ class ParenthesizedExpression extends InternalExpression {
 
   @override
   String toString() {
-    return "ParenthesizedExpression()";
+    return "ParenthesizedExpression(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 

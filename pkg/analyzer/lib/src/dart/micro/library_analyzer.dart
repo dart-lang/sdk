@@ -193,7 +193,7 @@ class LibraryAnalyzer {
       PerformanceStatistics.lints.makeCurrentWhile(() {
         var allUnits = _library.libraryFiles.map(
           (file) {
-            var content = getFileContent(file.path);
+            var content = _getFileContent(file.path);
             return LinterContextUnit(content, units[file]);
           },
         ).toList();
@@ -268,7 +268,7 @@ class LibraryAnalyzer {
       unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    var content = getFileContent(file.path);
+    var content = _getFileContent(file.path);
     unit.accept(BestPracticesVerifier(
         errorReporter, _typeProvider, _libraryElement, unit, content,
         typeSystem: _typeSystem,
@@ -518,7 +518,8 @@ class LibraryAnalyzer {
    */
   CompilationUnit _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
-    String content = getFileContent(file.path);
+    String content = _getFileContent(file.path);
+
     CompilationUnit unit = file.parse(errorListener, content);
 
     LineInfo lineInfo = unit.lineInfo;
@@ -784,6 +785,17 @@ class LibraryAnalyzer {
       if (directive is UriBasedDirective) {
         _validateUriBasedDirective(file, directive);
       }
+    }
+  }
+
+  /**
+   * Catch all exceptions from the `getFileContent` function.
+   */
+  String _getFileContent(String path) {
+    try {
+      return getFileContent(path);
+    } catch (_) {
+      return '';
     }
   }
 

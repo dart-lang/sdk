@@ -37,7 +37,7 @@ class ResultCollector<E> {
   /// Clear any results that have been contributed by the plugin with the given
   /// [pluginId].
   void clearResultsFromPlugin(String pluginId) {
-    for (Map<String, E> partialResults in resultMap.values) {
+    for (var partialResults in resultMap.values) {
       partialResults.remove(pluginId);
     }
   }
@@ -45,15 +45,15 @@ class ResultCollector<E> {
   /// Return an iterator producing the partial results that have been
   /// contributed for the given [filePath].
   List<E> getResults(String filePath) {
-    Map<String, E> partialResultMap = resultMap[filePath];
+    var partialResultMap = resultMap[filePath];
     if (partialResultMap == null) {
       return <E>[];
     }
-    List<E> values = partialResultMap.values.toList();
+    var values = partialResultMap.values.toList();
     //
     // Ensure that the server's contributions are always first in the list.
     //
-    E serverContributions = partialResultMap[serverId];
+    var serverContributions = partialResultMap[serverId];
     if (serverContributions != null && values.remove(serverContributions)) {
       values.insert(0, serverContributions);
     }
@@ -72,7 +72,7 @@ class ResultCollector<E> {
   /// Record the [partialResults] as having been contributed for the given
   /// [filePath] by the plugin with the given [pluginId].
   void putResults(String filePath, String pluginId, E partialResults) {
-    Map<String, E> fileResults = resultMap[filePath];
+    var fileResults = resultMap[filePath];
     if (fileResults == null) {
       if (_shouldCollect != null && _shouldCollect(filePath)) {
         resultMap[filePath] = <String, E>{pluginId: partialResults};

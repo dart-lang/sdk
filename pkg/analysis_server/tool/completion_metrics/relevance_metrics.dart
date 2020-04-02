@@ -13,6 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -36,13 +37,12 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Compute metrics to determine whether they should be used to compute a
 /// relevance score for completion suggestions.
 Future<void> main(List<String> args) async {
-  ArgParser parser = createArgParser();
-  ArgResults result = parser.parse(args);
+  var parser = createArgParser();
+  var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
     var out = io.stdout;
@@ -52,8 +52,7 @@ Future<void> main(List<String> args) async {
     var computer = RelevanceMetricsComputer();
     var stopwatch = Stopwatch();
     stopwatch.start();
-    await computer.compute(rootPath,
-        corpus: result['corpus'], verbose: result['verbose']);
+    await computer.compute(rootPath, verbose: result['verbose']);
     stopwatch.stop();
 
     var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -66,12 +65,7 @@ Future<void> main(List<String> args) async {
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  ArgParser parser = ArgParser();
-  parser.addFlag(
-    'corpus',
-    help: 'Analyze each of the subdirectories separately',
-    negatable: false,
-  );
+  var parser = ArgParser();
   parser.addOption(
     'help',
     abbr: 'h',
@@ -1470,7 +1464,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// annotation.
   SyntacticEntity _firstChild(AstNode node) {
     var children = node.childEntities.toList();
-    for (int i = 0; i < children.length; i++) {
+    for (var i = 0; i < children.length; i++) {
       var child = children[i];
       if (child is! Comment && child is! Annotation) {
         return child;
@@ -1582,7 +1576,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           statements = parent.statements;
         }
         var index = statements.indexOf(node);
-        for (int i = 0; i < index; i++) {
+        for (var i = 0; i < index; i++) {
           var statement = statements[i];
           if (statement is VariableDeclarationStatement) {
             for (var declaredVariable
@@ -1647,7 +1641,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var contextType = featureComputer.computeContextType(node);
       _recordContextType(contextType);
       if (contextType != null) {
-        DartType elementType = _returnType(_leftMostElement(node));
+        var elementType = _returnType(_leftMostElement(node));
         if (elementType != null) {
           _recordTypeRelationships(
               'matches context type', contextType, elementType);
@@ -1729,8 +1723,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           return depth;
         }
 
-        int superclassDepth = getSuperclassDepth();
-        int interfaceDepth =
+        var superclassDepth = getSuperclassDepth();
+        var interfaceDepth =
             featureComputer.inheritanceDistance(targetClass, memberClass);
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
@@ -1784,9 +1778,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           'parameter override', overriddenType, overrideType);
     }
 
-    int count =
+    var count =
         math.min(positionalInOverride.length, positionalInOverridden.length);
-    for (int i = 0; i < count; i++) {
+    for (var i = 0; i < count; i++) {
       recordParameterOverride(
           positionalInOverride[i], positionalInOverridden[i]);
     }
@@ -1984,61 +1978,14 @@ class RelevanceMetricsComputer {
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
-  void compute(String rootPath,
-      {@required bool corpus, @required bool verbose}) async {
+  void compute(String rootPath, {@required bool verbose}) async {
+    final collection = AnalysisContextCollection(
+      includedPaths: [rootPath],
+      resourceProvider: PhysicalResourceProvider.INSTANCE,
+    );
     final collector = RelevanceDataCollector(data);
-    var roots = _computeRootPaths(rootPath, corpus);
-    for (var root in roots) {
-      final collection = AnalysisContextCollection(
-        includedPaths: [root],
-        resourceProvider: PhysicalResourceProvider.INSTANCE,
-      );
-      for (var context in collection.contexts) {
-        for (var filePath in context.contextRoot.analyzedFiles()) {
-          if (AnalysisEngine.isDartFileName(filePath)) {
-            try {
-              ResolvedUnitResult resolvedUnitResult =
-                  await context.currentSession.getResolvedUnit(filePath);
-              //
-              // Check for errors that cause the file to be skipped.
-              //
-              if (resolvedUnitResult == null) {
-                print('File $filePath skipped because resolved unit was null.');
-                if (verbose) {
-                  print('');
-                }
-                continue;
-              } else if (resolvedUnitResult.state != ResultState.VALID) {
-                print(
-                    'File $filePath skipped because it could not be analyzed.');
-                if (verbose) {
-                  print('');
-                }
-                continue;
-              } else if (hasError(resolvedUnitResult)) {
-                if (verbose) {
-                  print('File $filePath skipped due to errors:');
-                  for (var error in resolvedUnitResult.errors
-                      .where((e) => e.severity == Severity.error)) {
-                    print('  ${error.toString()}');
-                  }
-                  print('');
-                } else {
-                  print('File $filePath skipped due to analysis errors.');
-                }
-                continue;
-              }
-
-              collector.initializeFrom(resolvedUnitResult);
-              resolvedUnitResult.unit.accept(collector);
-            } catch (exception, stacktrace) {
-              print('Exception caught analyzing: "$filePath"');
-              print(exception);
-              print(stacktrace);
-            }
-          }
-        }
-      }
+    for (var context in collection.contexts) {
+      await _computeInContext(context.contextRoot, collector, verbose: verbose);
     }
   }
 
@@ -2107,7 +2054,7 @@ class RelevanceMetricsComputer {
           throw ArgumentError(
               'non-empty rows must contain the same number of columns');
         }
-        for (int i = 0; i < rowLength; i++) {
+        for (var i = 0; i < rowLength; i++) {
           var cellWidth = row[i].length;
           columnWidths[i] = math.max(columnWidths[i], cellWidth);
         }
@@ -2116,18 +2063,62 @@ class RelevanceMetricsComputer {
     return columnWidths;
   }
 
-  List<String> _computeRootPaths(String rootPath, bool corpus) {
-    var roots = <String>[];
-    if (!corpus) {
-      roots.add(rootPath);
-    } else {
-      for (var child in io.Directory(rootPath).listSync()) {
-        if (child is io.Directory) {
-          roots.add(path.join(rootPath, child.path));
+  /// Compute the metrics for the files in the context [root], creating a
+  /// separate context collection to prevent accumulating memory. The metrics
+  /// should be captured in the [collector]. Include additional details in the
+  /// output if [verbose] is `true`.
+  void _computeInContext(ContextRoot root, RelevanceDataCollector collector,
+      {@required bool verbose}) async {
+    // Create a new collection to avoid consuming large quantities of memory.
+    final collection = AnalysisContextCollection(
+      includedPaths: root.includedPaths.toList(),
+      excludedPaths: root.excludedPaths.toList(),
+      resourceProvider: PhysicalResourceProvider.INSTANCE,
+    );
+    var context = collection.contexts[0];
+    for (var filePath in context.contextRoot.analyzedFiles()) {
+      if (AnalysisEngine.isDartFileName(filePath)) {
+        try {
+          var resolvedUnitResult =
+              await context.currentSession.getResolvedUnit(filePath);
+          //
+          // Check for errors that cause the file to be skipped.
+          //
+          if (resolvedUnitResult == null) {
+            print('File $filePath skipped because resolved unit was null.');
+            if (verbose) {
+              print('');
+            }
+            continue;
+          } else if (resolvedUnitResult.state != ResultState.VALID) {
+            print('File $filePath skipped because it could not be analyzed.');
+            if (verbose) {
+              print('');
+            }
+            continue;
+          } else if (hasError(resolvedUnitResult)) {
+            if (verbose) {
+              print('File $filePath skipped due to errors:');
+              for (var error in resolvedUnitResult.errors
+                  .where((e) => e.severity == Severity.error)) {
+                print('  ${error.toString()}');
+              }
+              print('');
+            } else {
+              print('File $filePath skipped due to analysis errors.');
+            }
+            continue;
+          }
+
+          collector.initializeFrom(resolvedUnitResult);
+          resolvedUnitResult.unit.accept(collector);
+        } catch (exception, stacktrace) {
+          print('Exception caught analyzing: "$filePath"');
+          print(exception);
+          print(stacktrace);
         }
       }
     }
-    return roots;
   }
 
   Iterable<List<String>> _convertColumnsToRows(
@@ -2246,15 +2237,15 @@ class RelevanceMetricsComputer {
 
     var maxRowHeaderWidth = maxTargetDepth.toString().length;
     var headerRow = [''];
-    for (int depth = maxTargetDepth; depth > 0; depth--) {
+    for (var depth = maxTargetDepth; depth > 0; depth--) {
       headerRow.add(intToString(depth, maxValueWidth));
     }
     var zero = intToString(0, maxValueWidth);
     var table = [headerRow];
-    for (int distance = maxTargetDepth - 1; distance >= 0; distance--) {
+    for (var distance = maxTargetDepth - 1; distance >= 0; distance--) {
       var innerMap = matrix[distance] ?? {};
       var row = [intToString(distance, maxRowHeaderWidth)];
-      for (int depth = maxTargetDepth; depth > 0; depth--) {
+      for (var depth = maxTargetDepth; depth > 0; depth--) {
         var value = innerMap[depth];
         row.add(value == null
             ? (distance < depth ? zero : '')
@@ -2283,14 +2274,14 @@ class RelevanceMetricsComputer {
   void _writeTable(StringSink sink, List<List<String>> table) {
     var columnWidths = _computeColumnWidths(table);
     for (var row in table) {
-      int lastNonEmpty = row.length - 1;
+      var lastNonEmpty = row.length - 1;
       while (lastNonEmpty > 0) {
         if (row[lastNonEmpty].isNotEmpty) {
           break;
         }
         lastNonEmpty--;
       }
-      for (int i = 0; i <= lastNonEmpty; i++) {
+      for (var i = 0; i <= lastNonEmpty; i++) {
         var cellContent = row[i];
         var columnWidth = columnWidths[i];
         var padding = columnWidth - cellContent.length;
@@ -2313,7 +2304,7 @@ class RelevanceMetricsComputer {
         .fold<int>(0, (previous, current) => previous + current);
     secondColumn.add('matching tokens within a given distance ($total)');
     var cumulative = 0;
-    for (int i = 1; i <= 100; i++) {
+    for (var i = 1; i <= 100; i++) {
       cumulative += distances[i] ?? 0;
       var percent = _formatPercent(cumulative, total);
       secondColumn.add('  $percent%: $i');

@@ -46,7 +46,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
-    AstNode result = NodeLocator(offset).searchWithin(testUnit);
+    var result = NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
       result = result.thisOrAncestorMatching(predicate);
     }
@@ -54,13 +54,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   AstNode findNodeAtString(String search, [Predicate<AstNode> predicate]) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return findNodeAtOffset(offset, predicate);
   }
 
   Element findNodeElementAtString(String search,
       [Predicate<AstNode> predicate]) {
-    AstNode node = findNodeAtString(search, predicate);
+    var node = findNodeAtString(search, predicate);
     if (node == null) {
       return null;
     }
@@ -68,15 +68,15 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   int findOffset(String search) {
-    int offset = testCode.indexOf(search);
+    var offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
     return offset;
   }
 
   int getLeadingIdentifierLength(String search) {
-    int length = 0;
+    var length = 0;
     while (length < search.length) {
-      int c = search.codeUnitAt(length);
+      var c = search.codeUnitAt(length);
       if (c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0)) {
         length++;
         continue;

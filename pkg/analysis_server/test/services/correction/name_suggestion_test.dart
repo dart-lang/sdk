@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,11 +37,11 @@ main() {
   TreeNode node = null;
 }
 ''');
-    Set<String> excluded = <String>{};
-    DartType expectedType = findLocalVariable('node').type;
+    var excluded = <String>{};
+    var expectedType = findLocalVariable('node').type;
     Expression assignedExpression =
         findNodeAtString('null;', (node) => node is NullLiteral);
-    List<String> suggestions = getVariableNameSuggestionsForExpression(
+    var suggestions = getVariableNameSuggestionsForExpression(
         expectedType, assignedExpression, excluded);
     expect(suggestions, unorderedEquals(['treeNode', 'node']));
   }
@@ -53,7 +52,7 @@ main() {
   double res = 0.0;
 }
 ''');
-    DartType expectedType = findLocalVariable('res').type;
+    var expectedType = findLocalVariable('res').type;
     Expression assignedExpression = findNodeAtString('0.0;');
     // first choice for "double" is "d"
     expect(
@@ -73,7 +72,7 @@ main() {
   int res = 0;
 }
 ''');
-    DartType expectedType = findLocalVariable('res').type;
+    var expectedType = findLocalVariable('res').type;
     Expression assignedExpression = findNodeAtString('0;');
     // first choice for "int" is "i"
     expect(
@@ -93,7 +92,7 @@ main() {
   String res = 'abc';
 }
 ''');
-    DartType expectedType = findLocalVariable('res').type;
+    var expectedType = findLocalVariable('res').type;
     Expression assignedExpression = findNodeAtString("'abc';");
     // first choice for "String" is "s"
     expect(
@@ -352,15 +351,15 @@ main(p) {
 
   void test_forText() {
     {
-      Set<String> excluded = <String>{};
-      List<String> suggestions =
+      var excluded = <String>{};
+      var suggestions =
           getVariableNameSuggestionsForText('Goodbye, cruel world!', excluded);
       expect(suggestions,
           unorderedEquals(['goodbyeCruelWorld', 'cruelWorld', 'world']));
     }
     {
-      Set<String> excluded = <String>{'world'};
-      List<String> suggestions =
+      var excluded = <String>{'world'};
+      var suggestions =
           getVariableNameSuggestionsForText('Goodbye, cruel world!', excluded);
       expect(suggestions,
           unorderedEquals(['goodbyeCruelWorld', 'cruelWorld', 'world2']));

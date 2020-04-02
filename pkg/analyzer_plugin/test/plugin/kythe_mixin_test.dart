@@ -44,7 +44,7 @@ class KytheMixinTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    KytheGetKytheEntriesResult result = await plugin
+    var result = await plugin
         .handleKytheGetKytheEntries(KytheGetKytheEntriesParams(filePath1));
     expect(result, isNotNull);
     expect(result.entries, hasLength(3));
@@ -58,7 +58,7 @@ class _TestEntryContributor implements EntryContributor {
 
   @override
   void computeEntries(EntryRequest request, EntryCollector collector) {
-    for (KytheEntry entry in entries) {
+    for (var entry in entries) {
       collector.addEntry(entry);
     }
   }
@@ -74,7 +74,7 @@ class _TestServerPlugin extends MockServerPlugin with EntryMixin {
 
   @override
   List<EntryContributor> getEntryContributors(String path) {
-    KytheVName vName = KytheVName('', '', '', '', '');
+    var vName = KytheVName('', '', '', '', '');
     return <EntryContributor>[
       _TestEntryContributor(<KytheEntry>[
         KytheEntry(vName, '', target: vName),

@@ -866,3 +866,22 @@ bool skipForConfig(
   }
   return false;
 }
+
+/// Updates all id tests in [relativeTestPaths].
+///
+/// This assumes that the current working directory is the repository root.
+Future<void> updateAllTests(List<String> relativeTestPaths) async {
+  for (String testPath in relativeTestPaths) {
+    List<String> arguments = [
+      '--packages=${Platform.packageConfig}',
+      testPath,
+      '-g',
+      '--run-all'
+    ];
+    print('Running: ${Platform.resolvedExecutable} ${arguments.join(' ')}');
+    Process process = await Process.start(
+        Platform.resolvedExecutable, arguments,
+        mode: ProcessStartMode.inheritStdio);
+    await process.exitCode;
+  }
+}

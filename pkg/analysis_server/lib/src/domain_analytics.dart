@@ -15,12 +15,14 @@ import 'package:telemetry/telemetry.dart';
 class AnalyticsDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
-  Analytics get analytics => server.analytics;
-
   AnalyticsDomainHandler(this.server);
 
+  Analytics get analytics => server.analytics;
+
+  String get _clientId => server.options.clientId ?? 'client';
+
   Response handleEnable(Request request) {
-    AnalyticsEnableParams params = AnalyticsEnableParams.fromRequest(request);
+    var params = AnalyticsEnableParams.fromRequest(request);
     if (analytics != null) {
       analytics.enabled = params.value;
     }
@@ -34,7 +36,7 @@ class AnalyticsDomainHandler implements RequestHandler {
 
   @override
   Response handleRequest(Request request) {
-    String requestName = request.method;
+    var requestName = request.method;
 
     if (requestName == ANALYTICS_REQUEST_IS_ENABLED) {
       return handleIsEnabled(request);
@@ -54,8 +56,7 @@ class AnalyticsDomainHandler implements RequestHandler {
       return AnalyticsSendEventResult().toResponse(request.id);
     }
 
-    AnalyticsSendEventParams params =
-        AnalyticsSendEventParams.fromRequest(request);
+    var params = AnalyticsSendEventParams.fromRequest(request);
     analytics.sendEvent(_clientId, params.action);
     return AnalyticsSendEventResult().toResponse(request.id);
   }
@@ -65,11 +66,8 @@ class AnalyticsDomainHandler implements RequestHandler {
       return AnalyticsSendTimingResult().toResponse(request.id);
     }
 
-    AnalyticsSendTimingParams params =
-        AnalyticsSendTimingParams.fromRequest(request);
+    var params = AnalyticsSendTimingParams.fromRequest(request);
     analytics.sendTiming(params.event, params.millis, category: _clientId);
     return AnalyticsSendTimingResult().toResponse(request.id);
   }
-
-  String get _clientId => server.options.clientId ?? 'client';
 }

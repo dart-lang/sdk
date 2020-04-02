@@ -18,6 +18,8 @@ abstract class LegacyClass2 extends Class {
   /*member: LegacyClass2.method:int* Function(int*)**/
 }
 
+/// TODO: Solve CFE / analyzer difference.
+/// Classes in legacy libraries can only have members with legacy signatures.
 /*class: GenericLegacyClass1a:GenericClass1,GenericInterface<int*>,GenericLegacyClass1a,Object*/
 abstract class GenericLegacyClass1a extends GenericClass1 {
   /*cfe|cfe:builder.member: GenericLegacyClass1a.method:int* Function(int*)*/

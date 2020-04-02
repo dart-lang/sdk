@@ -21,7 +21,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
 
   Future<void> assertHasFixWithFilter(String expected) async {
-    bool noError = true;
+    var noError = true;
     await assertHasFix(expected, errorFilter: (error) {
       if (noError &&
           error.errorCode ==

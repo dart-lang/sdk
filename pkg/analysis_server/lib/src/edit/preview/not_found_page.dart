@@ -13,6 +13,9 @@ class NotFoundPage extends PreviewPage {
   NotFoundPage(PreviewSite site, String id) : super(site, id);
 
   @override
+  bool get requiresAuth => false;
+
+  @override
   void generateBody(Map<String, String> params) {
     buf.write('''
 <h1>404 Not found</h1>

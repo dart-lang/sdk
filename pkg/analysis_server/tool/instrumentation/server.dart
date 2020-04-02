@@ -38,12 +38,12 @@ class WebServer {
 
   Map<String, String> getParameterMap(HttpRequest request) {
     Map<String, String> parameterMap = HashMap<String, String>();
-    String query = request.uri.query;
+    var query = request.uri.query;
     if (query != null && query.isNotEmpty) {
-      List<String> pairs = query.split('&');
-      for (String pair in pairs) {
-        List<String> parts = pair.split('=');
-        String value = parts[1].trim();
+      var pairs = query.split('&');
+      for (var pair in pairs) {
+        var parts = pair.split('=');
+        var value = parts[1].trim();
         value = value.replaceAll('+', ' ');
         parameterMap[parts[0].trim()] = value;
       }
@@ -54,19 +54,19 @@ class WebServer {
   /// Return a table mapping the names of properties to the values of those
   /// properties that is extracted from the given HTTP [request].
   Future<Map<String, String>> getValueMap(HttpRequest request) async {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     await request.forEach((List<int> element) {
-      for (int code in element) {
+      for (var code in element) {
         buffer.writeCharCode(code);
       }
     });
     Map<String, String> valueMap = HashMap<String, String>();
-    String parameters = buffer.toString();
+    var parameters = buffer.toString();
     if (parameters.isNotEmpty) {
-      List<String> pairs = parameters.split('&');
-      for (String pair in pairs) {
-        List<String> parts = pair.split('=');
-        String value = parts[1].trim();
+      var pairs = parameters.split('&');
+      for (var pair in pairs) {
+        var parts = pair.split('=');
+        var value = parts[1].trim();
         value = value.replaceAll('+', ' ');
         valueMap[parts[0].trim()] = value;
       }
@@ -84,9 +84,9 @@ class WebServer {
 
   /// Handle a GET [request] received by the HTTP server.
   void _handleGetRequest(HttpRequest request) {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     try {
-      String path = request.uri.path;
+      var path = request.uri.path;
       if (path == logPath) {
         _writeLogPage(request, buffer);
       } else if (path == statsPath) {
@@ -99,10 +99,10 @@ class WebServer {
       _returnUnknownRequest(request);
       return;
     } catch (exception, stackTrace) {
-      HttpResponse response = request.response;
+      var response = request.response;
       response.statusCode = HttpStatus.ok;
       response.headers.contentType = _htmlContent;
-      StringBuffer buffer = StringBuffer();
+      var buffer = StringBuffer();
       buffer.write('<p><b>Exception while composing page:</b></p>');
       buffer.write('<p>$exception</p>');
       buffer.write('<p>');
@@ -113,7 +113,7 @@ class WebServer {
       return;
     }
 
-    HttpResponse response = request.response;
+    var response = request.response;
     response.statusCode = HttpStatus.ok;
     response.headers.contentType = _htmlContent;
     response.write(buffer.toString());
@@ -128,7 +128,7 @@ class WebServer {
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
     httpServer.listen((HttpRequest request) {
-      String method = request.method;
+      var method = request.method;
       if (method == 'GET') {
         _handleGetRequest(request);
       } else if (method == 'POST') {
@@ -142,7 +142,7 @@ class WebServer {
   /// Return an error in response to an unrecognized request received by the
   /// HTTP server.
   void _returnUnknownRequest(HttpRequest request) {
-    HttpResponse response = request.response;
+    var response = request.response;
     response.statusCode = HttpStatus.notFound;
     response.headers.contentType =
         ContentType('text', 'html', charset: 'utf-8');
@@ -152,10 +152,10 @@ class WebServer {
   }
 
   void _writeLogPage(HttpRequest request, StringBuffer buffer) {
-    Map<String, String> parameterMap = getParameterMap(request);
-    String groupId = parameterMap['group'];
-    String startIndex = parameterMap['start'];
-    LogPage page = LogPage(log);
+    var parameterMap = getParameterMap(request);
+    var groupId = parameterMap['group'];
+    var startIndex = parameterMap['start'];
+    var page = LogPage(log);
     page.selectedGroup = EntryGroup.withId(groupId ?? 'nonTask');
     if (startIndex != null) {
       page.pageStart = int.parse(startIndex);
@@ -169,7 +169,7 @@ class WebServer {
   /// Write a representation of the given [stackTrace] to the given [sink].
   void _writeStackTrace(StringSink sink, StackTrace stackTrace) {
     if (stackTrace != null) {
-      String trace = stackTrace.toString().replaceAll('#', '<br>#');
+      var trace = stackTrace.toString().replaceAll('#', '<br>#');
       if (trace.startsWith('<br>#')) {
         trace = trace.substring(4);
       }

@@ -87,7 +87,7 @@ class DartPostfixCompletion {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     return processor.expand(kind, processor.findIterableExpression, (expr) {
-      String value = processor.newVariable('value');
+      var value = processor.newVariable('value');
       return 'for (var $value in ${processor.utils.getNodeText(expr)})';
     });
   }
@@ -97,7 +97,7 @@ class DartPostfixCompletion {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     return processor.expand(kind, processor.findIntExpression, (expr) {
-      String index = processor.newVariable('i');
+      var index = processor.newVariable('i');
       return 'for (int $index = 0; $index < ${processor.utils.getNodeText(expr)}; $index++)';
     });
   }
@@ -306,7 +306,7 @@ class PostfixCompletionProcessor {
     if (node == null) {
       return NO_COMPLETION;
     }
-    PostfixCompletionKind completer = DartPostfixCompletion.forKey(key);
+    var completer = DartPostfixCompletion.forKey(key);
     return completer?.computer(this, completer) ?? NO_COMPLETION;
   }
 
@@ -320,7 +320,7 @@ class PostfixCompletionProcessor {
       return null;
     }
 
-    DartChangeBuilder changeBuilder = DartChangeBuilder(session);
+    var changeBuilder = DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(expr), (DartEditBuilder builder) {
         String newSrc = sourcer(expr);
@@ -331,7 +331,7 @@ class PostfixCompletionProcessor {
         if (withBraces) {
           builder.write(' {');
           builder.write(eol);
-          String indent = utils.getNodePrefix(expr);
+          var indent = utils.getNodePrefix(expr);
           builder.write(indent);
           builder.write(utils.getIndent(1));
           builder.selectHere();
@@ -356,7 +356,7 @@ class PostfixCompletionProcessor {
     if (stmt == null) {
       return null;
     }
-    DartChangeBuilder changeBuilder = DartChangeBuilder(session);
+    var changeBuilder = DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       // Embed the full line(s) of the statement in the try block.
       var startLine = lineInfo.getLocation(stmt.offset).lineNumber - 1;
@@ -367,7 +367,7 @@ class PostfixCompletionProcessor {
       var startOffset = lineInfo.getOffsetOfLine(startLine);
       var endOffset = lineInfo.getOffsetOfLine(endLine);
       var src = utils.getText(startOffset, endOffset - startOffset);
-      String indent = utils.getLinePrefix(stmt.offset);
+      var indent = utils.getLinePrefix(stmt.offset);
       builder.addReplacement(range.startOffsetEndOffset(startOffset, endOffset),
           (DartEditBuilder builder) {
         builder.write(indent);
@@ -399,7 +399,7 @@ class PostfixCompletionProcessor {
 
   Expression findAssertExpression() {
     if (node is Expression) {
-      Expression boolExpr = _findOuterExpression(node, typeProvider.boolType);
+      var boolExpr = _findOuterExpression(node, typeProvider.boolType);
       if (boolExpr == null) {
         return null;
       }
@@ -461,13 +461,13 @@ class PostfixCompletionProcessor {
     if (node == null) {
       return false;
     }
-    PostfixCompletionKind completer = DartPostfixCompletion.forKey(key);
+    var completer = DartPostfixCompletion.forKey(key);
     return completer?.selector(this);
   }
 
   String makeNegatedBoolExpr(Expression expr) {
-    String originalSrc = utils.getNodeText(expr);
-    String newSrc = utils.invertCondition(expr);
+    var originalSrc = utils.getNodeText(expr);
+    var newSrc = utils.invertCondition(expr);
     if (newSrc != originalSrc) {
       return newSrc;
     } else {
@@ -480,7 +480,7 @@ class PostfixCompletionProcessor {
       astNode = (astNode as ExpressionStatement).expression;
     }
     if (astNode is ThrowExpression) {
-      ThrowExpression expr = astNode;
+      var expr = astNode;
       var type = expr.expression.staticType;
       return type.getDisplayString(withNullability: false);
     }
@@ -488,10 +488,9 @@ class PostfixCompletionProcessor {
   }
 
   String newVariable(String base) {
-    String name = base;
-    int i = 1;
-    Set<String> vars =
-        utils.findPossibleLocalVariableConflicts(selectionOffset);
+    var name = base;
+    var i = 1;
+    var vars = utils.findPossibleLocalVariableConflicts(selectionOffset);
     while (vars.contains(name)) {
       name = '$base${i++}';
     }
@@ -519,8 +518,8 @@ class PostfixCompletionProcessor {
       parent = parent.parent;
     }
 
-    Expression expr = list.firstWhere((expr) {
-      DartType type = expr.staticType;
+    var expr = list.firstWhere((expr) {
+      var type = expr.staticType;
       if (type == null) return false;
       return typeSystem.isSubtypeOf(type, builtInType);
     }, orElse: () => null);
@@ -539,7 +538,7 @@ class PostfixCompletionProcessor {
   void _setCompletionFromBuilder(
       DartChangeBuilder builder, PostfixCompletionKind kind,
       [List args]) {
-    SourceChange change = builder.sourceChange;
+    var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       completion = null;
       return;

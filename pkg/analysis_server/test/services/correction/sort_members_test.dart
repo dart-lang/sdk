@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -877,15 +876,15 @@ int c;
   }
 
   void _assertSort(String expectedCode) {
-    MemberSorter sorter = MemberSorter(testCode, testUnit);
-    List<SourceEdit> edits = sorter.sort();
-    String result = SourceEdit.applySequence(testCode, edits);
+    var sorter = MemberSorter(testCode, testUnit);
+    var edits = sorter.sort();
+    var result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);
   }
 
   Future<void> _parseTestUnit(String code) async {
     addTestSource(code);
-    ParsedUnitResult result = session.getParsedUnit(testSource.fullName);
+    var result = session.getParsedUnit(testSource.fullName);
     testUnit = result.unit;
   }
 }

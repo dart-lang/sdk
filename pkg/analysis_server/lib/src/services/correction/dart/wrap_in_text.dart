@@ -5,11 +5,15 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class WrapInText extends CorrectionProducer {
+  ParameterElement _parameterElement;
+  Expression _stringExpression;
+
   @override
   FixKind get fixKind => DartFixKind.WRAP_IN_TEXT;
 
@@ -18,29 +22,34 @@ class WrapInText extends CorrectionProducer {
     //
     // Extract the information needed to build the edit.
     //
-    var value = _findStringToWrap(node);
-    if (value == null) {
+    _extractContextInformation(node);
+    if (_parameterElement == null || _stringExpression == null) {
       return;
     }
-    var parameter = (value.parent as Expression).staticParameterElement;
-    if (parameter == null || !flutter.isWidget(parameter.type.element)) {
+    if (!flutter.isWidgetType(_parameterElement.type)) {
       return;
     }
+
     //
     // Extract the information needed to build the edit.
     //
-    var literalSource = utils.getNodeText(value);
+    var stringExpressionCode = utils.getNodeText(_stringExpression);
+
     //
     // Build the edit.
     //
     await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.node(value), 'Text($literalSource)');
+      builder.addSimpleReplacement(
+        range.node(_stringExpression),
+        'Text($stringExpressionCode)',
+      );
     });
   }
 
-  /// Return the expression that should be wrapped in an invocation of the
-  /// constructor for `Text`.
-  Expression _findStringToWrap(AstNode node) {
+  /// Set the `String` typed named expression to [_stringExpression], and the
+  /// corresponding parameter to [_parameterElement]. Leave the fields `null`
+  /// if not a named argument, or not a `String` typed expression.
+  void _extractContextInformation(AstNode node) {
     if (node is SimpleIdentifier) {
       var label = node.parent;
       if (label is Label) {
@@ -48,11 +57,11 @@ class WrapInText extends CorrectionProducer {
         if (namedExpression is NamedExpression) {
           var expression = namedExpression.expression;
           if (expression.staticType.isDartCoreString) {
-            return expression;
+            _parameterElement = node.staticElement;
+            _stringExpression = expression;
           }
         }
       }
     }
-    return null;
   }
 }

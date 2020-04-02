@@ -49,13 +49,11 @@ main() {
 
   // Find the path to sdk/ in the repo relative to this script.
   Uri librariesSpec = Uri.base.resolve('sdk/lib/libraries.json');
-  Uri packageRoot = Uri.base.resolve('packages/');
   var platformDir =
       Uri.parse(nativeToUriPath(Platform.resolvedExecutable)).resolve('.');
   asyncTest(() => compiler.compile(
           entrypoint,
           librariesSpec,
-          packageRoot,
           provideInput,
           handleDiagnostic,
           ['--platform-binaries=${platformDir}']).then((code) {

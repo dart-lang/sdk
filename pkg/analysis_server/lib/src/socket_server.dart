@@ -57,7 +57,7 @@ class SocketServer implements AbstractSocketServer {
   /// given serverChannel.
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
-      RequestError error = RequestError(
+      var error = RequestError(
           RequestErrorCode.SERVER_ALREADY_STARTED, 'Server already started');
       serverChannel.sendResponse(Response('', error: error));
       serverChannel.listen((Request request) {

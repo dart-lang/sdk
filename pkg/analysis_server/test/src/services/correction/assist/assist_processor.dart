@@ -34,7 +34,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   void assertExitPosition({String before, String after}) {
-    Position exitPosition = _change.selection;
+    var exitPosition = _change.selection;
     expect(exitPosition, isNotNull);
     expect(exitPosition.file, testFile);
     if (before != null) {
@@ -55,11 +55,11 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// have been applied.
   Future<void> assertHasAssist(String expected,
       {Map<String, List<String>> additionallyChangedFiles}) async {
-    Assist assist = await _assertHasAssist();
+    var assist = await _assertHasAssist();
     _change = assist.change;
     expect(_change.id, kind.id);
     // apply to "file"
-    List<SourceFileEdit> fileEdits = _change.edits;
+    var fileEdits = _change.edits;
     if (additionallyChangedFiles == null) {
       expect(fileEdits, hasLength(1));
       _resultCode = SourceEdit.applySequence(testCode, _change.edits[0].edits);
@@ -69,9 +69,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       _resultCode = SourceEdit.applySequence(
           testCode, _change.getFileEdit(testFile).edits);
       expect(_resultCode, expected);
-      for (String filePath in additionallyChangedFiles.keys) {
-        List<String> pair = additionallyChangedFiles[filePath];
-        String resultCode = SourceEdit.applySequence(
+      for (var filePath in additionallyChangedFiles.keys) {
+        var pair = additionallyChangedFiles[filePath];
+        var resultCode = SourceEdit.applySequence(
             pair[0], _change.getFileEdit(filePath).edits);
         expect(resultCode, pair[1]);
       }
@@ -84,11 +84,11 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       {int length = 0}) async {
     _offset = findOffset(snippet);
     _length = length;
-    Assist assist = await _assertHasAssist();
+    var assist = await _assertHasAssist();
     _change = assist.change;
     expect(_change.id, kind.id);
     // apply to "file"
-    List<SourceFileEdit> fileEdits = _change.edits;
+    var fileEdits = _change.edits;
     expect(fileEdits, hasLength(1));
     _resultCode = SourceEdit.applySequence(testCode, _change.edits[0].edits);
     expect(_resultCode, expected);
@@ -96,8 +96,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   void assertLinkedGroup(int groupIndex, List<String> expectedStrings,
       [List<LinkedEditSuggestion> expectedSuggestions]) {
-    LinkedEditGroup group = _change.linkedEditGroups[groupIndex];
-    List<Position> expectedPositions = _findResultPositions(expectedStrings);
+    var group = _change.linkedEditGroups[groupIndex];
+    var expectedPositions = _findResultPositions(expectedStrings);
     expect(group.positions, unorderedEquals(expectedPositions));
     if (expectedSuggestions != null) {
       expect(group.suggestions, unorderedEquals(expectedSuggestions));
@@ -106,8 +106,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   /// Asserts that there is no [Assist] of the given [kind] at [_offset].
   Future<void> assertNoAssist() async {
-    List<Assist> assists = await _computeAssists();
-    for (Assist assist in assists) {
+    var assists = await _computeAssists();
+    for (var assist in assists) {
       if (assist.kind == kind) {
         fail('Unexpected assist $kind in\n${assists.join('\n')}');
       }
@@ -119,8 +119,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   Future<void> assertNoAssistAt(String snippet, {int length = 0}) async {
     _offset = findOffset(snippet);
     _length = length;
-    List<Assist> assists = await _computeAssists();
-    for (Assist assist in assists) {
+    var assists = await _computeAssists();
+    for (var assist in assists) {
       if (assist.kind == kind) {
         fail('Unexpected assist $kind in\n${assists.join('\n')}');
       }
@@ -162,8 +162,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   /// Computes assists and verifies that there is an assist of the given kind.
   Future<Assist> _assertHasAssist() async {
-    List<Assist> assists = await _computeAssists();
-    for (Assist assist in assists) {
+    var assists = await _computeAssists();
+    for (var assist in assists) {
       if (assist.kind == kind) {
         return assist;
       }
@@ -183,9 +183,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {
-    List<Position> positions = <Position>[];
-    for (String search in searchStrings) {
-      int offset = _resultCode.indexOf(search);
+    var positions = <Position>[];
+    for (var search in searchStrings) {
+      var offset = _resultCode.indexOf(search);
       positions.add(Position(testFile, offset));
     }
     return positions;

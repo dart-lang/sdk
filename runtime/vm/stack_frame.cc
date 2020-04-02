@@ -138,7 +138,7 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
     auto rct = isolate->reverse_pc_lookup_cache();
     code = rct->Lookup(pc(), /*is_return_address=*/true);
 
-    const intptr_t cid = code.owner()->GetClassId();
+    auto const cid = code.OwnerClassId();
     ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
     return cid == kFunctionCid;
   }
@@ -153,7 +153,7 @@ bool StackFrame::IsBareInstructionsStubFrame() const {
     auto rct = isolate->reverse_pc_lookup_cache();
     code = rct->Lookup(pc(), /*is_return_address=*/true);
 
-    const intptr_t cid = code.owner()->GetClassId();
+    auto const cid = code.OwnerClassId();
     ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
     return cid == kNullCid || cid == kClassCid;
   }
@@ -178,7 +178,7 @@ bool StackFrame::IsStubFrame(bool needed_for_gc) const {
 
   RawCode* code = GetCodeObject(needed_for_gc);
   ASSERT(code != Object::null());
-  const intptr_t cid = code->ptr()->owner_->GetClassId();
+  auto const cid = Code::OwnerClassIdOf(code);
   ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
   return cid == kNullCid || cid == kClassCid;
 }
@@ -198,19 +198,16 @@ const char* StackFrame::ToCString() const {
     }
     const Code& code = Code::Handle(zone, LookupDartCode());
     ASSERT(!code.IsNull());
-    const Object& owner = Object::Handle(zone, code.owner());
+    const auto& owner = Object::Handle(
+        zone, WeakSerializationReference::UnwrapIfTarget(code.owner()));
     ASSERT(!owner.IsNull());
-    if (owner.IsFunction()) {
-      const char* opt = code.is_optimized() ? "*" : "";
-      const Function& function = Function::Cast(owner);
-      return zone->PrintToString(
-          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s%s ]", GetName(),
-          sp(), fp(), pc(), opt, function.ToFullyQualifiedCString());
-    } else {
-      return zone->PrintToString(
-          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]", GetName(),
-          sp(), fp(), pc(), owner.ToCString());
-    }
+    auto const opt = code.IsFunctionCode() && code.is_optimized() ? "*" : "";
+    auto const owner_name =
+        owner.IsFunction() ? Function::Cast(owner).ToFullyQualifiedCString()
+                           : owner.ToCString();
+    return zone->PrintToString("[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px
+                               ") %s%s ]",
+                               GetName(), sp(), fp(), pc(), opt, owner_name);
   } else {
     return zone->PrintToString("[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px
                                ")]",
@@ -411,8 +408,7 @@ RawCode* StackFrame::LookupDartCode() const {
   }
 
   RawCode* code = GetCodeObject();
-  if ((code != Code::null()) &&
-      (code->ptr()->owner_->GetClassId() == kFunctionCid)) {
+  if ((code != Code::null()) && Code::OwnerClassIdOf(code) == kFunctionCid) {
     return code;
   }
   return Code::null();

@@ -10,6 +10,35 @@ import 'package:analysis_server/src/edit/nnbd_migration/resources/resources.g.da
     as resources;
 import 'package:path/path.dart' as path;
 
+String get _dartSdkVersion {
+  var version = Platform.version;
+
+  // Remove the build date and OS.
+  if (version.contains(' ')) {
+    version = version.substring(0, version.indexOf(' '));
+  }
+
+  // Convert a git hash to 8 chars.
+  // '2.8.0-edge.fd992e423ef69ece9f44bd3ac58fa2355b563212'
+  var versionRegExp = RegExp(r'^.*\.([0123456789abcdef]+)$');
+  var match = versionRegExp.firstMatch(version);
+  if (match != null && match.group(1).length == 40) {
+    var commit = match.group(1);
+    version = version.replaceAll(commit, commit.substring(0, 10));
+  }
+
+  return version;
+}
+
+String substituteVariables(String content, Map<String, String> variables) {
+  for (var variable in variables.keys) {
+    var value = variables[variable];
+    content = content.replaceAll('{{ $variable }}', value);
+  }
+
+  return content;
+}
+
 /// Instrumentation display output for a library that was migrated to use
 /// non-nullable types.
 class InstrumentationRenderer {
@@ -33,7 +62,7 @@ class InstrumentationRenderer {
 
   /// Builds an HTML view of the instrumentation information.
   String render() {
-    Map<String, String> variables = {
+    var variables = <String, String>{
       'root': migrationInfo.includedRoot,
       'dartPageScript': resources.migration_js,
       'dartPageStyle': resources.migration_css,
@@ -45,33 +74,4 @@ class InstrumentationRenderer {
 
     return substituteVariables(resources.index_html, variables);
   }
-}
-
-String substituteVariables(String content, Map<String, String> variables) {
-  for (String variable in variables.keys) {
-    String value = variables[variable];
-    content = content.replaceAll('{{ $variable }}', value);
-  }
-
-  return content;
-}
-
-String get _dartSdkVersion {
-  String version = Platform.version;
-
-  // Remove the build date and OS.
-  if (version.contains(' ')) {
-    version = version.substring(0, version.indexOf(' '));
-  }
-
-  // Convert a git hash to 8 chars.
-  // '2.8.0-edge.fd992e423ef69ece9f44bd3ac58fa2355b563212'
-  final RegExp versionRegExp = RegExp(r'^.*\.([0123456789abcdef]+)$');
-  RegExpMatch match = versionRegExp.firstMatch(version);
-  if (match != null && match.group(1).length == 40) {
-    String commit = match.group(1);
-    version = version.replaceAll(commit, commit.substring(0, 10));
-  }
-
-  return version;
 }

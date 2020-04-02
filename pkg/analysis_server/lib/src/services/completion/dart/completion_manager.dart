@@ -96,8 +96,7 @@ class DartCompletionManager implements CompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    CompletionPerformance performance =
-        (request as CompletionRequestImpl).performance;
+    var performance = (request as CompletionRequestImpl).performance;
     DartCompletionRequestImpl dartRequest =
         await DartCompletionRequestImpl.from(request);
 
@@ -107,11 +106,10 @@ class DartCompletionManager implements CompletionContributor {
     }
 
     final ranking = CompletionRanking.instance;
-    Future<Map<String, double>> probabilityFuture =
+    var probabilityFuture =
         ranking != null ? ranking.predict(dartRequest) : Future.value(null);
 
-    SourceRange range =
-        dartRequest.target.computeReplacementRange(dartRequest.offset);
+    var range = dartRequest.target.computeReplacementRange(dartRequest.offset);
     (request as CompletionRequestImpl)
       ..replacementOffset = range.offset
       ..replacementLength = range.length;
@@ -119,7 +117,7 @@ class DartCompletionManager implements CompletionContributor {
     // Request Dart specific completions from each contributor
     var suggestionMap = <String, CompletionSuggestion>{};
     var constructorMap = <String, List<String>>{};
-    List<DartCompletionContributor> contributors = <DartCompletionContributor>[
+    var contributors = <DartCompletionContributor>[
       ArgListContributor(),
       CombinatorContributor(),
       ExtensionMemberContributor(),
@@ -148,32 +146,32 @@ class DartCompletionManager implements CompletionContributor {
     }
 
     try {
-      for (DartCompletionContributor contributor in contributors) {
-        String contributorTag =
+      for (var contributor in contributors) {
+        var contributorTag =
             'DartCompletionManager - ${contributor.runtimeType}';
         performance.logStartTime(contributorTag);
-        List<CompletionSuggestion> contributorSuggestions =
+        var contributorSuggestions =
             await contributor.computeSuggestions(dartRequest);
         performance.logElapseTime(contributorTag);
         request.checkAborted();
 
-        for (CompletionSuggestion newSuggestion in contributorSuggestions) {
-          String key = newSuggestion.completion;
+        for (var newSuggestion in contributorSuggestions) {
+          var key = newSuggestion.completion;
 
           // Append parenthesis for constructors to disambiguate from classes.
           if (_isConstructor(newSuggestion)) {
             key += '()';
-            String className = _getConstructorClassName(newSuggestion);
+            var className = _getConstructorClassName(newSuggestion);
             _ensureList(constructorMap, className).add(key);
           }
 
           // Local declarations hide both the class and its constructors.
           if (!_isClass(newSuggestion)) {
-            List<String> constructorKeys = constructorMap[key];
+            var constructorKeys = constructorMap[key];
             constructorKeys?.forEach(suggestionMap.remove);
           }
 
-          CompletionSuggestion oldSuggestion = suggestionMap[key];
+          var oldSuggestion = suggestionMap[key];
           if (oldSuggestion == null ||
               oldSuggestion.relevance < newSuggestion.relevance) {
             suggestionMap[key] = newSuggestion;
@@ -187,7 +185,7 @@ class DartCompletionManager implements CompletionContributor {
     }
 
     // Adjust suggestion relevance before returning
-    List<CompletionSuggestion> suggestions = suggestionMap.values.toList();
+    var suggestions = suggestionMap.values.toList();
     const SORT_TAG = 'DartCompletionManager - sort';
     performance.logStartTime(SORT_TAG);
     if (ranking != null) {
@@ -316,7 +314,7 @@ class DartCompletionManager implements CompletionContributor {
   }
 
   static List<String> _ensureList(Map<String, List<String>> map, String key) {
-    List<String> list = map[key];
+    var list = map[key];
     if (list == null) {
       list = <String>[];
       map[key] = list;
@@ -325,8 +323,8 @@ class DartCompletionManager implements CompletionContributor {
   }
 
   static String _getConstructorClassName(CompletionSuggestion suggestion) {
-    String completion = suggestion.completion;
-    int dotIndex = completion.indexOf('.');
+    var completion = suggestion.completion;
+    var dotIndex = completion.indexOf('.');
     if (dotIndex != -1) {
       return completion.substring(0, dotIndex);
     } else {
@@ -420,9 +418,9 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   LibraryElement get libraryElement {
     //TODO(danrubel) build the library element rather than all the declarations
-    CompilationUnit unit = target.unit;
+    var unit = target.unit;
     if (unit != null) {
-      CompilationUnitElement elem = unit.declaredElement;
+      var elem = unit.declaredElement;
       if (elem != null) {
         return elem.library;
       }
@@ -459,7 +457,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     _opType = null;
     dotTarget = null;
     target = CompletionTarget.forOffset(unit, offset);
-    AstNode node = target.containingNode;
+    var node = target.containingNode;
     if (node is MethodInvocation) {
       if (identical(node.methodName, target.entity)) {
         dotTarget = node.realTarget;
@@ -486,16 +484,15 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /// if the completion request has been aborted.
   static Future<DartCompletionRequest> from(CompletionRequest request) async {
     request.checkAborted();
-    CompletionPerformance performance =
-        (request as CompletionRequestImpl).performance;
+    var performance = (request as CompletionRequestImpl).performance;
     const BUILD_REQUEST_TAG = 'build DartCompletionRequest';
     performance.logStartTime(BUILD_REQUEST_TAG);
 
-    CompilationUnit unit = request.result.unit;
-    Source libSource = unit.declaredElement.library.source;
-    InterfaceType objectType = request.result.typeProvider.objectType;
+    var unit = request.result.unit;
+    var libSource = unit.declaredElement.library.source;
+    var objectType = request.result.typeProvider.objectType;
 
-    DartCompletionRequestImpl dartRequest = DartCompletionRequestImpl._(
+    var dartRequest = DartCompletionRequestImpl._(
         request.result,
         request.resourceProvider,
         objectType,

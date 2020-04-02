@@ -51,7 +51,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   Future<Response> sendRequest(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String id = request.id;
+    var id = request.id;
     output.write(json.encode(request.toJson()) + '\n');
     return await responseStream
         .firstWhere((Response response) => response.id == id);
@@ -118,7 +118,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       return;
     }
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      String jsonEncoding = json.encode(notification.toJson());
+      var jsonEncoding = json.encode(notification.toJson());
       _outputLine(jsonEncoding);
       if (!identical(notification.event, 'server.log')) {
         _instrumentationService.logNotification(jsonEncoding);
@@ -136,7 +136,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     }
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
       _requestStatistics?.addResponse(response);
-      String jsonEncoding = json.encode(response.toJson());
+      var jsonEncoding = json.encode(response.toJson());
       _outputLine(jsonEncoding);
       _instrumentationService.logResponse(jsonEncoding);
     });
@@ -162,7 +162,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       _instrumentationService.logRequest(data);
       // Parse the string as a JSON descriptor and process the resulting
       // structure as a request.
-      Request request = Request.fromString(data);
+      var request = Request.fromString(data);
       if (request == null) {
         sendResponse(Response.invalidRequestFormat());
         return;

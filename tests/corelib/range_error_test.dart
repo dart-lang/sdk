@@ -22,13 +22,8 @@ void testRead() {
   testListRead(list, -1);
   testListRead(list, 1);
 
-  list = new List(1);
+  list = new List.filled(1, null);
   testListRead(list, -1);
-  testListRead(list, 1);
-
-  list = new List();
-  testListRead(list, -1);
-  testListRead(list, 0);
   testListRead(list, 1);
 }
 
@@ -41,13 +36,8 @@ void testWrite() {
   testListWrite(list, -1);
   testListWrite(list, 1);
 
-  list = new List(1);
+  list = new List.filled(1, null);
   testListWrite(list, -1);
-  testListWrite(list, 1);
-
-  list = new List();
-  testListWrite(list, -1);
-  testListWrite(list, 0);
   testListWrite(list, 1);
 }
 

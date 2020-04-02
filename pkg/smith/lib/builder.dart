@@ -9,14 +9,13 @@ import 'configuration.dart';
 ///
 /// Each step on a builder runs a script the with provided arguments. If the
 /// script is 'tools/test.py' (which is the default if no script is given in
-/// the test matrix), the step is called a 'test step'. Test steps must include
-/// the '--named_configuration' (for short '-n') option to select the named
-/// [Configuration] to test.
+/// the test matrix), or `testRunner == true`, the step is called a 'test
+/// step'. Test steps must include the '--named_configuration' (for short
+/// '-n') option to select the named [Configuration] to test.
 ///
-/// Test steps and steps with `isTestRunner == true` are expected to produce
-/// test results that are collected during the run of the builder and checked
-/// against the expected results to determine the success or failure of the
-/// build.
+/// Test steps are expected to produce test results that are collected during
+/// the run of the builder and checked against the expected results to determine
+/// the success or failure of the build.
 class Step {
   final String name;
   final String script;
@@ -33,7 +32,7 @@ class Step {
 
   static const testScriptName = "tools/test.py";
 
-  bool get isTestStep => script == testScriptName;
+  bool get isTestStep => script == testScriptName || isTestRunner;
 
   /// Create a [Step] from the 'step template' [map], values for supported
   /// variables [configuration], and the list of supported named configurations.
@@ -44,7 +43,8 @@ class Step {
         .toList();
     var testedConfigurations = <Configuration>[];
     var script = map["script"] as String ?? testScriptName;
-    if (script == testScriptName) {
+    var isTestRunner = map["testRunner"] as bool ?? false;
+    if (script == testScriptName || isTestRunner) {
       // TODO(karlklose): replace with argument parser that can handle all
       // arguments to test.py.
       for (var argument in arguments) {
@@ -80,7 +80,7 @@ class Step {
         <String, String>{...?map["environment"]},
         map["fileset"] as String,
         map["shards"] as int,
-        map["testRunner"] as bool ?? false,
+        isTestRunner,
         testedConfigurations.isEmpty ? null : testedConfigurations.single);
   }
 }

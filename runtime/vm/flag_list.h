@@ -192,6 +192,9 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(null_safety, bool, false,                                                  \
     "Respect the nullability of types in casts and instance checks.")          \
   P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
+  P(retain_dispatched_functions, bool, !USING_PRODUCT,                         \
+    "Serialize function objects for code in the dispatch table even if "       \
+    "not needed in the precompiled runtime")                                   \
   P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \

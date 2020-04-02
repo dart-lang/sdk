@@ -75,6 +75,14 @@ const e = E(null).f();
 ''');
   }
 
+  test_fieldFormalParameter_annotation_localFunction() async {
+    await _assertCanBeAnalyzed(r'''
+void main() {
+  void foo(@deprecated this.bar) {}
+}
+''');
+  }
+
   test_fuzz_01() async {
     await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));

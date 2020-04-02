@@ -21,7 +21,7 @@ class Driver implements ServerPluginStarter {
 
   @override
   void start(SendPort sendPort) {
-    PluginIsolateChannel channel = PluginIsolateChannel(sendPort);
+    var channel = PluginIsolateChannel(sendPort);
     plugin.start(channel);
   }
 }

@@ -13,12 +13,10 @@ extensions/static_access_of_instance: RuntimeError
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/accessors: RuntimeError
 general_nnbd_opt_out/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
-general_nnbd_opt_out/argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general_nnbd_opt_out/await_in_non_async: RuntimeError # Expected.
 general_nnbd_opt_out/bug21938: TypeCheckError
 general_nnbd_opt_out/bug30695: TypeCheckError
 general_nnbd_opt_out/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
-general_nnbd_opt_out/bug32629: InstrumentationMismatch # Test has an intentional error
 general_nnbd_opt_out/call: TypeCheckError
 general_nnbd_opt_out/candidate_found: TypeCheckError
 general_nnbd_opt_out/cascade: RuntimeError
@@ -26,7 +24,6 @@ general_nnbd_opt_out/constructor_initializer_invalid: RuntimeError # Fails execu
 general_nnbd_opt_out/covariant_generic: RuntimeError
 general_nnbd_opt_out/duplicated_declarations: TypeCheckError
 general_nnbd_opt_out/duplicated_field_initializer: RuntimeError
-general_nnbd_opt_out/dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general_nnbd_opt_out/error_locations/error_location_01: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_02: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_03: RuntimeError
@@ -61,8 +58,9 @@ general_nnbd_opt_out/type_variable_as_super: RuntimeError
 general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
-general_nnbd_opt_out/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError
+nnbd/issue41210a/issue41210: TypeCheckError
+nnbd/issue41210b: TypeCheckError

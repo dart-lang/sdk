@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,7 +26,7 @@ main() {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Duplicate function 'newName'.",
         expectedContextSearch: 'newName() => 1');
@@ -43,7 +42,7 @@ main() {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Duplicate function 'newName'.");
   }
@@ -59,7 +58,7 @@ main() {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     expect(status.problems, hasLength(1));
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Duplicate local variable 'newName'.",
@@ -76,7 +75,7 @@ main() {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Duplicate local variable 'newName'.",
         expectedContextSearch: 'newName = 1;');
@@ -155,7 +154,7 @@ class A {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Usage of field "A.newName" declared in "test.dart" '
             'will be shadowed by renamed local variable.',
@@ -179,7 +178,7 @@ class B extends A {
     createRenameRefactoringAtString('test: 1}) { // in A');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Usage of field "B.newName" declared in "test.dart" '
             'will be shadowed by renamed parameter.',
@@ -229,7 +228,7 @@ main() {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedContextSearch: 'newName(); // ref');
   }

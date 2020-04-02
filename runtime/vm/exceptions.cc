@@ -893,7 +893,11 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
   StackFrame* caller_frame = iterator->NextFrame();
   ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   const Function& caller = Function::Handle(caller_frame->LookupDartFunction());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (caller.IsNull()) return Script::null();
+#else
   ASSERT(!caller.IsNull());
+#endif
   return caller.script();
 }
 
@@ -930,14 +934,15 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const Script& script = Script::Handle(zone, GetCallerScript(&iterator));
+  const String& url = String::Handle(
+      zone, script.IsNull() ? Symbols::OptimizedOut().raw() : script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  ASSERT(!script.IsNull());
-  if (location.IsReal()) {
+  if (!script.IsNull() && location.IsReal()) {
     script.GetTokenLocation(location, &line, &column);
   }
   // Initialize '_url', '_line', and '_column' arguments.
-  args.SetAt(0, String::Handle(zone, script.url()));
+  args.SetAt(0, url);
   args.SetAt(1, Smi::Handle(zone, Smi::New(line)));
   args.SetAt(2, Smi::Handle(zone, Smi::New(column)));
 

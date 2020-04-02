@@ -9,7 +9,7 @@ import 'dart:async';
 main() {
   StackTrace trace;
   asyncStart();
-  var f = new Future(() {
+  var f = new Future<Null>(() {
     throw "foo";
   });
   f.catchError((e, st) {

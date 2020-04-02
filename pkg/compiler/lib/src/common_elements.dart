@@ -508,8 +508,12 @@ abstract class CommonElements {
   FunctionEntity get rtiAddErasedTypesMethod;
   FunctionEntity get rtiAddTypeParameterVariancesMethod;
 
+  FunctionEntity get installSpecializedIsTest;
+  FunctionEntity get installSpecializedAsCheck;
   FunctionEntity get generalIsTestImplementation;
   FunctionEntity get generalAsCheckImplementation;
+  FunctionEntity get generalNullableIsTestImplementation;
+  FunctionEntity get generalNullableAsCheckImplementation;
 
   FunctionEntity get specializedIsObject;
   FunctionEntity get specializedAsObject;
@@ -1948,17 +1952,37 @@ class CommonElementsImpl
       _rtiAddTypeParameterVariancesMethod ??=
           _findClassMember(_rtiUniverseClass, 'addTypeParameterVariances');
 
+  @override
+  FunctionEntity get installSpecializedIsTest =>
+      _findRtiFunction('_installSpecializedIsTest');
+
+  @override
+  FunctionEntity get installSpecializedAsCheck =>
+      _findRtiFunction('_installSpecializedAsCheck');
+
   FunctionEntity _generalIsTestImplementation;
   @override
   FunctionEntity get generalIsTestImplementation =>
       _generalIsTestImplementation ??=
           _findRtiFunction('_generalIsTestImplementation');
 
+  FunctionEntity _generalNullableIsTestImplementation;
+  @override
+  FunctionEntity get generalNullableIsTestImplementation =>
+      _generalNullableIsTestImplementation ??=
+          _findRtiFunction('_generalNullableIsTestImplementation');
+
   FunctionEntity _generalAsCheckImplementation;
   @override
   FunctionEntity get generalAsCheckImplementation =>
       _generalAsCheckImplementation ??=
           _findRtiFunction('_generalAsCheckImplementation');
+
+  FunctionEntity _generalNullableAsCheckImplementation;
+  @override
+  FunctionEntity get generalNullableAsCheckImplementation =>
+      _generalNullableAsCheckImplementation ??=
+          _findRtiFunction('_generalNullableAsCheckImplementation');
 
   FunctionEntity _specializedIsObject;
   @override

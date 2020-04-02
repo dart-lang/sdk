@@ -13,15 +13,16 @@ class IndexFilePage extends PreviewPage {
       : super(site, site.migrationInfo.includedRoot);
 
   @override
+  bool get requiresAuth => true;
+
+  @override
   void generateBody(Map<String, String> params) {
     throw UnsupportedError('generateBody');
   }
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    InstrumentationRenderer renderer = InstrumentationRenderer(
-        site.migrationInfo,
-        site.pathMapper,
+    var renderer = InstrumentationRenderer(site.migrationInfo, site.pathMapper,
         site.migrationState.hasBeenApplied);
     buf.write(renderer.render());
   }

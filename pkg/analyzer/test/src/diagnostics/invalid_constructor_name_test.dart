@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -22,7 +22,7 @@ class A {
 }
 class B {}
 ''', [
-      error(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
     ]);
   }
 
@@ -32,7 +32,7 @@ class A {
   B() : super();
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
     ]);
   }
 }

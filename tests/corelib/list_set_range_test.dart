@@ -77,7 +77,7 @@ void testNegativeIndices() {
 }
 
 void testNonExtendableList() {
-  var list = new List<int?>(6);
+  var list = new List<int?>.filled(6, null);
   Expect.listEquals([null, null, null, null, null, null], list);
   list.setRange(0, 3, [1, 2, 3, 4]);
   list.setRange(3, 6, [1, 2, 3, 4]);

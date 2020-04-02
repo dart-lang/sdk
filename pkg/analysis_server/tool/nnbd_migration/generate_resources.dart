@@ -71,7 +71,7 @@ final List<String> resourceTypes = [
 ];
 
 String base64Encode(List<int> bytes) {
-  String encoded = base64.encode(bytes);
+  var encoded = base64.encode(bytes);
 
   // Logic to cut lines into 80-character chunks.
   var lines = <String>[];
@@ -87,11 +87,11 @@ String base64Encode(List<int> bytes) {
 }
 
 void compileWebFrontEnd({bool devMode = false}) async {
-  String sdkBinDir = path.dirname(Platform.resolvedExecutable);
-  String dart2jsPath = path.join(sdkBinDir, 'dart2js');
+  var sdkBinDir = path.dirname(Platform.resolvedExecutable);
+  var dart2jsPath = path.join(sdkBinDir, 'dart2js');
 
   // dart2js -m -o output source
-  Process process = await Process.start(dart2jsPath, [
+  var process = await Process.start(dart2jsPath, [
     devMode ? '-O1' : '-m',
     '--no-frequency-based-minification',
     '-o',
@@ -100,7 +100,7 @@ void compileWebFrontEnd({bool devMode = false}) async {
   ]);
   process.stdout.listen((List<int> data) => stdout.add(data));
   process.stderr.listen((List<int> data) => stderr.add(data));
-  int exitCode = await process.exitCode;
+  var exitCode = await process.exitCode;
 
   if (exitCode != 0) {
     fail('Failed compiling ${dartSources.path}.');
@@ -108,9 +108,9 @@ void compileWebFrontEnd({bool devMode = false}) async {
 }
 
 void createResourcesGDart() {
-  String content =
+  var content =
       generateResourceFile(sortDir(resourceDir.listSync()).where((entity) {
-    String name = path.basename(entity.path);
+    var name = path.basename(entity.path);
     return entity is File && resourceTypes.contains(path.extension(name));
   }).cast<File>());
 
@@ -137,8 +137,8 @@ To re-generate lib/src/edit/nnbd_migration/resources/resources.g.dart, run:
 }
 
 String generateResourceFile(Iterable<File> resources) {
-  String filePath = path.relative(Platform.script.toFilePath());
-  StringBuffer buf = StringBuffer('''
+  var filePath = path.relative(Platform.script.toFilePath());
+  var buf = StringBuffer('''
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -151,8 +151,8 @@ String generateResourceFile(Iterable<File> resources) {
 import 'dart:convert' as convert;
 ''');
 
-  for (File resource in resources) {
-    String name = path.basename(resource.path).replaceAll('.', '_');
+  for (var resource in resources) {
+    var name = path.basename(resource.path).replaceAll('.', '_');
     print('adding $name...');
 
     buf.writeln();
@@ -168,19 +168,19 @@ String _decode(String data) {
   return String.fromCharCodes(convert.base64Decode(data));
 }''');
 
-  for (File resource in resources) {
-    String name = path.basename(resource.path).replaceAll('.', '_');
-    String source = resource.readAsStringSync();
+  for (var resource in resources) {
+    var name = path.basename(resource.path).replaceAll('.', '_');
+    var source = resource.readAsStringSync();
 
-    String delimiter = "'''";
+    var delimiter = "'''";
 
     buf.writeln();
     buf.writeln('String _$name;');
     if (name == path.basename(javascriptOutput.path).replaceAll('.', '_')) {
       // Write out the crc for the dart code.
-      StringBuffer sourceCode = StringBuffer();
+      var sourceCode = StringBuffer();
       // collect the dart source code
-      for (FileSystemEntity entity in sortDir(dartSources.parent.listSync())) {
+      for (var entity in sortDir(dartSources.parent.listSync())) {
         if (entity.path.endsWith('.dart')) {
           sourceCode.write((entity as File).readAsStringSync());
         }
@@ -215,17 +215,16 @@ void verifyResourcesGDartGenerated({
   print('Verifying that ${path.basename(resourcesFile.path)} is up-to-date...');
 
   // Find the hashes for the last generated version of resources.g.dart.
-  Map<String, String> resourceHashes = {};
+  var resourceHashes = <String, String>{};
   // highlight_css md5 is 'fb012626bafd286510d32da815dae448'
-  RegExp hashPattern = RegExp(r"// (\S+) md5 is '(\S+)'");
-  for (RegExpMatch match
-      in hashPattern.allMatches(resourcesFile.readAsStringSync())) {
+  var hashPattern = RegExp(r"// (\S+) md5 is '(\S+)'");
+  for (var match in hashPattern.allMatches(resourcesFile.readAsStringSync())) {
     resourceHashes[match.group(1)] = match.group(2);
   }
 
   // For all resources (modulo compiled JS ones), verify the hash.
-  for (FileSystemEntity entity in sortDir(resourceDir.listSync())) {
-    String name = path.basename(entity.path);
+  for (var entity in sortDir(resourceDir.listSync())) {
+    var name = path.basename(entity.path);
     if (!resourceTypes.contains(path.extension(name))) {
       continue;
     }
@@ -235,11 +234,11 @@ void verifyResourcesGDartGenerated({
       continue;
     }
 
-    String key = name.replaceAll('.', '_');
+    var key = name.replaceAll('.', '_');
     if (!resourceHashes.containsKey(key)) {
       failVerification('No entry on resources.g.dart for $name');
     } else {
-      String hash = md5String((entity as File).readAsStringSync());
+      var hash = md5String((entity as File).readAsStringSync());
       if (hash != resourceHashes[key]) {
         failVerification('$name not up to date in resources.g.dart');
       }
@@ -247,13 +246,13 @@ void verifyResourcesGDartGenerated({
   }
 
   // verify the compiled dart code
-  StringBuffer sourceCode = StringBuffer();
-  for (FileSystemEntity entity in sortDir(dartSources.parent.listSync())) {
+  var sourceCode = StringBuffer();
+  for (var entity in sortDir(dartSources.parent.listSync())) {
     if (entity.path.endsWith('.dart')) {
       sourceCode.write((entity as File).readAsStringSync());
     }
   }
-  String hash = md5String(sourceCode.toString());
+  var hash = md5String(sourceCode.toString());
   if (hash != resourceHashes['migration_dart']) {
     failVerification('Compiled javascript not up to date in resources.g.dart');
   }

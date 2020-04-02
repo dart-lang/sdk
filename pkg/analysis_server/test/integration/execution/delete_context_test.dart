@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,15 +16,14 @@ void main() {
 @reflectiveTest
 class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_delete() async {
-    String pathname = sourcePath('lib/main.dart');
+    var pathname = sourcePath('lib/main.dart');
     writeFile(pathname, '// dummy');
     writeFile(sourcePath('.packages'), 'foo:lib/');
     standardAnalysisSetup();
 
-    String contextId =
-        (await sendExecutionCreateContext(sourceDirectory.path)).id;
+    var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;
 
-    ExecutionMapUriResult result =
+    var result =
         await sendExecutionMapUri(contextId, uri: 'package:foo/main.dart');
     expect(result.file, pathname);
 

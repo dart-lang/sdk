@@ -350,6 +350,10 @@ void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
   }
 }
 
+void ConstantPropagator::VisitReachabilityFence(ReachabilityFenceInstr* instr) {
+  // Nothing to do.
+}
+
 void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
   // Don't propagate constants through check, since it would eliminate
   // the data dependence between the bound check and the load/store.

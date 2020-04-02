@@ -16,17 +16,17 @@ import 'operation.dart';
 
 /// Launch and interact with the analysis server.
 void main(List<String> rawArgs) {
-  Logger logger = Logger('Performance Measurement Client');
+  var logger = Logger('Performance Measurement Client');
   logger.onRecord.listen((LogRecord rec) {
     print(rec.message);
   });
-  PerfArgs args = parseArgs(rawArgs);
+  var args = parseArgs(rawArgs);
 
-  Driver driver = Driver(diagnosticPort: args.diagnosticPort);
-  Stream<Operation> stream = openInput(args);
+  var driver = Driver(diagnosticPort: args.diagnosticPort);
+  var stream = openInput(args);
   StreamSubscription<Operation> subscription;
   subscription = stream.listen((Operation op) {
-    Future future = driver.perform(op);
+    var future = driver.perform(op);
     if (future != null) {
       logger.log(Level.FINE, 'pausing operations for ${op.runtimeType}');
       subscription.pause(future.then((_) {
@@ -107,7 +107,7 @@ Stream<Operation> openInput(PerfArgs args) {
   } else {
     inputRaw = File(args.inputPath).openRead();
   }
-  for (PathMapEntry entry in args.srcPathMap.entries) {
+  for (var entry in args.srcPathMap.entries) {
     logger.log(
         Level.INFO,
         'mapping source path\n'
@@ -124,7 +124,7 @@ Stream<Operation> openInput(PerfArgs args) {
 /// Parse the command line arguments.
 PerfArgs parseArgs(List<String> rawArgs) {
   ArgResults args;
-  PerfArgs perfArgs = PerfArgs();
+  var perfArgs = PerfArgs();
   try {
     args = argParser.parse(rawArgs);
   } on Exception catch (e) {
@@ -133,7 +133,7 @@ PerfArgs parseArgs(List<String> rawArgs) {
     exit(1);
   }
 
-  bool showHelp = args[HELP_CMDLINE_OPTION] || args.rest.isNotEmpty;
+  var showHelp = args[HELP_CMDLINE_OPTION] || args.rest.isNotEmpty;
 
   bool isMissing(key) => args[key] == null || args[key].isEmpty;
 
@@ -145,10 +145,10 @@ PerfArgs parseArgs(List<String> rawArgs) {
 
   for (String pair in args[MAP_OPTION]) {
     if (pair is String) {
-      int index = pair.indexOf(',');
+      var index = pair.indexOf(',');
       if (index != -1 && !pair.contains(',', index + 1)) {
-        String oldSrcPrefix = _withTrailingSeparator(pair.substring(0, index));
-        String newSrcPrefix = _withTrailingSeparator(pair.substring(index + 1));
+        var oldSrcPrefix = _withTrailingSeparator(pair.substring(0, index));
+        var newSrcPrefix = _withTrailingSeparator(pair.substring(index + 1));
         if (Directory(newSrcPrefix).existsSync()) {
           perfArgs.srcPathMap.add(oldSrcPrefix, newSrcPrefix);
           continue;

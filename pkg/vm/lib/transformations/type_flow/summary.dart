@@ -320,14 +320,16 @@ class Extract extends Statement {
 
   final Class referenceClass;
   final int paramIndex;
+  final Nullability nullability;
 
-  Extract(this.arg, this.referenceClass, this.paramIndex);
+  Extract(this.arg, this.referenceClass, this.paramIndex, this.nullability);
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitExtract(this);
 
   @override
-  String dump() => "$label = _Extract ($arg[$referenceClass/$paramIndex])";
+  String dump() =>
+      "$label = _Extract ($arg[$referenceClass/$paramIndex]${nullability.suffix})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -341,10 +343,31 @@ class Extract extends Statement {
       } else {
         final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
             c.cls.classNode, referenceClass);
-        final extract = c.typeArgs[interfaceOffset + paramIndex];
-        assertx(extract is AnyType || extract is RuntimeType);
-        if (extractedType == null || extract == extractedType) {
-          extractedType = extract;
+        final typeArg = c.typeArgs[interfaceOffset + paramIndex];
+        Type extracted = typeArg;
+        if (typeArg is RuntimeType) {
+          final argNullability = typeArg.nullability;
+          if (argNullability != nullability) {
+            // Apply nullability of type parameter type.
+            Nullability result;
+            if (argNullability == Nullability.nullable ||
+                nullability == Nullability.nullable) {
+              result = Nullability.nullable;
+            } else if (argNullability == Nullability.legacy ||
+                nullability == Nullability.legacy) {
+              result = Nullability.legacy;
+            } else {
+              result = Nullability.nonNullable;
+            }
+            if (argNullability != result) {
+              extracted = typeArg.withNullability(result);
+            }
+          }
+        } else {
+          assertx(typeArg is AnyType);
+        }
+        if (extractedType == null || extracted == extractedType) {
+          extractedType = extracted;
         } else {
           extractedType = const AnyType();
         }
@@ -404,16 +427,18 @@ class CreateConcreteType extends Statement {
 // missing ("AnyType").
 class CreateRuntimeType extends Statement {
   final Class klass;
+  final Nullability nullability;
   final List<TypeExpr> flattenedTypeArgs;
 
-  CreateRuntimeType(this.klass, this.flattenedTypeArgs);
+  CreateRuntimeType(this.klass, this.nullability, this.flattenedTypeArgs);
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitCreateRuntimeType(this);
 
   @override
   String dump() => "$label = _CreateRuntimeType ($klass @ "
-      "${flattenedTypeArgs.take(klass.typeParameters.length)})";
+      "${flattenedTypeArgs.take(klass.typeParameters.length)}"
+      "${nullability.suffix})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -425,7 +450,7 @@ class CreateRuntimeType extends Statement {
       if (computed is AnyType) return const AnyType();
       types[i] = computed;
     }
-    return new RuntimeType(new InterfaceType(klass, Nullability.legacy), types);
+    return new RuntimeType(new InterfaceType(klass, nullability), types);
   }
 }
 

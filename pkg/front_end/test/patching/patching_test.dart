@@ -139,6 +139,12 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
     });
 
     for (Member m in clsBuilder.actualCls.members) {
+      if (m is Procedure &&
+          (m.isMemberSignature ||
+              (m.isForwardingStub && !m.isForwardingSemiStub))) {
+        // Don't include member signatures.
+        continue;
+      }
       String name = m.name.name;
       if (m is Constructor) {
         name = '${m.enclosingClass.name}.${name}';

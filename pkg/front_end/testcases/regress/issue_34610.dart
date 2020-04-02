@@ -9,7 +9,12 @@ class B { B.named : super(); get bar => 1; }
 class C { C.named => null; get bar => 1; }
 
 main() {
-  print(new A().bar);
+  try {
+    print(new A.named().bar);
+    throw 'expected exception';
+  } catch (e) {
+    // Expected Error: Constructors can't have a return type.
+  }
   print(new B.named().bar);
   try {
     print(new C.named().bar);

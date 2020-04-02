@@ -663,6 +663,16 @@ void InstructionsSection::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void WeakSerializationReference::PrintJSONImpl(JSONStream* stream,
+                                               bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  if (ref) return;
+  auto& obj = Object::Handle(target());
+  jsobj.AddProperty("target", obj);
+}
+
 void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);

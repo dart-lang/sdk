@@ -456,6 +456,7 @@ class SnapshotReader : public BaseReader {
   friend class TypeRef;
   friend class UnhandledException;
   friend class WeakProperty;
+  friend class WeakSerializationReference;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
@@ -740,6 +741,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawTypeRef;
   friend class RawTypedDataView;
   friend class RawUserTag;
+  friend class RawWeakSerializationReference;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);

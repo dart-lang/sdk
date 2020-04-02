@@ -5,7 +5,6 @@
 import 'dart:convert' show HtmlEscape, HtmlEscapeMode, LineSplitter;
 
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/web/file_details.dart';
 import 'package:path/path.dart' as path;
@@ -59,23 +58,23 @@ class UnitRenderer {
   /// The content of the file (not including added links and anchors) will be
   /// HTML-escaped.
   String _computeNavigationContent() {
-    String unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
-    String content = unitInfo.content;
-    OffsetMapper mapper = unitInfo.offsetMapper;
-    Map<int, String> openInsertions = {};
-    Map<int, String> closeInsertions = {};
+    var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
+    var content = unitInfo.content;
+    var mapper = unitInfo.offsetMapper;
+    var openInsertions = <int, String>{};
+    var closeInsertions = <int, String>{};
     //
     // Compute insertions for navigation targets.
     //
-    for (NavigationTarget region in unitInfo.targets) {
+    for (var region in unitInfo.targets) {
       if (region.length > 0) {
-        int openOffset = mapper.map(region.offset);
-        String openInsertion = openInsertions[openOffset] ?? '';
+        var openOffset = mapper.map(region.offset);
+        var openInsertion = openInsertions[openOffset] ?? '';
         openInsertion = '<span id="o${region.offset}">$openInsertion';
         openInsertions[openOffset] = openInsertion;
 
-        int closeOffset = openOffset + region.length;
-        String closeInsertion = closeInsertions[closeOffset] ?? '';
+        var closeOffset = openOffset + region.length;
+        var closeInsertion = closeInsertions[closeOffset] ?? '';
         closeInsertion = '$closeInsertion</span>';
         closeInsertions[closeOffset] = closeInsertion;
       }
@@ -84,22 +83,22 @@ class UnitRenderer {
     // Compute insertions for navigation sources, but skip the sources that
     // point at themselves.
     //
-    for (NavigationSource region in unitInfo.sources ?? <NavigationSource>[]) {
+    for (var region in unitInfo.sources ?? <NavigationSource>[]) {
       if (region.length > 0) {
-        int openOffset = mapper.map(region.offset);
-        NavigationTarget target = region.target;
+        var openOffset = mapper.map(region.offset);
+        var target = region.target;
         if (target.filePath != unitInfo.path ||
             region.offset != target.offset) {
-          String openInsertion = openInsertions[openOffset] ?? '';
-          String unitPath = pathContext
-              .relative(pathMapper.map(target.filePath), from: unitDir);
-          String targetUri = _uriForRelativePath(unitPath, target);
+          var openInsertion = openInsertions[openOffset] ?? '';
+          var unitPath = pathContext.relative(pathMapper.map(target.filePath),
+              from: unitDir);
+          var targetUri = _uriForRelativePath(unitPath, target);
           openInsertion =
               '<a href="$targetUri" class="nav-link">$openInsertion';
           openInsertions[openOffset] = openInsertion;
 
-          int closeOffset = openOffset + region.length;
-          String closeInsertion = closeInsertions[closeOffset] ?? '';
+          var closeOffset = openOffset + region.length;
+          var closeInsertion = closeInsertions[closeOffset] ?? '';
           closeInsertion = '$closeInsertion</a>';
           closeInsertions[closeOffset] = closeInsertion;
         }
@@ -108,11 +107,11 @@ class UnitRenderer {
     //
     // Apply the insertions that have been computed.
     //
-    List<int> offsets = [...openInsertions.keys, ...closeInsertions.keys];
+    var offsets = <int>[...openInsertions.keys, ...closeInsertions.keys];
     offsets.sort();
-    StringBuffer navContent2 = StringBuffer();
-    int previousOffset = 0;
-    for (int offset in offsets) {
+    var navContent2 = StringBuffer();
+    var previousOffset = 0;
+    for (var offset in offsets) {
       navContent2.write(
           _htmlEscape.convert(content.substring(previousOffset, offset)));
       navContent2.write(closeInsertions[offset] ?? '');
@@ -131,16 +130,16 @@ class UnitRenderer {
   /// The content of the file (not including added links and anchors) will be
   /// HTML-escaped.
   String _computeRegionContent(UnitInfo unit) {
-    String content = unitInfo.content;
-    StringBuffer regions = StringBuffer();
-    int lineNumber = 1;
+    var content = unitInfo.content;
+    var regions = StringBuffer();
+    var lineNumber = 1;
 
     void writeSplitLines(
       String lines, {
       String perLineOpeningTag = '',
       String perLineClosingTag = '',
     }) {
-      Iterator<String> lineIterator = LineSplitter.split(lines).iterator;
+      var lineIterator = LineSplitter.split(lines).iterator;
       lineIterator.moveNext();
 
       while (true) {
@@ -180,19 +179,19 @@ class UnitRenderer {
       throw StateError('Unexpected RegionType $type');
     }
 
-    int previousOffset = 0;
+    var previousOffset = 0;
     regions.write('<table data-path="${unit.path}"><tbody>');
     regions.write('<tr><td class="line-no">$lineNumber</td><td>');
     for (var region in unitInfo.regions) {
-      int offset = region.offset;
-      int length = region.length;
+      var offset = region.offset;
+      var length = region.length;
       if (offset > previousOffset) {
         // Display a region of unmodified content.
         writeSplitLines(content.substring(previousOffset, offset));
         previousOffset = offset + length;
       }
-      String regionClass = classForRegion(region.regionType);
-      String regionSpanTag = '<span class="region $regionClass" '
+      var regionClass = classForRegion(region.regionType);
+      var regionSpanTag = '<span class="region $regionClass" '
           'data-offset="$offset" data-line="$lineNumber">';
       writeSplitLines(content.substring(offset, offset + length),
           perLineOpeningTag: regionSpanTag, perLineClosingTag: '</span>');

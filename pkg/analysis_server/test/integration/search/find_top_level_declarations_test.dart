@@ -20,7 +20,7 @@ class FindTopLevelDeclarationsTest
   String pathname;
 
   Future<void> test_findTopLevelDeclarations() async {
-    String text = r'''
+    var text = r'''
 String qux() => 'qux';
 
 class Foo {
@@ -34,16 +34,15 @@ class Foo {
     standardAnalysisSetup();
     await analysisFinished;
 
-    SearchFindTopLevelDeclarationsResult declarationsResult =
-        await sendSearchFindTopLevelDeclarations(r'qu.*');
+    var declarationsResult = await sendSearchFindTopLevelDeclarations(r'qu.*');
     expect(declarationsResult.id, isNotNull);
 
-    SearchResultsParams searchParams = await onSearchResults.first;
+    var searchParams = await onSearchResults.first;
     expect(searchParams.id, declarationsResult.id);
     expect(searchParams.isLast, isTrue);
     expect(searchParams.results, isNotEmpty);
 
-    for (SearchResult result in searchParams.results) {
+    for (var result in searchParams.results) {
       if (result.location.file == pathname) {
         expect(result.isPotential, isFalse);
         expect(result.kind.name, SearchResultKind.DECLARATION.name);

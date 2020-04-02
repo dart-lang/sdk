@@ -28,7 +28,6 @@ abstract class C {
   List<T<T>> v6 = [];
   final T<Null> v7;
 
-  C(): v7 = T<D>();
   C.name1(this.v5, this.v7);
   factory C.name2(T<D> arg1, T<Null> arg2) = C.name1;
 
@@ -55,9 +54,7 @@ main() {
   var v8 = <T<C>>[];
   var v9 = <Set<T<T>>, Set<T<T>>>{{}: {}};
   var v10 = {v8};
-  v9[{}] = {T<D>()};
+  v9[{}] = {42};
   Set<List<T<C>>> v11 = v10;
   v10 = v11;
-  T<Object>();
-  T<C>.name1(D(), null);
 }

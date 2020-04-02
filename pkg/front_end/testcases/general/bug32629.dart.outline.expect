@@ -11,5 +11,7 @@ class A extends core::Object {
 }
 static method foo<S extends core::Object* = dynamic>((self::foo::S*, dynamic) →* self::foo::S* v) → void
   ;
-static method main() → void
+static method test() → void
+  ;
+static method main() → dynamic
   ;

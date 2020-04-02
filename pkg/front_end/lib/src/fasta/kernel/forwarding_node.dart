@@ -412,7 +412,8 @@ class ForwardingNode {
         superclass, procedure.name, kind == ProcedureKind.Setter);
     if (superTarget == null) return;
     if (superTarget is Procedure && superTarget.isForwardingStub) {
-      superTarget = _getForwardingStubSuperTarget(superTarget);
+      Procedure superProcedure = superTarget;
+      superTarget = superProcedure.forwardingStubSuperTarget;
     }
     procedure.isAbstract = false;
     if (!procedure.isForwardingStub) {
@@ -531,21 +532,6 @@ class ForwardingNode {
   Member getCandidateAt(int i) {
     ClassMember candidate = _candidates[i];
     return candidate.getMember(hierarchy);
-  }
-
-  static Member _getForwardingStubSuperTarget(Procedure forwardingStub) {
-    // TODO(paulberry): when dartbug.com/31562 is fixed, this should become
-    // easier.
-    ReturnStatement body = forwardingStub.function.body;
-    Expression expression = body.expression;
-    if (expression is SuperMethodInvocation) {
-      return expression.interfaceTarget;
-    } else if (expression is SuperPropertySet) {
-      return expression.interfaceTarget;
-    } else {
-      return unhandled('${expression.runtimeType}',
-          '_getForwardingStubSuperTarget', -1, null);
-    }
   }
 
   Substitution _substitutionFor(

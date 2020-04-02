@@ -1462,16 +1462,18 @@ class ClassHierarchyNodeBuilder {
 
     Scope scope = classBuilder.scope;
     if (classBuilder.isMixinApplication) {
-      TypeDeclarationBuilder mixin =
-          classBuilder.mixedInTypeBuilder.declaration;
+      TypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
+      TypeDeclarationBuilder mixin = mixedInTypeBuilder.declaration;
       inferMixinApplication();
       while (mixin.isNamedMixinApplication) {
         ClassBuilder named = mixin;
-        mixin = named.mixedInTypeBuilder.declaration;
+        mixedInTypeBuilder = named.mixedInTypeBuilder;
+        mixin = mixedInTypeBuilder.declaration;
       }
       if (mixin is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = mixin;
-        mixin = aliasBuilder.unaliasDeclaration;
+        NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
       }
       if (mixin is ClassBuilder) {
         scope = mixin.scope.computeMixinScope();
@@ -1771,8 +1773,11 @@ class ClassHierarchyNodeBuilder {
 
             // [declaredMember] is a method declared in [cls]. This means it
             // defines the interface of this class regardless if its abstract.
-            registerOverrideDependency(declaredMember, extendedMember.abstract);
-            registerOverrideCheck(declaredMember, extendedMember.abstract);
+            if (!declaredMember.isSynthesized) {
+              registerOverrideDependency(
+                  declaredMember, extendedMember.abstract);
+              registerOverrideCheck(declaredMember, extendedMember.abstract);
+            }
 
             if (declaredMember.isAbstract) {
               if (extendedMember.isAbstract) {
@@ -2134,24 +2139,26 @@ class ClassHierarchyNodeBuilder {
   }
 
   List<TypeBuilder> computeDefaultTypeArguments(TypeBuilder type) {
-    TypeDeclarationBuilder cls = type.declaration;
-    if (cls is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = cls;
-      cls = aliasBuilder.unaliasDeclaration;
-    }
-    if (cls is ClassBuilder) {
-      List<TypeBuilder> result =
-          new List<TypeBuilder>(cls.typeVariables.length);
-      for (int i = 0; i < result.length; ++i) {
-        TypeVariableBuilder tv = cls.typeVariables[i];
-        result[i] = tv.defaultType ??
-            cls.library.loader.computeTypeBuilder(tv.parameter.defaultType);
-      }
-      return result;
+    TypeDeclarationBuilder decl = type.declaration;
+    List<TypeVariableBuilder> typeVariables;
+    LibraryBuilder library;
+    if (decl is TypeAliasBuilder) {
+      typeVariables = decl.typeVariables;
+      library = decl.library;
+    } else if (decl is ClassBuilder) {
+      typeVariables = decl.typeVariables;
+      library = decl.library;
     } else {
-      return unhandled("${cls.runtimeType}", "$cls", classBuilder.charOffset,
+      return unhandled("${decl.runtimeType}", "$decl", classBuilder.charOffset,
           classBuilder.fileUri);
     }
+    List<TypeBuilder> result = new List<TypeBuilder>(typeVariables.length);
+    for (int i = 0; i < result.length; ++i) {
+      TypeVariableBuilder tv = typeVariables[i];
+      result[i] = tv.defaultType ??
+          library.loader.computeTypeBuilder(tv.parameter.defaultType);
+    }
+    return result;
   }
 
   void addInterface(List<Supertype> interfaces, List<Supertype> superclasses,
@@ -3360,7 +3367,8 @@ ClassBuilder getClass(TypeBuilder type) {
   Builder declaration = type.declaration;
   if (declaration is TypeAliasBuilder) {
     TypeAliasBuilder aliasBuilder = declaration;
-    declaration = aliasBuilder.unaliasDeclaration;
+    NamedTypeBuilder namedBuilder = type;
+    declaration = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
   }
   return declaration is ClassBuilder ? declaration : null;
 }

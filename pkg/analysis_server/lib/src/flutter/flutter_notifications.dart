@@ -13,7 +13,7 @@ void sendFlutterNotificationOutline(
     AnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
     var computer = FlutterOutlineComputer(resolvedUnit);
-    protocol.FlutterOutline outline = computer.compute();
+    var outline = computer.compute();
     // send notification
     var params = protocol.FlutterOutlineParams(
       resolvedUnit.path,

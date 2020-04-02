@@ -58,7 +58,7 @@ testNativeMethodReturns() native;
 
 @Native("NativeClass")
 class NativeClass {
-  /*member: NativeClass.field:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,inst:JSNull,native:JSExtendableArray<JSExtendableArray.E>,native:Object,native:String,native:bool,native:double,native:int,param:Object]*/
+  /*member: NativeClass.field:static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,inst:JSNull,native:JSExtendableArray<JSExtendableArray.E>,native:Object,native:String,native:bool,native:double,native:int,param:Object]*/
   @annotation_Creates_SerializedScriptValue
   final Object field;
 
@@ -67,5 +67,5 @@ class NativeClass {
   }
 }
 
-/*member: testNativeField:dynamic=[NativeClass.field],static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),defineProperty(3),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,param:NativeClass]*/
+/*member: testNativeField:dynamic=[NativeClass.field],static=[Rti._bind(1),Rti._eval(1),_arrayInstanceType(1),_asBoolNullable(1),_asDoubleNullable(1),_asIntNullable(1),_asNumNullable(1),_asObject(1),_asStringNullable(1),_asTop(1),_generalAsCheckImplementation(1),_generalIsTestImplementation(1),_installSpecializedIsTest(1),_instanceType(1),_isBool(1),_isInt(1),_isNum(1),_isObject(1),_isString(1),_isTop(1),defineProperty(3),findType(1),instanceType(1)],type=[inst:Closure,inst:JSBool,param:NativeClass]*/
 testNativeField(NativeClass c) => c.field;

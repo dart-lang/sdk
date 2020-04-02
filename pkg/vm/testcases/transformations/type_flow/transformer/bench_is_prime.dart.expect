@@ -4,19 +4,19 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 [@vm.unboxing-info.metadata=(i)->b]static method isPrime([@vm.inferred-type.metadata=int] dynamic n) → core::bool* {
-  if(_in::unsafeCast<core::bool*>([@vm.direct-call.metadata=dart.core::_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool] n.<(2)))
+  if(_in::unsafeCast<core::bool*>([@vm.direct-call.metadata=_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool] n.<(2)))
     return false;
-  for (core::int* i = 2; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<=] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation::*] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::*}(i).{core::num::<=}(_in::unsafeCast<core::num*>(n)); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
-    if([@vm.direct-call.metadata=dart.core::_IntegerImplementation::==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation::%] [@vm.inferred-type.metadata=int] n.%(i).{core::Object::==}(0))
+  for (core::int* i = 2; [@vm.direct-call.metadata=_IntegerImplementation::<=] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=_IntegerImplementation::*] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::*}(i).{core::num::<=}(_in::unsafeCast<core::num*>(n)); i = [@vm.direct-call.metadata=_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
+    if([@vm.direct-call.metadata=_IntegerImplementation::==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=_IntegerImplementation::%] [@vm.inferred-type.metadata=int] n.%(i).{core::Object::==}(0))
       return false;
   }
   return true;
 }
 [@vm.unboxing-info.metadata=(i)->b]static method nThPrimeNumber([@vm.inferred-type.metadata=dart.core::_Smi (value: 50000)] core::int* n) → core::int* {
   core::int* counter = 0;
-  for (core::int* i = 1; ; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
+  for (core::int* i = 1; ; i = [@vm.direct-call.metadata=_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
     if([@vm.inferred-type.metadata=dart.core::bool] self::isPrime(i))
-      counter = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] counter.{core::num::+}(1);
+      counter = [@vm.direct-call.metadata=_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] counter.{core::num::+}(1);
     if([@vm.inferred-type.metadata=dart.core::bool] counter.{core::num::==}(n)) {
       return i;
     }
@@ -30,10 +30,10 @@ static method run() → void {
   }
 }
 static method main(core::List<core::String*>* args) → dynamic {
-  core::Stopwatch* timer = let final core::Stopwatch* #t1 = new core::Stopwatch::•() in let final void #t2 = [@vm.direct-call.metadata=dart.core::Stopwatch::start] [@vm.inferred-type.metadata=!? (skip check)] #t1.{core::Stopwatch::start}() in #t1;
-  for (core::int* i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
+  core::Stopwatch* timer = let final core::Stopwatch* #t1 = new core::Stopwatch::•() in let final void #t2 = [@vm.direct-call.metadata=Stopwatch::start] [@vm.inferred-type.metadata=!? (skip check)] #t1.{core::Stopwatch::start}() in #t1;
+  for (core::int* i = 0; [@vm.direct-call.metadata=_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100); i = [@vm.direct-call.metadata=_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
     self::run();
   }
-  [@vm.direct-call.metadata=dart.core::Stopwatch::stop] [@vm.inferred-type.metadata=!? (skip check)] timer.{core::Stopwatch::stop}();
-  core::print("Elapsed ${[@vm.direct-call.metadata=dart.core::Stopwatch::elapsedMilliseconds] timer.{core::Stopwatch::elapsedMilliseconds}}ms");
+  [@vm.direct-call.metadata=Stopwatch::stop] [@vm.inferred-type.metadata=!? (skip check)] timer.{core::Stopwatch::stop}();
+  core::print("Elapsed ${[@vm.direct-call.metadata=Stopwatch::elapsedMilliseconds] timer.{core::Stopwatch::elapsedMilliseconds}}ms");
 }

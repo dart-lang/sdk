@@ -67,6 +67,12 @@ class Rti {
   }
 
   @pragma('dart2js:tryInline')
+  static bool _asCheck(Rti rti, object) {
+    return JS(
+        'bool', '#.#(#)', rti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), object);
+  }
+
+  @pragma('dart2js:tryInline')
   static bool _isCheck(Rti rti, object) {
     return JS(
         'bool', '#.#(#)', rti, JS_GET_NAME(JsGetName.RTI_FIELD_IS), object);
@@ -820,38 +826,94 @@ bool _installSpecializedIsTest(object) {
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
 
-  var isFn = RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
-
   if (isObjectType(testRti)) {
-    isFn = RAW_DART_FUNCTION_REF(_isObject);
-    Rti._setAsCheckFunction(testRti, RAW_DART_FUNCTION_REF(_asObject));
-  } else if (isTopType(testRti)) {
-    isFn = RAW_DART_FUNCTION_REF(_isTop);
-    var asFn = RAW_DART_FUNCTION_REF(_asTop);
-    Rti._setAsCheckFunction(testRti, asFn);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isObject));
+  }
+  if (isTopType(testRti)) {
+    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isTop));
+  }
+
+  // `o is T*` generally behaves like `o is T`.
+  // The exeptions are `Object*` (handled above) and `Never*`
+  //
+  //   `null is Never`  --> `false`
+  //   `null is Never*` --> `true`
+  Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
+      ? Rti._getStarArgument(testRti)
+      : testRti;
+
+  var isFn = _simpleSpecializedIsTest(unstarred);
+  if (isFn != null) {
+    return _finishIsFn(testRti, object, isFn);
+  }
+
+  if (Rti._getKind(unstarred) == Rti.kindInterface) {
+    String name = Rti._getInterfaceName(unstarred);
+    var arguments = Rti._getInterfaceTypeArguments(unstarred);
+    // This recognizes interface types instantiated with Top, which includes the
+    // common case of interfaces that have no type parameters.
+    // TODO(sra): Can we easily recognize other interface types instantiated to
+    // bounds?
+    if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
+      String propertyName =
+          '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+      Rti._setSpecializedTestResource(testRti, propertyName);
+      return _finishIsFn(
+          testRti, object, RAW_DART_FUNCTION_REF(_isTestViaProperty));
+    }
+    // fall through to general implementation.
+  } else if (Rti._getKind(testRti) == Rti.kindQuestion) {
+    return _finishIsFn(testRti, object,
+        RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation));
+  }
+  return _finishIsFn(
+      testRti, object, RAW_DART_FUNCTION_REF(_generalIsTestImplementation));
+}
+
+@pragma('dart2js:noInline') // Slightly smaller code.
+bool _finishIsFn(Rti testRti, object, isFn) {
+  Rti._setIsTestFunction(testRti, isFn);
+  return Rti._isCheck(testRti, object);
+}
+
+Object? _simpleSpecializedIsTest(Rti testRti) {
+  // Note: We must not match `Never` below.
+  var isFn = null;
+  if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
     isFn = RAW_DART_FUNCTION_REF(_isInt);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isNum);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>()) ||
+      _Utils.isIdentical(testRti, TYPE_REF<num>())) {
     isFn = RAW_DART_FUNCTION_REF(_isNum);
   } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
     isFn = RAW_DART_FUNCTION_REF(_isString);
   } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
     isFn = RAW_DART_FUNCTION_REF(_isBool);
-  } else if (Rti._getKind(testRti) == Rti.kindInterface) {
-    String name = Rti._getInterfaceName(testRti);
-    var arguments = Rti._getInterfaceTypeArguments(testRti);
-    if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
-      String propertyName =
-          '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
-      Rti._setSpecializedTestResource(testRti, propertyName);
-      isFn = RAW_DART_FUNCTION_REF(_isTestViaProperty);
+  }
+  return isFn;
+}
+
+/// Called from generated code.
+///
+/// The first time this default `_as` method is called, it replaces itself with
+/// a specialized version.
+bool _installSpecializedAsCheck(object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+
+  var asFn = RAW_DART_FUNCTION_REF(_generalAsCheckImplementation);
+  if (isTopType(testRti)) {
+    asFn = RAW_DART_FUNCTION_REF(_asTop);
+  } else if (isObjectType(testRti)) {
+    asFn = RAW_DART_FUNCTION_REF(_asObject);
+  } else {
+    if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) {
+      asFn = RAW_DART_FUNCTION_REF(_generalNullableAsCheckImplementation);
     }
   }
 
-  Rti._setIsTestFunction(testRti, isFn);
-  return Rti._isCheck(testRti, object);
+  Rti._setAsCheckFunction(testRti, asFn);
+  return Rti._asCheck(testRti, object);
 }
 
 bool _nullIs(Rti testRti) {
@@ -872,6 +934,21 @@ bool _generalIsTestImplementation(object) {
   }
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
+}
+
+/// Specialized test for `x is T1` where `T1` has the form `T2?`.  Test is
+/// compositional, calling `T2._is(object)`, so if `T2` has a specialized
+/// version, the composed test will be fast (but not quite as fast as a
+/// single-step specialization).
+///
+/// Called from generated code.
+bool _generalNullableIsTestImplementation(object) {
+  if (object == null) return true;
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+  Rti baseRti = Rti._getQuestionArgument(testRti);
+  return Rti._isCheck(baseRti, object);
 }
 
 /// Called from generated code.
@@ -895,6 +972,7 @@ bool _isTestViaProperty(object) {
   return JS('bool', '!!#[#]', interceptor, tag);
 }
 
+/// General unspecialized 'as' check that works for any type.
 /// Called from generated code.
 _generalAsCheckImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
@@ -905,7 +983,21 @@ _generalAsCheckImplementation(object) {
   } else {
     if (Rti._isCheck(testRti, object)) return object;
   }
+  _failedAsCheck(object, testRti);
+}
 
+/// General 'as' check for types that accept `null`.
+/// Called from generated code.
+_generalNullableAsCheckImplementation(object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+  if (object == null) return object;
+  if (Rti._isCheck(testRti, object)) return object;
+  _failedAsCheck(object, testRti);
+}
+
+void _failedAsCheck(object, Rti testRti) {
   Rti objectRti = instanceOrFunctionType(object, testRti);
   String message =
       _Error.compose(object, objectRti, _rtiToString(testRti, null));
@@ -1513,7 +1605,7 @@ class _Universe {
     // Set up methods to perform type tests. The general as-check methods use
     // the is-test method. The is-test method on first use overwrites itself,
     // and possibly the as-check methods, with a specialized version.
-    var asFn = RAW_DART_FUNCTION_REF(_generalAsCheckImplementation);
+    var asFn = RAW_DART_FUNCTION_REF(_installSpecializedAsCheck);
     var isFn = RAW_DART_FUNCTION_REF(_installSpecializedIsTest);
     Rti._setAsCheckFunction(rti, asFn);
     Rti._setIsTestFunction(rti, isFn);

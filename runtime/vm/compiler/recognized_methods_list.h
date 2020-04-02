@@ -171,6 +171,7 @@ namespace dart {
   V(::, _storePointer, FfiStorePointer, 0x3c7143a8)                            \
   V(::, _fromAddress, FfiFromAddress, 0x612a64d5)                              \
   V(Pointer, get:address, FfiGetAddress, 0x29a505a1)                           \
+  V(::, reachabilityFence, ReachabilityFence, 0x0)                             \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

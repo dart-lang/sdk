@@ -25,6 +25,8 @@ import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
 import 'package:kernel/src/future_or.dart';
 
+import 'package:kernel/src/legacy_erasure.dart';
+
 import '../../base/instrumentation.dart'
     show
         Instrumentation,
@@ -251,6 +253,17 @@ class ClosureContext {
     return true;
   }
 
+  void _updateInferredUnwrappedReturnOrYieldType(
+      TypeInferrerImpl inferrer, DartType unwrappedType) {
+    if (_inferredUnwrappedReturnOrYieldType == null) {
+      _inferredUnwrappedReturnOrYieldType = unwrappedType;
+    } else {
+      _inferredUnwrappedReturnOrYieldType = inferrer.typeSchemaEnvironment
+          .getStandardUpperBound(_inferredUnwrappedReturnOrYieldType,
+              unwrappedType, inferrer.library.library);
+    }
+  }
+
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   void handleReturn(TypeInferrerImpl inferrer, ReturnStatement statement,
@@ -287,20 +300,12 @@ class ClosureContext {
       if (isAsync) {
         unwrappedType = inferrer.typeSchemaEnvironment.unfutureType(type);
       }
-      if (_inferredUnwrappedReturnOrYieldType == null) {
-        _inferredUnwrappedReturnOrYieldType = unwrappedType;
-      } else {
-        _inferredUnwrappedReturnOrYieldType = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(_inferredUnwrappedReturnOrYieldType,
-                unwrappedType, inferrer.library.library);
-      }
-      return;
-    }
-
-    // If we are not inferring a type we can immediately check that the return
-    // is valid.
-    if (checkValidReturn(inferrer, declaredReturnType, statement, type) &&
+      _updateInferredUnwrappedReturnOrYieldType(inferrer, unwrappedType);
+    } else if (checkValidReturn(
+            inferrer, declaredReturnType, statement, type) &&
         statement.expression != null) {
+      // If we are not inferring a type we can immediately check that the return
+      // is valid.
       Expression expression = inferrer.ensureAssignable(
           returnOrYieldContext, type, statement.expression,
           fileOffset: statement.fileOffset,
@@ -338,29 +343,41 @@ class ClosureContext {
                     : inferrer.coreTypes.iterableClass) ??
             type;
       }
-      if (_inferredUnwrappedReturnOrYieldType == null) {
-        _inferredUnwrappedReturnOrYieldType = unwrappedType;
-      } else {
-        _inferredUnwrappedReturnOrYieldType = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(_inferredUnwrappedReturnOrYieldType,
-                unwrappedType, inferrer.library.library);
-      }
+      _updateInferredUnwrappedReturnOrYieldType(inferrer, unwrappedType);
     }
   }
 
-  DartType inferReturnType(TypeInferrerImpl inferrer) {
+  DartType inferReturnType(TypeInferrerImpl inferrer,
+      {bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
-    DartType inferredType =
-        inferrer.inferReturnType(_inferredUnwrappedReturnOrYieldType);
-    if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
-        returnOrYieldContext, SubtypeCheckMode.withNullabilities)) {
-      // If the inferred return type isn't a subtype of the context, we use the
-      // context.
-      inferredType = greatestClosure(returnOrYieldContext, inferrer.bottomType);
+    assert(hasImplicitReturn != null);
+    DartType inferredType;
+    if (_inferredUnwrappedReturnOrYieldType != null) {
+      // Use the types seen from the explicit return statements.
+      inferredType = _inferredUnwrappedReturnOrYieldType;
+    } else if (hasImplicitReturn) {
+      // No explicit returns we have an implicit `return null`.
+      inferredType = inferrer.typeSchemaEnvironment.nullType;
+    } else {
+      // No explicit return and the function doesn't complete normally; that is,
+      // it throws.
+      if (inferrer.isNonNullableByDefault) {
+        inferredType = new NeverType(inferrer.library.nonNullable);
+      } else {
+        inferredType = inferrer.typeSchemaEnvironment.nullType;
+      }
     }
 
     inferredType = _wrapAsyncOrGenerator(
         inferrer, inferredType, inferrer.library.nonNullable);
+
+    if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
+        returnOrYieldContext, SubtypeCheckMode.withNullabilities)) {
+      // If the inferred return type isn't a subtype of the context, we use the
+      // context.
+      inferredType = greatestClosure(declaredReturnType, inferrer.bottomType);
+    }
+
     for (int i = 0; i < returnStatements.length; ++i) {
       checkValidReturn(inferrer, inferredType, returnStatements[i],
           returnExpressionTypes[i]);
@@ -2162,7 +2179,9 @@ class TypeInferrerImpl implements TypeInferrer {
       inferredTypes = new List<DartType>.filled(
           calleeTypeParameters.length, const UnknownType());
       typeSchemaEnvironment.inferGenericFunctionOrType(
-          returnType ?? calleeType.returnType,
+          isNonNullableByDefault
+              ? returnType ?? calleeType.returnType
+              : legacyErasure(coreTypes, returnType ?? calleeType.returnType),
           calleeTypeParameters,
           null,
           null,
@@ -2198,7 +2217,9 @@ class TypeInferrerImpl implements TypeInferrer {
       } else {
         ExpressionInferenceResult result = inferExpression(
             arguments.positional[position],
-            inferredFormalType,
+            isNonNullableByDefault
+                ? inferredFormalType
+                : legacyErasure(coreTypes, inferredFormalType),
             inferenceNeeded ||
                 isOverloadedArithmeticOperator ||
                 typeChecksNeeded);
@@ -2224,7 +2245,9 @@ class TypeInferrerImpl implements TypeInferrer {
           : formalType;
       ExpressionInferenceResult result = inferExpression(
           namedArgument.value,
-          inferredFormalType,
+          isNonNullableByDefault
+              ? inferredFormalType
+              : legacyErasure(coreTypes, inferredFormalType),
           inferenceNeeded ||
               isOverloadedArithmeticOperator ||
               typeChecksNeeded);
@@ -2559,7 +2582,8 @@ class TypeInferrerImpl implements TypeInferrer {
     // or `void` if `B’` contains no `return` expressions.
     DartType inferredReturnType;
     if (needToSetReturnType) {
-      inferredReturnType = closureContext.inferReturnType(this);
+      inferredReturnType = closureContext.inferReturnType(this,
+          hasImplicitReturn: flowAnalysis.isReachable);
     }
 
     // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B` with
@@ -3292,11 +3316,6 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     return new ExpressionInferenceResult(inferredType, expression);
-  }
-
-  /// Modifies a type as appropriate when inferring a closure return type.
-  DartType inferReturnType(DartType returnType) {
-    return returnType ?? typeSchemaEnvironment.nullType;
   }
 
   /// Performs type inference on the given [statement].

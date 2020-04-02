@@ -367,6 +367,7 @@ struct InstrAttrs {
   M(CatchBlockEntry, kNoGC)                                                    \
   M(Phi, kNoGC)                                                                \
   M(Redefinition, kNoGC)                                                       \
+  M(ReachabilityFence, kNoGC)                                                  \
   M(Parameter, kNoGC)                                                          \
   M(NativeParameter, kNoGC)                                                    \
   M(LoadIndexedUnsafe, kNoGC)                                                  \
@@ -3294,6 +3295,26 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  private:
   CompileType* constrained_type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
+};
+
+// Keeps the value alive til after this point.
+//
+// The fence cannot be moved.
+class ReachabilityFenceInstr : public TemplateInstruction<1, NoThrow> {
+ public:
+  explicit ReachabilityFenceInstr(Value* value) { SetInputAt(0, value); }
+
+  DECLARE_INSTRUCTION(ReachabilityFence)
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ReachabilityFenceInstr);
 };
 
 class ConstraintInstr : public TemplateDefinition<1, NoThrow> {

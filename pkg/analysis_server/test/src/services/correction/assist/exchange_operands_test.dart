@@ -22,9 +22,9 @@ class ExchangeOperandsTest extends AssistProcessorTest {
   Future<void> test_compare() async {
     const initialOperators = ['<', '<=', '>', '>='];
     const resultOperators = ['>', '>=', '<', '<='];
-    for (int i = 0; i <= 0; i++) {
-      String initialOperator = initialOperators[i];
-      String resultOperator = resultOperators[i];
+    for (var i = 0; i <= 0; i++) {
+      var initialOperator = initialOperators[i];
+      var resultOperator = resultOperators[i];
       await resolveTestUnit('''
 bool main(int a, int b) {
   return a $initialOperator b;

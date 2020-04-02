@@ -382,8 +382,8 @@ abstract class RenameRefactoring implements Refactoring {
   /// the class when on the `new` keyword).
   static RenameRefactoringElement getElementToRename(
       AstNode node, Element element) {
-    int offset = node.offset;
-    int length = node.length;
+    var offset = node.offset;
+    var length = node.length;
 
     if (node is SimpleIdentifier && element is ParameterElement) {
       element = declaredParameterElement(node, element);
@@ -407,7 +407,7 @@ abstract class RenameRefactoring implements Refactoring {
 
     // Rename the class when on `new` in an instance creation.
     if (node is InstanceCreationExpression) {
-      InstanceCreationExpression creation = node;
+      var creation = node;
       var typeIdentifier = creation.constructorName.type.name;
       element = typeIdentifier.staticElement;
       offset = typeIdentifier.offset;

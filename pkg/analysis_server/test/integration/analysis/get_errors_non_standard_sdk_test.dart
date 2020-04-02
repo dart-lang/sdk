@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -76,7 +75,7 @@ final LIBRARIES = const <String, LibraryInfo> {
 
   @override
   Future startServer({int diagnosticPort, int servicesPort}) {
-    String sdkPath = createNonStandardSdk();
+    var sdkPath = createNonStandardSdk();
     return server.start(
         diagnosticPort: diagnosticPort,
         sdkPath: sdkPath,
@@ -84,15 +83,15 @@ final LIBRARIES = const <String, LibraryInfo> {
   }
 
   Future test_getErrors() async {
-    String pathname = sourcePath('test.dart');
-    String text = r'''
+    var pathname = sourcePath('test.dart');
+    var text = r'''
 import 'dart:core';
 import 'dart:fake';
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;
-    List<AnalysisError> errors = currentAnalysisErrors[pathname];
+    var errors = currentAnalysisErrors[pathname];
     expect(errors, hasLength(1));
     expect(errors[0].code, 'unused_import');
   }

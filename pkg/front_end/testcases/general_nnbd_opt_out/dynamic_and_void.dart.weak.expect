@@ -1,7 +1,16 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/dynamic_and_void.dart:12:1: Error: Type 'dynamic' not found.
+// dynamic testDynamic() => 0;
+// ^^^^^^^
+//
 import self as self;
 
+import "dart:core";
+
 static method testDynamic() → invalid-type
-  return let final dynamic #t1 = 0 in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/dynamic_and_void.dart:12:52: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'invalid-type'.\nTry changing the type of the left hand side, or casting the right hand side to 'invalid-type'.\n/*@warning=TypeNotFound*/ dynamic testDynamic() => 0;\n                                                   ^";
+  return 0 as{TypeError} invalid-type;
 static method testVoid() → void {}
 static method main() → dynamic {}

@@ -16,14 +16,35 @@ typedef T<X extends A> = X;
 
 // Use the aliased type.
 
+
+abstract class D2 extends C with T {}
+//             ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+abstract class D4 = C with T;
+//             ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
 main() {
+  T.named();
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
   T().unknownInstanceMethod();
-  //  ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  T.staticMethod<T>();
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
 
   T.unknownStaticMethod();
-//  ^
+//^
 // [analyzer] unspecified
 // [cfe] unspecified
 }

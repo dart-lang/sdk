@@ -172,6 +172,7 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
 
   // Socket interface exposing normal socket operations.
   intptr_t Available();
+  bool DataReady();
   intptr_t Read(void* buffer, intptr_t num_bytes);
   intptr_t RecvFrom(void* buffer,
                     intptr_t num_bytes,

@@ -33,7 +33,7 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   }
 
   Future<void> test_attribute_namedExpression() async {
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -114,7 +114,7 @@ class WidgetA extends StatelessWidget {
   }
 
   Future<void> test_attributes_string_interpolation() async {
-    FlutterOutline unitOutline = await _computeOutline(r'''
+    var unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -131,7 +131,7 @@ class MyWidget extends StatelessWidget {
 
     expect(textOutline.attributes, hasLength(1));
 
-    FlutterOutlineAttribute attribute = textOutline.attributes[0];
+    var attribute = textOutline.attributes[0];
     expect(attribute.name, 'data');
     expect(attribute.label, r"'Hello, $name!'");
     expect(attribute.literalValueString, isNull);
@@ -144,7 +144,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_attributes_unresolved() async {
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -162,7 +162,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children() async {
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -188,24 +188,24 @@ class MyWidget extends StatelessWidget {
 
     var columnOutline = build.children[0];
     {
-      int offset = testCode.indexOf('new Column');
-      int length = testCode.indexOf('; // Column') - offset;
+      var offset = testCode.indexOf('new Column');
+      var length = testCode.indexOf('; // Column') - offset;
       expect(columnOutline.offset, offset);
       expect(columnOutline.length, length);
     }
 
     {
       var textOutline = columnOutline.children[0];
-      String text = "const Text('aaa')";
-      int offset = testCode.indexOf(text);
+      var text = "const Text('aaa')";
+      var offset = testCode.indexOf(text);
       expect(textOutline.offset, offset);
       expect(textOutline.length, text.length);
     }
 
     {
       var textOutline = columnOutline.children[1];
-      String text = "const Text('bbb')";
-      int offset = testCode.indexOf(text);
+      var text = "const Text('bbb')";
+      var offset = testCode.indexOf(text);
       expect(textOutline.offset, offset);
       expect(textOutline.length, text.length);
     }
@@ -221,7 +221,7 @@ class WidgetA extends StatelessWidget {
   WidgetA(this.factory);
 }
 ''');
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 import 'a.dart';
 
@@ -257,7 +257,7 @@ class WidgetA extends StatelessWidget {
   WidgetA(this.factory);
 }
 ''');
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 import 'a.dart';
 
@@ -279,7 +279,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_withCollectionElements() async {
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -306,7 +306,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_codeOffsetLength() async {
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
 /// Comment
@@ -337,7 +337,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_genericLabel_invocation() async {
-    FlutterOutline unitOutline = await _computeOutline(r'''
+    var unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -403,7 +403,7 @@ class WidgetA extends StatelessWidget {
   WidgetA({this.top, this.bottom});
 }
 ''');
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 import 'a.dart';
 
@@ -427,7 +427,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_variableName() async {
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -473,7 +473,7 @@ class MyWidget extends StatelessWidget {
 
   Future<FlutterOutlineAttribute> _getAttribute(
       String name, String value) async {
-    FlutterOutline unitOutline = await _computeOutline('''
+    var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
 main() {

@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/utilities/occurrences/occurrences.dart';
-import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/occurrences/occurrences.dart';
 
 /// A mixin that can be used when creating a subclass of [ServerPlugin] and
@@ -25,7 +23,7 @@ mixin DartOccurrencesMixin implements OccurrencesMixin {
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolvedUnitResult result = await getResolvedUnitResult(path);
+    var result = await getResolvedUnitResult(path);
     return DartOccurrencesRequestImpl(resourceProvider, result);
   }
 }
@@ -51,11 +49,9 @@ mixin OccurrencesMixin implements ServerPlugin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
-      OccurrencesRequest request = await getOccurrencesRequest(path);
-      OccurrencesGenerator generator =
-          OccurrencesGenerator(getOccurrencesContributors(path));
-      GeneratorResult generatorResult =
-          generator.generateOccurrencesNotification(request);
+      var request = await getOccurrencesRequest(path);
+      var generator = OccurrencesGenerator(getOccurrencesContributors(path));
+      var generatorResult = generator.generateOccurrencesNotification(request);
       generatorResult.sendNotifications(channel);
     } on RequestFailure {
       // If we couldn't analyze the file, then don't send a notification.

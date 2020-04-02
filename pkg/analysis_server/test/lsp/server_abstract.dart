@@ -392,7 +392,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   String applyTextEdits(String oldContent, List<TextEdit> changes) {
-    String newContent = oldContent;
+    var newContent = oldContent;
     // Complex text manipulations are described with an array of TextEdit's,
     // representing a single change to the document.
     //
@@ -419,8 +419,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           (p.line == other.line && p.character > other.character);
       // Check if two ranges intersect or touch.
       bool rangesIntersect(Range r1, Range r2) {
-        bool endsBefore = isBefore(r1.end, r2.start);
-        bool startsAfter = isAfter(r1.start, r2.end);
+        var endsBefore = isBefore(r1.end, r2.start);
+        var startsAfter = isAfter(r1.start, r2.end);
         return !(endsBefore || startsAfter);
       }
 

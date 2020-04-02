@@ -222,6 +222,10 @@ intptr_t RawObject::HeapSizeFromClass() const {
       instance_size = element->HeapSize();
       break;
     }
+    case kWeakSerializationReferenceCid: {
+      instance_size = WeakSerializationReference::InstanceSize();
+      break;
+    }
     default: {
       // Get the (constant) instance size out of the class object.
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
@@ -579,6 +583,11 @@ UNREACHABLE_VISITOR(String)
 UNREACHABLE_VISITOR(FutureOr)
 // Smi has no heap representation.
 UNREACHABLE_VISITOR(Smi)
+#if defined(DART_PRECOMPILED_RUNTIME)
+NULL_VISITOR(WeakSerializationReference)
+#else
+REGULAR_VISITOR(WeakSerializationReference)
+#endif
 
 bool RawCode::ContainsPC(const RawObject* raw_obj, uword pc) {
   if (!raw_obj->IsCode()) return false;

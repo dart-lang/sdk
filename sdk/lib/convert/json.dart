@@ -514,7 +514,7 @@ class JsonDecoder extends Converter<String, Object> {
 }
 
 // Internal optimized JSON parsing implementation.
-external _parseJson(String source, reviver(key, value));
+external dynamic _parseJson(String source, reviver(key, value));
 
 // Implementation of encoder/stringifier.
 

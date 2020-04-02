@@ -14,6 +14,5 @@ abstract class Interface {
 
 /*class: Class:Class,Interface,LegacyClass,Object*/
 abstract class Class extends LegacyClass implements Interface {
-  /*cfe|cfe:builder.member: Class.method:int Function(int?)*/
-  /*analyzer.member: Class.method:int* Function(int*)**/
+  /*member: Class.method:int Function(int?)*/
 }

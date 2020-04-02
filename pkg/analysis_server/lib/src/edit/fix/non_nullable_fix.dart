@@ -44,6 +44,8 @@ class NonNullableFix extends FixCodeTask {
   /// server should be started.
   int port;
 
+  String authToken;
+
   InstrumentationListener instrumentationListener;
 
   NullabilityMigrationAdapter adapter;
@@ -55,7 +57,7 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  Future<void> Function(List<String>) rerunFunction;
+  Future<void> Function([List<String>]) rerunFunction;
 
   NonNullableFix(this.listener, {List<String> included = const []})
       : includedRoot =
@@ -66,10 +68,14 @@ class NonNullableFix extends FixCodeTask {
   @override
   int get numPhases => 3;
 
-  /// Return a list of the Urls corresponding to the included roots.
+  /// Return a list of the URLs corresponding to the included roots.
   List<String> get previewUrls => [
-        Uri(scheme: 'http', host: 'localhost', port: port, path: includedRoot)
-            .toString()
+        Uri(
+            scheme: 'http',
+            host: 'localhost',
+            port: port,
+            path: includedRoot,
+            queryParameters: {'authToken': authToken}).toString()
       ];
 
   @override
@@ -82,6 +88,7 @@ class NonNullableFix extends FixCodeTask {
       server = HttpPreviewServer(state, rerun);
       server.serveHttp();
       port = await server.boundPort;
+      authToken = await server.authToken;
     }
   }
 
@@ -96,7 +103,7 @@ class NonNullableFix extends FixCodeTask {
 
     // TODO(danrubel): Update pubspec.yaml to enable NNBD
 
-    File optionsFile = pkgFolder.getChildAssumingFile('analysis_options.yaml');
+    var optionsFile = pkgFolder.getChildAssumingFile('analysis_options.yaml');
     String optionsContent;
     YamlNode optionsMap;
     if (optionsFile.exists) {
@@ -130,8 +137,7 @@ analyzer:
 
 ''';
     } else if (analyzerOptions is YamlMap) {
-      YamlNode experiments =
-          analyzerOptions.nodes[AnalyzerOptions.enableExperiment];
+      var experiments = analyzerOptions.nodes[AnalyzerOptions.enableExperiment];
       if (experiments == null) {
         parentSpan = analyzerOptions.span;
         content = '''
@@ -157,10 +163,10 @@ analyzer:
       final cr = '\r'.codeUnitAt(0);
       final lf = '\n'.codeUnitAt(0);
 
-      int line = parentSpan.end.line;
-      int offset = parentSpan.end.offset;
+      var line = parentSpan.end.line;
+      var offset = parentSpan.end.offset;
       while (offset > 0) {
-        int ch = optionsContent.codeUnitAt(offset - 1);
+        var ch = optionsContent.codeUnitAt(offset - 1);
         if (ch == space || ch == cr) {
           --offset;
         } else if (ch == lf) {
@@ -218,7 +224,7 @@ analyzer:
     _packageIsNNBD = false;
   }
 
-  Future<MigrationState> rerun(List<String> changedPaths) async {
+  Future<MigrationState> rerun([List<String> changedPaths]) async {
     reset();
     await rerunFunction(changedPaths);
     final state = MigrationState(
@@ -250,14 +256,14 @@ analyzer:
     // all of the paths, comparing parts, joining one path back together). In
     // practice, this should be cheap because typically only one path is given
     // to dartfix.
-    List<String> rootParts = included
+    var rootParts = included
         .map((p) => context.normalize(context.absolute(p)))
         .map((p) => provider.getResource(p) is File ? context.dirname(p) : p)
         .map((p) => context.split(p))
         .reduce((value, parts) {
-      List<String> shorterPath = value.length < parts.length ? value : parts;
-      int length = shorterPath.length;
-      for (int i = 0; i < length; i++) {
+      var shorterPath = value.length < parts.length ? value : parts;
+      var length = shorterPath.length;
+      for (var i = 0; i < length; i++) {
         if (value[i] != parts[i]) {
           // [value] and [parts] are the same, only up to part [i].
           return value.sublist(0, i);

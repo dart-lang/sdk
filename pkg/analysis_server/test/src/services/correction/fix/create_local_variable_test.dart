@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
@@ -176,14 +175,14 @@ main() {
   new C(a, b);
 }
 ''');
-    List<LinkedEditGroup> groups = change.linkedEditGroups;
+    var groups = change.linkedEditGroups;
     expect(groups, hasLength(2));
-    LinkedEditGroup typeGroup = groups[0];
-    List<Position> typePositions = typeGroup.positions;
+    var typeGroup = groups[0];
+    var typePositions = typeGroup.positions;
     expect(typePositions, hasLength(1));
     expect(typePositions[0].offset, 112);
-    LinkedEditGroup nameGroup = groups[1];
-    List<Position> groupPositions = nameGroup.positions;
+    var nameGroup = groups[1];
+    var groupPositions = nameGroup.positions;
     expect(groupPositions, hasLength(2));
     expect(groupPositions[0].offset, 114);
     expect(groupPositions[1].offset, 128);

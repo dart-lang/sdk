@@ -298,7 +298,7 @@ Object _computeNullable(type) {
     return type;
   }
   if (_equalType(type, Never)) return unwrapType(Null);
-  return NullableType(type);
+  return NullableType(JS<Type>('!', '#', type));
 }
 
 /// Returns a legacy (star, *) version of [type].

@@ -139,6 +139,23 @@ class Serializer : public ThreadStackResource {
              V8SnapshotProfileWriter* profile_writer = nullptr);
   ~Serializer();
 
+  // Reference value for objects that either are not reachable from the roots or
+  // should never have a reference in the snapshot (because they are dropped,
+  // for example). Should be the default value for Heap::GetObjectId.
+  static const intptr_t kUnreachableReference = 0;
+
+  static constexpr bool IsReachableReference(intptr_t ref) {
+    return ref != kUnreachableReference;
+  }
+
+  // Reference value for traced objects that have not been allocated their final
+  // reference ID.
+  static const intptr_t kUnallocatedReference = -1;
+
+  static constexpr bool IsAllocatedReference(intptr_t ref) {
+    return IsReachableReference(ref) && ref != kUnallocatedReference;
+  }
+
   intptr_t WriteVMSnapshot(const Array& symbols);
   void WriteIsolateSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
@@ -165,7 +182,7 @@ class Serializer : public ThreadStackResource {
   }
 
   intptr_t AssignRef(RawObject* object) {
-    ASSERT(next_ref_index_ != 0);
+    ASSERT(IsAllocatedReference(next_ref_index_));
     if (object->IsHeapObject()) {
       // The object id weak table holds image offsets for Instructions instead
       // of ref indices.
@@ -176,7 +193,7 @@ class Serializer : public ThreadStackResource {
       RawSmi* smi = Smi::RawCast(object);
       SmiObjectIdPair* existing_pair = smi_ids_.Lookup(smi);
       if (existing_pair != NULL) {
-        ASSERT(existing_pair->id_ == 1);
+        ASSERT(existing_pair->id_ == kUnallocatedReference);
         existing_pair->id_ = next_ref_index_;
       } else {
         SmiObjectIdPair new_pair;
@@ -363,32 +380,41 @@ class Serializer : public ThreadStackResource {
  private:
   static const char* ReadOnlyObjectType(intptr_t cid);
 
+  // Returns the reference ID for the object. Fails for objects that have not
+  // been allocated a reference ID yet, so should be used only after all
+  // WriteAlloc calls.
   intptr_t WriteRefId(RawObject* object) {
-    intptr_t id = 0;
     if (!object->IsHeapObject()) {
       RawSmi* smi = Smi::RawCast(object);
-      id = smi_ids_.Lookup(smi)->id_;
-      if (id == 0) {
-        FATAL("Missing ref");
-      }
-    } else {
-      // The object id weak table holds image offsets for Instructions instead
-      // of ref indices.
-      ASSERT(!object->IsInstructions());
-      id = heap_->GetObjectId(object);
-      if (id == 0) {
-        if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
-          return WriteRefId(Object::null());
-        }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
-          return WriteRefId(Object::null());
-        }
-#endif  // !DART_PRECOMPILED_RUNTIME
-        FATAL("Missing ref");
-      }
+      auto const id = smi_ids_.Lookup(smi)->id_;
+      if (IsAllocatedReference(id)) return id;
+      FATAL("Missing ref");
     }
-    return id;
+    // The object id weak table holds image offsets for Instructions instead
+    // of ref indices.
+    ASSERT(!object->IsInstructions());
+    auto const id = heap_->GetObjectId(object);
+    if (IsAllocatedReference(id)) return id;
+    if (object->IsWeakSerializationReference()) {
+      // If a reachable WSR has an object ID of 0, then its target was marked
+      // for serialization due to reachable strong references and the WSR will
+      // be dropped instead. Thus, we change the reference to the WSR to a
+      // direct reference to the serialized target.
+      auto const ref = WeakSerializationReference::RawCast(object);
+      auto const target = WeakSerializationReference::TargetOf(ref);
+      auto const target_id = heap_->GetObjectId(target);
+      ASSERT(IsAllocatedReference(target_id));
+      return target_id;
+    }
+    if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
+      return WriteRefId(Object::null());
+    }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
+      return WriteRefId(Object::null());
+    }
+#endif  // !DART_PRECOMPILED_RUNTIME
+    FATAL("Missing ref");
   }
 
   Heap* heap_;

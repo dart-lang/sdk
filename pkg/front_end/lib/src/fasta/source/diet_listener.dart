@@ -128,10 +128,7 @@ class DietListener extends StackListenerImpl {
       _currentClass = _currentDeclaration = null;
     } else {
       _currentDeclaration = builder;
-      TypeDeclarationBuilder unaliasedBuilder =
-          builder is TypeAliasBuilder ? builder.unaliasDeclaration : builder;
-      _currentClass =
-          unaliasedBuilder is ClassBuilder ? unaliasedBuilder : null;
+      _currentClass = builder is ClassBuilder ? builder : null;
     }
   }
 

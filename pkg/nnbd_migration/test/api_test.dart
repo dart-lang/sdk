@@ -4446,6 +4446,30 @@ int? recover() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void>
+      test_requiredness_does_not_propagate_between_field_formal_params() async {
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+class C {
+  final bool x;
+  C.one({this.x});
+  C.two({@required this.x}) : assert(x != null);
+}
+test() => C.one();
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+class C {
+  final bool? x;
+  C.one({this.x});
+  C.two({required this.x}) : assert(x != null);
+}
+test() => C.one();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_setter_overrides_implicit_setter() async {
     var content = '''
 class A {

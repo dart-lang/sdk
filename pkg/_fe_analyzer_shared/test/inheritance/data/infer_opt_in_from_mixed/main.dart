@@ -16,20 +16,16 @@ abstract class Nnbd {
 
 /*class: Both1:Both1,Legacy,Nnbd,Object*/
 class Both1 implements Legacy, Nnbd {
-  /*cfe|cfe:builder.member: Both1.mandatory:void Function(int)*/
-  /*analyzer.member: Both1.mandatory:void Function(dynamic)*/
+  /*member: Both1.mandatory:void Function(int)*/
   void mandatory(param) {}
-  /*cfe|cfe:builder.member: Both1.optional:void Function(int?)*/
-  /*analyzer.member: Both1.optional:void Function(dynamic)*/
+  /*member: Both1.optional:void Function(int?)*/
   void optional(param) {}
 }
 
 /*class: Both2:Both2,Legacy,Nnbd,Object*/
 class Both2 implements Nnbd, Legacy {
-  /*cfe|cfe:builder.member: Both2.mandatory:void Function(int)*/
-  /*analyzer.member: Both2.mandatory:void Function(dynamic)*/
+  /*member: Both2.mandatory:void Function(int)*/
   void mandatory(param) {}
-  /*cfe|cfe:builder.member: Both2.optional:void Function(int?)*/
-  /*analyzer.member: Both2.optional:void Function(dynamic)*/
+  /*member: Both2.optional:void Function(int?)*/
   void optional(param) {}
 }

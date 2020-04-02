@@ -60,15 +60,18 @@ abstract class GenericInterfacesInfo {
 
 abstract class TypesBuilder {
   final CoreTypes coreTypes;
+  final bool nullSafety;
 
-  TypesBuilder(this.coreTypes);
+  TypesBuilder(this.coreTypes, this.nullSafety);
 
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
 
   /// Create a Type which corresponds to a set of instances constrained by
   /// Dart type annotation [dartType].
-  Type fromStaticType(DartType type, bool isNullable) {
+  /// [canBeNull] can be set to false to further constrain the resulting
+  /// type if value cannot be null.
+  Type fromStaticType(DartType type, bool canBeNull) {
     Type result;
     if (type is InterfaceType) {
       final cls = type.classNode;
@@ -90,12 +93,15 @@ abstract class TypesBuilder {
       if (bound is TypeParameterType) {
         result = const AnyType();
       } else {
-        return fromStaticType(bound, isNullable);
+        return fromStaticType(bound, canBeNull);
       }
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }
-    if (isNullable) {
+    if (nullSafety && type.nullability == Nullability.nonNullable) {
+      canBeNull = false;
+    }
+    if (canBeNull) {
       result = new Type.nullable(result);
     }
     return result;
@@ -109,7 +115,8 @@ abstract class RuntimeTypeTranslator {
 /// Abstract interface to type hierarchy information used by types.
 abstract class TypeHierarchy extends TypesBuilder
     implements GenericInterfacesInfo {
-  TypeHierarchy(CoreTypes coreTypes) : super(coreTypes);
+  TypeHierarchy(CoreTypes coreTypes, bool nullSafety)
+      : super(coreTypes, nullSafety);
 
   /// Test if [sub] is a subtype of [sup].
   bool isSubtype(Class sub, Class sup);
@@ -239,8 +246,13 @@ class NullableType extends Type {
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
       baseType.isSubtypeOf(typeHierarchy, cls);
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) =>
-      baseType.isSubtypeOfRuntimeType(typeHierarchy, other);
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+    if (typeHierarchy.nullSafety &&
+        other.nullability == Nullability.nonNullable) {
+      return false;
+    }
+    return baseType.isSubtypeOfRuntimeType(typeHierarchy, other);
+  }
 
   @override
   int get order => TypeOrder.Nullable.index;
@@ -652,9 +664,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
       if (rhs.typeArguments.isEmpty) return true;
       if (rhs.classNode == typeHierarchy.coreTypes.futureOrClass) {
+        assertx(cls.classNode != typeHierarchy.coreTypes.futureOrClass);
         if (typeHierarchy.isSubtype(
-                cls.classNode, typeHierarchy.coreTypes.futureClass) ||
-            cls.classNode == typeHierarchy.coreTypes.futureOrClass) {
+            cls.classNode, typeHierarchy.coreTypes.futureClass)) {
           final RuntimeType lhs =
               typeArgs == null ? RuntimeType(DynamicType(), null) : typeArgs[0];
           return lhs.isSubtypeOfRuntimeType(
@@ -884,18 +896,24 @@ class RuntimeType extends Type {
 
   int get order => TypeOrder.RuntimeType.index;
 
+  Nullability get nullability => _type.nullability;
+
+  RuntimeType withNullability(Nullability n) =>
+      RuntimeType(_type.withNullability(n), typeArgs);
+
   DartType get representedTypeRaw => _type;
 
   DartType get representedType {
-    if (_type is InterfaceType && typeArgs != null) {
-      final klass = (_type as InterfaceType).classNode;
+    final type = _type;
+    if (type is InterfaceType && typeArgs != null) {
+      final klass = type.classNode;
       final typeArguments = typeArgs
           .take(klass.typeParameters.length)
           .map((pt) => pt.representedType)
           .toList();
-      return new InterfaceType(klass, Nullability.legacy, typeArguments);
+      return new InterfaceType(klass, type.nullability, typeArguments);
     } else {
-      return _type;
+      return type;
     }
   }
 
@@ -926,10 +944,11 @@ class RuntimeType extends Type {
     final head = _type is InterfaceType
         ? "${(_type as InterfaceType).classNode}"
         : "$_type";
-    if (numImmediateTypeArgs == 0) return head;
-    final typeArgsStrs =
-        typeArgs.take(numImmediateTypeArgs).map((t) => "$t").join(", ");
-    return "_TS {$head<$typeArgsStrs>}";
+    final typeArgsStrs = (numImmediateTypeArgs == 0)
+        ? ""
+        : "<${typeArgs.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";
+    final nullability = _type.nullability.suffix;
+    return "$head$typeArgsStrs$nullability";
   }
 
   @override
@@ -967,6 +986,11 @@ class RuntimeType extends Type {
   bool isSubtypeOfRuntimeType(
       TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
     final rhs = runtimeType._type;
+    if (typeHierarchy.nullSafety &&
+        _type.nullability == Nullability.nullable &&
+        rhs.nullability == Nullability.nonNullable) {
+      return false;
+    }
     if (rhs is DynamicType ||
         rhs is VoidType ||
         _type is BottomType ||

@@ -691,32 +691,6 @@ int f(int x, bool b) {
     expect(matchingEdges.single.isHard, false);
   }
 
-  Future<void> test_graphEdge_union() async {
-    await analyze('''
-class C {
-  int i;
-  C(this.i); /*constructor*/
-}
-''');
-    var fieldNode = explicitTypeNullability[findNode.typeAnnotation('int')];
-    var formalParamNode =
-        implicitType[findNode.fieldFormalParameter('i); /*constructor*/')].node;
-    var matchingEdges = edges
-        .where((e) =>
-            e.sourceNode == fieldNode && e.destinationNode == formalParamNode)
-        .toList();
-    expect(matchingEdges, hasLength(1));
-    expect(matchingEdges.single.isUnion, true);
-    expect(matchingEdges.single.isHard, true);
-    matchingEdges = edges
-        .where((e) =>
-            e.sourceNode == formalParamNode && e.destinationNode == fieldNode)
-        .toList();
-    expect(matchingEdges, hasLength(1));
-    expect(matchingEdges.single.isUnion, true);
-    expect(matchingEdges.single.isHard, true);
-  }
-
   Future<void> test_immutableNode_always() async {
     await analyze('''
 int x = null;

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -32,7 +31,7 @@ class C {}
 ''');
     _createRefactoringForStringOffset('class C');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
@@ -243,7 +242,7 @@ Widget main() {
 ''');
 
     Future<void> assertResult(String str) async {
-      int offset = findOffset(str);
+      var offset = findOffset(str);
       _createRefactoring(offset, str.length);
 
       await _assertSuccessfulRefactoring('''
@@ -342,7 +341,7 @@ class MyWidget extends StatelessWidget {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
@@ -369,7 +368,7 @@ abstract class MyWidget extends StatelessWidget implements MyInterface {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
@@ -786,7 +785,7 @@ class MyWidget extends StatelessWidget {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
@@ -813,7 +812,7 @@ class MyWidget extends MySuperWidget {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
@@ -894,7 +893,7 @@ class MyWidget extends StatelessWidget {
 ''');
     _createRefactoringForStringOffset('new Text');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
@@ -960,7 +959,7 @@ class MyWidget extends StatelessWidget {
 ''');
     _createRefactoringForStringOffset('new GestureDetector');
 
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
@@ -1220,7 +1219,7 @@ void main() {
   }
 
   Future<void> _assertRefactoringChange(String expectedCode) async {
-    SourceChange refactoringChange = await refactoring.createChange();
+    var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
   }
@@ -1239,15 +1238,15 @@ void main() {
   }
 
   void _createRefactoringForStartEnd() {
-    int offset = findOffset('// start\n') + '// start\n'.length;
-    int length = findOffset('// end') - offset;
+    var offset = findOffset('// start\n') + '// start\n'.length;
+    var length = findOffset('// end') - offset;
     _createRefactoring(offset, length);
   }
 
   /// Creates a new refactoring in [refactoring] at the offset of the given
   /// [search] pattern.
   void _createRefactoringForStringOffset(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     _createRefactoring(offset, 0);
   }
 }

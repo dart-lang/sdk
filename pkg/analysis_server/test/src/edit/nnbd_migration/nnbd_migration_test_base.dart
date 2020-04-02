@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -44,7 +43,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
       for (var info in infos) if (!info.path.contains('core.dart')) info
     ];
     expect(filteredInfos, hasLength(1));
-    UnitInfo unit = filteredInfos[0];
+    var unit = filteredInfos[0];
     expect(unit.path, testFile);
     expect(unit.content, migratedContent);
     return unit;
@@ -76,10 +75,10 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     // Compute the analysis results.
     server.setAnalysisRoots('0', [includedRoot], [], {});
     // Run the migration engine.
-    DartFixListener listener = DartFixListener(server);
-    InstrumentationListener instrumentationListener = InstrumentationListener();
-    NullabilityMigrationAdapter adapter = NullabilityMigrationAdapter(listener);
-    NullabilityMigration migration = NullabilityMigration(adapter,
+    var listener = DartFixListener(server);
+    var instrumentationListener = InstrumentationListener();
+    var adapter = NullabilityMigrationAdapter(listener);
+    var migration = NullabilityMigration(adapter,
         permissive: false,
         instrumentation: instrumentationListener,
         removeViaComments: removeViaComments);
@@ -99,8 +98,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     await _forEachPath(migration.finalizeInput);
     migration.finish();
     // Build the migration info.
-    InstrumentationInformation info = instrumentationListener.data;
-    InfoBuilder builder = InfoBuilder(
+    var info = instrumentationListener.data;
+    var builder = InfoBuilder(
         resourceProvider, includedRoot, info, listener, adapter, migration);
     infos = await builder.explainMigration();
   }

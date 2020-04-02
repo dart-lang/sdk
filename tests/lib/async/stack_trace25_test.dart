@@ -24,7 +24,7 @@ main() {
   asyncStart();
   var iterator = new StreamIterator(controller.stream);
   var future = iterator.moveNext();
-  future.then((_) {
+  future.then<Null>((_) {
     throw "unreachable";
   }, onError: (e, st) {
     Expect.equals("error", e);

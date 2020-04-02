@@ -25,17 +25,17 @@ class LogFileInputConverter extends CommonInputConverter {
   @override
   Operation convert(String line) {
     try {
-      String timeStampString = _parseTimeStamp(line);
-      String data = line.substring(timeStampString.length);
+      var timeStampString = _parseTimeStamp(line);
+      var data = line.substring(timeStampString.length);
       if (data.startsWith(RECEIVED_FRAGMENT)) {
-        Map<String, dynamic> jsonData = asMap(json.decode(data.substring(4)));
+        var jsonData = asMap(json.decode(data.substring(4)));
         if (jsonData.containsKey('event')) {
           return convertNotification(jsonData);
         } else {
           return convertResponse(jsonData);
         }
       } else if (data.startsWith(SENT_FRAGMENT)) {
-        Map<String, dynamic> jsonData = asMap(json.decode(data.substring(4)));
+        var jsonData = asMap(json.decode(data.substring(4)));
         if (jsonData.containsKey('method')) {
           return convertRequest(jsonData);
         }
@@ -53,9 +53,9 @@ class LogFileInputConverter extends CommonInputConverter {
   /// For example:
   /// `1428347977499 <= {"event":"server.connected","params":{"version":"1.6.0"}}`
   static bool isFormat(String line) {
-    String timeStampString = _parseTimeStamp(line);
-    int start = timeStampString.length;
-    int end = start + CONNECTED_MSG_FRAGMENT.length;
+    var timeStampString = _parseTimeStamp(line);
+    var start = timeStampString.length;
+    var end = start + CONNECTED_MSG_FRAGMENT.length;
     return (10 < start && end < line.length) &&
         line.substring(start, end) == CONNECTED_MSG_FRAGMENT;
   }
@@ -63,9 +63,9 @@ class LogFileInputConverter extends CommonInputConverter {
   /// Parse the given line and return the millisecond timestamp or `null`
   /// if it cannot be determined.
   static String _parseTimeStamp(String line) {
-    int index = 0;
+    var index = 0;
     while (index < line.length) {
-      int code = line.codeUnitAt(index);
+      var code = line.codeUnitAt(index);
       if (code < ZERO || NINE < code) {
         return line.substring(0, index);
       }

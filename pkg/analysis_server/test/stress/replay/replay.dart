@@ -27,7 +27,7 @@ import 'operation.dart';
 
 /// Run the simulation based on the given command-line [arguments].
 Future<void> main(List<String> arguments) async {
-  Driver driver = Driver();
+  var driver = Driver();
   await driver.run(arguments);
 }
 
@@ -135,7 +135,7 @@ class Driver {
   /// Create and return a parser that can be used to parse the command-line
   /// arguments.
   ArgParser _createArgParser() {
-    ArgParser parser = ArgParser();
+    var parser = ArgParser();
     parser.addFlag(HELP_FLAG_NAME,
         abbr: 'h',
         help: 'Print usage information',
@@ -160,27 +160,27 @@ class Driver {
 
   /// Add source edits to the given [fileEdit] based on the given [blobDiff].
   void _createSourceEdits(FileEdit fileEdit, BlobDiff blobDiff) {
-    LineInfo info = fileEdit.lineInfo;
-    for (DiffHunk hunk in blobDiff.hunks) {
-      int srcStart = info.getOffsetOfLine(hunk.srcLine);
-      int srcEnd = info.getOffsetOfLine(
+    var info = fileEdit.lineInfo;
+    for (var hunk in blobDiff.hunks) {
+      var srcStart = info.getOffsetOfLine(hunk.srcLine);
+      var srcEnd = info.getOffsetOfLine(
           math.min(hunk.srcLine + hunk.removeLines.length, info.lineCount - 1));
-      String addedText = _join(hunk.addLines);
+      var addedText = _join(hunk.addLines);
       //
       // Create the source edits.
       //
-      List<int> breakOffsets = _getBreakOffsets(addedText);
-      int breakCount = breakOffsets.length;
-      List<SourceEdit> sourceEdits = <SourceEdit>[];
+      var breakOffsets = _getBreakOffsets(addedText);
+      var breakCount = breakOffsets.length;
+      var sourceEdits = <SourceEdit>[];
       if (breakCount == 0) {
         sourceEdits.add(SourceEdit(srcStart, srcEnd - srcStart + 1, addedText));
       } else {
-        int previousOffset = breakOffsets[0];
-        String string = addedText.substring(0, previousOffset);
+        var previousOffset = breakOffsets[0];
+        var string = addedText.substring(0, previousOffset);
         sourceEdits.add(SourceEdit(srcStart, srcEnd - srcStart + 1, string));
-        String reconstruction = string;
-        for (int i = 1; i < breakCount; i++) {
-          int offset = breakOffsets[i];
+        var reconstruction = string;
+        for (var i = 1; i < breakCount; i++) {
+          var offset = breakOffsets[i];
           string = addedText.substring(previousOffset, offset);
           reconstruction += string;
           sourceEdits.add(SourceEdit(srcStart + previousOffset, 0, string));
@@ -200,13 +200,12 @@ class Driver {
   /// Return the absolute paths of all of the pubspec files in all of the
   /// analysis roots.
   Iterable<String> _findPubspecsInAnalysisRoots() {
-    List<String> pubspecFiles = <String>[];
-    for (String directoryPath in analysisRoots) {
-      Directory directory = Directory(directoryPath);
-      List<FileSystemEntity> children =
-          directory.listSync(recursive: true, followLinks: false);
-      for (FileSystemEntity child in children) {
-        String filePath = child.path;
+    var pubspecFiles = <String>[];
+    for (var directoryPath in analysisRoots) {
+      var directory = Directory(directoryPath);
+      var children = directory.listSync(recursive: true, followLinks: false);
+      for (var child in children) {
+        var filePath = child.path;
         if (path.basename(filePath) == PUBSPEC_FILE_NAME) {
           pubspecFiles.add(filePath);
         }
@@ -218,17 +217,17 @@ class Driver {
   /// Return a list of offsets into the given [text] that represent good places
   /// to break the text when building edits.
   List<int> _getBreakOffsets(String text) {
-    List<int> breakOffsets = <int>[];
-    Scanner scanner = Scanner(null, CharSequenceReader(text),
+    var breakOffsets = <int>[];
+    var scanner = Scanner(null, CharSequenceReader(text),
         error.AnalysisErrorListener.NULL_LISTENER)
       ..configureFeatures(FeatureSet.forTesting(sdkVersion: '2.2.2'));
-    Token token = scanner.tokenize();
+    var token = scanner.tokenize();
     // TODO(brianwilkerson) Randomize. Sometimes add zero (0) as a break point.
     while (token.type != TokenType.EOF) {
       // TODO(brianwilkerson) Break inside comments?
 //      Token comment = token.precedingComments;
-      int offset = token.offset;
-      int length = token.length;
+      var offset = token.offset;
+      var length = token.length;
       breakOffsets.add(offset);
       if (token.type == TokenType.IDENTIFIER && length > 3) {
         breakOffsets.add(offset + (length ~/ 2));
@@ -240,8 +239,8 @@ class Driver {
 
   /// Join the given [lines] into a single string.
   String _join(List<String> lines) {
-    StringBuffer buffer = StringBuffer();
-    for (int i = 0; i < lines.length; i++) {
+    var buffer = StringBuffer();
+    for (var i = 0; i < lines.length; i++) {
       buffer.writeln(lines[i]);
     }
     return buffer.toString();
@@ -250,7 +249,7 @@ class Driver {
   /// Process the command-line [arguments]. Return `true` if the simulation
   /// should be run.
   bool _processCommandLine(List<String> args) {
-    ArgParser parser = _createArgParser();
+    var parser = _createArgParser();
     ArgResults results;
     try {
       results = parser.parse(args);
@@ -276,7 +275,7 @@ class Driver {
       logger = Logger(stdout);
     }
 
-    List<String> arguments = results.rest;
+    var arguments = results.rest;
     if (arguments.length < 2) {
       _showUsage(parser);
       return false;
@@ -288,7 +287,7 @@ class Driver {
         .sublist(1)
         .map((String analysisRoot) => path.normalize(analysisRoot))
         .toList();
-    for (String analysisRoot in analysisRoots) {
+    for (var analysisRoot in analysisRoots) {
       if (repositoryPath != analysisRoot &&
           !path.isWithin(repositoryPath, analysisRoot)) {
         _showUsage(parser,
@@ -304,21 +303,21 @@ class Driver {
     //
     // Get the revision history of the repo.
     //
-    LinearCommitHistory history = repository.getCommitHistory();
+    var history = repository.getCommitHistory();
     statistics.commitCount = history.commitIds.length;
-    LinearCommitHistoryIterator iterator = history.iterator();
+    var iterator = history.iterator();
     try {
       //
       // Iterate over the history, applying changes.
       //
-      bool firstCheckout = true;
+      var firstCheckout = true;
       ErrorMap expectedErrors;
       Iterable<String> changedPubspecs;
       while (iterator.moveNext()) {
         //
         // Checkout the commit on which the changes are based.
         //
-        String commit = iterator.srcCommit;
+        var commit = iterator.srcCommit;
         repository.checkout(commit);
         if (expectedErrors != null) {
 //          ErrorMap actualErrors =
@@ -341,13 +340,13 @@ class Driver {
         }
         await readServerOutput();
         expectedErrors = await server.computeErrorMap(server.analyzedDartFiles);
-        for (String filePath in changedPubspecs) {
+        for (var filePath in changedPubspecs) {
           _runPub(filePath);
         }
         //
         // Apply the changes.
         //
-        CommitDelta commitDelta = iterator.next();
+        var commitDelta = iterator.next();
         commitDelta.filterDiffs(analysisRoots, fileGlobs);
         if (commitDelta.hasDiffs) {
           statistics.commitsWithChangeInRootCount++;
@@ -369,9 +368,9 @@ class Driver {
   /// Replay the changes between two commits, as represented by the given
   /// [commitDelta].
   Future<void> _replayDiff(CommitDelta commitDelta) async {
-    List<FileEdit> editList = <FileEdit>[];
-    for (DiffRecord record in commitDelta.diffRecords) {
-      FileEdit edit = FileEdit(overlayStyle, record);
+    var editList = <FileEdit>[];
+    for (var record in commitDelta.diffRecords) {
+      var edit = FileEdit(overlayStyle, record);
       _createSourceEdits(edit, record.getBlobDiff());
       editList.add(edit);
     }
@@ -380,8 +379,8 @@ class Driver {
     // Randomly select operations from different files to simulate a user
     // editing multiple files simultaneously.
     //
-    for (FileEdit edit in editList) {
-      List<String> currentFile = <String>[edit.filePath];
+    for (var edit in editList) {
+      var currentFile = <String>[edit.filePath];
       server.sendAnalysisSetPriorityFiles(currentFile);
       server.sendAnalysisSetSubscriptions({
         AnalysisService.FOLDING: currentFile,
@@ -392,7 +391,7 @@ class Driver {
         AnalysisService.OUTLINE: currentFile,
         AnalysisService.OVERRIDES: currentFile
       });
-      for (ServerOperation operation in edit.getOperations()) {
+      for (var operation in edit.getOperations()) {
         statistics.editCount++;
         operation.perform(server);
         await readServerOutput();
@@ -402,7 +401,7 @@ class Driver {
 
   /// Run `pub` on the pubspec with the given [filePath].
   void _runPub(String filePath) {
-    String directoryPath = path.dirname(filePath);
+    var directoryPath = path.dirname(filePath);
     if (Directory(directoryPath).existsSync()) {
       Process.runSync(
           '/Users/brianwilkerson/Dev/dart/dart-sdk/bin/pub', ['get'],
@@ -413,7 +412,7 @@ class Driver {
   /// Run the simulation by starting up a server and sending it requests.
   Future<void> _runSimulation() async {
     server = Server(logger: logger);
-    Stopwatch stopwatch = Stopwatch();
+    var stopwatch = Stopwatch();
     statistics.stopwatch = stopwatch;
     stopwatch.start();
     await server.start();
@@ -510,7 +509,7 @@ class FileEdit {
 
   /// Return a list of operations to be sent to the server.
   List<ServerOperation> getOperations() {
-    List<ServerOperation> operations = <ServerOperation>[];
+    var operations = <ServerOperation>[];
     void addUpdateContent(var overlay) {
       operations.add(Analysis_UpdateContent(filePath, overlay));
     }
@@ -519,8 +518,8 @@ class FileEdit {
     // Make the order of edits random. Doing so will require updating the
     // offsets of edits after the selected edit point.
     addUpdateContent(AddContentOverlay(content));
-    for (List<SourceEdit> editList in editLists.reversed) {
-      for (SourceEdit edit in editList.reversed) {
+    for (var editList in editLists.reversed) {
+      for (var edit in editList.reversed) {
         var overlay;
         if (overlayStyle == OverlayStyle.change) {
           overlay = ChangeContentOverlay([edit]);
@@ -584,11 +583,11 @@ class Statistics {
   /// Return a textual representation of the given duration, represented in
   /// [milliseconds].
   String _printTime(int milliseconds) {
-    int seconds = milliseconds ~/ 1000;
+    var seconds = milliseconds ~/ 1000;
     milliseconds -= seconds * 1000;
-    int minutes = seconds ~/ 60;
+    var minutes = seconds ~/ 60;
     seconds -= minutes * 60;
-    int hours = minutes ~/ 60;
+    var hours = minutes ~/ 60;
     minutes -= hours * 60;
 
     if (hours > 0) {

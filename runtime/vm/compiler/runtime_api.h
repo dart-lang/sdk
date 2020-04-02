@@ -1121,6 +1121,12 @@ class Code : public AllStatic {
   static word NextFieldOffset();
 };
 
+class WeakSerializationReference : public AllStatic {
+ public:
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
 class SubtypeTestCache : public AllStatic {
  public:
   static word cache_offset();

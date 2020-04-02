@@ -58,12 +58,8 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 
 main() {
   asyncStart();
-  Future<CompilationResult> result = compile(
-      new Uri(scheme: 'main'),
-      new Uri(scheme: 'lib', path: '/'),
-      new Uri(scheme: 'package', path: '/'),
-      provider,
-      handler);
+  Future<CompilationResult> result = compile(new Uri(scheme: 'main'),
+      new Uri(scheme: 'lib', path: '/'), provider, handler);
   result.then((CompilationResult result) {
     if (!result.isSuccess) {
       throw 'Compilation failed';

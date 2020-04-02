@@ -70,26 +70,6 @@ class SymbolKeyValueTrait {
 
 typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
 
-class UnlinkedCallKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const UnlinkedCall* Key;
-  typedef const UnlinkedCall* Value;
-  typedef const UnlinkedCall* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) { return key->Hashcode(); }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->Equals(*key);
-  }
-};
-
-typedef DirectChainedHashMap<UnlinkedCallKeyValueTrait> UnlinkedCallSet;
-
 // Traits for the HashTable template.
 struct FunctionKeyTraits {
   static uint32_t Hash(const Object& key) { return Function::Cast(key).Hash(); }
@@ -263,11 +243,12 @@ class Precompiler : public ValueObject {
   void AddConstObject(const class Instance& instance);
   void AddClosureCall(const Array& arguments_descriptor);
   void AddField(const Field& field);
-  void AddFunction(const Function& function);
+  void AddFunction(const Function& function, bool retain = true);
   void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
   bool IsSent(const String& selector);
   bool IsHitByTableSelector(const Function& function);
+  bool MustRetainFunction(const Function& function);
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
@@ -286,13 +267,7 @@ class Precompiler : public ValueObject {
   void DropClasses();
   void DropLibraries();
 
-  // Remove the indirection of the CallStaticFunction stub from all static call
-  // sites now that Code is available for all call targets. Allows for dropping
-  // the static call table from each Code object.
-  void BindStaticCalls();
-  // Deduplicate the UnlinkedCall objects in all ObjectPools to reduce snapshot
-  // size.
-  void DedupUnlinkedCalls();
+  DEBUG_ONLY(RawFunction* FindUnvisitedRetainedFunction());
 
   void Obfuscate();
 
@@ -332,7 +307,8 @@ class Precompiler : public ValueObject {
   const GrowableObjectArray& pending_functions_;
   FieldSet pending_static_fields_to_retain_;
   SymbolSet sent_selectors_;
-  FunctionSet enqueued_functions_;
+  FunctionSet seen_functions_;
+  FunctionSet possibly_retained_functions_;
   FieldSet fields_to_retain_;
   FunctionSet functions_to_retain_;
   ClassSet classes_to_retain_;

@@ -260,7 +260,7 @@ class _IsResponseFailure extends Matcher {
       item, Description mismatchDescription, Map matchState, bool verbose) {
     Response response = item;
     var id = response.id;
-    RequestError error = response.error;
+    var error = response.error;
     mismatchDescription.add('has identifier "$id"');
     if (error == null) {
       mismatchDescription.add(' and has no error');
@@ -304,7 +304,7 @@ class _IsResponseSuccess extends Matcher {
       mismatchDescription.add('is null response');
     } else {
       var id = response.id;
-      RequestError error = response.error;
+      var error = response.error;
       mismatchDescription.add('has identifier "$id"');
       if (error != null) {
         mismatchDescription.add(' and has error $error');

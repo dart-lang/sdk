@@ -13,7 +13,6 @@ void main() {
   Expect.equals("Ærø", new String.fromCharCodes(const [0xc6, 0x72, 0xf8]));
   Expect.equals("\u{1234}", new String.fromCharCodes([0x1234]));
   Expect.equals("\u{12345}*", new String.fromCharCodes([0x12345, 42]));
-  Expect.equals("", new String.fromCharCodes(new List()));
   {
     var a = <int>[];
     a.add(65);

@@ -45,7 +45,7 @@ class AnalysisErrorTest {
     engineError = MockAnalysisError(source,
         engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT, 10, 20, 'my message');
     // prepare ResolvedUnitResult
-    engine.LineInfo lineInfo = engine.LineInfo([0, 5, 9, 20]);
+    var lineInfo = engine.LineInfo([0, 5, 9, 20]);
     result = engine.ResolvedUnitResultImpl(null, 'foo.dart', null, true, null,
         lineInfo, false, null, [engineError]);
   }
@@ -58,10 +58,10 @@ class AnalysisErrorTest {
   void test_fromEngine_hasContextMessage() {
     engineError.contextMessages.add(engine.DiagnosticMessageImpl(
         filePath: 'bar.dart', offset: 30, length: 5, message: 'context'));
-    MockAnalysisSession session = MockAnalysisSession();
+    var session = MockAnalysisSession();
     session.addFileResult(engine.FileResultImpl(
         session, 'bar.dart', null, engine.LineInfo([0, 5, 9, 20]), false));
-    AnalysisError error = newAnalysisError_fromEngine(
+    var error = newAnalysisError_fromEngine(
         engine.ResolvedUnitResultImpl(session, 'foo.dart', null, true, null,
             engine.LineInfo([0, 5, 9, 20]), false, null, [engineError]),
         engineError);
@@ -95,7 +95,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_hasCorrection() {
     engineError.correction = 'my correction';
-    AnalysisError error = newAnalysisError_fromEngine(result, engineError);
+    var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -120,7 +120,7 @@ class AnalysisErrorTest {
         10,
         20,
         'my message');
-    AnalysisError error = newAnalysisError_fromEngine(result, engineError);
+    var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -145,7 +145,7 @@ class AnalysisErrorTest {
         10,
         20,
         'my message');
-    AnalysisError error = newAnalysisError_fromEngine(result, engineError);
+    var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
       SEVERITY: 'INFO',
       TYPE: 'LINT',
@@ -165,7 +165,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_noCorrection() {
     engineError.correction = null;
-    AnalysisError error = newAnalysisError_fromEngine(result, engineError);
+    var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -184,7 +184,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_noLineInfo() {
     engineError.correction = null;
-    AnalysisError error = newAnalysisError_fromEngine(
+    var error = newAnalysisError_fromEngine(
         engine.ResolvedUnitResultImpl(null, 'foo.dart', null, true, null, null,
             false, null, [engineError]),
         engineError);
@@ -254,7 +254,7 @@ class EnumTester<EngineEnum, ApiEnum> {
   /// the given key results in the given value.
   void run(ApiEnum Function(EngineEnum) convert,
       {Map<EngineEnum, ApiEnum> exceptions = const {}}) {
-    ClassMirror engineClass = reflectClass(EngineEnum);
+    var engineClass = reflectClass(EngineEnum);
     engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
       if (symbol == #values) {
         return;
@@ -262,22 +262,21 @@ class EnumTester<EngineEnum, ApiEnum> {
       if (!method.isGetter) {
         return;
       }
-      String enumName = MirrorSystem.getName(symbol);
-      EngineEnum engineValue =
-          engineClass.getField(symbol).reflectee as EngineEnum;
+      var enumName = MirrorSystem.getName(symbol);
+      var engineValue = engineClass.getField(symbol).reflectee as EngineEnum;
       expect(engineValue, TypeMatcher<EngineEnum>());
       if (exceptions.containsKey(engineValue)) {
-        ApiEnum expectedResult = exceptions[engineValue];
+        var expectedResult = exceptions[engineValue];
         if (expectedResult == null) {
           expect(() {
             convert(engineValue);
           }, throwsException);
         } else {
-          ApiEnum apiValue = convert(engineValue);
+          var apiValue = convert(engineValue);
           expect(apiValue, equals(expectedResult));
         }
       } else {
-        ApiEnum apiValue = convert(engineValue);
+        var apiValue = convert(engineValue);
         expect((apiValue as dynamic).name, equals(enumName));
       }
     });

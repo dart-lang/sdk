@@ -55,17 +55,16 @@ class NavigationCollectorImpl implements NavigationCollector {
   @override
   void addRegion(
       int offset, int length, ElementKind targetKind, Location targetLocation) {
-    SourceRange range = SourceRange(offset, length);
+    var range = SourceRange(offset, length);
     // add new target
-    List<int> targets = regionMap.putIfAbsent(range, () => <int>[]);
-    int targetIndex = _addTarget(targetKind, targetLocation);
+    var targets = regionMap.putIfAbsent(range, () => <int>[]);
+    var targetIndex = _addTarget(targetKind, targetLocation);
     targets.add(targetIndex);
   }
 
   void createRegions() {
     regionMap.forEach((range, targets) {
-      NavigationRegion region =
-          NavigationRegion(range.offset, range.length, targets);
+      var region = NavigationRegion(range.offset, range.length, targets);
       regions.add(region);
     });
     regions.sort((NavigationRegion first, NavigationRegion second) {
@@ -74,7 +73,7 @@ class NavigationCollectorImpl implements NavigationCollector {
   }
 
   int _addFile(String file) {
-    int index = fileMap[file];
+    var index = fileMap[file];
     if (index == null) {
       index = files.length;
       files.add(file);
@@ -85,18 +84,13 @@ class NavigationCollectorImpl implements NavigationCollector {
 
   int _addTarget(ElementKind kind, Location location) {
     var pair = Pair<ElementKind, Location>(kind, location);
-    int index = targetMap[pair];
+    var index = targetMap[pair];
     if (index == null) {
-      String file = location.file;
-      int fileIndex = _addFile(file);
+      var file = location.file;
+      var fileIndex = _addFile(file);
       index = targets.length;
-      NavigationTarget target = NavigationTarget(
-          kind,
-          fileIndex,
-          location.offset,
-          location.length,
-          location.startLine,
-          location.startColumn);
+      var target = NavigationTarget(kind, fileIndex, location.offset,
+          location.length, location.startLine, location.startColumn);
       targets.add(target);
       targetMap[pair] = index;
     }

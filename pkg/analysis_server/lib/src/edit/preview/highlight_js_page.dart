@@ -17,6 +17,9 @@ class HighlightJSPage extends PreviewPage {
       : super(site, PreviewSite.highlightJsPath.substring(1));
 
   @override
+  bool get requiresAuth => false;
+
+  @override
   void generateBody(Map<String, String> params) {
     throw UnimplementedError();
   }

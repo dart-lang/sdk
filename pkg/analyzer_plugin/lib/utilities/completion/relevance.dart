@@ -47,6 +47,9 @@ abstract class Relevance {
   /// function-typed parameter in an argument list.
   static const int closure = 900;
 
+  /// The relevance used when suggesting a constructor.
+  static const int constructor = 900;
+
   /// The relevance used when suggesting a field as a field formal parameter.
   static const int fieldFormalParameter = 1000;
 
@@ -77,4 +80,7 @@ abstract class Relevance {
   /// The relevance used when suggesting a named argument corresponding to a
   /// named parameter that is required.
   static const int requiredNamedArgument = 950;
+
+  /// The relevance used when suggesting a type parameter.
+  static const int typeParameter = 900;
 }

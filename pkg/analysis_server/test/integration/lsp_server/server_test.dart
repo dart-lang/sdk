@@ -31,7 +31,7 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
 
     // Ensure the server was actually started.
     final client = HttpClient();
-    HttpClientRequest request = await client
+    var request = await client
         .getUrl(Uri.parse('http://localhost:${server.port}/status'));
     final response = await request.close();
     final responseBody = await utf8.decodeStream(response.cast<List<int>>());

@@ -14,7 +14,7 @@ class D extends A<FutureOr<int>> {
   /*member: D.getType:Type* Function()**/
 }
 
-/// TODO: Solve CFE / analyzer disagreement.
+/// TODO: Solve CFE / analyzer difference.
 /// It looks to me that CFE type of `A` is incorrect.
 /// As described in https://github.com/dart-lang/sdk/issues/40553,
 /// NNBD_TOP_MERGE(FutureOr<int?>, FutureOr*<int*>) = FutureOr<int?>

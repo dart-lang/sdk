@@ -200,6 +200,11 @@ class CanonicalName {
   }
 
   String toString() => _parent == null ? 'root' : '$parent::$name';
+  String toStringInternal() {
+    if (isRoot) return "";
+    if (parent.isRoot) return "$name";
+    return "${parent.toStringInternal()}::$name";
+  }
 
   Reference getReference() {
     return reference ??= (new Reference()..canonicalName = this);

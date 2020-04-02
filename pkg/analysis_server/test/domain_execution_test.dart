@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_execution.dart';
@@ -23,7 +22,7 @@ void main() {
     defineReflectiveTests(ExecutionDomainTest);
   });
   group('ExecutionDomainHandler', () {
-    MemoryResourceProvider provider = MemoryResourceProvider();
+    var provider = MemoryResourceProvider();
     AnalysisServer server;
     ExecutionDomainHandler handler;
 
@@ -40,19 +39,17 @@ void main() {
 
     group('createContext/deleteContext', () {
       test('create/delete multiple contexts', () {
-        Request request =
-            ExecutionCreateContextParams('/a/b.dart').toRequest('0');
-        Response response = handler.handleRequest(request);
+        var request = ExecutionCreateContextParams('/a/b.dart').toRequest('0');
+        var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
-        ExecutionCreateContextResult result =
-            ExecutionCreateContextResult.fromResponse(response);
-        String id0 = result.id;
+        var result = ExecutionCreateContextResult.fromResponse(response);
+        var id0 = result.id;
 
         request = ExecutionCreateContextParams('/c/d.dart').toRequest('1');
         response = handler.handleRequest(request);
         expect(response, isResponseSuccess('1'));
         result = ExecutionCreateContextResult.fromResponse(response);
-        String id1 = result.id;
+        var id1 = result.id;
 
         expect(id0 == id1, isFalse);
 
@@ -66,8 +63,8 @@ void main() {
       });
 
       test('delete non-existent context', () {
-        Request request = ExecutionDeleteContextParams('13').toRequest('0');
-        Response response = handler.handleRequest(request);
+        var request = ExecutionDeleteContextParams('13').toRequest('0');
+        var response = handler.handleRequest(request);
         // TODO(brianwilkerson) It isn't currently specified to be an error if a
         // client attempts to delete a context that doesn't exist. Should it be?
 //        expect(response, isResponseFailure('0'));
@@ -190,16 +187,16 @@ void contextFunction() {
 }
 ''';
 
-    String path = newFile('/test.dart').path;
+    var path = newFile('/test.dart').path;
     newFile(path, content: code);
 
-    Request request = ExecutionGetSuggestionsParams(
+    var request = ExecutionGetSuggestionsParams(
         'a.',
         2,
         path,
         code.indexOf('// context line'),
         <RuntimeCompletionVariable>[]).toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
 
     var result = ExecutionGetSuggestionsResult.fromResponse(response);
 //    expect(result.suggestions, isNotEmpty);
@@ -215,50 +212,49 @@ void contextFunction() {
   }
 
   void test_mapUri_file() {
-    String path = newFile('/a/b.dart').path;
+    var path = newFile('/a/b.dart').path;
     // map the file
-    ExecutionMapUriResult result = _mapUri(file: path);
+    var result = _mapUri(file: path);
     expect(result.file, isNull);
     expect(result.uri, Uri.file(path).toString());
   }
 
   void test_mapUri_file_dartUriKind() {
-    String path = server.findSdk().mapDartUri('dart:async').fullName;
+    var path = server.findSdk().mapDartUri('dart:async').fullName;
     // hack - pretend that the SDK file exists in the project FS
     newFile(path, content: '// hack');
     // map file
-    ExecutionMapUriResult result = _mapUri(file: path);
+    var result = _mapUri(file: path);
     expect(result.file, isNull);
     expect(result.uri, 'dart:async');
   }
 
   void test_mapUri_uri() {
-    String path = newFile('/a/b.dart').path;
+    var path = newFile('/a/b.dart').path;
     // map the uri
-    ExecutionMapUriResult result = _mapUri(uri: Uri.file(path).toString());
+    var result = _mapUri(uri: Uri.file(path).toString());
     expect(result.file, convertPath('/a/b.dart'));
     expect(result.uri, isNull);
   }
 
   void _createExecutionContext(String path) {
-    Request request = ExecutionCreateContextParams(path).toRequest('0');
-    Response response = handler.handleRequest(request);
+    var request = ExecutionCreateContextParams(path).toRequest('0');
+    var response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
-    ExecutionCreateContextResult result =
-        ExecutionCreateContextResult.fromResponse(response);
+    var result = ExecutionCreateContextResult.fromResponse(response);
     contextId = result.id;
   }
 
   void _disposeExecutionContext() {
-    Request request = ExecutionDeleteContextParams(contextId).toRequest('1');
-    Response response = handler.handleRequest(request);
+    var request = ExecutionDeleteContextParams(contextId).toRequest('1');
+    var response = handler.handleRequest(request);
     expect(response, isResponseSuccess('1'));
   }
 
   ExecutionMapUriResult _mapUri({String file, String uri}) {
-    Request request =
+    var request =
         ExecutionMapUriParams(contextId, file: file, uri: uri).toRequest('2');
-    Response response = handler.handleRequest(request);
+    var response = handler.handleRequest(request);
     expect(response, isResponseSuccess('2'));
     return ExecutionMapUriResult.fromResponse(response);
   }

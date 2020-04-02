@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
@@ -19,7 +18,7 @@ class SendTimingTest extends AbstractAnalysisServerIntegrationTest {
     standardAnalysisSetup();
 
     // Disable analytics.
-    AnalyticsIsEnabledResult result1 = await sendAnalyticsIsEnabled();
+    var result1 = await sendAnalyticsIsEnabled();
     await sendAnalyticsEnable(false);
 
     // Send an event.

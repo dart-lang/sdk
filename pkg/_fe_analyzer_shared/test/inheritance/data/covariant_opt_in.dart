@@ -24,20 +24,17 @@ abstract class C {
 
 /*class: D1:A,B,C,D1,Object*/
 abstract class D1 implements A, B, C {
-  /*cfe|cfe:builder.member: D1.method:void Function(dynamic)*/
-  /*analyzer.member: D1.method:void Function(int)*/
+  /*member: D1.method:void Function(dynamic)*/
 }
 
 /*class: D2:A,B,D2,Object*/
 abstract class D2 implements A, B {
-  /*cfe|cfe:builder.member: D2.method:void Function(dynamic)*/
-  /*analyzer.member: D2.method:void Function(num)*/
+  /*member: D2.method:void Function(dynamic)*/
 }
 
 /*class: D3:B,C,D3,Object*/
 abstract class D3 implements B, C {
-  /*cfe|cfe:builder.member: D3.method:void Function(num)*/
-  /*analyzer.member: D3.method:void Function(int)*/
+  /*member: D3.method:void Function(num)*/
 }
 
 /*class: D4:B,C,D4,Object*/
@@ -47,8 +44,7 @@ abstract class D4 implements C, B {
 
 /*class: D5:A,C,D5,Object*/
 abstract class D5 implements A, C {
-  /*cfe|cfe:builder.member: D5.method:void Function(dynamic)*/
-  /*analyzer.member: D5.method:void Function(int)*/
+  /*member: D5.method:void Function(dynamic)*/
 }
 
 /*class: E:E,Object*/
@@ -65,8 +61,7 @@ abstract class F {
 
 /*class: G1:E,F,G1,Object*/
 abstract class G1 implements E, F {
-  /*cfe|cfe:builder.member: G1.method:void Function(num)*/
-  /*analyzer.member: G1.method:void Function(int)*/
+  /*member: G1.method:void Function(num)*/
 }
 
 /*class: G2:E,F,G2,Object*/

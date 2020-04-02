@@ -137,6 +137,12 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return -1;
 }
 
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  return false;
+}
+
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
                            intptr_t num_bytes,

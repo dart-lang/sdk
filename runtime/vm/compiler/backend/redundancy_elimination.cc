@@ -3690,7 +3690,7 @@ static bool CanEliminateInstruction(Instruction* current,
   ASSERT(current->GetBlock() == block);
   if (MayHaveVisibleEffect(current) || current->CanDeoptimize() ||
       current == block->last_instruction() || current->IsMaterializeObject() ||
-      current->IsCheckStackOverflow()) {
+      current->IsCheckStackOverflow() || current->IsReachabilityFence()) {
     return false;
   }
   return true;

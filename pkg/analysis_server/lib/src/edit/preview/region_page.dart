@@ -20,6 +20,9 @@ class RegionPage extends PreviewPage {
       : super(site, unitInfo.path.substring(1));
 
   @override
+  bool get requiresAuth => true;
+
+  @override
   void generateBody(Map<String, String> params) {
     throw UnsupportedError('generateBody');
   }

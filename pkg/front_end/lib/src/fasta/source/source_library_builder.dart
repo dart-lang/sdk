@@ -422,8 +422,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (major == null || minor == null) {
       addPostponedProblem(
           messageLanguageVersionInvalidInDotPackages, offset, length, fileUri);
-      _languageVersion =
-          new InvalidLanguageVersion(fileUri, offset, length, explicit);
+      if (_languageVersion is ImplicitLanguageVersion) {
+        _languageVersion = new InvalidLanguageVersion(
+            fileUri,
+            offset,
+            length,
+            explicit,
+            loader.target.currentSdkVersionMajor,
+            loader.target.currentSdkVersionMinor);
+        library.setLanguageVersion(
+            _languageVersion.major, _languageVersion.minor);
+      }
       return;
     }
 
@@ -439,8 +448,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           offset,
           length,
           fileUri);
-      _languageVersion =
-          new InvalidLanguageVersion(fileUri, offset, length, explicit);
+      if (_languageVersion is ImplicitLanguageVersion) {
+        _languageVersion = new InvalidLanguageVersion(
+            fileUri,
+            offset,
+            length,
+            explicit,
+            loader.target.currentSdkVersionMajor,
+            loader.target.currentSdkVersionMinor);
+        library.setLanguageVersion(
+            _languageVersion.major, _languageVersion.minor);
+      }
       return;
     }
 
@@ -801,13 +819,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (existing.isSetter && other.isGetter) return false;
     } else {
       if (next is ClassBuilder && !next.isMixinApplication) return true;
-      if (next is TypeAliasBuilder) {
-        TypeDeclarationBuilder aliasedBuilder = next.unaliasDeclaration;
-        if (aliasedBuilder is ClassBuilder &&
-            !aliasedBuilder.isMixinApplication) {
-          return true;
-        }
-      }
     }
     if (existing is ClassBuilder && other is ClassBuilder) {
       // We allow multiple mixin applications with the same name. An
@@ -3761,15 +3772,11 @@ class InvalidLanguageVersion implements LanguageVersion {
   final int charOffset;
   final int charCount;
   final bool isExplicit;
+  final int major;
+  final int minor;
 
-  InvalidLanguageVersion(
-      this.fileUri, this.charOffset, this.charCount, this.isExplicit);
-
-  @override
-  int get major => kernel.defaultLanguageVersionMajor;
-
-  @override
-  int get minor => kernel.defaultLanguageVersionMinor;
+  InvalidLanguageVersion(this.fileUri, this.charOffset, this.charCount,
+      this.isExplicit, this.major, this.minor);
 
   @override
   bool get valid => false;

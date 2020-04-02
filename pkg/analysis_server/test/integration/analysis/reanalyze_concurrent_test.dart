@@ -23,8 +23,8 @@ void main() {
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
   @TestTimeout(Timeout.factor(2))
   Future<void> test_reanalyze_concurrent() {
-    String pathname = sourcePath('test.dart');
-    String text = '''
+    var pathname = sourcePath('test.dart');
+    var text = '''
 // Do a bunch of imports so that analysis has some work to do.
 import 'dart:io';
 import 'dart:convert';

@@ -185,7 +185,7 @@ class Notification extends ApiNode {
   /// Get the full type of the notification object, including the common "id"
   /// and "error" fields.
   TypeDecl get notificationType {
-    List<TypeObjectField> fields = [
+    var fields = <TypeObjectField>[
       TypeObjectField('event', TypeReference('String', null), null,
           value: '$domainName.$event')
     ];
@@ -253,7 +253,7 @@ class Request extends ApiNode {
   /// Get the full type of the request object, including the common "id" and
   /// "method" fields.
   TypeDecl get requestType {
-    List<TypeObjectField> fields = [
+    var fields = <TypeObjectField>[
       TypeObjectField('id', TypeReference('String', null), null),
       TypeObjectField('method', TypeReference('String', null), null,
           value: '$domainName.$method')
@@ -267,7 +267,7 @@ class Request extends ApiNode {
   /// Get the full type of the response object, including the common "id" and
   /// "error" fields.
   TypeDecl get responseType {
-    List<TypeObjectField> fields = [
+    var fields = <TypeObjectField>[
       TypeObjectField('id', TypeReference('String', null), null),
       TypeObjectField('error', TypeReference('RequestError', null), null,
           optional: true)
@@ -362,7 +362,7 @@ class TypeObject extends TypeDecl {
 
   /// Return the field with the given [name], or null if there is no such field.
   TypeObjectField getField(String name) {
-    for (TypeObjectField field in fields) {
+    for (var field in fields) {
       if (field.name == name) {
         return field;
       }

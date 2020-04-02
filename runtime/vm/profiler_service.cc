@@ -650,6 +650,7 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
         uword dso_offset = start() - dso_base;
         Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %s+0x%" Px, dso_name,
                        dso_offset);
+        NativeSymbolResolver::FreeSymbolName(dso_name);
       } else {
         Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %" Px, start());
       }

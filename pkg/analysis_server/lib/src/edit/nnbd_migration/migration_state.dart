@@ -8,15 +8,11 @@ import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
 /// The state of an NNBD migration.
 class MigrationState {
   bool _hasBeenApplied = false;
-
-  /// If the migration has been applied to disk.
-  bool get hasBeenApplied => _hasBeenApplied;
 
   /// The migration associated with the state.
   final NullabilityMigration migration;
@@ -43,22 +39,25 @@ class MigrationState {
   MigrationState(this.migration, this.includedRoot, this.listener,
       this.instrumentationListener, this.adapter);
 
-  /// Refresh the state of the migration after the migration has been updated.
-  Future<void> refresh() async {
-    assert(!hasBeenApplied);
-    OverlayResourceProvider provider = listener.server.resourceProvider;
-    InfoBuilder infoBuilder = InfoBuilder(provider, includedRoot,
-        instrumentationListener.data, listener, adapter, migration);
-    Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
-    var pathContext = provider.pathContext;
-    migrationInfo = MigrationInfo(
-        unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
-    pathMapper = PathMapper(provider);
-  }
+  /// If the migration has been applied to disk.
+  bool get hasBeenApplied => _hasBeenApplied;
 
   /// Mark that the migration has been applied to disk.
   void markApplied() {
     assert(!hasBeenApplied);
     _hasBeenApplied = true;
+  }
+
+  /// Refresh the state of the migration after the migration has been updated.
+  Future<void> refresh() async {
+    assert(!hasBeenApplied);
+    var provider = listener.server.resourceProvider;
+    var infoBuilder = InfoBuilder(provider, includedRoot,
+        instrumentationListener.data, listener, adapter, migration);
+    var unitInfos = await infoBuilder.explainMigration();
+    var pathContext = provider.pathContext;
+    migrationInfo = MigrationInfo(
+        unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
+    pathMapper = PathMapper(provider);
   }
 }

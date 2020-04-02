@@ -167,7 +167,8 @@ Precompiler::Precompiler(Thread* thread)
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       pending_static_fields_to_retain_(),
       sent_selectors_(),
-      enqueued_functions_(
+      seen_functions_(HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
+      possibly_retained_functions_(
           HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       fields_to_retain_(),
       functions_to_retain_(
@@ -186,7 +187,8 @@ Precompiler::Precompiler(Thread* thread)
 
 Precompiler::~Precompiler() {
   // We have to call Release() in DEBUG mode.
-  enqueued_functions_.Release();
+  seen_functions_.Release();
+  possibly_retained_functions_.Release();
   functions_to_retain_.Release();
 
   ASSERT(Precompiler::singleton_ == this);
@@ -417,6 +419,26 @@ void Precompiler::DoCompileAll() {
         // to add new entries after this point.
         delete dispatch_table_generator_;
         dispatch_table_generator_ = nullptr;
+        if (!FLAG_retain_dispatched_functions && FLAG_trace_precompiler) {
+          FunctionSet printed(
+              HashTables::New<FunctionSet>(/*initial_capacity=*/1024));
+          auto& code = Code::Handle(Z);
+          auto& function = Function::Handle(Z);
+          for (intptr_t i = 0; i < entries.Length(); i++) {
+            code = Code::RawCast(entries.At(i));
+            if (code.IsNull()) continue;
+            if (!code.IsFunctionCode()) continue;
+            function = code.function();
+            ASSERT(!function.IsNull());
+            if (printed.ContainsKey(function)) continue;
+            if (functions_to_retain_.ContainsKey(function)) continue;
+            THR_Print(
+                "Dispatch table references code for function to drop: %s\n",
+                function.ToLibNamePrefixedQualifiedCString());
+            printed.Insert(function);
+          }
+          printed.Release();
+        }
       }
 
       DropFunctions();
@@ -452,10 +474,16 @@ void Precompiler::DoCompileAll() {
     DropClasses();
     DropLibraries();
 
-    BindStaticCalls();
-    DedupUnlinkedCalls();
     Obfuscate();
 
+#if defined(DEBUG)
+    const auto& non_visited =
+        Function::Handle(Z, FindUnvisitedRetainedFunction());
+    if (!non_visited.IsNull()) {
+      FATAL1("Code visitor would miss the code for function \"%s\"\n",
+             non_visited.ToFullyQualifiedCString());
+    }
+#endif
     ProgramVisitor::Dedup();
 
     zone_ = NULL;
@@ -1057,10 +1085,44 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   return parsed_function->function().raw();
 }
 
-void Precompiler::AddFunction(const Function& function) {
-  if (enqueued_functions_.ContainsKey(function)) return;
+bool Precompiler::MustRetainFunction(const Function& function) {
+  // There are some cases where we must retain, even if there are no directly
+  // observable need for function objects at runtime. Here, we check for cases
+  // where the function is not marked with the vm:entry-point pragma, which also
+  // forces retention:
+  //
+  // * Native functions (for LinkNativeCall)
+  // * Selector matches a symbol used in Resolver::ResolveDynamic calls
+  //   in dart_entry.cc or dart_api_impl.cc.
+  // * _Closure.call (used in async stack handling)
+  if (function.is_native()) return true;
 
-  enqueued_functions_.Insert(function);
+  // Resolver::ResolveDynamic uses.
+  const auto& selector = String::Handle(Z, function.name());
+  if (selector.raw() == Symbols::toString().raw()) return true;
+  if (selector.raw() == Symbols::AssignIndexToken().raw()) return true;
+  if (selector.raw() == Symbols::IndexToken().raw()) return true;
+  if (selector.raw() == Symbols::hashCode().raw()) return true;
+  if (selector.raw() == Symbols::NoSuchMethod().raw()) return true;
+  if (selector.raw() == Symbols::EqualOperator().raw()) return true;
+
+  // Use the same check for _Closure.call as in stack_trace.{h|cc}.
+  if (selector.raw() == Symbols::Call().raw()) {
+    const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
+    if (name.Equals(Symbols::_ClosureCall())) return true;
+  }
+
+  return false;
+}
+
+void Precompiler::AddFunction(const Function& function, bool retain) {
+  if (possibly_retained_functions_.ContainsKey(function)) return;
+  if (retain || MustRetainFunction(function)) {
+    possibly_retained_functions_.Insert(function);
+  }
+
+  if (seen_functions_.ContainsKey(function)) return;
+  seen_functions_.Insert(function);
   pending_functions_.Add(function);
   changed_ = true;
 }
@@ -1286,8 +1348,11 @@ void Precompiler::CheckForNewDynamicFunctions() {
         // if (function.HasCode()) continue;
 
         selector = function.name();
-        if (IsSent(selector) || IsHitByTableSelector(function)) {
+        if (IsSent(selector)) {
           AddFunction(function);
+        }
+        if (IsHitByTableSelector(function)) {
+          AddFunction(function, FLAG_retain_dispatched_functions);
         }
 
         bool found_metadata = false;
@@ -1472,7 +1537,7 @@ void Precompiler::TraceForRetainedFunctions() {
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = enqueued_functions_.ContainsKey(function);
+        bool retain = possibly_retained_functions_.ContainsKey(function);
         if (!retain && function.HasImplicitClosureFunction()) {
           // It can happen that all uses of an implicit closure inline their
           // target function, leaving the target function uncompiled. Keep
@@ -1492,7 +1557,7 @@ void Precompiler::TraceForRetainedFunctions() {
   closures = isolate()->object_store()->closure_functions();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = enqueued_functions_.ContainsKey(function);
+    bool retain = possibly_retained_functions_.ContainsKey(function);
     if (retain) {
       AddTypesOf(function);
 
@@ -1516,6 +1581,8 @@ void Precompiler::DropFunctions() {
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
+  Code& code = Code::Handle(Z);
+  Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
@@ -1534,6 +1601,15 @@ void Precompiler::DropFunctions() {
         if (retain) {
           retained_functions.Add(function);
         } else {
+          if (function.HasCode()) {
+            code = function.CurrentCode();
+            function.ClearCode();
+            // Wrap the owner of the code object in case the code object will be
+            // serialized but the function object will not.
+            owner = code.owner();
+            owner = WeakSerializationReference::Wrap(Z, owner);
+            code.set_owner(owner);
+          }
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
             THR_Print("Dropping function %s\n",
@@ -1560,6 +1636,15 @@ void Precompiler::DropFunctions() {
     if (retain) {
       retained_functions.Add(function);
     } else {
+      if (function.HasCode()) {
+        code = function.CurrentCode();
+        function.ClearCode();
+        // Wrap the owner of the code object in case the code object will be
+        // serialized but the function object will not.
+        owner = code.owner();
+        owner = WeakSerializationReference::Wrap(Z, owner);
+        code.set_owner(owner);
+      }
       dropped_function_count_++;
       if (FLAG_trace_precompiler) {
         THR_Print("Dropping function %s\n",
@@ -2075,179 +2160,50 @@ void Precompiler::DropLibraries() {
   libraries_ = retained_libraries.raw();
 }
 
-void Precompiler::BindStaticCalls() {
-  class BindAOTStaticCallsVisitor : public FunctionVisitor {
+// Traits for the HashTable template.
+struct CodeKeyTraits {
+  static uint32_t Hash(const Object& key) { return Code::Cast(key).Size(); }
+  static const char* Name() { return "CodeKeyTraits"; }
+  static bool IsMatch(const Object& x, const Object& y) {
+    return x.raw() == y.raw();
+  }
+  static bool ReportStats() { return false; }
+};
+
+typedef UnorderedHashSet<CodeKeyTraits> CodeSet;
+
+#if defined(DEBUG)
+RawFunction* Precompiler::FindUnvisitedRetainedFunction() {
+  class CodeChecker : public CodeVisitor {
    public:
-    explicit BindAOTStaticCallsVisitor(Zone* zone)
-        : code_(Code::Handle(zone)),
-          table_(Array::Handle(zone)),
-          kind_and_offset_(Smi::Handle(zone)),
-          target_(Object::Handle(zone)),
-          target_code_(Code::Handle(zone)) {}
+    CodeChecker()
+        : visited_code_(HashTables::New<CodeSet>(/*initial_capacity=*/1024)) {}
+    ~CodeChecker() { visited_code_.Release(); }
 
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
+    const CodeSet& visited() const { return visited_code_; }
 
-      code_ = function.CurrentCode();
-      table_ = code_.static_calls_target_table();
-      StaticCallsTable static_calls(table_);
-      bool only_call_via_code = true;
-      for (auto& view : static_calls) {
-        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
-        auto kind = Code::KindField::decode(kind_and_offset_.Value());
-        auto pc_offset = Code::OffsetField::decode(kind_and_offset_.Value());
-        if (kind == Code::kCallViaCode) {
-          target_ = view.Get<Code::kSCallTableFunctionTarget>();
-          if (target_.IsNull()) {
-            target_ = view.Get<Code::kSCallTableCodeTarget>();
-            ASSERT(!Code::Cast(target_).IsFunctionCode());
-            // Allocation stub or AllocateContext or AllocateArray or ...
-          } else {
-            // Static calls initially call the CallStaticFunction stub because
-            // their target might not be compiled yet. After tree shaking, all
-            // static call targets are compiled.
-            // Cf. runtime entry PatchStaticCall called from CallStaticFunction
-            // stub.
-            auto& fun = Function::Cast(target_);
-            ASSERT(fun.HasCode());
-            target_code_ = fun.CurrentCode();
-            uword pc = pc_offset + code_.PayloadStart();
-            CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
-          }
-        } else {
-          ASSERT(kind == Code::kPcRelativeCall);
-          only_call_via_code = false;
-        }
-      }
-
-      // We won't patch static calls anymore, so drop the static call table to
-      // save space.
-      if (only_call_via_code) {
-        code_.set_static_calls_target_table(Object::empty_array());
-      }
-    }
+    void Visit(const Code& code) { visited_code_.Insert(code); }
 
    private:
-    Code& code_;
-    Array& table_;
-    Smi& kind_and_offset_;
-    Object& target_;
-    Code& target_code_;
+    CodeSet visited_code_;
   };
 
-  BindAOTStaticCallsVisitor visitor(Z);
+  CodeChecker visitor;
+  ProgramVisitor::VisitCode(&visitor);
+  const CodeSet& visited = visitor.visited();
 
-  // We need both iterations to ensure we visit all the functions that might end
-  // up in the snapshot. The ProgramVisitor will miss closures from duplicated
-  // finally clauses, and not all functions are compiled through the
-  // tree-shaker's queue
-  ProgramVisitor::VisitFunctions(&visitor);
-  FunctionSet::Iterator it(&enqueued_functions_);
-  Function& handle = Function::Handle();
+  FunctionSet::Iterator it(&functions_to_retain_);
+  Function& function = Function::Handle(Z);
+  Code& code = Code::Handle(Z);
   while (it.MoveNext()) {
-    handle ^= enqueued_functions_.GetKey(it.Current());
-    visitor.Visit(handle);
+    function ^= functions_to_retain_.GetKey(it.Current());
+    if (!function.HasCode()) continue;
+    code = function.CurrentCode();
+    if (!visited.ContainsKey(code)) return function.raw();
   }
+  return Function::null();
 }
-
-DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
-
-void Precompiler::DedupUnlinkedCalls() {
-  class UnlinkedCallDeduper {
-   public:
-    explicit UnlinkedCallDeduper(Zone* zone)
-        : zone_(zone),
-          entry_(Object::Handle(zone)),
-          unlinked_(UnlinkedCall::Handle(zone)),
-          canonical_unlinked_calls_() {}
-
-    void DedupPool(const ObjectPool& pool) {
-      for (intptr_t i = 0; i < pool.Length(); i++) {
-        if (pool.TypeAt(i) != ObjectPool::EntryType::kTaggedObject) {
-          continue;
-        }
-        entry_ = pool.ObjectAt(i);
-        if (entry_.IsUnlinkedCall()) {
-          unlinked_ ^= entry_.raw();
-          unlinked_ = DedupUnlinkedCall(unlinked_);
-          pool.SetObjectAt(i, unlinked_);
-        }
-      }
-    }
-
-    RawUnlinkedCall* DedupUnlinkedCall(const UnlinkedCall& unlinked) {
-      const UnlinkedCall* canonical_unlinked =
-          canonical_unlinked_calls_.LookupValue(&unlinked);
-      if (canonical_unlinked == NULL) {
-        canonical_unlinked_calls_.Insert(
-            &UnlinkedCall::ZoneHandle(zone_, unlinked.raw()));
-        return unlinked.raw();
-      } else {
-        return canonical_unlinked->raw();
-      }
-    }
-
-   private:
-    Zone* zone_;
-    Object& entry_;
-    UnlinkedCall& unlinked_;
-    UnlinkedCallSet canonical_unlinked_calls_;
-  };
-
-  class DedupUnlinkedCallsVisitor : public FunctionVisitor {
-   public:
-    DedupUnlinkedCallsVisitor(UnlinkedCallDeduper* deduper, Zone* zone)
-        : deduper_(*deduper),
-          code_(Code::Handle(zone)),
-          pool_(ObjectPool::Handle(zone)) {}
-
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      pool_ = code_.object_pool();
-      deduper_.DedupPool(pool_);
-    }
-
-   private:
-    UnlinkedCallDeduper& deduper_;
-    Code& code_;
-    ObjectPool& pool_;
-  };
-
-  UnlinkedCallDeduper deduper(Z);
-  auto& gop = ObjectPool::Handle(I->object_store()->global_object_pool());
-  ASSERT(gop.IsNull() != FLAG_use_bare_instructions);
-  if (FLAG_use_bare_instructions) {
-    deduper.DedupPool(gop);
-  }
-
-  // Note: in bare instructions mode we can still have object pools attached
-  // to code objects and these pools need to be deduplicated.
-  // We use these pools to carry information about references between code
-  // objects and other objects in the snapshots (these references are otherwise
-  // implicit and go through global object pool). This information is needed
-  // to produce more informative snapshot profile.
-  if (!FLAG_use_bare_instructions ||
-      FLAG_write_v8_snapshot_profile_to != nullptr) {
-    DedupUnlinkedCallsVisitor visitor(&deduper, Z);
-
-    // We need both iterations to ensure we visit all the functions that might
-    // end up in the snapshot. The ProgramVisitor will miss closures from
-    // duplicated finally clauses, and not all functions are compiled through
-    // the tree-shaker's queue
-    ProgramVisitor::VisitFunctions(&visitor);
-    FunctionSet::Iterator it(&enqueued_functions_);
-    Function& current = Function::Handle();
-    while (it.MoveNext()) {
-      current ^= enqueued_functions_.GetKey(it.Current());
-      visitor.Visit(current);
-    }
-  }
-}
+#endif
 
 void Precompiler::Obfuscate() {
   if (!I->obfuscate()) {

@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +28,7 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
   }
 
   Future<void> test_adjacentLinesExcluded() async {
-    String content = '''
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Thing(1,
@@ -46,7 +45,7 @@ void myMethod() {
   /// of the expression and not where the opening paren is, so this test ensures we
   /// don't end up with lots of unwanted labels on each line here.
   Future<void> test_chainedConstructorOverManyLines() async {
-    String content = '''
+    var content = '''
 main() {
   return new thing
     .whatIsSplit
@@ -62,7 +61,7 @@ main() {
   /// of the expression and not where the opening paren is, so this test ensures we
   /// don't end up with lots of unwanted labels on each line here.
   Future<void> test_chainedMethodsOverManyLines() async {
-    String content = '''
+    var content = '''
 List<ClosingLabel> compute() {
   _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
   return _closingLabelsByEndLine.values
@@ -78,7 +77,7 @@ List<ClosingLabel> compute() {
   }
 
   Future<void> test_constConstructor() async {
-    String content = '''
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/const Class(
@@ -94,7 +93,7 @@ void myMethod() {
   }
 
   Future<void> test_constNamedConstructor() async {
-    String content = '''
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/const Class.fromThing(
@@ -111,7 +110,7 @@ void myMethod() {
 
   Future<void> test_knownBadCode1() async {
     // This code crashed during testing when I accidentally inserted a test snippet.
-    String content = """
+    var content = """
 @override
 Widget build(BuildContext context) {
   new SliverGrid(
@@ -139,7 +138,7 @@ Widget build(BuildContext context) {
   }
 
   Future<void> test_labelsShownForMultipleElements() async {
-    String content = '''
+    var content = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
     child: new RaisedButton(),
@@ -152,7 +151,7 @@ Widget build(BuildContext context) {
   }
 
   Future<void> test_labelsShownForMultipleElements_2() async {
-    String content = '''
+    var content = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
     child: /*2*/new RaisedButton(
@@ -167,7 +166,7 @@ Widget build(BuildContext context) {
   }
 
   Future<void> test_listLiterals() async {
-    String content = '''
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     Widget.createWidget(/*2*/<Widget>[
@@ -186,7 +185,7 @@ void myMethod() {
   /// other labels that end on the same line, even if they are 1-2 lines, otherwise
   /// it isn't obvious which closing bracket goes with the label.
   Future<void> test_mixedLineSpanning() async {
-    String content = '''
+    var content = '''
 main() {
     /*1*/new Foo((m) {
       /*2*/new Bar(
@@ -203,7 +202,7 @@ main() {
   }
 
   Future<void> test_multipleNested() async {
-    String content = """
+    var content = """
 Widget build(BuildContext context) {
   return /*1*/new Row(
     children: /*2*/<Widget>[
@@ -227,7 +226,7 @@ Widget build(BuildContext context) {
   }
 
   Future<void> test_newConstructor() async {
-    String content = '''
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Class(
@@ -243,7 +242,7 @@ void myMethod() {
   }
 
   Future<void> test_newNamedConstructor() async {
-    String content = '''
+    var content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Class.fromThing(
@@ -259,7 +258,7 @@ void myMethod() {
   }
 
   Future<void> test_noLabelsForOneElement() async {
-    String content = '''
+    var content = '''
 Widget build(BuildContext context) {
   return new Row(
   );
@@ -271,7 +270,7 @@ Widget build(BuildContext context) {
   }
 
   Future<void> test_NoLabelsFromInterpolatedStrings() async {
-    String content = """
+    var content = """
 void main(HighlightRegionType type, int offset, int length) {
   /*1*/new Wrapper(
     /*2*/new Fail(
@@ -286,7 +285,7 @@ void main(HighlightRegionType type, int offset, int length) {
   }
 
   Future<void> test_prefixedConstConstructor() async {
-    String content = """
+    var content = """
 import 'dart:async' as a;
 void myMethod() {
   return /*1*/new Wrapper(
@@ -303,7 +302,7 @@ void myMethod() {
   }
 
   Future<void> test_prefixedConstNamedConstructor() async {
-    String content = """
+    var content = """
 import 'dart:async' as a;
 void myMethod() {
   return /*1*/new Wrapper(
@@ -320,7 +319,7 @@ void myMethod() {
   }
 
   Future<void> test_prefixedNewConstructor() async {
-    String content = """
+    var content = """
 import 'dart:async' as a;
 void myMethod() {
   return /*1*/new Wrapper(
@@ -337,7 +336,7 @@ void myMethod() {
   }
 
   Future<void> test_prefixedNewNamedConstructor() async {
-    String content = """
+    var content = """
 import 'dart:async' as a;
 void myMethod() {
   return /*1*/new Wrapper(
@@ -354,7 +353,7 @@ void myMethod() {
   }
 
   Future<void> test_sameLineExcluded() async {
-    String content = '''
+    var content = '''
 void myMethod() {
   return new Thing();
 }
@@ -399,9 +398,8 @@ void myMethod() {
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
-    DartUnitClosingLabelsComputer computer =
-        DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
+    var result = await session.getResolvedUnit(sourcePath);
+    var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
 }

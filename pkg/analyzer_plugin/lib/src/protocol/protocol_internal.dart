@@ -20,8 +20,8 @@ void addAllEditsForSource(
 
 /// Adds the given [sourceEdit] to the list in [sourceFileEdit].
 void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
-  List<SourceEdit> edits = sourceFileEdit.edits;
-  int index = 0;
+  var edits = sourceFileEdit.edits;
+  var index = 0;
   while (index < edits.length && edits[index].offset > sourceEdit.offset) {
     index++;
   }
@@ -31,7 +31,7 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
 /// Adds [edit] to the [FileEdit] for the given [file].
 void addEditToSourceChange(
     SourceChange change, String file, int fileStamp, SourceEdit edit) {
-  SourceFileEdit fileEdit = change.getFileEdit(file);
+  var fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
     fileEdit = SourceFileEdit(file, fileStamp);
     change.addFileEdit(fileEdit);
@@ -60,7 +60,7 @@ String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
 
 /// Returns the [FileEdit] for the given [file], maybe `null`.
 SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
-  for (SourceFileEdit fileEdit in change.edits) {
+  for (var fileEdit in change.edits) {
     if (fileEdit.file == file) {
       return fileEdit;
     }
@@ -81,7 +81,7 @@ bool listEqual<T>(
   if (listA.length != listB.length) {
     return false;
   }
-  for (int i = 0; i < listA.length; i++) {
+  for (var i = 0; i < listA.length; i++) {
     if (!itemEqual(listA[i], listB[i])) {
       return false;
     }
@@ -161,7 +161,7 @@ RefactoringProblemSeverity maxRefactoringProblemSeverity(
 /// Create a [RefactoringFeedback] corresponding the given [kind].
 RefactoringFeedback refactoringFeedbackFromJson(
     JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
-  RefactoringKind kind = jsonDecoder.refactoringKind;
+  var kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
@@ -242,7 +242,7 @@ abstract class JsonDecoder {
     } else if (json is int) {
       return json.toDouble();
     } else if (json is String) {
-      double value = double.tryParse(json);
+      var value = double.tryParse(json);
       if (value == null) {
         throw mismatch(jsonPath, 'double', json);
       }
@@ -257,7 +257,7 @@ abstract class JsonDecoder {
     if (json is int) {
       return json;
     } else if (json is String) {
-      int value = int.tryParse(json);
+      var value = int.tryParse(json);
       if (value == null) {
         throw mismatch(jsonPath, 'int', json);
       }
@@ -275,8 +275,8 @@ abstract class JsonDecoder {
     if (json == null) {
       return <E>[];
     } else if (json is List) {
-      List<E> result = <E>[];
-      for (int i = 0; i < json.length; i++) {
+      var result = <E>[];
+      for (var i = 0; i < json.length; i++) {
         result.add(decoder('$jsonPath[$i]', json[i]));
       }
       return result;
@@ -293,7 +293,7 @@ abstract class JsonDecoder {
     if (jsonData == null) {
       return {};
     } else if (jsonData is Map) {
-      Map<K, V> result = <K, V>{};
+      var result = <K, V>{};
       jsonData.forEach((key, value) {
         K decodedKey;
         if (keyDecoder != null) {
@@ -332,7 +332,7 @@ abstract class JsonDecoder {
         throw missingKey(jsonPath, field);
       }
       var disambiguatorPath = '$jsonPath[${json.encode(field)}]';
-      String disambiguator = decodeString(disambiguatorPath, jsonData[field]);
+      var disambiguator = decodeString(disambiguatorPath, jsonData[field]);
       if (!decoders.containsKey(disambiguator)) {
         throw mismatch(
             disambiguatorPath, 'One of: ${decoders.keys.toList()}', jsonData);
@@ -368,7 +368,7 @@ class RequestDecoder extends JsonDecoder {
 
   @override
   dynamic mismatch(String jsonPath, String expected, [Object actual]) {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     buffer.write('Expected to be ');
     buffer.write(expected);
     if (actual != null) {
@@ -403,7 +403,7 @@ class ResponseDecoder extends JsonDecoder {
 
   @override
   dynamic mismatch(String jsonPath, String expected, [Object actual]) {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     buffer.write('Expected ');
     buffer.write(expected);
     if (actual != null) {

@@ -101,7 +101,7 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
         NodeInformation(_filePathForSource(source), astNode, element);
     var dartType = decoratedType.type;
     if (dartType is InterfaceType) {
-      for (int i = 0; i < dartType.typeArguments.length; i++) {
+      for (var i = 0; i < dartType.typeArguments.length; i++) {
         _storeNodeInformation(
             decoratedType.typeArgument(i), source, astNode, element);
       }
@@ -112,7 +112,7 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
         astNode,
         element,
       );
-      int i = 0;
+      var i = 0;
       for (var parameter in dartType.parameters) {
         if (parameter.isNamed) {
           var name = parameter.name;

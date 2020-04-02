@@ -757,6 +757,11 @@ class _VariablesDeclaration extends Statement {
 
   @override
   String toString() {
-    return "_VariablesDeclaration()";
+    return "_VariablesDeclaration(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }

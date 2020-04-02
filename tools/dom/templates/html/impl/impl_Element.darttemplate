@@ -1156,7 +1156,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *   from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  ShadowRoot get shadowRoot =>
+  ShadowRoot$NULLABLE get shadowRoot =>
       JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
 
   /**

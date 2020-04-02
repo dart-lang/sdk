@@ -29,7 +29,7 @@ class TypeMemberContributor implements CompletionContributor {
       DartCompletionRequest request, CompletionCollector collector) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    LibraryElement containingLibrary = request.result.libraryElement;
+    var containingLibrary = request.result.libraryElement;
     // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change
     if (containingLibrary == null) {
@@ -37,7 +37,7 @@ class TypeMemberContributor implements CompletionContributor {
     }
 
     // Recompute the target since resolution may have changed it
-    Expression expression = _computeDotTarget(request, null);
+    var expression = _computeDotTarget(request, null);
     if (expression == null || expression.isSynthetic) {
       return;
     }
@@ -49,7 +49,7 @@ class TypeMemberContributor implements CompletionContributor {
       CompletionCollector collector, AstNode entryPoint) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    LibraryElement containingLibrary = request.result.libraryElement;
+    var containingLibrary = request.result.libraryElement;
     // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change
     if (containingLibrary == null) {
@@ -57,7 +57,7 @@ class TypeMemberContributor implements CompletionContributor {
     }
 
     // Recompute the target since resolution may have changed it
-    Expression expression = _computeDotTarget(request, entryPoint);
+    var expression = _computeDotTarget(request, entryPoint);
     if (expression == null || expression.isSynthetic) {
       return;
     }
@@ -67,10 +67,9 @@ class TypeMemberContributor implements CompletionContributor {
   /// Update the completion [target] and [dotTarget] based on the given [unit].
   Expression _computeDotTarget(
       DartCompletionRequest request, AstNode entryPoint) {
-    CompletionTarget target = CompletionTarget.forOffset(
-        request.result.unit, request.offset,
+    var target = CompletionTarget.forOffset(request.result.unit, request.offset,
         entryPoint: entryPoint);
-    AstNode node = target.containingNode;
+    var node = target.containingNode;
     if (node is MethodInvocation) {
       if (identical(node.methodName, target.entity)) {
         return node.realTarget;
@@ -99,7 +98,7 @@ class TypeMemberContributor implements CompletionContributor {
       LibraryElement containingLibrary,
       Expression expression) {
     if (expression is Identifier) {
-      Element element = expression.staticElement;
+      var element = expression.staticElement;
       if (element is ClassElement) {
         // Suggestions provided by StaticMemberContributor
         return;
@@ -111,12 +110,12 @@ class TypeMemberContributor implements CompletionContributor {
     }
 
     // Determine the target expression's type
-    DartType type = expression.staticType;
+    var type = expression.staticType;
     if (type == null || type.isDynamic) {
       // If the expression does not provide a good type
       // then attempt to get a better type from the element
       if (expression is Identifier) {
-        Element elem = expression.staticElement;
+        var elem = expression.staticElement;
         if (elem is FunctionTypedElement) {
           type = elem.returnType;
         } else if (elem is ParameterElement) {
@@ -128,8 +127,7 @@ class TypeMemberContributor implements CompletionContributor {
             expression is SimpleIdentifier) {
           // If the element does not provide a good type
           // then attempt to get a better type from a local declaration
-          _LocalBestTypeVisitor visitor =
-              _LocalBestTypeVisitor(expression.name, request.offset);
+          var visitor = _LocalBestTypeVisitor(expression.name, request.offset);
           if (visitor.visit(expression) && visitor.typeFound != null) {
             type = visitor.typeFound;
           }
@@ -142,10 +140,10 @@ class TypeMemberContributor implements CompletionContributor {
       type = (type as InterfaceType).superclass;
       // Determine the name of the containing method because
       // the most likely completion is a super expression with same name
-      MethodDeclaration containingMethod =
+      var containingMethod =
           expression.thisOrAncestorOfType<MethodDeclaration>();
       if (containingMethod != null) {
-        SimpleIdentifier id = containingMethod.name;
+        var id = containingMethod.name;
         if (id != null) {
           containingMethodName = id.name;
         }
@@ -158,7 +156,7 @@ class TypeMemberContributor implements CompletionContributor {
 
     // Build the suggestions
     if (type is InterfaceType) {
-      _SuggestionBuilder builder = _SuggestionBuilder(
+      var builder = _SuggestionBuilder(
           request.resourceProvider, collector, containingLibrary);
       builder.buildSuggestions(type, containingMethodName);
     }
@@ -208,7 +206,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunction(FunctionDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.returnType;
+      var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -219,7 +217,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.returnType;
+      var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -230,7 +228,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.functionType?.returnType;
+      var typeName = declaration.functionType?.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -258,7 +256,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredMethod(MethodDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.returnType;
+      var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -342,9 +340,9 @@ class _SuggestionBuilder {
     // completions. If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
     // exceptions to handle getter/setter pairs).
-    List<InterfaceType> types = _getTypeOrdering(type);
-    for (InterfaceType targetType in types) {
-      for (MethodElement method in targetType.methods) {
+    var types = _getTypeOrdering(type);
+    for (var targetType in types) {
+      for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance
         if (!method.isStatic) {
           // Boost the relevance of a super expression
@@ -355,7 +353,7 @@ class _SuggestionBuilder {
                   : null);
         }
       }
-      for (PropertyAccessorElement propertyAccessor in targetType.accessors) {
+      for (var propertyAccessor in targetType.accessors) {
         if (!propertyAccessor.isStatic) {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
@@ -368,7 +366,7 @@ class _SuggestionBuilder {
         }
       }
     }
-    for (CompletionSuggestion suggestion in suggestions) {
+    for (var suggestion in suggestions) {
       collector.addSuggestion(suggestion);
     }
   }
@@ -382,7 +380,7 @@ class _SuggestionBuilder {
         return;
       }
     }
-    String identifier = element.displayName;
+    var identifier = element.displayName;
 
     if (relevance == null) {
       // Decrease relevance of suggestions starting with $
@@ -394,7 +392,7 @@ class _SuggestionBuilder {
       }
     }
 
-    int alreadyGenerated = _completionTypesGenerated.putIfAbsent(
+    var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
         identifier, () => _COMPLETION_TYPE_NONE);
     if (element is MethodElement) {
       // Anything shadows a method.
@@ -430,8 +428,7 @@ class _SuggestionBuilder {
       assert(false);
       return;
     }
-    CompletionSuggestion suggestion =
-        builder.forElement(element, relevance: relevance);
+    var suggestion = builder.forElement(element, relevance: relevance);
     if (suggestion != null) {
       _suggestionMap[suggestion.completion] = suggestion;
     }
@@ -450,11 +447,11 @@ class _SuggestionBuilder {
     // We short-circuit loops in the class hierarchy by keeping track of the
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
-    List<InterfaceType> result = <InterfaceType>[];
+    var result = <InterfaceType>[];
     Set<ClassElement> classesSeen = HashSet<ClassElement>();
-    List<InterfaceType> typesToVisit = <InterfaceType>[type];
+    var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
-      InterfaceType nextType = typesToVisit.removeLast();
+      var nextType = typesToVisit.removeLast();
       if (!classesSeen.add(nextType.element)) {
         // Class had already been seen, so ignore this type.
         continue;

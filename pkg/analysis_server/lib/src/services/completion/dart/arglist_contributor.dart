@@ -137,8 +137,7 @@ class ArgListContributor extends DartCompletionContributor {
     // method which returns some enum with 5+ cases.
     if (_isEditingNamedArgLabel() || _isAppendingToArgList()) {
       if (requiredCount == 0 || requiredCount < _argCount()) {
-        bool addTrailingComma =
-            !_isFollowedByAComma() && _isInFlutterCreation();
+        var addTrailingComma = !_isFollowedByAComma() && _isInFlutterCreation();
         _addDefaultParamSuggestions(parameters, addTrailingComma);
       }
     } else if (_isInsertingToArgListWithNoSynthetic()) {
@@ -243,7 +242,7 @@ class ArgListContributor extends DartCompletionContributor {
     if (argumentList != null) {
       var entity = request.target.entity;
       if (entity is NamedExpression) {
-        int offset = request.offset;
+        var offset = request.offset;
         if (entity.offset < offset && offset < entity.end) {
           return true;
         }
@@ -260,7 +259,7 @@ class ArgListContributor extends DartCompletionContributor {
 
     var containingNode = request.target.containingNode;
     var entity = request.target.entity;
-    Token token =
+    var token =
         entity is AstNode ? entity.endToken : entity is Token ? entity : null;
     return (token != containingNode?.endToken) &&
         token?.next?.type == TokenType.COMMA &&
@@ -270,7 +269,7 @@ class ArgListContributor extends DartCompletionContributor {
   bool _isInFlutterCreation() {
     var flutter = Flutter.of(request.result);
     var containingNode = request.target?.containingNode;
-    InstanceCreationExpression newExpr = containingNode != null
+    var newExpr = containingNode != null
         ? flutter.identifyNewExpression(containingNode.parent)
         : null;
     return newExpr != null && flutter.isWidgetCreation(newExpr);
@@ -280,7 +279,7 @@ class ArgListContributor extends DartCompletionContributor {
   bool _isInNamedExpression() {
     var entity = request.target.entity;
     if (entity is NamedExpression) {
-      Label name = entity.name;
+      var name = entity.name;
       return name.offset < request.offset && request.offset < name.end;
     }
     return false;
@@ -306,7 +305,7 @@ class ArgListContributor extends DartCompletionContributor {
     if (argumentList != null) {
       var entity = request.target.entity;
       if (entity is SimpleIdentifier) {
-        int argIndex = request.target.argIndex;
+        var argIndex = request.target.argIndex;
         // if the next argument is a NamedExpression, then we are in the named
         // parameter list, guard first against end of list
         if (argumentList.arguments.length == argIndex + 1 ||
@@ -321,7 +320,7 @@ class ArgListContributor extends DartCompletionContributor {
 
   /// Return a list containing the currently specified named arguments.
   List<String> _namedArgs() {
-    List<String> namedArgs = <String>[];
+    var namedArgs = <String>[];
     if (argumentList != null) {
       for (var arg in argumentList.arguments) {
         if (arg is NamedExpression) {
@@ -337,7 +336,7 @@ class ArgListContributor extends DartCompletionContributor {
   static void _setDocumentation(
       CompletionSuggestion suggestion, String comment) {
     if (comment != null) {
-      String doc = getDartDocPlainText(comment);
+      var doc = getDartDocPlainText(comment);
       suggestion.docComplete = doc;
       suggestion.docSummary = getDartDocSummary(doc);
     }

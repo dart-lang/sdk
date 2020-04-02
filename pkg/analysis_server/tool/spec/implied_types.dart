@@ -8,7 +8,7 @@ import 'package:analysis_tool/tools.dart';
 import 'api.dart';
 
 Map<String, ImpliedType> computeImpliedTypes(Api api) {
-  _ImpliedTypesVisitor visitor = _ImpliedTypesVisitor(api);
+  var visitor = _ImpliedTypesVisitor(api);
   visitor.visitApi();
   return visitor.impliedTypes;
 }
@@ -41,13 +41,13 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
 
   void storeType(String name, String nameSuffix, TypeDecl type, String kind,
       ApiNode apiNode) {
-    String humanReadableName = name;
-    List<String> camelNameParts = name.split('.');
+    var humanReadableName = name;
+    var camelNameParts = name.split('.');
     if (nameSuffix != null) {
       humanReadableName += ' $nameSuffix';
       camelNameParts.add(nameSuffix);
     }
-    String camelName = camelJoin(camelNameParts);
+    var camelName = camelJoin(camelNameParts);
     impliedTypes[camelName] =
         ImpliedType(camelName, humanReadableName, type, kind, apiNode);
   }
@@ -60,7 +60,7 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
 
   @override
   void visitRefactoring(Refactoring refactoring) {
-    String camelKind = camelJoin(refactoring.kind.toLowerCase().split('_'));
+    var camelKind = camelJoin(refactoring.kind.toLowerCase().split('_'));
     storeType(camelKind, 'feedback', refactoring.feedback,
         'refactoringFeedback', refactoring);
     storeType(camelKind, 'options', refactoring.options, 'refactoringOptions',

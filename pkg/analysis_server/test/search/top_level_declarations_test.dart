@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -36,9 +35,8 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
 
   Future findTopLevelDeclarations(String pattern) async {
     await waitForTasksFinished();
-    Request request =
-        SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
+    var response = await waitResponse(request);
     if (response.error != null) {
       return response.error;
     }
@@ -47,8 +45,8 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
   }
 
   SearchResult findTopLevelResult(ElementKind kind, String name) {
-    for (SearchResult result in results) {
-      Element element = result.path[0];
+    for (var result in results) {
+      var element = result.path[0];
       if (element.kind == kind && element.name == name) {
         return result;
       }

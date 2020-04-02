@@ -397,14 +397,17 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  List<Builder> computeDirectSupertypes(ClassBuilder objectClass) {
-    final List<Builder> result = <Builder>[];
+  List<TypeDeclarationBuilder> computeDirectSupertypes(
+      ClassBuilder objectClass) {
+    final List<TypeDeclarationBuilder> result = <TypeDeclarationBuilder>[];
     final TypeBuilder supertype = this.supertypeBuilder;
     if (supertype != null) {
       TypeDeclarationBuilder declarationBuilder = supertype.declaration;
       if (declarationBuilder is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declarationBuilder;
-        declarationBuilder = aliasBuilder.unaliasDeclaration;
+        NamedTypeBuilder namedBuilder = supertype;
+        declarationBuilder =
+            aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
       }
       result.add(declarationBuilder);
     } else if (objectClass != this) {
@@ -417,17 +420,22 @@ class SourceClassBuilder extends ClassBuilderImpl
         TypeDeclarationBuilder declarationBuilder = interface.declaration;
         if (declarationBuilder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = declarationBuilder;
-          declarationBuilder = aliasBuilder.unaliasDeclaration;
+          NamedTypeBuilder namedBuilder = interface;
+          declarationBuilder =
+              aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
         }
         result.add(declarationBuilder);
       }
     }
-    final TypeBuilder mixedInType = this.mixedInTypeBuilder;
-    if (mixedInType != null) {
-      TypeDeclarationBuilder declarationBuilder = mixedInType.declaration;
+    final TypeBuilder mixedInTypeBuilder = this.mixedInTypeBuilder;
+    if (mixedInTypeBuilder != null) {
+      TypeDeclarationBuilder declarationBuilder =
+          mixedInTypeBuilder.declaration;
       if (declarationBuilder is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declarationBuilder;
-        declarationBuilder = aliasBuilder.unaliasDeclaration;
+        NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+        declarationBuilder =
+            aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
       }
       result.add(declarationBuilder);
     }

@@ -94,7 +94,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
         referencedFileUri, positionFromMarker(referencedContents));
 
     expect(res, hasLength(1));
-    Location loc = res.single;
+    var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(mainContents)));
     expect(loc.uri, equals(mainFileUri.toString()));
   }

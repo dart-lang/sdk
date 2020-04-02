@@ -34,9 +34,8 @@ main() {
 }
 ''');
     IfStatement ifStatement = findNodeAtString('if (');
-    Expression condition = ifStatement.condition;
-    String result =
-        CorrectionUtils(testAnalysisResult).invertCondition(condition);
+    var condition = ifStatement.condition;
+    var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);
   }
 
@@ -45,7 +44,7 @@ main() {
 import 'dart:async';
 import 'dart:math';
 ''');
-    Source newLibrary = _getDartSource('dart:collection');
+    var newLibrary = _getDartSource('dart:collection');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
@@ -58,7 +57,7 @@ import 'dart:math';
 import 'dart:collection';
 import 'dart:math';
 ''');
-    Source newLibrary = _getDartSource('dart:async');
+    var newLibrary = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
@@ -71,7 +70,7 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:collection';
 ''');
-    Source newLibrary = _getDartSource('dart:math');
+    var newLibrary = _getDartSource('dart:math');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
@@ -84,8 +83,8 @@ import 'dart:math';
 import 'dart:collection';
 import 'dart:math';
 ''');
-    Source newLibrary1 = _getDartSource('dart:async');
-    Source newLibrary2 = _getDartSource('dart:html');
+    var newLibrary1 = _getDartSource('dart:async');
+    var newLibrary2 = _getDartSource('dart:html');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
@@ -99,8 +98,8 @@ import 'dart:math';
 import 'dart:html';
 import 'dart:math';
 ''');
-    Source newLibrary1 = _getDartSource('dart:async');
-    Source newLibrary2 = _getDartSource('dart:collection');
+    var newLibrary1 = _getDartSource('dart:async');
+    var newLibrary2 = _getDartSource('dart:collection');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
@@ -114,8 +113,8 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:collection';
 ''');
-    Source newLibrary1 = _getDartSource('dart:html');
-    Source newLibrary2 = _getDartSource('dart:math');
+    var newLibrary1 = _getDartSource('dart:html');
+    var newLibrary2 = _getDartSource('dart:math');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
@@ -130,8 +129,8 @@ library test;
 
 class A {}
 ''');
-    Source newLibrary1 = _getDartSource('dart:math');
-    Source newLibrary2 = _getDartSource('dart:async');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 library test;
 
@@ -148,8 +147,8 @@ class A {}
 
 class A {}
 ''');
-    Source newLibrary1 = _getDartSource('dart:math');
-    Source newLibrary2 = _getDartSource('dart:async');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 /// Comment.
 
@@ -166,8 +165,8 @@ class A {}
 
 class A {}
 ''');
-    Source newLibrary1 = _getDartSource('dart:math');
-    Source newLibrary2 = _getDartSource('dart:async');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 #!/bin/dart
 
@@ -182,8 +181,8 @@ class A {}
     await resolveTestUnit('''
 class A {}
 ''');
-    Source newLibrary1 = _getDartSource('dart:math');
-    Source newLibrary2 = _getDartSource('dart:async');
+    var newLibrary1 = _getDartSource('dart:math');
+    var newLibrary2 = _getDartSource('dart:async');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:math';
@@ -200,7 +199,7 @@ import 'dart:async';
 
 import 'package:aaa/aaa.dart';
 ''');
-    Source newLibrary = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
+    var newLibrary = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 
@@ -217,7 +216,7 @@ import 'dart:async';
 
 import 'package:bbb/bbb.dart';
 ''');
-    Source newLibrary = _getSource('/lib/aaa.dart', 'package:aaa/aaa.dart');
+    var newLibrary = _getSource('/lib/aaa.dart', 'package:aaa/aaa.dart');
     await _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 
@@ -233,8 +232,8 @@ import 'package:bbb/bbb.dart';
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';
 ''');
-    Source newLibrary1 = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
-    Source newLibrary2 = _getSource('/lib/ccc.dart', 'package:ccc/ccc.dart');
+    var newLibrary1 = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
+    var newLibrary2 = _getSource('/lib/ccc.dart', 'package:ccc/ccc.dart');
     await _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'package:aaa/aaa.dart';
 import 'package:bbb/bbb.dart';
@@ -290,17 +289,17 @@ import 'package:ddd/ddd.dart';
 
   Future<void> _assertAddLibraryImport(
       List<Source> newLibraries, String expectedCode) async {
-    SourceChange change = SourceChange('');
+    var change = SourceChange('');
     await addLibraryImports(testAnalysisResult.session, change,
         testLibraryElement, newLibraries.toSet());
-    SourceFileEdit testEdit = change.getFileEdit(testFile);
+    var testEdit = change.getFileEdit(testFile);
     expect(testEdit, isNotNull);
-    String resultCode = SourceEdit.applySequence(testCode, testEdit.edits);
+    var resultCode = SourceEdit.applySequence(testCode, testEdit.edits);
     expect(resultCode, expectedCode);
   }
 
   Source _getDartSource(String uri) {
-    String path = removeStart(uri, 'dart:');
+    var path = removeStart(uri, 'dart:');
     return _SourceMock('/sdk/lib/$path.dart', Uri.parse(uri));
   }
 

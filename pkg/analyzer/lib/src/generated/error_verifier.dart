@@ -455,7 +455,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkClass(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForMemberWithClassName();
       _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes();
       TypeName superclass = node.extendsClause?.superclass;
@@ -1007,7 +1006,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkMixin(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForMemberWithClassName();
       _checkForConflictingTypeVariableErrorCodes();
 
       OnClause onClause = node.onClause;
@@ -3380,31 +3378,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Verify that the [_enclosingClass] does not define members with the same name
-   * as the enclosing class.
-   *
-   * See [CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME].
-   */
-  void _checkForMemberWithClassName() {
-    if (_enclosingClass == null) {
-      return;
-    }
-    String className = _enclosingClass.name;
-    if (className == null) {
-      return;
-    }
-
-    // check accessors
-    for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
-      if (className == accessor.displayName) {
-        _errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, accessor);
-      }
-    }
-    // don't check methods, they would be constructors
-  }
-
-  /**
    * Check to make sure that the given switch [statement] whose static type is
    * an enum type either have a default case or include all of the enum
    * constants.
@@ -4990,41 +4963,51 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
     // Only need to report errors for parameters with explicitly defined type
     // parameters in classes or mixins.
-    if (_enclosingClass != null) {
-      for (var typeParameter in _enclosingClass.typeParameters) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
-          if (method.typeParameters != null) {
-            for (var methodTypeParameter
-                in method.typeParameters.typeParameters) {
-              Variance methodTypeParameterVariance = Variance.invariant.combine(
-                  Variance(typeParameter, methodTypeParameter.bound.type));
-              _checkForWrongVariancePosition(methodTypeParameterVariance,
-                  typeParameter, methodTypeParameter);
-            }
+    if (_enclosingClass == null) {
+      return;
+    }
+
+    for (var typeParameter in _enclosingClass.typeParameters) {
+      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      if ((typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+        continue;
+      }
+
+      var methodTypeParameters = method.typeParameters?.typeParameters;
+      if (methodTypeParameters != null) {
+        for (var methodTypeParameter in methodTypeParameters) {
+          if (methodTypeParameter.bound == null) {
+            continue;
           }
-          if (method.parameters != null) {
-            for (int i = 0; i < method.parameters.parameters.length; i++) {
-              var methodParameterElement =
-                  method.parameters.parameterElements[i];
-              var methodParameterNode = method.parameters.parameters[i];
-              if (!methodParameterElement.isCovariant) {
-                Variance methodParameterVariance = Variance.contravariant
-                    .combine(
-                        Variance(typeParameter, methodParameterElement.type));
-                _checkForWrongVariancePosition(methodParameterVariance,
-                    typeParameter, methodParameterNode);
-              }
-            }
-          }
-          if (method.returnType != null) {
-            Variance methodReturnTypeVariance =
-                Variance(typeParameter, method.returnType.type);
-            _checkForWrongVariancePosition(
-                methodReturnTypeVariance, typeParameter, method.returnType);
-          }
+          var methodTypeParameterVariance = Variance.invariant.combine(
+            Variance(typeParameter, methodTypeParameter.bound.type),
+          );
+          _checkForWrongVariancePosition(
+              methodTypeParameterVariance, typeParameter, methodTypeParameter);
         }
+      }
+
+      var methodParameters = method.parameters?.parameters;
+      if (methodParameters != null) {
+        for (var methodParameter in methodParameters) {
+          var methodParameterElement = methodParameter.declaredElement;
+          if (methodParameterElement.isCovariant) {
+            continue;
+          }
+          var methodParameterVariance = Variance.contravariant.combine(
+            Variance(typeParameter, methodParameterElement.type),
+          );
+          _checkForWrongVariancePosition(
+              methodParameterVariance, typeParameter, methodParameter);
+        }
+      }
+
+      var returnType = method.returnType;
+      if (returnType != null) {
+        var methodReturnTypeVariance = Variance(typeParameter, returnType.type);
+        _checkForWrongVariancePosition(
+            methodReturnTypeVariance, typeParameter, returnType);
       }
     }
   }

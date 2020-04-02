@@ -344,7 +344,19 @@ class _VariablesInfoCollector extends RecursiveVisitor<Null> {
     final savedNumVariablesAtFunctionEntry = numVariablesAtFunctionEntry;
     numVariablesAtFunctionEntry = numVariables;
 
-    node.function.accept(this);
+    final function = node.function;
+    function.accept(this);
+
+    if (function.asyncMarker == AsyncMarker.SyncYielding) {
+      // Mark parameters of synthetic async_op closures as captured
+      // to make sure their updates at yield points are taken into account.
+      for (var v in function.positionalParameters) {
+        _captureVariable(v);
+      }
+      for (var v in function.namedParameters) {
+        _captureVariable(v);
+      }
+    }
 
     activeStatements = savedActiveStatements;
     numVariablesAtActiveStatements = savedNumVariablesAtActiveStatements;
@@ -354,10 +366,14 @@ class _VariablesInfoCollector extends RecursiveVisitor<Null> {
   bool _isDeclaredBefore(int variableIndex, int entryDeclarationCounter) =>
       variableIndex < entryDeclarationCounter;
 
+  void _captureVariable(VariableDeclaration variable) {
+    (captured ??= <VariableDeclaration>{}).add(variable);
+  }
+
   void _useVariable(VariableDeclaration variable, bool isVarAssignment) {
     final index = varIndex[variable];
     if (_isDeclaredBefore(index, numVariablesAtFunctionEntry)) {
-      (captured ??= <VariableDeclaration>{}).add(variable);
+      _captureVariable(variable);
       return;
     }
     if (isVarAssignment && activeStatements != null) {
@@ -2239,11 +2255,11 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
 
     if (createRuntimeType) {
       return new RuntimeType(
-          new InterfaceType(type.classNode, Nullability.legacy),
+          new InterfaceType(type.classNode, type.nullability),
           new List<RuntimeType>.from(flattenedTypeExprs));
     } else {
-      final instantiate =
-          new CreateRuntimeType(type.classNode, flattenedTypeExprs);
+      final instantiate = new CreateRuntimeType(
+          type.classNode, type.nullability, flattenedTypeExprs);
       summary.add(instantiate);
       return instantiate;
     }
@@ -2258,8 +2274,14 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     if (type.parameter.parent is! Class) return const AnyType();
     final interfaceClass = type.parameter.parent as Class;
     assertx(receiver != null);
+    // Undetermined nullability is equivalent to nonNullable when
+    // instantiating type parameter, so convert it right away.
+    Nullability nullability = type.nullability;
+    if (nullability == Nullability.undetermined) {
+      nullability = Nullability.nonNullable;
+    }
     final extract = new Extract(receiver, interfaceClass,
-        interfaceClass.typeParameters.indexOf(type.parameter));
+        interfaceClass.typeParameters.indexOf(type.parameter), nullability);
     summary.add(extract);
     return extract;
   }

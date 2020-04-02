@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -758,18 +759,10 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  bool get isOrInheritsProxy =>
-      _safeIsOrInheritsProxy(this, HashSet<ClassElement>());
+  bool get isOrInheritsProxy => false;
 
   @override
-  bool get isProxy {
-    for (ElementAnnotation annotation in metadata) {
-      if (annotation.isProxy) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool get isProxy => false;
 
   @override
   bool get isSimplyBounded {
@@ -1181,33 +1174,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     return type is InterfaceType &&
         !type.element.isEnum &&
         !type.isDartCoreFunction;
-  }
-
-  bool _safeIsOrInheritsProxy(
-      ClassElement element, HashSet<ClassElement> visited) {
-    if (visited.contains(element)) {
-      return false;
-    }
-    visited.add(element);
-    if (element.isProxy) {
-      return true;
-    } else if (element.supertype != null &&
-        _safeIsOrInheritsProxy(element.supertype.element, visited)) {
-      return true;
-    }
-    List<InterfaceType> supertypes = element.interfaces;
-    for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visited)) {
-        return true;
-      }
-    }
-    supertypes = element.mixins;
-    for (int i = 0; i < supertypes.length; i++) {
-      if (_safeIsOrInheritsProxy(supertypes[i].element, visited)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
@@ -2660,6 +2626,12 @@ abstract class ElementImpl implements Element {
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int _codeLength;
+
+  /// The major component of the language version.
+  int _languageVersionMajor;
+
+  /// The minor component of the language version.
+  int _languageVersionMinor;
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
@@ -5516,6 +5488,32 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
+  int get languageVersionMajor {
+    if (_languageVersionMajor != null) return _languageVersionMajor;
+
+    if (linkedNode != null) {
+      _languageVersionMajor = linkedContext.getLanguageVersionMajor(linkedNode);
+      return _languageVersionMajor;
+    }
+
+    _languageVersionMajor = ExperimentStatus.currentVersion.major;
+    return _languageVersionMajor;
+  }
+
+  @override
+  int get languageVersionMinor {
+    if (_languageVersionMinor != null) return _languageVersionMinor;
+
+    if (linkedNode != null) {
+      _languageVersionMinor = linkedContext.getLanguageVersionMinor(linkedNode);
+      return _languageVersionMinor;
+    }
+
+    _languageVersionMinor = ExperimentStatus.currentVersion.minor;
+    return _languageVersionMinor;
+  }
+
+  @override
   LibraryElement get library => this;
 
   @override
@@ -5662,6 +5660,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   ClassElement getType(String className) {
     return getTypeFromParts(className, _definingCompilationUnit, _parts);
+  }
+
+  void setLanguageVersion(int major, int minor) {
+    _languageVersionMajor = major;
+    _languageVersionMinor = minor;
   }
 
   /// Set whether the library has the given [capability] to

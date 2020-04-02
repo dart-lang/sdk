@@ -26,7 +26,7 @@ class CompletionRelevanceTest extends AbstractCompletionDriverTest {
     expect(length, greaterThan(1),
         reason: 'Test must specify more than one suggestion');
     var previous = suggestions[0];
-    for (int i = 1; i < length; i++) {
+    for (var i = 1; i < length; i++) {
       var current = suggestions[i];
       expect(current.relevance, lessThan(previous.relevance));
       previous = current;

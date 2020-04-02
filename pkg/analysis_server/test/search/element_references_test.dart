@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -29,12 +28,12 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
 
   Future<void> findElementReferences(
       String search, bool includePotential) async {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     await waitForTasksFinished();
-    Request request =
+    var request =
         SearchFindElementReferencesParams(testFile, offset, includePotential)
             .toRequest('0');
-    Response response = await waitResponse(request);
+    var response = await waitResponse(request);
     var result = SearchFindElementReferencesResult.fromResponse(response);
     searchId = result.id;
     searchElement = result.element;

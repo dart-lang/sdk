@@ -19,7 +19,7 @@ class FindMemberDeclarationsTest extends AbstractAnalysisServerIntegrationTest {
   String pathname;
 
   Future<void> test_findMemberDeclarations() async {
-    String text = r'''
+    var text = r'''
 String qux() => 'qux';
 
 class Foo {
@@ -33,16 +33,15 @@ class Foo {
     standardAnalysisSetup();
     await analysisFinished;
 
-    SearchFindMemberDeclarationsResult declarationsResult =
-        await sendSearchFindMemberDeclarations('bar');
+    var declarationsResult = await sendSearchFindMemberDeclarations('bar');
     expect(declarationsResult.id, isNotNull);
 
-    SearchResultsParams searchParams = await onSearchResults.first;
+    var searchParams = await onSearchResults.first;
     expect(searchParams.id, declarationsResult.id);
     expect(searchParams.isLast, isTrue);
     expect(searchParams.results, isNotEmpty);
 
-    SearchResult result = searchParams.results.first;
+    var result = searchParams.results.first;
     expect(result.location.file, pathname);
     expect(result.isPotential, isFalse);
     expect(result.kind.name, SearchResultKind.DECLARATION.name);

@@ -40,13 +40,13 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    List<AnalysisError> errors = await _getErrors(testFile);
+    var errors = await _getErrors(testFile);
     expect(errors, hasLength(1));
   }
 
   Future<void> test_errorInPart() async {
-    String libPath = join(testFolder, 'main.dart');
-    String partPath = join(testFolder, 'main_part.dart');
+    var libPath = join(testFolder, 'main.dart');
+    var partPath = join(testFolder, 'main_part.dart');
     newFile(libPath, content: r'''
 library main;
 part 'main_part.dart';
@@ -58,11 +58,11 @@ class A {}
 ''');
     await waitForTasksFinished();
     {
-      List<AnalysisError> libErrors = await _getErrors(libPath);
+      var libErrors = await _getErrors(libPath);
       expect(libErrors, isEmpty);
     }
     {
-      List<AnalysisError> partErrors = await _getErrors(partPath);
+      var partErrors = await _getErrors(partPath);
       expect(partErrors, hasLength(1));
     }
   }
@@ -70,7 +70,7 @@ class A {}
   @failingTest
   Future<void> test_fileWithoutContext() async {
     // Broken under the new driver.
-    String file = convertPath('/outside.dart');
+    var file = convertPath('/outside.dart');
     newFile(file, content: '''
 main() {
   print(42);
@@ -85,10 +85,10 @@ main() {
   print(42)
 }
 ''');
-    List<AnalysisError> errors = await _getErrors(testFile);
+    var errors = await _getErrors(testFile);
     expect(errors, hasLength(1));
     {
-      AnalysisError error = errors[0];
+      var error = errors[0];
       expect(error.severity, AnalysisErrorSeverity.ERROR);
       expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
       expect(error.location.file, testFile);
@@ -120,13 +120,13 @@ main() {
   print(42);
 }
 ''');
-    List<AnalysisError> errors = await _getErrors(testFile);
+    var errors = await _getErrors(testFile);
     expect(errors, isEmpty);
   }
 
   Future<void> _checkInvalid(String file) async {
-    Request request = _createGetErrorsRequest(file);
-    Response response = await serverChannel.sendRequest(request);
+    var request = _createGetErrorsRequest(file);
+    var response = await serverChannel.sendRequest(request);
     expect(response.error, isNotNull);
     expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
   }
@@ -136,8 +136,8 @@ main() {
   }
 
   Future<List<AnalysisError>> _getErrors(String file) async {
-    Request request = _createGetErrorsRequest(file);
-    Response response = await serverChannel.sendRequest(request);
+    var request = _createGetErrorsRequest(file);
+    var response = await serverChannel.sendRequest(request);
     return AnalysisGetErrorsResult.fromResponse(response).errors;
   }
 }

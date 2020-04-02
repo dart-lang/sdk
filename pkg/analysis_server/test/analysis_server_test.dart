@@ -11,7 +11,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -39,11 +38,10 @@ class AnalysisServerTest with ResourceProviderMixin {
     newFolder('/foo');
     newFolder('/bar');
     newFile('/foo/foo.dart', content: 'import "../bar/bar.dart";');
-    File bar = newFile('/bar/bar.dart', content: 'library bar;');
+    var bar = newFile('/bar/bar.dart', content: 'library bar;');
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    Map<AnalysisService, Set<String>> subscriptions =
-        <AnalysisService, Set<String>>{};
-    for (AnalysisService service in AnalysisService.VALUES) {
+    var subscriptions = <AnalysisService, Set<String>>{};
+    for (var service in AnalysisService.VALUES) {
       subscriptions[service] = <String>{bar.path};
     }
     // The following line causes the isolate to continue running even though the
@@ -57,9 +55,9 @@ class AnalysisServerTest with ResourceProviderMixin {
     await server.onAnalysisComplete;
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
-    Set<String> notificationTypesReceived = <String>{};
-    for (Notification notification in channel.notificationsReceived) {
-      String notificationType = notification.event;
+    var notificationTypesReceived = <String>{};
+    for (var notification in channel.notificationsReceived) {
+      var notificationType = notification.event;
       switch (notificationType) {
         case 'server.status':
         case 'analysis.errors':
@@ -162,7 +160,7 @@ class A {}
 
   Future<void>
       test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
-    String path = convertPath('/project/samples/sample.dart');
+    var path = convertPath('/project/samples/sample.dart');
     newFile(path);
     newFile('/project/analysis_options.yaml', content: r'''
 analyzer:
@@ -183,7 +181,7 @@ analyzer:
 
   Future<void>
       test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
-    String path = convertPath('/project/samples/sample.dart');
+    var path = convertPath('/project/samples/sample.dart');
     newFile(path);
     newFile('/project/.analysis_options', content: r'''
 analyzer:

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -61,7 +62,7 @@ class X implements I, J {
     _assertGetInherited(
       className: 'X',
       name: 'foo',
-      expected: 'J.foo: void Function()',
+      expected: 'I.foo: void Function()',
     );
   }
 
@@ -413,7 +414,7 @@ abstract class J {
 abstract class A implements I, J {}
 ''');
     _assertInheritedMap('A', r'''
-J.bar: void Function()
+I.bar: void Function()
 ''');
   }
 
@@ -448,7 +449,7 @@ abstract class J {
 abstract class A implements I, J {}
 ''');
     _assertInheritedMap('A', r'''
-J.foo: int Function()
+I.foo: int Function()
 ''');
   }
 
@@ -465,7 +466,7 @@ abstract class J {
 abstract class A implements I, J {}
 ''');
     _assertInheritedMap('A', r'''
-J.foo: void Function()
+I.foo: void Function()
 ''');
   }
 
@@ -1053,6 +1054,31 @@ class InheritanceManager3WithNnbdTest extends _InheritanceManager3Base {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_getInheritedMap_topMerge_method() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.6
+class A {
+  void foo({int a}) {}
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+class B {
+  void foo({required int? a}) {}
+}
+
+class C implements A, B {
+  void foo({int? a}) {}
+}
+''');
+
+    _assertInheritedMap('C', r'''
+B.foo: void Function({required int a})
+''');
+  }
+
   test_getMember_optIn_inheritsOptIn() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
@@ -1099,6 +1125,66 @@ class B extends A {
       className: 'B',
       name: 'bar',
       expected: 'B.bar: int? Function(int)',
+    );
+  }
+
+  test_getMember_optIn_topMerge_getter() async {
+    await resolveTestCode('''
+class A {
+  dynamic get foo => 0;
+}
+
+class B {
+  Object? get foo => 0;
+}
+
+class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'B.foo: Object? Function()',
+    );
+  }
+
+  test_getMember_optIn_topMerge_method() async {
+    await resolveTestCode('''
+class A {
+  Object? foo(dynamic x) {}
+}
+
+class B {
+  dynamic foo(Object? x) {}
+}
+
+class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'X.foo: Object? Function(Object?)',
+    );
+  }
+
+  test_getMember_optIn_topMerge_setter() async {
+    await resolveTestCode('''
+class A {
+  set foo(dynamic _) {}
+}
+
+class B {
+  set foo(Object? _) {}
+}
+
+class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo=',
+      expected: 'B.foo=: void Function(Object?)',
     );
   }
 
@@ -1204,14 +1290,17 @@ class _InheritanceManager3Base extends DriverResolutionTest {
   }) {
     var interfaceType = _classInterfaceType(className);
 
-    var memberType = manager.getMember(
-      interfaceType,
-      Name(null, name),
-      concrete: concrete,
-      forSuper: forSuper,
-    );
+    ExecutableElement member;
+    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+      member = manager.getMember(
+        interfaceType,
+        Name(null, name),
+        concrete: concrete,
+        forSuper: forSuper,
+      );
+    });
 
-    _assertExecutable(memberType, expected);
+    _assertExecutable(member, expected);
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {

@@ -37,10 +37,8 @@ class InstrumentationInformation {
   /// Return the type annotation associated with the [node] or `null` if the
   /// node represents an implicit type.
   TypeAnnotation typeAnnotationForNode(NullabilityNodeInfo node) {
-    for (MapEntry<Source, SourceInformation> sourceEntry
-        in sourceInformation.entries) {
-      for (MapEntry<TypeAnnotation, NullabilityNodeInfo> typeEntry
-          in sourceEntry.value.explicitTypeNullability.entries) {
+    for (var sourceEntry in sourceInformation.entries) {
+      for (var typeEntry in sourceEntry.value.explicitTypeNullability.entries) {
         if (typeEntry.value == node) {
           return typeEntry.key;
         }

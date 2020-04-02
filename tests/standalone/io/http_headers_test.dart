@@ -299,6 +299,11 @@ void testHeaderValue() {
   check(headerValue, "attachment", parameters);
   headerValue = HeaderValue.parse("xxx; aaa; bbb; ccc");
   check(headerValue, "xxx", {"aaa": null, "bbb": null, "ccc": null});
+  headerValue = HeaderValue.parse("v; a=A; b=B, V; c=C", valueSeparator: ";");
+  check(headerValue, "v", {});
+  headerValue = HeaderValue.parse("v; a=A; b=B, V; c=C", valueSeparator: ",");
+  check(headerValue, "v", {"a": "A", "b": "B"});
+  Expect.throws(() => HeaderValue.parse("v; a=A; b=B, V; c=C"));
 
   Expect.equals("", HeaderValue().toString());
   Expect.equals("", HeaderValue("").toString());

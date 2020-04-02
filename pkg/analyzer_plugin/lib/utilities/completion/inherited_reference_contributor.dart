@@ -38,13 +38,13 @@ class InheritedReferenceContributor
       DartCompletionRequest request, CompletionCollector collector) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    CompletionTarget target =
+    var target =
         CompletionTarget.forOffset(request.result.unit, request.offset);
-    OpType optype = OpType.forCompletion(target, request.offset);
+    var optype = OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {
       return;
     }
-    ClassDeclaration classDecl = _enclosingClass(target);
+    var classDecl = _enclosingClass(target);
     if (classDecl == null || classDecl.declaredElement == null) {
       return;
     }
@@ -72,7 +72,7 @@ class InheritedReferenceContributor
       return;
     }
     if (classElement == null) {
-      ClassDeclaration classDecl = _enclosingClass(target);
+      var classDecl = _enclosingClass(target);
       if (classDecl == null || classDecl.declaredElement == null) {
         return;
       }
@@ -86,7 +86,7 @@ class InheritedReferenceContributor
   void _addSuggestionsForType(InterfaceType type, OpType optype,
       {bool isFunctionalArgument = false}) {
     if (!isFunctionalArgument) {
-      for (PropertyAccessorElement elem in type.accessors) {
+      for (var elem in type.accessors) {
         if (elem.isGetter) {
           if (optype.includeReturnValueSuggestions) {
             addSuggestion(elem);
@@ -98,7 +98,7 @@ class InheritedReferenceContributor
         }
       }
     }
-    for (MethodElement elem in type.methods) {
+    for (var elem in type.methods) {
       if (elem.returnType == null) {
         addSuggestion(elem);
       } else if (!elem.returnType.isVoid) {
@@ -116,7 +116,7 @@ class InheritedReferenceContributor
   void _computeSuggestionsForClass2(CompletionCollector collector,
       CompletionTarget target, ClassElement classElement, OpType optype,
       {bool skipChildClass = true}) {
-    bool isFunctionalArgument = target.isFunctionalArgument();
+    var isFunctionalArgument = target.isFunctionalArgument();
     kind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
@@ -126,11 +126,11 @@ class InheritedReferenceContributor
           isFunctionalArgument: isFunctionalArgument);
     }
 
-    for (InterfaceType type in classElement.allSupertypes) {
+    for (var type in classElement.allSupertypes) {
       _addSuggestionsForType(type, optype,
           isFunctionalArgument: isFunctionalArgument);
     }
-    for (CompletionSuggestion suggestion in suggestions) {
+    for (var suggestion in suggestions) {
       collector.addSuggestion(suggestion);
     }
   }
@@ -138,7 +138,7 @@ class InheritedReferenceContributor
   /// Return the class containing the target or `null` if the target is in a
   /// static method or field or not in a class.
   ClassDeclaration _enclosingClass(CompletionTarget target) {
-    AstNode node = target.containingNode;
+    var node = target.containingNode;
     while (node != null) {
       if (node is ClassDeclaration) {
         return node;

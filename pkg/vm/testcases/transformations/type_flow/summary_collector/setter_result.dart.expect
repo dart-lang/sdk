@@ -1,53 +1,53 @@
------------- #lib::T:: ------------
+------------ T:: ------------
 %this = _Parameter #0 [_T (#lib::T)+]
-t1 = _Call direct [dart.core::Object::] (%this)
+t1 = _Call direct [Object::] (%this)
 RESULT: _T {}?
------------- #lib::A:: ------------
+------------ A:: ------------
 %this = _Parameter #0 [_T (#lib::A)+]
-t1 = _Call direct [dart.core::Object::] (%this)
+t1 = _Call direct [Object::] (%this)
 RESULT: _T {}?
------------- #lib::A::foo ------------
+------------ A::foo ------------
 %this = _Parameter #0 [_T (#lib::A)+]
 RESULT: _T {}?
------------- #lib::B:: ------------
+------------ B:: ------------
 %this = _Parameter #0 [_T (#lib::B)+]
-t1 = _Call direct [#lib::A::] (%this)
+t1 = _Call direct [A::] (%this)
 RESULT: _T {}?
------------- #lib::B::foo ------------
+------------ B::foo ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 %x = _Parameter #1 [_T ANY?]
 RESULT: _T {}?
------------- #lib::B::testPropertySet ------------
+------------ B::testPropertySet ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 %x = _Parameter #1 [_T ANY?]
-t2 = _Call virtual set [#lib::B::foo] (%this, %x)
-t3 = _Call direct [#lib::use] (%x)
+t2 = _Call virtual set [B::foo] (%this, %x)
+t3 = _Call direct [use] (%x)
 RESULT: _T {}?
------------- #lib::B::testDynamicPropertySet ------------
+------------ B::testDynamicPropertySet ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 %x = _Parameter #1 [_T ANY?]
 %y = _Parameter #2 [_T ANY?]
 t3 = _Call dynamic set [foo] (%x, %y)
-t4 = _Call direct [#lib::use] (%y)
+t4 = _Call direct [use] (%y)
 RESULT: _T {}?
------------- #lib::B::testSuperPropertySet ------------
+------------ B::testSuperPropertySet ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 %x = _Parameter #1 [_T ANY?]
-t2 = _Call direct set [#lib::A::foo] (%this, %x)
-t3 = _Call direct [#lib::use] (%x)
+t2 = _Call direct set [A::foo] (%this, %x)
+t3 = _Call direct [use] (%x)
 RESULT: _T {}?
------------- #lib::B::testStaticPropertySet ------------
+------------ B::testStaticPropertySet ------------
 %this = _Parameter #0 [_T (#lib::B)+]
 %x = _Parameter #1 [_T ANY?]
-t2 = _Call direct set [#lib::B::bar] (%x)
-t3 = _Call direct [#lib::use] (%x)
+t2 = _Call direct set [B::bar] (%x)
+t3 = _Call direct [use] (%x)
 RESULT: _T {}?
------------- #lib::B::bar ------------
+------------ B::bar ------------
 
 RESULT: _T {}?
------------- #lib::use ------------
+------------ use ------------
 %x = _Parameter #0 [_T ANY?]
 RESULT: _T {}?
------------- #lib::main ------------
+------------ main ------------
 
 RESULT: _T {}?

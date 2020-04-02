@@ -322,7 +322,7 @@ class A {
 }
 ''');
     // linked positions
-    int index = 0;
+    var index = 0;
     assertLinkedGroup(
         change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
     assertLinkedGroup(change.linkedEditGroups[index++],
@@ -365,7 +365,7 @@ class A {
 }
 ''');
     // linked positions
-    int index = 0;
+    var index = 0;
     assertLinkedGroup(
         change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
     assertLinkedGroup(change.linkedEditGroups[index++],
@@ -713,7 +713,7 @@ main() {
   }
 
   Future<void> test_parameterType_differentPrefixInTargetUnit() async {
-    String code2 = r'''
+    var code2 = r'''
 import 'test3.dart' as bbb;
 export 'test3.dart';
 

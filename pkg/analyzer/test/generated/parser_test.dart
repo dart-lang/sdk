@@ -946,7 +946,13 @@ Function(int, String) v;
     createParser('static int get C => 0;');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      listener.assertErrors([
+        expectedError(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 15, 1),
+      ]);
+    } else {
+      assertNoErrors();
+    }
     expect(member, isMethodDeclaration);
     MethodDeclaration method = member;
     expect(method.documentationComment, isNull);
@@ -1212,7 +1218,13 @@ void Function<A>(core.List<core.int> x) m() => null;
     createParser('static void set C(_) {}');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      listener.assertErrors([
+        expectedError(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+      ]);
+    } else {
+      assertNoErrors();
+    }
     expect(member, isMethodDeclaration);
     MethodDeclaration method = member;
     expect(method.documentationComment, isNull);
@@ -1678,21 +1690,21 @@ void Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseGetter_identifier_colon_issue_36961() {
     createParser('get a:');
-    MethodDeclaration method = parser.parseClassMember('C');
-    expect(method, isNotNull);
+    ConstructorDeclaration constructor = parser.parseClassMember('C');
+    expect(constructor, isNotNull);
     listener.assertErrors([
+      expectedError(ParserErrorCode.GETTER_CONSTRUCTOR, 0, 3),
+      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 4, 1),
+      expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 4, 1),
       expectedError(ParserErrorCode.MISSING_INITIALIZER, 5, 1),
       expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 6, 0),
     ]);
-    expect(method.body, isNotNull);
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.parameters, isNull);
-    expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, isNull);
+    expect(constructor.body, isNotNull);
+    expect(constructor.documentationComment, isNull);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.returnType, isNotNull);
   }
 
   void test_parseGetter_nonStatic() {
@@ -2652,8 +2664,9 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('C C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 1)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 1),
+    ]);
   }
 
   void test_constructorWithReturnType_var() {
@@ -11258,9 +11271,8 @@ class C {
     final unit = parseCompilationUnit('class C { get C.named => null; }',
         errors: usingFastaParser
             ? [
-                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 15, 1),
-                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
-                expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 16, 5),
+                expectedError(ParserErrorCode.GETTER_CONSTRUCTOR, 10, 3),
+                expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 14, 1),
               ]
             : [
                 expectedError(
@@ -11275,10 +11287,16 @@ class C {
                 expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 29, 1),
               ]);
     ClassDeclaration declaration = unit.declarations[0];
-    MethodDeclaration method = declaration.members[0];
-    expect(method.name.name, 'C');
-    expect(method.isGetter, isTrue);
-    expect(method.parameters, isNull);
+    if (usingFastaParser) {
+      ConstructorDeclaration method = declaration.members[0];
+      expect(method.name.name, 'named');
+      expect(method.parameters, isNotNull);
+    } else {
+      MethodDeclaration method = declaration.members[0];
+      expect(method.name.name, 'C');
+      expect(method.isGetter, isTrue);
+      expect(method.parameters, isNull);
+    }
   }
 
   void test_issue_34610_initializers() {
@@ -11361,10 +11379,8 @@ class C {
     final unit = parseCompilationUnit('class C { set C.named => null; }',
         errors: usingFastaParser
             ? [
+                expectedError(ParserErrorCode.SETTER_CONSTRUCTOR, 10, 3),
                 expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 14, 1),
-                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 15, 1),
-                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
-                expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 16, 5),
               ]
             : [
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
@@ -11382,11 +11398,18 @@ class C {
                 expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 29, 1),
               ]);
     ClassDeclaration declaration = unit.declarations[0];
-    MethodDeclaration method = declaration.members[0];
-    expect(method.name.name, 'C');
-    expect(method.isSetter, isTrue);
-    expect(method.parameters, isNotNull);
-    expect(method.parameters.parameters, hasLength(usingFastaParser ? 0 : 1));
+    if (usingFastaParser) {
+      ConstructorDeclaration method = declaration.members[0];
+      expect(method.name.name, 'named');
+      expect(method.parameters, isNotNull);
+      expect(method.parameters.parameters, hasLength(0));
+    } else {
+      MethodDeclaration method = declaration.members[0];
+      expect(method.name.name, 'C');
+      expect(method.isSetter, isTrue);
+      expect(method.parameters, isNotNull);
+      expect(method.parameters.parameters, hasLength(1));
+    }
   }
 
   void test_keywordInPlaceOfIdentifier() {

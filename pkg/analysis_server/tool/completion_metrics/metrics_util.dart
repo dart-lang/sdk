@@ -100,6 +100,20 @@ class MeanReciprocalRankComputer {
 
   int get count => _count;
 
+  double get mrr {
+    if (count == 0) {
+      return 0;
+    }
+    return _sum / count;
+  }
+
+  double get mrr_5 {
+    if (count == 0) {
+      return 0;
+    }
+    return _sum_5 / count;
+  }
+
   void addRank(int rank) {
     if (rank != 0) {
       _sum += 1 / rank;
@@ -114,20 +128,6 @@ class MeanReciprocalRankComputer {
     _sum = 0;
     _sum_5 = 0;
     _count = 0;
-  }
-
-  double get mrr {
-    if (count == 0) {
-      return 0;
-    }
-    return _sum / count;
-  }
-
-  double get mrr_5 {
-    if (count == 0) {
-      return 0;
-    }
-    return _sum_5 / count;
   }
 
   void printMean() {

@@ -17,8 +17,8 @@ import 'package:args/args.dart';
 
 /// Compute and print lexical and semantic information about a package.
 Future<void> main(List<String> args) async {
-  ArgParser parser = createArgParser();
-  ArgResults result = parser.parse(args);
+  var parser = createArgParser();
+  var result = parser.parse(args);
 
   if (validArguments(parser, result)) {
     var out = io.stdout;
@@ -40,7 +40,7 @@ Future<void> main(List<String> args) async {
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  ArgParser parser = ArgParser();
+  var parser = ArgParser();
   parser.addOption(
     'help',
     abbr: 'h',
@@ -1357,7 +1357,7 @@ class CodeShapeMetricsComputer {
       for (var filePath in context.contextRoot.analyzedFiles()) {
         if (AnalysisEngine.isDartFileName(filePath)) {
           try {
-            ResolvedUnitResult resolvedUnitResult =
+            var resolvedUnitResult =
                 await context.currentSession.getResolvedUnit(filePath);
             //
             // Check for errors that cause the file to be skipped.

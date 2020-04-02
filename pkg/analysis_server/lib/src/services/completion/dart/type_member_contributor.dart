@@ -24,7 +24,7 @@ class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    LibraryElement containingLibrary = request.libraryElement;
+    var containingLibrary = request.libraryElement;
     // Gracefully degrade if the library could not be determined, such as with a
     // detached part file or source change.
     if (containingLibrary == null) {
@@ -32,14 +32,14 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
 
     // Recompute the target because resolution might have changed it.
-    Expression expression = request.dotTarget;
+    var expression = request.dotTarget;
     if (expression == null ||
         expression.isSynthetic ||
         expression is ExtensionOverride) {
       return const <CompletionSuggestion>[];
     }
     if (expression is Identifier) {
-      Element elem = expression.staticElement;
+      var elem = expression.staticElement;
       if (elem is ClassElement) {
         // Suggestions provided by StaticMemberContributor.
         return const <CompletionSuggestion>[];
@@ -51,12 +51,12 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
 
     // Determine the target expression's type.
-    DartType type = expression.staticType;
+    var type = expression.staticType;
     if (type == null || type.isDynamic) {
       // If the expression does not provide a good type, then attempt to get a
       // better type from the element.
       if (expression is Identifier) {
-        Element elem = expression.staticElement;
+        var elem = expression.staticElement;
         if (elem is FunctionTypedElement) {
           type = elem.returnType;
         } else if (elem is ParameterElement) {
@@ -68,8 +68,7 @@ class TypeMemberContributor extends DartCompletionContributor {
             expression is SimpleIdentifier) {
           // If the element does not provide a good type, then attempt to get a
           // better type from a local declaration.
-          _LocalBestTypeVisitor visitor =
-              _LocalBestTypeVisitor(expression.name, request.offset);
+          var visitor = _LocalBestTypeVisitor(expression.name, request.offset);
           if (visitor.visit(expression) && visitor.typeFound != null) {
             type = visitor.typeFound;
           }
@@ -86,10 +85,10 @@ class TypeMemberContributor extends DartCompletionContributor {
       type = (type as InterfaceType).superclass;
       // Determine the name of the containing method because the most likely
       // completion is a super expression with same name.
-      MethodDeclaration containingMethod =
+      var containingMethod =
           expression.thisOrAncestorOfType<MethodDeclaration>();
       if (containingMethod != null) {
-        SimpleIdentifier id = containingMethod.name;
+        var id = containingMethod.name;
         if (id != null) {
           containingMethodName = id.name;
         }
@@ -102,13 +101,13 @@ class TypeMemberContributor extends DartCompletionContributor {
 
     // Build the suggestions.
     if (type is InterfaceType) {
-      _SuggestionBuilder builder = _SuggestionBuilder(request);
+      var builder = _SuggestionBuilder(request);
       builder.buildSuggestions(type, containingMethodName,
           mixins: mixins, superclassConstraints: superclassConstraints);
       return builder.suggestions.toList();
     }
     if (type is FunctionType) {
-      _SuggestionBuilder builder = _SuggestionBuilder(request);
+      var builder = _SuggestionBuilder(request);
       return [builder._createFunctionCallSuggestion()];
     }
 
@@ -159,7 +158,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunction(FunctionDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.returnType;
+      var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -170,7 +169,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.returnType;
+      var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -181,7 +180,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.functionType?.returnType;
+      var typeName = declaration.functionType?.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -209,7 +208,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredMethod(MethodDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.returnType;
+      var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
@@ -250,7 +249,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
     // exceptions to handle getter/setter pairs).
-    List<InterfaceType> types = _getTypeOrdering(type);
+    var types = _getTypeOrdering(type);
     if (mixins != null) {
       types.addAll(mixins);
     }
@@ -321,11 +320,11 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     // We short-circuit loops in the class hierarchy by keeping track of the
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
-    List<InterfaceType> result = <InterfaceType>[];
+    var result = <InterfaceType>[];
     Set<ClassElement> classesSeen = HashSet<ClassElement>();
-    List<InterfaceType> typesToVisit = <InterfaceType>[type];
+    var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
-      InterfaceType nextType = typesToVisit.removeLast();
+      var nextType = typesToVisit.removeLast();
       if (!classesSeen.add(nextType.element)) {
         // Class had already been seen, so ignore this type.
         continue;

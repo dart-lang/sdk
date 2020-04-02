@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -48,7 +47,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
         await getDefinition(mainFileUri, positionFromMarker(mainContents));
 
     expect(res, hasLength(1));
-    Location loc = res.single;
+    var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(referencedContents)));
     expect(loc.uri, equals(referencedFileUri.toString()));
   }
@@ -73,7 +72,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     final res = await getDefinition(mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));
-    Location loc = res.single;
+    var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(contents)));
     expect(loc.uri, equals(mainFileUri.toString()));
   }
@@ -90,7 +89,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     final res = await getDefinition(mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));
-    Location loc = res.single;
+    var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(contents)));
     expect(loc.uri, equals(mainFileUri.toString()));
   }

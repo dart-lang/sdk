@@ -262,6 +262,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   int _remainingContent = -1;
   bool _contentLength = false;
   bool _transferEncoding = false;
+  bool connectMethod = false;
 
   _HttpHeaders _headers;
 
@@ -340,6 +341,19 @@ class _HttpParser extends Stream<_HttpIncoming> {
   // parsing and return. This will be in case of either an upgrade
   // request or a request or response with an empty body.
   bool _headersEnd() {
+    // If method is CONNECT, response parser should ignore any Content-Length or
+    // Transfer-Encoding header fields in a successful response.
+    // [RFC 7231](https://tools.ietf.org/html/rfc7231#section-4.3.6)
+    if (!_requestParser &&
+        _statusCode >= 200 &&
+        _statusCode < 300 &&
+        connectMethod) {
+      _transferLength = -1;
+      _headers.chunkedTransferEncoding = false;
+      _chunked = false;
+      _headers.removeAll(HttpHeaders.contentLengthHeader);
+      _headers.removeAll(HttpHeaders.transferEncodingHeader);
+    }
     _headers._mutable = false;
 
     _transferLength = _headers.contentLength;

@@ -1,45 +1,45 @@
------------- #lib::A:: ------------
+------------ A:: ------------
 %this = _Parameter #0 [_T (#lib::A)+]
-t1 = _Call direct [dart.core::Object::] (%this)
+t1 = _Call direct [Object::] (%this)
 RESULT: _T {}?
------------- #lib::B:: ------------
+------------ B:: ------------
 %this = _Parameter #0 [_T (#lib::B)+]
-t1 = _Call direct [dart.core::Object::] (%this)
+t1 = _Call direct [Object::] (%this)
 RESULT: _T {}?
------------- #lib::foo ------------
+------------ foo ------------
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]
 %a2 = _Parameter #1 [_T (dart.core::Object)+?]
-t2* = _Call direct get [#lib::someStatic] ()
-t3 = _Call direct [#lib::A::] (_T (#lib::A))
-a1_0 = _Join [InterfaceType(Reference to root::dart:core::Object*)] (_T (#lib::A), %a1)
-t5 = _Call direct [#lib::bar] (a1_0, _T (dart.core::_Smi, 42))
-t6 = _Call direct [#lib::B::] (_T (#lib::B))
-t7* = _Call [dart.core::Object::==] (_T (#lib::B), %a2)
-t8 = _Join [InterfaceType(Reference to root::dart:core::Object*)] (_T (#lib::B), %a2)
+t2* = _Call direct get [someStatic] ()
+t3 = _Call direct [A::] (_T (#lib::A))
+a1_0 = _Join [InterfaceType(Object*)] (_T (#lib::A), %a1)
+t5 = _Call direct [bar] (a1_0, _T (dart.core::_Smi, 42))
+t6 = _Call direct [B::] (_T (#lib::B))
+t7* = _Call [Object::==] (_T (#lib::B), %a2)
+t8 = _Join [InterfaceType(Object*)] (_T (#lib::B), %a2)
 t9 = _Narrow (t8 to _T (dart.core::Object)+?)
 RESULT: t9
------------- #lib::bar ------------
+------------ bar ------------
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]
 %a2 = _Parameter #1 [_T (dart.core::int)+?]
 t2 = _Narrow (%a1 to _T (dart.core::int)+)
-t3* = _Call [dart.core::num::+] (t2, %a2)
-t4* = _Call [dart.core::num::*] (t3, _T (dart.core::_Smi, 3))
-t5* = _Call [dart.core::int::unary-] (_T (dart.core::_Smi, 1))
-%result = _Join [InterfaceType(Reference to root::dart:core::int*)] (t4, t5)
+t3* = _Call [num::+] (t2, %a2)
+t4* = _Call [num::*] (t3, _T (dart.core::_Smi, 3))
+t5* = _Call [int::unary-] (_T (dart.core::_Smi, 1))
+%result = _Join [InterfaceType(int*)] (t4, t5)
 RESULT: %result
------------- #lib::loop1 ------------
+------------ loop1 ------------
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]
 %a2 = _Parameter #1 [_T (dart.core::Object)+?]
-t2 = _Call direct [#lib::loop1] (%a1, %a1)
+t2 = _Call direct [loop1] (%a1, %a1)
 RESULT: %a2
------------- #lib::loop2 ------------
+------------ loop2 ------------
 %x = _Parameter #0 [_T (dart.core::int)+?]
-t1* = _Call [dart.core::num::+] (_T (dart.core::int)+, _T (dart.core::_Smi, 1))
-i_0 = _Join [InterfaceType(Reference to root::dart:core::int*)] (_T (dart.core::_Smi, 0), t1)
-t3* = _Call [dart.core::num::<] (i_0, _T (dart.core::_Smi, 5))
-t4* = _Call [dart.core::num::+] (_T (dart.core::int)+?, _T (dart.core::_Smi, 10))
-x_0 = _Join [InterfaceType(Reference to root::dart:core::int*)] (%x, t4)
+t1* = _Call [num::+] (_T (dart.core::int)+, _T (dart.core::_Smi, 1))
+i_0 = _Join [InterfaceType(int*)] (_T (dart.core::_Smi, 0), t1)
+t3* = _Call [num::<] (i_0, _T (dart.core::_Smi, 5))
+t4* = _Call [num::+] (_T (dart.core::int)+?, _T (dart.core::_Smi, 10))
+x_0 = _Join [InterfaceType(int*)] (%x, t4)
 RESULT: x_0
------------- #lib::main ------------
+------------ main ------------
 
 RESULT: _T {}?

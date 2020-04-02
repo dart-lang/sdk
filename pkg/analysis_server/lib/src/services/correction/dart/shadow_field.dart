@@ -40,7 +40,7 @@ class ShadowField extends CorrectionProducer {
       return;
     }
     var enclosingBlock = statement.parent as Block;
-    _ReferenceFinder finder = _ReferenceFinder(accessor.correspondingSetter);
+    var finder = _ReferenceFinder(accessor.correspondingSetter);
     enclosingBlock.accept(finder);
     if (finder.hasSetterReference) {
       return;

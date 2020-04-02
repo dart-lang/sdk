@@ -89,7 +89,12 @@ class UnknownType extends DartType {
 
   @override
   String toString() {
-    return "UnknownType()";
+    return "UnknownType(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }
 

@@ -13476,7 +13476,7 @@ class Element extends Node
    *   from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  ShadowRoot get shadowRoot =>
+  ShadowRoot? get shadowRoot =>
       JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
 
   /**
@@ -22913,13 +22913,13 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   _ChildNodeListLazy(this._this);
 
   Node get first {
-    Node result = JS('Node|Null', '#.firstChild', _this);
+    Node? result = JS('Node|Null', '#.firstChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
   Node get last {
-    Node result = JS('Node|Null', '#.lastChild', _this);
+    Node? result = JS('Node|Null', '#.lastChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -22928,7 +22928,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     int l = this.length;
     if (l == 0) throw new StateError("No elements");
     if (l > 1) throw new StateError("More than one element");
-    return JS('Node|Null', '#.firstChild', _this);
+    return JS('Node|Null', '#.firstChild', _this)!;
   }
 
   void add(Node value) {
@@ -31939,10 +31939,10 @@ class Window extends EventTarget
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) =>
+  WindowBase? _open2(url, name) =>
       JS('Window|Null', '#.open(#,#)', this, url, name);
 
-  WindowBase _open3(url, name, options) =>
+  WindowBase? _open3(url, name, options) =>
       JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
@@ -32064,7 +32064,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  IdbFactory get indexedDB => JS(
+  IdbFactory? get indexedDB => JS(
       'IdbFactory|Null', // If not supported, returns null.
       '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
       this,
@@ -39907,7 +39907,7 @@ EventTarget? _convertNativeToDart_EventTarget(e) {
     return e;
 }
 
-EventTarget _convertDartToNative_EventTarget(e) {
+EventTarget? _convertDartToNative_EventTarget(e) {
   if (e is _DOMWindowCrossFrame) {
     return e._window;
   } else {
@@ -40521,7 +40521,7 @@ class Platform {
    * browser.  If false, using these types will generate a runtime
    * error.
    */
-  static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
+  static final bool supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
 
   /**
    * Returns true if SIMD types in dart:typed_data types are supported

@@ -162,6 +162,14 @@ class DillClassMember extends BuilderClassMember {
       memberBuilder.kind == ProcedureKind.Setter;
 
   @override
+  bool get isSynthesized {
+    Member member = memberBuilder.member;
+    return member is Procedure &&
+        (member.isMemberSignature ||
+            (member.isForwardingStub && !member.isForwardingSemiStub));
+  }
+
+  @override
   bool get isFunction => !isProperty;
 
   @override

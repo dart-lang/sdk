@@ -17,8 +17,8 @@ class LinkedHashMapTest {
     map["d"] = 4;
     map["e"] = 5;
 
-    List<String?> keys = new List<String?>(5);
-    List<int?> values = new List<int?>(5);
+    List<String?> keys = new List<String?>.filled(5, null);
+    List<int?> values = new List<int?>.filled(5, null);
 
     int index = 0;
 

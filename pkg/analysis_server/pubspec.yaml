@@ -17,6 +17,7 @@ dependencies:
   meta: any
   nnbd_migration: any
   source_span: any
+  stream_channel: any
   package_config: any
   path: any
   tflite_native: any

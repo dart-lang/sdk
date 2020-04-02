@@ -11,7 +11,7 @@ import 'server.dart';
 
 /// Start a web server that will allow an instrumentation log to be viewed.
 void main(List<String> args) {
-  Driver driver = Driver();
+  var driver = Driver();
   driver.start(args);
 }
 
@@ -34,7 +34,7 @@ class Driver {
 
   /// Create and return the parser used to parse the command-line arguments.
   ArgParser createParser() {
-    ArgParser parser = ArgParser();
+    var parser = ArgParser();
     parser.addFlag(helpFlag, help: 'Print this help text', negatable: false);
     parser.addOption(portOption,
         help: 'The port number on which the server should listen for requests',
@@ -68,14 +68,14 @@ class Driver {
 
   /// Use the given command-line [args] to configure and start the web server.
   void start(List<String> args) {
-    ArgParser parser = createParser();
-    ArgResults options = parser.parse(args);
+    var parser = createParser();
+    var options = parser.parse(args);
     if (options[helpFlag]) {
       printUsage(parser);
       return;
     }
 
-    int port = defaultPortNumber;
+    var port = defaultPortNumber;
     try {
       port = int.parse(options[portOption]);
     } catch (exception) {
@@ -83,13 +83,13 @@ class Driver {
       return;
     }
 
-    List<String> arguments = options.rest;
+    var arguments = options.rest;
     if (arguments == null || arguments.length != 1) {
       printUsage(parser, error: 'Missing log file');
       return;
     }
-    String fileName = arguments[0];
-    io.File logFile = io.File(fileName);
+    var fileName = arguments[0];
+    var logFile = io.File(fileName);
     List<String> lines;
     try {
       lines = logFile.readAsLinesSync();
@@ -102,8 +102,8 @@ class Driver {
     }
     print('Log file contains ${lines.length} lines');
 
-    InstrumentationLog log = InstrumentationLog(<String>[logFile.path], lines);
-    WebServer server = WebServer(log);
+    var log = InstrumentationLog(<String>[logFile.path], lines);
+    var server = WebServer(log);
     server.serveHttp(port);
     print('logViewer is listening on http://localhost:$port/log');
   }

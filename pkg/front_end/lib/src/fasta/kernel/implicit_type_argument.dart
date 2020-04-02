@@ -46,6 +46,11 @@ class ImplicitTypeArgument extends DartType {
 
   @override
   String toString() {
-    return "ImplicitTypeArgument()";
+    return "ImplicitTypeArgument(${toStringInternal()})";
+  }
+
+  @override
+  String toStringInternal() {
+    return "";
   }
 }

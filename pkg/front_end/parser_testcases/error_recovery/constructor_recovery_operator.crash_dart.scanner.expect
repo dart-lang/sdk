@@ -1,0 +1,29 @@
+class Foo {
+Foo() / : super() {
+
+}
+Foo()./ : super() {
+
+}
+foo() / : super() {
+
+}
+foo()./ : super() {
+
+}
+}
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+Foo[StringToken]([BeginToken])[SimpleToken] /[SimpleToken] :[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+Foo[StringToken]([BeginToken])[SimpleToken].[SimpleToken]/[SimpleToken] :[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+foo[StringToken]([BeginToken])[SimpleToken] /[SimpleToken] :[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+foo[StringToken]([BeginToken])[SimpleToken].[SimpleToken]/[SimpleToken] :[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

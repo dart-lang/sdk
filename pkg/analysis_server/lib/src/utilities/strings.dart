@@ -34,11 +34,11 @@ int compareStrings(String a, String b) {
 
 /// Return a simple difference between the given [oldStr] and [newStr].
 SimpleDiff computeSimpleDiff(String oldStr, String newStr) {
-  int prefixLength = findCommonPrefix(oldStr, newStr);
-  int suffixLength = findCommonSuffix(oldStr, newStr);
+  var prefixLength = findCommonPrefix(oldStr, newStr);
+  var suffixLength = findCommonSuffix(oldStr, newStr);
   while (prefixLength >= 0) {
-    int oldReplaceLength = oldStr.length - prefixLength - suffixLength;
-    int newReplaceLength = newStr.length - prefixLength - suffixLength;
+    var oldReplaceLength = oldStr.length - prefixLength - suffixLength;
+    var newReplaceLength = newStr.length - prefixLength - suffixLength;
     if (oldReplaceLength >= 0 && newReplaceLength >= 0) {
       return SimpleDiff(prefixLength, oldReplaceLength,
           newStr.substring(prefixLength, newStr.length - suffixLength));
@@ -49,9 +49,9 @@ SimpleDiff computeSimpleDiff(String oldStr, String newStr) {
 }
 
 int countLeadingWhitespaces(String str) {
-  int i = 0;
+  var i = 0;
   for (; i < str.length; i++) {
-    int c = str.codeUnitAt(i);
+    var c = str.codeUnitAt(i);
     if (!isWhitespace(c)) {
       break;
     }
@@ -64,8 +64,8 @@ int countMatches(String str, String sub) {
   if (isEmpty(str) || isEmpty(sub)) {
     return 0;
   }
-  int count = 0;
-  int idx = 0;
+  var count = 0;
+  var idx = 0;
   while ((idx = str.indexOf(sub, idx)) != -1) {
     count++;
     idx += sub.length;
@@ -74,9 +74,9 @@ int countMatches(String str, String sub) {
 }
 
 int countTrailingWhitespaces(String str) {
-  int i = 0;
+  var i = 0;
   for (; i < str.length; i++) {
-    int c = str.codeUnitAt(str.length - 1 - i);
+    var c = str.codeUnitAt(str.length - 1 - i);
     if (!isWhitespace(c)) {
       break;
     }
@@ -86,8 +86,8 @@ int countTrailingWhitespaces(String str) {
 
 /// Returns the number of characters common to the start of [a] and [b].
 int findCommonPrefix(String a, String b) {
-  int n = min(a.length, b.length);
-  for (int i = 0; i < n; i++) {
+  var n = min(a.length, b.length);
+  for (var i = 0; i < n; i++) {
     if (a.codeUnitAt(i) != b.codeUnitAt(i)) {
       return i;
     }
@@ -97,10 +97,10 @@ int findCommonPrefix(String a, String b) {
 
 /// Returns the number of characters common to the end of [a] and [b].
 int findCommonSuffix(String a, String b) {
-  int a_length = a.length;
-  int b_length = b.length;
-  int n = min(a_length, b_length);
-  for (int i = 1; i <= n; i++) {
+  var a_length = a.length;
+  var b_length = b.length;
+  var n = min(a_length, b_length);
+  for (var i = 1; i <= n; i++) {
     if (a.codeUnitAt(a_length - i) != b.codeUnitAt(b_length - i)) {
       return i - 1;
     }
@@ -152,8 +152,8 @@ String removeEnd(String str, String remove) {
 }
 
 String repeat(String s, int n) {
-  StringBuffer sb = StringBuffer();
-  for (int i = 0; i < n; i++) {
+  var sb = StringBuffer();
+  for (var i = 0; i < n; i++) {
     sb.write(s);
   }
   return sb.toString();
@@ -162,8 +162,8 @@ String repeat(String s, int n) {
 /// If the [text] length is above the [limit], replace the middle with `...`.
 String shorten(String text, int limit) {
   if (text.length > limit) {
-    int headLength = limit ~/ 2 - 1;
-    int tailLength = limit - headLength - 3;
+    var headLength = limit ~/ 2 - 1;
+    var tailLength = limit - headLength - 3;
     return text.substring(0, headLength) +
         '...' +
         text.substring(text.length - tailLength);

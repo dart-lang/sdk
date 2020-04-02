@@ -282,9 +282,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitCompilationUnit(CompilationUnit node) {
+    var nodeImpl = node as CompilationUnitImpl;
     var builder = LinkedNodeBuilder.compilationUnit(
       compilationUnit_declarations: _writeNodeList(node.declarations),
       compilationUnit_directives: _writeNodeList(node.directives),
+      compilationUnit_languageVersionMajor: nodeImpl.languageVersionMajor,
+      compilationUnit_languageVersionMinor: nodeImpl.languageVersionMinor,
       compilationUnit_scriptTag: node.scriptTag?.accept(this),
       informativeId: getInformativeId(node),
     );

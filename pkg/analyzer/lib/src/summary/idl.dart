@@ -448,6 +448,39 @@ abstract class AvailableFileExportCombinator extends base.SummaryClass {
   List<String> get shows;
 }
 
+/// Information about linked libraries, a group of libraries that form
+/// a library cycle.
+@TopLevel('CLNB')
+abstract class CiderLinkedLibraryCycle extends base.SummaryClass {
+  factory CiderLinkedLibraryCycle.fromBuffer(List<int> buffer) =>
+      generated.readCiderLinkedLibraryCycle(buffer);
+
+  @Id(1)
+  LinkedNodeBundle get bundle;
+
+  /// The hash signature for this linked cycle. It depends of API signatures
+  /// of all files in the cycle, and on the signatures of the transitive
+  /// closure of the cycle dependencies.
+  @Id(0)
+  List<int> get signature;
+}
+
+/// Information about a compilation unit, contains the content hash
+/// and unlinked summary.
+@TopLevel('CUUN')
+abstract class CiderUnlinkedUnit extends base.SummaryClass {
+  factory CiderUnlinkedUnit.fromBuffer(List<int> buffer) =>
+      generated.readCiderUnlinkedUnit(buffer);
+
+  /// The hash signature of the contents of the file.
+  @Id(0)
+  List<int> get contentDigest;
+
+  /// Unlinked summary of the compilation unit.
+  @Id(1)
+  UnlinkedUnit2 get unlinkedUnit;
+}
+
 abstract class DiagnosticMessage extends base.SummaryClass {
   /// The absolute and normalized path of the file associated with this message.
   @Id(0)
@@ -800,6 +833,14 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(3, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_directives;
+
+  /// The major component of the actual language version (not just override).
+  @VariantId(15, variant: LinkedNodeKind.compilationUnit)
+  int get compilationUnit_languageVersionMajor;
+
+  /// The minor component of the actual language version (not just override).
+  @VariantId(16, variant: LinkedNodeKind.compilationUnit)
+  int get compilationUnit_languageVersionMinor;
 
   @VariantId(6, variant: LinkedNodeKind.compilationUnit)
   LinkedNode get compilationUnit_scriptTag;
@@ -2201,37 +2242,4 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   /// URIs of `part` directives.
   @Id(4)
   List<String> get parts;
-}
-
-/// Information about a compilation unit, contains the content hash
-/// and unlinked summary.
-@TopLevel('CUUN')
-abstract class CiderUnlinkedUnit extends base.SummaryClass {
-  factory CiderUnlinkedUnit.fromBuffer(List<int> buffer) =>
-      generated.readCiderUnlinkedUnit(buffer);
-
-  /// The hash signature of the contents of the file.
-  @Id(0)
-  List<int> get contentDigest;
-
-  /// Unlinked summary of the compilation unit.
-  @Id(1)
-  UnlinkedUnit2 get unlinkedUnit;
-}
-
-/// Information about linked libraries, a group of libraries that form
-/// a library cycle.
-@TopLevel('CLNB')
-abstract class CiderLinkedLibraryCycle extends base.SummaryClass {
-  factory CiderLinkedLibraryCycle.fromBuffer(List<int> buffer) =>
-      generated.readCiderLinkedLibraryCycle(buffer);
-
-  /// The hash signature for this linked cycle. It depends of API signatures
-  /// of all files in the cycle, and on the signatures of the transitive
-  /// closure of the cycle dependencies.
-  @Id(0)
-  List<int> get signature;
-
-  @Id(1)
-  LinkedNodeBundle get bundle;
 }

@@ -112,7 +112,13 @@ Map<String, Set<Builder>> resolveNamedConfigurations(
     }
     foundBuilder = true;
     for (final step in builder.steps.where((step) => step.isTestStep)) {
-      final namedConfiguration = step.testedConfiguration.name;
+      final testedConfiguration = step.testedConfiguration;
+      if (testedConfiguration == null) {
+        // This test step does not use a configuration; for example,
+        // because it is a simple script that does not produce results.
+        continue;
+      }
+      final namedConfiguration = testedConfiguration.name;
       if (requestedNamedConfigurations.isEmpty ||
           requestedNamedConfigurations.contains(namedConfiguration)) {
         testedConfigurations

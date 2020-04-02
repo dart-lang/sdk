@@ -26,7 +26,7 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
 
     if (exception is CaughtException) {
       // Get the root CaughtException, which matters most for debugging.
-      CaughtException root = exception.rootCaughtException;
+      var root = exception.rootCaughtException;
 
       reporter
           .sendReport(root.exception, root.stackTrace,
@@ -52,7 +52,7 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
   ) {
     // TODO(devoncarew): Temporarily disabled; re-enable after deciding on a
     // plan of action for the AngularDart analysis plugin.
-    const String angularPluginName = 'Angular Analysis Plugin';
+    const angularPluginName = 'Angular Analysis Plugin';
     if (plugin.name == angularPluginName) {
       return;
     }

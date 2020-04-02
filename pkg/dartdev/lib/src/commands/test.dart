@@ -17,6 +17,29 @@ class TestCommand extends DartdevCommand<int> {
   final ArgParser argParser = ArgParser.allowAnything();
 
   @override
+  void printUsage() {
+    final command = sdk.pub;
+    final args = ['run', 'test', '--help'];
+
+    log.trace('$command ${args.join(' ')}');
+
+    final result = Process.runSync(command, args);
+    if (result.stderr.isNotEmpty) {
+      stderr.write(result.stderr);
+    }
+    if (result.stdout.isNotEmpty) {
+      stdout.write(result.stdout);
+    }
+
+    // "Could not find package "test". Did you forget to add a dependency?"
+    if (result.exitCode == 65 && project.hasPackageConfigFile) {
+      if (!project.packageConfig.hasDependency('test')) {
+        _printPackageTestInstructions();
+      }
+    }
+  }
+
+  @override
   FutureOr<int> run() async {
     final command = sdk.pub;
     final args = argResults.arguments.toList();

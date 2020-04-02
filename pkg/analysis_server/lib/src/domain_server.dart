@@ -27,7 +27,7 @@ class ServerDomainHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     try {
-      String requestName = request.method;
+      var requestName = request.method;
       if (requestName == SERVER_REQUEST_GET_VERSION) {
         return getVersion(request);
       } else if (requestName == SERVER_REQUEST_SET_SUBSCRIPTIONS) {
@@ -58,7 +58,7 @@ class ServerDomainHandler implements RequestHandler {
   /// Cleanly shutdown the analysis server.
   Future<void> shutdown(Request request) async {
     await server.shutdown();
-    Response response = ServerShutdownResult().toResponse(request.id);
+    var response = ServerShutdownResult().toResponse(request.id);
     server.sendResponse(response);
   }
 }

@@ -39,7 +39,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "b9efaddfe0553b6937bf625157f6a13498951346",
+  "co19_rev": "9934d8540d097366287267519413e888a7f6a482",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -86,7 +86,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.30.2",
+  "dartdoc_tag" : "v0.30.3",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
@@ -113,13 +113,12 @@ vars = {
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "v1.9.2",
-  "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
   "pedantic_tag": "v1.8.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "ab109723d9eb782c2ea4cce68c044da40403a652",
+  "pub_rev": "5802dd3407cae29372060934249432077aff1ec6",
   "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
@@ -178,7 +177,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.8.0-dev.0.0",
+          "version": "version:2.8.0-dev.18.0",
       }],
       "dep_type": "cipd",
   },
@@ -339,9 +338,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg_tested/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_tag"),
-  Var("dart_root") + "/third_party/pkg_tested/package_resolver":
-      Var("dart_git") + "package_resolver.git"
-      + "@" + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_tag"),
   Var("dart_root") + "/third_party/pkg/pedantic":

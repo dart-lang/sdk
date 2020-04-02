@@ -21,17 +21,17 @@ class LocalDeclarationVisitorTest {
   }
 
   void test_visitForEachStatement() {
-    CompilationUnit unit = parseCompilationUnit('''
+    var unit = parseCompilationUnit('''
 class MyClass {}
 f(List<MyClass> list) {
   for(x in list) {}
 }
 ''');
-    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    var declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    FunctionDeclaration f = declarations[1] as FunctionDeclaration;
+    var f = declarations[1] as FunctionDeclaration;
     expect(f, isNotNull);
-    BlockFunctionBody body = f.functionExpression.body as BlockFunctionBody;
+    var body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ForStatement;
     expect(statement.forLoopParts, const TypeMatcher<ForEachParts>());
     statement.accept(TestVisitor(statement.offset));

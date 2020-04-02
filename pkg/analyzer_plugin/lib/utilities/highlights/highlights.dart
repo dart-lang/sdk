@@ -57,9 +57,9 @@ class HighlightsGenerator {
   /// Create an 'analysis.highlights' notification. If any of the contributors
   /// throws an exception, also create a non-fatal 'plugin.error' notification.
   GeneratorResult generateHighlightsNotification(HighlightsRequest request) {
-    List<Notification> notifications = <Notification>[];
-    HighlightsCollectorImpl collector = HighlightsCollectorImpl();
-    for (HighlightsContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = HighlightsCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeHighlights(request, collector);
       } catch (exception, stackTrace) {

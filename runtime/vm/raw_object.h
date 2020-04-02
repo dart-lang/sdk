@@ -1471,6 +1471,19 @@ class RawKernelProgramInfo : public RawObject {
   }
 };
 
+class RawWeakSerializationReference : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  VISIT_NOTHING();
+  classid_t cid_;
+#else
+  VISIT_FROM(RawObject*, target_);
+  RawObject* target_;
+  VISIT_TO(RawObject*, target_);
+#endif
+};
+
 class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 

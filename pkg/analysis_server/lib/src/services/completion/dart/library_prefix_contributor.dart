@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -32,7 +31,7 @@ class LibraryPrefixContributor extends DartCompletionContributor {
     //  in which case not having one per library could be confusing.
     var useNewRelevance = request.useNewRelevance;
     var suggestions = <CompletionSuggestion>[];
-    for (ImportElement element in imports) {
+    for (var element in imports) {
       var completion = element.prefix?.name;
       if (completion != null && completion.isNotEmpty) {
         var libraryElement = element.importedLibrary;

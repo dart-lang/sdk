@@ -479,9 +479,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // We only need to export main as it is the only method part of the
     // publicly exposed JS API for a library.
-    // TODO(jacobr): add a library level annotation indicating that all
-    // contents of a library need to be exposed to JS.
-    // https://github.com/dart-lang/sdk/issues/26368
 
     var node = export.node;
     if (node is Procedure && node.name.name == 'main') {

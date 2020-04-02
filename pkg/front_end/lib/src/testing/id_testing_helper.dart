@@ -61,6 +61,9 @@ abstract class DataComputer<T> {
   /// Called before testing to setup flags needed for data collection.
   void setup() {}
 
+  // Called to allow for (awaited) inspection of the compilation result.
+  Future<void> inspectComponent(Component component) async {}
+
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
@@ -116,6 +119,9 @@ abstract class DataComputer<T> {
   /// Returns the [DataInterpreter] used to check the actual data with the
   /// expected data.
   DataInterpreter<T> get dataValidator;
+
+  /// Returns `true` if data should be collected for member signatures.
+  bool get includeMemberSignatures => false;
 }
 
 class CfeCompiledData<T> extends CompiledData<T> {
@@ -347,6 +353,12 @@ Future<TestResult<T>> runTestForConfig<T>(
   }
 
   void processMember(Member member, Map<Id, ActualData<T>> actualMap) {
+    if (!dataComputer.includeMemberSignatures && member is Procedure) {
+      if (member.isMemberSignature ||
+          (member.isForwardingStub && !member.isForwardingSemiStub)) {
+        return;
+      }
+    }
     if (member.enclosingClass != null) {
       if (member.enclosingClass.isEnum) {
         if (member is Constructor ||
@@ -379,6 +391,8 @@ Future<TestResult<T>> runTestForConfig<T>(
         (library.importUri.scheme == 'dart' ||
             library.importUri.scheme == 'package');
   }
+
+  await dataComputer.inspectComponent(component);
 
   for (Library library in component.libraries) {
     if (excludeLibrary(library) &&

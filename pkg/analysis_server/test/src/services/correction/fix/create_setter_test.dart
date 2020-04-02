@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -249,6 +250,39 @@ class B {
   set test(test) {}
 }
 ''');
+  }
+
+  Future<void> test_qualified_instance_inPart_imported() async {
+    addSource('/home/test/lib/a.dart', '''
+part of lib;
+
+class A {}
+''');
+
+    await resolveTestUnit('''
+import 'package:test/a.dart';
+
+main(A a) {
+  a.test = 0;
+}
+''');
+    await assertNoFix(errorFilter: (e) {
+      return e.errorCode == StaticTypeWarningCode.UNDEFINED_SETTER;
+    });
+  }
+
+  Future<void> test_qualified_instance_inPart_self() async {
+    await resolveTestUnit('''
+part of lib;
+
+class A {
+}
+
+main(A a) {
+  a.test = 0;
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_qualified_propagatedType() async {

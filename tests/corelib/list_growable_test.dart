@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 main() {
   var a;
-  a = new List();
+  a = [];
   a.add(499);
   Expect.equals(1, a.length);
   Expect.equals(499, a[0]);
@@ -14,7 +14,7 @@ main() {
   Expect.equals(0, a.length);
   Expect.throwsRangeError(() => a[0]);
 
-  a = new List(42).toList();
+  a = new List<int?>.filled(42, null).toList();
   Expect.equals(42, a.length);
   a.add(499);
   Expect.equals(43, a.length);
@@ -24,7 +24,7 @@ main() {
   Expect.equals(0, a.length);
   Expect.throwsRangeError(() => a[0]);
 
-  a = new List<int?>(42).toList();
+  a = new List<int?>.filled(42, null).toList();
   Expect.equals(42, a.length);
   a.add(499);
   Expect.equals(43, a.length);

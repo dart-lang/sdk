@@ -69,8 +69,8 @@ class BBB {
     await waitForTasksFinished();
     expect(outline, isNull);
     await prepareOutline();
-    Outline unitOutline = outline;
-    List<Outline> outlines = unitOutline.children;
+    var unitOutline = outline;
+    var outlines = unitOutline.children;
     expect(outlines, hasLength(2));
   }
 

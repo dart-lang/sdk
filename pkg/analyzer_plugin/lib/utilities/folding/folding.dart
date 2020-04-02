@@ -57,9 +57,9 @@ class FoldingGenerator {
   /// Create an 'analysis.folding' notification. If any of the contributors
   /// throws an exception, also create a non-fatal 'plugin.error' notification.
   GeneratorResult generateFoldingNotification(FoldingRequest request) {
-    List<Notification> notifications = <Notification>[];
-    FoldingCollectorImpl collector = FoldingCollectorImpl();
-    for (FoldingContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = FoldingCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeFolding(request, collector);
       } catch (exception, stackTrace) {

@@ -21,9 +21,16 @@ Future<Process> spawnDartProcess(String script) async {
     '--observe=0',
     '--pause-isolates-on-start',
     '--write-service-info=$serviceInfoUri',
-    script,
+    ...Platform.executableArguments,
+    Platform.script.resolve(script).toString(),
   ];
   final process = await Process.start(executable, arguments);
+  process.stdout
+      .transform(utf8.decoder)
+      .listen((line) => print('TESTEE OUT: $line'));
+  process.stderr
+      .transform(utf8.decoder)
+      .listen((line) => print('TESTEE ERR: $line'));
   while ((await serviceInfoFile.length()) <= 5) {
     await Future.delayed(const Duration(milliseconds: 50));
   }

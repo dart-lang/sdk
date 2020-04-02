@@ -9,7 +9,9 @@ import 'package:test/test.dart';
 
 Timeout defaultTimeout = Timeout(Duration(seconds: 15));
 
-TestProject project({String mainSrc}) => TestProject(mainSrc: mainSrc);
+TestProject project({String mainSrc, String analysisOptions}) {
+  return TestProject(mainSrc: mainSrc, analysisOptions: analysisOptions);
+}
 
 class TestProject {
   static String get defaultProjectName => 'dartdev_temp';
@@ -22,12 +24,15 @@ class TestProject {
 
   String get relativeFilePath => 'lib/main.dart';
 
-  TestProject({String mainSrc}) {
+  TestProject({String mainSrc, String analysisOptions}) {
     dir = Directory.systemTemp.createTempSync('dartdev');
+    file('pubspec.yaml', 'name: $name\ndev_dependencies:\n  test: any\n');
+    if (analysisOptions != null) {
+      file('analysis_options.yaml', analysisOptions);
+    }
     if (mainSrc != null) {
       file(relativeFilePath, mainSrc);
     }
-    file('pubspec.yaml', 'name: $name\ndev_dependencies:\n  test: any\n');
   }
 
   void file(String name, String contents) {

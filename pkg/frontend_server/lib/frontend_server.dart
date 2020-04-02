@@ -451,6 +451,7 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
+      nullSafety: options['null-safety'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');

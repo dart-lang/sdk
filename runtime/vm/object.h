@@ -519,6 +519,9 @@ class Object {
     return megamorphic_cache_class_;
   }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
+  static RawClass* weak_serialization_reference_class() {
+    return weak_serialization_reference_class_;
+  }
 
   // Initialize the VM isolate.
   static void InitNull(Isolate* isolate);
@@ -795,6 +798,8 @@ class Object {
   static RawClass* language_error_class_;       // Class of LanguageError.
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;         // Class of UnwindError.
+  // Class of WeakSerializationReference.
+  static RawClass* weak_serialization_reference_class_;
 
 #define DECLARE_SHARED_READONLY_HANDLE(Type, name) static Type* name##_;
   SHARED_READONLY_HANDLES_LIST(DECLARE_SHARED_READONLY_HANDLE)
@@ -5719,6 +5724,117 @@ class ExceptionHandlers : public Object {
   friend class Object;
 };
 
+// A WeakSerializationReference (WSR) denotes a type of weak reference to a
+// target object. In particular, objects that can only be reached from roots via
+// WSR edges during serialization of AOT snapshots should not be serialized. Of
+// course, the target object may still be serialized if there are paths to the
+// object from the roots that do not go through one of these objects, in which
+// case the WSR is discarded in favor of a direct reference during serialization
+// to avoid runtime overhead.
+//
+// Note: Some objects cannot be dropped during AOT serialization, and thus
+//       Wrap() may return the original object in some cases. The CanWrap()
+//       function returns false if Wrap() will return the original object.
+//       In particular, the null object will never be wrapped, so receiving
+//       Object::null() from target() means the WSR represents a dropped target.
+//
+// Unfortunately a WSR is not a proxy for the original object, so if WSRs may
+// appear as field contents (currently only possible for RawObject* fields),
+// then code that accesses that field must handle the case where an WSR has
+// been introduced. Before serialization, Unwrap can be used to take a
+// Object reference or RawObject pointer and remove any WSR wrapping before use.
+// After deserialization, any WSRs no longer contain a pointer to the target,
+// but instead contain only the class ID of the original target.
+//
+// Current uses of WSRs:
+//  * Code::owner_
+class WeakSerializationReference : public Object {
+ public:
+  RawObject* target() const { return TargetOf(raw()); }
+  static RawObject* TargetOf(const RawWeakSerializationReference* raw) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // WSRs in the precompiled runtime only contain some remaining info about
+    // their old target, not a reference to the target itself..
+    return Object::null();
+#else
+    // Outside the precompiled runtime, they should always have a target.
+    ASSERT(raw->ptr()->target_ != Object::null());
+    return raw->ptr()->target_;
+#endif
+  }
+
+  classid_t TargetClassId() const { return TargetClassIdOf(raw()); }
+  static classid_t TargetClassIdOf(const RawWeakSerializationReference* raw) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // No new instances of WSRs are created in the precompiled runtime, so
+    // this instance came from deserialization and thus must be the empty WSR.
+    return raw->ptr()->cid_;
+#else
+    return TargetOf(raw)->GetClassId();
+#endif
+  }
+
+  static RawObject* Unwrap(const Object& obj) { return Unwrap(obj.raw()); }
+  // Gets the underlying object from a WSR, or the original object if it is
+  // not one. Notably, Unwrap(Wrap(r)) == r for all raw objects r, whether
+  // CanWrap(r) or not. However, this will not hold if a serialization and
+  // deserialization step is put between the two calls.
+  static RawObject* Unwrap(RawObject* obj) {
+    if (!obj->IsWeakSerializationReference()) return obj;
+    return TargetOf(reinterpret_cast<RawWeakSerializationReference*>(obj));
+  }
+
+  // An Unwrap that only unwraps if there's a valid target, otherwise the
+  // WSR is returned. Useful for cases where we want to call Object methods
+  // like ToCString() on whatever non-null object we can get.
+  static RawObject* UnwrapIfTarget(const Object& obj) {
+    return UnwrapIfTarget(obj.raw());
+  }
+  static RawObject* UnwrapIfTarget(RawObject* raw) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // In the precompiled runtime, WSRs never have a target so we always return
+    // the argument.
+    return raw;
+#else
+    if (!raw->IsWeakSerializationReference()) return raw;
+    // Otherwise, they always do.
+    return TargetOf(WeakSerializationReference::RawCast(raw));
+#endif
+  }
+
+  static classid_t UnwrappedClassIdOf(const Object& obj) {
+    return UnwrappedClassIdOf(obj.raw());
+  }
+  // Gets the class ID of the underlying object from a WSR, or the class ID of
+  // the object if it is not one.
+  //
+  // UnwrappedClassOf(Wrap(r)) == UnwrappedClassOf(r) for all raw objects r,
+  // whether CanWrap(r) or not. Unlike Unwrap, this is still true even if
+  // there is a serialization and deserialization step between the two calls,
+  // since that information is saved in the serialized WSR.
+  static classid_t UnwrappedClassIdOf(RawObject* obj) {
+    if (!obj->IsWeakSerializationReference()) return obj->GetClassId();
+    return TargetClassIdOf(WeakSerializationReference::RawCast(obj));
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawWeakSerializationReference));
+  }
+
+#if defined(DART_PRECOMPILER)
+  // Returns true if a new WSR would be created when calling Wrap.
+  static bool CanWrap(const Object& object);
+
+  // This returns RawObject*, not RawWeakSerializationReference*, because
+  // target.raw() is returned when CanWrap(target) is false.
+  static RawObject* Wrap(Zone* zone, const Object& target);
+#endif
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference, Object);
+  friend class Class;
+};
+
 class Code : public Object {
  public:
   // When dual mapping, this returns the executable view.
@@ -6068,13 +6184,17 @@ class Code : public Object {
   // everybody use owner().  Currently this function is misused - even
   // while generating the snapshot.
   RawFunction* function() const {
-    return reinterpret_cast<RawFunction*>(raw_ptr()->owner_);
+    ASSERT(IsFunctionCode());
+    return Function::RawCast(
+        WeakSerializationReference::Unwrap(raw_ptr()->owner_));
   }
 
   RawObject* owner() const { return raw_ptr()->owner_; }
-  void set_owner(const Object& owner) const {
-    ASSERT(owner.IsFunction() || owner.IsClass() || owner.IsAbstractType());
-    StorePointer(&raw_ptr()->owner_, owner.raw());
+  void set_owner(const Object& owner) const;
+
+  classid_t OwnerClassId() const { return OwnerClassIdOf(raw()); }
+  static classid_t OwnerClassIdOf(RawCode* raw) {
+    return WeakSerializationReference::UnwrappedClassIdOf(raw->ptr()->owner_);
   }
 
   static intptr_t owner_offset() { return OFFSET_OF(RawCode, owner_); }

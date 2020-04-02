@@ -148,101 +148,65 @@ class Class1 extends LegacyClass {
 
 /*class: Class2a:Class2a,Interface,LegacyClass,Object*/
 class Class2a extends LegacyClass implements Interface {
-  /*cfe|cfe:builder.member: Class2a.method1:int Function()*/
-  /*analyzer.member: Class2a.method1:int* Function()**/
+  /*member: Class2a.method1:int Function()*/
 
-  /*cfe|cfe:builder.member: Class2a.method2:int? Function()*/
-  /*analyzer.member: Class2a.method2:int* Function()**/
+  /*member: Class2a.method2:int? Function()*/
 
-  /*cfe|cfe:builder.member: Class2a.method3a:int Function(int, int)*/
-  /*analyzer.member: Class2a.method3a:int* Function(int*, int*)**/
+  /*member: Class2a.method3a:int Function(int, int)*/
 
-  /*cfe|cfe:builder.member: Class2a.method3b:int Function(int, [int])*/
-  /*analyzer.member: Class2a.method3b:int* Function(int*, [int*])**/
+  /*member: Class2a.method3b:int Function(int, [int])*/
 
-  /*cfe|cfe:builder.member: Class2a.method3c:int Function([int, int])*/
-  /*analyzer.member: Class2a.method3c:int* Function([int*, int*])**/
+  /*member: Class2a.method3c:int Function([int, int])*/
 
-  /*cfe|cfe:builder.member: Class2a.method4a:int? Function(int?, int?)*/
-  /*analyzer.member: Class2a.method4a:int* Function(int*, int*)**/
+  /*member: Class2a.method4a:int? Function(int?, int?)*/
 
-  /*cfe|cfe:builder.member: Class2a.method4b:int? Function(int?, [int?])*/
-  /*analyzer.member: Class2a.method4b:int* Function(int*, [int*])**/
+  /*member: Class2a.method4b:int? Function(int?, [int?])*/
 
-  /*cfe|cfe:builder.member: Class2a.method4c:int? Function([int?, int?])*/
-  /*analyzer.member: Class2a.method4c:int* Function([int*, int*])**/
+  /*member: Class2a.method4c:int? Function([int?, int?])*/
 
-  /*cfe|cfe:builder.member: Class2a.method5a:int Function(int, {int b})*/
-  /*analyzer.member: Class2a.method5a:int* Function(int*, {int* b})**/
+  /*member: Class2a.method5a:int Function(int, {int b})*/
 
-  /*cfe|cfe:builder.member: Class2a.method5b:int Function({int a, int b})*/
-  /*analyzer.member: Class2a.method5b:int* Function({int* a, int* b})**/
+  /*member: Class2a.method5b:int Function({int a, int b})*/
 
-  /*cfe|cfe:builder.member: Class2a.method6a:int? Function(int?, {int? b})*/
-  /*analyzer.member: Class2a.method6a:int* Function(int*, {int* b})**/
+  /*member: Class2a.method6a:int? Function(int?, {int? b})*/
 
-  /*cfe|cfe:builder.member: Class2a.method6b:int? Function({int? a, int? b})*/
-  /*analyzer.member: Class2a.method6b:int* Function({int* a, int* b})**/
+  /*member: Class2a.method6b:int? Function({int? a, int? b})*/
 
-  /*cfe|cfe:builder.member: Class2a.getter1:int*/
-  /*analyzer.member: Class2a.getter1:int**/
-  /*cfe|cfe:builder.member: Class2a.getter2:int?*/
-  /*analyzer.member: Class2a.getter2:int**/
+  /*member: Class2a.getter1:int*/
+  /*member: Class2a.getter2:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.setter1=:int*/
-  /*analyzer.member: Class2a.setter1=:int**/
-  /*cfe|cfe:builder.member: Class2a.setter2=:int?*/
-  /*analyzer.member: Class2a.setter2=:int**/
+  /*member: Class2a.setter1=:int*/
+  /*member: Class2a.setter2=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.field1:int*/
-  /*analyzer.member: Class2a.field1:int**/
-  /*cfe|cfe:builder.member: Class2a.field1=:int*/
-  /*analyzer.member: Class2a.field1=:int**/
+  /*member: Class2a.field1:int*/
+  /*member: Class2a.field1=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.field2:int?*/
-  /*analyzer.member: Class2a.field2:int**/
-  /*cfe|cfe:builder.member: Class2a.field2=:int?*/
-  /*analyzer.member: Class2a.field2=:int**/
+  /*member: Class2a.field2:int?*/
+  /*member: Class2a.field2=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.field3:int*/
-  /*analyzer.member: Class2a.field3:int**/
-  /*cfe|cfe:builder.member: Class2a.field3=:int*/
-  /*analyzer.member: Class2a.field3=:int**/
+  /*member: Class2a.field3:int*/
+  /*member: Class2a.field3=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.field4:int?*/
-  /*analyzer.member: Class2a.field4:int**/
-  /*cfe|cfe:builder.member: Class2a.field4=:int?*/
-  /*analyzer.member: Class2a.field4=:int**/
+  /*member: Class2a.field4:int?*/
+  /*member: Class2a.field4=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.field5:int*/
-  /*analyzer.member: Class2a.field5:int**/
-  /*cfe|cfe:builder.member: Class2a.field5=:int*/
-  /*analyzer.member: Class2a.field5=:int**/
+  /*member: Class2a.field5:int*/
+  /*member: Class2a.field5=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.field6:int?*/
-  /*analyzer.member: Class2a.field6:int**/
-  /*cfe|cfe:builder.member: Class2a.field6=:int?*/
-  /*analyzer.member: Class2a.field6=:int**/
+  /*member: Class2a.field6:int?*/
+  /*member: Class2a.field6=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.property1:int*/
-  /*analyzer.member: Class2a.property1:int**/
-  /*cfe|cfe:builder.member: Class2a.property1=:int*/
-  /*analyzer.member: Class2a.property1=:int**/
+  /*member: Class2a.property1:int*/
+  /*member: Class2a.property1=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.property2:int?*/
-  /*analyzer.member: Class2a.property2:int**/
-  /*cfe|cfe:builder.member: Class2a.property2=:int?*/
-  /*analyzer.member: Class2a.property2=:int**/
+  /*member: Class2a.property2:int?*/
+  /*member: Class2a.property2=:int?*/
 
-  /*cfe|cfe:builder.member: Class2a.property3:int*/
-  /*analyzer.member: Class2a.property3:int**/
-  /*cfe|cfe:builder.member: Class2a.property3=:int*/
-  /*analyzer.member: Class2a.property3=:int**/
+  /*member: Class2a.property3:int*/
+  /*member: Class2a.property3=:int*/
 
-  /*cfe|cfe:builder.member: Class2a.property4:int?*/
-  /*analyzer.member: Class2a.property4:int**/
-  /*cfe|cfe:builder.member: Class2a.property4=:int?*/
-  /*analyzer.member: Class2a.property4=:int**/
+  /*member: Class2a.property4:int?*/
+  /*member: Class2a.property4=:int?*/
 }
 
 /*class: Class2b:Class2b,Interface,LegacyClass,Object*/

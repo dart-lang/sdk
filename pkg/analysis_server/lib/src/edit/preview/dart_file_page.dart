@@ -22,14 +22,16 @@ class DartFilePage extends PreviewPage {
       : super(site, unitInfo.path.substring(1));
 
   @override
+  bool get requiresAuth => true;
+
+  @override
   void generateBody(Map<String, String> params) {
     throw UnsupportedError('generateBody');
   }
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    UnitRenderer renderer =
-        UnitRenderer(unitInfo, site.migrationInfo, site.pathMapper);
+    var renderer = UnitRenderer(unitInfo, site.migrationInfo, site.pathMapper);
     buf.write(jsonEncode(renderer.render().toJson()));
   }
 }

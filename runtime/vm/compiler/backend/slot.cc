@@ -160,12 +160,13 @@ const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
 const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
                                             const LocalVariable& variable) {
   ASSERT(variable.is_captured());
-  return SlotCache::Instance(thread).Canonicalize(Slot(
-      Kind::kCapturedVariable,
-      IsImmutableBit::encode(variable.is_final()) | IsNullableBit::encode(true),
-      kDynamicCid,
-      compiler::target::Context::variable_offset(variable.index().value()),
-      &variable.name(), &variable.type()));
+  return SlotCache::Instance(thread).Canonicalize(
+      Slot(Kind::kCapturedVariable,
+           IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
+               IsNullableBit::encode(true),
+           kDynamicCid,
+           compiler::target::Context::variable_offset(variable.index().value()),
+           &variable.name(), &variable.type()));
 }
 
 const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
@@ -230,7 +231,8 @@ const Slot& Slot::Get(const Field& field,
 
   const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
       Kind::kDartField,
-      IsImmutableBit::encode(field.is_final() || field.is_const()) |
+      IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
+                             field.is_const()) |
           IsNullableBit::encode(is_nullable) |
           IsGuardedBit::encode(used_guarded_state),
       nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type));

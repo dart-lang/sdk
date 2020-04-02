@@ -50,7 +50,7 @@ class Notification {
   /// Return a table representing the structure of the Json object that will be
   /// sent to the client to represent this response.
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = {};
+    var jsonObject = <String, Object>{};
     jsonObject[EVENT] = event;
     if (params != null) {
       jsonObject[PARAMS] = params;
@@ -179,7 +179,7 @@ class Request {
   /// Return a table representing the structure of the Json object that will be
   /// sent to the client to represent this response.
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = <String, Object>{};
+    var jsonObject = <String, Object>{};
     jsonObject[ID] = id;
     jsonObject[METHOD] = method;
     if (params.isNotEmpty) {
@@ -198,11 +198,11 @@ class Request {
     if (second == null) {
       return false;
     }
-    int length = first.length;
+    var length = first.length;
     if (length != second.length) {
       return false;
     }
-    for (int i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       if (!_equalObjects(first[i], second[i])) {
         return false;
       }
@@ -486,7 +486,7 @@ class Response {
   /// Initialize a newly created instance to represent the SERVER_ERROR error
   /// condition.
   factory Response.serverError(Request request, exception, stackTrace) {
-    RequestError error =
+    var error =
         RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
     if (stackTrace != null) {
       error.stackTrace = stackTrace.toString();
@@ -524,7 +524,7 @@ class Response {
   /// Return a table representing the structure of the Json object that will be
   /// sent to the client to represent this response.
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = <String, Object>{};
+    var jsonObject = <String, Object>{};
     jsonObject[ID] = id;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();

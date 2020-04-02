@@ -26,7 +26,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    LibraryElement containingLibrary = request.libraryElement;
+    var containingLibrary = request.libraryElement;
     // Gracefully degrade if the library could not be determined, such as with a
     // detached part file or source change.
     if (containingLibrary == null) {
@@ -36,7 +36,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     builder = MemberSuggestionBuilder(request);
 
     // Recompute the target because resolution might have changed it.
-    Expression expression = request.dotTarget;
+    var expression = request.dotTarget;
 
     if (expression == null) {
       var classOrMixin = request.target.containingNode
@@ -72,7 +72,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
     if (expression is Identifier) {
-      Element elem = expression.staticElement;
+      var elem = expression.staticElement;
       if (elem is ClassElement) {
         // Suggestions provided by StaticMemberContributor.
         return const <CompletionSuggestion>[];

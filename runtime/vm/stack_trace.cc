@@ -413,7 +413,8 @@ void StackTraceUtils::CollectFramesLazy(
 
     // Either continue the loop (sync-async case) or find all await'ers and
     // return.
-    if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+    if (!function.IsNull() &&
+        (function.IsAsyncClosure() || function.IsAsyncGenClosure())) {
       if (has_async != nullptr) {
         *has_async = true;
       }
@@ -509,13 +510,11 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
     if (frame->is_interpreted()) {
       bytecode = frame->LookupDartBytecode();
       function = bytecode.function();
-      if (function.IsNull()) {
-        continue;
-      }
     } else {
       code = frame->LookupDartCode();
       function = code.function();
     }
+    if (function.IsNull()) continue;
     if (sync_async_gap_frames > 0) {
       function_name = function.QualifiedScrubbedName();
       if (!CheckAndSkipAsync(&sync_async_gap_frames, function_name)) {

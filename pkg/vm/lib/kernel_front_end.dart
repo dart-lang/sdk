@@ -193,7 +193,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     aot: aot,
   )..parseCommandLineFlags(options['bytecode-options']);
 
-  final target = createFrontEndTarget(targetName);
+  final target = createFrontEndTarget(targetName, nullSafety: nullSafety);
   if (target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -528,12 +528,12 @@ bool parseCommandLineDefines(
 
 /// Create front-end target with given name.
 Target createFrontEndTarget(String targetName,
-    {bool trackWidgetCreation = false}) {
+    {bool trackWidgetCreation = false, bool nullSafety = false}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
-  final TargetFlags targetFlags =
-      new TargetFlags(trackWidgetCreation: trackWidgetCreation);
+  final TargetFlags targetFlags = new TargetFlags(
+      trackWidgetCreation: trackWidgetCreation, enableNullSafety: nullSafety);
   return getTarget(targetName, targetFlags);
 }
 

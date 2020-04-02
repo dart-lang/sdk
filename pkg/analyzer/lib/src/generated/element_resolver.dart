@@ -722,8 +722,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
     } else if (_isConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      // This error is now reported by the parser.
       element = null;
     } else if (element == null ||
         (element is PrefixElement && !_isValidAsPrefix(node))) {

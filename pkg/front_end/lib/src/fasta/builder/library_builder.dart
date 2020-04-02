@@ -337,7 +337,10 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
         .lookup(className, -1, null);
     if (cls is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = cls;
-      cls = aliasBuilder.unaliasDeclaration;
+      // No type arguments are available, but this method is only called in
+      // order to find constructors of specific non-generic classes (errors),
+      // so we can pass the empty list.
+      cls = aliasBuilder.unaliasDeclaration(const <TypeBuilder>[]);
     }
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in

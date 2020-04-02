@@ -133,12 +133,12 @@ class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
   void visitReturnStatement(ReturnStatement node) {
     hasReturn = true;
     // prepare expression
-    Expression expression = node.expression;
+    var expression = node.expression;
     if (expression == null) {
       return;
     }
     // prepare type
-    DartType type = expression.staticType;
+    var type = expression.staticType;
     if (type.isBottom) {
       return;
     }

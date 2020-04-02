@@ -904,6 +904,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
     case MethodRecognizer::kFfiAbi:
+    case MethodRecognizer::kReachabilityFence:
       return true;
     case MethodRecognizer::kAsyncStackTraceHelper:
       return !FLAG_causal_async_stacks;
@@ -1185,6 +1186,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kAsyncStackTraceHelper:
       ASSERT(!FLAG_causal_async_stacks);
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kReachabilityFence:
+      ASSERT(function.NumParameters() == 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += ReachabilityFence();
       body += NullConstant();
       break;
     case MethodRecognizer::kFfiAbi:
@@ -2886,6 +2893,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
+  const intptr_t kClosureParameterOffset = 0;
+  const intptr_t kFirstArgumentParameterOffset = kClosureParameterOffset + 1;
+
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
@@ -2907,13 +2917,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   // Unbox and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    body += LoadLocal(parsed_function_->ParameterVariable(i + 1));
+    body += LoadLocal(
+        parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
     body += FfiConvertArgumentToNative(marshaller, i);
   }
 
   // Push the function pointer, which is stored (as Pointer object) in the
   // first slot of the context.
-  body += LoadLocal(parsed_function_->ParameterVariable(0));
+  body +=
+      LoadLocal(parsed_function_->ParameterVariable(kClosureParameterOffset));
   body += LoadNativeField(Slot::Closure_context());
   body += LoadNativeField(Slot::GetContextVariableSlotFor(
       thread_, *MakeImplicitClosureScope(
@@ -2924,6 +2936,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   body += LoadUntagged(compiler::target::Pointer::data_field_offset());
   body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
   body += FfiCall(marshaller);
+
+  for (intptr_t i = 0; i < marshaller.num_args(); i++) {
+    if (marshaller.IsPointer(i)) {
+      body += LoadLocal(parsed_function_->ParameterVariable(
+          kFirstArgumentParameterOffset + i));
+      body += ReachabilityFence();
+    }
+  }
 
   body += FfiConvertArgumentToDart(marshaller, compiler::ffi::kResultIndex);
 

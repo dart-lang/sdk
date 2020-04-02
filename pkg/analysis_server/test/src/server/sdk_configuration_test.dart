@@ -22,7 +22,7 @@ void main() {
 
     test("custom settings file doesn't exist", () {
       tempDir = Directory.systemTemp.createTempSync('SdkConfiguration');
-      File file = File(path.join(tempDir.path, 'config.json'));
+      var file = File(path.join(tempDir.path, 'config.json'));
 
       expect(() {
         SdkConfiguration.readFromFile(file);
@@ -31,12 +31,12 @@ void main() {
 
     test('is not configured', () {
       tempDir = Directory.systemTemp.createTempSync('SdkConfiguration');
-      File file = File(path.join(tempDir.path, 'config.json'));
+      var file = File(path.join(tempDir.path, 'config.json'));
       file.writeAsStringSync('''
 {}
 ''');
 
-      SdkConfiguration config = SdkConfiguration.readFromFile(file);
+      var config = SdkConfiguration.readFromFile(file);
 
       expect(config.hasAnyOverrides, isFalse);
       expect(config.analyticsId, isNull);
@@ -48,7 +48,7 @@ void main() {
 
     test('is configured', () {
       tempDir = Directory.systemTemp.createTempSync('SdkConfiguration');
-      File file = File(path.join(tempDir.path, 'config.json'));
+      var file = File(path.join(tempDir.path, 'config.json'));
       file.writeAsStringSync('''
 {
   "server.analytics.id": "aaaa-1234",
@@ -61,7 +61,7 @@ void main() {
 }
 ''');
 
-      SdkConfiguration config = SdkConfiguration.readFromFile(file);
+      var config = SdkConfiguration.readFromFile(file);
 
       expect(config.hasAnyOverrides, isTrue);
       expect(config.analyticsId, 'aaaa-1234');

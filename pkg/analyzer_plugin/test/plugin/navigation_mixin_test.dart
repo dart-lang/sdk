@@ -45,9 +45,8 @@ class NavigationMixinTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    AnalysisGetNavigationResult result =
-        await plugin.handleAnalysisGetNavigation(
-            AnalysisGetNavigationParams(filePath1, 1, 2));
+    var result = await plugin.handleAnalysisGetNavigation(
+        AnalysisGetNavigationParams(filePath1, 1, 2));
     expect(result, isNotNull);
     expect(result.files, hasLength(1));
     expect(result.targets, hasLength(1));
@@ -58,11 +57,10 @@ class NavigationMixinTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = Completer<void>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisNavigationParams params =
-          AnalysisNavigationParams.fromNotification(notification);
+      var params = AnalysisNavigationParams.fromNotification(notification);
       expect(params.files, hasLength(1));
       expect(params.targets, hasLength(1));
       expect(params.regions, hasLength(2));
@@ -81,7 +79,7 @@ class _TestNavigationContributor implements NavigationContributor {
   @override
   void computeNavigation(
       NavigationRequest request, NavigationCollector collector) {
-    for (int i = 0; i < regionCount; i++) {
+    for (var i = 0; i < regionCount; i++) {
       collector.addRegion(i, 5, ElementKind.METHOD, Location('a', 5, 5, 1, 5));
     }
   }

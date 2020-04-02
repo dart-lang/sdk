@@ -948,8 +948,9 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
     final cached = useCache ? cachedFlattenedTypeArgs[klass] : null;
     if (cached != null) return cached;
 
-    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters
-        .map((t) => new TypeParameterType(t, Nullability.legacy)));
+    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters.map(
+        (t) => new TypeParameterType(
+            t, TypeParameterType.computeNullabilityFromBound(t))));
 
     for (final Supertype intf in hierarchy.genericSupertypesOf(klass)) {
       int offset = findOverlap(flattenedTypeArguments, intf.typeArguments);
@@ -1022,10 +1023,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
       <DynamicSelector, _DynamicTargetSet>{};
 
   _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy,
-      this.genericInterfacesInfo, this.environment)
+      this.genericInterfacesInfo, this.environment, bool nullSafety)
       : objectNoSuchMethod = hierarchy.getDispatchTarget(
             environment.coreTypes.objectClass, noSuchMethodName),
-        super(environment.coreTypes) {
+        super(environment.coreTypes, nullSafety) {
     assertx(objectNoSuchMethod != null);
   }
 
@@ -1044,6 +1045,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
   ConcreteType addAllocatedClass(Class cl) {
     assertx(!cl.isAbstract);
+    assertx(cl != coreTypes.futureOrClass);
     assertx(!_sealed);
 
     final _TFClassImpl classImpl = getTFClass(cl);
@@ -1339,8 +1341,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
-    hierarchyCache = new _ClassHierarchyCache(
-        this, hierarchy, _genericInterfacesInfo, environment);
+    hierarchyCache = new _ClassHierarchyCache(this, hierarchy,
+        _genericInterfacesInfo, environment, target.flags.enableNullSafety);
     summaryCollector = new SummaryCollector(target, environment, hierarchy,
         this, hierarchyCache, nativeCodeOracle, hierarchyCache);
     _invocationsCache = new _InvocationsCache(this);

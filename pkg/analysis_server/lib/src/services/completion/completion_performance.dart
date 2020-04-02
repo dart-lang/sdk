@@ -2,6 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Compute a string representing a code completion operation at the
+/// given source and location.
+///
+/// This string is useful for displaying to users in a diagnostic context.
+String computeCompletionSnippet(String contents, int offset) {
+  if (contents == null ||
+      offset == null ||
+      offset < 0 ||
+      contents.length < offset) {
+    return '???';
+  }
+  var start = offset;
+  while (start > 0) {
+    var ch = contents[start - 1];
+    if (ch == '\r' || ch == '\n') {
+      break;
+    }
+    --start;
+  }
+  var end = offset;
+  while (end < contents.length) {
+    var ch = contents[end];
+    if (ch == '\r' || ch == '\n') {
+      break;
+    }
+    ++end;
+  }
+  var prefix = contents.substring(start, offset);
+  var suffix = contents.substring(offset, end);
+  return '$prefix^$suffix';
+}
+
 /// Overall performance of a code completion operation.
 class CompletionPerformance {
   final DateTime start = DateTime.now();
@@ -35,8 +67,8 @@ class CompletionPerformance {
   }
 
   void logElapseTime(String tag) {
-    Duration end = _stopwatch.elapsed;
-    Duration start = _startTimes[tag];
+    var end = _stopwatch.elapsed;
+    var start = _startTimes[tag];
     if (start == null) {
       _logDuration(tag, null);
       return null;
@@ -71,36 +103,4 @@ class OperationPerformance {
   final Duration elapsed;
 
   OperationPerformance(this.name, this.elapsed);
-}
-
-/// Compute a string representing a code completion operation at the
-/// given source and location.
-///
-/// This string is useful for displaying to users in a diagnostic context.
-String computeCompletionSnippet(String contents, int offset) {
-  if (contents == null ||
-      offset == null ||
-      offset < 0 ||
-      contents.length < offset) {
-    return '???';
-  }
-  int start = offset;
-  while (start > 0) {
-    String ch = contents[start - 1];
-    if (ch == '\r' || ch == '\n') {
-      break;
-    }
-    --start;
-  }
-  int end = offset;
-  while (end < contents.length) {
-    String ch = contents[end];
-    if (ch == '\r' || ch == '\n') {
-      break;
-    }
-    ++end;
-  }
-  String prefix = contents.substring(start, offset);
-  String suffix = contents.substring(offset, end);
-  return '$prefix^$suffix';
 }

@@ -199,6 +199,10 @@ complex_reload_test: RuntimeError
 [ $compiler == dartkb && ($builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed) ]
 *: Skip # There are still timeouts in the interpreter and mixed modes which cause infra timeouts.
 
+[ $mode == debug && $system == windows ]
+debugger_location_second_test: Skip, Timeout
+debugger_location_test: Skip, Timeout
+
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky

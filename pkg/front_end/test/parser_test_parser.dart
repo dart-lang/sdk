@@ -689,7 +689,8 @@ class TestParser extends Parser {
       Token beforeType,
       TypeInfo typeInfo,
       Token name,
-      DeclarationKind kind) {
+      DeclarationKind kind,
+      String enclosingDeclarationName) {
     doPrint('parseFields('
         '$beforeStart, '
         '$externalToken, '
@@ -700,7 +701,8 @@ class TestParser extends Parser {
         '$beforeType, '
         '$typeInfo, '
         '$name, '
-        '$kind)');
+        '$kind, '
+        '$enclosingDeclarationName)');
     indent++;
     var result = super.parseFields(
         beforeStart,
@@ -712,7 +714,8 @@ class TestParser extends Parser {
         beforeType,
         typeInfo,
         name,
-        kind);
+        kind,
+        enclosingDeclarationName);
     indent--;
     return result;
   }
@@ -741,17 +744,23 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseFieldInitializerOpt(Token token, Token name, Token lateToken,
-      Token varFinalOrConst, DeclarationKind kind) {
+  Token parseFieldInitializerOpt(
+      Token token,
+      Token name,
+      Token lateToken,
+      Token varFinalOrConst,
+      DeclarationKind kind,
+      String enclosingDeclarationName) {
     doPrint('parseFieldInitializerOpt('
         '$token, '
         '$name, '
         '$lateToken, '
         '$varFinalOrConst, '
-        '$kind)');
+        '$kind, '
+        '$enclosingDeclarationName)');
     indent++;
-    var result = super.parseFieldInitializerOpt(
-        token, name, lateToken, varFinalOrConst, kind);
+    var result = super.parseFieldInitializerOpt(token, name, lateToken,
+        varFinalOrConst, kind, enclosingDeclarationName);
     indent--;
     return result;
   }

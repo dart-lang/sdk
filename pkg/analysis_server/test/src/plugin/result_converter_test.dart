@@ -40,20 +40,19 @@ class ResultConverterTest extends ProtocolTestUtilities {
   ResultConverter converter = ResultConverter();
 
   void test_convertAnalysisErrorFixes() {
-    AnalysisError error = analysisError(0, 0);
-    SourceChange change = sourceChange(4, 4);
-    plugin.AnalysisErrorFixes initial = plugin.AnalysisErrorFixes(error,
+    var error = analysisError(0, 0);
+    var change = sourceChange(4, 4);
+    var initial = plugin.AnalysisErrorFixes(error,
         fixes: <plugin.PrioritizedSourceChange>[
           plugin.PrioritizedSourceChange(100, change)
         ]);
-    server.AnalysisErrorFixes expected =
+    var expected =
         server.AnalysisErrorFixes(error, fixes: <SourceChange>[change]);
     expect(converter.convertAnalysisErrorFixes(initial), expected);
   }
 
   void test_convertAnalysisNavigationParams() {
-    plugin.AnalysisNavigationParams initial =
-        plugin.AnalysisNavigationParams('a.dart', <NavigationRegion>[
+    var initial = plugin.AnalysisNavigationParams('a.dart', <NavigationRegion>[
       NavigationRegion(1, 2, <int>[3, 4])
     ], <NavigationTarget>[
       NavigationTarget(ElementKind.FIELD, 5, 6, 7, 8, 9)
@@ -61,8 +60,7 @@ class ResultConverterTest extends ProtocolTestUtilities {
       'a',
       'b'
     ]);
-    server.AnalysisNavigationParams expected =
-        server.AnalysisNavigationParams('a.dart', <NavigationRegion>[
+    var expected = server.AnalysisNavigationParams('a.dart', <NavigationRegion>[
       NavigationRegion(1, 2, <int>[3, 4])
     ], <NavigationTarget>[
       NavigationTarget(ElementKind.FIELD, 5, 6, 7, 8, 9)
@@ -74,18 +72,18 @@ class ResultConverterTest extends ProtocolTestUtilities {
   }
 
   void test_convertEditGetRefactoringResult_inlineMethod() {
-    RefactoringProblem problem1 = refactoringProblem(0, 0);
-    RefactoringProblem problem2 = refactoringProblem(2, 4);
-    RefactoringProblem problem3 = refactoringProblem(4, 8);
-    SourceChange change = sourceChange(6, 12);
-    plugin.EditGetRefactoringResult initial = plugin.EditGetRefactoringResult(
+    var problem1 = refactoringProblem(0, 0);
+    var problem2 = refactoringProblem(2, 4);
+    var problem3 = refactoringProblem(4, 8);
+    var change = sourceChange(6, 12);
+    var initial = plugin.EditGetRefactoringResult(
         <RefactoringProblem>[problem1],
         <RefactoringProblem>[problem2],
         <RefactoringProblem>[problem3],
         feedback: plugin.InlineMethodFeedback('a', true, className: 'b'),
         change: change,
         potentialEdits: <String>['f']);
-    server.EditGetRefactoringResult expected = server.EditGetRefactoringResult(
+    var expected = server.EditGetRefactoringResult(
         <RefactoringProblem>[problem1],
         <RefactoringProblem>[problem2],
         <RefactoringProblem>[problem3],
@@ -99,18 +97,18 @@ class ResultConverterTest extends ProtocolTestUtilities {
   }
 
   void test_convertEditGetRefactoringResult_moveFile() {
-    RefactoringProblem problem1 = refactoringProblem(0, 0);
-    RefactoringProblem problem2 = refactoringProblem(2, 4);
-    RefactoringProblem problem3 = refactoringProblem(4, 8);
-    SourceChange change = sourceChange(6, 12);
-    plugin.EditGetRefactoringResult initial = plugin.EditGetRefactoringResult(
+    var problem1 = refactoringProblem(0, 0);
+    var problem2 = refactoringProblem(2, 4);
+    var problem3 = refactoringProblem(4, 8);
+    var change = sourceChange(6, 12);
+    var initial = plugin.EditGetRefactoringResult(
         <RefactoringProblem>[problem1],
         <RefactoringProblem>[problem2],
         <RefactoringProblem>[problem3],
         feedback: plugin.MoveFileFeedback(),
         change: change,
         potentialEdits: <String>['f']);
-    server.EditGetRefactoringResult expected = server.EditGetRefactoringResult(
+    var expected = server.EditGetRefactoringResult(
         <RefactoringProblem>[problem1],
         <RefactoringProblem>[problem2],
         <RefactoringProblem>[problem3],
@@ -123,9 +121,8 @@ class ResultConverterTest extends ProtocolTestUtilities {
   }
 
   void test_convertPrioritizedSourceChange() {
-    SourceChange change = sourceChange(0, 0);
-    plugin.PrioritizedSourceChange initial =
-        plugin.PrioritizedSourceChange(100, change);
+    var change = sourceChange(0, 0);
+    var initial = plugin.PrioritizedSourceChange(100, change);
     expect(converter.convertPrioritizedSourceChange(initial), change);
   }
 }

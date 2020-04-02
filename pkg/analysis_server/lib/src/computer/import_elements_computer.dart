@@ -4,10 +4,8 @@
 
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -20,7 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/src/context.dart';
 
 /// An object used to compute a set of edits to add imports to a given library
 /// in order to make a given set of elements visible.
@@ -43,37 +40,35 @@ class ImportElementsComputer {
       List<ImportedElements> importedElementsList) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    List<ImportedElements> filteredImportedElements =
+    var filteredImportedElements =
         _filterImportedElements(importedElementsList);
-    LibraryElement libraryElement = libraryResult.libraryElement;
-    UriConverter uriConverter = libraryResult.session.uriConverter;
-    List<ImportDirective> existingImports = <ImportDirective>[];
+    var libraryElement = libraryResult.libraryElement;
+    var uriConverter = libraryResult.session.uriConverter;
+    var existingImports = <ImportDirective>[];
     for (var directive in libraryResult.unit.directives) {
       if (directive is ImportDirective) {
         existingImports.add(directive);
       }
     }
 
-    DartChangeBuilder builder = DartChangeBuilder(libraryResult.session);
+    var builder = DartChangeBuilder(libraryResult.session);
     await builder.addFileEdit(libraryResult.path,
         (DartFileEditBuilder builder) {
-      for (ImportedElements importedElements in filteredImportedElements) {
-        List<ImportDirective> matchingImports =
+      for (var importedElements in filteredImportedElements) {
+        var matchingImports =
             _findMatchingImports(existingImports, importedElements);
         if (matchingImports.isEmpty) {
           //
           // The required library is not being imported with a matching prefix,
           // so we need to add an import.
           //
-          File importedFile = resourceProvider.getFile(importedElements.path);
-          Uri uri = uriConverter.pathToUri(importedFile.path);
-          Source importedSource = importedFile.createSource(uri);
-          String importUri =
-              _getLibrarySourceUri(libraryElement, importedSource);
-          _InsertionDescription description =
-              _getInsertionDescription(importUri);
+          var importedFile = resourceProvider.getFile(importedElements.path);
+          var uri = uriConverter.pathToUri(importedFile.path);
+          var importedSource = importedFile.createSource(uri);
+          var importUri = _getLibrarySourceUri(libraryElement, importedSource);
+          var description = _getInsertionDescription(importUri);
           builder.addInsertion(description.offset, (DartEditBuilder builder) {
-            for (int i = 0; i < description.newLinesBefore; i++) {
+            for (var i = 0; i < description.newLinesBefore; i++) {
               builder.writeln();
             }
             builder.write("import '");
@@ -84,7 +79,7 @@ class ImportElementsComputer {
               builder.write(importedElements.prefix);
             }
             builder.write(';');
-            for (int i = 0; i < description.newLinesAfter; i++) {
+            for (var i = 0; i < description.newLinesAfter; i++) {
               builder.writeln();
             }
           });
@@ -96,30 +91,29 @@ class ImportElementsComputer {
           //
           // Compute the edits that need to be made.
           //
-          Map<ImportDirective, _ImportUpdate> updateMap =
-              <ImportDirective, _ImportUpdate>{};
-          for (String requiredName in importedElements.elements) {
+          var updateMap = <ImportDirective, _ImportUpdate>{};
+          for (var requiredName in importedElements.elements) {
             _computeUpdate(updateMap, matchingImports, requiredName);
           }
           //
           // Apply the edits.
           //
-          for (ImportDirective directive in updateMap.keys) {
-            _ImportUpdate update = updateMap[directive];
-            List<String> namesToUnhide = update.namesToUnhide;
-            List<String> namesToShow = update.namesToShow;
+          for (var directive in updateMap.keys) {
+            var update = updateMap[directive];
+            var namesToUnhide = update.namesToUnhide;
+            var namesToShow = update.namesToShow;
             namesToShow.sort();
-            NodeList<Combinator> combinators = directive.combinators;
-            int combinatorCount = combinators.length;
-            for (int combinatorIndex = 0;
+            var combinators = directive.combinators;
+            var combinatorCount = combinators.length;
+            for (var combinatorIndex = 0;
                 combinatorIndex < combinatorCount;
                 combinatorIndex++) {
-              Combinator combinator = combinators[combinatorIndex];
+              var combinator = combinators[combinatorIndex];
               if (combinator is HideCombinator && namesToUnhide.isNotEmpty) {
-                NodeList<SimpleIdentifier> hiddenNames = combinator.hiddenNames;
-                int nameCount = hiddenNames.length;
-                int first = -1;
-                for (int nameIndex = 0; nameIndex < nameCount; nameIndex++) {
+                var hiddenNames = combinator.hiddenNames;
+                var nameCount = hiddenNames.length;
+                var first = -1;
+                for (var nameIndex = 0; nameIndex < nameCount; nameIndex++) {
                   if (namesToUnhide.contains(hiddenNames[nameIndex].name)) {
                     if (first < 0) {
                       first = nameIndex;
@@ -140,7 +134,7 @@ class ImportElementsComputer {
                       builder.addDeletion(range.startStart(
                           combinator, combinators[combinatorIndex + 1]));
                     } else {
-                      SyntacticEntity precedingNode = directive.prefix ??
+                      var precedingNode = directive.prefix ??
                           directive.deferredKeyword ??
                           directive.uri;
                       if (precedingNode == null) {
@@ -164,7 +158,7 @@ class ImportElementsComputer {
                 // TODO(brianwilkerson) Add the names in alphabetic order.
                 builder.addInsertion(combinator.shownNames.last.end,
                     (DartEditBuilder builder) {
-                  for (String nameToShow in namesToShow) {
+                  for (var nameToShow in namesToShow) {
                     builder.write(', ');
                     builder.write(nameToShow);
                   }
@@ -193,7 +187,7 @@ class ImportElementsComputer {
       List<ImportDirective> matchingImports, String requiredName) {
     /// Return `true` if the [requiredName] is in the given list of [names].
     bool nameIn(NodeList<SimpleIdentifier> names) {
-      for (SimpleIdentifier name in names) {
+      for (var name in names) {
         if (name.name == requiredName) {
           return true;
         }
@@ -202,19 +196,19 @@ class ImportElementsComputer {
     }
 
     ImportDirective preferredDirective;
-    int bestEditCount = -1;
-    bool deleteHide = false;
-    bool addShow = false;
+    var bestEditCount = -1;
+    var deleteHide = false;
+    var addShow = false;
 
-    for (ImportDirective directive in matchingImports) {
-      NodeList<Combinator> combinators = directive.combinators;
+    for (var directive in matchingImports) {
+      var combinators = directive.combinators;
       if (combinators.isEmpty) {
         return;
       }
-      bool hasHide = false;
-      bool needsShow = false;
-      int editCount = 0;
-      for (Combinator combinator in combinators) {
+      var hasHide = false;
+      var needsShow = false;
+      var editCount = 0;
+      for (var combinator in combinators) {
         if (combinator is HideCombinator) {
           if (nameIn(combinator.hiddenNames)) {
             hasHide = true;
@@ -237,7 +231,7 @@ class ImportElementsComputer {
       }
     }
 
-    _ImportUpdate update = updateMap.putIfAbsent(
+    var update = updateMap.putIfAbsent(
         preferredDirective, () => _ImportUpdate(preferredDirective));
     if (deleteHide) {
       update.unhide(requiredName);
@@ -253,23 +247,23 @@ class ImportElementsComputer {
   /// name as in the original source.
   List<ImportedElements> _filterImportedElements(
       List<ImportedElements> originalList) {
-    LibraryElement libraryElement = libraryResult.libraryElement;
-    LibraryScope libraryScope = LibraryScope(libraryElement);
+    var libraryElement = libraryResult.libraryElement;
+    var libraryScope = LibraryScope(libraryElement);
     AstFactory factory = AstFactoryImpl();
-    List<ImportedElements> filteredList = <ImportedElements>[];
-    for (ImportedElements elements in originalList) {
-      List<String> originalElements = elements.elements;
-      List<String> filteredElements = originalElements.toList();
-      for (String name in originalElements) {
+    var filteredList = <ImportedElements>[];
+    for (var elements in originalList) {
+      var originalElements = elements.elements;
+      var filteredElements = originalElements.toList();
+      for (var name in originalElements) {
         Identifier identifier = factory
             .simpleIdentifier(StringToken(TokenType.IDENTIFIER, name, -1));
         if (elements.prefix.isNotEmpty) {
-          SimpleIdentifier prefix = factory.simpleIdentifier(
+          var prefix = factory.simpleIdentifier(
               StringToken(TokenType.IDENTIFIER, elements.prefix, -1));
           Token period = SimpleToken(TokenType.PERIOD, -1);
           identifier = factory.prefixedIdentifier(prefix, period, identifier);
         }
-        Element element = libraryScope.lookup(identifier, libraryElement);
+        var element = libraryScope.lookup(identifier, libraryElement);
         if (element != null) {
           filteredElements.remove(name);
         }
@@ -290,8 +284,8 @@ class ImportElementsComputer {
   List<ImportDirective> _findMatchingImports(
       List<ImportDirective> existingImports,
       ImportedElements importedElements) {
-    List<ImportDirective> matchingImports = <ImportDirective>[];
-    for (ImportDirective existingImport in existingImports) {
+    var matchingImports = <ImportDirective>[];
+    for (var existingImport in existingImports) {
       if (_matches(existingImport, importedElements)) {
         matchingImports.add(existingImport);
       }
@@ -304,11 +298,11 @@ class ImportElementsComputer {
   ///
   /// Partially copied from DartFileEditBuilderImpl.
   _InsertionDescription _getInsertionDescription(String importUri) {
-    CompilationUnit unit = libraryResult.unit;
+    var unit = libraryResult.unit;
     LibraryDirective libraryDirective;
-    List<ImportDirective> importDirectives = <ImportDirective>[];
-    List<Directive> otherDirectives = <Directive>[];
-    for (Directive directive in unit.directives) {
+    var importDirectives = <ImportDirective>[];
+    var otherDirectives = <Directive>[];
+    for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;
       } else if (directive is ImportDirective) {
@@ -336,17 +330,17 @@ class ImportElementsComputer {
   ///
   /// Copied from DartFileEditBuilderImpl.
   String _getLibrarySourceUri(LibraryElement from, Source what) {
-    String whatPath = what.fullName;
+    var whatPath = what.fullName;
     // check if an absolute URI (such as 'dart:' or 'package:')
-    Uri whatUri = what.uri;
-    String whatUriScheme = whatUri.scheme;
+    var whatUri = what.uri;
+    var whatUriScheme = whatUri.scheme;
     if (whatUriScheme != '' && whatUriScheme != 'file') {
       return whatUri.toString();
     }
     // compute a relative URI
-    Context context = resourceProvider.pathContext;
-    String fromFolder = context.dirname(from.source.fullName);
-    String relativeFile = context.relative(whatPath, from: fromFolder);
+    var context = resourceProvider.pathContext;
+    var fromFolder = context.dirname(from.source.fullName);
+    var relativeFile = context.relative(whatPath, from: fromFolder);
     return context.split(relativeFile).join('/');
   }
 
@@ -354,7 +348,7 @@ class ImportElementsComputer {
   /// [importedElements]. They will match if they import the same library using
   /// the same prefix.
   bool _matches(ImportDirective import, ImportedElements importedElements) {
-    LibraryElement library = (import.element as ImportElement).importedLibrary;
+    var library = (import.element as ImportElement).importedLibrary;
     return library != null &&
         library.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;

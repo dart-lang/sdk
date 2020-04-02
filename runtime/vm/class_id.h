@@ -83,7 +83,8 @@ namespace dart {
   V(LinkedHashMap)                                                             \
   V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
-  V(TransferableTypedData)
+  V(TransferableTypedData)                                                     \
+  V(WeakSerializationReference)
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \

@@ -557,7 +557,7 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   }
 
   // Datagram data read. Copy into buffer of the exact size,
-  ASSERT(bytes_read > 0);
+  ASSERT(bytes_read >= 0);
   uint8_t* data_buffer = NULL;
   Dart_Handle data = IOBuffer::Allocate(bytes_read, &data_buffer);
   if (Dart_IsNull(data)) {
@@ -568,6 +568,11 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   }
   ASSERT(data_buffer != NULL);
   memmove(data_buffer, recv_buffer, bytes_read);
+
+  // Memory Sanitizer complains addr not being initialized, which is done
+  // through RecvFrom().
+  // Issue: https://github.com/google/sanitizers/issues/1201
+  MSAN_UNPOISON(&addr, sizeof(RawAddr));
 
   // Get the port and clear it in the sockaddr structure.
   int port = SocketAddress::GetAddrPort(addr);
@@ -1198,6 +1203,18 @@ void FUNCTION_NAME(Socket_LeaveMulticast)(Dart_NativeArguments args) {
                                   interfaceIndex)) {
     Dart_ThrowException(DartUtils::NewDartOSError());
   }
+}
+
+void FUNCTION_NAME(Socket_AvailableDatagram)(Dart_NativeArguments args) {
+  const int kReceiveBufferLen = 1;
+  Socket* socket =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  ASSERT(socket != NULL);
+  // Ensure that a receive buffer for peeking the UDP socket exists.
+  uint8_t recv_buffer[kReceiveBufferLen];
+  bool available = SocketBase::AvailableDatagram(socket->fd(), recv_buffer,
+                                                 kReceiveBufferLen);
+  Dart_SetBooleanReturnValue(args, available);
 }
 
 static void NormalSocketFinalizer(void* isolate_data,

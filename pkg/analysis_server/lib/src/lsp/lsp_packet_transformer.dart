@@ -5,6 +5,22 @@
 import 'dart:async';
 import 'dart:convert';
 
+class InvalidEncodingError {
+  final String headers;
+  InvalidEncodingError(this.headers);
+
+  @override
+  String toString() =>
+      'Encoding in supplied headers is not supported.\n\nHeaders:\n$headers';
+}
+
+class LspHeaders {
+  final String rawHeaders;
+  final int contentLength;
+  final String encoding;
+  LspHeaders(this.rawHeaders, this.contentLength, this.encoding);
+}
+
 /// Transforms a stream of LSP data in the form:
 ///
 ///     Content-Length: xxx\r\n
@@ -20,7 +36,7 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
     StreamSubscription<int> input;
     StreamController<String> _output;
     final buffer = <int>[];
-    bool isParsingHeaders = true;
+    var isParsingHeaders = true;
     LspHeaders headers;
     _output = StreamController<String>(
       onListen: () {
@@ -67,6 +83,15 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
         buffer[l - 4] == 13;
   }
 
+  static String _extractEncoding(String header) {
+    final charset = header
+        ?.split(';')
+        ?.map((s) => s.trim().toLowerCase())
+        ?.firstWhere((s) => s.startsWith('charset='), orElse: () => null);
+
+    return charset == null ? null : charset.split('=')[1];
+  }
+
   /// Decodes [buffer] into a String and returns the 'Content-Length' header value.
   static LspHeaders _parseHeaders(List<int> buffer) {
     // Headers are specified as always ASCII in LSP.
@@ -80,29 +105,4 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
     final encoding = _extractEncoding(contentTypeHeader);
     return LspHeaders(asString, int.parse(length), encoding);
   }
-
-  static String _extractEncoding(String header) {
-    final charset = header
-        ?.split(';')
-        ?.map((s) => s.trim().toLowerCase())
-        ?.firstWhere((s) => s.startsWith('charset='), orElse: () => null);
-
-    return charset == null ? null : charset.split('=')[1];
-  }
-}
-
-class LspHeaders {
-  final String rawHeaders;
-  final int contentLength;
-  final String encoding;
-  LspHeaders(this.rawHeaders, this.contentLength, this.encoding);
-}
-
-class InvalidEncodingError {
-  final String headers;
-  InvalidEncodingError(this.headers);
-
-  @override
-  String toString() =>
-      'Encoding in supplied headers is not supported.\n\nHeaders:\n$headers';
 }

@@ -15,7 +15,7 @@ class ResultConverter {
 
   server.AnalysisErrorFixes convertAnalysisErrorFixes(
       plugin.AnalysisErrorFixes fixes) {
-    List<SourceChange> changes = fixes.fixes
+    var changes = fixes.fixes
         .map((plugin.PrioritizedSourceChange change) =>
             convertPrioritizedSourceChange(change))
         .toList();

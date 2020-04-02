@@ -29,7 +29,7 @@ main() {
   });
 
   asyncStart();
-  new Future.microtask(() {
+  new Future<Null>.microtask(() {
     throw "foo";
   }).catchError((e, stackTrace) {
     Expect.equals("foo", e);

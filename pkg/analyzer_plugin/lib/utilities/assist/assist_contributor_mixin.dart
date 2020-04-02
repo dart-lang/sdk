@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -22,7 +21,7 @@ abstract class AssistContributorMixin implements AssistContributor {
   /// assist. If the message has parameters, then use the list of [args] to
   /// populate the message.
   void addAssist(AssistKind kind, ChangeBuilder builder, {List<Object> args}) {
-    SourceChange change = builder.sourceChange;
+    var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
     }

@@ -631,7 +631,8 @@
           "non-nullable"
         ],
         "dart2js-options": [
-          "--no-null-safety"
+          "--no-null-safety",
+          "--libraries-spec=sdk_nnbd/lib/libraries.json"
         ],
         "host-checked": true
       }
@@ -848,12 +849,12 @@
         "hot-reload-rollback": true
       }
     },
-    "dartk-linux-(debug|product|release)-arm-qemu": {
+    "dartk-linux-(debug|product|release)-(arm|arm64)-qemu": {
       "options": {
         "use-qemu": true
       }
     },
-    "dartkp-linux-(debug|product|release)-arm-qemu": {
+    "dartkp-linux-(debug|product|release)-(arm|arm64)-qemu": {
       "options": {
         "use-qemu": true
       }

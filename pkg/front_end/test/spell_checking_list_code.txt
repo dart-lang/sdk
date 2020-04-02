@@ -66,6 +66,7 @@ atoms
 attributes
 automagically
 auxiliary
+awaited
 awaiting
 b
 b0i
@@ -76,6 +77,7 @@ b23d3b125e9d246e07a2b43b61740759a0dace
 b2i
 b2m
 backping
+badly
 bang
 bar
 basically
@@ -197,6 +199,7 @@ compression
 concat
 concatenate
 concerned
+conciser
 cond
 condensed
 config
@@ -297,6 +300,7 @@ disjoint
 dispatched
 divided
 dmitryas
+dupdate
 doc
 docs
 dom
@@ -331,6 +335,7 @@ emitting
 en
 enforce
 enforced
+enforces
 enumerates
 env
 eof
@@ -453,6 +458,7 @@ histogram
 hit
 hoc
 hoisted
+hopefully
 href
 html
 http
@@ -490,6 +496,8 @@ init
 initializations
 initializer's
 insertion
+inspect
+inspection
 inspector
 inspired
 inst
@@ -808,6 +816,7 @@ re
 reach
 react
 realign
+realise
 reassigned
 rebind
 rebuild

@@ -49,7 +49,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   final String label;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (label != null) {
       __result['label'] = label;
     }
@@ -102,7 +102,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, edit.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -136,7 +136,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   final String failureReason;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['applied'] =
         applied ?? (throw 'applied is required but was not set');
     if (failureReason != null) {
@@ -192,7 +192,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, applied.hashCode);
     hash = JenkinsSmiHash.combine(hash, failureReason.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -224,7 +224,7 @@ class CancelParams implements ToJsonable {
   final Either2<num, String> id;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id ?? (throw 'id is required but was not set');
     return __result;
   }
@@ -265,7 +265,7 @@ class CancelParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -300,7 +300,7 @@ class ClientCapabilities implements ToJsonable {
   final WorkspaceClientCapabilities workspace;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (workspace != null) {
       __result['workspace'] = workspace;
     }
@@ -367,7 +367,7 @@ class ClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, workspace.hashCode);
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, experimental.hashCode);
@@ -426,7 +426,7 @@ class CodeAction implements ToJsonable {
   final String title;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['title'] = title ?? (throw 'title is required but was not set');
     if (kind != null) {
       __result['kind'] = kind;
@@ -527,7 +527,7 @@ class CodeAction implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
@@ -573,7 +573,7 @@ class CodeActionContext implements ToJsonable {
   final List<CodeActionKind> only;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['diagnostics'] =
         diagnostics ?? (throw 'diagnostics is required but was not set');
     if (only != null) {
@@ -636,7 +636,7 @@ class CodeActionContext implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
     hash = JenkinsSmiHash.combine(hash, only.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -742,7 +742,7 @@ class CodeActionOptions implements ToJsonable {
   final List<CodeActionKind> codeActionKinds;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (codeActionKinds != null) {
       __result['codeActionKinds'] = codeActionKinds;
     }
@@ -782,7 +782,7 @@ class CodeActionOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -828,7 +828,7 @@ class CodeActionParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -910,7 +910,7 @@ class CodeActionParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, context.hashCode);
@@ -951,7 +951,7 @@ class CodeActionRegistrationOptions
   final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['documentSelector'] = documentSelector;
     if (codeActionKinds != null) {
       __result['codeActionKinds'] = codeActionKinds;
@@ -1009,7 +1009,7 @@ class CodeActionRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1054,7 +1054,7 @@ class CodeLens implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (command != null) {
       __result['command'] = command;
@@ -1123,7 +1123,7 @@ class CodeLens implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     hash = JenkinsSmiHash.combine(hash, data.hashCode);
@@ -1149,7 +1149,7 @@ class CodeLensOptions implements ToJsonable {
   final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -1185,7 +1185,7 @@ class CodeLensOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1214,7 +1214,7 @@ class CodeLensParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -1256,7 +1256,7 @@ class CodeLensParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1289,7 +1289,7 @@ class CodeLensRegistrationOptions
   final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -1344,7 +1344,7 @@ class CodeLensRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1393,7 +1393,7 @@ class Color implements ToJsonable {
   final num red;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['red'] = red ?? (throw 'red is required but was not set');
     __result['green'] = green ?? (throw 'green is required but was not set');
     __result['blue'] = blue ?? (throw 'blue is required but was not set');
@@ -1492,7 +1492,7 @@ class Color implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, red.hashCode);
     hash = JenkinsSmiHash.combine(hash, green.hashCode);
     hash = JenkinsSmiHash.combine(hash, blue.hashCode);
@@ -1529,7 +1529,7 @@ class ColorInformation implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['color'] = color ?? (throw 'color is required but was not set');
     return __result;
@@ -1588,7 +1588,7 @@ class ColorInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, color.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1634,7 +1634,7 @@ class ColorPresentation implements ToJsonable {
   final TextEdit textEdit;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (textEdit != null) {
       __result['textEdit'] = textEdit;
@@ -1707,7 +1707,7 @@ class ColorPresentation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, textEdit.hashCode);
     hash = JenkinsSmiHash.combine(hash, additionalTextEdits.hashCode);
@@ -1752,7 +1752,7 @@ class ColorPresentationParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['color'] = color ?? (throw 'color is required but was not set');
@@ -1833,7 +1833,7 @@ class ColorPresentationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, color.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
@@ -1854,7 +1854,7 @@ class ColorProviderOptions implements ToJsonable {
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     return __result;
   }
 
@@ -1877,7 +1877,7 @@ class ColorProviderOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1914,7 +1914,7 @@ class Command implements ToJsonable {
   final String title;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['title'] = title ?? (throw 'title is required but was not set');
     __result['command'] =
         command ?? (throw 'command is required but was not set');
@@ -1992,7 +1992,7 @@ class Command implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
@@ -2030,7 +2030,7 @@ class CompletionContext implements ToJsonable {
   final CompletionTriggerKind triggerKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['triggerKind'] =
         triggerKind ?? (throw 'triggerKind is required but was not set');
     if (triggerCharacter != null) {
@@ -2087,7 +2087,7 @@ class CompletionContext implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerKind.hashCode);
     hash = JenkinsSmiHash.combine(hash, triggerCharacter.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2256,7 +2256,7 @@ class CompletionItem implements ToJsonable {
   final TextEdit textEdit;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (kind != null) {
       __result['kind'] = kind;
@@ -2495,7 +2495,7 @@ class CompletionItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, detail.hashCode);
@@ -2597,7 +2597,7 @@ class CompletionList implements ToJsonable {
   final List<CompletionItem> items;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['isIncomplete'] =
         isIncomplete ?? (throw 'isIncomplete is required but was not set');
     __result['items'] = items ?? (throw 'items is required but was not set');
@@ -2662,7 +2662,7 @@ class CompletionList implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, isIncomplete.hashCode);
     hash = JenkinsSmiHash.combine(hash, items.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2695,7 +2695,7 @@ class CompletionOptions implements ToJsonable {
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -2748,7 +2748,7 @@ class CompletionOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2794,7 +2794,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (context != null) {
       __result['context'] = context;
     }
@@ -2871,7 +2871,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, context.hashCode);
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
@@ -2940,7 +2940,7 @@ class CompletionRegistrationOptions
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
@@ -3028,7 +3028,7 @@ class CompletionRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
     hash = JenkinsSmiHash.combine(hash, allCommitCharacters.hashCode);
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
@@ -3098,7 +3098,7 @@ class ConfigurationItem implements ToJsonable {
   final String section;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (scopeUri != null) {
       __result['scopeUri'] = scopeUri;
     }
@@ -3145,7 +3145,7 @@ class ConfigurationItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, scopeUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, section.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3175,7 +3175,7 @@ class ConfigurationParams implements ToJsonable {
   final List<ConfigurationItem> items;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['items'] = items ?? (throw 'items is required but was not set');
     return __result;
   }
@@ -3220,7 +3220,7 @@ class ConfigurationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, items.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -3261,7 +3261,7 @@ class CreateFile implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     if (options != null) {
@@ -3336,7 +3336,7 @@ class CreateFile implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, options.hashCode);
@@ -3366,7 +3366,7 @@ class CreateFileOptions implements ToJsonable {
   final bool overwrite;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (overwrite != null) {
       __result['overwrite'] = overwrite;
     }
@@ -3415,7 +3415,7 @@ class CreateFileOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, overwrite.hashCode);
     hash = JenkinsSmiHash.combine(hash, ignoreIfExists.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3457,7 +3457,7 @@ class DeleteFile implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     if (options != null) {
@@ -3532,7 +3532,7 @@ class DeleteFile implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, options.hashCode);
@@ -3562,7 +3562,7 @@ class DeleteFileOptions implements ToJsonable {
   final bool recursive;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (recursive != null) {
       __result['recursive'] = recursive;
     }
@@ -3612,7 +3612,7 @@ class DeleteFileOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, recursive.hashCode);
     hash = JenkinsSmiHash.combine(hash, ignoreIfNotExists.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3674,7 +3674,7 @@ class Diagnostic implements ToJsonable {
   final String source;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (severity != null) {
       __result['severity'] = severity;
@@ -3798,7 +3798,7 @@ class Diagnostic implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, severity.hashCode);
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
@@ -3842,7 +3842,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
   final String message;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['location'] =
         location ?? (throw 'location is required but was not set');
     __result['message'] =
@@ -3903,7 +3903,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, location.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3961,7 +3961,7 @@ class DidChangeConfigurationParams implements ToJsonable {
   final dynamic settings;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['settings'] = settings;
     return __result;
   }
@@ -3998,7 +3998,7 @@ class DidChangeConfigurationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, settings.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4042,7 +4042,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   final VersionedTextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['contentChanges'] =
@@ -4115,7 +4115,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, contentChanges.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4147,7 +4147,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   final List<FileEvent> changes;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['changes'] =
         changes ?? (throw 'changes is required but was not set');
     return __result;
@@ -4193,7 +4193,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, changes.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4226,7 +4226,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   final List<FileSystemWatcher> watchers;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['watchers'] =
         watchers ?? (throw 'watchers is required but was not set');
     return __result;
@@ -4273,7 +4273,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, watchers.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4303,7 +4303,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
   final WorkspaceFoldersChangeEvent event;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['event'] = event ?? (throw 'event is required but was not set');
     return __result;
   }
@@ -4344,7 +4344,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, event.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4373,7 +4373,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -4415,7 +4415,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4444,7 +4444,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
   final TextDocumentItem textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -4486,7 +4486,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4520,7 +4520,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     if (text != null) {
@@ -4574,7 +4574,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, text.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4618,7 +4618,7 @@ class DocumentFilter implements ToJsonable {
   final String scheme;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (language != null) {
       __result['language'] = language;
     }
@@ -4680,7 +4680,7 @@ class DocumentFilter implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, language.hashCode);
     hash = JenkinsSmiHash.combine(hash, scheme.hashCode);
     hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
@@ -4720,7 +4720,7 @@ class DocumentFormattingParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['options'] =
@@ -4783,7 +4783,7 @@ class DocumentFormattingParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, options.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4820,7 +4820,7 @@ class DocumentHighlight implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (kind != null) {
       __result['kind'] = kind;
@@ -4874,7 +4874,7 @@ class DocumentHighlight implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4945,7 +4945,7 @@ class DocumentLink implements ToJsonable {
   final String target;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     if (target != null) {
       __result['target'] = target;
@@ -5013,7 +5013,7 @@ class DocumentLink implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, target.hashCode);
     hash = JenkinsSmiHash.combine(hash, data.hashCode);
@@ -5039,7 +5039,7 @@ class DocumentLinkOptions implements ToJsonable {
   final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -5075,7 +5075,7 @@ class DocumentLinkOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -5104,7 +5104,7 @@ class DocumentLinkParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -5146,7 +5146,7 @@ class DocumentLinkParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -5179,7 +5179,7 @@ class DocumentLinkRegistrationOptions
   final bool resolveProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -5234,7 +5234,7 @@ class DocumentLinkRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -5273,7 +5273,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   final List<String> moreTriggerCharacter;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['firstTriggerCharacter'] = firstTriggerCharacter ??
         (throw 'firstTriggerCharacter is required but was not set');
     if (moreTriggerCharacter != null) {
@@ -5333,7 +5333,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
     hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -5389,7 +5389,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['position'] =
@@ -5491,7 +5491,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
     hash = JenkinsSmiHash.combine(hash, ch.hashCode);
@@ -5541,7 +5541,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   final List<String> moreTriggerCharacter;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['firstTriggerCharacter'] = firstTriggerCharacter ??
         (throw 'firstTriggerCharacter is required but was not set');
     if (moreTriggerCharacter != null) {
@@ -5620,7 +5620,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
     hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
@@ -5668,7 +5668,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -5750,7 +5750,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, options.hashCode);
@@ -5830,7 +5830,7 @@ class DocumentSymbol implements ToJsonable {
   final Range selectionRange;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['name'] = name ?? (throw 'name is required but was not set');
     if (detail != null) {
       __result['detail'] = detail;
@@ -5973,7 +5973,7 @@ class DocumentSymbol implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, detail.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
@@ -6008,7 +6008,7 @@ class DocumentSymbolParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -6050,7 +6050,7 @@ class DocumentSymbolParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6115,7 +6115,7 @@ class ExecuteCommandOptions implements ToJsonable {
   final List<String> commands;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['commands'] =
         commands ?? (throw 'commands is required but was not set');
     return __result;
@@ -6160,7 +6160,7 @@ class ExecuteCommandOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, commands.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6192,7 +6192,7 @@ class ExecuteCommandParams implements ToJsonable {
   final String command;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['command'] =
         command ?? (throw 'command is required but was not set');
     if (arguments != null) {
@@ -6251,7 +6251,7 @@ class ExecuteCommandParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -6282,7 +6282,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
   final List<String> commands;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['commands'] =
         commands ?? (throw 'commands is required but was not set');
     return __result;
@@ -6327,7 +6327,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, commands.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6440,7 +6440,7 @@ class FileEvent implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['type'] = type ?? (throw 'type is required but was not set');
     return __result;
@@ -6499,7 +6499,7 @@ class FileEvent implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -6544,7 +6544,7 @@ class FileSystemWatcher implements ToJsonable {
   final WatchKind kind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['globPattern'] =
         globPattern ?? (throw 'globPattern is required but was not set');
     if (kind != null) {
@@ -6599,7 +6599,7 @@ class FileSystemWatcher implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, globPattern.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -6654,7 +6654,7 @@ class FoldingRange implements ToJsonable {
   final num startLine;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['startLine'] =
         startLine ?? (throw 'startLine is required but was not set');
     if (startCharacter != null) {
@@ -6757,7 +6757,7 @@ class FoldingRange implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
     hash = JenkinsSmiHash.combine(hash, startCharacter.hashCode);
     hash = JenkinsSmiHash.combine(hash, endLine.hashCode);
@@ -6821,7 +6821,7 @@ class FoldingRangeParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     return __result;
@@ -6863,7 +6863,7 @@ class FoldingRangeParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -6883,7 +6883,7 @@ class FoldingRangeProviderOptions implements ToJsonable {
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     return __result;
   }
 
@@ -6906,7 +6906,7 @@ class FoldingRangeProviderOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6940,7 +6940,7 @@ class FormattingOptions implements ToJsonable {
   final num tabSize;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['tabSize'] =
         tabSize ?? (throw 'tabSize is required but was not set');
     __result['insertSpaces'] =
@@ -7003,7 +7003,7 @@ class FormattingOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, tabSize.hashCode);
     hash = JenkinsSmiHash.combine(hash, insertSpaces.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7042,7 +7042,7 @@ class Hover implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['contents'] =
         contents ?? (throw 'contents is required but was not set');
     if (range != null) {
@@ -7098,7 +7098,7 @@ class Hover implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, contents.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7174,7 +7174,7 @@ class InitializeParams implements ToJsonable {
   final List<WorkspaceFolder> workspaceFolders;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['processId'] = processId;
     if (rootPath != null) {
       __result['rootPath'] = rootPath;
@@ -7303,7 +7303,7 @@ class InitializeParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, processId.hashCode);
     hash = JenkinsSmiHash.combine(hash, rootPath.hashCode);
     hash = JenkinsSmiHash.combine(hash, rootUri.hashCode);
@@ -7338,7 +7338,7 @@ class InitializeResult implements ToJsonable {
   final ServerCapabilities capabilities;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['capabilities'] =
         capabilities ?? (throw 'capabilities is required but was not set');
     return __result;
@@ -7380,7 +7380,7 @@ class InitializeResult implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, capabilities.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -7398,7 +7398,7 @@ class InitializedParams implements ToJsonable {
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     return __result;
   }
 
@@ -7421,7 +7421,7 @@ class InitializedParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -7490,7 +7490,7 @@ class Location implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['range'] = range ?? (throw 'range is required but was not set');
     return __result;
@@ -7549,7 +7549,7 @@ class Location implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7611,7 +7611,7 @@ class LocationLink implements ToJsonable {
   final String targetUri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (originSelectionRange != null) {
       __result['originSelectionRange'] = originSelectionRange;
     }
@@ -7708,7 +7708,7 @@ class LocationLink implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, originSelectionRange.hashCode);
     hash = JenkinsSmiHash.combine(hash, targetUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, targetRange.hashCode);
@@ -7746,7 +7746,7 @@ class LogMessageParams implements ToJsonable {
   final MessageType type;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['type'] = type ?? (throw 'type is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
@@ -7806,7 +7806,7 @@ class LogMessageParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7864,7 +7864,7 @@ class MarkupContent implements ToJsonable {
   final String value;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['value'] = value ?? (throw 'value is required but was not set');
     return __result;
@@ -7923,7 +7923,7 @@ class MarkupContent implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, value.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -7995,7 +7995,7 @@ class Message implements ToJsonable {
   final String jsonrpc;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
     return __result;
@@ -8037,7 +8037,7 @@ class Message implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, jsonrpc.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -8064,7 +8064,7 @@ class MessageActionItem implements ToJsonable {
   final String title;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['title'] = title ?? (throw 'title is required but was not set');
     return __result;
   }
@@ -8105,7 +8105,7 @@ class MessageActionItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -8354,7 +8354,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   final dynamic params;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['method'] = method ?? (throw 'method is required but was not set');
     if (params != null) {
       __result['params'] = params;
@@ -8429,7 +8429,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, method.hashCode);
     hash = JenkinsSmiHash.combine(hash, params.hashCode);
     hash = JenkinsSmiHash.combine(hash, jsonrpc.hashCode);
@@ -8482,7 +8482,7 @@ class ParameterInformation implements ToJsonable {
   final String label;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (documentation != null) {
       __result['documentation'] = documentation;
@@ -8540,7 +8540,7 @@ class ParameterInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8580,7 +8580,7 @@ class Position implements ToJsonable {
   final num line;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['line'] = line ?? (throw 'line is required but was not set');
     __result['character'] =
         character ?? (throw 'character is required but was not set');
@@ -8640,7 +8640,7 @@ class Position implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, line.hashCode);
     hash = JenkinsSmiHash.combine(hash, character.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8678,7 +8678,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['diagnostics'] =
         diagnostics ?? (throw 'diagnostics is required but was not set');
@@ -8743,7 +8743,7 @@ class PublishDiagnosticsParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8778,7 +8778,7 @@ class Range implements ToJsonable {
   final Position start;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['start'] = start ?? (throw 'start is required but was not set');
     __result['end'] = end ?? (throw 'end is required but was not set');
     return __result;
@@ -8837,7 +8837,7 @@ class Range implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, start.hashCode);
     hash = JenkinsSmiHash.combine(hash, end.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8869,7 +8869,7 @@ class RangeAndPlaceholder implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['placeholder'] =
         placeholder ?? (throw 'placeholder is required but was not set');
@@ -8929,7 +8929,7 @@ class RangeAndPlaceholder implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, placeholder.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -8957,7 +8957,7 @@ class ReferenceContext implements ToJsonable {
   final bool includeDeclaration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['includeDeclaration'] = includeDeclaration ??
         (throw 'includeDeclaration is required but was not set');
     return __result;
@@ -8999,7 +8999,7 @@ class ReferenceContext implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, includeDeclaration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -9044,7 +9044,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['context'] =
         context ?? (throw 'context is required but was not set');
     __result['textDocument'] =
@@ -9127,7 +9127,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, context.hashCode);
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
@@ -9169,7 +9169,7 @@ class Registration implements ToJsonable {
   final dynamic registerOptions;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
     if (registerOptions != null) {
@@ -9243,7 +9243,7 @@ class Registration implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, method.hashCode);
     hash = JenkinsSmiHash.combine(hash, registerOptions.hashCode);
@@ -9274,7 +9274,7 @@ class RegistrationParams implements ToJsonable {
   final List<Registration> registrations;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['registrations'] =
         registrations ?? (throw 'registrations is required but was not set');
     return __result;
@@ -9320,7 +9320,7 @@ class RegistrationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, registrations.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -9368,7 +9368,7 @@ class RenameFile implements ToJsonable {
   final RenameFileOptions options;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     __result['oldUri'] = oldUri ?? (throw 'oldUri is required but was not set');
     __result['newUri'] = newUri ?? (throw 'newUri is required but was not set');
@@ -9462,7 +9462,7 @@ class RenameFile implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, oldUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, newUri.hashCode);
@@ -9493,7 +9493,7 @@ class RenameFileOptions implements ToJsonable {
   final bool overwrite;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (overwrite != null) {
       __result['overwrite'] = overwrite;
     }
@@ -9542,7 +9542,7 @@ class RenameFileOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, overwrite.hashCode);
     hash = JenkinsSmiHash.combine(hash, ignoreIfExists.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -9567,7 +9567,7 @@ class RenameOptions implements ToJsonable {
   final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (prepareProvider != null) {
       __result['prepareProvider'] = prepareProvider;
     }
@@ -9603,7 +9603,7 @@ class RenameOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, prepareProvider.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -9648,7 +9648,7 @@ class RenameParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['position'] =
@@ -9731,7 +9731,7 @@ class RenameParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
     hash = JenkinsSmiHash.combine(hash, newName.hashCode);
@@ -9765,7 +9765,7 @@ class RenameRegistrationOptions
   final bool prepareProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (prepareProvider != null) {
       __result['prepareProvider'] = prepareProvider;
     }
@@ -9820,7 +9820,7 @@ class RenameRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, prepareProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -9869,7 +9869,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   final dynamic params;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
     if (params != null) {
@@ -9963,7 +9963,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, method.hashCode);
     hash = JenkinsSmiHash.combine(hash, params.hashCode);
@@ -10043,7 +10043,7 @@ class ResponseError<D> implements ToJsonable {
   final String message;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['code'] = code ?? (throw 'code is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
@@ -10118,7 +10118,7 @@ class ResponseError<D> implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     hash = JenkinsSmiHash.combine(hash, data.hashCode);
@@ -10166,7 +10166,7 @@ class ResponseMessage implements Message, ToJsonable {
   final dynamic result;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id;
     __result['jsonrpc'] =
         jsonrpc ?? (throw 'jsonrpc is required but was not set');
@@ -10252,7 +10252,7 @@ class ResponseMessage implements Message, ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, result.hashCode);
     hash = JenkinsSmiHash.combine(hash, error.hashCode);
@@ -10279,7 +10279,7 @@ class SaveOptions implements ToJsonable {
   final bool includeText;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (includeText != null) {
       __result['includeText'] = includeText;
     }
@@ -10314,7 +10314,7 @@ class SaveOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, includeText.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -10539,7 +10539,7 @@ class ServerCapabilities implements ToJsonable {
   final bool workspaceSymbolProvider;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (textDocumentSync != null) {
       __result['textDocumentSync'] = textDocumentSync;
     }
@@ -10909,7 +10909,7 @@ class ServerCapabilities implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocumentSync.hashCode);
     hash = JenkinsSmiHash.combine(hash, hoverProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, completionProvider.hashCode);
@@ -10962,7 +10962,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   final ServerCapabilitiesWorkspaceFolders workspaceFolders;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (workspaceFolders != null) {
       __result['workspaceFolders'] = workspaceFolders;
     }
@@ -11000,7 +11000,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, workspaceFolders.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -11034,7 +11034,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   final bool supported;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (supported != null) {
       __result['supported'] = supported;
     }
@@ -11085,7 +11085,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, supported.hashCode);
     hash = JenkinsSmiHash.combine(hash, changeNotifications.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -11121,7 +11121,7 @@ class ShowMessageParams implements ToJsonable {
   final MessageType type;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['type'] = type ?? (throw 'type is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
@@ -11181,7 +11181,7 @@ class ShowMessageParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -11224,7 +11224,7 @@ class ShowMessageRequestParams implements ToJsonable {
   final MessageType type;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['type'] = type ?? (throw 'type is required but was not set');
     __result['message'] =
         message ?? (throw 'message is required but was not set');
@@ -11303,7 +11303,7 @@ class ShowMessageRequestParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     hash = JenkinsSmiHash.combine(hash, actions.hashCode);
@@ -11356,7 +11356,7 @@ class SignatureHelp implements ToJsonable {
   final List<SignatureInformation> signatures;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['signatures'] =
         signatures ?? (throw 'signatures is required but was not set');
     if (activeSignature != null) {
@@ -11430,7 +11430,7 @@ class SignatureHelp implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, signatures.hashCode);
     hash = JenkinsSmiHash.combine(hash, activeSignature.hashCode);
     hash = JenkinsSmiHash.combine(hash, activeParameter.hashCode);
@@ -11459,7 +11459,7 @@ class SignatureHelpOptions implements ToJsonable {
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
@@ -11498,7 +11498,7 @@ class SignatureHelpOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -11536,7 +11536,7 @@ class SignatureHelpRegistrationOptions
   final List<String> triggerCharacters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
@@ -11593,7 +11593,7 @@ class SignatureHelpRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -11644,7 +11644,7 @@ class SignatureInformation implements ToJsonable {
   final List<ParameterInformation> parameters;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (documentation != null) {
       __result['documentation'] = documentation;
@@ -11719,7 +11719,7 @@ class SignatureInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
@@ -11746,7 +11746,7 @@ class StaticRegistrationOptions implements ToJsonable {
   final String id;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (id != null) {
       __result['id'] = id;
     }
@@ -11781,7 +11781,7 @@ class StaticRegistrationOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -11846,7 +11846,7 @@ class SymbolInformation implements ToJsonable {
   final String name;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['name'] = name ?? (throw 'name is required but was not set');
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
     if (deprecated != null) {
@@ -11953,7 +11953,7 @@ class SymbolInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, deprecated.hashCode);
@@ -12049,7 +12049,7 @@ class TextDocumentChangeRegistrationOptions
   final TextDocumentSyncKind syncKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['syncKind'] =
         syncKind ?? (throw 'syncKind is required but was not set');
     __result['documentSelector'] = documentSelector;
@@ -12111,7 +12111,7 @@ class TextDocumentChangeRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, syncKind.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -12323,7 +12323,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
   final TextDocumentClientCapabilitiesTypeDefinition typeDefinition;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (synchronization != null) {
       __result['synchronization'] = synchronization;
     }
@@ -12682,7 +12682,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, synchronization.hashCode);
     hash = JenkinsSmiHash.combine(hash, completion.hashCode);
     hash = JenkinsSmiHash.combine(hash, hover.hashCode);
@@ -12740,7 +12740,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -12794,7 +12794,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeActionLiteralSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -12829,7 +12829,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
   final List<CodeActionKind> valueSet;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['valueSet'] =
         valueSet ?? (throw 'valueSet is required but was not set');
     return __result;
@@ -12876,7 +12876,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -12910,7 +12910,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
   final TextDocumentClientCapabilitiesCodeActionKind codeActionKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['codeActionKind'] =
         codeActionKind ?? (throw 'codeActionKind is required but was not set');
     return __result;
@@ -12955,7 +12955,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, codeActionKind.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -12980,7 +12980,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13017,7 +13017,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13045,7 +13045,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13082,7 +13082,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13126,7 +13126,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13209,7 +13209,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, completionItem.hashCode);
     hash = JenkinsSmiHash.combine(hash, completionItemKind.hashCode);
@@ -13272,7 +13272,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
   final bool snippetSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (snippetSupport != null) {
       __result['snippetSupport'] = snippetSupport;
     }
@@ -13368,7 +13368,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, snippetSupport.hashCode);
     hash = JenkinsSmiHash.combine(hash, commitCharactersSupport.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
@@ -13406,7 +13406,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   final List<CompletionItemKind> valueSet;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet;
     }
@@ -13447,7 +13447,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13483,7 +13483,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13534,7 +13534,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -13566,7 +13566,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13617,7 +13617,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -13643,7 +13643,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13680,7 +13680,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13705,7 +13705,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13742,7 +13742,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -13780,7 +13780,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
   final TextDocumentClientCapabilitiesSymbolKind symbolKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13850,7 +13850,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, symbolKind.hashCode);
     hash = JenkinsSmiHash.combine(
@@ -13896,7 +13896,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
   final num rangeLimit;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13961,7 +13961,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, rangeLimit.hashCode);
     hash = JenkinsSmiHash.combine(hash, lineFoldingOnly.hashCode);
@@ -13988,7 +13988,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14025,7 +14025,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14060,7 +14060,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14115,7 +14115,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, contentFormat.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14152,7 +14152,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14203,7 +14203,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14229,7 +14229,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14266,7 +14266,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14295,7 +14295,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
   final bool labelOffsetSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (labelOffsetSupport != null) {
       __result['labelOffsetSupport'] = labelOffsetSupport;
     }
@@ -14332,7 +14332,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, labelOffsetSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14357,7 +14357,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
   final bool relatedInformation;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (relatedInformation != null) {
       __result['relatedInformation'] = relatedInformation;
     }
@@ -14394,7 +14394,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, relatedInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14419,7 +14419,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14456,7 +14456,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14481,7 +14481,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14518,7 +14518,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14550,7 +14550,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
   final bool prepareSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14601,7 +14601,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, prepareSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14637,7 +14637,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
   final TextDocumentClientCapabilitiesSignatureInformation signatureInformation;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14691,7 +14691,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, signatureInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14730,7 +14730,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   final TextDocumentClientCapabilitiesParameterInformation parameterInformation;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (documentationFormat != null) {
       __result['documentationFormat'] = documentationFormat;
     }
@@ -14787,7 +14787,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14821,7 +14821,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
   final List<SymbolKind> valueSet;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet;
     }
@@ -14862,7 +14862,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14903,7 +14903,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
   final bool willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14981,7 +14981,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, willSave.hashCode);
     hash = JenkinsSmiHash.combine(hash, willSaveWaitUntil.hashCode);
@@ -15020,7 +15020,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   final bool linkSupport;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -15071,7 +15071,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15111,7 +15111,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
   final String text;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (range != null) {
       __result['range'] = range;
     }
@@ -15179,7 +15179,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, rangeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, text.hashCode);
@@ -15220,7 +15220,7 @@ class TextDocumentEdit implements ToJsonable {
   final VersionedTextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['edits'] = edits ?? (throw 'edits is required but was not set');
@@ -15286,7 +15286,7 @@ class TextDocumentEdit implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15317,7 +15317,7 @@ class TextDocumentIdentifier implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
   }
@@ -15358,7 +15358,7 @@ class TextDocumentIdentifier implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -15407,7 +15407,7 @@ class TextDocumentItem implements ToJsonable {
   final num version;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['languageId'] =
         languageId ?? (throw 'languageId is required but was not set');
@@ -15508,7 +15508,7 @@ class TextDocumentItem implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, languageId.hashCode);
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
@@ -15554,7 +15554,7 @@ class TextDocumentPositionParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['position'] =
@@ -15617,7 +15617,7 @@ class TextDocumentPositionParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, position.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15676,7 +15676,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   final List<DocumentFilter> documentSelector;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['documentSelector'] = documentSelector;
     return __result;
   }
@@ -15716,7 +15716,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -15783,7 +15783,7 @@ class TextDocumentSaveRegistrationOptions
   final bool includeText;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (includeText != null) {
       __result['includeText'] = includeText;
     }
@@ -15838,7 +15838,7 @@ class TextDocumentSaveRegistrationOptions
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, includeText.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -15923,7 +15923,7 @@ class TextDocumentSyncOptions implements ToJsonable {
   final bool willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (openClose != null) {
       __result['openClose'] = openClose;
     }
@@ -16014,7 +16014,7 @@ class TextDocumentSyncOptions implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, openClose.hashCode);
     hash = JenkinsSmiHash.combine(hash, change.hashCode);
     hash = JenkinsSmiHash.combine(hash, willSave.hashCode);
@@ -16053,7 +16053,7 @@ class TextEdit implements ToJsonable {
   final Range range;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['range'] = range ?? (throw 'range is required but was not set');
     __result['newText'] =
         newText ?? (throw 'newText is required but was not set');
@@ -16113,7 +16113,7 @@ class TextEdit implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, newText.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -16150,7 +16150,7 @@ class Unregistration implements ToJsonable {
   final String method;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['id'] = id ?? (throw 'id is required but was not set');
     __result['method'] = method ?? (throw 'method is required but was not set');
     return __result;
@@ -16209,7 +16209,7 @@ class Unregistration implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, method.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -16239,7 +16239,7 @@ class UnregistrationParams implements ToJsonable {
   final List<Unregistration> unregisterations;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['unregisterations'] = unregisterations ??
         (throw 'unregisterations is required but was not set');
     return __result;
@@ -16285,7 +16285,7 @@ class UnregistrationParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, unregisterations.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -16325,7 +16325,7 @@ class VersionedTextDocumentIdentifier
   final num version;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['version'] = version;
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     return __result;
@@ -16380,7 +16380,7 @@ class VersionedTextDocumentIdentifier
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -16448,7 +16448,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
   final TextDocumentIdentifier textDocument;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['textDocument'] =
         textDocument ?? (throw 'textDocument is required but was not set');
     __result['reason'] = reason ?? (throw 'reason is required but was not set');
@@ -16510,7 +16510,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
     hash = JenkinsSmiHash.combine(hash, reason.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -16602,7 +16602,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
   final bool workspaceFolders;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (applyEdit != null) {
       __result['applyEdit'] = applyEdit;
     }
@@ -16745,7 +16745,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, applyEdit.hashCode);
     hash = JenkinsSmiHash.combine(hash, workspaceEdit.hashCode);
     hash = JenkinsSmiHash.combine(hash, didChangeConfiguration.hashCode);
@@ -16778,7 +16778,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -16815,7 +16815,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -16843,7 +16843,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -16880,7 +16880,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -16905,7 +16905,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
   final bool dynamicRegistration;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -16942,7 +16942,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -16973,7 +16973,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
   final WorkspaceClientCapabilitiesSymbolKind symbolKind;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -17026,7 +17026,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
     hash = JenkinsSmiHash.combine(hash, symbolKind.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -17060,7 +17060,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
   final List<SymbolKind> valueSet;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet;
     }
@@ -17101,7 +17101,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -17144,7 +17144,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   final List<ResourceOperationKind> resourceOperations;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (documentChanges != null) {
       __result['documentChanges'] = documentChanges;
     }
@@ -17213,7 +17213,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
     hash = JenkinsSmiHash.combine(hash, resourceOperations.hashCode);
     hash = JenkinsSmiHash.combine(hash, failureHandling.hashCode);
@@ -17280,7 +17280,7 @@ class WorkspaceEdit implements ToJsonable {
       documentChanges;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     if (changes != null) {
       __result['changes'] = changes;
     }
@@ -17346,7 +17346,7 @@ class WorkspaceEdit implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, changes.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -17382,7 +17382,7 @@ class WorkspaceFolder implements ToJsonable {
   final String uri;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['name'] = name ?? (throw 'name is required but was not set');
     return __result;
@@ -17441,7 +17441,7 @@ class WorkspaceFolder implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -17484,7 +17484,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   final List<WorkspaceFolder> removed;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['added'] = added ?? (throw 'added is required but was not set');
     __result['removed'] =
         removed ?? (throw 'removed is required but was not set');
@@ -17552,7 +17552,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, added.hashCode);
     hash = JenkinsSmiHash.combine(hash, removed.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -17581,7 +17581,7 @@ class WorkspaceSymbolParams implements ToJsonable {
   final String query;
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> __result = {};
+    var __result = <String, dynamic>{};
     __result['query'] = query ?? (throw 'query is required but was not set');
     return __result;
   }
@@ -17622,7 +17622,7 @@ class WorkspaceSymbolParams implements ToJsonable {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, query.hashCode);
     return JenkinsSmiHash.finish(hash);
   }

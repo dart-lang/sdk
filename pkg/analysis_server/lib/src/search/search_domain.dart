@@ -36,9 +36,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
     await null;
     var params =
         protocol.SearchFindElementReferencesParams.fromRequest(request);
-    String file = params.file;
+    var file = params.file;
     // prepare element
-    Element element = await server.getElementAtOffset(file, params.offset);
+    var element = await server.getElementAtOffset(file, params.offset);
     if (element is ImportElement) {
       element = (element as ImportElement).prefix;
     }
@@ -49,7 +49,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
       element = (element as PropertyAccessorElement).variable;
     }
     // respond
-    String searchId = (_nextSearchId++).toString();
+    var searchId = (_nextSearchId++).toString();
     var result = protocol.SearchFindElementReferencesResult();
     if (element != null) {
       result.id = searchId;
@@ -59,8 +59,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // search elements
     if (element != null) {
       var computer = ElementReferencesComputer(searchEngine);
-      List<protocol.SearchResult> results =
-          await computer.compute(element, params.includePotential);
+      var results = await computer.compute(element, params.includePotential);
       _sendSearchNotification(searchId, true, results);
     }
   }
@@ -72,12 +71,11 @@ class SearchDomainHandler implements protocol.RequestHandler {
         protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
     await server.onAnalysisComplete;
     // respond
-    String searchId = (_nextSearchId++).toString();
+    var searchId = (_nextSearchId++).toString();
     _sendSearchResult(
         request, protocol.SearchFindMemberDeclarationsResult(searchId));
     // search
-    List<SearchMatch> matches =
-        await searchEngine.searchMemberDeclarations(params.name);
+    var matches = await searchEngine.searchMemberDeclarations(params.name);
     matches = SearchMatch.withNotNullElement(matches);
     _sendSearchNotification(searchId, true, matches.map(toResult));
   }
@@ -88,12 +86,11 @@ class SearchDomainHandler implements protocol.RequestHandler {
     var params = protocol.SearchFindMemberReferencesParams.fromRequest(request);
     await server.onAnalysisComplete;
     // respond
-    String searchId = (_nextSearchId++).toString();
+    var searchId = (_nextSearchId++).toString();
     _sendSearchResult(
         request, protocol.SearchFindMemberReferencesResult(searchId));
     // search
-    List<SearchMatch> matches =
-        await searchEngine.searchMemberReferences(params.name);
+    var matches = await searchEngine.searchMemberReferences(params.name);
     matches = SearchMatch.withNotNullElement(matches);
     _sendSearchNotification(searchId, true, matches.map(toResult));
   }
@@ -114,12 +111,11 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
     await server.onAnalysisComplete;
     // respond
-    String searchId = (_nextSearchId++).toString();
+    var searchId = (_nextSearchId++).toString();
     _sendSearchResult(
         request, protocol.SearchFindTopLevelDeclarationsResult(searchId));
     // search
-    List<SearchMatch> matches =
-        await searchEngine.searchTopLevelDeclarations(params.pattern);
+    var matches = await searchEngine.searchTopLevelDeclarations(params.pattern);
     matches = SearchMatch.withNotNullElement(matches);
     _sendSearchNotification(searchId, true, matches.map(toResult));
   }
@@ -177,7 +173,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
     var tracker = server.declarationsTracker;
     var files = <String>{};
-    int remainingMaxResults = params.maxResults;
+    var remainingMaxResults = params.maxResults;
     var declarations = search.WorkspaceSymbols(tracker).declarations(
       regExp,
       remainingMaxResults,
@@ -185,8 +181,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
       onlyForFile: params.file,
     );
 
-    List<protocol.ElementDeclaration> elementDeclarations =
-        declarations.map((declaration) {
+    var elementDeclarations = declarations.map((declaration) {
       return protocol.ElementDeclaration(
           declaration.name,
           getElementKind(declaration.kind),
@@ -211,38 +206,35 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request);
-    String file = params.file;
+    var file = params.file;
     // prepare element
-    Element element = await server.getElementAtOffset(file, params.offset);
+    var element = await server.getElementAtOffset(file, params.offset);
     if (element == null) {
       _sendTypeHierarchyNull(request);
       return;
     }
     // maybe supertype hierarchy only
     if (params.superOnly == true) {
-      TypeHierarchyComputer computer =
-          TypeHierarchyComputer(searchEngine, element);
-      List<protocol.TypeHierarchyItem> items = computer.computeSuper();
-      protocol.Response response =
+      var computer = TypeHierarchyComputer(searchEngine, element);
+      var items = computer.computeSuper();
+      var response =
           protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
               .toResponse(request.id);
       server.sendResponse(response);
       return;
     }
     // prepare type hierarchy
-    TypeHierarchyComputer computer =
-        TypeHierarchyComputer(searchEngine, element);
-    List<protocol.TypeHierarchyItem> items = await computer.compute();
-    protocol.Response response =
-        protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
-            .toResponse(request.id);
+    var computer = TypeHierarchyComputer(searchEngine, element);
+    var items = await computer.compute();
+    var response = protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+        .toResponse(request.id);
     server.sendResponse(response);
   }
 
   @override
   protocol.Response handleRequest(protocol.Request request) {
     try {
-      String requestName = request.method;
+      var requestName = request.method;
       if (requestName == SEARCH_REQUEST_FIND_ELEMENT_REFERENCES) {
         findElementReferences(request);
         return protocol.Response.DELAYED_RESPONSE;
@@ -282,7 +274,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   void _sendTypeHierarchyNull(protocol.Request request) {
-    protocol.Response response =
+    var response =
         protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
     server.sendResponse(response);
   }

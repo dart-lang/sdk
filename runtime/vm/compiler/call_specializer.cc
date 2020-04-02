@@ -1225,12 +1225,13 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   // subtype of the tested type, replace 'receiver is type' with
   //  - 'receiver == null' if type is Null or Never*,
   //  - 'receiver != null' otherwise.
-  if (type.IsNullType() || type.IsNeverType() ||
+  if (type.IsNullType() || (type.IsNeverType() && type.IsLegacy()) ||
       left_value->Type()->IsSubtypeOf(type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
-        (type.IsNullType() || type.IsNeverType()) ? Token::kEQ_STRICT
-                                                  : Token::kNE_STRICT,
+        (type.IsNullType() || (type.IsNeverType() && type.IsLegacy()))
+            ? Token::kEQ_STRICT
+            : Token::kNE_STRICT,
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
         /* number_check = */ false, DeoptId::kNone);

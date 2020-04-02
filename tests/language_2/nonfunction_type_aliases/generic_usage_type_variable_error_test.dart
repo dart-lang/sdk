@@ -15,7 +15,7 @@ typedef T<X> = X;
 abstract class C {
   final T<Null> v7;
 
-  C(): v7 = T();
+  C(): v7 = T<D>();
   //        ^
   // [analyzer] unspecified
   // [cfe] unspecified
@@ -45,7 +45,7 @@ X foo<X>(X x) => x;
 
 main() {
   var v9 = <Set<T<T>>, Set<T<T>>>{{}: {}};
-  v9[{}] = {T<T>()};
+  v9[{}] = {T<D>()};
   //        ^
   // [analyzer] unspecified
   // [cfe] unspecified
@@ -69,4 +69,14 @@ main() {
   //                        ^^^^^^^^^^^^
   // [analyzer] unspecified
   // [cfe] unspecified
+
+  T<Object>();
+//^^^^^^^^^^^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  T<C>.name1(D(), null);
+//^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] unspecified
+// [cfe] unspecified
 }

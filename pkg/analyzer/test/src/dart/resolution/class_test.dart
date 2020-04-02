@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -461,7 +462,17 @@ class C {
   int get C => null;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+    ]);
+  }
+
+  test_error_memberWithClassName_field() async {
+    await assertErrorsInCode(r'''
+class C {
+  int C = 42;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
     ]);
   }
 
@@ -471,7 +482,7 @@ class C {
   static int get C => null;
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
     ]);
 
     var method = findNode.methodDeclaration('C =>');
@@ -486,7 +497,7 @@ class C {
   set C(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
     ]);
   }
 
@@ -496,7 +507,7 @@ class C {
   static set C(_) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 23, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 23, 1),
     ]);
 
     var method = findNode.methodDeclaration('C(_)');

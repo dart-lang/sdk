@@ -131,13 +131,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
     {
-      String name = options.newAnalysisDriverLog;
+      var name = options.newAnalysisDriverLog;
       StringSink sink = NullStringSink();
       if (name != null) {
         if (name == 'stdout') {
           sink = io.stdout;
         } else if (name.startsWith('file:')) {
-          String path = name.substring('file:'.length);
+          var path = name.substring('file:'.length);
           sink = io.File(path).openWrite(mode: io.FileMode.append);
         }
       }
@@ -593,10 +593,10 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   nd.AnalysisDriver addAnalysisDriver(
       Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
-    ContextBuilder builder = createContextBuilder(folder, options);
-    nd.AnalysisDriver analysisDriver = builder.buildDriver(contextRoot);
+    var builder = createContextBuilder(folder, options);
+    var analysisDriver = builder.buildDriver(contextRoot);
     analysisDriver.results.listen((result) {
-      String path = result.path;
+      var path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
@@ -649,7 +649,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    nd.AnalysisDriver analysisDriver = analysisServer.driverMap[contextFolder];
+    var analysisDriver = analysisServer.driverMap[contextFolder];
     if (analysisDriver != null) {
       changeSet.addedFiles.forEach((path) {
         analysisDriver.addFile(path);
@@ -680,10 +680,10 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
     String defaultPackageFilePath;
     String defaultPackagesDirectoryPath;
-    String path = (analysisServer.contextManager as ContextManagerImpl)
+    var path = (analysisServer.contextManager as ContextManagerImpl)
         .normalizedPackageRoots[folder.path];
     if (path != null) {
-      Resource resource = resourceProvider.getResource(path);
+      var resource = resourceProvider.getResource(path);
       if (resource.exists) {
         if (resource is File) {
           defaultPackageFilePath = path;
@@ -693,11 +693,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
     }
 
-    ContextBuilderOptions builderOptions = ContextBuilderOptions();
+    var builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    ContextBuilder builder = ContextBuilder(
+    var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
@@ -709,7 +709,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
-    nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
+    var driver = analysisServer.driverMap.remove(folder);
     // Flush any errors for these files that the client may be displaying.
     flushedFiles
         ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));

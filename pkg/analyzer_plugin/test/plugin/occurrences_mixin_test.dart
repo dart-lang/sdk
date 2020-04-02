@@ -45,17 +45,16 @@ class OccurrencesMixinTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = Completer<void>();
+    var notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
-      AnalysisOccurrencesParams params =
-          AnalysisOccurrencesParams.fromNotification(notification);
+      var params = AnalysisOccurrencesParams.fromNotification(notification);
       expect(params.file, filePath1);
-      List<Occurrences> occurrenceList = params.occurrences;
+      var occurrenceList = params.occurrences;
       expect(occurrenceList, hasLength(3));
 
       void validate(String elementName, List<int> expectedOffsets) {
-        for (Occurrences occurrences in occurrenceList) {
+        for (var occurrences in occurrenceList) {
           if (occurrences.element.name == elementName) {
             expect(occurrences.offsets, expectedOffsets);
             expect(occurrences.length, elementName.length);
@@ -84,7 +83,7 @@ class _TestOccurrencesContributor implements OccurrencesContributor {
   void computeOccurrences(
       OccurrencesRequest request, OccurrencesCollector collector) {
     elements.forEach((element, offsets) {
-      for (int offset in offsets) {
+      for (var offset in offsets) {
         collector.addOccurrence(element, offset);
       }
     });
@@ -97,9 +96,9 @@ class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
 
   @override
   List<OccurrencesContributor> getOccurrencesContributors(String path) {
-    Element element1 = Element(ElementKind.METHOD, 'method', 0);
-    Element element2 = Element(ElementKind.CLASS, 'C', 0);
-    Element element3 = Element(ElementKind.LOCAL_VARIABLE, 'local', 0);
+    var element1 = Element(ElementKind.METHOD, 'method', 0);
+    var element2 = Element(ElementKind.CLASS, 'C', 0);
+    var element3 = Element(ElementKind.LOCAL_VARIABLE, 'local', 0);
     return <OccurrencesContributor>[
       _TestOccurrencesContributor({
         element1: [10, 30],

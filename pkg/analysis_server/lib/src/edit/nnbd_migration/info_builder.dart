@@ -13,14 +13,11 @@ import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show SourceEdit, SourceFileEdit;
+    show SourceFileEdit;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:meta/meta.dart';
@@ -62,18 +59,16 @@ class InfoBuilder {
   /// Return the migration information for all of the libraries that were
   /// migrated.
   Future<Set<UnitInfo>> explainMigration() async {
-    Map<Source, SourceInformation> sourceInfoMap = info.sourceInformation;
+    var sourceInfoMap = info.sourceInformation;
     Set<UnitInfo> units =
         SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
-    for (Source source in sourceInfoMap.keys) {
-      String filePath = source.fullName;
-      AnalysisSession session =
-          server.getAnalysisDriver(filePath).currentSession;
+    for (var source in sourceInfoMap.keys) {
+      var filePath = source.fullName;
+      var session = server.getAnalysisDriver(filePath).currentSession;
       if (!session.getFile(filePath).isPart) {
-        ResolvedLibraryResult result =
-            await session.getResolvedLibrary(filePath);
-        for (ResolvedUnitResult unitResult in result.units) {
-          SourceInformation sourceInfo =
+        var result = await session.getResolvedLibrary(filePath);
+        for (var unitResult in result.units) {
+          var sourceInfo =
               sourceInfoMap[unitResult.unit.declaredElement.source];
           // Note: there might have been no information for this unit in
           // sourceInfoMap.  That can happen if there's an already-migrated
@@ -85,9 +80,8 @@ class InfoBuilder {
           // referenced (we'll just skip the entire library because we'll only
           // ever see its parts).
           sourceInfo ??= SourceInformation();
-          SourceFileEdit edit =
-              listener.sourceChange.getFileEdit(unitResult.path);
-          UnitInfo unit = _explainUnit(sourceInfo, unitResult, edit);
+          var edit = listener.sourceChange.getFileEdit(unitResult.path);
+          var unit = _explainUnit(sourceInfo, unitResult, edit);
           if (provider.pathContext.isWithin(includedPath, unitResult.path)) {
             units.add(unit);
           }
@@ -100,7 +94,7 @@ class InfoBuilder {
   Iterable<EdgeInfo> upstreamTriggeredEdges(NullabilityNodeInfo node,
       {bool skipExactNullable = true}) {
     var edges = <EdgeInfo>[];
-    for (EdgeInfo edge in node.upstreamEdges) {
+    for (var edge in node.upstreamEdges) {
       if (skipExactNullable &&
           node.isExactNullable &&
           edge.sourceNode.isExactNullable) {
@@ -133,11 +127,11 @@ class InfoBuilder {
   /// present tense, beginning with a capital letter, not ending in a period.
   String _baseDescriptionForOrigin(
       EdgeOriginInfo origin, NullabilityFixKind fixKind) {
-    AstNode node = origin.node;
-    AstNode parent = node.parent;
+    var node = origin.node;
+    var parent = node.parent;
 
     String aNullableDefault(DefaultFormalParameter node) {
-      Expression defaultValue = node.defaultValue;
+      var defaultValue = node.defaultValue;
       if (defaultValue == null) {
         return "an implicit default value of 'null'";
       } else if (defaultValue is NullLiteral) {
@@ -178,8 +172,8 @@ class InfoBuilder {
           'type';
     }
 
-    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
-    int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
+    var unit = node.thisOrAncestorOfType<CompilationUnit>();
+    var lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
 
     if (origin.kind == EdgeOriginKind.uninitializedRead) {
       return 'Used on line $lineNumber, when it is possibly uninitialized';
@@ -204,10 +198,8 @@ class InfoBuilder {
       if (parent is ExpressionFunctionBody) {
         return parent;
       } else {
-        ReturnStatement returnNode =
-            parent.thisOrAncestorOfType<ReturnStatement>();
-        BlockFunctionBody bodyNode =
-            returnNode?.thisOrAncestorOfType<BlockFunctionBody>();
+        var returnNode = parent.thisOrAncestorOfType<ReturnStatement>();
+        var bodyNode = returnNode?.thisOrAncestorOfType<BlockFunctionBody>();
         return bodyNode;
       }
     }
@@ -215,7 +207,7 @@ class InfoBuilder {
     /// If the [node] is inside a collection literal, return it. Otherwise
     /// return `null`.
     TypedLiteral findCollectionLiteral() {
-      AstNode ancestor = parent;
+      var ancestor = parent;
       // Walk up collection elements, except for collection literals.
       while (ancestor is CollectionElement && ancestor is! TypedLiteral) {
         ancestor = ancestor.parent;
@@ -223,9 +215,9 @@ class InfoBuilder {
       return (ancestor is TypedLiteral) ? ancestor : null;
     }
 
-    FunctionBody functionBody = findFunctionBody();
+    var functionBody = findFunctionBody();
     if (functionBody != null) {
-      AstNode function = functionBody.parent;
+      var function = functionBody.parent;
       if (function is MethodDeclaration) {
         if (function.isGetter) {
           return 'This getter returns $nullableValue on line $lineNumber';
@@ -235,7 +227,7 @@ class InfoBuilder {
       return 'This function returns $nullableValue on line $lineNumber';
     }
 
-    TypedLiteral collectionLiteral = findCollectionLiteral();
+    var collectionLiteral = findCollectionLiteral();
     if (collectionLiteral != null) {
       if (collectionLiteral is ListLiteral) {
         return 'This list is initialized with $nullableValue on line '
@@ -251,15 +243,14 @@ class InfoBuilder {
     } else if (parent is ArgumentList) {
       return capitalize('$nullableValue is passed as an argument');
     } else if (parent is VariableDeclaration) {
-      AstNode grandparent = parent.parent?.parent;
+      var grandparent = parent.parent?.parent;
       if (grandparent is FieldDeclaration) {
         return 'This field is initialized to $nullableValue';
       }
       return 'This variable is initialized to $nullableValue';
     } else if (origin.kind == EdgeOriginKind.fieldNotInitialized) {
       if (node is ConstructorDeclaration) {
-        String constructorName =
-            node.declaredElement.enclosingElement.displayName;
+        var constructorName = node.declaredElement.enclosingElement.displayName;
         if (node.declaredElement.displayName.isNotEmpty) {
           constructorName =
               '$constructorName.${node.declaredElement.displayName}';
@@ -271,7 +262,7 @@ class InfoBuilder {
       }
     }
 
-    String enclosingMemberDescription = buildEnclosingMemberDescription(node);
+    var enclosingMemberDescription = buildEnclosingMemberDescription(node);
     if (enclosingMemberDescription != null) {
       return capitalize(
           '$nullableValue is assigned in $enclosingMemberDescription');
@@ -284,7 +275,7 @@ class InfoBuilder {
   /// Return a description of the given [origin].
   String _buildDescriptionForOrigin(
       EdgeOriginInfo origin, NullabilityFixKind fixKind) {
-    String description = _baseDescriptionForOrigin(origin, fixKind);
+    var description = _baseDescriptionForOrigin(origin, fixKind);
     if (_inTestCode(origin.node)) {
       // TODO(brianwilkerson) Don't add this if the graph node with which the
       //  origin is associated is also in test code.
@@ -296,10 +287,10 @@ class InfoBuilder {
   /// Return a description of the given [origin] associated with the [edge].
   RegionDetail _buildDetailForOrigin(
       EdgeOriginInfo origin, EdgeInfo edge, NullabilityFixKind fixKind) {
-    AstNode node = origin.node;
+    var node = origin.node;
     NavigationTarget target;
-    TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
-    AstNode typeParent = type?.parent;
+    var type = info.typeAnnotationForNode(edge.sourceNode);
+    var typeParent = type?.parent;
 
     if (typeParent is GenericFunctionType && type == typeParent.returnType) {
       var description =
@@ -333,12 +324,11 @@ class InfoBuilder {
         // the superclass, or the return type in the declaration in that
         // subclass.
         if (type != null) {
-          CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
+          var unit = type.thisOrAncestorOfType<CompilationUnit>();
           target = _proximateTargetForNode(
               unit.declaredElement.source.fullName, type);
         }
-        String description =
-            _buildInheritanceDescriptionForOrigin(origin, type);
+        var description = _buildInheritanceDescriptionForOrigin(origin, type);
         return RegionDetail(description, target);
       } else {
         target = _proximateTargetForNode(origin.source.fullName, node);
@@ -350,7 +340,7 @@ class InfoBuilder {
   String _buildInheritanceDescriptionForOrigin(
       EdgeOriginInfo origin, TypeAnnotation type) {
     if (origin.kind == EdgeOriginKind.parameterInheritance) {
-      String overriddenName = 'the overridden method';
+      var overriddenName = 'the overridden method';
       if (type != null && type.parent is FormalParameter) {
         FormalParameter parameter = type.parent;
         if (parameter.parent is DefaultFormalParameter) {
@@ -359,9 +349,9 @@ class InfoBuilder {
         if (parameter.parent is FormalParameterList &&
             parameter.parent.parent is MethodDeclaration) {
           MethodDeclaration method = parameter.parent.parent;
-          String methodName = method.name.name;
+          var methodName = method.name.name;
           ClassOrMixinDeclaration cls = method.parent;
-          String className = cls.name.name;
+          var className = cls.name.name;
           overriddenName += ', $className.$methodName,';
         }
       }
@@ -373,9 +363,9 @@ class InfoBuilder {
 
   /// Compute the details for the fix with the given [edit].
   List<RegionDetail> _computeDetails(AtomicEdit edit) {
-    List<RegionDetail> details = [];
+    var details = <RegionDetail>[];
     var fixInfo = edit.info;
-    for (FixReasonInfo reason in fixInfo?.fixReasons ?? []) {
+    for (var reason in fixInfo?.fixReasons ?? []) {
       if (reason == null) {
         // Sometimes reasons are null, so just ignore them (see for example the
         // test case InfoBuilderTest.test_discardCondition.  If only we had
@@ -385,7 +375,7 @@ class InfoBuilder {
         if (reason.isExactNullable) {
           // When the node is exact nullable, that nullability propagated from
           // downstream.
-          for (EdgeInfo edge in reason.downstreamEdges) {
+          for (var edge in reason.downstreamEdges) {
             final exactNullableDownstream = edge.destinationNode;
             if (!exactNullableDownstream.isExactNullable) {
               // This wasn't the source of the nullability.
@@ -408,8 +398,8 @@ class InfoBuilder {
           }
         }
 
-        for (EdgeInfo edge in upstreamTriggeredEdges(reason)) {
-          EdgeOriginInfo origin = info.edgeOrigin[edge];
+        for (var edge in upstreamTriggeredEdges(reason)) {
+          var origin = info.edgeOrigin[edge];
           if (origin != null) {
             details.add(
                 _buildDetailForOrigin(origin, edge, fixInfo.description.kind));
@@ -420,9 +410,9 @@ class InfoBuilder {
           }
         }
       } else if (reason is EdgeInfo) {
-        NullabilityNodeInfo destination = reason.destinationNode;
-        NodeInformation nodeInfo = info.nodeInfoFor(destination);
-        EdgeOriginInfo edge = info.edgeOrigin[reason];
+        var destination = reason.destinationNode;
+        var nodeInfo = info.nodeInfoFor(destination);
+        var edge = info.edgeOrigin[reason];
         if (destination == info.never) {
           details.add(RegionDetail(_describeNonNullEdge(edge), null));
         } else if (nodeInfo != null && nodeInfo.astNode != null) {
@@ -448,7 +438,7 @@ class InfoBuilder {
 
   /// Return an edit that can be applied.
   List<EditDetail> _computeEdits(AtomicEditInfo fixInfo, int offset) {
-    List<EditDetail> edits = [];
+    var edits = <EditDetail>[];
     var fixKind = fixInfo.description.kind;
     switch (fixKind) {
       case NullabilityFixKind.addRequired:
@@ -483,23 +473,22 @@ class InfoBuilder {
 
   /// Return the navigation sources for the unit associated with the [result].
   List<NavigationSource> _computeNavigationSources(ResolvedUnitResult result) {
-    NavigationCollectorImpl collector = NavigationCollectorImpl();
+    var collector = NavigationCollectorImpl();
     computeDartNavigation(
         result.session.resourceProvider, collector, result.unit, null, null);
     collector.createRegions();
-    List<String> files = collector.files;
-    List<protocol.NavigationRegion> regions = collector.regions;
-    List<protocol.NavigationTarget> rawTargets = collector.targets;
-    List<NavigationTarget> convertedTargets =
-        List<NavigationTarget>(rawTargets.length);
+    var files = collector.files;
+    var regions = collector.regions;
+    var rawTargets = collector.targets;
+    var convertedTargets = List<NavigationTarget>(rawTargets.length);
     return regions.map((region) {
-      List<int> targets = region.targets;
+      var targets = region.targets;
       if (targets.isEmpty) {
         throw StateError('Targets is empty');
       }
-      NavigationTarget target = convertedTargets[targets[0]];
+      var target = convertedTargets[targets[0]];
       if (target == null) {
-        protocol.NavigationTarget rawTarget = rawTargets[targets[0]];
+        var rawTarget = rawTargets[targets[0]];
         target = _targetForRawTarget(files[rawTarget.fileIndex], rawTarget);
         convertedTargets[targets[0]] = target;
       }
@@ -510,7 +499,7 @@ class InfoBuilder {
 
   void _computeTraceNonNullableInfo(
       NullabilityNodeInfo node, List<TraceInfo> traces) {
-    List<TraceEntryInfo> entries = [];
+    var entries = <TraceEntryInfo>[];
     var step = node.whyNotNullable;
     if (step == null) {
       return;
@@ -529,7 +518,7 @@ class InfoBuilder {
 
   void _computeTraceNullableInfo(
       NullabilityNodeInfo node, List<TraceInfo> traces) {
-    List<TraceEntryInfo> entries = [];
+    var entries = <TraceEntryInfo>[];
     var step = node.whyNullable;
     if (step == null) {
       return;
@@ -547,7 +536,7 @@ class InfoBuilder {
   }
 
   List<TraceInfo> _computeTraces(List<FixReasonInfo> fixReasons) {
-    List<TraceInfo> traces = [];
+    var traces = <TraceInfo>[];
     for (var reason in fixReasons) {
       if (reason is NullabilityNodeInfo) {
         if (reason.isNullable) {
@@ -588,36 +577,35 @@ class InfoBuilder {
   /// [result].
   UnitInfo _explainUnit(SourceInformation sourceInfo, ResolvedUnitResult result,
       SourceFileEdit fileEdit) {
-    UnitInfo unitInfo = _unitForPath(result.path);
+    var unitInfo = _unitForPath(result.path);
     unitInfo.sources ??= _computeNavigationSources(result);
-    String content = result.content;
-    List<RegionInfo> regions = unitInfo.regions;
+    var content = result.content;
+    var regions = unitInfo.regions;
     var lineInfo = result.unit.lineInfo;
-    Map<int, List<AtomicEdit>> insertions = {};
+    var insertions = <int, List<AtomicEdit>>{};
 
     // Apply edits and build the regions.
     var changes = sourceInfo.changes ?? {};
     var sourceOffsets = changes.keys.toList();
     sourceOffsets.sort();
-    int offset = 0;
-    int lastSourceOffset = 0;
+    var offset = 0;
+    var lastSourceOffset = 0;
     for (var sourceOffset in sourceOffsets) {
       offset += sourceOffset - lastSourceOffset;
       lastSourceOffset = sourceOffset;
       var changesForSourceOffset = changes[sourceOffset];
       for (var edit in changesForSourceOffset) {
-        int length = edit.length;
-        String replacement = edit.replacement;
-        int end = offset + length;
+        var length = edit.length;
+        var replacement = edit.replacement;
+        var end = offset + length;
         // Insert the replacement text without deleting the replaced text.
         if (replacement.isNotEmpty) {
           content = content.replaceRange(end, end, replacement);
           (insertions[sourceOffset] ??= []).add(AtomicEdit.insert(replacement));
         }
         var info = edit.info;
-        String explanation = info?.description?.appliedMessage;
-        List<EditDetail> edits =
-            info != null ? _computeEdits(info, sourceOffset) : [];
+        var explanation = info?.description?.appliedMessage;
+        var edits = info != null ? _computeEdits(info, sourceOffset) : [];
         List<RegionDetail> details;
         try {
           details = _computeDetails(edit);
@@ -656,9 +644,9 @@ class InfoBuilder {
     // Build the map from source file offset to offset in the modified text.
     // We only account for insertions because in the code above, we don't delete
     // the modified text.
-    List<SourceEdit> edits = insertions.toSourceEdits();
+    var edits = insertions.toSourceEdits();
     edits.sort((first, second) => first.offset.compareTo(second.offset));
-    OffsetMapper mapper = OffsetMapper.forEdits(edits);
+    var mapper = OffsetMapper.forEdits(edits);
     regions.sort((first, second) => first.offset.compareTo(second.offset));
     unitInfo.offsetMapper = mapper;
     unitInfo.content = content;
@@ -669,12 +657,12 @@ class InfoBuilder {
   /// 'test' directory of the package.
   bool _inTestCode(AstNode node) {
     // TODO(brianwilkerson) Generalize this.
-    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
-    CompilationUnitElement unitElement = unit?.declaredElement;
+    var unit = node.thisOrAncestorOfType<CompilationUnit>();
+    var unitElement = unit?.declaredElement;
     if (unitElement == null) {
       return false;
     }
-    String filePath = unitElement.source.fullName;
+    var filePath = unitElement.source.fullName;
     var resourceProvider = unitElement.session.resourceProvider;
     return resourceProvider.pathContext.split(filePath).contains('test');
   }
@@ -706,8 +694,8 @@ class InfoBuilder {
     if (node == null) {
       return null;
     }
-    AstNode parent = node.parent;
-    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
+    var parent = node.parent;
+    var unit = node.thisOrAncestorOfType<CompilationUnit>();
     if (node is ConstructorDeclaration) {
       if (node.name != null) {
         return _targetForNode(filePath, node.name, unit);
@@ -733,7 +721,7 @@ class InfoBuilder {
   }
 
   TraceEntryInfo _stepToTraceEntry(PropagationStepInfo step) {
-    String description = step.edge?.description;
+    var description = step.edge?.description;
     description ??= step.toString(); // TODO(paulberry): improve this message.
     return _makeTraceEntry(description, step.codeReference);
   }
@@ -742,12 +730,12 @@ class InfoBuilder {
   /// given [offset] ans with the given [length].
   NavigationTarget _targetForNode(
       String filePath, SyntacticEntity node, CompilationUnit unit) {
-    UnitInfo unitInfo = _unitForPath(filePath);
-    int offset = node.offset;
-    int length = node.length;
+    var unitInfo = _unitForPath(filePath);
+    var offset = node.offset;
+    var length = node.length;
 
-    int line = unit.lineInfo.getLocation(node.offset).lineNumber;
-    NavigationTarget target = NavigationTarget(filePath, offset, line, length);
+    var line = unit.lineInfo.getLocation(node.offset).lineNumber;
+    var target = NavigationTarget(filePath, offset, line, length);
     unitInfo.targets.add(target);
     return target;
   }
@@ -756,11 +744,10 @@ class InfoBuilder {
   /// given [offset] ans with the given [length].
   NavigationTarget _targetForRawTarget(
       String filePath, protocol.NavigationTarget rawTarget) {
-    UnitInfo unitInfo = _unitForPath(filePath);
-    int offset = rawTarget.offset;
-    int length = rawTarget.length;
-    NavigationTarget target =
-        NavigationTarget(filePath, offset, null /* line */, length);
+    var unitInfo = _unitForPath(filePath);
+    var offset = rawTarget.offset;
+    var length = rawTarget.length;
+    var target = NavigationTarget(filePath, offset, null /* line */, length);
     unitInfo.targets.add(target);
     return target;
   }
@@ -831,7 +818,7 @@ class InfoBuilder {
   static String _describeClassOrExtensionMember(CompilationUnitMember parent,
       String baseDescription, String functionName) {
     if (parent is NamedCompilationUnitMember) {
-      String parentName = parent.name.name;
+      var parentName = parent.name.name;
       if (functionName.isEmpty) {
         return "$baseDescription '$parentName'";
       } else {

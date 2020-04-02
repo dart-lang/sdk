@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,16 +20,16 @@ void main() {
 @reflectiveTest
 class AnalysisHoverTest extends AbstractAnalysisTest {
   Future<HoverInformation> prepareHover(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     return prepareHoverAt(offset);
   }
 
   Future<HoverInformation> prepareHoverAt(int offset) async {
     await waitForTasksFinished();
-    Request request = AnalysisGetHoverParams(testFile, offset).toRequest('0');
-    Response response = await waitResponse(request);
+    var request = AnalysisGetHoverParams(testFile, offset).toRequest('0');
+    var response = await waitResponse(request);
     var result = AnalysisGetHoverResult.fromResponse(response);
-    List<HoverInformation> hovers = result.hovers;
+    var hovers = result.hovers;
     return hovers.isNotEmpty ? hovers.first : null;
   }
 
@@ -49,7 +48,7 @@ class M1 {}
 class M2<E> {}
 class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
 ''');
-    HoverInformation hover = await prepareHover('B<T>');
+    var hover = await prepareHover('B<T>');
     expect(
         hover.elementDescription,
         'class B<T> extends A<T> with M1, M2<int> '
@@ -63,7 +62,7 @@ class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
 class A {}
 abstract class B extends A {}
 ''');
-    HoverInformation hover = await prepareHover('B extends');
+    var hover = await prepareHover('B extends');
     expect(hover.elementDescription, 'abstract class B extends A');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
@@ -91,11 +90,11 @@ main() {
     }
 
     {
-      HoverInformation hover = await prepareHover('new A');
+      var hover = await prepareHover('new A');
       onConstructor(hover);
     }
     {
-      HoverInformation hover = await prepareHover('named();');
+      var hover = await prepareHover('named();');
       onConstructor(hover);
     }
   }
@@ -110,7 +109,7 @@ main() {
   const a = A(0);
 }
 ''');
-    HoverInformation hover = await prepareHover('A(0)');
+    var hover = await prepareHover('A(0)');
     // range
     expect(hover.offset, findOffset('A(0)'));
     expect(hover.length, 'A'.length);
@@ -135,7 +134,7 @@ main() {
   var a = A();
 }
 ''');
-    HoverInformation hover = await prepareHover('A()');
+    var hover = await prepareHover('A()');
     // range
     expect(hover.offset, findOffset('A()'));
     expect(hover.length, 'A'.length);
@@ -161,7 +160,7 @@ main() {
   new A();
 }
 ''');
-    HoverInformation hover = await prepareHover('new A');
+    var hover = await prepareHover('new A');
     // range
     expect(hover.offset, findOffset('new A') + 'new '.length);
     expect(hover.length, 'A'.length);
@@ -204,15 +203,15 @@ main() {
     }
 
     {
-      HoverInformation hover = await prepareHover('new A');
+      var hover = await prepareHover('new A');
       onConstructor(hover);
     }
     {
-      HoverInformation hover = await prepareHover('A<String>()');
+      var hover = await prepareHover('A<String>()');
       onConstructor(hover);
     }
     {
-      HoverInformation hover = await prepareHover('String>');
+      var hover = await prepareHover('String>');
       expect(hover.containingLibraryName, 'dart:core');
       expect(hover.offset, findOffset('String>'));
       expect(hover.length, 'String'.length);
@@ -229,7 +228,7 @@ main() {
 main() {
 }
 ''');
-    HoverInformation hover = await prepareHover('main() {');
+    var hover = await prepareHover('main() {');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
@@ -244,7 +243,7 @@ class B implements A {
   m() {} // in B
 }
 ''');
-    HoverInformation hover = await prepareHover('m() {} // in B');
+    var hover = await prepareHover('m() {} // in B');
     expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
   }
 
@@ -259,7 +258,7 @@ class B extends A {
   m() {} // in B
 }
 ''');
-    HoverInformation hover = await prepareHover('m() {} // in B');
+    var hover = await prepareHover('m() {} // in B');
     expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
   }
 
@@ -275,7 +274,7 @@ class B extends A {
 class C extends B {
   m() {} // in C
 }''');
-    HoverInformation hover = await prepareHover('m() {} // in C');
+    var hover = await prepareHover('m() {} // in C');
     expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
   }
 
@@ -294,7 +293,7 @@ class I {
 class C extends B implements I {
   m() {} // in C
 }''');
-    HoverInformation hover = await prepareHover('m() {} // in C');
+    var hover = await prepareHover('m() {} // in C');
     expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
   }
 
@@ -305,7 +304,7 @@ class C extends B implements I {
 main() {
 }
 ''');
-    HoverInformation hover = await prepareHover('main() {');
+    var hover = await prepareHover('main() {');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
@@ -313,7 +312,7 @@ main() {
     addTestFile('''
 enum MyEnum {AAA, BBB, CCC}
 ''');
-    HoverInformation hover = await prepareHover('MyEnum');
+    var hover = await prepareHover('MyEnum');
     expect(hover.elementDescription, 'enum MyEnum');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
@@ -326,7 +325,7 @@ class A {}
 /// Comment
 extension E on A {}
 ''');
-    HoverInformation hover = await prepareHover('E');
+    var hover = await prepareHover('E');
     expect(hover.elementDescription, 'extension E on A');
     expect(hover.dartdoc, 'Comment');
     expect(hover.staticType, isNull);
@@ -341,7 +340,7 @@ library my.library;
 List<String> fff(int a, String b) {
 }
 ''');
-    HoverInformation hover = await prepareHover('fff(int a');
+    var hover = await prepareHover('fff(int a');
     // element
     expect(hover.containingLibraryName, 'bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
@@ -368,7 +367,7 @@ main(A a) {
   print(a.fff);
 }
 ''');
-    HoverInformation hover = await prepareHover('fff);');
+    var hover = await prepareHover('fff);');
     // element
     expect(hover.containingLibraryName, 'bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
@@ -388,7 +387,7 @@ main() {
 }
 foo(Object myParameter) {}
 ''');
-    HoverInformation hover = await prepareHover('123');
+    var hover = await prepareHover('123');
     // range
     expect(hover.offset, findOffset('123'));
     expect(hover.length, 3);
@@ -413,7 +412,7 @@ main() {
 }
 foo(double myParameter) {}
 ''');
-    HoverInformation hover = await prepareHover('123');
+    var hover = await prepareHover('123');
     // range
     expect(hover.offset, findOffset('123'));
     expect(hover.length, 3);
@@ -460,7 +459,7 @@ class A {
   }
 }
 ''');
-    HoverInformation hover = await prepareHover('vvv = 42');
+    var hover = await prepareHover('vvv = 42');
     // element
     expect(hover.containingLibraryName, isNull);
     expect(hover.containingLibraryPath, isNull);
@@ -483,7 +482,7 @@ main() {
   print(vvv);
 }
 ''');
-    HoverInformation hover = await prepareHover('vvv);');
+    var hover = await prepareHover('vvv);');
     // element
     expect(hover.containingLibraryName, isNull);
     expect(hover.containingLibraryPath, isNull);
@@ -506,7 +505,7 @@ class A {
   }
 }
 ''');
-    HoverInformation hover = await prepareHover('mmm(int a');
+    var hover = await prepareHover('mmm(int a');
     // element
     expect(hover.containingLibraryName, 'bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
@@ -532,7 +531,7 @@ main(A a) {
   a.mmm(42, 'foo');
 }
 ''');
-    HoverInformation hover = await prepareHover('mm(42, ');
+    var hover = await prepareHover('mm(42, ');
     // range
     expect(hover.offset, findOffset('mmm(42, '));
     expect(hover.length, 'mmm'.length);
@@ -559,7 +558,7 @@ main() {
   A.test();
 }
 ''');
-    HoverInformation hover = await prepareHover('test();');
+    var hover = await prepareHover('test();');
     // element
     expect(hover.containingLibraryPath, testFile);
     expect(hover.elementDescription, 'void test()');
@@ -580,7 +579,7 @@ f(Stream<int> s) {
   s.transform(null);
 }
 ''');
-    HoverInformation hover = await prepareHover('nsform(n');
+    var hover = await prepareHover('nsform(n');
     // range
     expect(hover.offset, findOffset('transform(n'));
     expect(hover.length, 'transform'.length);
@@ -607,7 +606,7 @@ class C {}
 class D {}
 class E {}
 ''');
-    HoverInformation hover = await prepareHover('A');
+    var hover = await prepareHover('A');
     expect(hover.elementDescription, 'mixin A on B, C implements D, E');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
@@ -620,7 +619,7 @@ mixin A {}
 abstract class B {}
 class C with A implements B {}
 ''');
-    HoverInformation hover = await prepareHover('A i');
+    var hover = await prepareHover('A i');
     expect(hover.elementDescription, 'mixin A');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
@@ -633,7 +632,7 @@ main() {
   // nothing
 }
 ''');
-    HoverInformation hover = await prepareHover('nothing');
+    var hover = await prepareHover('nothing');
     expect(hover, isNull);
   }
 
@@ -662,7 +661,7 @@ main() {
   new A(fff: 42);
 }
 ''');
-    HoverInformation hover = await prepareHover('fff});');
+    var hover = await prepareHover('fff});');
     expect(hover.containingLibraryName, isNull);
     expect(hover.containingLibraryPath, isNull);
     expect(hover.containingClassDescription, isNull);
@@ -681,7 +680,7 @@ class A {
   }
 }
 ''');
-    HoverInformation hover = await prepareHover('p) {');
+    var hover = await prepareHover('p) {');
     // element
     expect(hover.containingLibraryName, isNull);
     expect(hover.containingLibraryPath, isNull);
@@ -707,7 +706,7 @@ main() {
   new A(fff: 42);
 }
 ''');
-    HoverInformation hover = await prepareHover('fff: 42');
+    var hover = await prepareHover('fff: 42');
     expect(hover.containingLibraryName, isNull);
     expect(hover.containingLibraryPath, isNull);
     expect(hover.containingClassDescription, isNull);

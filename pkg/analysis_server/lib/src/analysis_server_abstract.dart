@@ -111,7 +111,7 @@ abstract class AbstractAnalysisServer {
   List<Glob> get analyzedFilesGlobs {
     if (_analyzedFilesGlobs == null) {
       _analyzedFilesGlobs = <Glob>[];
-      for (String pattern in analyzableFilePatterns) {
+      for (var pattern in analyzableFilePatterns) {
         try {
           _analyzedFilesGlobs
               .add(Glob(resourceProvider.pathContext.separator, pattern));
@@ -135,7 +135,7 @@ abstract class AbstractAnalysisServer {
 
   /// Return the total time the server's been alive.
   Duration get uptime {
-    DateTime start =
+    var start =
         DateTime.fromMillisecondsSinceEpoch(performanceDuringStartup.startTime);
     return DateTime.now().difference(start);
   }
@@ -150,18 +150,17 @@ abstract class AbstractAnalysisServer {
   /// If the state location can be accessed, return the file byte store,
   /// otherwise return the memory byte store.
   ByteStore createByteStore(ResourceProvider resourceProvider) {
-    const int M = 1024 * 1024 /*1 MiB*/;
-    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+    const M = 1024 * 1024 /*1 MiB*/;
+    const G = 1024 * 1024 * 1024 /*1 GiB*/;
 
-    const int memoryCacheSize = 128 * M;
+    const memoryCacheSize = 128 * M;
 
     if (resourceProvider is OverlayResourceProvider) {
       OverlayResourceProvider overlay = resourceProvider;
       resourceProvider = overlay.baseProvider;
     }
     if (resourceProvider is PhysicalResourceProvider) {
-      Folder stateLocation =
-          resourceProvider.getStateLocation('.analysis-driver');
+      var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         return MemoryCachingByteStore(
             EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
@@ -175,13 +174,13 @@ abstract class AbstractAnalysisServer {
   /// added if one exists, otherwise a driver in which the file was analyzed if
   /// one exists, otherwise the first driver, otherwise `null`.
   nd.AnalysisDriver getAnalysisDriver(String path) {
-    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
+    var drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {
       // Sort the drivers so that more deeply nested contexts will be checked
       // before enclosing contexts.
       drivers.sort((first, second) =>
           second.contextRoot.root.length - first.contextRoot.root.length);
-      nd.AnalysisDriver driver = drivers.firstWhere(
+      var driver = drivers.firstWhere(
           (driver) => driver.contextRoot.containsFile(path),
           orElse: () => null);
       driver ??= drivers.firstWhere(
@@ -223,7 +222,7 @@ abstract class AbstractAnalysisServer {
       }
     }
 
-    AstNode node = await getNodeAtOffset(file, offset);
+    var node = await getNodeAtOffset(file, offset);
     return getElementOfNode(node);
   }
 
@@ -242,7 +241,7 @@ abstract class AbstractAnalysisServer {
     if (node is StringLiteral && node.parent is UriBasedDirective) {
       return null;
     }
-    Element element = ElementLocator.locate(node);
+    var element = ElementLocator.locate(node);
     if (node is SimpleIdentifier && element is PrefixElement) {
       element = getImportElement(node);
     }
@@ -255,8 +254,8 @@ abstract class AbstractAnalysisServer {
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResolvedUnitResult result = await getResolvedUnit(file);
-    CompilationUnit unit = result?.unit;
+    var result = await getResolvedUnit(file);
+    var unit = result?.unit;
     if (unit != null) {
       return NodeLocator(offset).searchWithin(unit);
     }
@@ -281,7 +280,7 @@ abstract class AbstractAnalysisServer {
       return null;
     }
 
-    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    var driver = getAnalysisDriver(path);
     if (driver == null) {
       return Future.value();
     }
@@ -295,7 +294,7 @@ abstract class AbstractAnalysisServer {
   }
 
   void logExceptionResult(nd.ExceptionResult result) {
-    String message = 'Analysis failed: ${result.filePath}';
+    var message = 'Analysis failed: ${result.filePath}';
     if (result.contextKey != null) {
       message += ' context: ${result.contextKey}';
     }

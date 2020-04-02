@@ -41,7 +41,10 @@ main() {
     expect(iterator.current, 42);
     var hasNext = iterator.moveNext();
     expect(hasNext, throwsA("BAD")); // This is an async expectation,
-    await hasNext.catchError((_) {}); // so we have to wait for the future too.
+    await hasNext.catchError((_) {
+      // so we have to wait for the future too.
+      return false;
+    });
     expect(iterator.current, isNull);
     expect(await iterator.moveNext(), isFalse);
     expect(iterator.current, isNull);

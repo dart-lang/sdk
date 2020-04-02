@@ -77,6 +77,14 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 70, 5),
     ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('super.m()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
   }
 
   test_staticVariableInitializer() async {
@@ -90,6 +98,12 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 69, 5),
     ]);
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('super.a'),
+      element: null,
+      type: 'dynamic',
+    );
   }
 
   test_topLevelFunction() async {

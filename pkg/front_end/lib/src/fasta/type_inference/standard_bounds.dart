@@ -420,6 +420,55 @@ abstract class StandardBounds {
           intersectNullabilities(type1.nullability, type2.nullability));
     }
 
+    // See https://github.com/dart-lang/sdk/issues/37439#issuecomment-519654959.
+    if (type1 is InterfaceType && type1.classNode == coreTypes.futureOrClass) {
+      if (type2 is InterfaceType) {
+        if (type2.classNode == coreTypes.futureOrClass) {
+          // GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>
+          DartType argument = getStandardLowerBound(
+              type1.typeArguments[0], type2.typeArguments[0], clientLibrary);
+          return new InterfaceType(coreTypes.futureOrClass,
+              argument.nullability, <DartType>[argument]);
+        }
+        if (type2.classNode == coreTypes.futureClass) {
+          // GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>
+          return new InterfaceType(
+              coreTypes.futureClass,
+              intersectNullabilities(
+                  computeNullabilityOfFutureOr(type1, coreTypes.futureOrClass),
+                  type2.nullability),
+              <DartType>[
+                getStandardLowerBound(type1.typeArguments[0],
+                    type2.typeArguments[0], clientLibrary)
+              ]);
+        }
+      }
+      // GLB(FutureOr<A>, B) == GLB(A, B)
+      return getStandardLowerBound(
+          type1.typeArguments[0], type2, clientLibrary);
+    }
+    // The if-statement below handles the following rule:
+    //     GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)
+    // It's broken down into sub-cases instead of making a recursive call to
+    // avoid making the checks that were already made above.  Note that at this
+    // point it's not possible for type1 to be a FutureOr.
+    if (type2 is InterfaceType && type2.classNode == coreTypes.futureOrClass) {
+      if (type1 is InterfaceType && type1.classNode == coreTypes.futureClass) {
+        // GLB(Future<A>, FutureOr<B>) == Future<GLB(B, A)>
+        return new InterfaceType(
+            coreTypes.futureClass,
+            intersectNullabilities(type1.nullability,
+                computeNullabilityOfFutureOr(type2, coreTypes.futureOrClass)),
+            <DartType>[
+              getStandardLowerBound(
+                  type2.typeArguments[0], type1.typeArguments[0], clientLibrary)
+            ]);
+      }
+      // GLB(A, FutureOr<B>) == GLB(B, A)
+      return getStandardLowerBound(
+          type2.typeArguments[0], type1, clientLibrary);
+    }
+
     // DOWN(T1, T2) = Never otherwise.
     return new NeverType(
         intersectNullabilities(type1.nullability, type2.nullability));

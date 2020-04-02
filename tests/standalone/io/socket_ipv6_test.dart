@@ -58,7 +58,7 @@ Future testIPv6toIPv4() {
       server.listen((socket) {
         throw "Unexpected socket";
       });
-      return Socket.connect(clientAddr.first, server.port).then((socket) {
+      return Socket.connect(clientAddr.first, server.port).then<Null>((socket) {
         socket.destroy();
         throw "Unexpected connect";
       }, onError: (e) {}).whenComplete(() {
@@ -118,7 +118,7 @@ Future testIPv4toIPv6_IPV6Only() {
       server.listen((socket) {
         throw "Unexpected socket";
       });
-      return Socket.connect("127.0.0.1", server.port).then((socket) {
+      return Socket.connect("127.0.0.1", server.port).then<Null>((socket) {
         socket.destroy();
         throw "Unexpected connect";
       }, onError: (e) {}).whenComplete(() {

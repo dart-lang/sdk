@@ -11,9 +11,10 @@ import 'package:kernel/ast.dart'
         Class,
         Constructor,
         DartType,
-        Procedure,
         FunctionNode,
         Member,
+        Nullability,
+        Procedure,
         VariableDeclaration;
 
 const bool kPrintTrace =
@@ -255,4 +256,15 @@ int findOverlap(List list, List sublist) {
       return i;
     }
   return list.length;
+}
+
+const nullabilitySuffix = {
+  Nullability.legacy: '*',
+  Nullability.nullable: '?',
+  Nullability.undetermined: '',
+  Nullability.nonNullable: '',
+};
+
+extension NullabilitySuffix on Nullability {
+  String get suffix => nullabilitySuffix[this];
 }

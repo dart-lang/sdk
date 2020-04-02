@@ -112,8 +112,8 @@ class MockServerChannel implements ServerCommunicationChannel {
       {bool throwOnError = true}) {
     // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
     // have the default behavior be the only behavior.
-    String id = request.id;
-    Future<Response> response =
+    var id = request.id;
+    var response =
         responseController.stream.firstWhere((response) => response.id == id);
     if (throwOnError) {
       errorCompleter = Completer<Response>();

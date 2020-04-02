@@ -31,7 +31,7 @@ double weightedAverage(List<double> values, List<double> weights) {
   assert(values.length == weights.length);
   var totalValue = 0.0;
   var totalWeight = 0.0;
-  for (int i = 0; i < values.length; i++) {
+  for (var i = 0; i < values.length; i++) {
     var value = values[i];
     if (value >= 0.0) {
       var weight = weights[i];

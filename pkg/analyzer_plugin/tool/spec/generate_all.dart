@@ -16,14 +16,14 @@ import 'to_html.dart' as to_html;
 
 /// Generate all targets.
 Future<void> main() async {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = normalize(join(dirname(script), '..', '..'));
+  var script = Platform.script.toFilePath(windows: Platform.isWindows);
+  var pkgPath = normalize(join(dirname(script), '..', '..'));
   await GeneratedContent.generateAll(pkgPath, allTargets);
 }
 
 /// Get a list of all generated targets.
 List<GeneratedContent> get allTargets {
-  List<GeneratedContent> targets = <GeneratedContent>[];
+  var targets = <GeneratedContent>[];
   targets.add(codegen_dart_protocol.target(true));
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);

@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,9 +23,9 @@ class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
 
   Future<void> test_file_containing_imports_exports_parts() async {
-    String pathA = convertPath('/home/test/000/1111/a.dart');
-    String pathB = convertPath('/home/test/000/1111/b.dart');
-    String pathC = convertPath('/home/test/000/1111/22/c.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathB = convertPath('/home/test/000/1111/b.dart');
+    var pathC = convertPath('/home/test/000/1111/22/c.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
     addSource('/absolute/uri.dart', '');
     addSource(pathA, 'part of lib;');
@@ -184,7 +183,7 @@ import 'package:test/new_name.dart';
   }
 
   Future<void> test_file_imported_with_relative_uri_down() async {
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
     addSource(pathA, '''
 import 'test.dart';
@@ -202,7 +201,7 @@ import '22/new_name.dart';
   }
 
   Future<void> test_file_imported_with_relative_uri_sideways() async {
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/sub/folder/test.dart');
     addSource(pathA, '''
 import 'sub/folder/test.dart';
@@ -218,7 +217,7 @@ import '../new/folder/name/new_name.dart';
   }
 
   Future<void> test_file_imported_with_relative_uri_up() async {
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 import '22/test.dart';
@@ -237,8 +236,8 @@ import 'new_name.dart';
   Future<void> test_file_referenced_by_multiple_libraries() async {
     // This test fails because the search index doesn't support multiple uris for
     // a library, so only one of them is updated.
-    String pathA = convertPath('/home/test/000/1111/a.dart');
-    String pathB = convertPath('/home/test/000/b.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathB = convertPath('/home/test/000/b.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
@@ -266,7 +265,7 @@ part '1111/22/new_name.dart';
   }
 
   Future<void> test_file_referenced_by_part() async {
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
@@ -325,7 +324,7 @@ part '22/new_name.dart';
     // If the file is a part in a library, and the part-of directive uses a URI
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
@@ -350,7 +349,7 @@ part of '../../a.dart';
     // If the file is a part in a library, and the part-of directive uses a URI
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
     addSource(pathA, '''
 part of 'test.dart';
@@ -373,7 +372,7 @@ part '../a.dart';
     // If the file is a part in a library, and the part-of directive uses a URI
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
     addSource(pathA, '''
 part of 'test.dart';
@@ -396,7 +395,7 @@ part 'a.dart';
     // If the file is a part in a library, and the part-of directive uses a URI
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
     addSource(pathA, '''
 part 'test.dart';
@@ -419,7 +418,7 @@ part of '../a.dart';
     // If the file is a part in a library, and the part-of directive uses a URI
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
-    String pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
     addSource(pathA, '''
 part 'test.dart';
@@ -440,7 +439,7 @@ part of 'a.dart';
 
   Future _assertFailedRefactoring(RefactoringProblemSeverity expectedSeverity,
       {String expectedMessage}) async {
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, expectedSeverity,
         expectedMessage: expectedMessage);
   }

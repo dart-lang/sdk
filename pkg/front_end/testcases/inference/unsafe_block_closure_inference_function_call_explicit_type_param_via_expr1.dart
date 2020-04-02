@@ -6,7 +6,7 @@
 library test;
 
 List<T> f<T>(T g()) => <T>[g()];
-var v = (f<int>)(() {
+var v = (f<int>)(/*@returnType=int**/() {
   return 1;
 });
 

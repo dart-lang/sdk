@@ -82,7 +82,7 @@ class ServerPluginTest with ResourceProviderMixin {
     var result = await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
     expect(result, isNotNull);
-    AnalysisDriverGeneric driver = _getDriver(contextRoot1);
+    var driver = _getDriver(contextRoot1);
     expect(driver, isNotNull);
     expect((driver as MockAnalysisDriver).addedFiles, hasLength(1));
   }
@@ -101,7 +101,7 @@ class ServerPluginTest with ResourceProviderMixin {
         AnalysisSetContextRootsParams([contextRoot1]));
     expect(plugin.subscriptionManager.servicesForFile(filePath1), isEmpty);
 
-    AnalysisSetSubscriptionsResult result = await plugin
+    var result = await plugin
         .handleAnalysisSetSubscriptions(AnalysisSetSubscriptionsParams({
       AnalysisService.OUTLINE: [filePath1]
     }));
@@ -159,9 +159,8 @@ class ServerPluginTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    CompletionGetSuggestionsResult result =
-        await plugin.handleCompletionGetSuggestions(
-            CompletionGetSuggestionsParams(filePath1, 12));
+    var result = await plugin.handleCompletionGetSuggestions(
+        CompletionGetSuggestionsParams(filePath1, 12));
     expect(result, isNotNull);
   }
 
@@ -169,7 +168,7 @@ class ServerPluginTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    EditGetAssistsResult result = await plugin
+    var result = await plugin
         .handleEditGetAssists(EditGetAssistsParams(filePath1, 10, 0));
     expect(result, isNotNull);
   }
@@ -178,9 +177,8 @@ class ServerPluginTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    EditGetAvailableRefactoringsResult result =
-        await plugin.handleEditGetAvailableRefactorings(
-            EditGetAvailableRefactoringsParams(filePath1, 10, 0));
+    var result = await plugin.handleEditGetAvailableRefactorings(
+        EditGetAvailableRefactoringsParams(filePath1, 10, 0));
     expect(result, isNotNull);
   }
 
@@ -188,7 +186,7 @@ class ServerPluginTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    EditGetFixesResult result =
+    var result =
         await plugin.handleEditGetFixes(EditGetFixesParams(filePath1, 13));
     expect(result, isNotNull);
   }
@@ -198,9 +196,8 @@ class ServerPluginTest with ResourceProviderMixin {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
-    EditGetRefactoringResult result = await plugin.handleEditGetRefactoring(
-        EditGetRefactoringParams(
-            RefactoringKind.RENAME, filePath1, 7, 0, false));
+    var result = await plugin.handleEditGetRefactoring(EditGetRefactoringParams(
+        RefactoringKind.RENAME, filePath1, 7, 0, false));
     expect(result, isNotNull);
   }
 
@@ -210,7 +207,7 @@ class ServerPluginTest with ResourceProviderMixin {
   }
 
   Future<void> test_handlePluginVersionCheck() async {
-    PluginVersionCheckResult result = await plugin.handlePluginVersionCheck(
+    var result = await plugin.handlePluginVersionCheck(
         PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0'));
     expect(result, isNotNull);
     expect(result.interestingFiles, ['*.dart']);
@@ -247,7 +244,7 @@ class ServerPluginTest with ResourceProviderMixin {
     var result = await channel
         .sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
     expect(result, isNotNull);
-    AnalysisDriverGeneric driver = _getDriver(contextRoot1);
+    var driver = _getDriver(contextRoot1);
     expect(driver, isNotNull);
     expect((driver as MockAnalysisDriver).addedFiles, hasLength(1));
   }
@@ -333,8 +330,7 @@ class ServerPluginTest with ResourceProviderMixin {
   Future<void> test_onRequest_pluginVersionCheck() async {
     var response = (await channel.sendRequest(
         PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0')));
-    PluginVersionCheckResult result =
-        PluginVersionCheckResult.fromResponse(response);
+    var result = PluginVersionCheckResult.fromResponse(response);
     expect(result, isNotNull);
     expect(result.interestingFiles, ['*.dart']);
     expect(result.isCompatible, isTrue);
@@ -343,31 +339,30 @@ class ServerPluginTest with ResourceProviderMixin {
   }
 
   void test_sendNotificationsForFile() {
-    AnalysisService service1 = AnalysisService.FOLDING;
-    AnalysisService service2 = AnalysisService.NAVIGATION;
-    AnalysisService service3 = AnalysisService.OUTLINE;
+    var service1 = AnalysisService.FOLDING;
+    var service2 = AnalysisService.NAVIGATION;
+    var service3 = AnalysisService.OUTLINE;
     plugin.subscriptionManager.setSubscriptions({
       service1: [filePath1, filePath2],
       service2: [filePath1],
       service3: [filePath2]
     });
     plugin.sendNotificationsForFile(filePath1);
-    Map<String, List<AnalysisService>> notifications = plugin.sentNotifications;
+    var notifications = plugin.sentNotifications;
     expect(notifications, hasLength(1));
-    List<AnalysisService> services = notifications[filePath1];
+    var services = notifications[filePath1];
     expect(services, unorderedEquals([service1, service2]));
   }
 
   void test_sendNotificationsForSubscriptions() {
-    Map<String, List<AnalysisService>> subscriptions =
-        <String, List<AnalysisService>>{};
+    var subscriptions = <String, List<AnalysisService>>{};
 
     plugin.sendNotificationsForSubscriptions(subscriptions);
-    Map<String, List<AnalysisService>> notifications = plugin.sentNotifications;
+    var notifications = plugin.sentNotifications;
     expect(notifications, hasLength(subscriptions.length));
-    for (String path in subscriptions.keys) {
-      List<AnalysisService> subscribedServices = subscriptions[path];
-      List<AnalysisService> notifiedServices = notifications[path];
+    for (var path in subscriptions.keys) {
+      var subscribedServices = subscriptions[path];
+      var notifiedServices = notifications[path];
       expect(notifiedServices, isNotNull,
           reason: 'Not notified for file $path');
       expect(notifiedServices, unorderedEquals(subscribedServices),
@@ -376,7 +371,7 @@ class ServerPluginTest with ResourceProviderMixin {
   }
 
   AnalysisDriverGeneric _getDriver(ContextRoot targetRoot) {
-    for (ContextRoot root in plugin.driverMap.keys) {
+    for (var root in plugin.driverMap.keys) {
       if (root.root == targetRoot.root) {
         return plugin.driverMap[root];
       }

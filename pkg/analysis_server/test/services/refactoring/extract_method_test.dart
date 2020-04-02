@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -375,7 +374,7 @@ main() {
     // update parameters
     await refactoring.checkInitialConditions();
     {
-      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      var parameters = _getParametersCopy();
       expect(parameters, hasLength(2));
       parameters[0].name = 'dup';
       parameters[1].name = 'dup';
@@ -399,7 +398,7 @@ f(a, b) {}
     // update parameters
     await refactoring.checkInitialConditions();
     {
-      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      var parameters = _getParametersCopy();
       expect(parameters, hasLength(2));
       parameters[0].name = 'f';
       refactoring.parameters = parameters;
@@ -422,7 +421,7 @@ main() {
     // update parameters
     await refactoring.checkInitialConditions();
     {
-      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      var parameters = _getParametersCopy();
       expect(parameters, hasLength(2));
       parameters[0].name = 'a';
       refactoring.parameters = parameters;
@@ -448,7 +447,7 @@ class A {
     // update parameters
     await refactoring.checkInitialConditions();
     {
-      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      var parameters = _getParametersCopy();
       expect(parameters, hasLength(2));
       parameters[0].name = 'm';
       refactoring.parameters = parameters;
@@ -770,7 +769,7 @@ main() {
 }
 ''');
     _createRefactoring(0, 1 << 20);
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
@@ -781,7 +780,7 @@ main() {
 }
 ''');
     _createRefactoring(-10, 20);
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
@@ -954,7 +953,7 @@ main() {
 ''');
     _createRefactoringForString('(x) => x * k');
     // check
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             'Cannot extract closure as method, it references 1 external variable(s).');
@@ -969,7 +968,7 @@ main(int k) {
 ''');
     _createRefactoringForString('(x) => x * k');
     // check
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             'Cannot extract closure as method, it references 1 external variable(s).');
@@ -1816,7 +1815,7 @@ main() {
     // apply refactoring
     await refactoring.checkInitialConditions();
     {
-      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      var parameters = _getParametersCopy();
       expect(parameters, hasLength(2));
       expect(parameters[0].name, 'v1');
       expect(parameters[1].name, 'v2');
@@ -1853,7 +1852,7 @@ main() {
     // apply refactoring
     await refactoring.checkInitialConditions();
     {
-      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      var parameters = _getParametersCopy();
       expect(parameters, hasLength(2));
       expect(parameters[0].name, 'v1');
       expect(parameters[1].name, 'v2');
@@ -1912,7 +1911,7 @@ main() {
     // apply refactoring
     await refactoring.checkInitialConditions();
     {
-      List<RefactoringMethodParameter> parameters = _getParametersCopy();
+      var parameters = _getParametersCopy();
       expect(parameters, hasLength(3));
       expect(parameters[0].name, 'v1');
       expect(parameters[1].name, 'v2');
@@ -2172,7 +2171,7 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     // check conditions
-    RefactoringStatus status = await refactoring.checkInitialConditions();
+    var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
@@ -2888,25 +2887,25 @@ Completer<int> newCompleter() => null;
   }
 
   Future _assertConditionsError(String message) async {
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: message);
   }
 
   Future _assertConditionsFatal(String message) async {
-    RefactoringStatus status = await refactoring.checkAllConditions();
+    var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: message);
   }
 
   Future _assertFinalConditionsError(String message) async {
-    RefactoringStatus status = await refactoring.checkFinalConditions();
+    var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: message);
   }
 
   Future _assertRefactoringChange(String expectedCode) async {
-    SourceChange refactoringChange = await refactoring.createChange();
+    var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
   }
@@ -2926,36 +2925,36 @@ Completer<int> newCompleter() => null;
   }
 
   void _createRefactoringForStartEndComments() {
-    int offset = findEnd('// start') + '\n'.length;
-    int end = findOffset('// end');
+    var offset = findEnd('// start') + '\n'.length;
+    var end = findOffset('// end');
     _createRefactoring(offset, end - offset);
   }
 
   void _createRefactoringForStartEndString(
       String startSearch, String endSearch) {
-    int offset = findOffset(startSearch);
-    int end = findOffset(endSearch);
+    var offset = findOffset(startSearch);
+    var end = findOffset(endSearch);
     _createRefactoring(offset, end - offset);
   }
 
   /// Creates a new refactoring in [refactoring] for the selection range of the
   /// given [search] pattern.
   void _createRefactoringForString(String search) {
-    int offset = findOffset(search);
-    int length = search.length;
+    var offset = findOffset(search);
+    var length = search.length;
     _createRefactoring(offset, length);
   }
 
   /// Creates a new refactoring in [refactoring] at the offset of the given
   /// [search] pattern, and with `0` length.
   void _createRefactoringForStringOffset(String search) {
-    int offset = findOffset(search);
+    var offset = findOffset(search);
     _createRefactoring(offset, 0);
   }
 
   void _createRefactoringWithSuffix(String selectionSearch, String suffix) {
-    int offset = findOffset(selectionSearch + suffix);
-    int length = selectionSearch.length;
+    var offset = findOffset(selectionSearch + suffix);
+    var length = selectionSearch.length;
     _createRefactoring(offset, length);
   }
 

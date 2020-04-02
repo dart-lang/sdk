@@ -47,8 +47,8 @@ class DartFixListener {
   void addSourceChange(
       String description, Location location, SourceChange change) {
     suggestions.add(DartFixSuggestion(description, location: location));
-    for (SourceFileEdit fileEdit in change.edits) {
-      for (SourceEdit sourceEdit in fileEdit.edits) {
+    for (var fileEdit in change.edits) {
+      for (var sourceEdit in fileEdit.edits) {
         sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
       }
     }
@@ -58,7 +58,7 @@ class DartFixListener {
   void addSourceEdits(String description, Location location, Source source,
       Iterable<SourceEdit> edits) {
     suggestions.add(DartFixSuggestion(description, location: location));
-    for (SourceEdit edit in edits) {
+    for (var edit in edits) {
       sourceChange.addEdit(source.fullName, -1, edit);
     }
   }
@@ -67,7 +67,7 @@ class DartFixListener {
   void addSourceFileEdit(
       String description, Location location, SourceFileEdit fileEdit) {
     suggestions.add(DartFixSuggestion(description, location: location));
-    for (SourceEdit sourceEdit in fileEdit.edits) {
+    for (var sourceEdit in fileEdit.edits) {
       sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
     }
   }

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -1908,6 +1907,31 @@ void f(int a, {int b}) {}
     await assertOpType(typeNames: true);
   }
 
+  Future<void> test_SimpleFormalParameter_functionType_name() async {
+    addTestSource('void Function(int ^) v;');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  Future<void> test_SimpleFormalParameter_functionType_name_named() async {
+    addTestSource('void Function({int ^}) v;');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  Future<void> test_SimpleFormalParameter_functionType_name_optional() async {
+    addTestSource('void Function([int ^]) v;');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  Future<void> test_SimpleFormalParameter_functionType_type_withName() async {
+    addTestSource('void Function(Str^ name) v;');
+    await assertOpType(typeNames: true, varNames: false);
+  }
+
+  Future<void> test_SimpleFormalParameter_functionType_type_withName2() async {
+    addTestSource('void Function(^ name) v;');
+    await assertOpType(typeNames: true, varNames: false);
+  }
+
   Future<void> test_SimpleFormalParameter_name_typed() async {
     addTestSource('f(String ^, int b) {}');
     await assertOpType(typeNames: false, varNames: true);
@@ -2114,7 +2138,7 @@ class OpTypeTestCommon extends AbstractContextTest {
   void addTestSource(String content) {
     completionOffset = content.indexOf('^');
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', completionOffset + 1);
+    var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
@@ -2134,9 +2158,9 @@ class OpTypeTestCommon extends AbstractContextTest {
       bool voidReturn = false,
       CompletionSuggestionKind kind =
           CompletionSuggestionKind.INVOCATION}) async {
-    ResolvedUnitResult resolvedUnit = await driver.getResult(testPath);
+    var resolvedUnit = await driver.getResult(testPath);
 
-    CompletionTarget completionTarget =
+    var completionTarget =
         CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
     visitor = OpType.forCompletion(completionTarget, completionOffset);
 

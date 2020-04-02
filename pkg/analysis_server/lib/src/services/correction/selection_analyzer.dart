@@ -78,7 +78,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNode(AstNode node) {
-    SourceRange nodeRange = range.node(node);
+    var nodeRange = range.node(node);
     if (selection.covers(nodeRange)) {
       if (isFirstNode) {
         handleFirstSelectedNode(node);

@@ -675,7 +675,7 @@ class SourceLoader extends Loader {
       workList = <SourceClassBuilder>[];
       for (int i = 0; i < previousWorkList.length; i++) {
         SourceClassBuilder cls = previousWorkList[i];
-        List<Builder> directSupertypes =
+        List<TypeDeclarationBuilder> directSupertypes =
             cls.computeDirectSupertypes(objectClass);
         bool allSupertypesProcessed = true;
         for (int i = 0; i < directSupertypes.length; i++) {
@@ -740,15 +740,13 @@ class SourceLoader extends Loader {
     }
   }
 
-  void checkClassSupertypes(SourceClassBuilder cls,
-      List<Builder> directSupertypes, Set<ClassBuilder> blackListedClasses) {
+  void checkClassSupertypes(
+      SourceClassBuilder cls,
+      List<TypeDeclarationBuilder> directSupertypes,
+      Set<ClassBuilder> blackListedClasses) {
     // Check that the direct supertypes aren't black-listed or enums.
     for (int i = 0; i < directSupertypes.length; i++) {
-      Builder supertype = directSupertypes[i];
-      if (supertype is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = supertype;
-        supertype = aliasBuilder.unaliasDeclaration;
-      }
+      TypeDeclarationBuilder supertype = directSupertypes[i];
       if (supertype is EnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
@@ -763,14 +761,15 @@ class SourceLoader extends Loader {
     }
 
     // Check that the mixed-in type can be used as a mixin.
-    final TypeBuilder mixedInType = cls.mixedInTypeBuilder;
-    if (mixedInType != null) {
+    final TypeBuilder mixedInTypeBuilder = cls.mixedInTypeBuilder;
+    if (mixedInTypeBuilder != null) {
       bool isClassBuilder = false;
-      if (mixedInType is NamedTypeBuilder) {
-        TypeDeclarationBuilder builder = mixedInType.declaration;
+      if (mixedInTypeBuilder is NamedTypeBuilder) {
+        TypeDeclarationBuilder builder = mixedInTypeBuilder.declaration;
         if (builder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = builder;
-          builder = aliasBuilder.unaliasDeclaration;
+          NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
         }
         if (builder is ClassBuilder) {
           isClassBuilder = true;
@@ -781,7 +780,8 @@ class SourceLoader extends Loader {
         // TODO(ahe): Either we need to check this for superclass and
         // interfaces, or this shouldn't be necessary (or handled elsewhere).
         cls.addProblem(
-            templateIllegalMixin.withArguments(mixedInType.fullNameForErrors),
+            templateIllegalMixin
+                .withArguments(mixedInTypeBuilder.fullNameForErrors),
             cls.charOffset,
             noLength);
       }

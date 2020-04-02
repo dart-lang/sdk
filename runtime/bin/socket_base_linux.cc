@@ -98,6 +98,15 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return read_bytes;
 }
 
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  ASSERT(fd >= 0);
+  ssize_t read_bytes =
+      TEMP_FAILURE_RETRY(recvfrom(fd, buffer, num_bytes, MSG_PEEK, NULL, NULL));
+  return read_bytes >= 0;
+}
+
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
                            intptr_t num_bytes,

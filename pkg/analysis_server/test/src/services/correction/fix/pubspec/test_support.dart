@@ -5,12 +5,8 @@
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
-import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show SourceFileEdit;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
@@ -21,32 +17,31 @@ import 'package:yaml/yaml.dart';
 class PubspecFixTest with ResourceProviderMixin {
   Future<void> assertHasFix(
       String initialContent, String expectedContent) async {
-    List<Fix> fixes = await _getFixes(initialContent);
+    var fixes = await _getFixes(initialContent);
     expect(fixes, hasLength(1));
-    List<SourceFileEdit> fileEdits = fixes[0].change.edits;
+    var fileEdits = fixes[0].change.edits;
     expect(fileEdits, hasLength(1));
 
-    String actualContent =
+    var actualContent =
         SourceEdit.applySequence(initialContent, fileEdits[0].edits);
     expect(actualContent, expectedContent);
   }
 
   Future<void> assertHasNoFix(String initialContent) async {
-    List<Fix> fixes = await _getFixes(initialContent);
+    var fixes = await _getFixes(initialContent);
     expect(fixes, hasLength(0));
   }
 
   Future<List<Fix>> _getFixes(String content) {
-    File pubspecFile = getFile('/package/pubspec.yaml');
-    YamlMap pubspec = _parseYaml(content);
+    var pubspecFile = getFile('/package/pubspec.yaml');
+    var pubspec = _parseYaml(content);
     expect(pubspec, isNotNull);
-    PubspecValidator validator =
+    var validator =
         PubspecValidator(resourceProvider, pubspecFile.createSource());
-    List<engine.AnalysisError> errors = validator.validate(pubspec.nodes);
+    var errors = validator.validate(pubspec.nodes);
     expect(errors, hasLength(1));
-    engine.AnalysisError error = errors[0];
-    PubspecFixGenerator generator =
-        PubspecFixGenerator(error, content, pubspec);
+    var error = errors[0];
+    var generator = PubspecFixGenerator(error, content, pubspec);
     return generator.computeFixes();
   }
 
@@ -55,7 +50,7 @@ class PubspecFixTest with ResourceProviderMixin {
       return YamlMap();
     }
     try {
-      YamlNode doc = loadYamlNode(content);
+      var doc = loadYamlNode(content);
       if (doc is YamlMap) {
         return doc;
       }

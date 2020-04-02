@@ -62,9 +62,9 @@ class NavigationGenerator {
   /// specified by the given [request]. If any of the contributors throws an
   /// exception, also create a non-fatal 'plugin.error' notification.
   GeneratorResult generateNavigationNotification(NavigationRequest request) {
-    List<Notification> notifications = <Notification>[];
-    NavigationCollectorImpl collector = NavigationCollectorImpl();
-    for (NavigationContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = NavigationCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeNavigation(request, collector);
       } catch (exception, stackTrace) {
@@ -85,9 +85,9 @@ class NavigationGenerator {
   /// exception, also create a non-fatal 'plugin.error' notification.
   GeneratorResult<AnalysisGetNavigationResult> generateNavigationResponse(
       NavigationRequest request) {
-    List<Notification> notifications = <Notification>[];
-    NavigationCollectorImpl collector = NavigationCollectorImpl();
-    for (NavigationContributor contributor in contributors) {
+    var notifications = <Notification>[];
+    var collector = NavigationCollectorImpl();
+    for (var contributor in contributors) {
       try {
         contributor.computeNavigation(request, collector);
       } catch (exception, stackTrace) {
@@ -97,7 +97,7 @@ class NavigationGenerator {
       }
     }
     collector.createRegions();
-    AnalysisGetNavigationResult result = AnalysisGetNavigationResult(
+    var result = AnalysisGetNavigationResult(
         collector.files, collector.targets, collector.regions);
     return GeneratorResult(result, notifications);
   }

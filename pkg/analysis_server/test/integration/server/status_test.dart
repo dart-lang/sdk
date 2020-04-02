@@ -22,8 +22,8 @@ class StatusTest extends AbstractAnalysisServerIntegrationTest {
     // After we kick off analysis, we should get one server.status message with
     // analyzing=true, and another server.status message after that with
     // analyzing=false.
-    Completer analysisBegun = Completer();
-    Completer analysisFinished = Completer();
+    var analysisBegun = Completer();
+    var analysisFinished = Completer();
     onServerStatus.listen((ServerStatusParams params) {
       if (params.analysis != null) {
         if (params.analysis.isAnalyzing) {

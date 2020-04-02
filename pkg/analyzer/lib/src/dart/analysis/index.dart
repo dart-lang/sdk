@@ -44,7 +44,9 @@ Element declaredParameterElement(
           return namedParameterElement(invocation.staticElement);
         } else if (invocation is MethodInvocation) {
           var executable = invocation.methodName.staticElement;
-          return namedParameterElement(executable);
+          if (executable is ExecutableElement) {
+            return namedParameterElement(executable);
+          }
         }
       }
     }

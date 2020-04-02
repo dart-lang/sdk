@@ -28,7 +28,7 @@ main() {
       test.addNode(VariableGet(node));
       return node;
     },
-    (Node node) => matches("Variable '$node' used out of scope\\."),
+    (Node node) => "Variable '$node' used out of scope.",
   );
   negative1Test(
     'VariableSet out of scope',
@@ -37,7 +37,7 @@ main() {
       test.addNode(VariableSet(variable, new NullLiteral()));
       return variable;
     },
-    (Node node) => matches("Variable '$node' used out of scope\\."),
+    (Node node) => "Variable '$node' used out of scope.",
   );
   negative1Test(
     'Variable block scope',
@@ -49,7 +49,7 @@ main() {
       ]));
       return variable;
     },
-    (Node node) => matches("Variable '$node' used out of scope\\."),
+    (Node node) => "Variable '$node' used out of scope.",
   );
   negative1Test(
     'Variable let scope',
@@ -61,7 +61,7 @@ main() {
           new VariableGet(variable)));
       return variable;
     },
-    (Node node) => matches("Variable '$node' used out of scope\\."),
+    (Node node) => "Variable '$node' used out of scope.",
   );
   negative1Test(
     'Variable redeclared',
@@ -70,7 +70,7 @@ main() {
       test.addNode(Block([variable, variable]));
       return variable;
     },
-    (Node node) => matches("Variable '$node' declared more than once\\."),
+    (Node node) => "Variable '$node' declared more than once.",
   );
   negative1Test(
     'Member redeclared',
@@ -105,7 +105,7 @@ main() {
           typeParameters: [parameter, parameter]));
       return parameter;
     },
-    (Node node) => matches("Type parameter '$node' redeclared\\."),
+    (Node node) => "Type parameter '$node' redeclared.",
   );
   negative1Test(
     'Member type parameter redeclared',
@@ -119,7 +119,7 @@ main() {
 
       return parameter;
     },
-    (Node node) => matches("Type parameter '$node' redeclared\\."),
+    (Node node) => "Type parameter '$node' redeclared.",
   );
   negative2Test(
     'Type parameter out of scope',
@@ -130,8 +130,8 @@ main() {
       return [parameter, null];
     },
     (Node node, Node parent) =>
-        matches("Type parameter '$node' referenced out of scope,"
-            " parent is: '$parent'\\."),
+        "Type parameter '$node' referenced out of scope,"
+        " parent is: '$parent'.",
   );
   negative2Test(
     'Class type parameter from another class',

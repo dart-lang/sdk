@@ -76,10 +76,10 @@ class CompletionGenerator {
       generateCompletionResponse(CompletionRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    List<Notification> notifications = <Notification>[];
-    CompletionCollectorImpl collector = CompletionCollectorImpl();
+    var notifications = <Notification>[];
+    var collector = CompletionCollectorImpl();
     try {
-      for (CompletionContributor contributor in contributors) {
+      for (var contributor in contributors) {
         request.checkAborted();
         try {
           await contributor.computeSuggestions(request, collector);
@@ -95,7 +95,7 @@ class CompletionGenerator {
     collector.offset ??= request.offset;
     collector.length ??= 0;
 
-    CompletionGetSuggestionsResult result = CompletionGetSuggestionsResult(
+    var result = CompletionGetSuggestionsResult(
         collector.offset, collector.length, collector.suggestions);
     return GeneratorResult(result, notifications);
   }

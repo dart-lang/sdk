@@ -16,6 +16,7 @@
 #include "vm/dart.h"
 #include "vm/dispatch_table.h"
 #include "vm/flag_list.h"
+#include "vm/growable_array.h"
 #include "vm/heap/heap.h"
 #include "vm/image_snapshot.h"
 #include "vm/native_entry.h"
@@ -1947,6 +1948,152 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
     }
   }
 };
+
+#if defined(DART_PRECOMPILER)
+class WeakSerializationReferenceSerializationCluster
+    : public SerializationCluster {
+ public:
+  WeakSerializationReferenceSerializationCluster(Zone* zone, Heap* heap)
+      : SerializationCluster("WeakSerializationReference"),
+        heap_(ASSERT_NOTNULL(heap)),
+        objects_(zone, 0),
+        canonical_wsrs_(zone, 0),
+        canonical_wsr_map_(zone) {}
+  ~WeakSerializationReferenceSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    ASSERT(s->kind() == Snapshot::kFullAOT);
+    // Make sure we don't trace again after choosing canonical WSRs.
+    ASSERT(!have_canonicalized_wsrs_);
+
+    auto const ref = WeakSerializationReference::RawCast(object);
+    objects_.Add(ref);
+    // We do _not_ push the target, since this is not a strong reference.
+  }
+
+  void WriteAlloc(Serializer* s) {
+    ASSERT(s->kind() == Snapshot::kFullAOT);
+    ASSERT(have_canonicalized_wsrs_);
+
+    s->WriteCid(kWeakSerializationReferenceCid);
+    s->WriteUnsigned(WrittenCount());
+
+    // Set up references for those objects that will be written.
+    for (auto const ref : canonical_wsrs_) {
+      s->AssignRef(ref);
+    }
+
+    // In precompiled mode, set the object ID of each non-canonical WSR to
+    // its canonical counterpart's object ID. This ensures that any reference to
+    // it is serialized as a reference to the canonicalized one.
+    for (auto const ref : objects_) {
+      ASSERT(Serializer::IsReachableReference(heap_->GetObjectId(ref)));
+      if (ShouldDrop(ref)) {
+        // For dropped references, reset their ID to be the unreachable
+        // reference value, so WriteRefId retrieves the target ID instead.
+        heap_->SetObjectId(ref, Serializer::kUnreachableReference);
+        continue;
+      }
+      // Skip if we've already allocated a reference (this is a canonical WSR).
+      if (Serializer::IsAllocatedReference(heap_->GetObjectId(ref))) continue;
+      auto const target_cid = WeakSerializationReference::TargetClassIdOf(ref);
+      ASSERT(canonical_wsr_map_.HasKey(target_cid));
+      auto const canonical_index = canonical_wsr_map_.Lookup(target_cid) - 1;
+      auto const canonical_wsr = objects_[canonical_index];
+      // Set the object ID of this non-canonical WSR to the same as its
+      // canonical WSR entry, so we'll reference the canonical WSR when
+      // serializing references to this object.
+      auto const canonical_heap_id = heap_->GetObjectId(canonical_wsr);
+      ASSERT(Serializer::IsAllocatedReference(canonical_heap_id));
+      heap_->SetObjectId(ref, canonical_heap_id);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    ASSERT(s->kind() == Snapshot::kFullAOT);
+    for (auto const ref : canonical_wsrs_) {
+      AutoTraceObject(ref);
+
+      // In precompiled mode, we drop the reference to the target and only
+      // keep the class ID.
+      s->WriteCid(WeakSerializationReference::TargetClassIdOf(ref));
+    }
+  }
+
+  // Picks a WSR for each target class ID to be canonical. Should only be run
+  // after all objects have been traced.
+  void CanonicalizeReferences() {
+    ASSERT(!have_canonicalized_wsrs_);
+    for (intptr_t i = 0; i < objects_.length(); i++) {
+      auto const ref = objects_[i];
+      if (ShouldDrop(ref)) continue;
+      auto const target_cid = WeakSerializationReference::TargetClassIdOf(ref);
+      if (canonical_wsr_map_.HasKey(target_cid)) continue;
+      canonical_wsr_map_.Insert(target_cid, i + 1);
+      canonical_wsrs_.Add(ref);
+    }
+    have_canonicalized_wsrs_ = true;
+  }
+
+  intptr_t WrittenCount() const {
+    ASSERT(have_canonicalized_wsrs_);
+    return canonical_wsrs_.length();
+  }
+
+  intptr_t DroppedCount() const { return TotalCount() - WrittenCount(); }
+
+  intptr_t TotalCount() const { return objects_.length(); }
+
+ private:
+  // Returns whether a WSR should be dropped due to its target being reachable
+  // via strong references. WSRs only wrap heap objects, so we can just retrieve
+  // the object ID from the heap directly.
+  bool ShouldDrop(RawWeakSerializationReference* ref) const {
+    auto const target = WeakSerializationReference::TargetOf(ref);
+    return Serializer::IsAllocatedReference(heap_->GetObjectId(target));
+  }
+
+  Heap* const heap_;
+  GrowableArray<RawWeakSerializationReference*> objects_;
+  GrowableArray<RawWeakSerializationReference*> canonical_wsrs_;
+  IntMap<intptr_t> canonical_wsr_map_;
+  bool have_canonicalized_wsrs_ = false;
+};
+#endif
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+class WeakSerializationReferenceDeserializationCluster
+    : public DeserializationCluster {
+ public:
+  WeakSerializationReferenceDeserializationCluster() {}
+  ~WeakSerializationReferenceDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+
+    for (intptr_t i = 0; i < count; i++) {
+      auto ref = AllocateUninitialized(
+          old_space, WeakSerializationReference::InstanceSize());
+      d->AssignRef(ref);
+    }
+
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      auto const ref =
+          reinterpret_cast<RawWeakSerializationReference*>(d->Ref(id));
+      Deserializer::InitializeHeader(
+          ref, kWeakSerializationReferenceCid,
+          WeakSerializationReference::InstanceSize());
+      ref->ptr()->cid_ = d->ReadCid();
+    }
+  }
+};
+#endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class PcDescriptorsSerializationCluster : public SerializationCluster {
@@ -4557,7 +4704,7 @@ void Serializer::TraceStartWritingObject(const char* type,
     id = smi_ids_.Lookup(Smi::RawCast(obj))->id_;
     cid = Smi::kClassId;
   }
-  ASSERT(id != 0);
+  ASSERT(IsAllocatedReference(id));
 
   const char* name_str = nullptr;
   if (name != nullptr) {
@@ -4576,7 +4723,7 @@ void Serializer::TraceStartWritingObject(const char* type,
 
 void Serializer::TraceEndWritingObject() {
   if (profile_writer_ != nullptr) {
-    ASSERT(object_currently_writing_.id_ != 0);
+    ASSERT(IsAllocatedReference(object_currently_writing_.id_));
     profile_writer_->AttributeBytesTo(
         {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
         stream_.Position() - object_currently_writing_.stream_start_);
@@ -4714,6 +4861,12 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) OneByteStringSerializationCluster();
     case kTwoByteStringCid:
       return new (Z) TwoByteStringSerializationCluster();
+    case kWeakSerializationReferenceCid:
+#if defined(DART_PRECOMPILER)
+      ASSERT(kind_ == Snapshot::kFullAOT);
+      return new (Z)
+          WeakSerializationReferenceSerializationCluster(zone_, heap_);
+#endif
     default:
       break;
   }
@@ -4742,7 +4895,7 @@ void Serializer::WriteInstructions(RawInstructions* instr,
   // course, the space taken for the reference is profiled.
   if (profile_writer_ != nullptr && offset >= 0) {
     // Instructions cannot be roots.
-    ASSERT(object_currently_writing_.id_ != 0);
+    ASSERT(IsAllocatedReference(object_currently_writing_.id_));
     auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmText
                             : V8SnapshotProfileWriter::kIsolateText;
     V8SnapshotProfileWriter::ObjectId to_object = {
@@ -4793,7 +4946,7 @@ void Serializer::WriteInstructions(RawInstructions* instr,
 void Serializer::TraceDataOffset(uint32_t offset) {
   if (profile_writer_ != nullptr) {
     // ROData cannot be roots.
-    ASSERT(object_currently_writing_.id_ != 0);
+    ASSERT(IsAllocatedReference(object_currently_writing_.id_));
     auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmData
                             : V8SnapshotProfileWriter::kIsolateData;
     V8SnapshotProfileWriter::ObjectId from_object = {
@@ -4824,7 +4977,7 @@ void Serializer::Push(RawObject* object) {
     if (smi_ids_.Lookup(smi) == NULL) {
       SmiObjectIdPair pair;
       pair.smi_ = smi;
-      pair.id_ = 1;
+      pair.id_ = kUnallocatedReference;
       smi_ids_.Insert(pair);
       stack_.Add(object);
       num_written_objects_++;
@@ -4842,7 +4995,7 @@ void Serializer::Push(RawObject* object) {
 #endif  // !DART_PRECOMPILED_RUNTIME
 
   intptr_t id = heap_->GetObjectId(object);
-  if (id == 0) {
+  if (id == kUnreachableReference) {
     // When discovering the transitive closure of objects reachable from the
     // roots we do not trace references, e.g. inside [RawCode], to
     // [RawInstructions], since [RawInstructions] doesn't contain any references
@@ -4852,8 +5005,8 @@ void Serializer::Push(RawObject* object) {
                        "Instructions should only be reachable from Code");
     }
 
-    heap_->SetObjectId(object, 1);
-    ASSERT(heap_->GetObjectId(object) != 0);
+    heap_->SetObjectId(object, kUnallocatedReference);
+    ASSERT(IsReachableReference(heap_->GetObjectId(object)));
     stack_.Add(object);
     num_written_objects_++;
 #if defined(SNAPSHOT_BACKTRACE)
@@ -5001,6 +5154,20 @@ void Serializer::Serialize() {
     }
   }
 
+#if defined(DART_PRECOMPILER)
+  // Before we finalize the count of written objects, pick canonical versions
+  // of WSR objects that will be serialized and then remove any non-serialized
+  // or non-canonical WSR objects from that count.
+  if (auto const cluster =
+          reinterpret_cast<WeakSerializationReferenceSerializationCluster*>(
+              clusters_by_cid_[kWeakSerializationReferenceCid])) {
+    cluster->CanonicalizeReferences();
+    auto const dropped_count = cluster->DroppedCount();
+    ASSERT(dropped_count == 0 || kind() == Snapshot::kFullAOT);
+    num_written_objects_ -= dropped_count;
+  }
+#endif
+
   intptr_t num_objects = num_base_objects_ + num_written_objects_;
 #if defined(ARCH_IS_64_BIT)
   if (!Utils::IsInt(32, num_objects)) {
@@ -5084,7 +5251,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
   const intptr_t first_code_id =
       WriteRefId(code_cluster->discovered_objects()->At(0));
   // The first object in the code cluster must have its reference ID allocated.
-  ASSERT(first_code_id != 0 && first_code_id != WriteRefId(Code::null()));
+  ASSERT(IsAllocatedReference(first_code_id));
 
   // If instructions can be deduped, the code order table in the deserializer
   // may not contain all Code objects in the snapshot. Thus, we write the ID
@@ -5144,7 +5311,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
     // the code object and emit that.
     auto const object_id = WriteRefId(code);
     // Make sure that this code object has an allocated reference ID.
-    ASSERT(object_id != 0 && object_id != WriteRefId(Code::null()));
+    ASSERT(IsAllocatedReference(object_id));
     // Use the index in the code cluster, not in the snapshot..
     auto const encoded = kDispatchTableIndexBase + (object_id - first_code_id);
     ASSERT(encoded <= compiler::target::kWordMax);
@@ -5569,6 +5736,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) OneByteStringDeserializationCluster();
     case kTwoByteStringCid:
       return new (Z) TwoByteStringDeserializationCluster();
+    case kWeakSerializationReferenceCid:
+#if defined(DART_PRECOMPILED_RUNTIME)
+      return new (Z) WeakSerializationReferenceDeserializationCluster();
+#endif
     default:
       break;
   }

@@ -13,7 +13,7 @@ import '../timing_framework.dart';
 /// Perform the timing test, printing the minimum, average and maximum times, as
 /// well as the standard deviation to the output.
 void main(List<String> args) {
-  SimpleTest test = SimpleTest();
+  var test = SimpleTest();
   test.run().then((TimingResult result) {
     print('minTime = ${result.minTime}');
     print('averageTime = ${result.averageTime}');

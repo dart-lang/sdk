@@ -23,15 +23,13 @@ const PART_STATEMENT = "part '';";
 const SYNC_STAR = 'sync*';
 const YIELD_STAR = 'yield*';
 
-/// A contributor for calculating `completion.getSuggestions` request results
-/// for the local library in which the completion is requested.
+/// A contributor that produces suggestions based on the set of keywords that
+/// are valid at the completion point.
 class KeywordContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+    var suggestions = <CompletionSuggestion>[];
 
     // Don't suggest anything right after double or integer literals.
     if (request.target.isDoubleOrIntLiteral()) {
@@ -46,14 +44,23 @@ class KeywordContributor extends DartCompletionContributor {
 /// A visitor for generating keyword suggestions.
 class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   final DartCompletionRequest request;
+
   final Object entity;
+
   final List<CompletionSuggestion> suggestions;
 
-  _KeywordVisitor(DartCompletionRequest request, this.suggestions)
-      : request = request,
-        entity = request.target.entity;
+  _KeywordVisitor(this.request, this.suggestions)
+      : entity = request.target.entity;
+
+  int get defaultKeyword =>
+      request.useNewRelevance ? 800 : DART_RELEVANCE_KEYWORD;
 
   Token get droppedToken => request.target.droppedToken;
+
+  int get highKeyword => request.useNewRelevance ? 1000 : DART_RELEVANCE_HIGH;
+
+  int get lowKeyword =>
+      request.useNewRelevance ? 400 : DART_RELEVANCE_KEYWORD - 1;
 
   bool isEmptyBody(FunctionBody body) =>
       body is EmptyFunctionBody ||
@@ -62,15 +69,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitArgumentList(ArgumentList node) {
     if (request is DartCompletionRequestImpl) {
-      //TODO(danrubel) consider adding opType to the API then remove this cast
-      OpType opType = (request as DartCompletionRequestImpl).opType;
-      if (opType.includeOnlyNamedArgumentSuggestions) {
+      if (request.opType.includeOnlyNamedArgumentSuggestions) {
         return;
       }
     }
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
-      Token previous = node.findPrevious(entity as Token);
+      var previous = node.findPrevious(entity as Token);
       if (previous != null && previous.isSynthetic) {
         previous = node.findPrevious(previous);
       }
@@ -82,10 +87,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (entity is SimpleIdentifier && node.arguments.contains(entity)) {
       _addExpressionKeywords(node);
-      int index = node.arguments.indexOf(entity);
+      var index = node.arguments.indexOf(entity);
       if (index > 0) {
-        Expression previousArgument = node.arguments[index - 1];
-        Token endToken = previousArgument?.endToken;
+        var previousArgument = node.arguments[index - 1];
+        var endToken = previousArgument?.endToken;
         if (endToken?.lexeme == ')' &&
             endToken.next?.lexeme == ',' &&
             endToken.next.isSynthetic) {
@@ -101,15 +106,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitAsExpression(AsExpression node) {
     if (identical(entity, node.asOperator) &&
         node.expression is ParenthesizedExpression) {
-      _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
-      _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.ASYNC, relevance: highKeyword);
+      _addSuggestion2(ASYNC_STAR, relevance: highKeyword);
+      _addSuggestion2(SYNC_STAR, relevance: highKeyword);
     }
   }
 
   @override
   void visitBlock(Block node) {
-    Statement prevStmt = OpType.getPreviousStatement(node, entity);
+    var prevStmt = OpType.getPreviousStatement(node, entity);
     if (prevStmt is TryStatement) {
       if (prevStmt.finallyBlock == null) {
         _addSuggestion(Keyword.ON);
@@ -124,14 +129,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
 
     if (entity is ExpressionStatement) {
-      Expression expression = (entity as ExpressionStatement).expression;
+      var expression = (entity as ExpressionStatement).expression;
       if (expression is SimpleIdentifier) {
-        Token token = expression.token;
-        Token previous = node.findPrevious(token);
+        var token = expression.token;
+        var previous = node.findPrevious(token);
         if (previous != null && previous.isSynthetic) {
           previous = node.findPrevious(previous);
         }
-        Token next = token.next;
+        var next = token.next;
         if (next.isSynthetic) {
           next = next.next;
         }
@@ -146,7 +151,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     _addStatementKeywords(node);
     if (_inCatchClause(node)) {
-      _addSuggestion(Keyword.RETHROW, DART_RELEVANCE_KEYWORD - 1);
+      _addSuggestion(Keyword.RETHROW, relevance: lowKeyword);
     }
   }
 
@@ -160,8 +165,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addClassBodyKeywords();
     } else if (entity is ClassMember) {
       _addClassBodyKeywords();
-      int index = node.members.indexOf(entity);
-      ClassMember previous = index > 0 ? node.members[index - 1] : null;
+      var index = node.members.indexOf(entity);
+      var previous = index > 0 ? node.members[index - 1] : null;
       if (previous is MethodDeclaration && isEmptyBody(previous.body)) {
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
@@ -220,22 +225,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (previousMember == null || previousMember is Directive) {
       if (previousMember == null &&
           !node.directives.any((d) => d is LibraryDirective)) {
-        _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
+        _addSuggestions([Keyword.LIBRARY], relevance: highKeyword);
       }
-      _addSuggestion2(IMPORT_STATEMENT,
-          offset: 8, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2(EXPORT_STATEMENT,
-          offset: 8, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2(PART_STATEMENT,
-          offset: 6, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2(IMPORT_STATEMENT, offset: 8, relevance: highKeyword);
+      _addSuggestion2(EXPORT_STATEMENT, offset: 8, relevance: highKeyword);
+      _addSuggestion2(PART_STATEMENT, offset: 6, relevance: highKeyword);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
           previousMember.functionExpression is FunctionExpression &&
           isEmptyBody(previousMember.functionExpression.body)) {
-        _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
-        _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
-        _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.ASYNC, relevance: highKeyword);
+        _addSuggestion2(ASYNC_STAR, relevance: highKeyword);
+        _addSuggestion2(SYNC_STAR, relevance: highKeyword);
       }
       _addCompilationUnitKeywords();
     }
@@ -249,14 +251,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
       var last = node.initializers.last;
       if (last == entity) {
-        Token previous = node.findPrevious(last.beginToken);
+        var previous = node.findPrevious(last.beginToken);
         if (previous != null && previous.end <= request.offset) {
           _addSuggestion(Keyword.SUPER);
           _addSuggestion(Keyword.THIS);
         }
       }
     } else {
-      Token separator = node.separator;
+      var separator = node.separator;
       if (separator != null) {
         var offset = request.offset;
         if (separator.end <= offset && offset <= separator.next.offset) {
@@ -304,11 +306,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    VariableDeclarationList fields = node.fields;
+    var fields = node.fields;
     if (entity != fields) {
       return;
     }
-    NodeList<VariableDeclaration> variables = fields.variables;
+    var variables = fields.variables;
     if (variables.isEmpty || request.offset > variables.first.beginToken.end) {
       return;
     }
@@ -333,7 +335,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitForEachParts(ForEachParts node) {
     if (entity == node.inKeyword) {
-      Token previous = node.findPrevious(node.inKeyword);
+      var previous = node.findPrevious(node.inKeyword);
       if (previous is SyntheticStringToken && previous.lexeme == 'in') {
         previous = node.findPrevious(previous);
       }
@@ -341,7 +343,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addSuggestions(
             [Keyword.CONST, Keyword.FALSE, Keyword.NULL, Keyword.TRUE]);
       } else {
-        _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.IN, relevance: highKeyword);
       }
     }
   }
@@ -355,7 +357,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    AstNode constructorDeclaration =
+    var constructorDeclaration =
         node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration != null) {
       _addSuggestions([Keyword.THIS]);
@@ -367,7 +369,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addSuggestion(Keyword.REQUIRED);
       }
     } else if (entity is FormalParameter) {
-      Token beginToken = (entity as FormalParameter).beginToken;
+      var beginToken = (entity as FormalParameter).beginToken;
       if (beginToken != null && request.target.offset == beginToken.end) {
         _addSuggestion(Keyword.COVARIANT);
         _addSuggestion(Keyword.DYNAMIC);
@@ -388,7 +390,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         node is ForPartsWithDeclarations &&
         node.variables != null) {
       if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
-        _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.IN, relevance: highKeyword);
       }
     }
   }
@@ -398,7 +400,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Actual: for (va^)
     // Parsed: for (va^; ;)
     if (node.forLoopParts == entity) {
-      _addSuggestion(Keyword.VAR, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.VAR, relevance: highKeyword);
     }
   }
 
@@ -415,15 +417,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (entity == node.body) {
-      FunctionBody body = node.body;
+      var body = node.body;
       if (!body.isAsynchronous) {
-        _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.ASYNC, relevance: highKeyword);
         if (body is! ExpressionFunctionBody) {
-          _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
-          _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+          _addSuggestion2(ASYNC_STAR, relevance: highKeyword);
+          _addSuggestion2(SYNC_STAR, relevance: highKeyword);
         }
       }
-      if (node.body is EmptyFunctionBody &&
+      if (body is EmptyFunctionBody &&
           node.parent is FunctionDeclaration &&
           node.parent.parent is CompilationUnit) {
         _addCompilationUnitKeywords();
@@ -444,14 +446,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       // analyzer parser
       // Actual: if (x i^)
       // Parsed: if (x) i^
-      _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.IS, relevance: highKeyword);
     } else if (entity == node.rightParenthesis) {
       if (node.condition.endToken.next == droppedToken) {
         // fasta parser
         // Actual: if (x i^)
         // Parsed: if (x)
         //    where "i" is in the token stream but not part of the AST
-        _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.IS, relevance: highKeyword);
       }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
@@ -464,7 +466,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     if (entity == node.asKeyword) {
       if (node.deferredKeyword == null) {
-        _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.DEFERRED, relevance: highKeyword);
       }
     }
     // Handle degenerate case where import statement does not have a semicolon
@@ -489,7 +491,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitIsExpression(IsExpression node) {
     if (entity == node.isOperator) {
-      _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.IS, relevance: highKeyword);
     } else {
       _addExpressionKeywords(node);
     }
@@ -515,10 +517,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
       } else {
-        _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.ASYNC, relevance: highKeyword);
         if (node.body is! ExpressionFunctionBody) {
-          _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
-          _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+          _addSuggestion2(ASYNC_STAR, relevance: highKeyword);
+          _addSuggestion2(SYNC_STAR, relevance: highKeyword);
         }
       }
     } else if (entity == node.returnType || entity == node.name) {
@@ -555,8 +557,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addClassBodyKeywords();
     } else if (entity is ClassMember) {
       _addClassBodyKeywords();
-      int index = node.members.indexOf(entity);
-      ClassMember previous = index > 0 ? node.members[index - 1] : null;
+      var index = node.members.indexOf(entity);
+      var previous = index > 0 ? node.members[index - 1] : null;
       if (previous is MethodDeclaration && isEmptyBody(previous.body)) {
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
@@ -581,14 +583,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    Expression expression = node.expression;
+    var expression = node.expression;
     if (expression is Identifier || expression is PropertyAccess) {
       if (entity == node.rightParenthesis) {
         var next = expression.endToken.next;
         if (next == entity || next == droppedToken) {
           // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
           // stream but not part of the ParenthesizedExpression.
-          _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+          _addSuggestion(Keyword.IS, relevance: highKeyword);
           return;
         }
       }
@@ -647,8 +649,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addExpressionKeywords(node);
     } else if (entity == node.rightBracket) {
       if (node.members.isEmpty) {
-        _addSuggestion(Keyword.CASE, DART_RELEVANCE_HIGH);
-        _addSuggestion2(DEFAULT_COLON, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.CASE, relevance: highKeyword);
+        _addSuggestion2(DEFAULT_COLON, relevance: highKeyword);
       } else {
         _addSuggestion(Keyword.CASE);
         _addSuggestion2(DEFAULT_COLON);
@@ -657,8 +659,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     if (node.members.contains(entity)) {
       if (entity == node.members.first) {
-        _addSuggestion(Keyword.CASE, DART_RELEVANCE_HIGH);
-        _addSuggestion2(DEFAULT_COLON, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.CASE, relevance: highKeyword);
+        _addSuggestion2(DEFAULT_COLON, relevance: highKeyword);
       } else {
         _addSuggestion(Keyword.CASE);
         _addSuggestion2(DEFAULT_COLON);
@@ -715,12 +717,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Very simplistic suggestion because analyzer will warn if
     // the extends / with / implements keywords are out of order
     if (node.extendsClause == null) {
-      _addSuggestion(Keyword.EXTENDS, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.EXTENDS, relevance: highKeyword);
     } else if (node.withClause == null) {
-      _addSuggestion(Keyword.WITH, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.WITH, relevance: highKeyword);
     }
     if (node.implementsClause == null) {
-      _addSuggestion(Keyword.IMPLEMENTS, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.IMPLEMENTS, relevance: highKeyword);
     }
   }
 
@@ -744,12 +746,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
-    ], DART_RELEVANCE_HIGH);
+    ], relevance: highKeyword);
     if (request.featureSet.isEnabled(Feature.extension_methods)) {
-      _addSuggestion(Keyword.EXTENSION, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.EXTENSION, relevance: highKeyword);
     }
     if (request.featureSet.isEnabled(Feature.non_nullable)) {
-      _addSuggestion(Keyword.LATE, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.LATE, relevance: highKeyword);
     }
   }
 
@@ -787,27 +789,27 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   void _addExtensionDeclarationKeywords(ExtensionDeclaration node) {
     if (node.onKeyword == null || node.onKeyword.isSynthetic) {
-      _addSuggestion(Keyword.ON, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.ON, relevance: highKeyword);
     }
   }
 
   void _addImportDirectiveKeywords(ImportDirective node) {
-    bool hasDeferredKeyword = node.deferredKeyword != null;
-    bool hasAsKeyword = node.asKeyword != null;
+    var hasDeferredKeyword = node.deferredKeyword != null;
+    var hasAsKeyword = node.asKeyword != null;
     if (!hasAsKeyword) {
-      _addSuggestion(Keyword.AS, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.AS, relevance: highKeyword);
     }
     if (!hasDeferredKeyword) {
       if (!hasAsKeyword) {
-        _addSuggestion2(DEFERRED_AS, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion2(DEFERRED_AS, relevance: highKeyword);
       } else if (entity == node.asKeyword) {
-        _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.DEFERRED, relevance: highKeyword);
       }
     }
     if (!hasDeferredKeyword || hasAsKeyword) {
       if (node.combinators.isEmpty) {
-        _addSuggestion(Keyword.SHOW, DART_RELEVANCE_HIGH);
-        _addSuggestion(Keyword.HIDE, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.SHOW, relevance: highKeyword);
+        _addSuggestion(Keyword.HIDE, relevance: highKeyword);
       }
     }
   }
@@ -816,10 +818,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Very simplistic suggestion because analyzer will warn if
     // the on / implements clauses are out of order
     if (node.onClause == null) {
-      _addSuggestion(Keyword.ON, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.ON, relevance: highKeyword);
     }
     if (node.implementsClause == null) {
-      _addSuggestion(Keyword.IMPLEMENTS, DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.IMPLEMENTS, relevance: highKeyword);
     }
   }
 
@@ -864,32 +866,29 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
   }
 
-  void _addSuggestion(Keyword keyword,
-      [int relevance = DART_RELEVANCE_KEYWORD]) {
+  void _addSuggestion(Keyword keyword, {int relevance}) {
     _addSuggestion2(keyword.lexeme, relevance: relevance);
   }
 
-  void _addSuggestion2(String completion,
-      {int offset, int relevance = DART_RELEVANCE_KEYWORD}) {
+  void _addSuggestion2(String completion, {int offset, int relevance}) {
     offset ??= completion.length;
     suggestions.add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD,
-        relevance, completion, offset, 0, false, false));
+        relevance ?? defaultKeyword, completion, offset, 0, false, false));
   }
 
-  void _addSuggestions(List<Keyword> keywords,
-      [int relevance = DART_RELEVANCE_KEYWORD]) {
+  void _addSuggestions(List<Keyword> keywords, {int relevance}) {
     keywords.forEach((Keyword keyword) {
-      _addSuggestion(keyword, relevance);
+      _addSuggestion(keyword, relevance: relevance);
     });
   }
 
   bool _inAsyncMethodOrFunction(AstNode node) {
-    FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
+    var body = node.thisOrAncestorOfType<FunctionBody>();
     return body != null && body.isAsynchronous && body.star == null;
   }
 
   bool _inAsyncStarOrSyncStarMethodOrFunction(AstNode node) {
-    FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
+    var body = node.thisOrAncestorOfType<FunctionBody>();
     return body != null && body.keyword != null && body.star != null;
   }
 
@@ -898,11 +897,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   bool _inClassMemberBody(AstNode node) {
     while (true) {
-      AstNode body = node.thisOrAncestorOfType<FunctionBody>();
+      var body = node.thisOrAncestorOfType<FunctionBody>();
       if (body == null) {
         return false;
       }
-      AstNode parent = body.parent;
+      var parent = body.parent;
       if (parent is ConstructorDeclaration || parent is MethodDeclaration) {
         return true;
       }
@@ -926,21 +925,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       node.thisOrAncestorOfType<WhileStatement>() != null;
 
   bool _isEntityAfterIfWithoutElse(AstNode node) {
-    Block block = node?.thisOrAncestorOfType<Block>();
+    var block = node?.thisOrAncestorOfType<Block>();
     if (block == null) {
       return false;
     }
-    Object entity = this.entity;
+    var entity = this.entity;
     if (entity is Statement) {
-      int entityIndex = block.statements.indexOf(entity);
+      var entityIndex = block.statements.indexOf(entity);
       if (entityIndex > 0) {
-        Statement prevStatement = block.statements[entityIndex - 1];
+        var prevStatement = block.statements[entityIndex - 1];
         return prevStatement is IfStatement &&
             prevStatement.elseStatement == null;
       }
     }
     if (entity is Token) {
-      for (Statement statement in block.statements) {
+      for (var statement in block.statements) {
         if (statement.endToken.next == entity) {
           return statement is IfStatement && statement.elseStatement == null;
         }
@@ -951,8 +950,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   static bool _isPreviousTokenSynthetic(Object entity, TokenType type) {
     if (entity is AstNode) {
-      Token token = entity.beginToken;
-      Token previousToken = entity.findPrevious(token);
+      var token = entity.beginToken;
+      var previousToken = entity.findPrevious(token);
       return previousToken != null &&
           previousToken.isSynthetic &&
           previousToken.type == type;

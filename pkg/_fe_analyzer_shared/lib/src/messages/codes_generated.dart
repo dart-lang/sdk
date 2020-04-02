@@ -1479,7 +1479,7 @@ const Code<Null> codeConstructorWithWrongName = messageConstructorWithWrongName;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorWithWrongName = const MessageCode(
     "ConstructorWithWrongName",
-    analyzerCodes: <String>["INVALID_CONSTRUCTOR_NAME"],
+    index: 102,
     message:
         r"""The name of a constructor must match the name of the enclosing class.""");
 
@@ -3187,6 +3187,16 @@ const MessageCode messageExternalConstructorWithFieldInitializers =
             r"""Try removing the field initializers, or removing the keyword 'external'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalConstructorWithInitializer =
+    messageExternalConstructorWithInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalConstructorWithInitializer = const MessageCode(
+    "ExternalConstructorWithInitializer",
+    index: 106,
+    message: r"""An external constructor can't have any initializers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalEnum = messageExternalEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3881,6 +3891,16 @@ const MessageCode messageGenericFunctionTypeUsedAsActualTypeArgument =
         tip: r"""Try using a non-generic function type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeGetterConstructor = messageGetterConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageGetterConstructor = const MessageCode(
+    "GetterConstructor",
+    index: 103,
+    message: r"""Constructors can't be a getter.""",
+    tip: r"""Try removing 'get'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateGetterNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Getter not found: '#name'.""",
@@ -4480,32 +4500,6 @@ Message _withArgumentsInitializerForStaticField(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeInitializerForStaticField,
       message: """'${name}' isn't an instance field of this class.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateInitializerOutsideConstructor = const Template<
-        Message Function(String name)>(
-    messageTemplate:
-        r"""Only constructors can have initializers, and '#name' is not a constructor.""",
-    withArguments: _withArgumentsInitializerOutsideConstructor);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeInitializerOutsideConstructor =
-    const Code<Message Function(String name)>(
-        "InitializerOutsideConstructor", templateInitializerOutsideConstructor,
-        analyzerCodes: <String>["INITIALIZER_OUTSIDE_CONSTRUCTOR"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializerOutsideConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeInitializerOutsideConstructor,
-      message:
-          """Only constructors can have initializers, and '${name}' is not a constructor.""",
       arguments: {'name': name});
 }
 
@@ -5640,8 +5634,10 @@ const Code<Null> codeMemberWithSameNameAsClass =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMemberWithSameNameAsClass = const MessageCode(
     "MemberWithSameNameAsClass",
+    index: 105,
     message:
-        r"""A class member can't have the same name as the enclosing class.""");
+        r"""A class member can't have the same name as the enclosing class.""",
+    tip: r"""Try renaming the member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;
@@ -7604,6 +7600,16 @@ const MessageCode messageSetOrMapLiteralTooManyTypeArguments = const MessageCode
         r"""A set or map literal requires exactly one or two type arguments, respectively.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSetterConstructor = messageSetterConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSetterConstructor = const MessageCode(
+    "SetterConstructor",
+    index: 104,
+    message: r"""Constructors can't be a setter.""",
+    tip: r"""Try removing 'set'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSetterNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Setter not found: '#name'.""",
@@ -8451,6 +8457,26 @@ const Code<Null> codeTypedefNullableType = messageTypedefNullableType;
 const MessageCode messageTypedefNullableType = const MessageCode(
     "TypedefNullableType",
     message: r"""Can't create typedef from nullable type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefTypeVariableNotConstructor =
+    messageTypedefTypeVariableNotConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefTypeVariableNotConstructor = const MessageCode(
+    "TypedefTypeVariableNotConstructor",
+    message:
+        r"""Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefTypeVariableNotConstructorCause =
+    messageTypedefTypeVariableNotConstructorCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefTypeVariableNotConstructorCause =
+    const MessageCode("TypedefTypeVariableNotConstructorCause",
+        severity: Severity.context,
+        message: r"""This is the type variable ultimately denoted.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;

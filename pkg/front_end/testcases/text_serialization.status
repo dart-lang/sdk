@@ -92,7 +92,7 @@ general/annotation_typedef_formals: TextSerializationFailure # Was: Pass
 general/annotation_typedef_formals_resolution: TextSerializationFailure # Was: Pass
 general/annotation_variable_declaration: TextSerializationFailure # Was: Pass
 general/argument: TextSerializationFailure # Was: Pass
-general/argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/argument_mismatch: TextSerializationFailure
 general/arithmetic: TextSerializationFailure # Was: Pass
 general/arrow_function: TextSerializationFailure # Was: Pass
 general/assign_to_initializing_formal: TextSerializationFailure
@@ -112,7 +112,7 @@ general/bug31124: TextSerializationFailure # Was: RuntimeError # Test has no mai
 general/bug32414a: TextSerializationFailure # Was: Pass
 general/bug32414b: TextSerializationFailure # Was: Pass
 general/bug32426: TextSerializationFailure # Was: Pass
-general/bug32629: InstrumentationMismatch # Test has an intentional error
+general/bug32629: TextSerializationFailure
 general/bug32866: TextSerializationFailure # Was: Pass
 general/bug33099: TextSerializationFailure # Was: Pass
 general/bug33196: TextSerializationFailure # Was: Pass
@@ -168,7 +168,7 @@ general/duplicated_declarations_lib: TextSerializationFailure # Was: Pass
 general/duplicated_declarations_part: TextSerializationFailure # Was: Pass
 general/duplicated_field_initializer: TextSerializationFailure # Was: RuntimeError
 general/duplicated_named_args_3: TextSerializationFailure # Was: Pass
-general/dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/dynamic_and_void: TextSerializationFailure
 general/error_locations/error_location_01: TextSerializationFailure
 general/error_locations/error_location_02: TextSerializationFailure
 general/error_locations/error_location_03: TextSerializationFailure
@@ -250,6 +250,8 @@ general/issue40428: TextSerializationFailure
 general/issue40662: TextSerializationFailure
 general/issue40744: TextSerializationFailure
 general/issue41070: TextSerializationFailure
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
@@ -372,7 +374,7 @@ general/unused_methods: TextSerializationFailure # Was: Pass
 general/var_as_type_name: TextSerializationFailure # Was: Pass
 general/vm_type_ops: TextSerializationFailure
 general/void_methods: TextSerializationFailure
-general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/warn_unresolved_sends: TextSerializationFailure
 general/well_boundness_checks_in_outline: TextSerializationFailure
 general/with_dependencies/abstract_members_from_dill/main: TextSerializationFailure
 general/with_dependencies/extension_from_dill/extension_from_dill: TextSerializationFailure
@@ -390,7 +392,7 @@ general_nnbd_opt_out/annotation_typedef_formals: TextSerializationFailure # Was:
 general_nnbd_opt_out/annotation_typedef_formals_resolution: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/annotation_variable_declaration: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/argument: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general_nnbd_opt_out/argument_mismatch: TextSerializationFailure
 general_nnbd_opt_out/arithmetic: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/arrow_function: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/assign_to_initializing_formal: TextSerializationFailure
@@ -410,7 +412,7 @@ general_nnbd_opt_out/bug31124: TextSerializationFailure # Was: RuntimeError # Te
 general_nnbd_opt_out/bug32414a: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/bug32414b: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/bug32426: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/bug32629: InstrumentationMismatch # Test has an intentional error
+general_nnbd_opt_out/bug32629: TextSerializationFailure
 general_nnbd_opt_out/bug32866: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/bug33099: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/bug33196: TextSerializationFailure # Was: Pass
@@ -465,7 +467,7 @@ general_nnbd_opt_out/duplicated_declarations_lib: TextSerializationFailure # Was
 general_nnbd_opt_out/duplicated_declarations_part: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/duplicated_field_initializer: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/duplicated_named_args_3: TextSerializationFailure # Was: Pass
-general_nnbd_opt_out/dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general_nnbd_opt_out/dynamic_and_void: TextSerializationFailure
 general_nnbd_opt_out/error_locations/error_location_01: TextSerializationFailure
 general_nnbd_opt_out/error_locations/error_location_02: TextSerializationFailure
 general_nnbd_opt_out/error_locations/error_location_03: TextSerializationFailure
@@ -644,10 +646,10 @@ general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/unused_methods: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/var_as_type_name: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/void_methods: TextSerializationFailure
-general_nnbd_opt_out/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general_nnbd_opt_out/warn_unresolved_sends: TextSerializationFailure
 implicit_getter_calls/getter_call: TextSerializationFailure
 implicit_getter_calls/this_field_call: TextSerializationFailure
-inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
+inference/abstract_class_instantiation: TextSerializationFailure
 inference/assert: TextSerializationFailure # Was: Pass
 inference/assert_initializer: TextSerializationFailure # Was: Pass
 inference/assign_local: TextSerializationFailure # Was: Pass
@@ -704,7 +706,7 @@ inference/constructors_infer_from_arguments: TextSerializationFailure # Was: Pas
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/constructors_infer_from_arguments_const: TextSerializationFailure # Was: Pass
 inference/constructors_infer_from_arguments_const_with_upper_bound: TextSerializationFailure # Was: Pass
-inference/constructors_infer_from_arguments_downwards_from_constructor: TextSerializationFailure # Was: Pass
+inference/constructors_infer_from_arguments_downwards_from_constructor: TextSerializationFailure
 inference/constructors_infer_from_arguments_factory: TextSerializationFailure # Was: Pass
 inference/constructors_infer_from_arguments_factory_calls_constructor: TextSerializationFailure # Was: Pass
 inference/constructors_infer_from_arguments_named: TextSerializationFailure # Was: Pass
@@ -714,7 +716,7 @@ inference/constructors_infer_from_arguments_redirecting_factory: TextSerializati
 inference/constructors_infer_from_arguments_redirecting_factory_to_factory: TextSerializationFailure # Was: Pass
 inference/constructors_inference_f_bounded: TextSerializationFailure # Was: Pass
 inference/constructors_reverse_type_parameters: TextSerializationFailure # Was: Pass
-inference/constructors_too_many_positional_arguments: InstrumentationMismatch # Issue #30040
+inference/constructors_too_many_positional_arguments: TextSerializationFailure
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/dont_infer_field_type_when_initializer_is_null: TextSerializationFailure # Was: Pass
 inference/dont_infer_type_on_dynamic: TextSerializationFailure # Was: Pass
@@ -729,7 +731,7 @@ inference/downwards_inference_annotations_locals: TextSerializationFailure # Was
 inference/downwards_inference_annotations_locals_referring_to_locals: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_parameter: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_parameter_local: TextSerializationFailure # Was: Pass
-inference/downwards_inference_annotations_type_variable: InstrumentationMismatch # Issue 28981
+inference/downwards_inference_annotations_type_variable: TextSerializationFailure
 inference/downwards_inference_annotations_type_variable_local: TextSerializationFailure # Was: Pass
 inference/downwards_inference_annotations_typedef: TextSerializationFailure # Was: Pass
 inference/downwards_inference_assignment_statements: TextSerializationFailure # Was: Pass
@@ -741,7 +743,7 @@ inference/downwards_inference_inside_top_level_2: TextSerializationFailure # Was
 inference/downwards_inference_on_constructor_arguments_infer_downwards: TextSerializationFailure # Was: Pass
 inference/downwards_inference_on_function_arguments_infer_downwards: TextSerializationFailure # Was: Pass
 inference/downwards_inference_on_function_expressions: TextSerializationFailure # Was: Pass
-inference/downwards_inference_on_function_of_t_using_the_t: InstrumentationMismatch # Issue #29798
+inference/downwards_inference_on_function_of_t_using_the_t: TextSerializationFailure
 inference/downwards_inference_on_generic_constructor_arguments_empty_list: TextSerializationFailure # Was: Pass
 inference/downwards_inference_on_generic_constructor_arguments_infer_downwards: TextSerializationFailure # Was: Pass
 inference/downwards_inference_on_generic_function_expressions: TextSerializationFailure # Was: Pass
@@ -776,7 +778,7 @@ inference/future_then_conditional_4: TextSerializationFailure # Was: Pass
 inference/future_then_conditional_5: TextSerializationFailure # Was: Pass
 inference/future_then_conditional_6: TextSerializationFailure # Was: Pass
 inference/future_then_downwards_method_target: TextSerializationFailure # Was: Pass
-inference/future_then_explicit_future: InstrumentationMismatch # Issue #30040
+inference/future_then_explicit_future: TextSerializationFailure
 inference/future_then_ifNull: TextSerializationFailure # Was: Pass
 inference/future_then_upwards: TextSerializationFailure # Was: RuntimeError
 inference/future_then_upwards_2: TextSerializationFailure # Was: RuntimeError
@@ -792,7 +794,7 @@ inference/future_union_downwards_generic_method_with_future_return: TextSerializ
 inference/future_union_downwards_generic_method_with_generic_return: TextSerializationFailure # Was: Pass
 inference/future_union_upwards_generic_methods: TextSerializationFailure # Was: Pass
 inference/generator_closure: TextSerializationFailure # Was: Pass
-inference/generic_functions_return_typedef: InstrumentationMismatch # Issue #29798
+inference/generic_functions_return_typedef: TextSerializationFailure
 inference/generic_methods_basic_downward_inference: TextSerializationFailure # Was: Pass
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_dart_math_min_max: TextSerializationFailure # Was: Pass
@@ -805,7 +807,7 @@ inference/generic_methods_infer_generic_function_parameter_type: TextSerializati
 inference/generic_methods_infer_generic_function_return_type: TextSerializationFailure # Was: Pass
 inference/generic_methods_infer_generic_instantiation: TextSerializationFailure # Was: Pass
 inference/generic_methods_infer_generic_method_type: TextSerializationFailure # Was: Pass
-inference/generic_methods_infer_js_builtin: InstrumentationMismatch # Issue #30029
+inference/generic_methods_infer_js_builtin: TextSerializationFailure
 inference/generic_methods_inference_error: TextSerializationFailure # Was: Pass
 inference/generic_methods_iterable_and_future: TextSerializationFailure # Was: Pass
 inference/generic_methods_nested_generic_instantiation: TextSerializationFailure # Was: Pass
@@ -1067,12 +1069,10 @@ inference/unsafe_block_closure_inference_constructor_call_explicit_type_param: T
 inference/unsafe_block_closure_inference_constructor_call_implicit_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_constructor_call_no_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param: TextSerializationFailure # Was: Pass
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: InstrumentationMismatch # Issue #25824
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: InstrumentationMismatch # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: TextSerializationFailure
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: TextSerializationFailure
 inference/unsafe_block_closure_inference_function_call_explicit_type_param: TextSerializationFailure # Was: Pass
-inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: InstrumentationMismatch # Issue #25824
-inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: InstrumentationMismatch # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: TextSerializationFailure
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: TextSerializationFailure
 inference/unsafe_block_closure_inference_function_call_implicit_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_implicit_type_param_via_expr: TextSerializationFailure # Was: Pass
@@ -1296,6 +1296,10 @@ nnbd/issue40601: TextSerializationFailure
 nnbd/issue40805: TextSerializationFailure
 nnbd/issue41102: TextSerializationFailure
 nnbd/issue41103: TextSerializationFailure
+nnbd/issue41156: TextSerializationFailure
+nnbd/issue41180: TextSerializationFailure
+nnbd/issue41210a/issue41210: TypeCheckError
+nnbd/issue41210b: TypeCheckError
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure

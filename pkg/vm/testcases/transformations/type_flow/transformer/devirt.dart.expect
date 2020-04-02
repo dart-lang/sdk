@@ -40,16 +40,16 @@ static method callerA1([@vm.inferred-type.metadata=!] self::A* aa) → void {
   [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
 static method callerA2([@vm.inferred-type.metadata=#lib::B] self::A* aa) → void {
-  [@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
+  [@vm.direct-call.metadata=B::foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
 static method callerA3([@vm.inferred-type.metadata=#lib::C] self::A* aa) → void {
-  [@vm.direct-call.metadata=#lib::C::foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
+  [@vm.direct-call.metadata=C::foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
 static method callerA4([@vm.inferred-type.metadata=#lib::D?] self::A* aa) → void {
-  [@vm.direct-call.metadata=#lib::C::foo??] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
+  [@vm.direct-call.metadata=C::foo??] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
 static method callerE1([@vm.inferred-type.metadata=dart.core::_OneByteString (value: abc)] dynamic x) → void {
-  [@vm.direct-call.metadata=dart.core::_StringBase::toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] x.{core::Object::toString}();
+  [@vm.direct-call.metadata=_StringBase::toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] x.{core::Object::toString}();
 }
 static method callerE2([@vm.inferred-type.metadata=#lib::E?] dynamic x) → void {
   [@vm.inferred-type.metadata=!? (receiver not int)] x.{core::Object::toString}();

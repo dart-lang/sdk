@@ -374,6 +374,10 @@ void RedefinitionInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void ReachabilityFenceInstr::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+}
+
 void Value::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *definition());
 

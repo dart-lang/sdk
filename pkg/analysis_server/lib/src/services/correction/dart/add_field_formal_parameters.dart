@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -24,16 +23,15 @@ class AddFieldFormalParameters extends CorrectionProducer {
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
     ClassDeclaration classNode = constructor.parent;
-    InterfaceType superType = classNode.declaredElement.supertype;
+    var superType = classNode.declaredElement.supertype;
 
     // Compute uninitialized final fields.
-    List<FieldElement> fields =
-        ErrorVerifier.computeNotInitializedFields(constructor);
+    var fields = ErrorVerifier.computeNotInitializedFields(constructor);
     fields.retainWhere((FieldElement field) => field.isFinal);
 
     // Prepare new parameters code.
     fields.sort((a, b) => a.nameOffset - b.nameOffset);
-    String fieldParametersCode =
+    var fieldParametersCode =
         fields.map((field) => 'this.${field.name}').join(', ');
 
     // Specialize for Flutter widgets.
@@ -52,7 +50,7 @@ class AddFieldFormalParameters extends CorrectionProducer {
 
     // Prepare the last required parameter.
     FormalParameter lastRequiredParameter;
-    for (FormalParameter parameter in parameters) {
+    for (var parameter in parameters) {
       if (parameter.isRequiredPositional) {
         lastRequiredParameter = parameter;
       }
@@ -65,7 +63,7 @@ class AddFieldFormalParameters extends CorrectionProducer {
           ', $fieldParametersCode',
         );
       } else {
-        int offset = constructor.parameters.leftParenthesis.end;
+        var offset = constructor.parameters.leftParenthesis.end;
         if (parameters.isNotEmpty) {
           fieldParametersCode += ', ';
         }

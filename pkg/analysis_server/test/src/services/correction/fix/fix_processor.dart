@@ -83,17 +83,17 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       String target,
       int expectedNumberOfFixesForKind,
       String matchFixMessage}) async {
-    AnalysisError error = await _findErrorToFix(errorFilter, length: length);
-    Fix fix = await _assertHasFix(error,
+    var error = await _findErrorToFix(errorFilter, length: length);
+    var fix = await _assertHasFix(error,
         expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
         matchFixMessage: matchFixMessage);
     change = fix.change;
 
     // apply to "file"
-    List<SourceFileEdit> fileEdits = change.edits;
+    var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
 
-    String fileContent = testCode;
+    var fileContent = testCode;
     if (target != null) {
       expect(fileEdits.first.file, convertPath(target));
       fileContent = getFile(target).readAsStringSync();
@@ -105,15 +105,15 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   void assertHasFixAllFix(ErrorCode errorCode, String expected,
       {String target}) async {
-    AnalysisError error = await _findErrorToFixOfType(errorCode);
-    Fix fix = await _assertHasFixAllFix(error);
+    var error = await _findErrorToFixOfType(errorCode);
+    var fix = await _assertHasFixAllFix(error);
     change = fix.change;
 
     // apply to "file"
-    List<SourceFileEdit> fileEdits = change.edits;
+    var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
 
-    String fileContent = testCode;
+    var fileContent = testCode;
     if (target != null) {
       expect(fileEdits.first.file, convertPath(target));
       fileContent = getFile(target).readAsStringSync();
@@ -125,14 +125,14 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   Future<void> assertHasFixWithoutApplying(
       {bool Function(AnalysisError) errorFilter}) async {
-    AnalysisError error = await _findErrorToFix(errorFilter);
-    Fix fix = await _assertHasFix(error);
+    var error = await _findErrorToFix(errorFilter);
+    var fix = await _assertHasFix(error);
     change = fix.change;
   }
 
   void assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
       [List<LinkedEditSuggestion> expectedSuggestions]) {
-    List<Position> expectedPositions = _findResultPositions(expectedStrings);
+    var expectedPositions = _findResultPositions(expectedStrings);
     expect(group.positions, unorderedEquals(expectedPositions));
     if (expectedSuggestions != null) {
       expect(group.suggestions, unorderedEquals(expectedSuggestions));
@@ -142,7 +142,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   /// Compute fixes for all of the errors in the test file to effectively assert
   /// that no exceptions will be thrown by doing so.
   Future<void> assertNoExceptions() async {
-    List<AnalysisError> errors = await _computeErrors();
+    var errors = await _computeErrors();
     for (var error in errors) {
       await _computeFixes(error);
     }
@@ -151,7 +151,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   /// Compute fixes and ensure that there is no fix of the [kind] being tested by
   /// this class.
   Future<void> assertNoFix({bool Function(AnalysisError) errorFilter}) async {
-    AnalysisError error = await _findErrorToFix(errorFilter);
+    var error = await _findErrorToFix(errorFilter);
     await _assertNoFix(error);
   }
 
@@ -174,11 +174,11 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   Future<Fix> _assertHasFix(AnalysisError error,
       {int expectedNumberOfFixesForKind, String matchFixMessage}) async {
     // Compute the fixes for this AnalysisError
-    final List<Fix> fixes = await _computeFixes(error);
+    var fixes = await _computeFixes(error);
 
     if (expectedNumberOfFixesForKind != null) {
-      int actualNumberOfFixesForKind = 0;
-      for (Fix fix in fixes) {
+      var actualNumberOfFixesForKind = 0;
+      for (var fix in fixes) {
         if (fix.kind == kind) {
           actualNumberOfFixesForKind++;
         }
@@ -191,7 +191,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
     // If a matchFixMessage was provided,
     if (matchFixMessage != null) {
-      for (Fix fix in fixes) {
+      for (var fix in fixes) {
         if (matchFixMessage == fix?.change?.message) {
           return fix;
         }
@@ -207,7 +207,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
     // Assert that none of the fixes are a fix-all fix.
     Fix foundFix;
-    for (Fix fix in fixes) {
+    for (var fix in fixes) {
       if (fix.isFixAllFix()) {
         fail('A fix-all fix was found for the error: $error '
             'in the computed set of fixes:\n${fixes.join('\n')}');
@@ -230,11 +230,11 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     }
 
     // Compute the fixes for the error.
-    List<Fix> fixes = await _computeFixes(error);
+    var fixes = await _computeFixes(error);
 
     // Assert that there exists such a fix in the list.
     Fix foundFix;
-    for (Fix fix in fixes) {
+    for (var fix in fixes) {
       if (fix.kind == kind && fix.isFixAllFix()) {
         foundFix = fix;
         break;
@@ -248,8 +248,8 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<void> _assertNoFix(AnalysisError error) async {
-    List<Fix> fixes = await _computeFixes(error);
-    for (Fix fix in fixes) {
+    var fixes = await _computeFixes(error);
+    for (var fix in fixes) {
       if (fix.kind == kind) {
         fail('Unexpected fix $kind in\n${fixes.join('\n')}');
       }
@@ -294,7 +294,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   Future<AnalysisError> _findErrorToFix(
       bool Function(AnalysisError) errorFilter,
       {int length}) async {
-    List<AnalysisError> errors = await _computeErrors();
+    var errors = await _computeErrors();
     if (errorFilter != null) {
       if (errors.length == 1) {
         fail('Unnecessary error filter');
@@ -304,9 +304,9 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     if (errors.isEmpty) {
       fail('Expected one error, found: none');
     } else if (errors.length > 1) {
-      StringBuffer buffer = StringBuffer();
+      var buffer = StringBuffer();
       buffer.writeln('Expected one error, found:');
-      for (AnalysisError error in errors) {
+      for (var error in errors) {
         buffer.writeln('  $error [${error.errorCode}]');
       }
       fail(buffer.toString());
@@ -315,8 +315,8 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<AnalysisError> _findErrorToFixOfType(ErrorCode errorCode) async {
-    List<AnalysisError> errors = await _computeErrors();
-    for (AnalysisError error in errors) {
+    var errors = await _computeErrors();
+    for (var error in errors) {
       if (error.errorCode == errorCode) {
         return error;
       }
@@ -325,9 +325,9 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {
-    List<Position> positions = <Position>[];
-    for (String search in searchStrings) {
-      int offset = resultCode.indexOf(search);
+    var positions = <Position>[];
+    for (var search in searchStrings) {
+      var offset = resultCode.indexOf(search);
       positions.add(Position(testFile, offset));
     }
     return positions;

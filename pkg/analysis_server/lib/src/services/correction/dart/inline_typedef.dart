@@ -69,7 +69,7 @@ class InlineTypedef extends CorrectionProducer {
         }
         String groupEnd;
         builder.write('(');
-        for (int i = 0; i < parameters.length; i++) {
+        for (var i = 0; i < parameters.length; i++) {
           var parameter = parameters[i];
           if (i > 0) {
             // This intentionally drops any trailing comma in order to improve

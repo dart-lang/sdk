@@ -29,7 +29,7 @@ class PluginLocatorTest with ResourceProviderMixin {
   void test_findPlugin_inPubspec_defaultDir() {
     // Support for specifying plugin locations in the pubspec is temporarily
     // disabled.
-    String dirPath = _createPubspecWithKey();
+    var dirPath = _createPubspecWithKey();
     _createDefaultDir();
     expect(locator.findPlugin(packageRoot), dirPath);
   }
@@ -38,7 +38,7 @@ class PluginLocatorTest with ResourceProviderMixin {
   void test_findPlugin_inPubspec_noDefaultDir() {
     // Support for specifying plugin locations in the pubspec is temporarily
     // disabled.
-    String dirPath = _createPubspecWithKey();
+    var dirPath = _createPubspecWithKey();
     expect(locator.findPlugin(packageRoot), dirPath);
   }
 
@@ -75,7 +75,7 @@ class PluginLocatorTest with ResourceProviderMixin {
   }
 
   String _createPubspecWithKey() {
-    String nonDefaultPath = newFolder('/package/pluginDir').path;
+    var nonDefaultPath = newFolder('/package/pluginDir').path;
     _createPubspec('''
 name: test_project
 ${PluginLocator.analyzerPluginKey}: $nonDefaultPath

@@ -7,7 +7,6 @@ import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/context_root.dart';
@@ -49,7 +48,7 @@ class BuiltInPluginInfoTest {
   }
 
   void test_addContextRoot() {
-    ContextRoot contextRoot1 = _newContextRoot('/pkg1');
+    var contextRoot1 = _newContextRoot('/pkg1');
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, [contextRoot1]);
     plugin.addContextRoot(contextRoot1);
@@ -64,8 +63,8 @@ class BuiltInPluginInfoTest {
   }
 
   void test_removeContextRoot() {
-    ContextRoot contextRoot1 = _newContextRoot('/pkg1');
-    ContextRoot contextRoot2 = _newContextRoot('/pkg2');
+    var contextRoot1 = _newContextRoot('/pkg1');
+    var contextRoot2 = _newContextRoot('/pkg2');
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, unorderedEquals([contextRoot1]));
     plugin.addContextRoot(contextRoot2);
@@ -96,9 +95,8 @@ class BuiltInPluginInfoTest {
   }
 
   Future<void> test_stop_running() async {
-    PluginSession session = PluginSession(plugin);
-    TestServerCommunicationChannel channel =
-        TestServerCommunicationChannel(session);
+    var session = PluginSession(plugin);
+    var channel = TestServerCommunicationChannel(session);
     plugin.currentSession = session;
     await plugin.stop();
     expect(plugin.currentSession, isNull);
@@ -122,18 +120,17 @@ class DiscoveredPluginInfoTest {
   }
 
   void test_addContextRoot() {
-    String optionsFilePath = '/pkg1/analysis_options.yaml';
-    ContextRoot contextRoot1 = _newContextRoot('/pkg1');
+    var optionsFilePath = '/pkg1/analysis_options.yaml';
+    var contextRoot1 = _newContextRoot('/pkg1');
     contextRoot1.optionsFilePath = optionsFilePath;
-    PluginSession session = PluginSession(plugin);
-    TestServerCommunicationChannel channel =
-        TestServerCommunicationChannel(session);
+    var session = PluginSession(plugin);
+    var channel = TestServerCommunicationChannel(session);
     plugin.currentSession = session;
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, [contextRoot1]);
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, [contextRoot1]);
-    List<Request> sentRequests = channel.sentRequests;
+    var sentRequests = channel.sentRequests;
     expect(sentRequests, hasLength(1));
     List<Map> roots = sentRequests[0].params['roots'];
     expect(roots[0]['optionsFile'], optionsFilePath);
@@ -148,8 +145,8 @@ class DiscoveredPluginInfoTest {
   }
 
   void test_removeContextRoot() {
-    ContextRoot contextRoot1 = _newContextRoot('/pkg1');
-    ContextRoot contextRoot2 = _newContextRoot('/pkg2');
+    var contextRoot1 = _newContextRoot('/pkg1');
+    var contextRoot2 = _newContextRoot('/pkg2');
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, unorderedEquals([contextRoot1]));
     plugin.addContextRoot(contextRoot2);
@@ -180,9 +177,8 @@ class DiscoveredPluginInfoTest {
   }
 
   Future<void> test_stop_running() async {
-    PluginSession session = PluginSession(plugin);
-    TestServerCommunicationChannel channel =
-        TestServerCommunicationChannel(session);
+    var session = PluginSession(plugin);
+    var channel = TestServerCommunicationChannel(session);
     plugin.currentSession = session;
     await plugin.stop();
     expect(plugin.currentSession, isNull);
@@ -207,10 +203,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_addPluginToContextRoot() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
-      ContextRoot contextRoot = _newContextRoot(pkgPath);
+      var contextRoot = _newContextRoot(pkgPath);
       await manager.addPluginToContextRoot(contextRoot, pluginPath);
       await manager.stopAll();
     });
@@ -241,23 +237,21 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_broadcastRequest_many() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
         pluginName: 'plugin1',
         test: (String plugin1Path) async {
           await withPlugin(
               pluginName: 'plugin2',
               test: (String plugin2Path) async {
-                ContextRoot contextRoot = _newContextRoot(pkgPath);
+                var contextRoot = _newContextRoot(pkgPath);
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
-                Map<PluginInfo, Future<Response>> responses =
-                    manager.broadcastRequest(
-                        CompletionGetSuggestionsParams(
-                            '/pkg1/lib/pkg1.dart', 100),
-                        contextRoot: contextRoot);
+                var responses = manager.broadcastRequest(
+                    CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
+                    contextRoot: contextRoot);
                 expect(responses, hasLength(2));
 
                 await manager.stopAll();
@@ -270,21 +264,20 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_broadcastRequest_many_noContextRoot() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
         pluginName: 'plugin1',
         test: (String plugin1Path) async {
           await withPlugin(
               pluginName: 'plugin2',
               test: (String plugin2Path) async {
-                ContextRoot contextRoot = _newContextRoot(pkgPath);
+                var contextRoot = _newContextRoot(pkgPath);
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
-                Map<PluginInfo, Future<Response>> responses =
-                    manager.broadcastRequest(CompletionGetSuggestionsParams(
-                        '/pkg1/lib/pkg1.dart', 100));
+                var responses = manager.broadcastRequest(
+                    CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100));
                 expect(responses, hasLength(2));
 
                 await manager.stopAll();
@@ -297,19 +290,18 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_broadcastRequest_noCurrentSession() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
         pluginName: 'plugin1',
         content: '(invalid content here)',
         test: (String plugin1Path) async {
-          ContextRoot contextRoot = _newContextRoot(pkgPath);
+          var contextRoot = _newContextRoot(pkgPath);
           await manager.addPluginToContextRoot(contextRoot, plugin1Path);
 
-          Map<PluginInfo, Future<Response>> responses =
-              manager.broadcastRequest(
-                  CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
-                  contextRoot: contextRoot);
+          var responses = manager.broadcastRequest(
+              CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
+              contextRoot: contextRoot);
           expect(responses, hasLength(0));
 
           await manager.stopAll();
@@ -321,21 +313,20 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_broadcastWatchEvent() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
         pluginName: 'plugin1',
         test: (String plugin1Path) async {
-          ContextRoot contextRoot = _newContextRoot(pkgPath);
+          var contextRoot = _newContextRoot(pkgPath);
           await manager.addPluginToContextRoot(contextRoot, plugin1Path);
-          List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
+          var plugins = manager.pluginsForContextRoot(contextRoot);
           expect(plugins, hasLength(1));
-          watcher.WatchEvent watchEvent = watcher.WatchEvent(
+          var watchEvent = watcher.WatchEvent(
               watcher.ChangeType.MODIFY, path.join(pkgPath, 'lib', 'lib.dart'));
-          List<Future<Response>> responses =
-              await manager.broadcastWatchEvent(watchEvent);
+          var responses = await manager.broadcastWatchEvent(watchEvent);
           expect(responses, hasLength(1));
-          Response response = await responses[0];
+          var response = await responses[0];
           expect(response, isNotNull);
           expect(response.error, isNull);
           await manager.stopAll();
@@ -347,22 +338,21 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_pluginsForContextRoot_multiple() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
         pluginName: 'plugin1',
         test: (String plugin1Path) async {
           await withPlugin(
               pluginName: 'plugin2',
               test: (String plugin2Path) async {
-                ContextRoot contextRoot = _newContextRoot(pkgPath);
+                var contextRoot = _newContextRoot(pkgPath);
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
-                List<PluginInfo> plugins =
-                    manager.pluginsForContextRoot(contextRoot);
+                var plugins = manager.pluginsForContextRoot(contextRoot);
                 expect(plugins, hasLength(2));
-                List<String> paths = plugins
+                var paths = plugins
                     .map((PluginInfo plugin) => plugin.pluginId)
                     .toList();
                 expect(paths, unorderedEquals([plugin1Path, plugin2Path]));
@@ -377,13 +367,13 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_pluginsForContextRoot_one() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
-      ContextRoot contextRoot = _newContextRoot(pkgPath);
+      var contextRoot = _newContextRoot(pkgPath);
       await manager.addPluginToContextRoot(contextRoot, pluginPath);
 
-      List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
+      var plugins = manager.pluginsForContextRoot(contextRoot);
       expect(plugins, hasLength(1));
       expect(plugins[0].pluginId, pluginPath);
 
@@ -396,10 +386,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_removedContextRoot() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
-      ContextRoot contextRoot = _newContextRoot(pkgPath);
+      var contextRoot = _newContextRoot(pkgPath);
       await manager.addPluginToContextRoot(contextRoot, pluginPath);
 
       manager.removedContextRoot(contextRoot);
@@ -414,24 +404,24 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_restartPlugins() async {
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkg1Path = pkg1Dir.resolveSymbolicLinksSync();
-    io.Directory pkg2Dir = io.Directory.systemTemp.createTempSync('pkg2');
-    String pkg2Path = pkg2Dir.resolveSymbolicLinksSync();
+    var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    var pkg1Path = pkg1Dir.resolveSymbolicLinksSync();
+    var pkg2Dir = io.Directory.systemTemp.createTempSync('pkg2');
+    var pkg2Path = pkg2Dir.resolveSymbolicLinksSync();
     await withPlugin(
         pluginName: 'plugin1',
         test: (String plugin1Path) async {
           await withPlugin(
               pluginName: 'plugin2',
               test: (String plugin2Path) async {
-                ContextRoot contextRoot1 = _newContextRoot(pkg1Path);
-                ContextRoot contextRoot2 = _newContextRoot(pkg2Path);
+                var contextRoot1 = _newContextRoot(pkg1Path);
+                var contextRoot2 = _newContextRoot(pkg2Path);
                 await manager.addPluginToContextRoot(contextRoot1, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot1, plugin2Path);
                 await manager.addPluginToContextRoot(contextRoot2, plugin1Path);
 
                 await manager.restartPlugins();
-                List<PluginInfo> plugins = manager.plugins;
+                var plugins = manager.plugins;
                 expect(plugins, hasLength(2));
                 expect(plugins[0].currentSession, isNotNull);
                 expect(plugins[1].currentSession, isNotNull);
@@ -469,8 +459,8 @@ class PluginManagerTest with ResourceProviderMixin {
   }
 
   void test_broadcastRequest_none() {
-    ContextRoot contextRoot = _newContextRoot('/pkg1');
-    Map<PluginInfo, Future<Response>> responses = manager.broadcastRequest(
+    var contextRoot = _newContextRoot('/pkg1');
+    var responses = manager.broadcastRequest(
         CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
         contextRoot: contextRoot);
     expect(responses, hasLength(0));
@@ -488,13 +478,13 @@ class PluginManagerTest with ResourceProviderMixin {
     // Build the minimal directory structure for a plugin package that includes
     // a .packages file.
     //
-    String pluginDirPath = newFolder('/plugin').path;
-    String pluginFilePath = newFile('/plugin/bin/plugin.dart').path;
-    String packagesFilePath = newFile('/plugin/.packages').path;
+    var pluginDirPath = newFolder('/plugin').path;
+    var pluginFilePath = newFile('/plugin/bin/plugin.dart').path;
+    var packagesFilePath = newFile('/plugin/.packages').path;
     //
     // Test path computation.
     //
-    List<String> paths = manager.pathsFor(pluginDirPath);
+    var paths = manager.pathsFor(pluginDirPath);
     expect(paths, hasLength(2));
     expect(paths[0], pluginFilePath);
     expect(paths[1], packagesFilePath);
@@ -509,13 +499,13 @@ class PluginManagerTest with ResourceProviderMixin {
     newFolder('/workspaceRoot/bazel-genfiles');
 
     String newPackage(String packageName, [List<String> dependencies]) {
-      String packageRoot =
+      var packageRoot =
           newFolder('/workspaceRoot/third_party/dart/$packageName').path;
       newFile('$packageRoot/lib/$packageName.dart');
-      StringBuffer buffer = StringBuffer();
+      var buffer = StringBuffer();
       if (dependencies != null) {
         buffer.writeln('dependencies:');
-        for (String dependency in dependencies) {
+        for (var dependency in dependencies) {
           buffer.writeln('  $dependency: any');
         }
       }
@@ -523,21 +513,21 @@ class PluginManagerTest with ResourceProviderMixin {
       return packageRoot;
     }
 
-    String pluginDirPath = newPackage('plugin', ['b', 'c']);
+    var pluginDirPath = newPackage('plugin', ['b', 'c']);
     newPackage('b', ['d']);
     newPackage('c', ['d']);
     newPackage('d');
-    String pluginFilePath = newFile('$pluginDirPath/bin/plugin.dart').path;
+    var pluginFilePath = newFile('$pluginDirPath/bin/plugin.dart').path;
     //
     // Test path computation.
     //
-    List<String> paths = manager.pathsFor(pluginDirPath);
+    var paths = manager.pathsFor(pluginDirPath);
     expect(paths, hasLength(2));
     expect(paths[0], pluginFilePath);
-    File packagesFile = getFile(paths[1]);
+    var packagesFile = getFile(paths[1]);
     expect(packagesFile.exists, isTrue);
-    String content = packagesFile.readAsStringSync();
-    List<String> lines = content.split('\n');
+    var content = packagesFile.readAsStringSync();
+    var lines = content.split('\n');
     String asFileUri(String input) => Uri.file(convertPath(input)).toString();
     expect(
         lines,
@@ -551,7 +541,7 @@ class PluginManagerTest with ResourceProviderMixin {
   }
 
   void test_pluginsForContextRoot_none() {
-    ContextRoot contextRoot = _newContextRoot('/pkg1');
+    var contextRoot = _newContextRoot('/pkg1');
     expect(manager.pluginsForContextRoot(contextRoot), isEmpty);
   }
 
@@ -567,9 +557,9 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_start_notRunning() async {
     await withPlugin(test: (String pluginPath) async {
-      String packagesPath = path.join(pluginPath, '.packages');
-      String mainPath = path.join(pluginPath, 'bin', 'plugin.dart');
-      String byteStorePath = path.join(pluginPath, 'byteStore');
+      var packagesPath = path.join(pluginPath, '.packages');
+      var mainPath = path.join(pluginPath, 'bin', 'plugin.dart');
+      var byteStorePath = path.join(pluginPath, 'byteStore');
       io.Directory(byteStorePath).createSync();
       PluginInfo plugin = DiscoveredPluginInfo(
           pluginPath,
@@ -577,7 +567,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
           packagesPath,
           notificationManager,
           InstrumentationService.NULL_SERVICE);
-      PluginSession session = PluginSession(plugin);
+      var session = PluginSession(plugin);
       plugin.currentSession = session;
       expect(await session.start(byteStorePath, ''), isTrue);
       await session.stop();
@@ -607,7 +597,7 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 
   void test_handleNotification() {
-    Notification notification =
+    var notification =
         AnalysisErrorsParams('/test.dart', <AnalysisError>[]).toNotification();
     expect(notificationManager.notifications, hasLength(0));
     session.handleNotification(notification);
@@ -616,8 +606,7 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 
   void test_handleOnDone() {
-    TestServerCommunicationChannel channel =
-        TestServerCommunicationChannel(session);
+    var channel = TestServerCommunicationChannel(session);
     session.handleOnDone();
     expect(channel.closeCount, 1);
     expect(session.pluginStoppedCompleter.isCompleted, isTrue);
@@ -631,16 +620,14 @@ class PluginSessionTest with ResourceProviderMixin {
 
   Future<void> test_handleResponse() async {
     TestServerCommunicationChannel(session);
-    Response response = PluginVersionCheckResult(
-            true, 'name', 'version', <String>[],
+    var response = PluginVersionCheckResult(true, 'name', 'version', <String>[],
             contactInfo: 'contactInfo')
         .toResponse('0', 1);
-    Future<Response> future =
-        session.sendRequest(PluginVersionCheckParams('', '', ''));
+    var future = session.sendRequest(PluginVersionCheckParams('', '', ''));
     expect(session.pendingRequests, hasLength(1));
     session.handleResponse(response);
     expect(session.pendingRequests, hasLength(0));
-    Response result = await future;
+    var result = await future;
     expect(result, same(response));
   }
 
@@ -651,8 +638,7 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 
   void test_sendRequest() {
-    TestServerCommunicationChannel channel =
-        TestServerCommunicationChannel(session);
+    var channel = TestServerCommunicationChannel(session);
     session.sendRequest(PluginVersionCheckParams('', '', ''));
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.versionCheck');
@@ -679,8 +665,7 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 
   Future<void> test_stop_running() async {
-    TestServerCommunicationChannel channel =
-        TestServerCommunicationChannel(session);
+    var channel = TestServerCommunicationChannel(session);
     await session.stop();
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.shutdown');
@@ -721,24 +706,24 @@ abstract class PluginTestSupport {
       {String content,
       String pluginName,
       Future<void> Function(String) test}) async {
-    io.Directory tempDirectory =
+    var tempDirectory =
         io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
     try {
-      String pluginPath = tempDirectory.resolveSymbolicLinksSync();
+      var pluginPath = tempDirectory.resolveSymbolicLinksSync();
       //
       // Create a .packages file.
       //
-      io.File packagesFile = io.File(path.join(pluginPath, '.packages'));
+      var packagesFile = io.File(path.join(pluginPath, '.packages'));
       packagesFile.writeAsStringSync(_getPackagesFileContent());
       //
       // Create the 'bin' directory.
       //
-      String binPath = path.join(pluginPath, 'bin');
+      var binPath = path.join(pluginPath, 'bin');
       io.Directory(binPath).createSync();
       //
       // Create the 'plugin.dart' file.
       //
-      io.File pluginFile = io.File(path.join(binPath, 'plugin.dart'));
+      var pluginFile = io.File(path.join(binPath, 'plugin.dart'));
       pluginFile.writeAsStringSync(content ?? _defaultPluginContent());
       //
       // Run the actual test code.
@@ -768,24 +753,24 @@ abstract class PluginTestSupport {
       {String content,
       String pluginName,
       Future<void> Function(String) test}) async {
-    io.Directory tempDirectory =
+    var tempDirectory =
         io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
     try {
-      String pluginPath = tempDirectory.resolveSymbolicLinksSync();
+      var pluginPath = tempDirectory.resolveSymbolicLinksSync();
       //
       // Create a pubspec.yaml file.
       //
-      io.File pubspecFile = io.File(path.join(pluginPath, 'pubspec.yaml'));
+      var pubspecFile = io.File(path.join(pluginPath, 'pubspec.yaml'));
       pubspecFile.writeAsStringSync(_getPubspecFileContent());
       //
       // Create the 'bin' directory.
       //
-      String binPath = path.join(pluginPath, 'bin');
+      var binPath = path.join(pluginPath, 'bin');
       io.Directory(binPath).createSync();
       //
       // Create the 'plugin.dart' file.
       //
-      io.File pluginFile = io.File(path.join(binPath, 'plugin.dart'));
+      var pluginFile = io.File(path.join(binPath, 'plugin.dart'));
       pluginFile.writeAsStringSync(content ?? _defaultPluginContent());
       //
       // Run the actual test code.
@@ -799,13 +784,13 @@ abstract class PluginTestSupport {
   /// Convert the [sdkPackageMap] into a plugin-specific map by applying the
   /// given relative path [delta] to each line.
   String _convertPackageMap(String sdkDirPath, List<String> sdkPackageMap) {
-    StringBuffer buffer = StringBuffer();
-    for (String line in sdkPackageMap) {
+    var buffer = StringBuffer();
+    for (var line in sdkPackageMap) {
       if (!line.startsWith('#')) {
-        int index = line.indexOf(':');
-        String packageName = line.substring(0, index + 1);
-        String relativePath = line.substring(index + 1);
-        String absolutePath = path.join(sdkDirPath, relativePath);
+        var index = line.indexOf(':');
+        var packageName = line.substring(0, index + 1);
+        var relativePath = line.substring(index + 1);
+        var absolutePath = path.join(sdkDirPath, relativePath);
         // Convert to file:/// URI since that's how absolute paths in
         // .packages must be for windows
         absolutePath = Uri.file(absolutePath).toString();
@@ -864,8 +849,8 @@ class MinimalPlugin extends ServerPlugin {
   /// Return the content to be used for the '.packages' file.
   String _getPackagesFileContent() {
     if (_packagesFileContent == null) {
-      io.File sdkPackagesFile = io.File(_sdkPackagesPath());
-      List<String> sdkPackageMap = sdkPackagesFile.readAsLinesSync();
+      var sdkPackagesFile = io.File(_sdkPackagesPath());
+      var sdkPackageMap = sdkPackagesFile.readAsLinesSync();
       _packagesFileContent =
           _convertPackageMap(path.dirname(sdkPackagesFile.path), sdkPackageMap);
     }
@@ -884,7 +869,7 @@ dependencies:
 
   /// Return the path to the '.packages' file in the root of the SDK checkout.
   String _sdkPackagesPath() {
-    String packagesPath = io.Platform.script.toFilePath();
+    var packagesPath = io.Platform.script.toFilePath();
     while (packagesPath.isNotEmpty &&
         path.basename(packagesPath) != 'analysis_server') {
       packagesPath = path.dirname(packagesPath);

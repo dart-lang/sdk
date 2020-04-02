@@ -7,6 +7,9 @@ general/bug30695: TypeCheckError
 general/bug30695: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
+
 general/mixin_application_override: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError
 general/override_check_accessor_basic: TypeCheckError
@@ -46,6 +49,8 @@ nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/never_opt_out: TypeCheckError
+nnbd/issue41210a/issue41210: TypeCheckError
+nnbd/issue41210b: TypeCheckError
 
 rasta/native_is_illegal: Pass # Issue 29763
 

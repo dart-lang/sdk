@@ -14,14 +14,14 @@ void main() {
     final server = Server(listener: _debug ? TestListener() : null);
     await server.start(clientId: 'test', suppressAnalytics: true);
 
-    TestHandler handler = TestHandler(server);
+    var handler = TestHandler(server);
     server.listenToOutput(notificationProcessor: handler.handleEvent);
     if (!await handler.serverConnected(
         timeLimit: const Duration(seconds: 15))) {
       fail('failed to connect to server');
     }
 
-    Map<String, dynamic> json = await server.send(
+    var json = await server.send(
         SERVER_REQUEST_GET_VERSION, ServerGetVersionParams().toJson());
     final result =
         ServerGetVersionResult.fromJson(ResponseDecoder(null), 'result', json);

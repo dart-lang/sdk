@@ -11,27 +11,19 @@ part 'src/impl.dart';
 
 const githubRepo = 'dart-lang/homebrew-dart';
 
-const dartRbFileName = 'dart.rb';
+const formulaByChannel = {
+  'beta': 'dart-beta.rb',
+  'dev': 'dart.rb',
+  'stable': 'dart.rb'
+};
 
-Iterable<String> get supportedChannels => _files.keys;
+Iterable<String> get supportedChannels => formulaByChannel.keys;
 
 Future<void> writeHomebrewInfo(
-    String channel, String revision, String repository) async {
-  var revisions = await _getCurrentRevisions(repository);
-
-  if (revisions[channel] == revision) {
-    print("Channel $channel is already at revision $revision in homebrew.");
-    exit(0);
-  }
-  revisions[channel] = revision;
-  var hashes = await _getHashes(revisions);
-  var devVersion = await _getVersion('dev', revisions['dev']);
-
-  var stableVersion = await _getVersion('stable', revisions['stable']);
-
-  await File(p.join(repository, dartRbFileName)).writeAsString(
-      _createDartFormula(revisions, hashes, devVersion, stableVersion),
-      flush: true);
+    String channel, String version, String repository) async {
+  var formula = File(p.join(repository, formulaByChannel[channel]));
+  var hashes = await _getHashes(channel, version);
+  await _updateFormula(channel, formula, version, hashes);
 }
 
 Future<void> runGit(List<String> args, String repository,

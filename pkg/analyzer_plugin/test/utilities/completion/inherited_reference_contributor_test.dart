@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/inherited_reference_contributor.dart';
 import 'package:test/test.dart';
@@ -190,7 +189,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -210,7 +209,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -233,7 +232,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -254,7 +253,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -277,7 +276,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -297,7 +296,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -320,7 +319,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -337,7 +336,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, isEmpty);
     expect(suggestion.parameterTypes, isEmpty);
     expect(suggestion.requiredParameterCount, 0);
@@ -357,7 +356,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -377,7 +376,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -400,7 +399,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void');
+    var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'x');
     expect(suggestion.parameterTypes[0], 'dynamic');
@@ -445,7 +444,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestField('x', 'int');
+    var suggestion = assertSuggestField('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -462,7 +461,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+    var suggestion = assertSuggestGetter('x', 'int');
     assertHasNoParameterInfo(suggestion);
   }
 
@@ -479,7 +478,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestSetter('x');
+    var suggestion = assertSuggestSetter('x');
     assertHasNoParameterInfo(suggestion);
   }
 

@@ -86,6 +86,7 @@ class _TypeError extends Error implements TypeError, CastError {
   @pragma("vm:entry-point")
   _TypeError._create(this._url, this._line, this._column, this._message);
 
+  @pragma("vm:entry-point", "call")
   static _throwNew(int location, Object src_value, _Type dst_type,
       String dst_name) native "TypeError_throwNew";
 

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
@@ -19,6 +20,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/isolate_analysis_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -135,10 +137,10 @@ class CommandLineParser {
 
   List<String> parseDefinedVariables(
       List<String> args, Map<String, String> definedVariables) {
-    int count = args.length;
-    List<String> remainingArgs = <String>[];
-    for (int i = 0; i < count; i++) {
-      String arg = args[i];
+    var count = args.length;
+    var remainingArgs = <String>[];
+    for (var i = 0; i < count; i++) {
+      var arg = args[i];
       if (arg == '--') {
         while (i < count) {
           remainingArgs.add(args[i++]);
@@ -159,17 +161,17 @@ class CommandLineParser {
     // Only filter args if the ignore flag is specified.
     if (args.contains('--ignore-unrecognized-flags')) {
       // Filter all unrecognized flags and options.
-      List<String> filtered = <String>[];
-      for (int i = 0; i < args.length; ++i) {
-        String arg = args[i];
+      var filtered = <String>[];
+      for (var i = 0; i < args.length; ++i) {
+        var arg = args[i];
         if (arg.startsWith('--') && arg.length > 2) {
-          String option = arg.substring(2);
+          var option = arg.substring(2);
           // remove any leading 'no-'
           if (option.startsWith('no-')) {
             option = option.substring(3);
           }
           // strip the last '=value'
-          int equalsOffset = option.lastIndexOf('=');
+          var equalsOffset = option.lastIndexOf('=');
           if (equalsOffset != -1) {
             option = option.substring(0, equalsOffset);
           }
@@ -216,6 +218,10 @@ class Driver implements ServerStarter {
 
   /// The name of the option used to enable DartPad specific functionality.
   static const String DARTPAD_OPTION = 'dartpad';
+
+  /// The name of the option used to disable exception handling.
+  static const String DISABLE_SERVER_EXCEPTION_HANDLING =
+      'disable-server-exception-handling';
 
   /// The name of the option to disable the completion feature.
   static const String DISABLE_SERVER_FEATURE_COMPLETION =
@@ -305,12 +311,15 @@ class Driver implements ServerStarter {
   Driver();
 
   /// Use the given command-line [arguments] to start this server.
+  ///
+  /// If [sendPort] is not null, assumes this is launched in an isolate and will
+  /// connect to the original isolate via an [IsolateChannel].
   @override
-  void start(List<String> arguments) {
-    CommandLineParser parser = _createArgParser();
-    ArgResults results = parser.parse(arguments, <String, String>{});
+  void start(List<String> arguments, [SendPort sendPort]) {
+    var parser = _createArgParser();
+    var results = parser.parse(arguments, <String, String>{});
 
-    AnalysisServerOptions analysisServerOptions = AnalysisServerOptions();
+    var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
@@ -328,7 +337,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
-    SdkConfiguration sdkConfig = SdkConfiguration.readFromSdk();
+    var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
 
     // ML model configuration.
@@ -380,7 +389,7 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
-    final EnablementCallback shouldSendCallback = () {
+    var shouldSendCallback = () {
       // Check sdkConfig to optionally force reporting on.
       if (sdkConfig.crashReportingForceEnabled == true) {
         return true;
@@ -431,20 +440,21 @@ class Driver implements ServerStarter {
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DartSdk defaultSdk = _createDefaultSdk(defaultSdkPath, true);
+    var defaultSdk = _createDefaultSdk(defaultSdkPath, true);
     //
     // Initialize the instrumentation service.
     //
     String logFilePath = results[INSTRUMENTATION_LOG_FILE];
-    List<InstrumentationService> allInstrumentationServices =
-        instrumentationService == null ? [] : [instrumentationService];
+    var allInstrumentationServices = instrumentationService == null
+        ? <InstrumentationService>[]
+        : [instrumentationService];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
       allInstrumentationServices.add(
           InstrumentationLogAdapter(FileInstrumentationLogger(logFilePath)));
     }
 
-    ErrorNotifier errorNotifier = ErrorNotifier();
+    var errorNotifier = ErrorNotifier();
     allInstrumentationServices
         .add(CrashReportingInstrumentation(crashReportSender));
     instrumentationService =
@@ -474,6 +484,10 @@ class Driver implements ServerStarter {
     }
 
     if (analysisServerOptions.useLanguageServerProtocol) {
+      if (sendPort != null) {
+        throw UnimplementedError(
+            'Isolate usage not implemented for LspAnalysisServer');
+      }
       startLspServer(results, analysisServerOptions, dartSdkManager,
           instrumentationService, diagnosticServerPort, errorNotifier);
     } else {
@@ -487,7 +501,8 @@ class Driver implements ServerStarter {
           RequestStatisticsHelper(),
           analytics,
           diagnosticServerPort,
-          errorNotifier);
+          errorNotifier,
+          sendPort);
     }
   }
 
@@ -502,7 +517,11 @@ class Driver implements ServerStarter {
     telemetry.Analytics analytics,
     int diagnosticServerPort,
     ErrorNotifier errorNotifier,
+    SendPort sendPort,
   ) {
+    var capture = results[DISABLE_SERVER_EXCEPTION_HANDLING]
+        ? (_, Function f, {Function(String) print}) => f()
+        : _captureExceptions;
     String trainDirectory = results[TRAIN_USING];
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
@@ -518,7 +537,7 @@ class Driver implements ServerStarter {
     //
     linter.registerLintRules();
 
-    _DiagnosticServerImpl diagnosticServer = _DiagnosticServerImpl();
+    var diagnosticServer = _DiagnosticServerImpl();
 
     // Ping analytics with our initial call.
     analytics.sendScreenView('home');
@@ -544,17 +563,21 @@ class Driver implements ServerStarter {
     }
 
     if (trainDirectory != null) {
-      Directory tempDriverDir =
+      if (sendPort != null) {
+        throw UnimplementedError(
+            'isolate usage not supported for DevAnalysisServer');
+      }
+      var tempDriverDir =
           Directory.systemTemp.createTempSync('analysis_server_');
       analysisServerOptions.cacheFolder = tempDriverDir.path;
 
-      DevAnalysisServer devServer = DevAnalysisServer(socketServer);
+      var devServer = DevAnalysisServer(socketServer);
       devServer.initServer();
 
       () async {
         // We first analyze code with an empty driver cache.
         print('Analyzing with an empty driver cache:');
-        int exitCode = await devServer.processDirectories([trainDirectory]);
+        var exitCode = await devServer.processDirectories([trainDirectory]);
         if (exitCode != 0) exit(exitCode);
 
         print('');
@@ -580,9 +603,16 @@ class Driver implements ServerStarter {
         exit(exitCode);
       }();
     } else {
-      _captureExceptions(instrumentationService, () {
-        StdioAnalysisServer stdioServer = StdioAnalysisServer(socketServer);
-        stdioServer.serveStdio().then((_) async {
+      capture(instrumentationService, () {
+        Future serveResult;
+        if (sendPort == null) {
+          var stdioServer = StdioAnalysisServer(socketServer);
+          serveResult = stdioServer.serveStdio();
+        } else {
+          var isolateAnalysisServer = IsolateAnalysisServer(socketServer);
+          serveResult = isolateAnalysisServer.serveIsolate(sendPort);
+        }
+        serveResult.then((_) async {
           // TODO(brianwilkerson) Determine whether this await is necessary.
           await null;
 
@@ -591,7 +621,7 @@ class Driver implements ServerStarter {
           }
           await instrumentationService.shutdown();
           socketServer.analysisServer.shutdown();
-          exit(0);
+          if (sendPort == null) exit(0);
         });
         startCompletionRanking(socketServer, null, analysisServerOptions);
       },
@@ -639,11 +669,14 @@ class Driver implements ServerStarter {
     int diagnosticServerPort,
     ErrorNotifier errorNotifier,
   ) {
+    var capture = args[DISABLE_SERVER_EXCEPTION_HANDLING]
+        ? (_, Function f, {Function(String) print}) => f()
+        : _captureExceptions;
     final serve_http = diagnosticServerPort != null;
 
     linter.registerLintRules();
 
-    _DiagnosticServerImpl diagnosticServer = _DiagnosticServerImpl();
+    var diagnosticServer = _DiagnosticServerImpl();
 
     final socketServer = LspSocketServer(
       analysisServerOptions,
@@ -660,8 +693,8 @@ class Driver implements ServerStarter {
       diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
-    _captureExceptions(instrumentationService, () {
-      LspStdioAnalysisServer stdioServer = LspStdioAnalysisServer(socketServer);
+    capture(instrumentationService, () {
+      var stdioServer = LspStdioAnalysisServer(socketServer);
       stdioServer.serveStdio().then((_) async {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
@@ -678,8 +711,8 @@ class Driver implements ServerStarter {
   /// exceptions and both report them to the client and send them to the given
   /// instrumentation [service]. If a [print] function is provided, then also
   /// capture any data printed by the callback and redirect it to the function.
-  dynamic _captureExceptions(
-      InstrumentationService service, dynamic Function() callback,
+  void _captureExceptions(
+      InstrumentationService service, void Function() callback,
       {void Function(String line) print}) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
@@ -694,19 +727,26 @@ class Driver implements ServerStarter {
             // reserved for communication to the client.
             print(line);
           };
-    ZoneSpecification zoneSpecification = ZoneSpecification(
+    var zoneSpecification = ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
   /// Create and return the parser used to parse the command-line arguments.
   CommandLineParser _createArgParser() {
-    CommandLineParser parser = CommandLineParser();
+    var parser = CommandLineParser();
     parser.addOption(CLIENT_ID,
         help: 'an identifier used to identify the client');
     parser.addOption(CLIENT_VERSION, help: 'the version of the client');
     parser.addFlag(DARTPAD_OPTION,
         help: 'enable DartPad specific functionality',
+        defaultsTo: false,
+        hide: true);
+    parser.addFlag(DISABLE_SERVER_EXCEPTION_HANDLING,
+        // TODO(jcollins-g): Pipeline option through and apply to all
+        // exception-nullifying runZoned() calls.
+        help: 'disable analyzer exception capture for interactive debugging '
+            'of the server',
         defaultsTo: false,
         hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_COMPLETION,
@@ -787,9 +827,8 @@ class Driver implements ServerStarter {
   }
 
   DartSdk _createDefaultSdk(String defaultSdkPath, bool useSummaries) {
-    PhysicalResourceProvider resourceProvider =
-        PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = FolderBasedDartSdk(
+    var resourceProvider = PhysicalResourceProvider.INSTANCE;
+    var sdk = FolderBasedDartSdk(
         resourceProvider, resourceProvider.getFolder(defaultSdkPath));
     sdk.useSummary = useSummaries;
     return sdk;
@@ -797,8 +836,8 @@ class Driver implements ServerStarter {
 
   /// Constructs a uuid combining the current date and a random integer.
   String _generateUuidString() {
-    int millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
-    int random = Random().nextInt(0x3fffffff);
+    var millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
+    var random = Random().nextInt(0x3fffffff);
     return '$millisecondsSinceEpoch$random';
   }
 
@@ -841,10 +880,10 @@ class Driver implements ServerStarter {
     if (instrumentationLocation == null) {
       return _generateUuidString();
     }
-    File uuidFile = File(instrumentationLocation.getChild('uuid.txt').path);
+    var uuidFile = File(instrumentationLocation.getChild('uuid.txt').path);
     try {
       if (uuidFile.existsSync()) {
-        String uuid = uuidFile.readAsStringSync();
+        var uuid = uuidFile.readAsStringSync();
         if (uuid != null && uuid.length > 5) {
           return uuid;
         }
@@ -852,7 +891,7 @@ class Driver implements ServerStarter {
     } catch (exception, stackTrace) {
       service.logException(exception, stackTrace);
     }
-    String uuid = _generateUuidString();
+    var uuid = _generateUuidString();
     try {
       uuidFile.parent.createSync(recursive: true);
       uuidFile.writeAsStringSync(uuid);
@@ -870,9 +909,9 @@ class Driver implements ServerStarter {
   /// Keep at most [numOld] files.
   /// Rename the file with the given [path] to `[path].1`.
   static void _rollLogFiles(String path, int numOld) {
-    for (int i = numOld - 1; i >= 0; i--) {
+    for (var i = numOld - 1; i >= 0; i--) {
       try {
-        String oldPath = i == 0 ? path : '$path.$i';
+        var oldPath = i == 0 ? path : '$path.$i';
         File(oldPath).renameSync('$path.${i + 1}');
       } catch (e) {
         // If a file can't be renamed, then leave it and attempt to rename the
