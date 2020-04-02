@@ -641,10 +641,11 @@ class _Base64Decoder {
     // all the characters in `charOr` and later validate that all characters
     // were ASCII.
     var charOr = 0;
+    final inverseAlphabet = _Base64Decoder._inverseAlphabet;
     for (var i = start; i < end; i++) {
       var char = input.codeUnitAt(i);
       charOr |= char;
-      var code = _inverseAlphabet[char & asciiMask];
+      var code = inverseAlphabet[char & asciiMask];
       if (code >= 0) {
         bits = ((bits << bitsPerCharacter) | code) & 0xFFFFFF;
         count = (count + 1) & 3;
