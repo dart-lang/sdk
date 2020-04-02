@@ -28,29 +28,6 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:meta/meta.dart';
 
-/// Used to check for infinite loops, if we repeat the same type comparison.
-class TypeComparison {
-  final DartType lhs;
-  final DartType rhs;
-
-  TypeComparison(this.lhs, this.rhs);
-
-  @override
-  int get hashCode => lhs.hashCode * 11 + rhs.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    if (other is TypeComparison) {
-      return lhs == other.lhs && rhs == other.rhs;
-    }
-
-    return false;
-  }
-
-  @override
-  String toString() => "$lhs vs $rhs";
-}
-
 /**
  * The interface `TypeSystem` defines the behavior of an object representing
  * the type system.  This provides a common location to put methods that act on
