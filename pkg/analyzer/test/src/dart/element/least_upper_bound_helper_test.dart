@@ -166,7 +166,7 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
       interfaces: [
         InstantiatedClass(
           classB,
-          [typeParameterType(CT)],
+          [typeParameterTypeStar(CT)],
         ).withNullabilitySuffixNone,
       ],
     );
@@ -228,7 +228,7 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
       typeParameters: typeParametersC,
       supertype: InstantiatedClass(
         classB,
-        [typeParameterType(typeParametersC[0])],
+        [typeParameterTypeStar(typeParametersC[0])],
       ).withNullabilitySuffixNone,
     );
 

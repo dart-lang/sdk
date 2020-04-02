@@ -263,7 +263,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl derivedClass =
         ElementFactory.classElement2('Derived', ['T']);
     derivedClass.supertype =
-        futureType(typeParameterType(derivedClass.typeParameters[0]));
+        futureType(typeParameterTypeStar(derivedClass.typeParameters[0]));
     InterfaceType intType = _typeProvider.intType;
     DartType dynamicType = _typeProvider.dynamicType;
     InterfaceType derivedIntType =
@@ -307,7 +307,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ClassElementImpl derivedClass =
         ElementFactory.classElement2('Derived', ['T']);
     derivedClass.supertype =
-        futureType(typeParameterType(derivedClass.typeParameters[0]));
+        futureType(typeParameterTypeStar(derivedClass.typeParameters[0]));
     // class A extends Derived<int> implements Derived<num> { ... }
     ClassElementImpl classA = ElementFactory.classElement(
         'A', interfaceTypeStar(derivedClass, typeArguments: [intType]));

@@ -54,7 +54,7 @@ class SubstituteFromInterfaceTypeTest extends _Base {
     var substitution = Substitution.fromInterfaceType(BofInt);
 
     // A<U>
-    var type = interfaceTypeStar(A, typeArguments: [typeParameterType(U)]);
+    var type = interfaceTypeStar(A, typeArguments: [typeParameterTypeStar(U)]);
     assertType(type, 'A<U>');
 
     var result = substitution.substituteType(type);
@@ -73,8 +73,8 @@ class SubstituteFromPairsTest extends _Base {
     var type = interfaceTypeStar(
       A,
       typeArguments: [
-        typeParameterType(T),
-        typeParameterType(U),
+        typeParameterTypeStar(T),
+        typeParameterTypeStar(U),
       ],
     );
 
@@ -93,9 +93,9 @@ class SubstituteFromUpperAndLowerBoundsTest extends _Base {
     var T = typeParameter('T');
     var type = functionTypeStar(
       parameters: [
-        requiredParameter(type: typeParameterType(T)),
+        requiredParameter(type: typeParameterTypeStar(T)),
       ],
-      returnType: typeParameterType(T),
+      returnType: typeParameterTypeStar(T),
     );
 
     var result = Substitution.fromUpperAndLowerBounds(
@@ -136,10 +136,10 @@ class SubstituteTest extends _Base {
     var U = typeParameter('U');
     var type = functionTypeStar(
       parameters: [
-        requiredParameter(type: typeParameterType(U)),
+        requiredParameter(type: typeParameterTypeStar(U)),
         requiredParameter(type: boolType),
       ],
-      returnType: typeParameterType(T),
+      returnType: typeParameterTypeStar(T),
     );
 
     assertType(type, 'T Function(U, bool)');
@@ -158,13 +158,13 @@ class SubstituteTest extends _Base {
   test_function_typeFormals() async {
     // typedef F<T> = T Function<U extends T>(U);
     var T = typeParameter('T');
-    var U = typeParameter('U', bound: typeParameterType(T));
+    var U = typeParameter('U', bound: typeParameterTypeStar(T));
     var type = functionTypeStar(
       typeFormals: [U],
       parameters: [
-        requiredParameter(type: typeParameterType(U)),
+        requiredParameter(type: typeParameterTypeStar(U)),
       ],
-      returnType: typeParameterType(T),
+      returnType: typeParameterTypeStar(T),
     );
 
     assertType(type, 'T Function<U extends T>(U)');
@@ -188,9 +188,9 @@ class SubstituteTest extends _Base {
     var U = typeParameter('U');
     var V = typeParameter('V');
     T.bound = interfaceTypeStar(classTriplet, typeArguments: [
-      typeParameterType(T),
-      typeParameterType(U),
-      typeParameterType(V),
+      typeParameterTypeStar(T),
+      typeParameterTypeStar(U),
+      typeParameterTypeStar(V),
     ]);
     var type = functionTypeStar(
       typeFormals: [T, U],
@@ -221,7 +221,7 @@ class SubstituteTest extends _Base {
 
     var U = typeParameter('U');
     var type = interfaceTypeStar(A, typeArguments: [
-      typeParameterType(U),
+      typeParameterTypeStar(U),
     ]);
 
     assertType(type, 'A<U>');
@@ -237,7 +237,7 @@ class SubstituteTest extends _Base {
       interfaceTypeStar(
         typeProvider.listElement,
         typeArguments: [
-          typeParameterType(U),
+          typeParameterTypeStar(U),
         ],
       )
     ]);

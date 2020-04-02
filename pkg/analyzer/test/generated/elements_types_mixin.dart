@@ -537,16 +537,6 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  TypeParameterTypeImpl typeParameterType(
-    TypeParameterElement element, {
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  }) {
-    return TypeParameterTypeImpl(
-      element: element,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   TypeParameterTypeImpl typeParameterTypeNone(TypeParameterElement element) {
     return element.instantiate(nullabilitySuffix: NullabilitySuffix.none);
   }
