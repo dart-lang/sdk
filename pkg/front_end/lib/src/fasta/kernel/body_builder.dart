@@ -272,6 +272,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   ///
   bool get inLateLocalInitializer => _localInitializerState.head;
 
+  Link<bool> _asOperatorTypeState = const Link<bool>().prepend(false);
+
+  @override
+  bool get inAsOperatorType => _asOperatorTypeState.head;
+
   Link<bool> _localInitializerState = const Link<bool>().prepend(false);
 
   List<Initializer> _initializers;
@@ -3235,9 +3240,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginAsOperatorType(Token operator) {
+    _asOperatorTypeState = _asOperatorTypeState.prepend(true);
+  }
+
+  @override
+  void endAsOperatorType(Token operator) {
+    _asOperatorTypeState = _asOperatorTypeState.tail;
+  }
+
+  @override
   void handleAsOperator(Token operator) {
     debugEvent("AsOperator");
-    DartType type = buildDartType(pop());
+    DartType type = buildDartType(pop(),
+        allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
     libraryBuilder.checkBoundsInType(
         type, typeEnvironment, uri, operator.charOffset);
     Expression expression = popForValue();
@@ -5791,14 +5807,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  UnresolvedType validateTypeUse(
-      UnresolvedType unresolved, bool nonInstanceAccessIsError) {
+  UnresolvedType validateTypeUse(UnresolvedType unresolved,
+      {bool nonInstanceAccessIsError, bool allowPotentiallyConstantType}) {
+    assert(nonInstanceAccessIsError != null);
+    assert(allowPotentiallyConstantType != null);
     TypeBuilder builder = unresolved.builder;
     if (builder is NamedTypeBuilder && builder.declaration.isTypeVariable) {
       TypeVariableBuilder typeParameterBuilder = builder.declaration;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
       LocatedMessage message = _validateTypeUseIsInternal(
-          builder, unresolved.fileUri, unresolved.charOffset);
+          builder, unresolved.fileUri, unresolved.charOffset,
+          allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
           new NamedTypeBuilder(
@@ -5809,7 +5828,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           unresolved.fileUri);
     } else if (builder is FunctionTypeBuilder) {
       LocatedMessage message = _validateTypeUseIsInternal(
-          builder, unresolved.fileUri, unresolved.charOffset);
+          builder, unresolved.fileUri, unresolved.charOffset,
+          allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       // TODO(CFE Team): This should probably be some kind of InvalidType
       // instead of null.
@@ -5820,7 +5840,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   LocatedMessage _validateTypeUseIsInternal(
-      TypeBuilder builder, Uri fileUri, int charOffset) {
+      TypeBuilder builder, Uri fileUri, int charOffset,
+      {bool allowPotentiallyConstantType}) {
+    assert(allowPotentiallyConstantType != null);
     if (builder is NamedTypeBuilder && builder.declaration.isTypeVariable) {
       TypeVariableBuilder typeParameterBuilder = builder.declaration;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
@@ -5834,7 +5856,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             builder.fileUri ?? fileUri,
             builder.charOffset ?? charOffset,
             typeParameter.name.length);
-      } else if (constantContext == ConstantContext.inferred) {
+      } else if (constantContext == ConstantContext.inferred &&
+          !allowPotentiallyConstantType) {
         message = fasta.messageTypeVariableInConstantContext
             .withLocation(fileUri, charOffset, typeParameter.name.length);
       } else {
@@ -5843,15 +5866,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       addProblem(message.messageObject, message.charOffset, message.length);
       return message;
     } else if (builder is FunctionTypeBuilder) {
-      LocatedMessage result =
-          _validateTypeUseIsInternal(builder.returnType, fileUri, charOffset);
+      LocatedMessage result = _validateTypeUseIsInternal(
+          builder.returnType, fileUri, charOffset,
+          allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (result != null) {
         return result;
       }
       if (builder.formals != null) {
         for (FormalParameterBuilder formalParameterBuilder in builder.formals) {
           result = _validateTypeUseIsInternal(
-              formalParameterBuilder.type, fileUri, charOffset);
+              formalParameterBuilder.type, fileUri, charOffset,
+              allowPotentiallyConstantType: allowPotentiallyConstantType);
           if (result != null) {
             return result;
           }
@@ -6022,9 +6047,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   DartType buildDartType(UnresolvedType unresolvedType,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false,
+      bool allowPotentiallyConstantType: false}) {
     if (unresolvedType == null) return null;
-    return validateTypeUse(unresolvedType, nonInstanceAccessIsError)
+    return validateTypeUse(unresolvedType,
+            nonInstanceAccessIsError: nonInstanceAccessIsError,
+            allowPotentiallyConstantType: allowPotentiallyConstantType)
         .builder
         ?.build(libraryBuilder);
   }

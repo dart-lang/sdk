@@ -2985,8 +2985,13 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     if (arguments != null) {
       argumentBuilders = new List<TypeBuilder>(arguments.length);
       for (int i = 0; i < argumentBuilders.length; i++) {
-        argumentBuilders[i] =
-            _helper.validateTypeUse(arguments[i], false).builder;
+        argumentBuilders[i] = _helper
+            .validateTypeUse(arguments[i],
+                nonInstanceAccessIsError: false,
+                allowPotentiallyConstantType:
+                    _helper.libraryBuilder.isNonNullableByDefault &&
+                        _helper.inAsOperatorType)
+            .builder;
       }
     }
     return new NamedTypeBuilder(

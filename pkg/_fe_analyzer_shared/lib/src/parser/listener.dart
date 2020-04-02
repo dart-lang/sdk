@@ -1247,6 +1247,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("WhileStatement");
   }
 
+  void beginAsOperatorType(Token operator) {}
+
+  void endAsOperatorType(Token operator) {
+    logEvent("AsOperatorType");
+  }
+
   void handleAsOperator(Token operator) {
     logEvent("AsOperator");
   }

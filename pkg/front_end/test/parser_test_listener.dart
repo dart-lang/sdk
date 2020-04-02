@@ -1644,6 +1644,18 @@ class ParserTestListener implements Listener {
     doPrint('endWhileStatement(' '$whileKeyword, ' '$endToken)');
   }
 
+  void beginAsOperatorType(Token operator) {
+    seen(operator);
+    doPrint('beginAsOperatorType(' '$operator)');
+    indent++;
+  }
+
+  void endAsOperatorType(Token operator) {
+    indent--;
+    seen(operator);
+    doPrint('endAsOperatorType(' '$operator)');
+  }
+
   void handleAsOperator(Token operator) {
     seen(operator);
     doPrint('handleAsOperator(' '$operator)');

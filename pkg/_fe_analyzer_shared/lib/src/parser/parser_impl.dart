@@ -5497,8 +5497,10 @@ class Parser {
   Token parseAsOperatorRest(Token token) {
     Token operator = token = token.next;
     assert(optional('as', operator));
+    listener.beginAsOperatorType(operator);
     TypeInfo typeInfo = computeTypeAfterIsOrAs(token);
     token = typeInfo.ensureTypeNotVoid(token, this);
+    listener.endAsOperatorType(operator);
     listener.handleAsOperator(operator);
     return skipChainedAsIsOperators(token);
   }

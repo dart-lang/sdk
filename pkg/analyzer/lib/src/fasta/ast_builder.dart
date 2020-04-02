@@ -2259,6 +2259,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginAsOperatorType(Token asOperator) {}
+
+  @override
+  void endAsOperatorType(Token asOperator) {
+    debugEvent("AsOperatorType");
+  }
+
+  @override
   void handleAsOperator(Token asOperator) {
     assert(optional('as', asOperator));
     debugEvent("AsOperator");
