@@ -440,7 +440,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (identical(entity, node.returnType) && node.name == null) {
+    if (identical(entity, node.returnType)) {
       optype.includeTypeNameSuggestions = true;
     }
   }

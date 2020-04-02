@@ -515,6 +515,58 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     await assertOpType(typeNames: true);
   }
 
+  Future<void> test_ConstructorDeclaration_const_named() async {
+    // ConstructorDeclaration
+    // The additional syntax with assert is to ensure that the target node is
+    // a ConstructorDeclaration, instead of a MethodDeclaration.
+    addTestSource('''
+      class ABC {
+        int i;
+        const A^.b(this.i) : assert(i != 0);
+      }''');
+    await assertOpType(typeNames: true);
+  }
+
+  Future<void> test_ConstructorDeclaration_const_named2() async {
+    // ConstructorDeclaration
+    // The additional syntax with assert is to ensure that the target node is
+    // a ConstructorDeclaration, instead of a MethodDeclaration.
+    // A negative test that type names aren't expected to be the name of a named
+    // constructor.
+    addTestSource('''
+      class ABC {
+        int i;
+        const A.^b(this.i) : assert(i != 0);
+      }''');
+    await assertOpType(typeNames: false);
+  }
+
+  Future<void> test_ConstructorDeclaration_factory() async {
+    // ConstructorDeclaration
+    addTestSource(
+      'class A { factory A^() {} }',
+    );
+    await assertOpType(typeNames: true);
+  }
+
+  Future<void> test_ConstructorDeclaration_factory_named() async {
+    // ConstructorDeclaration
+    addTestSource(
+      'class A { factory A^.b() {} }',
+    );
+    await assertOpType(typeNames: true);
+  }
+
+  Future<void> test_ConstructorDeclaration_factory_named2() async {
+    // ConstructorDeclaration
+    // A negative test that type names aren't expected to be the name of a named
+    // constructor.
+    addTestSource(
+      'class A { factory A.^b() {} }',
+    );
+    await assertOpType(typeNames: false);
+  }
+
   Future<void> test_ConstructorFieldInitializer_name() async {
     addTestSource(r'''
 class C {
