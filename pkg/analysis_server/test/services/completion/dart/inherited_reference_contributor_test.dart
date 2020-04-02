@@ -75,7 +75,34 @@ class B extends A {
     assertSuggestMethod('y', 'A', 'Future<dynamic>');
   }
 
-  Future<void> test_Block_inherited_imported() async {
+  Future<void> test_Block_inherited_imported_from_constructor() async {
+    // Block  BlockFunctionBody  ConstructorDeclaration  ClassDeclaration
+    resolveSource('/home/test/lib/b.dart', '''
+      lib B;
+      class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
+      class E extends F { var e1; e2() { } }
+      class I { int i1; i2() { } }
+      class M { var m1; int m2() { } }''');
+    addTestSource('''
+      import "b.dart";
+      class A extends E implements I with M {const A() {^}}''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestField('e1', null);
+    assertSuggestField('f1', null);
+    assertSuggestField('i1', 'int');
+    assertSuggestField('m1', null);
+    assertSuggestGetter('f3', null);
+    assertSuggestSetter('f4');
+    assertSuggestMethod('e2', 'E', null);
+    assertSuggestMethod('f2', 'F', null);
+    assertSuggestMethod('i2', 'I', null);
+    assertSuggestMethod('m2', 'M', 'int');
+    assertNotSuggested('==');
+  }
+
+  Future<void> test_Block_inherited_imported_from_method() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     resolveSource('/home/test/lib/b.dart', '''
       lib B;
@@ -102,7 +129,31 @@ class B extends A {
     assertNotSuggested('==');
   }
 
-  Future<void> test_Block_inherited_local() async {
+  Future<void> test_Block_inherited_local_from_constructor() async {
+    // Block  BlockFunctionBody  ConstructorDeclaration  ClassDeclaration
+    addTestSource('''
+class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }
+class E extends F { var e1; e2() { } }
+class I { int i1; i2() { } }
+class M { var m1; int m2() { } }
+class A extends E implements I with M {const A() {^}}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestField('e1', null);
+    assertSuggestField('f1', null);
+    assertSuggestField('i1', 'int');
+    assertSuggestField('m1', null);
+    assertSuggestGetter('f3', null);
+    assertSuggestSetter('f4');
+    assertSuggestMethod('e2', 'E', null);
+    assertSuggestMethod('f2', 'F', null);
+    assertSuggestMethod('i2', 'I', null);
+    assertSuggestMethod('m2', 'M', 'int');
+  }
+
+  Future<void> test_Block_inherited_local_from_method() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('''
 class F { var f1; f2() { } get f3 => 0; set f4(fx) { } }

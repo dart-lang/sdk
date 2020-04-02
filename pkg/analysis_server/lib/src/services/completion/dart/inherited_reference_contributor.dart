@@ -121,6 +121,8 @@ class InheritedReferenceContributor extends DartCompletionContributor {
         if (!node.isStatic) {
           return node;
         }
+      } else if (node is ConstructorDeclaration) {
+        return node;
       }
       node = node.parent;
     }
