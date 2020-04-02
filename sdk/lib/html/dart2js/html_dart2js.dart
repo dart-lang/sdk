@@ -36050,7 +36050,8 @@ abstract class CssClassSet implements Set<String> {
    * after the operation, and returns `false` if [value] is absent after the
    * operation.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To toggle multiple classes, use
@@ -36084,7 +36085,8 @@ abstract class CssClassSet implements Set<String> {
    * If this CssClassSet corresponds to one element. Returns true if [value] was
    * added to the set, otherwise false.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this CssClassSet corresponds to many elements, `false` is always
+   * returned.
    *
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.  To add multiple classes use

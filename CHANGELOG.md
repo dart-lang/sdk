@@ -104,6 +104,11 @@ safety.
     of `Node`, even though it was not returning anything. This has been
     corrected to `void`.
 
+*   **Breaking Change**: `CssClassSet.add()` previously returned `null` if the
+    `CssClassSet` corresponded to multiple elements. In order to align with the
+    null-safe changes in the `Set` interface, it will now return `false`
+    instead. The same applies for `CssClassSet.toggle`.
+
 [#39627]: https://github.com/dart-lang/sdk/issues/39627
 
 #### `dart:io`
