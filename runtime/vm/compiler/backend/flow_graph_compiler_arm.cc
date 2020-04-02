@@ -428,13 +428,17 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   __ LoadClassId(R2, TypeTestABI::kInstanceReg);
   __ LoadClassById(R1, R2);
   // R1: instance class.
-  // Check immediate superclass equality.
-  __ ldr(R2, compiler::FieldAddress(
-                 R1, compiler::target::Class::super_type_offset()));
-  __ ldr(R2, compiler::FieldAddress(
-                 R2, compiler::target::Type::type_class_id_offset()));
-  __ CompareImmediate(R2, Smi::RawValue(type_class.id()));
-  __ b(is_instance_lbl, EQ);
+  // Check immediate superclass equality. If type_class is Object, then testing
+  // supertype may yield a wrong result for Null in NNBD strong mode (because
+  // Null also extends Object).
+  if (!type_class.IsObjectClass() || !Isolate::Current()->null_safety()) {
+    __ ldr(R2, compiler::FieldAddress(
+                   R1, compiler::target::Class::super_type_offset()));
+    __ ldr(R2, compiler::FieldAddress(
+                   R2, compiler::target::Type::type_class_id_offset()));
+    __ CompareImmediate(R2, Smi::RawValue(type_class.id()));
+    __ b(is_instance_lbl, EQ);
+  }
 
   const Register kInstantiatorTypeArgumentsReg = kNoRegister;
   const Register kFunctionTypeArgumentsReg = kNoRegister;

@@ -17827,7 +17827,8 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   }
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
-    if (other.IsDartFunctionType() || other.IsDartClosureType()) {
+    if (other.IsDartFunctionType() || other.IsDartClosureType() ||
+        other.IsObjectType()) {
       return true;
     }
     AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
