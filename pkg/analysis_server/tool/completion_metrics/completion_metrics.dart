@@ -129,6 +129,15 @@ class CompletionMetrics {
   MeanReciprocalRankComputer nonTypeMemberMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
+  ArithmeticMeanComputer charsBeforeTop =
+      ArithmeticMeanComputer('chars_before_top');
+
+  ArithmeticMeanComputer charsBeforeTopFive =
+      ArithmeticMeanComputer('chars_before_top_five');
+
+  ArithmeticMeanComputer insertionLengthTheoretical =
+      ArithmeticMeanComputer('insertion_length_theoretical');
+
   /// A list of the top [maxWorstResults] completion results with the highest
   /// (worst) ranks.
   List<CompletionResult> worstResults = [];
@@ -213,6 +222,14 @@ class CompletionMetricsComputer {
       } else {
         metrics.nonTypeMemberMrrComputer.addRank(place.rank);
       }
+
+      var charsBeforeTop =
+          _computeCharsBeforeTop(expectedCompletion, suggestions);
+      metrics.charsBeforeTop.addValue(charsBeforeTop);
+      metrics.charsBeforeTopFive.addValue(
+          _computeCharsBeforeTop(expectedCompletion, suggestions, minRank: 5));
+      metrics.insertionLengthTheoretical
+          .addValue(expectedCompletion.completion.length - charsBeforeTop);
     } else {
       metrics.completionCounter.count('unsuccessful');
 
@@ -266,6 +283,11 @@ class CompletionMetricsComputer {
     metrics.nonTypeMemberMrrComputer.printMean();
     print('');
 
+    metrics.charsBeforeTop.printMean();
+    metrics.charsBeforeTopFive.printMean();
+    metrics.insertionLengthTheoretical.printMean();
+    print('');
+
     print('Summary for $rootPath:');
     metrics.meanCompletionMS.printMean();
     metrics.completionCounter.printCounterValues();
@@ -296,6 +318,25 @@ class CompletionMetricsComputer {
       print('Preceeding: $preceeding');
       print('Suggestion: ${suggestions[rank - 1]}');
     }
+  }
+
+  int _computeCharsBeforeTop(
+      ExpectedCompletion target, List<CompletionSuggestion> suggestions,
+      {int minRank = 1}) {
+    var rank = placementInSuggestionList(suggestions, target).rank;
+    if (rank <= minRank) {
+      return 0;
+    }
+    var expected = target.completion;
+    for (var i = 1; i < expected.length + 1; i++) {
+      var prefix = expected.substring(0, i);
+      var filteredSuggestions = _filterSuggestions(prefix, suggestions);
+      rank = placementInSuggestionList(filteredSuggestions, target).rank;
+      if (rank <= minRank) {
+        return i;
+      }
+    }
+    return expected.length;
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
@@ -425,6 +466,14 @@ class CompletionMetricsComputer {
         }
       }
     }
+  }
+
+  List<CompletionSuggestion> _filterSuggestions(
+      String prefix, List<CompletionSuggestion> suggestions) {
+    // TODO(brianwilkerson) Replace this with a more realistic filtering algorithm.
+    return suggestions
+        .where((suggestion) => suggestion.completion.startsWith(prefix))
+        .toList();
   }
 
   /// Given some [ResolvedUnitResult] return the first error of high severity
