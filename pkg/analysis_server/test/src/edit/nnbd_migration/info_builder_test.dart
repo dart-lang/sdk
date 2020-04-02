@@ -1928,8 +1928,7 @@ void h(int?/*?*/ i) {
   }
 
   Future<void> test_trace_nullCheckHint() async {
-    UnitInfo unit = await buildInfoForSingleTestFile(
-        'int f(int/*?*/ i) => i/*!*/;',
+    var unit = await buildInfoForSingleTestFile('int f(int/*?*/ i) => i/*!*/;',
         migratedContent: 'int  f(int?/*?*/ i) => i!/*!*/;');
     var region = unit.regions
         .where(
