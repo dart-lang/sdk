@@ -96,7 +96,7 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttribute(key as String);
+    return key is String && _element._hasAttribute(key);
   }
 
   String? operator [](Object? key) {
@@ -122,8 +122,8 @@ class _ElementAttributeMap extends _AttributeMap {
   // Inline this because almost all call sites of [remove] do not use [value],
   // and the annotations on the `getAttribute` call allow it to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(Element element, String key) {
-    String value = JS(
+  static String? _remove(Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -139,12 +139,12 @@ class _ElementAttributeMap extends _AttributeMap {
  * Wrapper to expose namespaced attributes as a typed map.
  */
 class _NamespacedAttributeMap extends _AttributeMap {
-  final String _namespace;
+  final String? _namespace;
 
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttributeNS(_namespace, key as String);
+    return key is String && _element._hasAttributeNS(_namespace, key);
   }
 
   String? operator [](Object? key) {
@@ -172,8 +172,8 @@ class _NamespacedAttributeMap extends _AttributeMap {
   // returned [value], and the annotations on the `getAttributeNS` call allow it
   // to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(String namespace, Element element, String key) {
-    String value = JS(
+  static String? _remove(String? namespace, Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',

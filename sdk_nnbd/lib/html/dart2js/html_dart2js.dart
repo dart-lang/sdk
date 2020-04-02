@@ -11805,6 +11805,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeAt(int index) {
     final result = this[index];
+    // TODO(41258): Remove null check after unfork/strong mode.
     if (result != null) {
       _element._removeChild(result);
     }
@@ -11813,9 +11814,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeLast() {
     final result = this.last;
-    if (result != null) {
-      _element._removeChild(result);
-    }
+    _element._removeChild(result);
     return result;
   }
 
@@ -12881,6 +12880,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   String? getAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _getAttribute(name);
@@ -12888,6 +12888,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   String? getAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -12896,6 +12897,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _hasAttribute(name);
@@ -12903,6 +12905,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   bool hasAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -12911,6 +12914,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttribute(name);
@@ -12918,6 +12922,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void removeAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttributeNS(namespaceURI, name);
@@ -12925,6 +12930,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
+    // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -12933,6 +12939,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void setAttributeNS(String? namespaceURI, String name, String value) {
+    // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -35685,7 +35692,7 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttribute(key as String);
+    return key is String && _element._hasAttribute(key);
   }
 
   String? operator [](Object? key) {
@@ -35711,8 +35718,8 @@ class _ElementAttributeMap extends _AttributeMap {
   // Inline this because almost all call sites of [remove] do not use [value],
   // and the annotations on the `getAttribute` call allow it to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(Element element, String key) {
-    String value = JS(
+  static String? _remove(Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -35728,12 +35735,12 @@ class _ElementAttributeMap extends _AttributeMap {
  * Wrapper to expose namespaced attributes as a typed map.
  */
 class _NamespacedAttributeMap extends _AttributeMap {
-  final String _namespace;
+  final String? _namespace;
 
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttributeNS(_namespace, key as String);
+    return key is String && _element._hasAttributeNS(_namespace, key);
   }
 
   String? operator [](Object? key) {
@@ -35761,8 +35768,8 @@ class _NamespacedAttributeMap extends _AttributeMap {
   // returned [value], and the annotations on the `getAttributeNS` call allow it
   // to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(String namespace, Element element, String key) {
-    String value = JS(
+  static String? _remove(String? namespace, Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -40622,14 +40629,15 @@ class _WrappedEvent implements Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void Function(T)? _wrapZone<T>(void Function(T) callback) {
+void Function(T)? _wrapZone<T>(void Function(T)? callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
-void Function(T1, T2)? _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
+void Function(T1, T2)? _wrapBinaryZone<T1, T2>(
+    void Function(T1, T2)? callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
@@ -40944,7 +40952,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   /// important attributes we want to check, remove it if it's not valid
   /// or not allowed, either as a whole or particular attributes.
   void _sanitizeElement(Element element, Node? parent, bool corrupted,
-      String text, String tag, Map attrs, String isAttr) {
+      String text, String tag, Map attrs, String? isAttr) {
     if (false != corrupted) {
       _removeNode(element, parent);
       window.console

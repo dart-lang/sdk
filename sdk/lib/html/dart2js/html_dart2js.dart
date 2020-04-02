@@ -11796,9 +11796,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeLast() {
     final result = this.last;
-    if (result != null) {
-      _element._removeChild(result);
-    }
+    _element._removeChild(result);
     return result;
   }
 

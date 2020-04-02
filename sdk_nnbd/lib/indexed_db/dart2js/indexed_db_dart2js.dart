@@ -1002,7 +1002,7 @@ class ObjectStore extends Interceptor {
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      T cursor = request.result as dynamic;
+      T? cursor = request.result as dynamic;
       if (cursor == null) {
         controller.close();
       } else {
