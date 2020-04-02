@@ -7177,7 +7177,7 @@ intptr_t Function::GetRequiredFlagIndex(intptr_t index,
 }
 
 bool Function::IsRequiredAt(intptr_t index) const {
-  if (index < num_fixed_parameters()) {
+  if (index < num_fixed_parameters() + NumOptionalPositionalParameters()) {
     return false;
   }
   intptr_t flag_mask;
@@ -7558,7 +7558,8 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
   }
   if (isolate->null_safety()) {
     // Verify that all required named parameters are filled.
-    for (intptr_t j = num_positional_args; j < num_parameters; j++) {
+    for (intptr_t j = num_parameters - NumOptionalNamedParameters();
+         j < num_parameters; j++) {
       if (IsRequiredAt(j)) {
         parameter_name = ParameterNameAt(j);
         ASSERT(parameter_name.IsSymbol());
@@ -8027,7 +8028,7 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
     // Check that for each required named parameter in this function, there's a
     // corresponding required named parameter in the other function.
     String& param_name = other_param_name;
-    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+    for (intptr_t j = num_params - num_opt_named_params; j < num_params; j++) {
       if (IsRequiredAt(j)) {
         param_name = ParameterNameAt(j);
         ASSERT(param_name.IsSymbol());
@@ -8404,7 +8405,7 @@ void Function::PrintSignatureParameters(Thread* thread,
       printer->AddString("{");
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
-      if (IsRequiredAt(i)) {
+      if (num_opt_named_params > 0 && IsRequiredAt(i)) {
         printer->AddString("required ");
       }
       param_type = ParameterTypeAt(i);
