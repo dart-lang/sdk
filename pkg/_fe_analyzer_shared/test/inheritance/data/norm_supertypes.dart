@@ -12,12 +12,7 @@ class A<T> {}
 /*class: Foo:A<FutureOr<T?>>,Foo<T, S>,Object*/
 class Foo<T extends S, S extends Never> implements A<FutureOr<T?>> {}
 
-/// TODO: Solve CFE / analyzer difference.
-/// It looks to me that is should be `A<FutureOr<Never?>>`, because this is
-/// what is written in the code. We don't do normalization because there is
-/// only one implementation of `A` in `Bar`.
-/*cfe|cfe:builder.class: Bar:A<FutureOr<Never>>,Bar,Object*/
-/*analyzer.class: Bar:A<FutureOr<Never?>>,Bar,Object*/
+/*class: Bar:A<FutureOr<Never?>>,Bar,Object*/
 class Bar implements A<FutureOr<Never?>> {}
 
 /*class: Baz:A<Future<Null>?>,Baz,Object*/

@@ -7922,7 +7922,23 @@ class Supertype extends Node {
 
   @override
   String toStringInternal() {
-    return "";
+    StringBuffer sb = new StringBuffer();
+    if (_verboseTypeToString) {
+      sb.write(className.toStringInternal());
+    } else {
+      sb.write(classNode.name);
+    }
+    if (typeArguments.isNotEmpty) {
+      sb.write("<");
+      String comma = "";
+      for (DartType typeArgument in typeArguments) {
+        sb.write(comma);
+        sb.write(typeArgument.toStringInternal());
+        comma = ", ";
+      }
+      sb.write(">");
+    }
+    return sb.toString();
   }
 }
 
