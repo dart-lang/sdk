@@ -1391,10 +1391,10 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     TraceStrongModeType(this, *abstract_type);
   }
   ASSERT(field.is_static());
-  if (field.is_final() && !FLAG_fields_may_be_reset) {
+  const bool is_initialized = IsFieldInitialized() && !FLAG_fields_may_be_reset;
+  if (field.is_final() && is_initialized) {
     const Instance& obj = Instance::Handle(field.StaticValue());
-    if ((obj.raw() != Object::sentinel().raw()) &&
-        (obj.raw() != Object::transition_sentinel().raw()) && !obj.IsNull()) {
+    if (!obj.IsNull()) {
       is_nullable = CompileType::kNonNullable;
       cid = obj.GetClassId();
       abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
@@ -1411,7 +1411,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
   }
-  if (field.is_late()) {
+  if (field.is_late() && !is_initialized) {
     // TODO(dartbug.com/40796): Extend CompileType to handle lateness.
     is_nullable = CompileType::kNullable;
   }

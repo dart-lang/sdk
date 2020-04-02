@@ -2055,7 +2055,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     field.set_has_initializer(has_initializer);
 
     if (has_nontrivial_initializer) {
-      if (field.is_late()) {
+      if (field.is_late() && !is_static) {
         // Late fields are initialized to Object::sentinel, which is a flavor of
         // null. So we need to record that store so that the field guard doesn't
         // prematurely optimise out the late field's sentinel checking logic.

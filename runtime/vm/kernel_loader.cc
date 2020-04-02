@@ -2182,7 +2182,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
   ASSERT(field.NeedsGetter());
 
-  if (field.is_late() && field.has_nontrivial_initializer()) {
+  if (field.is_late() && !field.is_static() &&
+      field.has_nontrivial_initializer()) {
     // Late fields are initialized to Object::sentinel, which is a flavor of
     // null. So we need to record that store so that the field guard doesn't
     // prematurely optimise out the late field's sentinel checking logic.
