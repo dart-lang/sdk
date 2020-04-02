@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -319,10 +318,8 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
 
     // A<num>
     // A<T>
-    var aNum = interfaceType(A,
-        typeArguments: [numNone], nullabilitySuffix: NullabilitySuffix.none);
-    var aT = interfaceType(A,
-        typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
+    var aNum = interfaceTypeNone(A, typeArguments: [numNone]);
+    var aT = interfaceTypeNone(A, typeArguments: [tType]);
 
     _checkIsSubtypeMatchOf(aT, aNum, [tType], ['num <: in T'], covariant: true);
   }
@@ -335,10 +332,8 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
 
     // A<num>
     // A<T>
-    var aNum = interfaceType(A,
-        typeArguments: [numNone], nullabilitySuffix: NullabilitySuffix.none);
-    var aT = interfaceType(A,
-        typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
+    var aNum = interfaceTypeNone(A, typeArguments: [numNone]);
+    var aT = interfaceTypeNone(A, typeArguments: [tType]);
 
     _checkIsSubtypeMatchOf(aT, aNum, [tType], ['out T <: num'],
         covariant: true);
@@ -352,10 +347,8 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
 
     // A<num>
     // A<T>
-    var aNum = interfaceType(A,
-        typeArguments: [numNone], nullabilitySuffix: NullabilitySuffix.none);
-    var aT = interfaceType(A,
-        typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
+    var aNum = interfaceTypeNone(A, typeArguments: [numNone]);
+    var aT = interfaceTypeNone(A, typeArguments: [tType]);
 
     _checkIsSubtypeMatchOf(
         aT, aNum, [tType], ['inout T <: num', 'num <: inout T'],
