@@ -2050,7 +2050,7 @@ class WeakSerializationReferenceSerializationCluster
   // the object ID from the heap directly.
   bool ShouldDrop(RawWeakSerializationReference* ref) const {
     auto const target = WeakSerializationReference::TargetOf(ref);
-    return Serializer::IsAllocatedReference(heap_->GetObjectId(target));
+    return Serializer::IsReachableReference(heap_->GetObjectId(target));
   }
 
   Heap* const heap_;
