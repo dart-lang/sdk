@@ -67,7 +67,13 @@ ReplacedMembers transformLibraries(
   final LibraryIndex index =
       LibraryIndex(component, const ["dart:ffi", "dart:core"]);
   if (!index.containsLibrary("dart:ffi")) {
+    // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
+    // for the VM target.
     // If dart:ffi is not loaded, do not do the transformation.
+    return ReplacedMembers({}, {});
+  }
+  if (index.tryGetClass('dart:ffi', 'NativeFunction') == null) {
+    // If dart:ffi is not loaded (for real): do not do the transformation.
     return ReplacedMembers({}, {});
   }
   final transformer = new _FfiDefinitionTransformer(index, coreTypes, hierarchy,
