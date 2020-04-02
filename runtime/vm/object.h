@@ -1751,7 +1751,7 @@ class Class : public Object {
   friend class Type;
   friend class InterpreterHelpers;
   friend class Intrinsifier;
-  friend class ClassFunctionVisitor;
+  friend class ProgramWalker;
 };
 
 // Classification of type genericity according to type parameter owners.

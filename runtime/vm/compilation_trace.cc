@@ -27,7 +27,7 @@ CompilationTraceSaver::CompilationTraceSaver(Zone* zone)
       lib_(Library::Handle(zone)),
       uri_(String::Handle(zone)) {}
 
-void CompilationTraceSaver::Visit(const Function& function) {
+void CompilationTraceSaver::VisitFunction(const Function& function) {
   if (!function.HasCode()) {
     return;  // Not compiled.
   }
@@ -505,7 +505,7 @@ void TypeFeedbackSaver::SaveFields() {
   }
 }
 
-void TypeFeedbackSaver::Visit(const Function& function) {
+void TypeFeedbackSaver::VisitFunction(const Function& function) {
   if (!function.HasCode()) {
     return;  // Not compiled.
   }

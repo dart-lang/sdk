@@ -484,7 +484,7 @@ void Precompiler::DoCompileAll() {
              non_visited.ToFullyQualifiedCString());
     }
 #endif
-    ProgramVisitor::Dedup();
+    ProgramVisitor::Dedup(T);
 
     zone_ = NULL;
   }
@@ -519,7 +519,7 @@ void Precompiler::PrecompileConstructors() {
    public:
     explicit ConstructorVisitor(Precompiler* precompiler, Zone* zone)
         : precompiler_(precompiler), zone_(zone) {}
-    void Visit(const Function& function) {
+    void VisitFunction(const Function& function) {
       if (!function.IsGenerativeConstructor()) return;
       if (function.HasCode()) {
         // Const constructors may have been visited before. Recompile them here
@@ -538,8 +538,8 @@ void Precompiler::PrecompileConstructors() {
   };
 
   HANDLESCOPE(T);
-  ConstructorVisitor visitor(this, zone_);
-  ProgramVisitor::VisitFunctions(&visitor);
+  ConstructorVisitor visitor(this, Z);
+  ProgramVisitor::WalkProgram(Z, I, &visitor);
 }
 
 void Precompiler::AddRoots() {
@@ -2182,14 +2182,14 @@ RawFunction* Precompiler::FindUnvisitedRetainedFunction() {
 
     const CodeSet& visited() const { return visited_code_; }
 
-    void Visit(const Code& code) { visited_code_.Insert(code); }
+    void VisitCode(const Code& code) { visited_code_.Insert(code); }
 
    private:
     CodeSet visited_code_;
   };
 
   CodeChecker visitor;
-  ProgramVisitor::VisitCode(&visitor);
+  ProgramVisitor::WalkProgram(Z, I, &visitor);
   const CodeSet& visited = visitor.visited();
 
   FunctionSet::Iterator it(&functions_to_retain_);
