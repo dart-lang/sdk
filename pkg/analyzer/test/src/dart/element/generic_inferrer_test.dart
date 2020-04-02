@@ -31,12 +31,14 @@ main() {
 class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
   TypeParameterElement T;
   TypeParameterType T_none;
+  TypeParameterType T_question;
 
   @override
   void setUp() {
     super.setUp();
     T = typeParameter('T');
     T_none = typeParameterTypeNone(T);
+    T_question = typeParameterTypeQuestion(T);
   }
 
   void test_function_coreFunction() {
@@ -399,6 +401,14 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
     var S = typeParameter('S');
     var S_none = typeParameterTypeNone(S);
     _checkIsNotSubtypeMatchOf(listNone(T_none), S_none, [T], covariant: true);
+  }
+
+  void test_typeParameter_nullable() {
+    _checkIsSubtypeMatchOf(T_question, stringQuestion, [T], ['T <: String'],
+        covariant: true);
+
+    _checkIsSubtypeMatchOf(stringQuestion, T_question, [T], ['String <: T'],
+        covariant: false);
   }
 
   void test_typeParameter_right_contravariant() {
