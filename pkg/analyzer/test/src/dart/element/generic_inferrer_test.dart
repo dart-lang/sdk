@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -28,23 +29,20 @@ main() {
 
 @reflectiveTest
 class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
-  TypeParameterType T;
+  TypeParameterElement T;
+  TypeParameterType T_none;
 
   @override
   void setUp() {
     super.setUp();
-    T = typeParameterTypeNone(
-      typeParameter('T'),
-    );
+    T = typeParameter('T');
+    T_none = typeParameterTypeNone(T);
   }
 
   void test_function_coreFunction() {
     _checkOrdinarySubtypeMatch(
       functionTypeNone(
-        parameters: [
-          requiredParameter(type: intNone),
-        ],
-        returnType: stringNone,
+        returnType: voidNone,
       ),
       typeProvider.functionType,
       [T],
@@ -52,11 +50,11 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
-  void test_function_parameter_types() {
+  void test_function_parameters_requiredPositional() {
     _checkIsSubtypeMatchOf(
       functionTypeNone(
         parameters: [
-          requiredParameter(type: T),
+          requiredParameter(type: T_none),
         ],
         returnType: intNone,
       ),
@@ -72,13 +70,13 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
-  void test_function_return_types() {
+  void test_function_returnType() {
     _checkIsSubtypeMatchOf(
       functionTypeNone(
         parameters: [
           requiredParameter(type: intNone),
         ],
-        returnType: T,
+        returnType: T_none,
       ),
       functionTypeNone(
         parameters: [
@@ -92,179 +90,239 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
-  void test_futureOr_futureOr() {
+  /// Left FutureOr: if `T0` is `FutureOr<S0>` then:
+  /// * `T0 <: T1` iff `Future<S0> <: T1` and `S0 <: T1`
+  void test_futureOr_left() {
     _checkIsSubtypeMatchOf(
-        futureOrNone(T), futureOrNone(stringNone), [T], ['T <: String'],
-        covariant: true);
-  }
+      futureOrNone(T_none),
+      futureOrNone(stringNone),
+      [T],
+      ['T <: String'],
+      covariant: true,
+    );
 
-  void test_futureOr_x_fail_future_branch() {
-    // FutureOr<List<T>> <: List<String> can't be satisfied because
+    _checkIsSubtypeMatchOf(
+      futureOrNone(T_none),
+      futureNone(stringNone),
+      [T],
+      ['T <: String', 'T <: Future<String>'],
+      covariant: true,
+    );
+
     // Future<List<T>> <: List<String> can't be satisfied
     _checkIsNotSubtypeMatchOf(
-        futureOrNone(listNone(T)), listNone(stringNone), [T],
-        covariant: true);
-  }
+      futureOrNone(listNone(T_none)),
+      listNone(stringNone),
+      [T],
+      covariant: true,
+    );
 
-  void test_futureOr_x_fail_nonFuture_branch() {
-    // FutureOr<List<T>> <: Future<List<String>> can't be satisfied because
     // List<T> <: Future<List<String>> can't be satisfied
     _checkIsNotSubtypeMatchOf(
-        futureOrNone(listNone(T)), futureNone(listNone(stringNone)), [T],
-        covariant: true);
-  }
-
-  void test_futureOr_x_success() {
-    // FutureOr<T> <: Future<T> can be satisfied by T=Null.  At this point in
-    // the type inference algorithm all we figure out is that T must be a
-    // subtype of both String and Future<String>.
-    _checkIsSubtypeMatchOf(futureOrNone(T), futureNone(stringNone), [T],
-        ['T <: String', 'T <: Future<String>'],
-        covariant: true);
-  }
-
-  void test_lhs_null() {
-    // Null <: T is trivially satisfied by the constraint Null <: T.
-    _checkIsSubtypeMatchOf(nullNone, T, [T], ['Null <: T'], covariant: false);
-    // For any other type X, Null <: X is satisfied without the need for any
-    // constraints.
-    _checkOrdinarySubtypeMatch(nullNone, listNone(T), [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullNone, stringNone, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullNone, voidNone, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullNone, dynamicType, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullNone, objectNone, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullNone, nullNone, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(
-      nullNone,
-      functionTypeNone(
-        parameters: [
-          requiredParameter(type: intNone),
-        ],
-        returnType: stringNone,
-      ),
-      [T],
-      covariant: false,
-    );
-  }
-
-  void test_param_on_lhs_contravariant_direct() {
-    // When doing a contravariant match, the type parameters we're trying to
-    // find types for are on the right hand side.  Is a type parameter also
-    // appears on the left hand side, there is a condition in which the
-    // constraint can be satisfied without consulting the bound of the LHS type
-    // parameter: the condition where both parameters appear at corresponding
-    // locations in the type tree.
-    //
-    // In other words, List<S> <: List<T> is satisfied provided that
-    // S <: T.
-    var S = typeParameterTypeNone(typeParameter('S'));
-    _checkIsSubtypeMatchOf(listNone(S), listNone(T), [T], ['S <: T'],
-        covariant: false);
-  }
-
-  void test_param_on_lhs_contravariant_via_bound() {
-    // When doing a contravariant match, the type parameters we're trying to
-    // find types for are on the right hand side.  Is a type parameter also
-    // appears on the left hand side, we may have to constrain the RHS type
-    // parameter using the bounds of the LHS type parameter.
-    //
-    // In other words, S <: List<T> is satisfied provided that
-    // bound(S) <: List<T>.
-    var S = typeParameterTypeNone(typeParameter(
-      'S',
-      bound: listNone(stringNone),
-    ));
-    _checkIsSubtypeMatchOf(S, listNone(T), [T], ['String <: T'],
-        covariant: false);
-  }
-
-  void test_param_on_lhs_covariant() {
-    // When doing a covariant match, the type parameters we're trying to find
-    // types for are on the left hand side.
-    _checkIsSubtypeMatchOf(T, stringNone, [T], ['T <: String'],
-        covariant: true);
-  }
-
-  void test_param_on_rhs_contravariant() {
-    // When doing a contravariant match, the type parameters we're trying to
-    // find types for are on the right hand side.
-    _checkIsSubtypeMatchOf(stringNone, T, [T], ['String <: T'],
-        covariant: false);
-  }
-
-  void test_param_on_rhs_covariant_match() {
-    // When doing a covariant match, the type parameters we're trying to find
-    // types for are on the left hand side.  If a type parameter appears on the
-    // right hand side, there is a condition in which the constraint can be
-    // satisfied: where both parameters appear at corresponding locations in the
-    // type tree.
-    //
-    // In other words, T <: S can be satisfied trivially by the constraint
-    // T <: S.
-    var S = typeParameterTypeNone(typeParameter('S'));
-    _checkIsSubtypeMatchOf(T, S, [T], ['T <: S'], covariant: true);
-  }
-
-  void test_param_on_rhs_covariant_no_match() {
-    // When doing a covariant match, the type parameters we're trying to find
-    // types for are on the left hand side.  If a type parameter appears on the
-    // right hand side, it's probable that the constraint can't be satisfied,
-    // because there is no possible type for the LHS (other than bottom)
-    // that's guaranteed to satisfy the relation for all possible assignments of
-    // the RHS type parameter.
-    //
-    // In other words, no match can be found for List<T> <: S because regardless
-    // of T, we can't guarantee that List<T> <: S for all S.
-    var S = typeParameterTypeNone(typeParameter('S'));
-    _checkIsNotSubtypeMatchOf(listNone(T), S, [T], covariant: true);
-  }
-
-  void test_related_interface_types_failure() {
-    _checkIsNotSubtypeMatchOf(iterableNone(T), listNone(stringNone), [T],
-        covariant: true);
-  }
-
-  void test_related_interface_types_success() {
-    _checkIsSubtypeMatchOf(
-        listNone(T), iterableNone(stringNone), [T], ['T <: String'],
-        covariant: true);
-  }
-
-  void test_rhs_dynamic() {
-    // T <: dynamic is trivially satisfied by the constraint T <: dynamic.
-    _checkIsSubtypeMatchOf(T, dynamicType, [T], ['T <: dynamic'],
-        covariant: true);
-    // For any other type X, X <: dynamic is satisfied without the need for any
-    // constraints.
-    _checkOrdinarySubtypeMatch(listNone(T), dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(stringNone, dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(voidNone, dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(dynamicType, dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(objectNone, dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(nullNone, dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(
-      functionTypeNone(
-        parameters: [
-          requiredParameter(type: intNone),
-        ],
-        returnType: stringNone,
-      ),
-      dynamicType,
+      futureOrNone(listNone(T_none)),
+      futureNone(listNone(stringNone)),
       [T],
       covariant: true,
     );
   }
 
-  void test_rhs_object() {
-    // T <: Object is trivially satisfied by the constraint T <: Object.
-    _checkIsSubtypeMatchOf(T, objectNone, [T], ['T <: Object'],
+  void test_futureOr_right_both_noConstraints() {
+    // `Future<String> <: Future<Object>` can be satisfied:
+    //    * no constraints
+    //
+    // `Future<String> <: Object` can be satisfied:
+    //    * no constraints
+    _checkIsSubtypeMatchOf(
+      futureNone(stringNone),
+      futureOrNone(objectNone),
+      [T],
+      [],
+      covariant: true,
+    );
+  }
+
+  void test_futureOr_right_both_prefer_future() {
+    // `Future<String> <: Future<T>` can be satisfied:
+    //    * `String <: T`
+    //
+    // `Future<String> <: T` can be satisfied:
+    //    * `Future<String> <: T`
+    //
+    // We prefer `String <: T`.
+    _checkIsSubtypeMatchOf(
+      futureNone(stringNone),
+      futureOrNone(T_none),
+      [T],
+      ['String <: T'],
+      covariant: false,
+    );
+
+    // `Future<T> <: Future<Object>` can be satisfied:
+    //   * `T <: Object`
+    //
+    // `Future<T> <: Object` can be satisfied:
+    //   * no constraints
+    //
+    // We prefer `T <: Object`.
+    _checkIsSubtypeMatchOf(
+      futureNone(T_none),
+      futureOrNone(objectNone),
+      [T],
+      ['T <: Object'],
+      covariant: true,
+    );
+  }
+
+  /// Right FutureOr: if `T1` is `FutureOr<S1>` then:
+  /// `T0 <: T1` iff any of the following hold:
+  /// * either `T0 <: Future<S1>`
+  /// * or `T0 <: S1`
+  void test_futureOr_right_none() {
+    // `List<T> <: Future<String>` cannot be satisfied.
+    // `List<T> <: int` cannot be satisfied.
+    _checkIsNotSubtypeMatchOf(
+      listNone(T_none),
+      futureOrNone(stringNone),
+      [T],
+      covariant: true,
+    );
+  }
+
+  void test_futureOr_right_single_future() {
+    // `Future<T> <: Future<String>` can be satisfied:
+    //    * `T <: String`
+    //
+    // `Future<T> <: String` cannot be satisfied.
+    _checkIsSubtypeMatchOf(
+      futureNone(T_none),
+      futureOrNone(stringNone),
+      [T],
+      ['T <: String'],
+      covariant: true,
+    );
+  }
+
+  void test_futureOr_right_single_nonFuture() {
+    // `List<T> <: Future<List<String>>` cannot be satisfied.
+    //
+    // `List<T> <: List<String>` can be satisfied:
+    //    * `T <: String`
+    _checkIsSubtypeMatchOf(
+      listNone(T_none),
+      futureOrNone(listNone(stringNone)),
+      [T],
+      ['T <: String'],
+      covariant: true,
+    );
+  }
+
+  void test_futureOr_right_single_nonFuture_null() {
+    // `Null <: Future<T>` can be satisfied:
+    //    * no constraints
+    //
+    // `Null <: T` can be satisfied:
+    //    * `Null <: T`
+    //
+    // We prefer `Null <: T`.
+    _checkIsSubtypeMatchOf(
+      nullNone,
+      futureOrNone(T_none),
+      [T],
+      ['Null <: T'],
+      covariant: false,
+    );
+  }
+
+  void test_interfaceType_interface_left() {
+    _checkIsNotSubtypeMatchOf(
+      iterableNone(T_none),
+      listNone(stringNone),
+      [T],
+      covariant: true,
+    );
+  }
+
+  void test_interfaceType_interface_right() {
+    _checkIsSubtypeMatchOf(
+      listNone(T_none),
+      iterableNone(stringNone),
+      [T],
+      ['T <: String'],
+      covariant: true,
+    );
+  }
+
+  void test_interfaceType_sameClass() {
+    _checkIsSubtypeMatchOf(
+      listNone(T_none),
+      listNone(stringNone),
+      [T],
+      ['T <: String'],
+      covariant: true,
+    );
+  }
+
+  void test_left_null() {
+    // Null <: T is trivially satisfied by the constraint Null <: T.
+    _checkIsSubtypeMatchOf(nullNone, T_none, [T], ['Null <: T'],
+        covariant: false);
+
+    // For any other type X, Null <: X is satisfied without the need for any
+    // constraints.
+    _checkOrdinarySubtypeMatch(nullNone, listQuestion(T_none), [T],
+        covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, stringQuestion, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, voidNone, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, dynamicNone, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, objectQuestion, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullNone, nullNone, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(
+      nullNone,
+      functionTypeQuestion(returnType: voidNone),
+      [T],
+      covariant: false,
+    );
+  }
+
+  void test_right_dynamic() {
+    // T <: dynamic is trivially satisfied by the constraint T <: dynamic.
+    _checkIsSubtypeMatchOf(T_none, dynamicNone, [T], ['T <: dynamic'],
         covariant: true);
+
+    // For any other type X, X <: dynamic is satisfied without the need for any
+    // constraints.
+    _checkOrdinarySubtypeMatch(listNone(T_none), dynamicNone, [T],
+        covariant: true);
+    _checkOrdinarySubtypeMatch(stringNone, dynamicNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(voidNone, dynamicNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(dynamicNone, dynamicNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(objectNone, dynamicNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(nullNone, dynamicNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(
+      functionTypeNone(
+        parameters: [
+          requiredParameter(type: intNone),
+        ],
+        returnType: stringNone,
+      ),
+      dynamicNone,
+      [T],
+      covariant: true,
+    );
+  }
+
+  void test_right_object() {
+    // T <: Object is trivially satisfied by the constraint T <: Object.
+    _checkIsSubtypeMatchOf(T_none, objectNone, [T], ['T <: Object'],
+        covariant: true);
+
     // For any other type X, X <: Object is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(listNone(T), objectNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(listNone(T_none), objectNone, [T],
+        covariant: true);
     _checkOrdinarySubtypeMatch(stringNone, objectNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(voidNone, objectNone, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(dynamicType, objectNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(dynamicNone, objectNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(objectNone, objectNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(nullNone, objectNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(
@@ -280,15 +338,18 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
-  void test_rhs_void() {
+  void test_right_void() {
     // T <: void is trivially satisfied by the constraint T <: void.
-    _checkIsSubtypeMatchOf(T, voidNone, [T], ['T <: void'], covariant: true);
+    _checkIsSubtypeMatchOf(T_none, voidNone, [T], ['T <: void'],
+        covariant: true);
+
     // For any other type X, X <: void is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(listNone(T), voidNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(listNone(T_none), voidNone, [T],
+        covariant: true);
     _checkOrdinarySubtypeMatch(stringNone, voidNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(voidNone, voidNone, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(dynamicType, voidNone, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(dynamicNone, voidNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(objectNone, voidNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(nullNone, voidNone, [T], covariant: true);
     _checkOrdinarySubtypeMatch(
@@ -304,153 +365,157 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
-  void test_same_interface_types() {
-    _checkIsSubtypeMatchOf(
-        listNone(T), listNone(stringNone), [T], ['T <: String'],
+  void test_typeParameter_left_covariant() {
+    // When doing a covariant match, the type parameters we're trying to find
+    // types for are on the left hand side.
+    _checkIsSubtypeMatchOf(T_none, stringNone, [T], ['T <: String'],
         covariant: true);
+  }
+
+  void test_typeParameter_left_covariant_match() {
+    // When doing a covariant match, the type parameters we're trying to find
+    // types for are on the left hand side.  If a type parameter appears on the
+    // right hand side, there is a condition in which the constraint can be
+    // satisfied: where both parameters appear at corresponding locations in the
+    // type tree.
+    //
+    // In other words, T <: S can be satisfied trivially by the constraint
+    // T <: S.
+    var S = typeParameter('S');
+    var S_none = typeParameterTypeNone(S);
+    _checkIsSubtypeMatchOf(T_none, S_none, [T], ['T <: S'], covariant: true);
+  }
+
+  void test_typeParameter_left_covariant_no_match() {
+    // When doing a covariant match, the type parameters we're trying to find
+    // types for are on the left hand side.  If a type parameter appears on the
+    // right hand side, it's probable that the constraint can't be satisfied,
+    // because there is no possible type for the LHS (other than bottom)
+    // that's guaranteed to satisfy the relation for all possible assignments of
+    // the RHS type parameter.
+    //
+    // In other words, no match can be found for List<T> <: S because regardless
+    // of T, we can't guarantee that List<T> <: S for all S.
+    var S = typeParameter('S');
+    var S_none = typeParameterTypeNone(S);
+    _checkIsNotSubtypeMatchOf(listNone(T_none), S_none, [T], covariant: true);
+  }
+
+  void test_typeParameter_right_contravariant() {
+    // When doing a contravariant match, the type parameters we're trying to
+    // find types for are on the right hand side.
+    _checkIsSubtypeMatchOf(stringNone, T_none, [T], ['String <: T'],
+        covariant: false);
+  }
+
+  void test_typeParameter_right_contravariant_direct() {
+    // When doing a contravariant match, the type parameters we're trying to
+    // find types for are on the right hand side.  If a type parameter also
+    // appears on the left hand side, there is a condition in which the
+    // constraint can be satisfied without consulting the bound of the LHS type
+    // parameter: the condition where both parameters appear at corresponding
+    // locations in the type tree.
+    //
+    // In other words, List<S> <: List<T> is satisfied provided that
+    // S <: T.
+    var S = typeParameter('S');
+    var S_none = typeParameterTypeNone(S);
+    _checkIsSubtypeMatchOf(listNone(S_none), listNone(T_none), [T], ['S <: T'],
+        covariant: false);
+  }
+
+  void test_typeParameter_right_contravariant_via_bound() {
+    // When doing a contravariant match, the type parameters we're trying to
+    // find types for are on the right hand side.  If a type parameter also
+    // appears on the left hand side, we may have to constrain the RHS type
+    // parameter using the bounds of the LHS type parameter.
+    //
+    // In other words, S <: List<T> is satisfied provided that
+    // bound(S) <: List<T>.
+    var S = typeParameter('S', bound: listNone(stringNone));
+    var S_none = typeParameterTypeNone(S);
+    _checkIsSubtypeMatchOf(S_none, listNone(T_none), [T], ['String <: T'],
+        covariant: false);
   }
 
   void test_variance_contravariant() {
     // class A<in T>
-    var tContravariant = typeParameter('T', variance: Variance.contravariant);
-    var tType = typeParameterTypeNone(tContravariant);
-    var A = class_(name: 'A', typeParameters: [tContravariant]);
+    var T = typeParameter('T', variance: Variance.contravariant);
+    var T_none = typeParameterTypeNone(T);
+    var A = class_(name: 'A', typeParameters: [T]);
 
-    // A<num>
-    // A<T>
-    var aNum = interfaceTypeNone(A, typeArguments: [numNone]);
-    var aT = interfaceTypeNone(A, typeArguments: [tType]);
-
-    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['num <: in T'], covariant: true);
+    _checkIsSubtypeMatchOf(
+      interfaceTypeNone(A, typeArguments: [T_none]),
+      interfaceTypeNone(A, typeArguments: [numNone]),
+      [T],
+      ['num <: in T'],
+      covariant: true,
+    );
   }
 
   void test_variance_covariant() {
     // class A<out T>
-    var tCovariant = typeParameter('T', variance: Variance.covariant);
-    var tType = typeParameterTypeNone(tCovariant);
-    var A = class_(name: 'A', typeParameters: [tCovariant]);
+    var T = typeParameter('T', variance: Variance.covariant);
+    var T_none = typeParameterTypeNone(T);
+    var A = class_(name: 'A', typeParameters: [T]);
 
-    // A<num>
-    // A<T>
-    var aNum = interfaceTypeNone(A, typeArguments: [numNone]);
-    var aT = interfaceTypeNone(A, typeArguments: [tType]);
-
-    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['out T <: num'],
-        covariant: true);
+    _checkIsSubtypeMatchOf(
+      interfaceTypeNone(A, typeArguments: [T_none]),
+      interfaceTypeNone(A, typeArguments: [numNone]),
+      [T],
+      ['out T <: num'],
+      covariant: true,
+    );
   }
 
   void test_variance_invariant() {
     // class A<inout T>
-    var tInvariant = typeParameter('T', variance: Variance.invariant);
-    var tType = typeParameterTypeNone(tInvariant);
-    var A = class_(name: 'A', typeParameters: [tInvariant]);
-
-    // A<num>
-    // A<T>
-    var aNum = interfaceTypeNone(A, typeArguments: [numNone]);
-    var aT = interfaceTypeNone(A, typeArguments: [tType]);
+    var T = typeParameter('T', variance: Variance.invariant);
+    var T_none = typeParameterTypeNone(T);
+    var A = class_(name: 'A', typeParameters: [T]);
 
     _checkIsSubtypeMatchOf(
-        aT, aNum, [tType], ['inout T <: num', 'num <: inout T'],
-        covariant: true);
-  }
-
-  void test_x_futureOr_fail_both_branches() {
-    // List<T> <: FutureOr<String> can't be satisfied because neither
-    // List<T> <: Future<String> nor List<T> <: int can be satisfied
-    _checkIsNotSubtypeMatchOf(listNone(T), futureOrNone(stringNone), [T],
-        covariant: true);
-  }
-
-  void test_x_futureOr_pass_both_branches_constraints_from_both_branches() {
-    // Future<String> <: FutureOr<T> can be satisfied because both
-    // Future<String> <: Future<T> and Future<String> <: T can be satisfied.
-    // Trying to match Future<String> <: Future<T> generates the constraint
-    // String <: T, whereas trying to match Future<String> <: T generates the
-    // constraint Future<String> <: T.  We keep the constraint based on trying
-    // to match Future<String> <: Future<T>, so String <: T.
-    _checkIsSubtypeMatchOf(
-        futureNone(stringNone), futureOrNone(T), [T], ['String <: T'],
-        covariant: false);
-  }
-
-  void test_x_futureOr_pass_both_branches_constraints_from_future_branch() {
-    // Future<T> <: FutureOr<Object> can be satisfied because both
-    // Future<T> <: Future<Object> and Future<T> <: Object can be satisfied.
-    // Trying to match Future<T> <: Future<Object> generates the constraint
-    // T <: Object, whereas trying to match Future<T> <: Object generates no
-    // constraints, so we keep the constraint T <: Object.
-    _checkIsSubtypeMatchOf(
-        futureNone(T), futureOrNone(objectNone), [T], ['T <: Object'],
-        covariant: true);
-  }
-
-  void test_x_futureOr_pass_both_branches_constraints_from_nonFuture_branch() {
-    // Null <: FutureOr<T> can be satisfied because both
-    // Null <: Future<T> and Null <: T can be satisfied.
-    // Trying to match Null <: FutureOr<T> generates no constraints, whereas
-    // trying to match Null <: T generates the constraint Null <: T,
-    // so we keep the constraint Null <: T.
-    _checkIsSubtypeMatchOf(nullNone, futureOrNone(T), [T], ['Null <: T'],
-        covariant: false);
-  }
-
-  void test_x_futureOr_pass_both_branches_no_constraints() {
-    // Future<String> <: FutureOr<Object> is satisfied because both
-    // Future<String> <: Future<Object> and Future<String> <: Object.
-    // No constraints are recorded.
-    _checkIsSubtypeMatchOf(
-        futureNone(stringNone), futureOrNone(objectNone), [T], [],
-        covariant: true);
-  }
-
-  void test_x_futureOr_pass_future_branch() {
-    // Future<T> <: FutureOr<String> can be satisfied because
-    // Future<T> <: Future<String> can be satisfied
-    _checkIsSubtypeMatchOf(
-        futureNone(T), futureOrNone(stringNone), [T], ['T <: String'],
-        covariant: true);
-  }
-
-  void test_x_futureOr_pass_nonFuture_branch() {
-    // List<T> <: FutureOr<List<String>> can be satisfied because
-    // List<T> <: List<String> can be satisfied
-    _checkIsSubtypeMatchOf(
-        listNone(T), futureOrNone(listNone(stringNone)), [T], ['T <: String'],
-        covariant: true);
+      interfaceTypeNone(A, typeArguments: [T_none]),
+      interfaceTypeNone(A, typeArguments: [numNone]),
+      [T],
+      ['inout T <: num', 'num <: inout T'],
+      covariant: true,
+    );
   }
 
   void _checkIsNotSubtypeMatchOf(
-      DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
-      {@required bool covariant}) {
-    var inferrer = GenericInferrer(
-      typeSystem,
-      typeFormals.map((t) => t.element),
-    );
-    var success =
-        inferrer.tryMatchSubtypeOf(t1, t2, null, covariant: covariant);
+    DartType subtype,
+    DartType supertype,
+    List<TypeParameterElement> typeFormals, {
+    @required bool covariant,
+  }) {
+    var inferrer = GenericInferrer(typeSystem, typeFormals);
+
+    var success = inferrer.tryMatchSubtypeOf(subtype, supertype, null,
+        covariant: covariant);
     expect(success, isFalse);
-    inferrer.constraints.forEach((typeParameter, constraintsForTypeParameter) {
-      expect(constraintsForTypeParameter, isEmpty);
+
+    inferrer.constraints.forEach((typeParameter, constraints) {
+      expect(constraints, isEmpty);
     });
   }
 
   void _checkIsSubtypeMatchOf(
-      DartType t1,
-      DartType t2,
-      Iterable<TypeParameterType> typeFormals,
-      Iterable<String> expectedConstraints,
-      {@required bool covariant}) {
-    var inferrer = GenericInferrer(
-      typeSystem,
-      typeFormals.map((t) => t.element),
-    );
-    var success =
-        inferrer.tryMatchSubtypeOf(t1, t2, null, covariant: covariant);
+    DartType subtype,
+    DartType supertype,
+    List<TypeParameterElement> typeFormals,
+    Iterable<String> expectedConstraints, {
+    @required bool covariant,
+  }) {
+    var inferrer = GenericInferrer(typeSystem, typeFormals);
+
+    var success = inferrer.tryMatchSubtypeOf(subtype, supertype, null,
+        covariant: covariant);
     expect(success, isTrue);
+
     var formattedConstraints = <String>[];
-    inferrer.constraints.forEach((typeParameter, constraintsForTypeParameter) {
-      for (var constraint in constraintsForTypeParameter) {
+    inferrer.constraints.forEach((typeParameter, constraints) {
+      for (var constraint in constraints) {
         formattedConstraints.add(
           constraint.format(
             typeParameter.getDisplayString(withNullability: true),
@@ -463,13 +528,18 @@ class ConstraintMatchingTest extends AbstractTypeSystemNullSafetyTest {
   }
 
   void _checkOrdinarySubtypeMatch(
-      DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
-      {@required bool covariant}) {
-    bool expectSuccess = typeSystem.isSubtypeOf(t1, t2);
+    DartType subtype,
+    DartType supertype,
+    List<TypeParameterElement> typeFormals, {
+    @required bool covariant,
+  }) {
+    var expectSuccess = typeSystem.isSubtypeOf(subtype, supertype);
     if (expectSuccess) {
-      _checkIsSubtypeMatchOf(t1, t2, typeFormals, [], covariant: covariant);
+      _checkIsSubtypeMatchOf(subtype, supertype, typeFormals, [],
+          covariant: covariant);
     } else {
-      _checkIsNotSubtypeMatchOf(t1, t2, typeFormals, covariant: covariant);
+      _checkIsNotSubtypeMatchOf(subtype, supertype, typeFormals,
+          covariant: covariant);
     }
   }
 }
@@ -654,7 +724,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       ],
       returnType: typeParameterTypeNone(tTo),
     );
-    expect(_inferCall(cast, [intNone]), [intNone, dynamicType]);
+    expect(_inferCall(cast, [intNone]), [intNone, dynamicNone]);
   }
 
   void test_genericCastFunctionWithUpperBound() {
@@ -733,7 +803,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
                 type: typeParameterTypeNone(T),
               ),
             ],
-            returnType: dynamicType,
+            returnType: dynamicNone,
           ),
         ),
       ],
@@ -745,7 +815,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
           parameters: [
             requiredParameter(type: numNone),
           ],
-          returnType: dynamicType,
+          returnType: dynamicNone,
         )
       ]),
       [numNone],
@@ -774,7 +844,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       parameters: [
         requiredParameter(type: typeParameterTypeNone(T)),
       ],
-      returnType: dynamicType,
+      returnType: dynamicNone,
     );
     expect(_inferCall(f, [intNone]), [intNone]);
   }
@@ -961,7 +1031,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
                 type: typeParameterTypeNone(T),
               ),
             ],
-            returnType: dynamicType,
+            returnType: dynamicNone,
           ),
         ),
         requiredParameter(
@@ -971,7 +1041,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
                 type: typeParameterTypeNone(T),
               ),
             ],
-            returnType: dynamicType,
+            returnType: dynamicNone,
           ),
         ),
       ],
@@ -983,13 +1053,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
           parameters: [
             requiredParameter(type: intNone),
           ],
-          returnType: dynamicType,
+          returnType: dynamicNone,
         ),
         functionTypeNone(
           parameters: [
             requiredParameter(type: doubleNone),
           ],
-          returnType: dynamicType,
+          returnType: dynamicNone,
         )
       ]),
       [neverNone],
@@ -1003,7 +1073,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       typeFormals: [T],
       returnType: typeParameterTypeNone(T),
     );
-    expect(_inferCall(f, []), [dynamicType]);
+    expect(_inferCall(f, []), [dynamicNone]);
   }
 
   void test_unusedReturnTypeWithUpperBound() {
