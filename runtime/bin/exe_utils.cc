@@ -12,36 +12,7 @@
 namespace dart {
 namespace bin {
 
-// Returns the directory portion of a given path.
-//
-// If dir is NULL, the result must be freed by the caller. Otherwise, the
-// result is copied into dir.
-static char* GetDirectoryFromPath(const char* path, char* dir) {
-  const char* sep = File::PathSeparator();
-  const intptr_t sep_length = strlen(sep);
-  intptr_t path_len = strlen(path);
-
-  for (intptr_t i = path_len - 1; i >= 0; --i) {
-    const char* str = path + i;
-    if (strncmp(str, sep, sep_length) == 0
-#if defined(HOST_OS_WINDOWS)
-        // TODO(aam): GetExecutableName doesn't work reliably on Windows,
-        || *str == '/'
-#endif
-    ) {
-      if (dir != nullptr) {
-        strncpy(dir, path, i);
-        dir[i] = '\0';
-        return dir;
-      } else {
-        return Utils::StrNDup(path, i + 1);
-      }
-    }
-  }
-  return nullptr;
-}
-
-Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
+char* EXEUtils::GetDirectoryPrefixFromExeName() {
   const char* name = nullptr;
   const int kTargetSize = 4096;
   char target[kTargetSize];
@@ -56,32 +27,40 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
     target_size = strlen(name);
   }
   Namespace* namespc = Namespace::Create(Namespace::Default());
-  if (File::GetType(namespc, name, false) == File::kIsLink) {
-    char dir_path[kTargetSize];
-    // cwd is currently wherever we launched from, so set the cwd to the
-    // directory of the symlink while we try and resolve it. If we don't
-    // do this, we won't be able to properly resolve relative paths.
-    auto initial_dir_path =
-        Utils::CreateCStringUniquePtr(Directory::CurrentNoScope());
-    // We might run into symlinks of symlinks, so make sure we follow the
-    // links all the way. See https://github.com/dart-lang/sdk/issues/41057 for
-    // an example where this happens with brew on MacOS.
-    do {
-      Directory::SetCurrent(namespc, GetDirectoryFromPath(name, dir_path));
-      // Resolve the link without creating Dart scope String.
-      name = File::LinkTarget(namespc, name, target, kTargetSize);
-      if (name == nullptr) {
-        return Utils::CreateCStringUniquePtr(strdup(""));
-      }
-    } while (File::GetType(namespc, name, false) == File::kIsLink);
-    target_size = strlen(name);
 
-    // Reset cwd to the original value.
-    Directory::SetCurrent(namespc, initial_dir_path.get());
+  // We might run into symlinks of symlinks, so make sure we follow the
+  // links all the way. See https://github.com/dart-lang/sdk/issues/41057 for
+  // an example where this happens with brew on MacOS.
+  bool followedSymlink = false;
+  while (File::GetType(namespc, name, false) == File::kIsLink) {
+    // Resolve the link without creating Dart scope String.
+    name = File::LinkTarget(namespc, name, target, kTargetSize);
+    if (name == NULL) {
+      return strdup("");
+    }
+    followedSymlink = true;
+  }
+  if (followedSymlink) {
+    target_size = strlen(name);
   }
   namespc->Release();
-  char* result = GetDirectoryFromPath(name, nullptr);
-  return Utils::CreateCStringUniquePtr(result == nullptr ? strdup("") : result);
+  const char* sep = File::PathSeparator();
+  const intptr_t sep_length = strlen(sep);
+
+  for (intptr_t i = target_size - 1; i >= 0; --i) {
+    const char* str = name + i;
+    if (strncmp(str, sep, sep_length) == 0
+#if defined(HOST_OS_WINDOWS)
+        // TODO(aam): GetExecutableName doesn't work reliably on Windows,
+        // the code below is a workaround for that (we would be using
+        // just single Platform::Separator instead of both slashes if it did).
+        || *str == '/'
+#endif
+    ) {
+      return Utils::StrNDup(name, i + 1);
+    }
+  }
+  return strdup("");
 }
 
 }  // namespace bin

@@ -10,7 +10,6 @@
 
 #include "include/dart_api.h"
 #include "platform/globals.h"
-#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -18,7 +17,7 @@ namespace bin {
 class EXEUtils {
  public:
   // Returns the path to the directory the current executable resides in.
-  static Utils::CStringUniquePtr GetDirectoryPrefixFromExeName();
+  static char* GetDirectoryPrefixFromExeName();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(EXEUtils);
