@@ -3629,41 +3629,6 @@
           "arguments": [
             "clean"
           ]
-        },
-        {
-          "name": "generate ninja for linux-x64-bytecode",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=x64",
-            "--bytecode"
-          ]
-        },
-        {
-          "name": "build linux-x64-bytecode for benchmarking",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=x64",
-            "create_sdk",
-            "runtime",
-            "gen_snapshot",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "archive linux-x64-bytecode for benchmarking",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "linux-x64-bytecode-archive"
-          ]
-        },
-        {
-          "name": "try linux-x64-bytecode benchmarking",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "linux-x64-bytecode-benchmark"
-          ]
         }
       ]
     },
