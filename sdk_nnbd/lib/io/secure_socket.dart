@@ -113,7 +113,7 @@ abstract class SecureSocket implements Socket {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secure(detachedRaw[0] as RawSocket,
-          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
+          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           host: host,
           context: context,
           onBadCertificate: onBadCertificate,
@@ -151,7 +151,7 @@ abstract class SecureSocket implements Socket {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secureServer(detachedRaw[0] as RawSocket, context,
-          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
+          subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>?,
           bufferedData: bufferedData,
           requestClientCertificate: requestClientCertificate,
           requireClientCertificate: requireClientCertificate,
