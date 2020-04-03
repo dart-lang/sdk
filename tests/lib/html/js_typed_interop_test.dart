@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 @JS()
 library js_typed_interop_test;
 
@@ -13,7 +11,7 @@ import 'package:js/js.dart';
 import 'package:expect/minitest.dart';
 
 _injectJs() {
-  document.body.append(new ScriptElement()
+  document.body!.append(new ScriptElement()
     ..type = 'text/javascript'
     ..innerHtml = r"""
   "use strict";
@@ -122,7 +120,7 @@ class ClassWithFactory {
   external get b;
 }
 
-typedef num MultiplyWithDefault(num a, [num b]);
+typedef num MultiplyWithDefault(num a, [num? b]);
 
 @JS()
 @anonymous
@@ -138,17 +136,17 @@ class Foo {
   external callClosureWithArg2(Function closure, arg1, arg2);
   external Bar getBar();
 
-  external static num multiplyDefault2(num a, [num b]);
+  external static num multiplyDefault2(num a, [num? b]);
 }
 
 @anonymous
 @JS()
 class ExampleLiteral {
-  external factory ExampleLiteral({int x, String y, num z});
+  external factory ExampleLiteral({int? x, String? y, num? z});
 
-  external int get x;
-  external String get y;
-  external num get z;
+  external int? get x;
+  external String? get y;
+  external num? get z;
 }
 
 @anonymous
@@ -208,7 +206,7 @@ external num get propertyOnDocument;
 external num get propertyOnWindow;
 
 class DartClassWithNullField {
-  int x;
+  int? x;
 }
 
 main() {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 @JS()
 library js_typed_interop_anonymous2_test;
 
@@ -14,21 +12,21 @@ import 'package:expect/minitest.dart';
 @anonymous
 class A {
   external int get x;
-  external factory A({int x});
+  external factory A({required int x});
 }
 
 @JS()
 @anonymous
 class C {
   external int get x;
-  external factory C({int x});
+  external factory C({required int x});
 }
 
 @JS()
 @anonymous
 class B {
   external int get x;
-  external factory B({int x});
+  external factory B({required int x});
 }
 
 main() {

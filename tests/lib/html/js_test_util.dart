@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library TestJsUtils;
 
 import 'dart:html';
@@ -190,7 +188,7 @@ var someObject = Object.create(someProto);
 someObject.role = "object";
 
 """;
-  document.body.append(script);
+  document.body!.append(script);
 }
 
 typedef bool StringToBool(String s);

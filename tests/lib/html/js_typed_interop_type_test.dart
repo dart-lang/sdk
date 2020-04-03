@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 @JS()
 library js_typed_interop_type_test;
 
@@ -28,7 +26,7 @@ class B {
 @JS()
 @anonymous
 class C {
-  final foo;
+  late final foo;
 
   external factory C({foo});
 }
@@ -36,7 +34,7 @@ class C {
 @JS()
 @anonymous
 class D {
-  final foo;
+  late final foo;
 
   external factory D({foo});
 }
@@ -84,7 +82,7 @@ testF(F o) {
 }
 
 _injectJs() {
-  document.body.append(new ScriptElement()
+  document.body!.append(new ScriptElement()
     ..type = 'text/javascript'
     ..innerHtml = r"""
 function A(foo) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-// @dart = 2.7
-
 library JsInterop1Test;
 
 import 'package:async_helper/async_helper.dart';
@@ -14,7 +12,7 @@ injectSource(code) {
   final script = new ScriptElement();
   script.type = 'text/javascript';
   script.innerHtml = code;
-  document.body.append(script);
+  document.body!.append(script);
 }
 
 main() {
