@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   Iterable<Token> _getPrecedingComments(Token token) sync* {
-    var comment = token.precedingComments;
+    Token comment = token.precedingComments;
     while (comment != null) {
       yield comment;
       comment = comment.next;
