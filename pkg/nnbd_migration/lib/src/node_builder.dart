@@ -501,7 +501,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedType,
         PotentiallyAddQuestionSuffix(
             nullabilityNode, decoratedType.type, node.end));
-    switch (getPostfixHint(node)) {
+    switch (getPostfixHint(node.endToken)) {
       case NullabilityComment.bang:
         _graph.makeNonNullableUnion(
             decoratedType.node, NullabilityCommentOrigin(source, node, false));

@@ -1719,6 +1719,14 @@ int?/*?*/ f(int?/*?*/ i) => i!/*!*/;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_expression_bang_hint_unnecessary_literal() async {
+    var content = 'int/*?*/ f() => 1/*!*/;';
+    // The user requested a null check so we should add it even if it's not
+    // required to avoid compile errors.
+    var expected = 'int?/*?*/ f() => 1!/*!*/;';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
   Future<void> test_expression_bang_hint_with_cast() async {
     var content = 'int f(Object/*?*/ o) => o/*!*/;';
     // TODO(paulberry): it would be better to remove the `/*` and `*/` so we

@@ -207,6 +207,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final Set<PromotableElement> _lateHintedLocals = {};
 
+  Map<Token, NullabilityComment> _nullCheckHints = {};
+
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
@@ -279,7 +281,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node, _typeSystem as TypeSystemImpl)) {
       _variables.recordUnnecessaryCast(source, node);
     }
-    node.type.accept(this);
+    _dispatch(node.type);
     final typeNode = _variables.decoratedTypeAnnotation(source, node.type);
     _handleAssignment(node.expression, destinationType: typeNode);
     _flowAnalysis.asExpression_end(node.expression, typeNode);
@@ -298,7 +300,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     _flowAnalysis.assert_afterCondition(node.condition);
-    node.message?.accept(this);
+    _dispatch(node.message);
     _flowAnalysis.assert_end();
     return null;
   }
@@ -315,7 +317,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     _flowAnalysis.assert_afterCondition(node.condition);
-    node.message?.accept(this);
+    _dispatch(node.message);
     _flowAnalysis.assert_end();
     return null;
   }
@@ -344,7 +346,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAwaitExpression(AwaitExpression node) {
-    var expressionType = node.expression.accept(this);
+    var expressionType = _dispatch(node.expression);
     // TODO(paulberry) Handle subclasses of Future.
     if (expressionType.type.isDartAsyncFuture ||
         expressionType.type.isDartAsyncFutureOr) {
@@ -359,9 +361,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var leftOperand = node.leftOperand;
     var rightOperand = node.rightOperand;
     if (operatorType == TokenType.EQ_EQ || operatorType == TokenType.BANG_EQ) {
-      var leftType = leftOperand.accept(this);
+      var leftType = _dispatch(leftOperand);
       _flowAnalysis.equalityOp_rightBegin(leftOperand);
-      var rightType = rightOperand.accept(this);
+      var rightType = _dispatch(rightOperand);
       bool notEqual = operatorType == TokenType.BANG_EQ;
       _flowAnalysis.equalityOp_end(node, rightOperand, notEqual: notEqual);
 
@@ -399,13 +401,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       return _makeNonNullableBoolType(node);
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       DecoratedType expressionType;
-      var leftType = leftOperand.accept(this);
+      var leftType = _dispatch(leftOperand);
       _flowAnalysis.ifNullExpression_rightBegin(node.leftOperand);
       try {
         _guards.add(leftType.node);
         DecoratedType rightType;
         _postDominatedLocals.doScoped(action: () {
-          rightType = rightOperand.accept(this);
+          rightType = _dispatch(rightOperand);
         });
         var ifNullNode = NullabilityNode.forIfNotNull(node);
         expressionType = _decorateUpperOrLowerBound(
@@ -423,7 +425,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var targetType = _checkExpressionNotNull(leftOperand);
       var callee = node.staticElement;
       if (callee == null) {
-        rightOperand.accept(this);
+        _dispatch(rightOperand);
         return _makeNullableDynamicType(node);
       } else {
         var calleeType =
@@ -435,8 +437,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     } else {
       // TODO(paulberry)
-      leftOperand.accept(this);
-      rightOperand.accept(this);
+      _dispatch(leftOperand);
+      _dispatch(rightOperand);
       _unimplemented(
           node, 'Binary expression with operator ${node.operator.lexeme}');
     }
@@ -465,7 +467,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var oldCascadeTargetType = _currentCascadeTargetType;
     try {
       _currentCascadeTargetType = _checkExpressionNotNull(node.target);
-      node.cascadeSections.accept(this);
+      _dispatchList(node.cascadeSections);
       return _currentCascadeTargetType;
     } finally {
       _currentCascadeTargetType = oldCascadeTargetType;
@@ -477,10 +479,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _flowAnalysis.tryCatchStatement_catchBegin(
         node.exceptionParameter?.staticElement as PromotableElement,
         node.stackTraceParameter?.staticElement as PromotableElement);
-    node.exceptionType?.accept(this);
+    _dispatch(node.exceptionType);
     // The catch clause may not execute, so create a new scope for
     // post-dominators.
-    _postDominatedLocals.doScoped(action: () => node.body.accept(this));
+    _postDominatedLocals.doScoped(action: () => _dispatch(node.body));
     _flowAnalysis.tryCatchStatement_catchEnd();
     return null;
   }
@@ -488,10 +490,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
     visitClassOrMixinOrExtensionDeclaration(node);
-    node.extendsClause?.accept(this);
-    node.implementsClause?.accept(this);
-    node.withClause?.accept(this);
-    node.typeParameters?.accept(this);
+    _dispatch(node.extendsClause);
+    _dispatch(node.implementsClause);
+    _dispatch(node.withClause);
+    _dispatch(node.typeParameters);
     return null;
   }
 
@@ -519,8 +521,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               true) {
         _handleUninitializedFields(node, _fieldsNotInitializedAtDeclaration);
       }
-      node.metadata.accept(this);
-      members.accept(this);
+      _dispatchList(node.metadata);
+      _dispatchList(members);
       _fieldsNotInitializedAtDeclaration = null;
     } finally {
       _currentClassOrExtension = null;
@@ -530,9 +532,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitClassTypeAlias(ClassTypeAlias node) {
-    node.superclass.accept(this);
-    node.implementsClause?.accept(this);
-    node.withClause?.accept(this);
+    _dispatch(node.superclass);
+    _dispatch(node.implementsClause);
+    _dispatch(node.withClause);
     var classElement = node.declaredElement;
     var supertype = classElement.supertype;
     var superElement = supertype.element;
@@ -575,9 +577,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // define variables.
     _postDominatedLocals.doScoped(action: () {
       _flowAnalysis.conditional_thenBegin(node.condition);
-      thenType = node.thenExpression.accept(this);
+      thenType = _dispatch(node.thenExpression);
       _flowAnalysis.conditional_elseBegin(node.thenExpression);
-      elseType = node.elseExpression.accept(this);
+      elseType = _dispatch(node.elseExpression);
       _flowAnalysis.conditional_end(node, node.elseExpression);
     });
 
@@ -591,7 +593,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
     _fieldsNotInitializedByConstructor =
         _fieldsNotInitializedAtDeclaration.toSet();
-    node.redirectedConstructor?.type?.typeArguments?.accept(this);
+    _dispatch(node.redirectedConstructor?.type?.typeArguments);
     _handleExecutableDeclaration(
         node,
         node.declaredElement,
@@ -628,7 +630,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
-    node.parameter.accept(this);
+    _dispatch(node.parameter);
     var defaultValue = node.defaultValue;
     if (defaultValue == null) {
       if (node.declaredElement.hasRequired) {
@@ -649,7 +651,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitDoStatement(DoStatement node) {
     _flowAnalysis.doStatement_bodyBegin(node);
-    node.body.accept(this);
+    _dispatch(node.body);
     _flowAnalysis.doStatement_conditionBegin();
     _checkExpressionNotNull(node.condition);
     _flowAnalysis.doStatement_end(node.condition);
@@ -677,14 +679,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
     visitClassOrMixinOrExtensionDeclaration(node);
-    node.extendedType.accept(this);
+    _dispatch(node.extendedType);
     return null;
   }
 
   @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
-    node.metadata.accept(this);
-    node.parameters?.accept(this);
+    _dispatchList(node.metadata);
+    _dispatch(node.parameters);
     var parameterElement = node.declaredElement as FieldFormalParameterElement;
     var parameterType = _variables.decoratedElementType(parameterElement);
     var field = parameterElement.field;
@@ -694,7 +696,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.type == null) {
       _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: false);
     } else {
-      node.type.accept(this);
+      _dispatch(node.type);
       _checkAssignment(origin,
           source: parameterType, destination: fieldType, hard: true);
     }
@@ -712,24 +714,24 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitForStatement(ForStatement node) {
     _handleForLoopParts(
-        node, node.forLoopParts, node.body, (body) => body.accept(this));
+        node, node.forLoopParts, node.body, (body) => _dispatch(body));
     return null;
   }
 
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
-    node.metadata.accept(this);
-    node.returnType?.accept(this);
+    _dispatchList(node.metadata);
+    _dispatch(node.returnType);
     if (_flowAnalysis != null) {
       // This is a local function.
       _flowAnalysis.functionExpression_begin(node);
-      node.functionExpression.accept(this);
+      _dispatch(node.functionExpression);
       _flowAnalysis.functionExpression_end();
     } else {
       _createFlowAnalysis(node, node.functionExpression.parameters);
       // Initialize a new postDominator scope that contains only the parameters.
       try {
-        node.functionExpression.accept(this);
+        _dispatch(node.functionExpression);
         _flowAnalysis.finish();
       } finally {
         _flowAnalysis = null;
@@ -742,8 +744,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFunctionExpression(FunctionExpression node) {
     // TODO(mfairhurst): enable edge builder "_insideFunction" hard edge tests.
-    node.parameters?.accept(this);
-    node.typeParameters?.accept(this);
+    _dispatch(node.parameters);
+    _dispatch(node.typeParameters);
     if (node.parent is! FunctionDeclaration) {
       _flowAnalysis.functionExpression_begin(node);
     }
@@ -754,7 +756,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     try {
       _postDominatedLocals.doScoped(
           elements: node.declaredElement.parameters,
-          action: () => node.body.accept(this));
+          action: () => _dispatch(node.body));
       return _currentFunctionType;
     } finally {
       if (node.parent is! FunctionDeclaration) {
@@ -769,7 +771,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       FunctionExpressionInvocation node) {
     final argumentList = node.argumentList;
     final typeArguments = node.typeArguments;
-    typeArguments?.accept(this);
+    _dispatch(typeArguments);
     DecoratedType calleeType = _checkExpressionNotNull(node.function);
     DecoratedType result;
     if (calleeType.type is FunctionType) {
@@ -778,10 +780,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           invokeType: node.staticInvokeType);
     } else {
       // Invocation of type `dynamic` or `Function`.
-      argumentList.accept(this);
+      _dispatch(argumentList);
       result = _makeNullableDynamicType(node);
     }
-    return _handleNullCheckHint(node, result);
+    return result;
   }
 
   @override
@@ -840,7 +842,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis.ifStatement_thenBegin(node.condition);
       // We branched, so create a new scope for post-dominators.
       _postDominatedLocals.doScoped(
-          action: () => node.thenStatement.accept(this));
+          action: () => _dispatch(node.thenStatement));
     } finally {
       if (trueGuard != null) {
         _guards.removeLast();
@@ -855,7 +857,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.ifStatement_elseBegin();
         // We branched, so create a new scope for post-dominators.
         _postDominatedLocals.doScoped(
-            action: () => node.elseStatement?.accept(this));
+            action: () => _dispatch(node.elseStatement));
       }
     } finally {
       _flowAnalysis.ifStatement_end(elseStatement != null);
@@ -893,7 +895,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         result = calleeType.returnType;
       }
     }
-    return _handleNullCheckHint(node, result);
+    return result;
   }
 
   @override
@@ -908,7 +910,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var target =
         NullabilityNodeTarget.text('constructed type').withCodeRef(node);
     if (typeArguments != null) {
-      typeArguments.accept(this);
+      _dispatch(typeArguments);
       typeArgumentTypes = typeArguments.arguments.map((t) => t.type);
       decoratedTypeArguments = typeArguments.arguments
           .map((t) => _variables.decoratedTypeAnnotation(source, t))
@@ -969,7 +971,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitIsExpression(IsExpression node) {
     var type = node.type;
-    type.accept(this);
+    _dispatch(type);
     var decoratedType = _variables.decoratedTypeAnnotation(source, type);
     if (type is NamedType) {
       // The main type of the is check historically could not be nullable.
@@ -986,7 +988,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _unimplemented(node, 'Is expression with GenericFunctionType');
     }
     var expression = node.expression;
-    expression.accept(this);
+    _dispatch(expression);
     _flowAnalysis.isExpression_end(
         node, expression, node.notOperator != null, decoratedType);
     return _makeNonNullableBoolType(node);
@@ -1002,7 +1004,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitLibraryDirective(LibraryDirective node) {
     // skip directives, but not their metadata
-    node.metadata.accept(this);
+    _dispatchList(node.metadata);
     return null;
   }
 
@@ -1019,7 +1021,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         instrumentation?.implicitTypeArguments(source, node, [elementType]);
         _currentLiteralElementType = elementType;
       } else {
-        node.typeArguments.accept(this);
+        _dispatch(node.typeArguments);
         _currentLiteralElementType = _variables.decoratedTypeAnnotation(
             source, node.typeArguments.arguments[0]);
       }
@@ -1044,7 +1046,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     _handleExecutableDeclaration(node, node.declaredElement, node.metadata,
         node.returnType, node.parameters, null, node.body, null);
-    node.typeParameters?.accept(this);
+    _dispatch(node.typeParameters);
     return null;
   }
 
@@ -1055,7 +1057,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     bool isNullAware = node.isNullAware;
     var callee = node.methodName.staticElement;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
-    node.typeArguments?.accept(this);
+    _dispatch(node.typeArguments);
 
     if (node.isCascaded) {
       targetType = _currentCascadeTargetType;
@@ -1063,9 +1065,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (_isPrefix(target)) {
         // Nothing to do.
       } else if (calleeIsStatic) {
-        target.accept(this);
+        _dispatch(target);
       } else if (isNullAware) {
-        targetType = target.accept(this);
+        targetType = _dispatch(target);
       } else {
         targetType = _handleTarget(target, node.methodName.name, callee);
       }
@@ -1077,7 +1079,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
-      node.argumentList.accept(this);
+      _dispatch(node.argumentList);
       expressionType = _makeNullableDynamicType(node);
     } else {
       var calleeType = getOrComputeElementType(callee, targetType: targetType);
@@ -1098,22 +1100,32 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _variables.recordDecoratedExpressionType(node, expressionType);
       }
     }
-    return _handleNullCheckHint(node, expressionType);
+    return expressionType;
   }
 
   @override
   DecoratedType visitMixinDeclaration(MixinDeclaration node) {
     visitClassOrMixinOrExtensionDeclaration(node);
-    node.implementsClause?.accept(this);
-    node.onClause?.accept(this);
-    node.typeParameters?.accept(this);
+    _dispatch(node.implementsClause);
+    _dispatch(node.onClause);
+    _dispatch(node.typeParameters);
     return null;
   }
 
   @override
   DecoratedType visitNamespaceDirective(NamespaceDirective node) {
     // skip directives, but not their metadata
-    node.metadata.accept(this);
+    _dispatchList(node.metadata);
+    return null;
+  }
+
+  @override
+  DecoratedType visitNode(AstNode node) {
+    for (var child in node.childEntities) {
+      if (child is AstNode) {
+        _dispatch(child);
+      }
+    }
     return null;
   }
 
@@ -1129,15 +1141,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitParenthesizedExpression(ParenthesizedExpression node) {
-    var result = node.expression.accept(this);
+    var result = _dispatch(node.expression);
     _flowAnalysis.parenthesizedExpression(node, node.expression);
-    return _handleNullCheckHint(node, result);
+    return result;
   }
 
   @override
   DecoratedType visitPartOfDirective(PartOfDirective node) {
     // skip directives, but not their metadata
-    node.metadata.accept(this);
+    _dispatchList(node.metadata);
     return null;
   }
 
@@ -1176,9 +1188,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry)
       _unimplemented(node, 'PrefixedIdentifier with a prefix');
     } else {
-      var type = _handlePropertyAccess(
+      return _handlePropertyAccess(
           node, node.prefix, node.identifier, false, false);
-      return _handleNullCheckHint(node, type);
     }
   }
 
@@ -1223,9 +1234,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
-    var type = _handlePropertyAccess(node, node.target, node.propertyName,
+    return _handlePropertyAccess(node, node.target, node.propertyName,
         node.isNullAware, node.isCascaded);
-    return _handleNullCheckHint(node, type);
   }
 
   @override
@@ -1297,7 +1307,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _currentLiteralElementType = elementType;
         } else {
           assert(typeArguments.length == 1);
-          node.typeArguments.accept(this);
+          _dispatch(node.typeArguments);
           _currentLiteralElementType =
               _variables.decoratedTypeAnnotation(source, typeArguments[0]);
         }
@@ -1329,7 +1339,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               ?.implicitTypeArguments(source, node, [keyType, valueType]);
         } else {
           assert(typeArguments.length == 2);
-          node.typeArguments.accept(this);
+          _dispatch(node.typeArguments);
           _currentMapKeyType =
               _variables.decoratedTypeAnnotation(source, typeArguments[0]);
           _currentMapValueType =
@@ -1393,7 +1403,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _unimplemented(node,
           'Simple identifier with a static element of type ${staticElement.runtimeType}');
     }
-    return _handleNullCheckHint(node, result);
+    return result;
   }
 
   @override
@@ -1479,18 +1489,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitSwitchStatement(SwitchStatement node) {
-    node.expression.accept(this);
+    _dispatch(node.expression);
     _flowAnalysis.switchStatement_expressionEnd(node);
     var hasDefault = false;
     for (var member in node.members) {
       var hasLabel = member.labels.isNotEmpty;
       _flowAnalysis.switchStatement_beginCase(hasLabel, node);
       if (member is SwitchCase) {
-        member.expression.accept(this);
+        _dispatch(member.expression);
       } else {
         hasDefault = true;
       }
-      member.statements.accept(this);
+      _dispatchList(member.statements);
     }
     _flowAnalysis.switchStatement_end(hasDefault);
     return null;
@@ -1503,13 +1513,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    var type = _thisOrSuper(node);
-    return _handleNullCheckHint(node, type);
+    return _thisOrSuper(node);
   }
 
   @override
   DecoratedType visitThrowExpression(ThrowExpression node) {
-    node.expression.accept(this);
+    _dispatch(node.expression);
     // TODO(paulberry): do we need to check the expression type?  I think not.
     _flowAnalysis.handleExit();
     var target =
@@ -1530,16 +1539,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis.tryCatchStatement_bodyBegin();
     }
     var body = node.body;
-    body.accept(this);
+    _dispatch(body);
     if (catchClauses.isNotEmpty) {
       _flowAnalysis.tryCatchStatement_bodyEnd(body);
-      catchClauses.accept(this);
+      _dispatchList(catchClauses);
       _flowAnalysis.tryCatchStatement_end();
     }
     if (finallyBlock != null) {
       _flowAnalysis.tryFinallyStatement_finallyBegin(
           catchClauses.isNotEmpty ? node : body);
-      finallyBlock.accept(this);
+      _dispatch(finallyBlock);
       _flowAnalysis.tryFinallyStatement_end(finallyBlock);
     }
     return null;
@@ -1626,10 +1635,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var parent = node.parent;
     bool isTopLevel =
         parent is FieldDeclaration || parent is TopLevelVariableDeclaration;
-    node.metadata.accept(this);
-    node.type?.accept(this);
+    _dispatchList(node.metadata);
+    _dispatch(node.type);
     for (var variable in node.variables) {
-      variable.metadata.accept(this);
+      _dispatchList(variable.metadata);
       var initializer = variable.initializer;
       var declaredElement = variable.declaredElement;
       if (isTopLevel) {
@@ -1716,7 +1725,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _flowAnalysis.whileStatement_conditionBegin(node);
     _checkExpressionNotNull(node.condition);
     _flowAnalysis.whileStatement_bodyBegin(node, node.condition);
-    _postDominatedLocals.doScoped(action: () => node.body.accept(this));
+    _postDominatedLocals.doScoped(action: () => _dispatch(node.body));
     _flowAnalysis.whileStatement_end();
     return null;
   }
@@ -1738,7 +1747,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (_isPrefix(expression)) {
       throw ArgumentError('cannot check non-nullability of a prefix');
     }
-    sourceType ??= expression.accept(this);
+    sourceType ??= _dispatch(expression);
     if (sourceType == null) {
       throw StateError('No type computed for ${expression.runtimeType} '
           '(${expression.toSource()}) offset=${expression.offset}');
@@ -1950,6 +1959,21 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
   }
 
+  DecoratedType _dispatch(AstNode node, {bool skipNullCheckHint = false}) {
+    var type = node?.accept(this);
+    if (!skipNullCheckHint && node is Expression) {
+      type = _handleNullCheckHint(node, type);
+    }
+    return type;
+  }
+
+  void _dispatchList(NodeList nodeList) {
+    if (nodeList == null) return;
+    for (var node in nodeList) {
+      _dispatch(node);
+    }
+  }
+
   DecoratedType _fixNumericTypes(
       DecoratedType decoratedType, DartType undecoratedType) {
     if (decoratedType.type.isDartCoreNum && undecoratedType.isDartCoreInt) {
@@ -2009,7 +2033,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (destinationLocalVariable != null) {
         destinationType = getOrComputeElementType(destinationLocalVariable);
       } else {
-        destinationType = destinationExpression.accept(this);
+        destinationType = _dispatch(destinationExpression);
       }
     }
 
@@ -2020,7 +2044,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     DecoratedType sourceType;
     try {
-      sourceType = expression.accept(this);
+      sourceType = _dispatch(expression);
       if (wrapFuture) {
         sourceType = _wrapFuture(sourceType, expression);
       }
@@ -2093,7 +2117,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       return _handleAssignment(element,
           destinationType: _currentLiteralElementType);
     } else {
-      return element.accept(this);
+      return _dispatch(element);
     }
   }
 
@@ -2124,22 +2148,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       FunctionBody body,
       ConstructorName redirectedConstructor) {
     assert(_currentFunctionType == null);
-    metadata.accept(this);
-    returnType?.accept(this);
+    _dispatchList(metadata);
+    _dispatch(returnType);
     _createFlowAnalysis(node, parameters);
-    parameters?.accept(this);
+    _dispatch(parameters);
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
     _addParametersToFlowAnalysis(parameters);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
     try {
-      initializers?.accept(this);
+      _dispatchList(initializers);
       if (declaredElement is ConstructorElement &&
           !declaredElement.isFactory &&
           declaredElement.redirectedConstructor == null) {
         _handleUninitializedFields(node, _fieldsNotInitializedByConstructor);
       }
-      body.accept(this);
+      _dispatch(body);
       if (redirectedConstructor != null) {
         _handleConstructorRedirection(parameters, redirectedConstructor);
       }
@@ -2307,9 +2331,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       DecoratedType Function(AstNode) bodyHandler) {
     if (parts is ForParts) {
       if (parts is ForPartsWithDeclarations) {
-        parts.variables?.accept(this);
+        _dispatch(parts.variables);
       } else if (parts is ForPartsWithExpression) {
-        parts.initialization?.accept(this);
+        _dispatch(parts.initialization);
       }
       _flowAnalysis.for_conditionBegin(node);
       if (parts.condition != null) {
@@ -2323,7 +2347,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var variableElement = parts.loopVariable.declaredElement;
         _flowAnalysis.declare(variableElement, true);
         lhsElement = variableElement;
-        parts.loopVariable?.type?.accept(this);
+        _dispatch(parts.loopVariable?.type);
       } else if (parts is ForEachPartsWithIdentifier) {
         lhsElement = parts.identifier.staticElement;
       } else {
@@ -2358,7 +2382,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
       if (parts is ForParts) {
         _flowAnalysis.for_updaterBegin();
-        parts.updaters.accept(this);
+        _dispatchList(parts.updaters);
         _flowAnalysis.for_end();
       } else {
         _flowAnalysis.forEach_end();
@@ -2488,7 +2512,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // `/*!*/`s because they're not expression null check hints, they're type
     // non-nullability hints (which are handled by NodeBuilder).
     if (_typeNameNesting > 0) return type;
-    switch (getPostfixHint(expression)) {
+    var token = expression.endToken;
+    if (_nullCheckHints.containsKey(token)) {
+      // Already visited this location.
+      return type;
+    }
+    switch (_nullCheckHints[token] = getPostfixHint(token)) {
       case NullabilityComment.bang:
         _variables.recordNullCheckHint(source, expression);
         return type.withNode(_graph.never);
@@ -2505,11 +2534,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (isCascaded) {
       targetType = _currentCascadeTargetType;
     } else if (_isPrefix(target)) {
-      return propertyName.accept(this);
+      return _dispatch(propertyName, skipNullCheckHint: true);
     } else if (calleeIsStatic) {
-      target.accept(this);
+      _dispatch(target);
     } else if (isNullAware) {
-      targetType = target.accept(this);
+      targetType = _dispatch(target);
     } else {
       targetType = _handleTarget(target, propertyName.name, callee);
     }
@@ -2539,7 +2568,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType _handleTarget(Expression target, String name, Element method) {
     if (isDeclaredOnObject(name)) {
-      return target.accept(this);
+      return _dispatch(target);
     } else if (method is MethodElement &&
         method.enclosingElement is ExtensionElement) {
       // Extension methods can be called on a `null` target, when the `on` type
@@ -2547,7 +2576,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _handleAssignment(target,
           destinationType:
               _variables.decoratedElementType(method.enclosingElement));
-      return target.accept(this);
+      return _dispatch(target);
     } else {
       return _checkExpressionNotNull(target);
     }
