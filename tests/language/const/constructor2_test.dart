@@ -16,8 +16,8 @@ class C<U> {
   final A<U> a;
 
   const C(A<U> this.a);
-  const C.optional([A<U> this.a]);
-  const C.named({A<U> this.a});
+  const C.optional([A<U> this.a = const A()]);
+  const C.named({A<U> this.a = const A()});
   const C.untyped(this.a);
   const C.subtyped(B<U> this.a);
   const factory C.redirecting(B<U> a) = D<U>;
