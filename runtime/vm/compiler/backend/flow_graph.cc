@@ -1621,6 +1621,9 @@ void FlowGraph::RemoveRedefinitions(bool keep_checks) {
       } else if (auto check = instruction->AsCheckNull()) {
         check->ReplaceUsesWith(check->value()->definition());
         check->ClearSSATempIndex();
+      } else if (auto check = instruction->AsAssertAssignable()) {
+        check->ReplaceUsesWith(check->value()->definition());
+        check->ClearSSATempIndex();
       }
     }
   }
@@ -2378,10 +2381,18 @@ void FlowGraph::RenameUsesDominatedByRedefinitions() {
        block_it.Advance()) {
     for (ForwardInstructionIterator instr_it(block_it.Current());
          !instr_it.Done(); instr_it.Advance()) {
-      RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
-      if (redefinition != NULL) {
-        Definition* original = redefinition->value()->definition();
-        RenameDominatedUses(original, redefinition, redefinition);
+      Definition* definition = instr_it.Current()->AsDefinition();
+      // CheckArrayBound instructions have their own mechanism for ensuring
+      // proper dependencies, so we don't rewrite those here.
+      if (definition != nullptr && !definition->IsCheckArrayBound()) {
+        Value* redefined = definition->RedefinedValue();
+        if (redefined != nullptr) {
+          if (!definition->HasSSATemp()) {
+            AllocateSSAIndexes(definition);
+          }
+          Definition* original = redefined->definition();
+          RenameDominatedUses(original, definition, definition);
+        }
       }
     }
   }
