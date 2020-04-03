@@ -3428,7 +3428,6 @@ class InferenceVisitor
     ExpressionInferenceResult rightResult = inferrer.inferExpression(
         right, const UnknownType(), typeNeeded,
         isVoidAllowed: false);
-    right = rightResult.expression;
 
     assert(equalsTarget.isInstanceMember);
     if (inferrer.instrumentation != null && leftType == const DynamicType()) {
@@ -3438,6 +3437,11 @@ class InferenceVisitor
           'target',
           new InstrumentationValueForMember(equalsTarget.member));
     }
+    DartType rightType =
+        inferrer.getPositionalParameterTypeForTarget(equalsTarget, leftType, 0);
+    right = inferrer.ensureAssignableResult(
+        rightType.withNullability(inferrer.library.nullable), rightResult,
+        errorTemplate: templateArgumentTypeNotAssignable);
 
     Expression equals = new MethodInvocation(
         left,

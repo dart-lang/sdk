@@ -717,12 +717,14 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType expectedType, ExpressionInferenceResult result,
       {int fileOffset,
       bool isVoidAllowed: false,
-      bool isReturnFromAsync: false}) {
+      bool isReturnFromAsync: false,
+      Template<Message Function(DartType, DartType, bool)> errorTemplate}) {
     return ensureAssignable(
         expectedType, result.inferredType, result.expression,
         fileOffset: fileOffset,
         isVoidAllowed: isVoidAllowed,
-        isReturnFromAsync: isReturnFromAsync);
+        isReturnFromAsync: isReturnFromAsync,
+        errorTemplate: errorTemplate);
   }
 
   /// Ensures that [expressionType] is assignable to [contextType].

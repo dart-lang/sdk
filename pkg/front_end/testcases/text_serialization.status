@@ -152,6 +152,7 @@ general_nnbd_opt_out/continue_inference_after_error_lib: TextSerializationFailur
 general_nnbd_opt_out/continue_inference_after_error: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/control_flow_collection_inference: TextSerializationFailure
 general_nnbd_opt_out/control_flow_collection: TextSerializationFailure
+general_nnbd_opt_out/covariant_equals: TextSerializationFailure
 general_nnbd_opt_out/covariant_generic: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/covariant_parameter_in_superclass_of_mixin_application: TextSerializationFailure
 general_nnbd_opt_out/cycles: TextSerializationFailure # Was: Pass
@@ -420,6 +421,7 @@ general/continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
 general/continue_inference_after_error: TextSerializationFailure # Was: Pass
 general/control_flow_collection_inference: TextSerializationFailure
 general/control_flow_collection: TextSerializationFailure
+general/covariant_equals: TextSerializationFailure
 general/covariant_generic: TextSerializationFailure # Was: RuntimeError
 general/covariant_parameter_in_superclass_of_mixin_application: TextSerializationFailure
 general/cycles: TextSerializationFailure # Was: Pass
@@ -1289,6 +1291,7 @@ nnbd/assignability: TextSerializationFailure
 nnbd/bounds_checks: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/constants: TextSerializationFailure
+nnbd/covariant_equals: TextSerializationFailure
 nnbd/covariant_nnbd_top_merge: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
 nnbd/definitely_assigned: TextSerializationFailure
