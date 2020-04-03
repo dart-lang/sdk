@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library element_animate_test;
 
 import 'dart:async';
@@ -14,7 +12,7 @@ import 'package:async_helper/async_minitest.dart';
 main() {
   test('timing dict', () {
     if (Animation.supported) {
-      var body = document.body;
+      var body = document.body!;
       // Animate different characteristics so the tests can run concurrently.
       var fontSize = body.getComputedStyle().fontSize;
       var player = body.animate([

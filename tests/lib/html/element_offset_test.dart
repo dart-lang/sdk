@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'dart:html';
 
@@ -40,8 +38,8 @@ main() {
       ..innerHtml = 'B'
       ..children.add(level3);
     level2.children.addAll([itema, itemb, new LIElement()..innerHtml = 'C']);
-    document.body.append(level1);
-    document.body.style.whiteSpace = 'nowrap';
+    document.body!.append(level1);
+    document.body!.style.whiteSpace = 'nowrap';
 
     var bar = new DivElement()..classes.add('bar');
     var style = bar.style;
@@ -60,23 +58,23 @@ main() {
     var quux = new DivElement()..classes.add('quux');
     var qux = new DivElement()..classes.add('qux')..children.add(quux);
 
-    document.body.append(bar);
-    document.body.append(qux);
+    document.body!.append(bar);
+    document.body!.append(qux);
   }
 
   group('offset', () {
     setUp(initPage);
 
     test('offsetTo', () {
-      var itema = querySelector('.item-a');
-      var itemb = querySelector('.item-b');
-      var item1 = querySelector('.item-1');
-      var itemii = querySelector('.item-ii');
-      var level1 = querySelector('.level-1');
-      var baz = querySelector('.baz');
-      var bar = querySelector('.bar');
-      var qux = querySelector('.qux');
-      var quux = querySelector('.quux');
+      var itema = querySelector('.item-a')!;
+      var itemb = querySelector('.item-b')!;
+      var item1 = querySelector('.item-1')!;
+      var itemii = querySelector('.item-ii')!;
+      var level1 = querySelector('.level-1')!;
+      var baz = querySelector('.baz')!;
+      var bar = querySelector('.bar')!;
+      var qux = querySelector('.qux')!;
+      var quux = querySelector('.quux')!;
 
       var point = itema.offsetTo(itemii);
       expect(point.x, 40);
@@ -101,14 +99,14 @@ main() {
     });
 
     test('documentOffset', () {
-      var bar = querySelector('.bar');
-      var baz = querySelector('.baz');
-      var qux = querySelector('.qux');
-      var quux = querySelector('.quux');
-      var itema = querySelector('.item-a');
-      var itemb = querySelector('.item-b');
-      var item1 = querySelector('.item-1');
-      var itemii = querySelector('.item-ii');
+      var bar = querySelector('.bar')!;
+      var baz = querySelector('.baz')!;
+      var qux = querySelector('.qux')!;
+      var quux = querySelector('.quux')!;
+      var itema = querySelector('.item-a')!;
+      var itemb = querySelector('.item-b')!;
+      var item1 = querySelector('.item-1')!;
+      var itemii = querySelector('.item-ii')!;
 
       expect(itema.documentOffset.x, 88);
       expect(itema.documentOffset.y, inInclusiveRange(111, 160));

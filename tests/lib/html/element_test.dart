@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library ElementTest;
 
 import 'package:async_helper/async_minitest.dart';
@@ -50,7 +48,7 @@ main() {
 
   group('position', () {
     test('computedStyle', () {
-      final element = document.body;
+      final element = document.body!;
       var style = element.getComputedStyle();
       expect(style.getPropertyValue('left'), 'auto');
     });
@@ -64,7 +62,7 @@ main() {
       element.style.width = '200px';
       element.style.height = '200px';
       container.children.add(element);
-      document.body.children.add(container);
+      document.body!.children.add(container);
 
       expect(element.client.width, greaterThan(100));
       expect(element.client.height, greaterThan(100));
@@ -108,14 +106,13 @@ main() {
    <td headers="n r2"> Failing
    <th id="r2"> Grade
    <td> Passing
-</table>''');
-      expect(node, predicate((x) => x is TableElement, 'is a TableElement'));
+</table>''') as TableElement;
       expect(node.tagName, 'TABLE');
       expect(node.parent, isNull);
-      expect(node.caption.innerHtml,
+      expect(node.caption!.innerHtml,
           'Characteristics with positive and negative sides');
-      expect(node.tHead.rows.length, 1);
-      expect(node.tHead.rows[0].cells.length, 3);
+      expect(node.tHead!.rows.length, 1);
+      expect(node.tHead!.rows[0].cells.length, 3);
       expect(node.tBodies.length, 1);
       expect(node.tBodies[0].rows.length, 2);
       expect(node.tBodies[0].rows[1].cells.map((c) => c.innerHtml),
@@ -124,12 +121,10 @@ main() {
 
     test('.html caption', () {
       var table = new TableElement();
-      TableCaptionElement node =
-          table.createFragment('<caption><p>Table 1.').nodes.single;
-      expect(
-          node,
-          predicate(
-              (x) => x is TableCaptionElement, 'is a TableCaptionElement'));
+      TableCaptionElement node = table
+          .createFragment('<caption><p>Table 1.')
+          .nodes
+          .single as TableCaptionElement;
       expect(node.tagName, 'CAPTION');
       expect(node.parent, isNull);
       expect(node.innerHtml, '<p>Table 1.</p>');
@@ -137,10 +132,10 @@ main() {
 
     test('.html colgroup', () {
       var table = new TableElement();
-      TableColElement node =
-          table.createFragment('<colgroup> <col> <col> <col>').nodes.single;
-      expect(
-          node, predicate((x) => x is TableColElement, 'is a TableColElement'));
+      TableColElement node = table
+          .createFragment('<colgroup> <col> <col> <col>')
+          .nodes
+          .single as TableColElement;
       expect(node.tagName, 'COLGROUP');
       expect(node.parent, isNull);
       expect(node.innerHtml, ' <col> <col> <col>');
@@ -149,12 +144,10 @@ main() {
     test('.html tbody', () {
       var innerHtml = '<tr><td headers="n r1">Sad</td><td>Happy</td></tr>';
       var table = new TableElement();
-      TableSectionElement node =
-          table.createFragment('<tbody>$innerHtml').nodes.single;
-      expect(
-          node,
-          predicate(
-              (x) => x is TableSectionElement, 'is a TableSectionElement'));
+      TableSectionElement node = table
+          .createFragment('<tbody>$innerHtml')
+          .nodes
+          .single as TableSectionElement;
       expect(node.tagName, 'TBODY');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -165,12 +158,10 @@ main() {
     test('.html thead', () {
       var innerHtml = '<tr><th id="n">Negative</th><th>Positive</th></tr>';
       var table = new TableElement();
-      TableSectionElement node =
-          table.createFragment('<thead>$innerHtml').nodes.single;
-      expect(
-          node,
-          predicate(
-              (x) => x is TableSectionElement, 'is a TableSectionElement'));
+      TableSectionElement node = table
+          .createFragment('<thead>$innerHtml')
+          .nodes
+          .single as TableSectionElement;
       expect(node.tagName, 'THEAD');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -181,12 +172,10 @@ main() {
     test('.html tfoot', () {
       var innerHtml = '<tr><th>percentage</th><td>34.3%</td></tr>';
       var table = new TableElement();
-      TableSectionElement node =
-          table.createFragment('<tfoot>$innerHtml').nodes.single;
-      expect(
-          node,
-          predicate(
-              (x) => x is TableSectionElement, 'is a TableSectionElement'));
+      TableSectionElement node = table
+          .createFragment('<tfoot>$innerHtml')
+          .nodes
+          .single as TableSectionElement;
       expect(node.tagName, 'TFOOT');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -196,12 +185,12 @@ main() {
 
     test('.html tr', () {
       var table = new TableElement();
-      document.body.append(table);
+      document.body!.append(table);
       var tBody = table.createTBody();
-      TableRowElement node =
-          tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
-      expect(
-          node, predicate((x) => x is TableRowElement, 'is a TableRowElement'));
+      TableRowElement node = tBody
+          .createFragment('<tr><td>foo<td>bar')
+          .nodes
+          .single as TableRowElement;
       expect(node.tagName, 'TR');
       expect(node.parent, isNull);
       expect(node.cells.map((c) => c.innerHtml), ['foo', 'bar']);
@@ -209,12 +198,11 @@ main() {
 
     test('.html td', () {
       var table = new TableElement();
-      document.body.append(table);
+      document.body!.append(table);
       var tBody = table.createTBody();
       var tRow = tBody.addRow();
-      TableCellElement node = tRow.createFragment('<td>foobar').nodes.single;
-      expect(node,
-          predicate((x) => x is TableCellElement, 'is a TableCellElement'));
+      TableCellElement node =
+          tRow.createFragment('<td>foobar').nodes.single as TableCellElement;
       expect(node.tagName, 'TD');
       expect(node.parent, isNull);
       expect(node.innerHtml, 'foobar');
@@ -222,12 +210,11 @@ main() {
 
     test('.html th', () {
       var table = new TableElement();
-      document.body.append(table);
+      document.body!.append(table);
       var tBody = table.createTBody();
       var tRow = tBody.addRow();
-      TableCellElement node = tRow.createFragment('<th>foobar').nodes.single;
-      expect(node,
-          predicate((x) => x is TableCellElement, 'is a TableCellElement'));
+      TableCellElement node =
+          tRow.createFragment('<th>foobar').nodes.single as TableCellElement;
       expect(node.tagName, 'TH');
       expect(node.parent, isNull);
       expect(node.innerHtml, 'foobar');
@@ -248,7 +235,7 @@ main() {
     test('streams', () {
       final target = new TextAreaElement();
 
-      void testEvent(Stream stream, String type, [createEvent(String type)]) {
+      void testEvent(Stream stream, String type, [createEvent(String type)?]) {
         var firedOnEvent = false;
         stream.listen((e) {
           firedOnEvent = true;
@@ -635,7 +622,7 @@ main() {
   group('matches', () {
     test('matches', () {
       var element = new DivElement();
-      document.body.append(element);
+      document.body!.append(element);
       element.classes.add('test');
 
       expect(element.matches('div'), true);
@@ -767,7 +754,7 @@ main() {
 
     test('scrollIntoView', () {
       var child = new DivElement();
-      document.body.append(child);
+      document.body!.append(child);
 
       child.scrollIntoView(ScrollAlignment.TOP);
       child.scrollIntoView(ScrollAlignment.BOTTOM);
@@ -805,10 +792,10 @@ main() {
       Element selectorTwo = new Element.div()
         ..classes.add('selector')
         ..children.add(clickTwo);
-      document.body.append(selectorOne);
-      document.body.append(selectorTwo);
+      document.body!.append(selectorOne);
+      document.body!.append(selectorTwo);
 
-      document.body.onClick
+      document.body!.onClick
           .matches('.selector')
           .listen(expectAsync1((Event event) {
         expect(event.currentTarget, document.body);
@@ -833,10 +820,10 @@ main() {
       var div = new Element.div()
         ..classes.add('a')
         ..id = 'wat';
-      document.body.append(elem);
-      document.body.append(img);
-      document.body.append(input);
-      document.body.append(div);
+      document.body!.append(elem);
+      document.body!.append(img);
+      document.body!.append(input);
+      document.body!.append(div);
 
       Element elem4 = new Element.div()..classes.addAll(['i', 'j']);
       Element elem5 = new Element.div()
@@ -845,7 +832,7 @@ main() {
       Element elem6 = new Element.div()
         ..classes.addAll(['e', 'f'])
         ..children.add(elem5);
-      document.body.append(elem6);
+      document.body!.append(elem6);
 
       var firedEvent = false;
       var elems = querySelectorAll('.a');
@@ -853,9 +840,9 @@ main() {
         firedEvent = true;
       });
       expect(firedEvent, false);
-      querySelector('.c').click();
+      querySelector('.c')!.click();
       expect(firedEvent, false);
-      querySelector('#wat').click();
+      querySelector('#wat')!.click();
       expect(firedEvent, true);
 
       var firedEvent4 = false;
@@ -863,11 +850,11 @@ main() {
         firedEvent4 = true;
       });
       expect(firedEvent4, false);
-      querySelector('.c').click();
+      querySelector('.c')!.click();
       expect(firedEvent4, false);
-      querySelector('#wat').click();
+      querySelector('#wat')!.click();
       expect(firedEvent4, false);
-      querySelector('#cookie').click();
+      querySelector('#cookie')!.click();
       expect(firedEvent4, true);
 
       var firedEvent2 = false;
@@ -875,7 +862,7 @@ main() {
         firedEvent2 = true;
       });
       Element elem2 = new Element.html('<div class="a"><br/>');
-      document.body.append(elem2);
+      document.body!.append(elem2);
       elem2.click();
       expect(firedEvent2, false);
       elem2.classes.add('a');
@@ -887,7 +874,7 @@ main() {
         firedEvent3 = true;
       });
       Element elem3 = new Element.html('<div class="d"><br/>');
-      document.body.append(elem3);
+      document.body!.append(elem3);
       elem3.click();
       expect(firedEvent3, false);
       elem3.classes.add('a');
@@ -899,7 +886,7 @@ main() {
         firedEvent5 = true;
       });
       expect(firedEvent5, false);
-      querySelector('.i').click();
+      querySelector('.i')!.click();
       expect(firedEvent5, true);
     });
 
@@ -912,7 +899,7 @@ main() {
 
       var eventOrder = [];
 
-      ElementStream aEvent = a.on['custom_event'];
+      ElementStream aEvent = a.on['custom_event'] as ElementStream;
       aEvent.listen((_) {
         eventOrder.add('a no-capture');
       });
@@ -921,7 +908,7 @@ main() {
         eventOrder.add('a capture');
       });
 
-      ElementStream bEvent = b.on['custom_event'];
+      ElementStream bEvent = b.on['custom_event'] as ElementStream;
       bEvent.listen((_) {
         eventOrder.add('b no-capture');
       });
@@ -930,7 +917,7 @@ main() {
         eventOrder.add('b capture');
       });
 
-      document.body.append(a);
+      document.body!.append(a);
 
       var event = new Event('custom_event', canBubble: true);
       c.dispatchEvent(event);

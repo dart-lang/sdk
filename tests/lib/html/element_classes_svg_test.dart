@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:collection';
 import 'dart:html';
 import 'dart:svg' as svg;
@@ -28,7 +26,7 @@ Element makeElementsContainer() {
   return e;
 }
 
-Element elementsContainer;
+Element? elementsContainer;
 
 /// Test top-level querySelectorAll with generics.
 topLevelQuerySelector() {
@@ -65,7 +63,7 @@ topLevelQuerySelector() {
 
 ElementList<Element> elementsSetup() {
   elementsContainer = makeElementsContainer();
-  document.documentElement.children.add(elementsContainer);
+  document.documentElement!.children.add(elementsContainer!);
   var elements = document.querySelectorAll('.yes');
   expect(elements.length, 4);
 
@@ -76,7 +74,7 @@ ElementList<Element> elementsSetup() {
 
 void elementsTearDown() {
   if (elementsContainer != null) {
-    document.documentElement.children.remove(elementsContainer);
+    document.documentElement!.children.remove(elementsContainer!);
     elementsContainer = null;
   }
 }
@@ -91,8 +89,8 @@ String view(var e) {
 
 main() {
   Set<String> extractClasses(Element el) {
-    final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml);
-    return new LinkedHashSet.from(match[1].split(' '));
+    final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml)!;
+    return new LinkedHashSet.from(match[1]!.split(' '));
   }
 
   tearDown(elementsTearDown);

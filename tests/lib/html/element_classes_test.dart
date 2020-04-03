@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:collection';
 import 'dart:html';
 
@@ -23,17 +21,17 @@ Element makeListElement() => new Element.html('<ul class="foo bar baz">'
     '<li class="qux lassy">'
     '</ul>');
 
-Element listElement;
+Element? listElement;
 
 ElementList<Element> listElementSetup() {
   listElement = makeListElement();
-  document.documentElement.children.add(listElement);
+  document.documentElement!.children.add(listElement!);
   return document.querySelectorAll('li');
 }
 
 void listElementTearDown() {
   if (listElement != null) {
-    document.documentElement.children.remove(listElement);
+    document.documentElement!.children.remove(listElement!);
     listElement = null;
   }
 }
@@ -48,8 +46,8 @@ String view(var e) {
 
 main() {
   Set<String> extractClasses(Element el) {
-    final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml);
-    return new LinkedHashSet.from(match[1].split(' '));
+    final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml)!;
+    return new LinkedHashSet.from(match[1]!.split(' '));
   }
 
   test('affects the "class" attribute', () {
