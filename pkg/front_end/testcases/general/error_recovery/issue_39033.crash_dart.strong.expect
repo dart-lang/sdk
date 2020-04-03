@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39033.crash_dart:1:11: Error: Expected '>' after this.
+// typedef F<Glib.=
+//           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39033.crash_dart:1:17: Error: Expected a type, but got ''.
+// typedef F<Glib.=
+//                 ^...
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39033.crash_dart:1:17: Error: Expected ';' after this.
+// typedef F<Glib.=
+//                 ^...
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39033.crash_dart:1:16: Error: Can't create typedef from non-function type.
+// typedef F<Glib.=
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<unrelated Glib extends core::Object* = dynamic> = invalid-type;

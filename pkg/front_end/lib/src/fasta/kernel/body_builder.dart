@@ -853,8 +853,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     final ModifierBuilder member = this.member;
     if (!(member is ConstructorBuilder && !member.isExternal)) {
-      // Initializer not allowed. An error will (hopefully) have been created
-      // already.
+      // An error has been reported by the parser.
       initializers = <Initializer>[];
     } else if (node is Initializer) {
       initializers = <Initializer>[node];
