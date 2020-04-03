@@ -50,20 +50,6 @@ class DiBO0 implements C0, B {
   int Function(int) m(int Function(int) x) => x;
 }
 
-// Member signatures: B.
-class DiBqO0 implements C0, Bq {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: Bq.
-class DiBOq0 implements C0, B {
-  List<int? Function(int?)> get a => [];
-  set a(List<int? Function(int?)> _) {}
-  int? Function(int?) m(int? Function(int?) x) => x;
-}
-
 // Member signatures: Bq.
 class DiBqOq0 implements C0, Bq {
   List<int? Function(int?)> get a => [];
@@ -88,20 +74,6 @@ class DiBO1 implements C1, B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
   int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: B.
-class DiBqO1 implements C1, Bq {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: Bq.
-class DiBOq1 implements C1, B {
-  List<int? Function(int?)> get a => [];
-  set a(List<int? Function(int?)> _) {}
-  int? Function(int?) m(int? Function(int?) x) => x;
 }
 
 // Member signatures: Bq.
@@ -130,20 +102,6 @@ class DiBO2 implements C2, B {
   int Function(int) m(int Function(int) x) => x;
 }
 
-// Member signatures: B.
-class DiBqO2 implements C2, Bq {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: Bq.
-class DiBOq2 implements C2, B {
-  List<int? Function(int?)> get a => [];
-  set a(List<int? Function(int?)> _) {}
-  int? Function(int?) m(int? Function(int?) x) => x;
-}
-
 // Member signatures: Bq.
 class DiBqOq2 implements C2, Bq {
   List<int? Function(int?)> get a => [];
@@ -168,20 +126,6 @@ class DiBO3 implements C3, B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
   int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: B.
-class DiBqO3 implements C3, Bq {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: Bq.
-class DiBOq3 implements C3, B {
-  List<int? Function(int?)> get a => [];
-  set a(List<int? Function(int?)> _) {}
-  int? Function(int?) m(int? Function(int?) x) => x;
 }
 
 // Member signatures: Bq.
@@ -210,20 +154,6 @@ class DiBO4 implements C4, B {
   int Function(int) m(int Function(int) x) => x;
 }
 
-// Member signatures: B.
-class DiBqO4 implements C4, Bq {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: Bq.
-class DiBOq4 implements C4, B {
-  List<int? Function(int?)> get a => [];
-  set a(List<int? Function(int?)> _) {}
-  int? Function(int?) m(int? Function(int?) x) => x;
-}
-
 // Member signatures: Bq.
 class DiBqOq4 implements C4, Bq {
   List<int? Function(int?)> get a => [];
@@ -248,20 +178,6 @@ class DiBO5 implements C5, B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
   int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: B.
-class DiBqO5 implements C5, Bq {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-
-// Member signatures: Bq.
-class DiBOq5 implements C5, B {
-  List<int? Function(int?)> get a => [];
-  set a(List<int? Function(int?)> _) {}
-  int? Function(int?) m(int? Function(int?) x) => x;
 }
 
 // Member signatures: Bq.

@@ -20,27 +20,27 @@ import 'legacy_resolves_conflict_3_lib2.dart';
 void main() {
   // Ensure that no class is eliminated by tree-shaking.
   Expect.isNotNull([
-    DiB0, DiBq0, DwB0, DwBq0, DiBO0, DiBqO0, DiBOq0, DiBqOq0, DiB1, DiBq1, //
-    DwB1, DwBq1, DiBO1, DiBqO1, DiBOq1, DiBqOq1, DiB2, DiBq2, DwB2, DwBq2, //
-    DiBO2, DiBqO2, DiBOq2, DiBqOq2, DiB3, DiBq3, DwB3, DwBq3, DiBO3, DiBqO3, //
-    DiBOq3, DiBqOq3, DiB4, DiBq4, DwB4, DwBq4, DiBO4, DiBqO4, DiBOq4, //
-    DiBqOq4, DiB5, DiBq5, DwB5, DwBq5, DiBO5, DiBqO5, DiBOq5, DiBqOq5, //
+    DiB0, DiBq0, DwB0, DwBq0, DiBO0, DiBqOq0, DiB1, DiBq1, //
+    DwB1, DwBq1, DiBO1, DiBqOq1, DiB2, DiBq2, DwB2, DwBq2, //
+    DiBO2, DiBqOq2, DiB3, DiBq3, DwB3, DwBq3, DiBO3, //
+    DiBqOq3, DiB4, DiBq4, DwB4, DwBq4, DiBO4, //
+    DiBqOq4, DiB5, DiBq5, DwB5, DwBq5, DiBO5, DiBqOq5, //
   ]);
 
   // Verify that some classes have a signature as in `B`.
   List<List<int Function(int)>> xsB = [
-    DwB0().a, DiBO0().a, DiBqO0().a, DwB1().a, DiBO1().a, //
-    DiBqO1().a, DwB2().a, DiBO2().a, DiBqO2().a, DwB3().a, //
-    DiBO3().a, DiBqO3().a, DwB4().a, DiBO4().a, DiBqO4().a, //
-    DwB5().a, DiBO5().a, DiBqO5().a, //
+    DwB0().a, DiBO0().a, DwB1().a, DiBO1().a, //
+    DwB2().a, DiBO2().a, DwB3().a, //
+    DiBO3().a, DwB4().a, DiBO4().a, //
+    DwB5().a, DiBO5().a, //
   ];
 
   // Verify that some classes have a signature as in `Bq`.
   List<List<int? Function(int?)>> xsBq = [
-    DwBq0().a, DiBOq0().a, DiBqOq0().a, DwBq1().a, DiBOq1().a, //
-    DiBqOq1().a, DwBq2().a, DiBOq2().a, DiBqOq2().a, DwBq3().a, //
-    DiBOq3().a, DiBqOq3().a, DwBq4().a, DiBOq4().a, DiBqOq4().a, //
-    DwBq5().a, DiBOq5().a, DiBqOq5().a, //
+    DwBq0().a, DiBqOq0().a, DwBq1().a, //
+    DiBqOq1().a, DwBq2().a, DiBqOq2().a, DwBq3().a, //
+    DiBqOq3().a, DwBq4().a, DiBqOq4().a, //
+    DwBq5().a, DiBqOq5().a, //
   ];
 
   // Verify that some classes have a legacy signature.

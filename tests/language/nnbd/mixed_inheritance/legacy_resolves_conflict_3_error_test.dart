@@ -17,7 +17,215 @@
 // and similarly for other receiver types, but this test would then fail
 // to have the corresponding compile-time errors.
 
+import 'legacy_resolves_conflict_3_legacy_lib.dart';
+import 'legacy_resolves_conflict_3_lib.dart';
 import 'legacy_resolves_conflict_3_lib2.dart';
+
+// Naming conventions: Please consult 'legacy_resolves_conflict_3_lib2.dart'.
+
+class DiBqO0 implements C0, Bq {
+  List<int Function(int)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int Function(int)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int Function(int) m(int Function(int) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBOq0 implements C0, B {
+  List<int? Function(int?)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int? Function(int?)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int? Function(int?) m(int? Function(int?) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBqO1 implements C1, Bq {
+  List<int Function(int)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int Function(int)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int Function(int) m(int Function(int) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBOq1 implements C1, B {
+  List<int? Function(int?)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int? Function(int?)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int? Function(int?) m(int? Function(int?) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBqO2 implements C2, Bq {
+  List<int Function(int)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int Function(int)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int Function(int) m(int Function(int) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBOq2 implements C2, B {
+  List<int? Function(int?)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int? Function(int?)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int? Function(int?) m(int? Function(int?) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBqO3 implements C3, Bq {
+  List<int Function(int)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int Function(int)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int Function(int) m(int Function(int) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBOq3 implements C3, B {
+  List<int? Function(int?)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int? Function(int?)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int? Function(int?) m(int? Function(int?) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBqO4 implements C4, Bq {
+  List<int Function(int)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int Function(int)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int Function(int) m(int Function(int) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBOq4 implements C4, B {
+  List<int? Function(int?)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int? Function(int?)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int? Function(int?) m(int? Function(int?) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBqO5 implements C5, Bq {
+  List<int Function(int)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int Function(int)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int Function(int) m(int Function(int) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
+
+class DiBOq5 implements C5, B {
+  List<int? Function(int?)> get a => [];
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  set a(List<int? Function(int?)> _) {}
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+  int? Function(int?) m(int? Function(int?) x) => x;
+//^
+// [analyzer] unspecified
+// [cfe] unspecified
+}
 
 void main() {
   // Verify that some classes have a signature which is not as in `Bq`.
@@ -32,11 +240,6 @@ void main() {
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
-    DiBqO0().a,
-//  ^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
     DwB1().a,
 //  ^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -44,11 +247,6 @@ void main() {
 
     DiBO1().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
-    DiBqO1().a,
-//  ^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
@@ -62,11 +260,6 @@ void main() {
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
-    DiBqO2().a,
-//  ^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
     DwB3().a,
 //  ^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -74,11 +267,6 @@ void main() {
 
     DiBO3().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
-    DiBqO3().a,
-//  ^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
@@ -92,11 +280,6 @@ void main() {
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
-    DiBqO4().a,
-//  ^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
     DwB5().a,
 //  ^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -106,21 +289,11 @@ void main() {
 //  ^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
-
-    DiBqO5().a,
-//  ^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
   ];
 
   // Verify that some classes have a signature which is not as in `B`.
   List<List<int Function(int)>> xsB = [
     DwBq0().a,
-//  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
-    DiBOq0().a,
 //  ^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
@@ -135,22 +308,12 @@ void main() {
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
-    DiBOq1().a,
-//  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
     DiBqOq1().a,
 //  ^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwBq2().a,
-//  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
-    DiBOq2().a,
 //  ^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
@@ -165,11 +328,6 @@ void main() {
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
-    DiBOq3().a,
-//  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
     DiBqOq3().a,
 //  ^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -180,22 +338,12 @@ void main() {
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
-    DiBOq4().a,
-//  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
     DiBqOq4().a,
 //  ^^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwBq5().a,
-//  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-// [cfe] unspecified
-
-    DiBOq5().a,
 //  ^^^^^^^^^
 // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
