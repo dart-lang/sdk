@@ -20,10 +20,10 @@ GOMA_RBE = {
     "use_luci_auth": True
 }
 
-RELEASE_CHANNELS = ["dev", "stable"]
+RELEASE_CHANNELS = ["beta", "dev", "stable"]
 CHANNELS = RELEASE_CHANNELS + ["try"]
 ANALYZER_CHANNELS = ["analyzer-stable"] + CHANNELS
-BRANCHES = ["master", "dev", "stable"]
+BRANCHES = ["master"] + RELEASE_CHANNELS
 
 TEST_PY_PATHS = "pkg/(async_helper|expect|smith|status_file|test_runner)/.+"
 
@@ -160,6 +160,14 @@ luci.console_view(
 )
 
 luci.console_view(
+    name="beta",
+    repo="https://dart.googlesource.com/sdk",
+    title="SDK Beta Console",
+    refs=["refs/heads/beta"],
+    header="console-header.textpb",
+)
+
+luci.console_view(
     name="stable",
     repo="https://dart.googlesource.com/sdk",
     title="SDK Stable Console",
@@ -281,7 +289,8 @@ luci.cq(
 
 luci.cq_group(
     name="sdk",
-    watch=cq.refset(DART_GERRIT, refs=["refs/heads/.+"]),
+    watch=cq.refset(
+        DART_GERRIT, refs=["refs/heads/%s" % branch for branch in BRANCHES]),
     allow_submit_with_open_deps=True,
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
@@ -401,8 +410,8 @@ def dart_builder(name,
                 triggered_by = [
                     trigger.replace("%s", branch) for trigger in triggered_by
                 ]
-                if channel in ["dev", "stable"]:
-                    # Always run vm builders on dev and stable.
+                if channel in RELEASE_CHANNELS:
+                    # Always run vm builders on release channels.
                     triggered_by = [
                         trigger.replace("dart-vm-", "dart-")
                         for trigger in triggered_by
@@ -521,7 +530,7 @@ dart_vm_extra_builder(
 dart_vm_extra_builder(
     "vm-kernel-nnbd-linux-release-x64", category="vm|nnbd|r", on_cq=True)
 dart_vm_extra_builder(
-    "vm-kernel-precomp-nnbd-linux-release-x64", category="vm|nnbd|r")
+    "vm-kernel-precomp-nnbd-linux-release-x64", category="vm|nnbd|pr")
 
 # vm|app-kernel
 dart_vm_extra_builder(
