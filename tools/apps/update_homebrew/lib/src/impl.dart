@@ -27,19 +27,28 @@ Future<String> _getHash256(
 
 Future<void> _updateFormula(String channel, File file, String version,
     Map<String, String> hashes) async {
+  var contents = await file.readAsString();
+
+  // Replace the version identifier. Formulas with stable and pre-release
+  // versions have multiple identifiers and only the right one should be
+  // updated.
+  var versionId = channel == 'stable'
+      ? RegExp(r'version \"\d+\.\d+.\d+\"')
+      : RegExp(r'version \"\d+\.\d+.\d+\-.+\"');
+  contents = contents.replaceAll(versionId, 'version "$version"');
+
   // Extract files and hashes that are stored in the formula in this format:
   //  url "<url base>/<channel>/release/<version>/sdk/<artifact>.zip"
   //  sha256 "<hash>"
   var filesAndHashes = RegExp(
-      'channels/$channel/release' +
-          r'/(\d[\w\d\-\.]*)/sdk/([\w\d\-\.]+)\"\n(\s+)sha256 \"[\da-f]+\"',
+      'channels/$channel/release'
+      r'/(\d[\w\d\-\.]*)/sdk/([\w\d\-\.]+)\"\n(\s+)sha256 \"[\da-f]+\"',
       multiLine: true);
-  var contents = await file.readAsString();
   contents = contents.replaceAllMapped(filesAndHashes, (m) {
     var currentVersion = m.group(1);
     if (currentVersion == version) {
       throw new ArgumentError(
-          "Channel $channel is already at version $version in homebrew.");
+          'Channel $channel is already at version $version in homebrew.');
     }
     var artifact = m.group(2);
     var indent = m.group(3);
