@@ -29,8 +29,10 @@ main() {
   // First spawn an isolate using spawnURI and have it
   // send back a "non-literal" like object.
   asyncStart();
-  Isolate.spawnUri(Uri.parse('issue_21398_child_isolate.dart'), [],
-      [new FromMainIsolate(), receive1.sendPort]).catchError((error) {
+  Future<Isolate?>.value(Isolate.spawnUri(
+      Uri.parse('issue_21398_child_isolate.dart'),
+      [],
+      [new FromMainIsolate(), receive1.sendPort])).catchError((error) {
     Expect.isTrue(error is ArgumentError);
     asyncEnd();
   });
