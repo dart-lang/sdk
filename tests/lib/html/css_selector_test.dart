@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:html';
 
 import 'package:expect/expect.dart';
@@ -25,24 +23,24 @@ main() {
 
   final elements =
       new Element.html(htmlPayload, treeSanitizer: new NullTreeSanitizer());
-  document.body.nodes.add(elements);
+  document.body!.nodes.add(elements);
 
-  var para = document.body.querySelector('p') as ParagraphElement;
+  var para = document.body!.querySelector('p') as ParagraphElement;
   para.classes.removeAll(['a', 'b']);
 
-  para = document.body.querySelector('p') as ParagraphElement;
+  para = document.body!.querySelector('p') as ParagraphElement;
   Expect.equals('<p class=""><span>Test #1</span></p>', para.outerHtml);
 
-  para = document.body.querySelector('p') as ParagraphElement;
+  para = document.body!.querySelector('p') as ParagraphElement;
   para.classes.addAll(['c']);
 
-  para = document.body.querySelector('p') as ParagraphElement;
+  para = document.body!.querySelector('p') as ParagraphElement;
   Expect.equals('<p class="c"><span>Test #1</span></p>', para.outerHtml);
 
-  var allPara = document.body.querySelectorAll('p');
+  var allPara = document.body!.querySelectorAll('p');
   allPara.classes.removeAll(['b', 'c']);
 
-  var checkAllPara = document.body.querySelectorAll('p');
+  var checkAllPara = document.body!.querySelectorAll('p');
   Expect.equals(
       '<p class=""><span>Test #1</span></p>', checkAllPara[0].outerHtml);
   Expect.equals(

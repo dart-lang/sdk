@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library CssStyleDeclarationTest;
 
 import 'dart:async';
@@ -79,7 +77,7 @@ main() {
   test('Browser prefixes', () {
     var element = new DivElement();
     element.style.transform = 'translateX(10px)';
-    document.body.children.add(element);
+    document.body!.children.add(element);
 
     var style = element.getComputedStyle();
     // Some browsers will normalize this, so it'll be a matrix rather than
@@ -90,7 +88,7 @@ main() {
   // IE9 requires an extra poke for some properties to get applied.
   test('IE9 Invalidation', () {
     var element = new DivElement();
-    document.body.children.add(element);
+    document.body!.children.add(element);
 
     // Need to wait one tick after the element has been added to the page.
     new Timer(const Duration(milliseconds: 10), expectAsync(() {
@@ -114,7 +112,7 @@ main() {
         '<li class="baz classy" style="background-color: blue; ">'
         '</ul>',
         treeSanitizer: new NullTreeSanitizer());
-    document.documentElement.children.add(listElement);
+    document.documentElement!.children.add(listElement);
 
     var elements = document.querySelectorAll('li');
     expect(elements.style.backgroundColor, equals('red'));
@@ -134,7 +132,7 @@ main() {
         '<li class="baz" id="wat" style="background-color: blue; ">'
         '</ul>',
         treeSanitizer: new NullTreeSanitizer());
-    document.documentElement.children.add(listElement);
+    document.documentElement!.children.add(listElement);
 
     var elements = document.querySelectorAll('li');
     elements.style.backgroundColor = 'green';
@@ -159,9 +157,9 @@ main() {
   });
 
   test('supports property', () {
-    expect(document.body.style.supportsProperty('bogus-property'), false);
-    expect(document.body.style.supportsProperty('background'), true);
-    expect(document.body.style.supportsProperty('borderBottomWidth'), true);
-    expect(document.body.style.supportsProperty('animation'), true);
+    expect(document.body!.style.supportsProperty('bogus-property'), false);
+    expect(document.body!.style.supportsProperty('background'), true);
+    expect(document.body!.style.supportsProperty('borderBottomWidth'), true);
+    expect(document.body!.style.supportsProperty('animation'), true);
   });
 }
