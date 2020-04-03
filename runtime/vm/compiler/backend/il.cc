@@ -4319,6 +4319,27 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
   SetInputAt(1, right);
 }
 
+Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                 BranchLabels labels) {
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+  Condition true_condition;
+  if (left.IsConstant()) {
+    true_condition = EmitComparisonCodeRegConstant(
+        compiler, labels, right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    true_condition = EmitComparisonCodeRegConstant(compiler, labels, left.reg(),
+                                                   right.constant());
+  } else {
+    true_condition = compiler->EmitEqualityRegRegCompare(
+        left.reg(), right.reg(), needs_number_check(), token_pos(), deopt_id());
+  }
+  return true_condition != kInvalidCondition && (kind() != Token::kEQ_STRICT)
+             ? InvertCondition(true_condition)
+             : true_condition;
+}
+
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;

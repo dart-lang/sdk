@@ -280,38 +280,6 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
-static Condition NegateCondition(Condition condition) {
-  switch (condition) {
-    case EQUAL:
-      return NOT_EQUAL;
-    case NOT_EQUAL:
-      return EQUAL;
-    case LESS:
-      return GREATER_EQUAL;
-    case LESS_EQUAL:
-      return GREATER;
-    case GREATER:
-      return LESS_EQUAL;
-    case GREATER_EQUAL:
-      return LESS;
-    case BELOW:
-      return ABOVE_EQUAL;
-    case BELOW_EQUAL:
-      return ABOVE;
-    case ABOVE:
-      return BELOW_EQUAL;
-    case ABOVE_EQUAL:
-      return BELOW;
-    case PARITY_EVEN:
-      return PARITY_ODD;
-    case PARITY_ODD:
-      return PARITY_EVEN;
-    default:
-      UNIMPLEMENTED();
-      return EQUAL;
-  }
-}
-
 // Detect pattern when one value is zero and another is a power of 2.
 static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
   return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
@@ -339,7 +307,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // the labels or returning an invalid condition.
   BranchLabels labels = {NULL, NULL, NULL};
   Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
-  ASSERT(true_condition != INVALID_CONDITION);
+  ASSERT(true_condition != kInvalidCondition);
 
   const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
 
@@ -349,7 +317,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_power_of_two_kind) {
     if (true_value == 0) {
       // We need to have zero in RDX on true_condition.
-      true_condition = NegateCondition(true_condition);
+      true_condition = InvertCondition(true_condition);
     }
   } else {
     if (true_value == 0) {
@@ -358,7 +326,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       true_value = false_value;
       false_value = temp;
     } else {
-      true_condition = NegateCondition(true_condition);
+      true_condition = InvertCondition(true_condition);
     }
   }
 
@@ -733,7 +701,7 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
     __ j(true_condition, labels.true_label);
   } else {
     // If the next block is not the false successor, branch to it.
-    Condition false_condition = NegateCondition(true_condition);
+    Condition false_condition = InvertCondition(true_condition);
     __ j(false_condition, labels.false_label);
 
     // Fall through or jump to the true successor.
@@ -830,7 +798,7 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label is_true, is_false;
   BranchLabels labels = {&is_true, &is_false, &is_false};
   Condition true_condition = EmitComparisonCode(compiler, labels);
-  if (true_condition != INVALID_CONDITION) {
+  if (true_condition != kInvalidCondition) {
     EmitBranchOnCondition(compiler, true_condition, labels);
   }
 
@@ -848,7 +816,7 @@ void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                      BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
-  if (true_condition != INVALID_CONDITION) {
+  if (true_condition != kInvalidCondition) {
     EmitBranchOnCondition(compiler, true_condition, labels);
   }
 }
@@ -932,7 +900,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
   // Dummy result as this method already did the jump, there's no need
   // for the caller to branch on a condition.
-  return INVALID_CONDITION;
+  return kInvalidCondition;
 }
 
 LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
@@ -3534,7 +3502,7 @@ void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
   Condition true_condition = EmitComparisonCode(compiler, labels);
-  ASSERT(true_condition != INVALID_CONDITION);
+  ASSERT(true_condition != kInvalidCondition);
   EmitBranchOnCondition(compiler, true_condition, labels);
   // No need to bind slow_path->exit_label() as slow path exits through
   // true/false branch labels.
@@ -3555,7 +3523,7 @@ void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
   Condition true_condition = EmitComparisonCode(compiler, labels);
-  ASSERT(true_condition != INVALID_CONDITION);
+  ASSERT(true_condition != kInvalidCondition);
   EmitBranchOnCondition(compiler, true_condition, labels);
   Register result = locs()->out(0).reg();
   __ Bind(false_label);
@@ -5649,8 +5617,8 @@ void CheckConditionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnknown);
   BranchLabels labels = {&if_true, if_false, &if_true};
   Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
-  if (true_condition != INVALID_CONDITION) {
-    __ j(NegateCondition(true_condition), if_false);
+  if (true_condition != kInvalidCondition) {
+    __ j(InvertCondition(true_condition), if_false);
   }
   __ Bind(&if_true);
 }
@@ -6701,29 +6669,13 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                                 BranchLabels labels) {
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
-  Condition true_condition;
-  if (left.IsConstant()) {
-    true_condition = compiler->EmitEqualityRegConstCompare(
-        right.reg(), left.constant(), needs_number_check(), token_pos(),
-        deopt_id_);
-  } else if (right.IsConstant()) {
-    true_condition = compiler->EmitEqualityRegConstCompare(
-        left.reg(), right.constant(), needs_number_check(), token_pos(),
-        deopt_id_);
-  } else {
-    true_condition = compiler->EmitEqualityRegRegCompare(
-        left.reg(), right.reg(), needs_number_check(), token_pos(), deopt_id_);
-  }
-  if (kind() != Token::kEQ_STRICT) {
-    ASSERT(kind() == Token::kNE_STRICT);
-    true_condition = NegateCondition(true_condition);
-  }
-  return true_condition;
+Condition StrictCompareInstr::EmitComparisonCodeRegConstant(
+    FlowGraphCompiler* compiler,
+    BranchLabels labels,
+    Register reg,
+    const Object& obj) {
+  return compiler->EmitEqualityRegConstCompare(reg, obj, needs_number_check(),
+                                               token_pos(), deopt_id());
 }
 
 LocationSummary* DispatchTableCallInstr::MakeLocationSummary(Zone* zone,

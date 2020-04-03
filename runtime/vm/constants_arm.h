@@ -493,6 +493,20 @@ enum Condition {
   kInvalidCondition = 16
 };
 
+static inline Condition InvertCondition(Condition c) {
+  COMPILE_ASSERT((EQ ^ NE) == 1);
+  COMPILE_ASSERT((CS ^ CC) == 1);
+  COMPILE_ASSERT((MI ^ PL) == 1);
+  COMPILE_ASSERT((VS ^ VC) == 1);
+  COMPILE_ASSERT((HI ^ LS) == 1);
+  COMPILE_ASSERT((GE ^ LT) == 1);
+  COMPILE_ASSERT((GT ^ LE) == 1);
+  ASSERT(c != AL);
+  ASSERT(c != kSpecialCondition);
+  ASSERT(c != kInvalidCondition);
+  return static_cast<Condition>(i ^ 1);
+}
+
 // Opcodes for Data-processing instructions (instructions with a type 0 and 1)
 // as defined in section A3.4
 enum Opcode {
