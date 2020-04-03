@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library fileapi;
 
 import 'dart:async';
@@ -18,12 +16,11 @@ class FileAndDir {
   FileAndDir(this.file, this.dir);
 }
 
-FileSystem fs;
+late FileSystem fs;
 
 main() async {
   getFileSystem() async {
-    var fileSystem = await window.requestFileSystem(100);
-    fs = fileSystem;
+    fs = await window.requestFileSystem(100);
   }
 
   if (FileSystem.supported) {
