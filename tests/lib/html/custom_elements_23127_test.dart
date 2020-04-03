@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Regression test for http://dartbug.com/23127
 // Tests super calls to a custom element upgrade constructor with various
 // combinations of parameters and type arguments.
@@ -55,7 +53,7 @@ abstract class B2T<T> extends HtmlElement {
 }
 
 class C1 extends B1 {
-  int z;
+  int z = 0;
   C1.created() : super.created();
   action() {
     z = 3;
@@ -63,7 +61,7 @@ class C1 extends B1 {
 }
 
 class C1T extends B1T {
-  int z;
+  int z = 0;
   C1T.created() : super.created();
   action() {
     z = 3;
@@ -71,7 +69,7 @@ class C1T extends B1T {
 }
 
 class C2 extends B2 {
-  int z;
+  int z = 0;
   C2.created() : super.created(20);
   action() {
     z = 3;
@@ -79,7 +77,7 @@ class C2 extends B2 {
 }
 
 class C2T extends B2T {
-  int z;
+  int z = 0;
   C2T.created() : super.created(20);
   action() {
     z = 3;
@@ -99,7 +97,7 @@ main() async {
   group('baseline', () {
     test('C1', () {
       document.register('x-c1', C1);
-      C1 e = document.createElement('x-c1');
+      C1 e = document.createElement('x-c1') as C1;
       expect(e.z, 3);
     });
   });
@@ -107,7 +105,7 @@ main() async {
   group('c1t', () {
     test('C1T', () {
       document.register('x-c1t', C1T);
-      C1T e = document.createElement('x-c1t');
+      C1T e = document.createElement('x-c1t') as C1T;
       expect(e.z, 3);
       expect(e.qq, true);
     });
@@ -116,7 +114,7 @@ main() async {
   group('c2', () {
     test('C2', () {
       document.register('x-c2', C2);
-      C2 e = document.createElement('x-c2');
+      C2 e = document.createElement('x-c2') as C2;
       expect(e.z, 3);
       expect(e.qq, [88, 22, 4, 3]);
     });
@@ -125,7 +123,7 @@ main() async {
   group('c2t', () {
     test('C2T', () {
       document.register('x-c2t', C2T);
-      C2T e = document.createElement('x-c2t');
+      C2T e = document.createElement('x-c2t') as C2T;
       expect(e.z, 3);
       expect(e.qq, [true, 88, 22, 4, 3]);
     });

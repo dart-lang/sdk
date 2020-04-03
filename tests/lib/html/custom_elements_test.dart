@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library custom_elements_test;
 
 import 'dart:async';
@@ -22,7 +20,6 @@ class CustomMixin {
 class CustomType extends HtmlElement with CustomMixin {
   bool createdCalled = false;
 
-  factory CustomType() => null;
   CustomType.created() : super.created() {
     createdCalled = true;
     customCreatedCount++;
@@ -67,12 +64,6 @@ main() async {
       var element = new Element.tag(newTag) as CustomType;
       expect(element, isNotNull);
       expect(element is CustomType, isTrue);
-    });
-
-    test('register null', () {
-      expect(() {
-        document.registerElement(nextTag, null);
-      }, throws, reason: 'Cannot register a null type.');
     });
 
     test('register native', () {
@@ -137,7 +128,7 @@ main() async {
       element.setInnerHtml('<$tag></$tag>',
           treeSanitizer: new NullTreeSanitizer());
       upgradeCustomElements(element);
-      document.body.nodes.add(element);
+      document.body!.nodes.add(element);
       var queried = querySelector(tag) as CustomType;
 
       expect(queried, isNotNull);
@@ -152,7 +143,7 @@ main() async {
       element.setInnerHtml('<$tag id="someid"></$tag>',
           treeSanitizer: new NullTreeSanitizer());
       upgradeCustomElements(element);
-      document.body.nodes.add(element);
+      document.body!.nodes.add(element);
       var queried = querySelector('#someid') as CustomType;
 
       expect(queried, isNotNull);
@@ -170,7 +161,7 @@ main() async {
       element.setInnerHtml('<$tag></$tag>',
           treeSanitizer: new NullTreeSanitizer());
       upgradeCustomElements(element);
-      document.body.nodes.add(element);
+      document.body!.nodes.add(element);
       expect(customCreatedCount, oldCount + 1);
     });
   });
