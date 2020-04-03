@@ -30,7 +30,11 @@ PrefixHintComment getPrefixHint(Token token) {
       if (nextComment == null) break;
       commentToken = nextComment;
     }
-    if (commentToken.lexeme == '/*late*/') return PrefixHintComment.late_;
+    var lexeme = commentToken.lexeme;
+    if (lexeme.startsWith('/*') && lexeme.endsWith('*/') && lexeme.length > 4) {
+      var commentText = lexeme.substring(2, lexeme.length - 2).trim();
+      if (commentText == 'late') return PrefixHintComment.late_;
+    }
   }
   return PrefixHintComment.none;
 }
