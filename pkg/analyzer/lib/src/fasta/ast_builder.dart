@@ -699,6 +699,8 @@ class AstBuilder extends StackListener {
       prefixOrName = name.prefix;
       period = name.period;
       nameOrNull = name.identifier;
+    } else if (name is _OperatorName) {
+      prefixOrName = name.name;
     } else {
       throw UnimplementedError(
           'name is an instance of ${name.runtimeType} in endClassConstructor');
