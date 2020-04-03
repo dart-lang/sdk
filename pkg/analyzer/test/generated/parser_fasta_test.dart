@@ -163,6 +163,17 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(invocation.argumentList.arguments, hasLength(0));
   }
 
+  void test_parseConstructor_operator_name() {
+    var unit = parseCompilationUnit('class A { operator/() : super(); }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 10, 8)
+        ]);
+    var classDeclaration = unit.declarations[0] as ClassDeclaration;
+    var constructor = classDeclaration.members[0] as ConstructorDeclaration;
+    var invocation = constructor.initializers[0] as SuperConstructorInvocation;
+    expect(invocation.argumentList.arguments, hasLength(0));
+  }
+
   void test_parseField_const_late() {
     createParser('const late T f = 0;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
