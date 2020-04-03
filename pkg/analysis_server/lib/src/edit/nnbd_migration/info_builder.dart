@@ -459,12 +459,8 @@ class InfoBuilder {
         //  associated with a parameter and insert an assert if it is.
         edits.add(EditDetail('Force null check.', offset, 0, '/*!*/'));
         break;
-      case NullabilityFixKind.discardCondition:
-      case NullabilityFixKind.discardElse:
-      case NullabilityFixKind.discardIf:
-      case NullabilityFixKind.discardThen:
       case NullabilityFixKind.removeAs:
-      case NullabilityFixKind.removeNullAwareness:
+      case NullabilityFixKind.removeDeadCode:
       case NullabilityFixKind.removeLanguageVersionComment:
         // There's no need for hints around code that is being removed.
         break;
