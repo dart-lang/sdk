@@ -917,6 +917,9 @@ void Precompiler::AddType(const AbstractType& abstype) {
     const AbstractType& type =
         AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
     AddType(type);
+    const auto& function = Function::Handle(
+        Z, TypeParameter::Cast(abstype).parameterized_function());
+    AddTypesOf(function);
     const Class& cls =
         Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
     AddTypesOf(cls);

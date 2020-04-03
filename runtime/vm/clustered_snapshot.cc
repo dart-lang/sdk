@@ -150,6 +150,8 @@ class ClassSerializationCluster : public SerializationCluster {
     RawClass* cls = Class::RawCast(object);
     intptr_t class_id = cls->ptr()->id_;
 
+    // Classes expected to be dropped by the precompiler should not be traced.
+    ASSERT(class_id != kIllegalCid);
     if (class_id < kNumPredefinedCids) {
       // These classes are allocated by Object::Init or Object::InitOnce, so the
       // deserializer must find them in the class table instead of allocating
